@@ -1,0 +1,4 @@
+[run]
+source = immersionlyceens/
+omit = immersionlyceens/settings/*
+       immersionlyceens/wsgi.py
