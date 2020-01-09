@@ -1,4 +1,9 @@
-<!DOCTYPE html> {% load static %} {% load staticfiles %}
+<!DOCTYPE html> 
+{% load static %}
+{% load staticfiles %}
+{% load i18n %}
+{% load hijack_tags %}
+{% load immersionlyceens_tags %}
 <html>
 
 <head>
@@ -8,41 +13,34 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="author" content='Direction du Numérique - Université de Strasbourg' />
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}" type="text/css" title="no title" charset="utf-8" /> {% block head-javascript %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}" type="text/css" title="no title" charset="utf-8" />
+    {% block head-css %}{% endblock %}
+    {% block head-javascript %}{% endblock %}
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">
-            <img src="{% static 'img/unistra-white.png'%}" class="d-inline-block align-top" alt=""> Immersion Lyc&eacute;ens</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'admin:index' %}">
-                    Admin
-                </a>
-                </li>
-            </ul>
+    {% hijack_notification %}
+    {% include './fragments/main_menu.html'%}
+    {% if messages %}
+    <div class="container">
+        {% for message in messages %}
+        {% get_bootstrap_alert_msg_css_name message.tags as alert_tag %}
+        <div class="messages{% if alert_tag %} alert alert-{{ alert_tag }}{% endif %} alert-dismissible">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            {{ message|safe }}
         </div>
-    </nav>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="container">
         {% block content %}{% endblock %}
     </div>
-    <div class="navbar navbar-default fixed-bottom bg-light">
-        <footer>
-            <div class="container">
-                <p class="credit">&copy; Direction du Num&eacute;rique - Universit&eacute; de Strasbourg - {% now "Y" %}</p>
-            </div>
-        </footer>
-    </div>
+
+    {% include './fragments/main_footer.html' %}
+    {% include './modals/modal_credits.html'%}
+    {% include './modals/modal_legal.html'%}
     <script src="{% static 'js/jquery-3.4.1.slim.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     {% block foot-javascript %}{% endblock %}

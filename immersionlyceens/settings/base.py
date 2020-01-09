@@ -223,7 +223,11 @@ DJANGO_APPS = [
     # 'django.contrib.admindocs',
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    'hijack',
+    'compat',
+    'hijack_admin',
+]
 
 LOCAL_APPS = [
     'immersionlyceens',
@@ -304,3 +308,14 @@ LOGGING = {
         }
     }
 }
+
+#################
+# Django hijack #
+#################
+# Bootstrap notification bar that does not overlap with the default navbar.
+HIJACK_USE_BOOTSTRAP = True
+# Where admins are redirected to after hijacking a user
+HIJACK_LOGIN_REDIRECT_URL = '/'
+# Where admins are redirected to after releasing a user
+HIJACK_LOGOUT_REDIRECT_URL = '/admin/auth/user/'
+HIJACK_ALLOW_GET_REQUESTS = True
