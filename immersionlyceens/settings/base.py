@@ -2,7 +2,6 @@
 
 from os.path import abspath, basename, dirname, join, normpath
 
-
 ######################
 # Path configuration #
 ######################
@@ -141,13 +140,6 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
-
-
-############
-# Dipstrap #
-############
-
-DIPSTRAP_STATIC_URL = '//django-static.u-strasbg.fr/dipstrap/'
 
 
 ##############

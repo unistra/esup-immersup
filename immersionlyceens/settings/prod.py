@@ -5,7 +5,6 @@ from os.path import normpath
 
 from .base import *
 
-
 ##########################
 # Database configuration #
 ##########################
@@ -39,11 +38,3 @@ LOGGING['handlers']['file']['filename'] = '{{ remote_current_path }}/log/app.log
 ##############
 
 SECRET_KEY = '{{ secret_key }}'
-
-
-############
-# Dipstrap #
-############
-
-DIPSTRAP_VERSION = '{{ dipstrap_version }}'
-DIPSTRAP_STATIC_URL += '%s/' % DIPSTRAP_VERSION
