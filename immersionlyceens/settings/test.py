@@ -16,8 +16,10 @@ DEBUG = True
 # Database configuration #
 ##########################
 
-DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
-DATABASES['default']['NAME'] = normpath(join(dirname(dirname(SITE_ROOT)), 'shared/default.db'))
+DATABASES['default']['HOST'] = '{{ default_db_host }}'
+DATABASES['default']['USER'] = '{{ default_db_user }}'
+DATABASES['default']['PASSWORD'] = '{{ default_db_password }}'
+DATABASES['default']['NAME'] = '{{ default_db_name }}'
 
 ############################
 # Allowed hosts & Security #
