@@ -12,6 +12,8 @@ urlpatterns = [
     # path('app/', include('apps.app.urls')),
 
     path('admin/', admin.site.urls),
+    path('accounts/', include('django_cas.urls', namespace='django_cas')),
+    path('hijack/', include('hijack.urls', namespace='hijack')),
 ]
 
 # debug toolbar for dev

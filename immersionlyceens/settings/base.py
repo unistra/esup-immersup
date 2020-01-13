@@ -189,8 +189,33 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_cas.middleware.CASMiddleware',
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'django_cas.backends.CASBackend',
+)
+
+######################
+#   Authentication   #
+######################
+
+AUTH_USER_MODEL = "core.ImmersionUser"
+
+
+#####################
+#       CAS         #
+#####################
+
+CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
+CAS_USER_CREATION = False
+CAS_IGNORE_REFERER = True
+CAS_REDIRECT_URL = '/'
+CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 #####################
 # Url configuration #
@@ -219,11 +244,13 @@ DJANGO_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    'django.contrib.admin'
+    'django.contrib.admin',
     # 'django.contrib.admindocs',
+    'django_cas',
 ]
 
 THIRD_PARTY_APPS = [
+    'django_extensions',
     'hijack',
     'compat',
     'hijack_admin',
@@ -320,3 +347,4 @@ HIJACK_LOGIN_REDIRECT_URL = '/'
 # Where admins are redirected to after releasing a user
 HIJACK_LOGOUT_REDIRECT_URL = '/admin/auth/user/'
 HIJACK_ALLOW_GET_REQUESTS = True
+HIJACK_REGISTER_ADMIN = False
