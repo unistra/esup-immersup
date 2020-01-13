@@ -1,0 +1,22 @@
+
+stages:
+  - test
+
+services:
+  - postgres:9.5
+
+variables:
+  POSTGRES_DB: immersionlyceens
+  POSTGRES_USER: immersionlyceens
+  POSTGRES_PASSWORD: immersionlyceens
+
+before_script:
+  - apt-get update && apt-get install -y build-essential
+
+unittest:
+  stage: test
+  tags: 
+    - python3.6
+  script:
+    - pip3 install tox
+    - tox
