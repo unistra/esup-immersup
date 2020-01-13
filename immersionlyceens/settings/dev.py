@@ -24,11 +24,19 @@ DEBUG = True
 # engine : sqlite3
 # name : PROJECT_ROOT_DIR/default.db
 
-DATABASES['default']['HOST'] = environ.get('DEFAULT_DB_HOST', 'localhost')
-DATABASES['default']['USER'] = environ.get('DEFAULT_DB_USER', '')
-DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', '')
-DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', '')
-DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
+# DATABASES['default']['HOST'] = environ.get('DEFAULT_DB_HOST', 'localhost')
+# DATABASES['default']['USER'] = environ.get('DEFAULT_DB_USER', '')
+# DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', '')
+# DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', '')
+# DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db.sqlite3',
+    }
+}
+
 
 ############################
 # Allowed hosts & Security #
