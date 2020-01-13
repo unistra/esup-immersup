@@ -6,25 +6,23 @@ from .models import (
     CourseDomain, ImmersionUser
 )
 
-
+from .admin_forms import (
+    CourseDomainForm
+)
 
 class CourseDomainAdmin(admin.ModelAdmin):
+    form = CourseDomainForm
     list_display = ('label', 'active')
+    
+    def get_form(self, request, obj=None, **kwargs):
+        AdminForm = super().get_form(request, obj, **kwargs)
 
-    def has_module_permission(self, request):
-        return True
+        class AdminFormWithRequest(AdminForm):
+            def __new__(cls, *args, **kwargs):
+                kwargs['request'] = request
+                return AdminForm(*args, **kwargs)
 
-    def has_view_permission(self, request, obj=None):
-        return True
-
-    def has_add_permission(self, request, obj=None):
-        return request.user.is_scuio_ip_manager()
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_scuio_ip_manager()
-
-    def has_update_permission(self, request, obj=None):
-        return request.user.is_scuio_ip_manager()
+        return AdminFormWithRequest
 
 
 class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
