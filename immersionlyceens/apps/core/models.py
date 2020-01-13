@@ -55,3 +55,20 @@ class CourseDomain(models.Model):
     def __str__(self):
         return self.label
 
+
+class BachelorMention(models.Model):
+    """
+    bachelor degree mentions
+    """
+
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Bachelor mention')
+        verbose_name_plural = _('Bachelor mentions')
+
+    def __str__(self):
+        """str"""
+        return self.label
