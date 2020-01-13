@@ -3,6 +3,7 @@ from functools import partial
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
@@ -64,3 +65,9 @@ class Campus(models.Model):
 
     def __str__(self):
         return self.label
+
+    def validate_unique(self, exclude=None):
+        try:
+            super(Campus, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A campus with this label exists'))
