@@ -2,6 +2,8 @@
 
 from os.path import abspath, basename, dirname, join, normpath
 
+from django.utils.translation import ugettext_lazy as _
+
 ######################
 # Path configuration #
 ######################
@@ -348,3 +350,12 @@ HIJACK_LOGIN_REDIRECT_URL = '/'
 HIJACK_LOGOUT_REDIRECT_URL = '/admin/auth/user/'
 HIJACK_ALLOW_GET_REQUESTS = True
 HIJACK_REGISTER_ADMIN = False
+
+
+#######################
+# Admin page settings #
+#######################
+
+ADMIN_SITE_HEADER = _('Immersion')
+ADMIN_SITE_TITLE = _('Immmersion Admin Page')
+ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
