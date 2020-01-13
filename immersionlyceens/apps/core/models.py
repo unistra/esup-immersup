@@ -89,3 +89,26 @@ class BachelorMention(models.Model):
     def __str__(self):
         """str"""
         return self.label
+
+        
+class Building(models.Model):
+    label = models.CharField(
+        _("Label"), max_length=255, blank=False, null=False)
+    campus = models.ForeignKey(
+        Campus, verbose_name=("Campus"), default=None, on_delete=models.CASCADE)
+    url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name= _('Building')
+        unique_together= ('campus', 'label')
+
+    def __str__(self):
+        # TODO: Should we display campus label as well (????)
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        try:
+            super(Building, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A building with this label for the same campus exists'))

@@ -2,9 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from hijack_admin.admin import HijackUserAdminMixin
 
-from .models import (
-    CourseDomain, ImmersionUser,
-    BachelorMention, Campus)
+from .models import (BachelorMention, Building, Campus, CourseDomain,
+                     ImmersionUser)
+
 
 class CourseDomainAdmin(admin.ModelAdmin):
     list_display = ('label', 'active')
@@ -58,6 +58,29 @@ class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
 
 class CampusAdmin(admin.ModelAdmin):
     list_display = ('label', 'active')
+    list_filter = ('active',)
+    search_fields = ('label',)
+
+    def has_module_permission(self, request):
+        return True
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+    def has_update_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+
+class BuildingAdmin(admin.ModelAdmin):
+    list_display = ('label', 'campus', 'url', 'active')
+    list_filter = ('campus', 'active')
+    search_fields = ('label',)
 
     def has_module_permission(self, request):
         return True
@@ -98,3 +121,4 @@ admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(CourseDomain, CourseDomainAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
+admin.site.register(Building, BuildingAdmin)
