@@ -1,13 +1,11 @@
 import logging
 from functools import partial
 
-from django.db import models
-
-from django.contrib.auth.models import Group
-from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.models import AbstractUser
-
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser, Group
+from django.db import models
+from django.utils.translation import pgettext
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -55,3 +53,14 @@ class CourseDomain(models.Model):
     def __str__(self):
         return self.label
 
+
+class Campus(models.Model):
+    label = models.CharField(_("Label"), max_length=255, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name = _('Campus')
+        verbose_name_plural = _('Campus')
+
+    def __str__(self):
+        return self.label
