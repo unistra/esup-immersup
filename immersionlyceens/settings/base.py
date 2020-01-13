@@ -231,6 +231,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'immersionlyceens',
+    'immersionlyceens.apps.core',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
