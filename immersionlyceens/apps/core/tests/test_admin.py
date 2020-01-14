@@ -8,9 +8,14 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase
 
-from ..admin import BuildingAdmin, CampusAdmin, CourseDomainAdmin
-from ..admin_forms import BuildingForm, CampusForm, CourseDomainForm
-from ..models import Building, Campus, CourseDomain
+from ..models import (
+    Building, Campus, TrainingDomain, TrainingSubdomain
+)
+
+from ..admin_forms import (
+    BuildingForm, CampusForm, TrainingDomainForm,
+    TrainingSubdomainForm
+)
 
 
 class MockRequest:
@@ -48,25 +53,52 @@ class AdminFormsTestCase(TestCase):
         Group.objects.get(name='REF-CMP').user_set.add(self.ref_cmp_user)
 
 
-    def test_course_domain_creation(self):
+    def test_training_domain_creation(self):
         """
-        Test admin CourseDomain creation with group rights
+        Test admin TrainingDomain creation with group rights
         """
         data = { 'label': 'test', 'active': True }
 
         request.user = self.scuio_user
 
-        form = CourseDomainForm(data=data, request=request)
+        form = TrainingDomainForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(CourseDomain.objects.filter(label='test').exists())
+        self.assertTrue(TrainingDomain.objects.filter(label='test').exists())
 
         # Validation fail (invalid user)        
         data = { 'label': 'test_fail', 'active': True }
         request.user = self.ref_cmp_user
-        form = CourseDomainForm(data=data, request=request)
+        form = TrainingDomainForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(CourseDomain.objects.filter(label='test_fail').exists())
+        self.assertFalse(TrainingDomain.objects.filter(label='test_fail').exists())
+
+
+    def test_training_sub_domain_creation(self):
+        """
+        Test admin TrainingDomain creation with group rights
+        """
+        domain_data = { 'label': 'test', 'active': True }
+        td = TrainingDomain.objects.create(**domain_data)
+
+        self.assertTrue(TrainingDomain.objects.filter(label='test').exists())
+
+        data = { 'label': 'sd test', 'training_domain':td.pk, 'active': True }
+
+        request.user = self.scuio_user
+
+        form = TrainingSubdomainForm(data=data, request=request)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(TrainingSubdomain.objects.filter(label='sd test').exists())
+
+        # Validation fail (invalid user)
+        data = { 'label': 'test_fail', 'training_domain':td, 'active': True }
+        request.user = self.ref_cmp_user
+        form = TrainingSubdomainForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(TrainingSubdomain.objects.filter(label='test_fail').exists())
 
     
     def test_campus_creation(self):

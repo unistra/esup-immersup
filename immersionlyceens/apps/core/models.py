@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class ImmersionUser(AbstractUser):
+    """
+    Main user class
+    """
     _user_filters = [
         lambda has_group, su: has_group or su,
         lambda has_group, su: has_group and not su
@@ -35,6 +38,15 @@ class ImmersionUser(AbstractUser):
                     partial(self.has_groups, code, negated=False))
 
     def has_groups(self, *groups, negated=False):
+        """
+        :param groups: group names to check
+        :param negated: boolean
+        :return:
+        - if negated is False, return True if User is superuser or to one of
+        groups, else False
+        - if negated is True, return True if User is NOT superuser and belongs
+        to one of groups, else False
+        """
         return self._user_filters[negated](
             self.is_superuser, self.groups.filter(name__in=groups).exists())
 
@@ -43,16 +55,51 @@ class ImmersionUser(AbstractUser):
         return Group.objects.filter(**user_filter)
 
 
-class CourseDomain(models.Model):
+class TrainingDomain(models.Model):
+    """
+    Training domain class
+    """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
-        verbose_name = _('Course domain')
-        verbose_name_plural = _('Course domains')
+        verbose_name = _('Training domain')
+        verbose_name_plural = _('Training domains')
 
     def __str__(self):
         return self.label
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A training domain with this label already exists'))
+
+
+class TrainingSubdomain(models.Model):
+    """
+    Training subdomain class
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    training_domain = models.ForeignKey(TrainingDomain, verbose_name=_("Training domain"),
+        default=None, blank=False, null=False, on_delete=models.CASCADE,
+        related_name='Subdomains')
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name = _('Training sub domain')
+        verbose_name_plural = _('Training sub domains')
+
+    def __str__(self):
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A training sub domain with this label already exists'))
 
 
 class Campus(models.Model):
