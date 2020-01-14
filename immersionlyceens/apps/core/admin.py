@@ -126,7 +126,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
 
-class CancelTypeAdmin(admin.ModelAdmin):
+class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
     list_display = ('label', 'active')
 
