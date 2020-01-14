@@ -90,6 +90,13 @@ class BachelorMention(models.Model):
         """str"""
         return self.label
 
+    def validate_unique(self, exclude=None):
+        try:
+            super(BachelorMention, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A bachelor mention with this label exists'))
+
+
         
 class Building(models.Model):
     label = models.CharField(
@@ -112,3 +119,28 @@ class Building(models.Model):
             super(Building, self).validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A building with this label for the same campus exists'))
+
+
+class CancelType(models.Model):
+    """
+    Cancel type
+    """
+
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Bachelor mention')
+        verbose_name_plural = _('Bachelor mentions')
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(CancelType, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A cancel type with this label exists'))

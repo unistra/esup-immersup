@@ -4,7 +4,7 @@ from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import CourseDomainForm
 from .models import (BachelorMention, Building, Campus, CourseDomain,
-                     ImmersionUser)
+                     ImmersionUser, CancelType)
 
 
 class CourseDomainAdmin(admin.ModelAdmin):
@@ -114,8 +114,28 @@ class BachelorMentionAdmin(admin.ModelAdmin):
         return request.user.is_scuio_ip_manager()
 
 
+class CancelTypeAdmin(admin.ModelAdmin):
+    list_display = ('label', 'active')
+
+    def has_module_permission(self, request):
+        return True
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+    def has_update_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(CourseDomain, CourseDomainAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)
+admin.site.register(CancelType, CancelTypeAdmin)
