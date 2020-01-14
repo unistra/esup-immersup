@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import BachelorMention, Building, Campus
+from ..models import BachelorMention, Building, Campus, CancelType, CourseType
 
 
 class CampusTestCase(TestCase):
@@ -31,4 +31,28 @@ class BachelorMentionTestCase(TestCase):
 
     def test_bachelor_mention_activated(self):
         o = BachelorMention.objects.create(label="Techo parade")
+        self.assertTrue(o.active)
+
+
+class CancelTypeTestCase(TestCase):
+
+    def test_cancel_type_str(self):
+        label = "Cancel type"
+        o = CancelType.objects.create(label=label)
+        self.assertEqual(str(o), label)
+
+    def test_cancel_type_activated(self):
+        o = CancelType.objects.create(label="Cancel type")
+        self.assertTrue(o.active)
+
+
+class CourseTypeTestCase(TestCase):
+
+    def test_course_type_str(self):
+        label = "course type"
+        o = CourseType.objects.create(label=label)
+        self.assertEqual(str(o), label)
+
+    def test_course_type_activated(self):
+        o = CourseType.objects.create(label="course type")
         self.assertTrue(o.active)
