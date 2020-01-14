@@ -59,6 +59,16 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingDomainForm
     list_display = ('label', 'active')
 
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and TrainingSubdomain.objects.filter(
+                training_domain=obj):
+            return False
+
+        return True
+
 
 class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingSubdomainForm
