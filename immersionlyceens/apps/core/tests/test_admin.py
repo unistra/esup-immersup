@@ -2,15 +2,16 @@
 Django Admin Forms tests suite
 """
 
+from django.conf import settings
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 
-from django.conf import settings
-from ..admin import CourseDomainAdmin
-from ..models import CourseDomain
-from ..admin_forms import CourseDomainForm
+from ..admin import BuildingAdmin, CampusAdmin, CourseDomainAdmin
+from ..admin_forms import BuildingForm, CampusForm, CourseDomainForm
+from ..models import Building, Campus, CourseDomain
+
 
 class MockRequest:
     pass
@@ -67,5 +68,48 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(CourseDomain.objects.filter(label='test_fail').exists())
 
-        
-        
+    
+    def test_campus_creation(self):
+        """
+        Test admin Campus creation with group rights
+        """
+
+        data = { 'label': 'testCampus', 'active': True }
+
+        request.user = self.scuio_user
+
+        form = CampusForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Campus.objects.filter(label='testCampus').exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_fail', 'active': True}
+        request.user = self.ref_cmp_user
+        form = CampusForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(Campus.objects.filter(
+            label='test_fail').exists())
+
+    def test_building_creation(self):
+        """
+        Test admin Campus creation with group rights
+        """
+
+        testCampus = Campus.objects.create(label='testCampus', active=True)
+        data = {'label': 'testBuilding', 'campus': testCampus.pk, 'url': 'https://www.building.com', 'active': True}
+
+        request.user = self.scuio_user
+
+        form = BuildingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Building.objects.filter(label='testBuilding').exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_fail', 'active': True}
+        request.user = self.ref_cmp_user
+        form = BuildingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(Building.objects.filter(
+            label='test_fail').exists())
