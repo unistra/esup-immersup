@@ -44,3 +44,6 @@ htmlcov/
 *.sublime-*
 .fab_tasks~
 *.db
+
+# vscode
+.vscode

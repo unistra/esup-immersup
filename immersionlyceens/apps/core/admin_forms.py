@@ -1,0 +1,32 @@
+from django import forms
+from django.utils.translation import ugettext_lazy as _
+
+from .models import (
+    CourseDomain, 
+)
+
+class CourseDomainForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request =  kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+            
+        if not valid_user:
+            raise forms.ValidationError(
+                _("Valid user required")
+            )        
+
+        return cleaned_data
+
+    class Meta:
+        model = CourseDomain
+        fields = '__all__'
