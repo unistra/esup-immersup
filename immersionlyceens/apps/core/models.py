@@ -131,8 +131,8 @@ class CancelType(models.Model):
 
     class Meta:
         """Meta class"""
-        verbose_name = _('Bachelor mention')
-        verbose_name_plural = _('Bachelor mentions')
+        verbose_name = _('Cancel type')
+        verbose_name_plural = _('Cancel type')
 
     def __str__(self):
         """str"""
