@@ -102,6 +102,31 @@ class TrainingSubdomain(models.Model):
                 _('A training sub domain with this label already exists'))
 
 
+class Component(models.Model):
+    """
+    Component class
+    """
+    code = models.CharField(_("Code"), max_length=16, unique=True)
+    label = models.CharField(_("Label"), max_length=128)
+    url = models.URLField(_("Website address"), max_length=256,
+        blank=True, null=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name = _('Component')
+        verbose_name_plural = _('Components')
+
+    def __str__(self):
+        return "%s : %s" % (self.code, self.label)
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A component with this code already exists'))
+
+
 class Campus(models.Model):
     label = models.CharField(_("Label"), max_length=255, unique=True)
     active = models.BooleanField(_("Active"), default=True)

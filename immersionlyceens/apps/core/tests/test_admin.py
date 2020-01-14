@@ -9,12 +9,13 @@ from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase
 
 from ..models import (
-    Building, Campus, TrainingDomain, TrainingSubdomain
+    Building, Campus, Component, TrainingDomain,
+    TrainingSubdomain
 )
 
 from ..admin_forms import (
-    BuildingForm, CampusForm, TrainingDomainForm,
-    TrainingSubdomainForm
+    BuildingForm, CampusForm, ComponentForm,
+    TrainingDomainForm, TrainingSubdomainForm
 )
 
 
@@ -145,3 +146,32 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(Building.objects.filter(
             label='test_fail').exists())
+
+    def test_component_creation(self):
+        """
+        Test admin Component creation with group rights
+        """
+        data = {
+            'code':'AB123',
+            'label': 'test',
+            'url':'http://url.fr',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = ComponentForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Component.objects.filter(label='test').exists())
+
+        # Validation fail (unicity)
+        data["label"] = "test_fail"
+        form = ComponentForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        # Validation fail (invalid user)
+        request.user = self.ref_cmp_user
+        form = ComponentForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(Component.objects.count(), 1)
