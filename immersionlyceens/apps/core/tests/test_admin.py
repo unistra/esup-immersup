@@ -131,7 +131,12 @@ class AdminFormsTestCase(TestCase):
         """
 
         testCampus = Campus.objects.create(label='testCampus', active=True)
-        data = {'label': 'testBuilding', 'campus': testCampus.pk, 'url': 'https://www.building.com', 'active': True}
+        data = {
+            'label': 'testBuilding',
+            'campus': testCampus.pk,
+            'url': 'https://www.building.com',
+            'active': True
+        }
 
         request.user = self.scuio_user
 
