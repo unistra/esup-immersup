@@ -124,6 +124,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(Campus.objects.filter(
             label='test_fail').exists())
 
+
     def test_building_creation(self):
         """
         Test admin Campus creation with group rights
@@ -146,6 +147,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(Building.objects.filter(
             label='test_fail').exists())
+
 
     def test_component_creation(self):
         """
