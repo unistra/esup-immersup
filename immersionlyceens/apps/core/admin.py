@@ -108,6 +108,15 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     search_fields = ('label',)
 
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Training.objects.filter(components=obj).exists():
+            return False
+
+        return True
+
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
