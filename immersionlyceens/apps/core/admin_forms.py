@@ -170,9 +170,16 @@ class BuildingForm(forms.ModelForm):
 
 
 class ComponentForm(forms.ModelForm):
+    """
+    Component form class
+    """
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        # Disable code field if it already exists
+        if self.initial:
+            self.fields["code"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
