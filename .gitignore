@@ -47,3 +47,9 @@ htmlcov/
 
 # vscode
 .vscode
+
+# pycharm
+.idea
+
+# local virtual env
+venv
