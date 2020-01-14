@@ -2,8 +2,8 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from .models import (
-    BachelorMention, Building, Campus, Component, TrainingDomain,
-    TrainingSubdomain
+    BachelorMention, Building, Campus, CancelType, Component,
+    Training, TrainingDomain, TrainingSubdomain
 )
 
 class BachelorMentionForm(forms.ModelForm):
@@ -87,6 +87,33 @@ class CampusForm(forms.ModelForm):
         fields = '__all__'
 
 
+class CancelTypeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = CancelType
+        fields = '__all__'
+
+
 class TrainingDomainForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request =  kwargs.pop('request', None)
@@ -166,6 +193,33 @@ class BuildingForm(forms.ModelForm):
 
     class Meta:
         model = Building
+        fields = '__all__'
+
+
+class TrainingForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = Training
         fields = '__all__'
 
 

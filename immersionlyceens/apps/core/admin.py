@@ -2,12 +2,15 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from hijack_admin.admin import HijackUserAdminMixin
 
-from .models import (BachelorMention, Building, Campus,
-                     ImmersionUser, CancelType, TrainingSubdomain, Component, TrainingDomain)
+from .models import (
+    BachelorMention, Building, Campus, CancelType, Component,
+    ImmersionUser, Training, TrainingDomain, TrainingSubdomain
+)
 
 from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
-    ComponentForm, TrainingDomainForm, TrainingSubdomainForm,
+    CancelTypeForm, ComponentForm, TrainingForm,
+    TrainingDomainForm, TrainingSubdomainForm,
 )
 
 class AdminWithRequest:
@@ -79,6 +82,7 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     search_fields = ('label',)
 
+
 class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CampusForm
     list_display = ('label', 'active')
@@ -104,29 +108,33 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     search_fields = ('label',)
 
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Training.objects.filter(components=obj).exists():
+            return False
+
+        return True
+
+
+class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = TrainingForm
+    filter_horizontal = ('components', 'training_subdomains', )
+    list_display = ('label', 'active')
+    list_filter = ('active',)
+    search_fields = ('label',)
+
 
 class CancelTypeAdmin(admin.ModelAdmin):
+    form = CancelTypeForm
     list_display = ('label', 'active')
-
-    def has_module_permission(self, request):
-        return True
-
-    def has_view_permission(self, request, obj=None):
-        return True
-
-    def has_add_permission(self, request, obj=None):
-        return request.user.is_scuio_ip_manager()
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_scuio_ip_manager()
-
-    def has_update_permission(self, request, obj=None):
-        return request.user.is_scuio_ip_manager()
 
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
+admin.site.register(Training, TrainingAdmin)
 admin.site.register(Component, ComponentAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
