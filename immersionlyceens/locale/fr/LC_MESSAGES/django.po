@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-14 07:12+0100\n"
+"POT-Creation-Date: 2020-01-14 10:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,62 +18,86 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: immersionlyceens/apps/core/admin_forms.py:25
+#: immersionlyceens/apps/core/admin_forms.py:26
+#: immersionlyceens/apps/core/admin_forms.py:53
+#: immersionlyceens/apps/core/admin_forms.py:80
+#: immersionlyceens/apps/core/admin_forms.py:107
+#: immersionlyceens/apps/core/admin_forms.py:135
+#: immersionlyceens/apps/core/admin_forms.py:162
 msgid "Valid user required"
 msgstr "Utilisateur valide requis"
 
-#: immersionlyceens/apps/core/models.py:29
+#: immersionlyceens/apps/core/models.py:32
 msgid "User"
 msgstr "Utilisateur"
 
-#: immersionlyceens/apps/core/models.py:47
-#: immersionlyceens/apps/core/models.py:59
-#: immersionlyceens/apps/core/models.py:81
-#: immersionlyceens/apps/core/models.py:96
+#: immersionlyceens/apps/core/models.py:62
+#: immersionlyceens/apps/core/models.py:84
+#: immersionlyceens/apps/core/models.py:106
+#: immersionlyceens/apps/core/models.py:128
+#: immersionlyceens/apps/core/models.py:143
 msgid "Label"
 msgstr "Libellé"
 
-#: immersionlyceens/apps/core/models.py:48
-#: immersionlyceens/apps/core/models.py:60
-#: immersionlyceens/apps/core/models.py:82
-#: immersionlyceens/apps/core/models.py:100
+#: immersionlyceens/apps/core/models.py:63
+#: immersionlyceens/apps/core/models.py:88
+#: immersionlyceens/apps/core/models.py:107
+#: immersionlyceens/apps/core/models.py:129
+#: immersionlyceens/apps/core/models.py:147
 msgid "Active"
 msgstr "En service"
 
-#: immersionlyceens/apps/core/models.py:51
-msgid "Course domain"
+#: immersionlyceens/apps/core/models.py:66
+#: immersionlyceens/apps/core/models.py:85
+msgid "Training domain"
 msgstr "Domaine de formation"
 
-#: immersionlyceens/apps/core/models.py:52
-msgid "Course domains"
+#: immersionlyceens/apps/core/models.py:67
+msgid "Training domains"
 msgstr "Domaines de formation"
 
-#: immersionlyceens/apps/core/models.py:63
-#: immersionlyceens/apps/core/models.py:64
+#: immersionlyceens/apps/core/models.py:77
+msgid "A training domain with this label already exists"
+msgstr "Un domaine de formation à ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:91
+msgid "Training sub domain"
+msgstr "Sous-domaine de formation"
+
+#: immersionlyceens/apps/core/models.py:92
+msgid "Training sub domains"
+msgstr "Sous-domaines de formation"
+
+#: immersionlyceens/apps/core/models.py:102
+msgid "A training sub domain with this label already exists"
+msgstr "Un sous-domaine de formation à ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:110
+#: immersionlyceens/apps/core/models.py:111
 msgid "Campus"
 msgstr "Campus"
 
-#: immersionlyceens/apps/core/models.py:73
+#: immersionlyceens/apps/core/models.py:120
 msgid "A campus with this label exists"
 msgstr "Un campus à ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:86
+#: immersionlyceens/apps/core/models.py:133
 msgid "Bachelor mention"
 msgstr "Mention du baccalauréat"
 
-#: immersionlyceens/apps/core/models.py:87
+#: immersionlyceens/apps/core/models.py:134
 msgid "Bachelor mentions"
 msgstr "Mentions du baccalauréat"
 
-#: immersionlyceens/apps/core/models.py:99
+#: immersionlyceens/apps/core/models.py:146
 msgid "Url"
 msgstr "Url"
 
-#: immersionlyceens/apps/core/models.py:103
+#: immersionlyceens/apps/core/models.py:150
 msgid "Building"
 msgstr "Bâtiment"
 
-#: immersionlyceens/apps/core/models.py:114
+#: immersionlyceens/apps/core/models.py:161
 msgid "A building with this label for the same campus exists"
 msgstr "Un bâtiment à ce nom existe déjà pour ce campus"
 
@@ -87,7 +111,8 @@ msgstr "Immersion - Interface d'administration"
 
 #: immersionlyceens/settings/base.py:361
 msgid "Welcome to immersion administration page"
-msgstr "Bienvenue sur la page d'administration de l'application Immersion Lycéens"
+msgstr ""
+"Bienvenue sur la page d'administration de l'application Immersion Lycéens"
 
 #: immersionlyceens/templates/404.html:6
 msgid "Page not found"
@@ -113,3 +138,4 @@ msgstr "Crédits"
 #: immersionlyceens/templates/modals/modal_legal.html:23
 msgid "Close"
 msgstr "Fermer"
+
