@@ -2,10 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from hijack_admin.admin import HijackUserAdminMixin
 
-from .models import (
-    BachelorMention, Building, Campus, Component,
-    ImmersionUser, TrainingDomain, TrainingSubdomain
-)
+from .models import (BachelorMention, Building, Campus,
+                     ImmersionUser, CancelType, TrainingSubdomain, Component, TrainingDomain)
 
 from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
@@ -107,6 +105,25 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
 
+class CancelTypeAdmin(admin.ModelAdmin):
+    list_display = ('label', 'active')
+
+    def has_module_permission(self, request):
+        return True
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+    def has_update_permission(self, request, obj=None):
+        return request.user.is_scuio_ip_manager()
+
+
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
@@ -114,3 +131,4 @@ admin.site.register(Component, ComponentAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)
+admin.site.register(CancelType, CancelTypeAdmin)
