@@ -247,3 +247,27 @@ class CancelType(models.Model):
         except ValidationError as e:
             raise ValidationError(
                 _('A cancel type with this label already exists'))
+
+
+class CourseType(models.Model):
+    """Course type"""
+
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Course type')
+        verbose_name_plural = _('Course type')
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(CourseType, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A course type with this label already exists'))
