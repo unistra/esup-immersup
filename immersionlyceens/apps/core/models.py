@@ -102,6 +102,30 @@ class TrainingSubdomain(models.Model):
                 _('A training sub domain with this label already exists'))
 
 
+class Training(models.Model):
+    """
+    Training class
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    training_domains = models.ManytoManyField(TrainingSubdomain, verbose_name=_("Training subdomains"),
+        default=None, blank=False, null=False, on_delete=models.CASCADE,
+        related_name='Trainings')
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name = _('Training sub domain')
+        verbose_name_plural = _('Training sub domains')
+
+    def __str__(self):
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A training sub domain with this label already exists'))
+
 class Campus(models.Model):
     label = models.CharField(_("Label"), max_length=255, unique=True)
     active = models.BooleanField(_("Active"), default=True)
