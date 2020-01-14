@@ -11,7 +11,7 @@ from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
     CancelTypeForm, ComponentForm, TrainingForm,
     TrainingDomainForm, TrainingSubdomainForm,
-)
+    CourseTypeForm)
 
 class AdminWithRequest:
     """
@@ -130,8 +130,9 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
     list_display = ('label', 'active')
 
+
 class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = CourseType
+    form = CourseTypeForm
     list_display = ('label', 'active')
 
 
