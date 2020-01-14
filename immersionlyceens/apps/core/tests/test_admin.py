@@ -10,13 +10,13 @@ from django.test import RequestFactory, TestCase
 
 from ..models import (
     Building, Campus, Component, TrainingDomain,
-    TrainingSubdomain
-)
+    TrainingSubdomain,
+    BachelorMention)
 
 from ..admin_forms import (
     BuildingForm, CampusForm, ComponentForm,
-    TrainingDomainForm, TrainingSubdomainForm
-)
+    TrainingDomainForm, TrainingSubdomainForm,
+    BachelorMentionForm)
 
 
 class MockRequest:
@@ -182,3 +182,32 @@ class AdminFormsTestCase(TestCase):
         form = ComponentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertEqual(Component.objects.count(), 1)
+
+
+    def test_bachelor_mention_creation(self):
+        """
+        Test admin bachelor mention creation with group rights
+        """
+
+        testBachelor = BachelorMention.objects.create(label='testBachelor', active=True)
+        data = {
+            'label': 'testBachelor',
+            'campus': testBachelor.pk,
+            'url': 'https://www.bachelor.com',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = BachelorMentionForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(BachelorMention.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = BachelorMentionForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(BachelorMention.objects.filter(
+            label='test_fail').exists())
