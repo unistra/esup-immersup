@@ -102,19 +102,46 @@ class TrainingSubdomain(models.Model):
                 _('A training sub domain with this label already exists'))
 
 
+class Component(models.Model):
+    """
+    Component class
+    """
+    code = models.CharField(_("Code"), max_length=16, unique=True)
+    label = models.CharField(_("Label"), max_length=128)
+    url = models.URLField(_("Website address"), max_length=256,
+        blank=True, null=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name = _('Component')
+        verbose_name_plural = _('Components')
+
+    def __str__(self):
+        return "%s : %s" % (self.code, self.label)
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A component with this code already exists'))
+
+
 class Training(models.Model):
     """
     Training class
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
-    training_domains = models.ManytoManyField(TrainingSubdomain, verbose_name=_("Training subdomains"),
-        default=None, blank=False, null=False, on_delete=models.CASCADE,
-        related_name='Trainings')
+    training_subdomains = models.ManyToManyField(TrainingSubdomain,
+        verbose_name=_("Training subdomains"), blank=False, related_name='Trainings')
+    components = models.ManyToManyField(Component, verbose_name=_("Components"),
+        blank=False, related_name='Trainings')
+    url = models.URLField(_("Website address"), max_length=256,
+        blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
-        verbose_name = _('Training sub domain')
-        verbose_name_plural = _('Training sub domains')
+        verbose_name = _('Training')
+        verbose_name_plural = _('Trainings')
 
     def __str__(self):
         return self.label
@@ -124,7 +151,8 @@ class Training(models.Model):
             super().validate_unique()
         except ValidationError as e:
             raise ValidationError(
-                _('A training sub domain with this label already exists'))
+                _('A training with this label already exists'))
+
 
 class Campus(models.Model):
     label = models.CharField(_("Label"), max_length=255, unique=True)
