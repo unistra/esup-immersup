@@ -184,7 +184,6 @@ class AdminFormsTestCase(TestCase):
         self.assertEqual(Component.objects.count(), 1)
 
 
-<<<<<<< HEAD
     def test_training_creation(self):
         """
         Test admin Training creation with group rights
@@ -212,7 +211,8 @@ class AdminFormsTestCase(TestCase):
             'url':'http://url.fr',
             'components': [component.pk, ],
             'training_subdomains': [training_subdomain.pk, ],
-=======
+        }
+
     def test_bachelor_mention_creation(self):
         """
         Test admin bachelor mention creation with group rights
