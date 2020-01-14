@@ -4,8 +4,8 @@ from hijack_admin.admin import HijackUserAdminMixin
 
 from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
-    ImmersionUser, Training, TrainingDomain, TrainingSubdomain
-)
+    ImmersionUser, Training, TrainingDomain, TrainingSubdomain,
+    CourseType)
 
 from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
@@ -130,6 +130,10 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
     list_display = ('label', 'active')
 
+class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = CourseType
+    list_display = ('label', 'active')
+
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
@@ -140,3 +144,4 @@ admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(CancelType, CancelTypeAdmin)
+admin.site.register(CourseType, CourseTypeAdmin)
