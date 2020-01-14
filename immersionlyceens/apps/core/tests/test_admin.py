@@ -9,13 +9,13 @@ from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase
 
 from ..models import (
-    Building, Campus, Component, TrainingDomain,
+    Building, Campus, Component, Training, TrainingDomain,
     TrainingSubdomain
 )
 
 from ..admin_forms import (
     BuildingForm, CampusForm, ComponentForm,
-    TrainingDomainForm, TrainingSubdomainForm
+    TrainingForm, TrainingDomainForm, TrainingSubdomainForm
 )
 
 
@@ -172,7 +172,7 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(Component.objects.filter(label='test').exists())
 
-        # Validation fail (unicity)
+        # Validation fail (code unicity)
         data["label"] = "test_fail"
         form = ComponentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -182,3 +182,54 @@ class AdminFormsTestCase(TestCase):
         form = ComponentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertEqual(Component.objects.count(), 1)
+
+
+    def test_training_creation(self):
+        """
+        Test admin Training creation with group rights
+        """
+        training_domain_data = {'label': 'domain', 'active': True}
+        training_subdomain_data = {'label': 'subdomain', 'active': True}
+        component_data = {
+            'code': 'AB123',
+            'label': 'test',
+            'url': 'http://url.fr',
+            'active': True
+        }
+
+        training_domain = TrainingDomain.objects.create(**training_domain_data)
+        training_subdomain = TrainingSubdomain.objects.create(
+            training_domain=training_domain, **training_subdomain_data)
+        component = Component.objects.create(**component_data)
+
+        self.assertTrue(TrainingDomain.objects.all().exists())
+        self.assertTrue(TrainingSubdomain.objects.all().exists())
+        self.assertTrue(Component.objects.all().exists())
+
+        data = {
+            'label': 'test',
+            'url':'http://url.fr',
+            'components': [component.pk, ],
+            'training_subdomains': [training_subdomain.pk, ],
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = TrainingForm(data=data, request=request)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Training.objects.filter(label='test').exists())
+
+        # Validation fail (unicity)
+        data["label"] = "test"
+        form = TrainingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        # Validation fail (invalid user)
+        data["label"] = "test_fail"
+        request.user = self.ref_cmp_user
+        form = TrainingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(Training.objects.count(), 1)
