@@ -9,14 +9,14 @@ from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase
 
 from ..models import (
-    Building, Campus, Component, Training, TrainingDomain,
-    TrainingSubdomain
-)
+    Building, Campus, Component, TrainingDomain,
+    TrainingSubdomain,
+    BachelorMention, CancelType, CourseType)
 
 from ..admin_forms import (
     BuildingForm, CampusForm, ComponentForm,
-    TrainingForm, TrainingDomainForm, TrainingSubdomainForm
-)
+    TrainingDomainForm, TrainingSubdomainForm,
+    BachelorMentionForm, CancelTypeForm, CourseTypeForm)
 
 
 class MockRequest:
@@ -184,6 +184,7 @@ class AdminFormsTestCase(TestCase):
         self.assertEqual(Component.objects.count(), 1)
 
 
+<<<<<<< HEAD
     def test_training_creation(self):
         """
         Test admin Training creation with group rights
@@ -211,25 +212,87 @@ class AdminFormsTestCase(TestCase):
             'url':'http://url.fr',
             'components': [component.pk, ],
             'training_subdomains': [training_subdomain.pk, ],
+=======
+    def test_bachelor_mention_creation(self):
+        """
+        Test admin bachelor mention creation with group rights
+        """
+
+        testBachelor = BachelorMention.objects.create(label='testBachelor', active=True)
+        data = {
+            'label': 'testBachelor',
+            'campus': testBachelor.pk,
+            'url': 'https://www.bachelor.com',
             'active': True
         }
 
         request.user = self.scuio_user
 
-        form = TrainingForm(data=data, request=request)
-
+        form = BachelorMentionForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(Training.objects.filter(label='test').exists())
-
-        # Validation fail (unicity)
-        data["label"] = "test"
-        form = TrainingForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
+        self.assertTrue(BachelorMention.objects.filter(label=data['label']).exists())
 
         # Validation fail (invalid user)
-        data["label"] = "test_fail"
+        data = {'label': 'test_failure', 'active': True}
         request.user = self.ref_cmp_user
-        form = TrainingForm(data=data, request=request)
+        form = BachelorMentionForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertEqual(Training.objects.count(), 1)
+        self.assertFalse(BachelorMention.objects.filter(
+            label='test_fail').exists())
+
+    def test_cancel_type_creation(self):
+        """
+        Test admin bachelor mention creation with group rights
+        """
+
+        testCancel = CancelType.objects.create(label='testBachelor', active=True)
+        data = {
+            'label': 'testBachelor',
+            'campus': testCancel.pk,
+            'url': 'https://www.bachelor.com',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = CancelTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(CancelType.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = CancelTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(CancelType.objects.filter(
+            label='test_fail').exists())
+
+    def test_course_type_creation(self):
+        """
+        Test admin bachelor mention creation with group rights
+        """
+
+        testCourse = CourseType.objects.create(label='testBachelor', active=True)
+        data = {
+            'label': 'testBachelor',
+            'campus': testCourse.pk,
+            'url': 'https://www.bachelor.com',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = CourseTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(CourseType.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = CourseTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(CourseType.objects.filter(
+            label='test_fail').exists())
