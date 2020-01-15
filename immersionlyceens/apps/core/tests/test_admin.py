@@ -315,7 +315,6 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(GeneralBachelorTeaching.objects.filter(
             label='test_failure').exists())
-            label='test_fail').exists())
 
 
     def test_public_type_creation(self):
