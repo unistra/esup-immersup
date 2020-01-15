@@ -135,6 +135,7 @@ class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CourseTypeForm
     list_display = ('label', 'active')
 
+
 class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = PublicTypeForm
     list_display = ('label', 'active')

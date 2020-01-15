@@ -282,3 +282,37 @@ class ComponentForm(forms.ModelForm):
     class Meta:
         model = Component
         fields = '__all__'
+
+
+class PublicTypeForm(forms.ModelForm):
+    """
+    public type form class
+    """
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        # Disable code field if it already exists
+        if self.initial:
+            self.fields["code"].disabled = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = Component
+        fields = '__all__'
