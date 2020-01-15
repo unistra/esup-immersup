@@ -5,13 +5,13 @@ from hijack_admin.admin import HijackUserAdminMixin
 from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
     ImmersionUser, Training, TrainingDomain, TrainingSubdomain,
-    CourseType)
+    CourseType, PublicType)
 
 from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
     CancelTypeForm, ComponentForm, TrainingForm,
     TrainingDomainForm, TrainingSubdomainForm,
-    CourseTypeForm)
+    CourseTypeForm, PublicTypeForm)
 
 class AdminWithRequest:
     """
@@ -135,6 +135,10 @@ class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CourseTypeForm
     list_display = ('label', 'active')
 
+class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = PublicTypeForm
+    list_display = ('label', 'active')
+
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
@@ -145,4 +149,4 @@ admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(CancelType, CancelTypeAdmin)
-admin.site.register(CourseType, CourseTypeAdmin)
+admin.site.register(PublicType, PublicTypeAdmin)
