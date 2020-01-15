@@ -284,7 +284,7 @@ class GeneralBachelorTeaching(models.Model):
     class Meta:
         """Meta class"""
         verbose_name = _('General bachelor specialty teaching')
-        verbose_name_plural = _('General bachelor specialties teaching')
+        verbose_name_plural = _('General bachelor specialties teachings')
 
     def __str__(self):
         """str"""

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-15 09:44+0100\n"
+"POT-Creation-Date: 2020-01-15 11:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,34 +18,38 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: immersionlyceens/apps/core/admin.py:80
+#: immersionlyceens/apps/core/admin.py:82
 msgid ""
 "This training domain can't be deleted because it is used by training "
 "subdomains"
-msgstr "Ce domaine de formation ne peut pas être supprimé car il est "
-"utilisé par un sous-domaine de formation"
+msgstr ""
+"Ce domaine de formation ne peut pas être supprimé car il est utilisé par un "
+"sous-domaine de formation"
 
-#: immersionlyceens/apps/core/admin.py:104
+#: immersionlyceens/apps/core/admin.py:106
 msgid ""
 "This training subdomain can't be deleted because it is used by a training"
-msgstr "Ce sous-domaine de formation ne peut pas être supprimé car il est "
-"utilisé par une formation"
+msgstr ""
+"Ce sous-domaine de formation ne peut pas être supprimé car il est utilisé "
+"par une formation"
 
-#: immersionlyceens/apps/core/admin.py:147
+#: immersionlyceens/apps/core/admin.py:156
 msgid "This component can't be deleted because it is used by a training"
-msgstr "Cette composante ne peut pas être supprimée car elle est "
-"utilisée par une formation"
+msgstr ""
+"Cette composante ne peut pas être supprimée car elle est utilisée par une "
+"formation"
 
-#: immersionlyceens/apps/core/admin_forms.py:26
-#: immersionlyceens/apps/core/admin_forms.py:53
-#: immersionlyceens/apps/core/admin_forms.py:80
-#: immersionlyceens/apps/core/admin_forms.py:107
-#: immersionlyceens/apps/core/admin_forms.py:134
-#: immersionlyceens/apps/core/admin_forms.py:161
-#: immersionlyceens/apps/core/admin_forms.py:189
-#: immersionlyceens/apps/core/admin_forms.py:216
-#: immersionlyceens/apps/core/admin_forms.py:243
-#: immersionlyceens/apps/core/admin_forms.py:277
+#: immersionlyceens/apps/core/admin_forms.py:27
+#: immersionlyceens/apps/core/admin_forms.py:54
+#: immersionlyceens/apps/core/admin_forms.py:81
+#: immersionlyceens/apps/core/admin_forms.py:108
+#: immersionlyceens/apps/core/admin_forms.py:135
+#: immersionlyceens/apps/core/admin_forms.py:162
+#: immersionlyceens/apps/core/admin_forms.py:190
+#: immersionlyceens/apps/core/admin_forms.py:217
+#: immersionlyceens/apps/core/admin_forms.py:244
+#: immersionlyceens/apps/core/admin_forms.py:278
+#: immersionlyceens/apps/core/admin_forms.py:305
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -62,6 +66,7 @@ msgstr "Utilisateur"
 #: immersionlyceens/apps/core/models.py:204
 #: immersionlyceens/apps/core/models.py:231
 #: immersionlyceens/apps/core/models.py:255
+#: immersionlyceens/apps/core/models.py:281
 msgid "Label"
 msgstr "Libellé"
 
@@ -74,6 +79,7 @@ msgstr "Libellé"
 #: immersionlyceens/apps/core/models.py:208
 #: immersionlyceens/apps/core/models.py:232
 #: immersionlyceens/apps/core/models.py:256
+#: immersionlyceens/apps/core/models.py:282
 msgid "Active"
 msgstr "En service"
 
@@ -193,6 +199,18 @@ msgstr "Type de cours"
 #: immersionlyceens/apps/core/models.py:273
 msgid "A course type with this label already exists"
 msgstr "Un type de cours à ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:286
+msgid "General bachelor specialty teaching"
+msgstr "Enseignements de spécialité d'un baccalauréat général"
+
+#: immersionlyceens/apps/core/models.py:287
+msgid "General bachelor specialties teachings"
+msgstr "Enseignements de spécialité d'un baccalauréat général"
+
+#: immersionlyceens/apps/core/models.py:299
+msgid "A specialty teaching with this label already exists"
+msgstr "Un enseignement de spécialité d'un baccalauréat général à ce nom existe déjà"
 
 #: immersionlyceens/settings/base.py:359
 msgid "Immersion"
