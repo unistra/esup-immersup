@@ -218,11 +218,8 @@ class AdminFormsTestCase(TestCase):
         Test admin bachelor mention creation with group rights
         """
 
-        testBachelor = BachelorMention.objects.create(label='testBachelor', active=True)
         data = {
             'label': 'testBachelor',
-            'campus': testBachelor.pk,
-            'url': 'https://www.bachelor.com',
             'active': True
         }
 
@@ -246,11 +243,8 @@ class AdminFormsTestCase(TestCase):
         Test admin bachelor mention creation with group rights
         """
 
-        testCancel = CancelType.objects.create(label='testBachelor', active=True)
         data = {
             'label': 'testBachelor',
-            'campus': testCancel.pk,
-            'url': 'https://www.bachelor.com',
             'active': True
         }
 
@@ -269,16 +263,13 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(CancelType.objects.filter(
             label='test_fail').exists())
 
+
     def test_course_type_creation(self):
         """
-        Test admin bachelor mention creation with group rights
+        Test course type creation with group rights
         """
-
-        testCourse = CourseType.objects.create(label='testBachelor', active=True)
         data = {
-            'label': 'testBachelor',
-            'campus': testCourse.pk,
-            'url': 'https://www.bachelor.com',
+            'label': 'testCourse',
             'active': True
         }
 

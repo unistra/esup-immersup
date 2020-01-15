@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from hijack_admin.admin import HijackUserAdminMixin
 
@@ -65,12 +65,20 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     search_fields = ('label',)
 
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
+
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_scuio_ip_manager():
             return False
 
         if obj and TrainingSubdomain.objects.filter(
-                training_domain=obj):
+                training_domain=obj).exists():
+            messages.warning(request, """This training domain can't be deleted """
+                """because it is used by training subdomains""")
             return False
 
         return True
@@ -81,6 +89,23 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'training_domain', 'active')
     list_filter = ('active',)
     search_fields = ('label',)
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Training.objects.filter(training_subdomains=obj).exists():
+            messages.warning(request, """This training subdomain can't be deleted """
+                """because it is used by a training""")
+            return False
+
+        return True
 
 
 class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -108,11 +133,19 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     search_fields = ('label',)
 
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
+
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_scuio_ip_manager():
             return False
 
         if obj and Training.objects.filter(components=obj).exists():
+            messages.warning(request, """This component can't be deleted """
+                """because it is used by a training""")
             return False
 
         return True
