@@ -321,3 +321,38 @@ class PublicType(models.Model):
         except ValidationError as e:
             raise ValidationError(
                 _('A public type with this label already exists'))
+
+
+class UniversityYear(models.Model):
+    """University year"""
+
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    active = models.BooleanField(_("Active"), default=False)
+    start_date = models.DateField(_("Start date"))
+    end_date = models.DateField(_("End date"))
+    registration_start_date = models.DateField(_("Registration date"))
+    purge_date = models.DateField(_("Purge date"), null=True)
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Univesity year')
+        verbose_name_plural = _('Univesity years')
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(UniversityYear, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A public type with this label already exists'))
+
+    def save(self, *args, **kwargs):
+        objs = UniversityYear.objects.filter(active=True)
+        if len(objs) < 1:
+            self.active = True
+        super(UniversityYear, self).save(*args, **kwargs)
+
