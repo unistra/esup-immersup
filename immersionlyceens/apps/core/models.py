@@ -7,6 +7,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
+from immersionlyceens.fields import UpperCharField
+
+from .utils import get_cities, get_departments
 
 logger = logging.getLogger(__name__)
 
@@ -90,18 +93,19 @@ class BachelorMention(models.Model):
         """str"""
         return self.label
 
-        
+
 class Building(models.Model):
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
     campus = models.ForeignKey(
-        Campus, verbose_name=("Campus"), default=None, on_delete=models.CASCADE, related_name="buildings")
+        Campus, verbose_name=("Campus"), default=None, 
+        on_delete=models.CASCADE, related_name="buildings")
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
-        verbose_name= _('Building')
-        unique_together= ('campus', 'label')
+        verbose_name = _('Building')
+        unique_together = ('campus', 'label')
 
     def __str__(self):
         # TODO: Should we display campus label as well (????)
@@ -111,4 +115,51 @@ class Building(models.Model):
         try:
             super(Building, self).validate_unique()
         except ValidationError as e:
-            raise ValidationError(_('A building with this label for the same campus exists'))
+            raise ValidationError(
+                _('A building with this label for the same campus exists'))
+
+
+class HighSchool(models.Model):
+
+    class Meta:
+        verbose_name = _('High school')
+        unique_together = ('label', 'city')
+
+    label = models.CharField(
+        _("Label"), max_length=255, blank=False, null=False)
+    address = models.CharField(
+        _("Address"), max_length=255, blank=False, null=False)
+    address2 = models.CharField(
+        _("Address2"), max_length=255, blank=True, null=True)
+    address3 = models.CharField(
+        _("Address3"), max_length=255, blank=True, null=True)
+    department = models.CharField(
+        _("Department"), max_length=128, blank=False, null=False,
+        choices=get_departments())
+    city = UpperCharField(
+        _("City"), max_length=255, blank=False, null=False,
+        choices=get_cities())
+    zip_code = models.CharField(
+        _("Zip Code"), max_length=128, blank=False, null=False)
+    phone_number = models.CharField(
+        _("Phone number"), max_length=20, null=False, blank=False)
+    fax = models.CharField(
+        _("Fax"), max_length=20, null=True, blank=True)
+    email = models.EmailField(_('Email'))
+    head_teacher_name = models.CharField(
+        _("Head teacher name"),
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text=_('civility last name first name')
+    )
+    referent_name = models.CharField(
+        _('Referent name'), max_length=255, blank=False, null=False, 
+        help_text=_('last name first name'))
+    referent_phone_number = models.CharField(
+        _("Referent phone number"), max_length=20, blank=False, null=False)
+    referent_email = models.EmailField(_('Referent email'))
+    convention_start_date = models.DateField(
+        _("Convention start date"), null=True, blank=True)
+    convention_end_date = models.DateField(
+        _("Convention end date"), null=True, blank=True)
