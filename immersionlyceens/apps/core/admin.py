@@ -1,19 +1,22 @@
+from datetime import datetime
+
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from hijack_admin.admin import HijackUserAdminMixin
+from django.utils.translation import ugettext_lazy as _
 
 from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, ImmersionUser, Training,
-    TrainingDomain, TrainingSubdomain, PublicType
-)
+    TrainingDomain, TrainingSubdomain, PublicType,
+    UniversityYear)
 
 from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
     CancelTypeForm, ComponentForm, CourseTypeForm,
     GeneralBachelorTeachingForm, TrainingForm,
     TrainingDomainForm, TrainingSubdomainForm,
-    CourseTypeForm, PublicTypeForm)
+    CourseTypeForm, PublicTypeForm, UniversityYearForm)
 
 class AdminWithRequest:
     """
@@ -183,6 +186,39 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'active')
 
 
+class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = UniversityYearForm
+    list_display = ('label', 'start_date', 'end_date', 'active',)
+    list_filter = ('active',)
+    search_fields = ('label',)
+
+    def get_readonly_fields(self, request, obj=None):
+        return ['active', 'purge_date']
+
+    # def get_actions(self, request):
+    #     # Disable delete
+    #     actions = super().get_actions(request)
+    #     del actions['delete_selected']
+    #     return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj:
+            print(obj.start_date)
+            if obj.start_date <= datetime.today().date():
+                messages.warning(request, _("""This component can't be deleted """
+                    """because university year has already started"""))
+                return False
+            elif obj.purge_date is not None:
+                messages.warning(request, _("""This component can't be deleted """
+                    """because a purge date is defined"""))
+                return False
+
+        return True
+
+
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
@@ -195,3 +231,4 @@ admin.site.register(CancelType, CancelTypeAdmin)
 admin.site.register(CourseType, CourseTypeAdmin)
 admin.site.register(GeneralBachelorTeaching, GeneralBachelorTeachingAdmin)
 admin.site.register(PublicType, PublicTypeAdmin)
+admin.site.register(UniversityYear, UniversityYearAdmin)
