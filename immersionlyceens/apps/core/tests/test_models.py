@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import BachelorMention, Building, Campus, CancelType, CourseType
+from ..models import BachelorMention, Building, Campus, CancelType, CourseType, PublicType
 
 
 class CampusTestCase(TestCase):
@@ -55,4 +55,16 @@ class CourseTypeTestCase(TestCase):
 
     def test_course_type_activated(self):
         o = CourseType.objects.create(label="course type")
+        self.assertTrue(o.active)
+
+
+class PublicTypeTestCase(TestCase):
+
+    def test_public_type_str(self):
+        label = "PublicType"
+        o = PublicType.objects.create(label=label)
+        self.assertEqual(str(o), label)
+
+    def test_public_type_activated(self):
+        o = PublicType.objects.create(label="PublicType")
         self.assertTrue(o.active)

@@ -12,12 +12,12 @@ from ..models import (
     BachelorMention, Building, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, TrainingDomain,
     TrainingSubdomain,
-)
+    BachelorMention, CancelType, CourseType, PublicType)
 
 from ..admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm, CancelTypeForm,
     ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm,
-    TrainingDomainForm, TrainingSubdomainForm,
+    TrainingDomainForm, TrainingSubdomainForm, PublicTypeForm
 )
 
 
@@ -315,3 +315,29 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(GeneralBachelorTeaching.objects.filter(
             label='test_failure').exists())
+            label='test_fail').exists())
+
+
+    def test_public_type_creation(self):
+        """
+        Test public type mention creation with group rights
+        """
+        data = {
+            'label': 'testCourse',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = PublicTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(PublicType.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = PublicTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(PublicType.objects.filter(
+            label='test_fail').exists())
