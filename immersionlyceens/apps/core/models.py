@@ -293,7 +293,7 @@ class GeneralBachelorTeaching(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(CourseType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(
                 _('A specialty teaching with this label already exists'))

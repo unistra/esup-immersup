@@ -306,7 +306,7 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(GeneralBachelorTeaching.objects.filter(
-            label=data['test']).exists())
+            label=data['label']).exists())
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
