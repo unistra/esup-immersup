@@ -9,14 +9,16 @@ from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase
 
 from ..models import (
-    Building, Campus, Component, TrainingDomain,
+    BachelorMention, Building, Campus, CancelType, Component,
+    CourseType, GeneralBachelorTeaching, TrainingDomain,
     TrainingSubdomain,
-    BachelorMention, CancelType, CourseType)
+)
 
 from ..admin_forms import (
-    BuildingForm, CampusForm, ComponentForm,
+    BachelorMentionForm, BuildingForm, CampusForm, CancelTypeForm,
+    ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm,
     TrainingDomainForm, TrainingSubdomainForm,
-    BachelorMentionForm, CancelTypeForm, CourseTypeForm)
+)
 
 
 class MockRequest:
@@ -236,7 +238,7 @@ class AdminFormsTestCase(TestCase):
         form = BachelorMentionForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(BachelorMention.objects.filter(
-            label='test_fail').exists())
+            label='test_failure').exists())
 
     def test_cancel_type_creation(self):
         """
@@ -261,7 +263,7 @@ class AdminFormsTestCase(TestCase):
         form = CancelTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(CancelType.objects.filter(
-            label='test_fail').exists())
+            label='test_failure').exists())
 
 
     def test_course_type_creation(self):
@@ -286,4 +288,30 @@ class AdminFormsTestCase(TestCase):
         form = CourseTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(CourseType.objects.filter(
-            label='test_fail').exists())
+            label='test_failure').exists())
+
+
+    def test_general_bachelor_teaching_creation(self):
+        """
+        Test general bachelor specialty teaching creation with group rights
+        """
+        data = {
+            'label': 'test',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = GeneralBachelorTeachingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(GeneralBachelorTeaching.objects.filter(
+            label=data['test']).exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = GeneralBachelorTeachingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(GeneralBachelorTeaching.objects.filter(
+            label='test_failure').exists())
