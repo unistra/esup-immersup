@@ -77,8 +77,8 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj and TrainingSubdomain.objects.filter(
                 training_domain=obj).exists():
-            messages.warning(request, """This training domain can't be deleted """
-                """because it is used by training subdomains""")
+            messages.warning(request, _("""This training domain can't be deleted """
+                """because it is used by training subdomains"""))
             return False
 
         return True
@@ -101,8 +101,8 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():
-            messages.warning(request, """This training subdomain can't be deleted """
-                """because it is used by a training""")
+            messages.warning(request, _("""This training subdomain can't be deleted """
+                """because it is used by a training"""))
             return False
 
         return True
@@ -144,8 +144,8 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(components=obj).exists():
-            messages.warning(request, """This component can't be deleted """
-                """because it is used by a training""")
+            messages.warning(request, _("""This component can't be deleted """
+                """because it is used by a training"""))
             return False
 
         return True
