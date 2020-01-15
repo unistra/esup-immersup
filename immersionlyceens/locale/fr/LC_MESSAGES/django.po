@@ -34,7 +34,7 @@ msgstr "Ce sous-domaine de formation ne peut pas être supprimé car il est "
 #: immersionlyceens/apps/core/admin.py:147
 msgid "This component can't be deleted because it is used by a training"
 msgstr "Cette composante ne peut pas être supprimée car elle est "
-"utilisé par une formation"
+"utilisée par une formation"
 
 #: immersionlyceens/apps/core/admin_forms.py:26
 #: immersionlyceens/apps/core/admin_forms.py:53
