@@ -4,5 +4,4 @@ sphinx
 pylint
 pycodestyle
 django-debug-toolbar
-django-extensions
 tox

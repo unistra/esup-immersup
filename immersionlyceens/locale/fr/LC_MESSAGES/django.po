@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-14 10:48+0100\n"
+"POT-Creation-Date: 2020-01-15 09:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,14 +18,36 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+#: immersionlyceens/apps/core/admin.py:80
+msgid ""
+"This training domain can't be deleted because it is used by training "
+"subdomains"
+msgstr "Ce domaine de formation ne peut pas être supprimé car il est "
+"utilisé par un sous-domaine de formation"
+
+#: immersionlyceens/apps/core/admin.py:104
+msgid ""
+"This training subdomain can't be deleted because it is used by a training"
+msgstr "Ce sous-domaine de formation ne peut pas être supprimé car il est "
+"utilisé par une formation"
+
+#: immersionlyceens/apps/core/admin.py:147
+msgid "This component can't be deleted because it is used by a training"
+msgstr "Cette composante ne peut pas être supprimée car elle est "
+"utilisée par une formation"
+
 #: immersionlyceens/apps/core/admin_forms.py:26
 #: immersionlyceens/apps/core/admin_forms.py:53
 #: immersionlyceens/apps/core/admin_forms.py:80
 #: immersionlyceens/apps/core/admin_forms.py:107
-#: immersionlyceens/apps/core/admin_forms.py:135
-#: immersionlyceens/apps/core/admin_forms.py:162
-msgid "Valid user required"
-msgstr "Utilisateur valide requis"
+#: immersionlyceens/apps/core/admin_forms.py:134
+#: immersionlyceens/apps/core/admin_forms.py:161
+#: immersionlyceens/apps/core/admin_forms.py:189
+#: immersionlyceens/apps/core/admin_forms.py:216
+#: immersionlyceens/apps/core/admin_forms.py:243
+#: immersionlyceens/apps/core/admin_forms.py:277
+msgid "You don't have the required privileges"
+msgstr "Vous n'avez pas les droits suffisants"
 
 #: immersionlyceens/apps/core/models.py:32
 msgid "User"
@@ -33,22 +55,30 @@ msgstr "Utilisateur"
 
 #: immersionlyceens/apps/core/models.py:62
 #: immersionlyceens/apps/core/models.py:84
-#: immersionlyceens/apps/core/models.py:106
-#: immersionlyceens/apps/core/models.py:128
-#: immersionlyceens/apps/core/models.py:143
+#: immersionlyceens/apps/core/models.py:110
+#: immersionlyceens/apps/core/models.py:133
+#: immersionlyceens/apps/core/models.py:158
+#: immersionlyceens/apps/core/models.py:181
+#: immersionlyceens/apps/core/models.py:204
+#: immersionlyceens/apps/core/models.py:231
+#: immersionlyceens/apps/core/models.py:255
 msgid "Label"
 msgstr "Libellé"
 
 #: immersionlyceens/apps/core/models.py:63
 #: immersionlyceens/apps/core/models.py:88
-#: immersionlyceens/apps/core/models.py:107
-#: immersionlyceens/apps/core/models.py:129
-#: immersionlyceens/apps/core/models.py:147
+#: immersionlyceens/apps/core/models.py:113
+#: immersionlyceens/apps/core/models.py:140
+#: immersionlyceens/apps/core/models.py:159
+#: immersionlyceens/apps/core/models.py:182
+#: immersionlyceens/apps/core/models.py:208
+#: immersionlyceens/apps/core/models.py:232
+#: immersionlyceens/apps/core/models.py:256
 msgid "Active"
 msgstr "En service"
 
 #: immersionlyceens/apps/core/models.py:66
-#: immersionlyceens/apps/core/models.py:85
+#: immersionlyceens/apps/core/models.py:86
 msgid "Training domain"
 msgstr "Domaine de formation"
 
@@ -72,34 +102,97 @@ msgstr "Sous-domaines de formation"
 msgid "A training sub domain with this label already exists"
 msgstr "Un sous-domaine de formation à ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:110
+#: immersionlyceens/apps/core/models.py:109
+msgid "Code"
+msgstr "Code"
+
 #: immersionlyceens/apps/core/models.py:111
+#: immersionlyceens/apps/core/models.py:138
+msgid "Website address"
+msgstr "Site web"
+
+#: immersionlyceens/apps/core/models.py:116
+msgid "Component"
+msgstr "Composante d'enseignement"
+
+#: immersionlyceens/apps/core/models.py:117
+#: immersionlyceens/apps/core/models.py:136
+msgid "Components"
+msgstr "Composantes d'enseignement"
+
+#: immersionlyceens/apps/core/models.py:126
+msgid "A component with this code already exists"
+msgstr "Une composante d'enseignement à ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:135
+msgid "Training subdomains"
+msgstr "Sous-domaines de formation"
+
+#: immersionlyceens/apps/core/models.py:143
+msgid "Training"
+msgstr "Formation"
+
+#: immersionlyceens/apps/core/models.py:144
+msgid "Trainings"
+msgstr "Formations"
+
+#: immersionlyceens/apps/core/models.py:154
+msgid "A training with this label already exists"
+msgstr "Une formation à ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:162
+#: immersionlyceens/apps/core/models.py:163
 msgid "Campus"
 msgstr "Campus"
 
-#: immersionlyceens/apps/core/models.py:120
-msgid "A campus with this label exists"
+#: immersionlyceens/apps/core/models.py:173
+msgid "A campus with this label already exists"
 msgstr "Un campus à ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:133
+#: immersionlyceens/apps/core/models.py:186
 msgid "Bachelor mention"
 msgstr "Mention du baccalauréat"
 
-#: immersionlyceens/apps/core/models.py:134
+#: immersionlyceens/apps/core/models.py:187
 msgid "Bachelor mentions"
 msgstr "Mentions du baccalauréat"
 
-#: immersionlyceens/apps/core/models.py:146
+#: immersionlyceens/apps/core/models.py:198
+msgid "A bachelor mention with this label already exists"
+msgstr "Une mention de baccalauréat à ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:207
 msgid "Url"
 msgstr "Url"
 
-#: immersionlyceens/apps/core/models.py:150
+#: immersionlyceens/apps/core/models.py:211
 msgid "Building"
 msgstr "Bâtiment"
 
-#: immersionlyceens/apps/core/models.py:161
-msgid "A building with this label for the same campus exists"
+#: immersionlyceens/apps/core/models.py:223
+msgid "A building with this label for the same campus already exists"
 msgstr "Un bâtiment à ce nom existe déjà pour ce campus"
+
+#: immersionlyceens/apps/core/models.py:236
+msgid "Cancel type"
+msgstr "Type d'annulation"
+
+#: immersionlyceens/apps/core/models.py:237
+msgid "Cancel types"
+msgstr "Types d'annulation"
+
+#: immersionlyceens/apps/core/models.py:249
+msgid "A cancel type with this label already exists"
+msgstr "Un type d'annulation à ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:260
+#: immersionlyceens/apps/core/models.py:261
+msgid "Course type"
+msgstr "Type de cours"
+
+#: immersionlyceens/apps/core/models.py:273
+msgid "A course type with this label already exists"
+msgstr "Un type de cours à ce nom existe déjà"
 
 #: immersionlyceens/settings/base.py:359
 msgid "Immersion"
@@ -138,4 +231,3 @@ msgstr "Crédits"
 #: immersionlyceens/templates/modals/modal_legal.html:23
 msgid "Close"
 msgstr "Fermer"
-
