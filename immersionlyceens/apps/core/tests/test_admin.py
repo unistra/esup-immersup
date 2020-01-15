@@ -11,12 +11,12 @@ from django.test import RequestFactory, TestCase
 from ..models import (
     Building, Campus, Component, TrainingDomain,
     TrainingSubdomain,
-    BachelorMention, CancelType, CourseType)
+    BachelorMention, CancelType, CourseType, PublicType)
 
 from ..admin_forms import (
     BuildingForm, CampusForm, ComponentForm,
     TrainingDomainForm, TrainingSubdomainForm,
-    BachelorMentionForm, CancelTypeForm, CourseTypeForm)
+    BachelorMentionForm, CancelTypeForm, CourseTypeForm, PublicTypeForm)
 
 
 class MockRequest:
@@ -295,4 +295,33 @@ class AdminFormsTestCase(TestCase):
         form = CourseTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(CourseType.objects.filter(
+            label='test_fail').exists())
+
+
+    def test_public_type_creation(self):
+        """
+        Test public type mention creation with group rights
+        """
+
+        test = PublicType.objects.create(label='testBachelor', active=True)
+        data = {
+            'label': 'testPublic',
+            'campus': test.pk,
+            'url': 'https://www.doc.com',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+
+        form = PublicTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(PublicType.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = PublicTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(PublicType.objects.filter(
             label='test_fail').exists())
