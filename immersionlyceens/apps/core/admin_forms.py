@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
     Training, TrainingDomain, TrainingSubdomain,
-    CourseType)
+    CourseType, PublicType)
 
 class BachelorMentionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -314,5 +314,5 @@ class PublicTypeForm(forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = Component
+        model = PublicType
         fields = '__all__'

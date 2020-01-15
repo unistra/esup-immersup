@@ -293,12 +293,8 @@ class AdminFormsTestCase(TestCase):
         """
         Test public type mention creation with group rights
         """
-
-        test = PublicType.objects.create(label='testBachelor', active=True)
         data = {
-            'label': 'testPublic',
-            'campus': test.pk,
-            'url': 'https://www.doc.com',
+            'label': 'testCourse',
             'active': True
         }
 
