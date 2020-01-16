@@ -85,8 +85,7 @@ class TrainingSubdomain(models.Model):
     Training subdomain class
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
-    training_domain = models.ForeignKey(TrainingDomain,
-                                        verbose_name=_("Training domain"), default=None, blank=False,
+    training_domain = models.ForeignKey(TrainingDomain, verbose_name=_("Training domain"), default=None, blank=False,
                                         null=False, on_delete=models.CASCADE, related_name='Subdomains')
     active = models.BooleanField(_("Active"), default=True)
 
@@ -389,7 +388,7 @@ class HighSchool(models.Model):
         _("City"), max_length=255, blank=False, null=False,
         choices=get_cities())
     zip_code = models.CharField(
-        _("Zip Code"), max_length=128, blank=False, null=False)
+        _("Zip code"), max_length=128, blank=False, null=False)
     phone_number = models.CharField(
         _("Phone number"), max_length=20, null=False, blank=False)
     fax = models.CharField(
