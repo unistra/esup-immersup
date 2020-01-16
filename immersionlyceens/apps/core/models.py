@@ -409,6 +409,7 @@ class Vacation(models.Model):
 class Calendar(models.Model):
     """University year"""
 
+    label = models.CharField(_("Label"), max_length=256, unique=True)
     year_start_date = models.DateField(null=True)
     year_end_date = models.DateField(null=True)
     year_registration_start_date = models.DateField(null=True)
