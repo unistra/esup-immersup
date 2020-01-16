@@ -1,9 +1,11 @@
+import datetime
+
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import BachelorMention, Building, Campus, CancelType, CourseType, PublicType
+from ..models import BachelorMention, Building, Campus, CancelType, CourseType, PublicType, UniversityYear
 
 
 class CampusTestCase(TestCase):
@@ -68,3 +70,37 @@ class PublicTypeTestCase(TestCase):
     def test_public_type_activated(self):
         o = PublicType.objects.create(label="PublicType")
         self.assertTrue(o.active)
+
+class UniversityYearTestCase(TestCase):
+
+    def test_public_type_str(self):
+        label = "UniversityYear"
+        o = UniversityYear.objects.create(
+            label=label,
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
+            registration_start_date=datetime.datetime.today().date(),
+        )
+        self.assertEqual(str(o), label)
+
+    def test_public_type_activated(self):
+        o1 = UniversityYear.objects.create(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
+            registration_start_date=datetime.datetime.today().date(),
+        )
+
+        o2 = UniversityYear.objects.create(
+            label='World',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
+            registration_start_date=datetime.datetime.today().date(),
+        )
+        self.assertTrue(o1.active)
+        self.assertFalse(o2.active)
+
+        o1.delete()
+        o2.label = 'Coucou'
+        o2.save()
+        self.assertTrue(o2.active)
