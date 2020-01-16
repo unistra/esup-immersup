@@ -30,3 +30,5 @@ def ajax_get_person(request):
             users = sorted(users, key = lambda u:[u['lastname'], u['firstname']])
 
             return JsonResponse(persons_list + users, safe=False)
+            
+    return JsonResponse([], safe=False)
