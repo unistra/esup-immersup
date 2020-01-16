@@ -1,6 +1,7 @@
 """
 Django Admin Forms tests suite
 """
+import datetime
 
 from django.conf import settings
 from django.contrib.admin.sites import AdminSite
@@ -12,13 +13,13 @@ from ..models import (
     BachelorMention, Building, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, TrainingDomain,
     TrainingSubdomain,
-    BachelorMention, CancelType, CourseType, PublicType)
+    BachelorMention, CancelType, CourseType, PublicType, UniversityYear)
 
 from ..admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm, CancelTypeForm,
     ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm,
-    TrainingDomainForm, TrainingSubdomainForm, PublicTypeForm
-)
+    TrainingDomainForm, TrainingSubdomainForm, PublicTypeForm,
+    UniversityYearForm)
 
 
 class MockRequest:
@@ -339,4 +340,39 @@ class AdminFormsTestCase(TestCase):
         form = PublicTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(PublicType.objects.filter(
+            label='test_fail').exists())
+
+
+    def test_university_year_creation(self):
+        """
+        Test public type mention creation with group rights
+        """
+        data = {
+            'label': 'university_year',
+            'active': True,
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'registration_start_date': datetime.datetime.today().date(),
+            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+        }
+
+        request.user = self.scuio_user
+
+        form = UniversityYearForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(UniversityYear.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data = {
+            'label': 'test_failure',
+            'active': True,
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'registration_start_date': datetime.datetime.today().date(),
+        }
+        request.user = self.ref_cmp_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(UniversityYear.objects.filter(
             label='test_fail').exists())
