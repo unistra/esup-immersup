@@ -17,7 +17,6 @@ function getCookie(name) {
 window.addEventListener("load", function() {
 (function($) {
     var query_order = 0;
-    // var $ = django.jQuery
 
     $(document).ready(function() {
         $('#id_username').after("<label id='livesearch_label'>User found :</label><div id='livesearch' class='vTextField'></div>");
@@ -64,7 +63,8 @@ window.addEventListener("load", function() {
 
                         for(var i=1; i<json.length; i++) {
                             document.getElementById("livesearch").innerHTML =
-                                json[i]["firstname"] + " " + json[i]["lastname"];
+                                // json[i]["firstname"] + " " + json[i]["lastname"];
+                                json[i]["display_name"];
                         }
                     }
                  },

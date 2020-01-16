@@ -54,8 +54,7 @@ class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
 
     class Media:
         js = (
-            # 'js/jquery-3.4.1.slim.min.js',
-            'js/immersion_user.js',  # app static folder
+            'js/immersion_user.js', # implements user search
         )
         css = {
             'all': ('css/immersionlyceens.css',)
