@@ -1,3 +1,4 @@
+import enum
 import logging
 from functools import partial
 
@@ -409,11 +410,18 @@ class Vacation(models.Model):
 class Calendar(models.Model):
     """University year"""
 
+    CALENDAR_YEAR = [
+        ('YEAR', 'Year'),
+        ('SEMESTER', 'Semester'),
+    ]
+
     label = models.CharField(_("Label"), max_length=256, unique=True)
+    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_YEAR, default="YEAR")
+
     year_start_date = models.DateField(null=True)
     year_end_date = models.DateField(null=True)
     year_registration_start_date = models.DateField(null=True)
-    year_nb_authorized_immersion = models.IntegerField()
+    year_nb_authorized_immersion = models.PositiveIntegerField(default=4)
 
     semester1_start_date = models.DateField(null=True)
     semester1_end_date = models.DateField(null=True)
@@ -421,12 +429,12 @@ class Calendar(models.Model):
     semester2_start_date = models.DateField(null=True)
     semester2_end_date = models.DateField(null=True)
     semester2_registration_start_date = models.DateField(null=True)
-    registration_start_date_per_semester = models.IntegerField()
+    registration_start_date_per_semester = models.PositiveIntegerField(default=2)
 
     class Meta:
         """Meta class"""
-        verbose_name = _('Vacation')
-        verbose_name_plural = _('Vacations')
+        verbose_name = _('Calendar')
+        verbose_name_plural = _('Calendars')
 
     def __str__(self):
         """str"""

@@ -7,7 +7,7 @@ from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, Training, TrainingDomain,
     TrainingSubdomain, CourseType, PublicType,
-    UniversityYear)
+    UniversityYear, Holiday, Vacation, Calendar)
 
 class BachelorMentionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -392,3 +392,128 @@ class UniversityYearForm(forms.ModelForm):
     class Meta:
         model = UniversityYear
         fields = '__all__'
+
+
+class HolidayForm(forms.ModelForm):
+    """
+    University Year form class
+    """
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = Holiday
+        fields = '__all__'
+
+
+class VacationForm(forms.ModelForm):
+    """
+    University Year form class
+    """
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        if start_date and end_date and start_date >= end_date:
+            raise forms.ValidationError(
+                _("Start date greater than end date")
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = Vacation
+        fields = '__all__'
+
+
+class CalendarForm(forms.ModelForm):
+    """
+    University Year form class
+    """
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        year_start_date = cleaned_data.get('year_start_date')
+        year_end_date = cleaned_data.get('year_end_date')
+        s1_start_date = cleaned_data.get('semester1_start_date')
+        s1_end_date = cleaned_data.get('semester1_end_date')
+        s2_start_date = cleaned_data.get('semester2_start_date')
+        s2_end_date = cleaned_data.get('semester2_end_date')
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        if year_start_date and year_end_date and year_start_date >= year_end_date:
+            raise forms.ValidationError(
+                _("Start date greater than end date")
+            )
+        if s1_start_date and s1_end_date and s1_start_date >= s1_end_date:
+            raise forms.ValidationError(
+                _("Semester 1 start date greater than semester 1 end date")
+            )
+        if s2_start_date and s2_end_date and s2_start_date >= s2_end_date:
+            raise forms.ValidationError(
+                _("Semester 2 start date greater than semester 2 end date")
+            )
+        if s1_end_date and s2_start_date and s1_end_date >= s2_start_date:
+            raise forms.ValidationError(
+                _("Semester 1 ends after the begining of semester 2")
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = Calendar
+        fields = '__all__'
+
+
+# Vacation
+# Calendar
+
