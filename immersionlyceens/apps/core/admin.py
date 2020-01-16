@@ -4,16 +4,17 @@ from hijack_admin.admin import HijackUserAdminMixin
 
 from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, ImmersionUser, Training,
-    TrainingDomain, TrainingSubdomain, PublicType
+    CourseType, GeneralBachelorTeaching, ImmersionUser,
+    PublicType, Training, TrainingDomain, TrainingSubdomain,
 )
 
 from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
     CancelTypeForm, ComponentForm, CourseTypeForm,
-    GeneralBachelorTeachingForm, TrainingForm,
-    TrainingDomainForm, TrainingSubdomainForm,
-    CourseTypeForm, PublicTypeForm)
+    GeneralBachelorTeachingForm, ImmersionUserCreationForm,
+    PublicTypeForm, TrainingForm, TrainingDomainForm,
+    TrainingSubdomainForm,
+)
 
 class AdminWithRequest:
     """
@@ -32,7 +33,7 @@ class AdminWithRequest:
 
 class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
     #form = ImmersionUserChangeForm
-    #add_form = ImmersionUserCreationForm
+    add_form = ImmersionUserCreationForm
 
     add_fieldsets = (
         (None, {

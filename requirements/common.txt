@@ -4,3 +4,4 @@ django-hijack-admin
 psycopg2
 django-cas-sso
 django-extensions
+ldap3
