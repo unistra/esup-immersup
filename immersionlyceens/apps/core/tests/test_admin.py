@@ -130,7 +130,7 @@ class AdminFormsTestCase(TestCase):
             'address2': '',
             'address3': '',
             'department': '68',
-            'city': 'MULHOUSE',
+            'city': 'mulhouse',
             'zip_code': '68100',
             'phone_number': '+3312345678',
             'fax': '+3397654321',
@@ -147,12 +147,16 @@ class AdminFormsTestCase(TestCase):
 
         form = HighSchoolForm(data=data, request=request)
         # Need to populate choices fields (ajax populated IRL)
-        form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
+        form.fields['city'].choices = [('mulhouse', 'mulhouse')]
         form.fields['zip_code'].choices = [('68100', '68100')]
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(
             label='Santo Domingo').exists())
+
+        # Check upperfield
+        h = HighSchool.objects.filter(label='Santo Domingo').first()
+        self.assertTrue(h.city == data['city'].upper())
 
         # Validation fail (invalid user)
         data = {

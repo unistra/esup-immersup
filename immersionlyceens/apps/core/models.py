@@ -98,7 +98,7 @@ class Building(models.Model):
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
     campus = models.ForeignKey(
-        Campus, verbose_name=("Campus"), default=None, 
+        Campus, verbose_name=("Campus"), default=None,
         on_delete=models.CASCADE, related_name="buildings")
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
@@ -154,7 +154,7 @@ class HighSchool(models.Model):
         help_text=_('civility last name first name')
     )
     referent_name = models.CharField(
-        _('Referent name'), max_length=255, blank=False, null=False, 
+        _('Referent name'), max_length=255, blank=False, null=False,
         help_text=_('last name first name'))
     referent_phone_number = models.CharField(
         _("Referent phone number"), max_length=20, blank=False, null=False)
@@ -163,3 +163,7 @@ class HighSchool(models.Model):
         _("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(
         _("Convention end date"), null=True, blank=True)
+
+    def __str__(self):
+        # TODO: Should we display city as well (????)
+        return self.label

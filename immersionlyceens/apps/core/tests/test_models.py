@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import BachelorMention, Building, Campus
+from ..models import BachelorMention, Building, Campus, HighSchool
 
 
 class CampusTestCase(TestCase):
@@ -33,3 +33,29 @@ class BachelorMentionTestCase(TestCase):
     def test_bachelor_mention_activated(self):
         o = BachelorMention.objects.create(label="Techo parade")
         self.assertTrue(o.active)
+
+
+class HighSchoolTestCase(TestCase):
+
+    def test_highschool_str(self):
+
+        data = {
+            'label': 'Degrassi Junior School',
+            'address': 'rue Joey Jeremiah',
+            'address2': '',
+            'address3': '',
+            'department': '68',
+            'city': 'MULHOUSE',
+            'zip_code': '68100',
+            'phone_number': '+3312345678',
+            'fax': '+3397654321',
+            'email': 'degrassi@degrassi.edu',
+            'head_teacher_name': 'M. Daniel Raditch',
+            'referent_name': 'Spike Nelson',
+            'referent_phone_number': '+30102030',
+            'referent_email': 'spike@caramail.com',
+            'convention_start_date': '1977-05-30'
+        }
+
+        test_highschool = HighSchool.objects.create(**data)
+        self.assertEqual(str(test_highschool), 'Degrassi Junior School')
