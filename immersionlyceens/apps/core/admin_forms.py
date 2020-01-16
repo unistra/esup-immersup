@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
@@ -356,6 +358,9 @@ class UniversityYearForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        registration_start_date = cleaned_data.get('registration_start_date')
         valid_user = False
 
         try:
@@ -367,6 +372,19 @@ class UniversityYearForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(
                 _("You don't have the required privileges")
+            )
+
+        if start_date and start_date <= datetime.today().date():
+            raise forms.ValidationError(
+                _("Start date can't be today or earlier")
+            )
+        if start_date and end_date and start_date >= end_date:
+            raise forms.ValidationError(
+                _("Start date greater than end date")
+            )
+        if registration_start_date and end_date and registration_start_date >= end_date:
+            raise forms.ValidationError(
+                _("Start of registration date greater than end date")
             )
 
         return cleaned_data

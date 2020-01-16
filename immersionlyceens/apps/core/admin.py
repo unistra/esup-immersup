@@ -193,7 +193,17 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def get_readonly_fields(self, request, obj=None):
-        return ['active', 'purge_date']
+        fields = ['active', 'purge_date']
+        if obj:
+            if obj.purge_date is not None:
+                return list(set(
+                    [field.name for field in self.opts.local_fields] +
+                    [field.name for field in self.opts.local_many_to_many]
+                ))
+
+            elif obj.start_date <= datetime.today().date():
+                fields.append('start_date')
+        return fields
 
     # def get_actions(self, request):
     #     # Disable delete

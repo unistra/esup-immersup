@@ -335,8 +335,8 @@ class UniversityYear(models.Model):
 
     class Meta:
         """Meta class"""
-        verbose_name = _('Univesity year')
-        verbose_name_plural = _('Univesity years')
+        verbose_name = _('University year')
+        verbose_name_plural = _('University years')
 
     def __str__(self):
         """str"""
