@@ -1,9 +1,12 @@
+import datetime
+
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import BachelorMention, Building, Campus, HighSchool
+from ..models import (BachelorMention, Building, Campus, CancelType,
+                      CourseType, PublicType, UniversityYear)
 
 
 class CampusTestCase(TestCase):
@@ -18,8 +21,7 @@ class CampusTestCase(TestCase):
 
     def test_building_str(self):
         test_campus = Campus.objects.create(label='MyCampus')
-        test_building = Building.objects.create(
-            label='MyBuilding', campus=test_campus)
+        test_building = Building.objects.create(label='MyBuilding', campus=test_campus)
         self.assertEqual(str(test_building), 'MyBuilding')
 
 
@@ -35,27 +37,71 @@ class BachelorMentionTestCase(TestCase):
         self.assertTrue(o.active)
 
 
-class HighSchoolTestCase(TestCase):
+class CancelTypeTestCase(TestCase):
 
-    def test_highschool_str(self):
+    def test_cancel_type_str(self):
+        label = "Cancel type"
+        o = CancelType.objects.create(label=label)
+        self.assertEqual(str(o), label)
 
-        data = {
-            'label': 'Degrassi Junior School',
-            'address': 'rue Joey Jeremiah',
-            'address2': '',
-            'address3': '',
-            'department': '68',
-            'city': 'MULHOUSE',
-            'zip_code': '68100',
-            'phone_number': '+3312345678',
-            'fax': '+3397654321',
-            'email': 'degrassi@degrassi.edu',
-            'head_teacher_name': 'M. Daniel Raditch',
-            'referent_name': 'Spike Nelson',
-            'referent_phone_number': '+30102030',
-            'referent_email': 'spike@caramail.com',
-            'convention_start_date': '1977-05-30'
-        }
+    def test_cancel_type_activated(self):
+        o = CancelType.objects.create(label="Cancel type")
+        self.assertTrue(o.active)
 
-        test_highschool = HighSchool.objects.create(**data)
-        self.assertEqual(str(test_highschool), 'Degrassi Junior School')
+
+class CourseTypeTestCase(TestCase):
+
+    def test_course_type_str(self):
+        label = "course type"
+        o = CourseType.objects.create(label=label)
+        self.assertEqual(str(o), label)
+
+    def test_course_type_activated(self):
+        o = CourseType.objects.create(label="course type")
+        self.assertTrue(o.active)
+
+
+class PublicTypeTestCase(TestCase):
+
+    def test_public_type_str(self):
+        label = "PublicType"
+        o = PublicType.objects.create(label=label)
+        self.assertEqual(str(o), label)
+
+    def test_public_type_activated(self):
+        o = PublicType.objects.create(label="PublicType")
+        self.assertTrue(o.active)
+
+class UniversityYearTestCase(TestCase):
+
+    def test_public_type_str(self):
+        label = "UniversityYear"
+        o = UniversityYear.objects.create(
+            label=label,
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
+            registration_start_date=datetime.datetime.today().date(),
+        )
+        self.assertEqual(str(o), label)
+
+    def test_public_type_activated(self):
+        o1 = UniversityYear.objects.create(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
+            registration_start_date=datetime.datetime.today().date(),
+        )
+
+        o2 = UniversityYear.objects.create(
+            label='World',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
+            registration_start_date=datetime.datetime.today().date(),
+        )
+        self.assertTrue(o1.active)
+        self.assertFalse(o2.active)
+
+        o1.delete()
+        o2.label = 'Coucou'
+        o2.save()
+        self.assertTrue(o2.active)

@@ -1,0 +1,148 @@
+input[type="checkbox"] {
+    margin-top: -1px;
+    vertical-align: middle;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#livesearch {
+    width: 300px;
+    visibility: hidden;
+    display: inline-block;
+    float:left;
+}
+
+#livesearch_label {
+    width: 120px;
+    margin-left:20px;
+    visibility: hidden;
+    display: inline-block;
+    float:left;
+}
+
+#id_username {
+    float:left;
+}
+
+.top-buffer {
+    margin-top:20px;
+}
+
+.warning {
+    color: red;
+}
+
+.styled-select {
+   width: 100%;
+}
+
+.input-iban {
+   width: 55px;
+}
+
+.input-iban-key {
+   width: 40px;
+}
+
+.glyphicon-margin-left {
+   margin-left: 20px;
+}
+
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -ms-animation: spin .7s infinite linear;
+    -webkit-animation: spinw .7s infinite linear;
+    -moz-animation: spinm .7s infinite linear;
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+
+@-webkit-keyframes spinw {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@-moz-keyframes spinm {
+    from { -moz-transform: rotate(0deg);}
+    to { -moz-transform: rotate(360deg);}
+}
+
+.panel-heading .glyphicon {
+    padding-left: 15px;
+}
+
+.table-container {
+    width: 95%;
+}
+
+/* Fix long string content for filters */
+.yadcf-filter {
+    width: 100px;
+}
+
+/* No hover effect on specific element of a nav pill */
+.nav>li.no-effect>a:hover, .nav>li.no-effect>a:focus {
+    background-color: transparent;
+}
+
+/* Scrollable modal body */
+.modal-scrollable {
+    overflow-y: initial !important
+}
+
+.modal-scrollable .modal-body {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.icon-spinner {
+    display:none;
+}
+
+.glyphicon-spin {
+    -webkit-animation: spin 2s infinite linear;
+    -moz-animation: spin 2s infinite linear;
+    -o-animation: spin 2s infinite linear;
+    animation: spin 2s infinite linear;
+}
+@-moz-keyframes spin {
+  0% {
+    -moz-transform: rotate(0deg);
+  }
+  100% {
+    -moz-transform: rotate(359deg);
+  }
+}
+@-webkit-keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+  }
+}
+@-o-keyframes spin {
+  0% {
+    -o-transform: rotate(0deg);
+  }
+  100% {
+    -o-transform: rotate(359deg);
+  }
+}
+@keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
