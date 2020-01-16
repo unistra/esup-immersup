@@ -356,3 +356,88 @@ class UniversityYear(models.Model):
             self.active = True
         super(UniversityYear, self).save(*args, **kwargs)
 
+
+class Holiday(models.Model):
+    """University year"""
+
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    date = models.DateField()
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Holiday')
+        verbose_name_plural = _('Holidays')
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(Holiday, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('An holiday with this label already exists'))
+
+
+class Vacation(models.Model):
+    """University year"""
+
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Vacation')
+        verbose_name_plural = _('Vacations')
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(Vacation, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A vacation with this label already exists'))
+
+
+class Calendar(models.Model):
+    """University year"""
+
+    year_start_date = models.DateField(null=True)
+    year_end_date = models.DateField(null=True)
+    year_registration_start_date = models.DateField(null=True)
+    year_nb_authorized_immersion = models.IntegerField()
+
+    semester1_start_date = models.DateField(null=True)
+    semester1_end_date = models.DateField(null=True)
+    semester1_nb_authorized_immersion = models.DateField(null=True)
+    semester2_start_date = models.DateField(null=True)
+    semester2_end_date = models.DateField(null=True)
+    semester2_registration_start_date = models.DateField(null=True)
+    registration_start_date_per_semester = models.IntegerField()
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Vacation')
+        verbose_name_plural = _('Vacations')
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(Calendar, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A calendar with this label already exists'))
+
+
+
