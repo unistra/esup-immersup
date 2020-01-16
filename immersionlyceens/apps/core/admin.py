@@ -7,16 +7,19 @@ from django.utils.translation import ugettext_lazy as _
 
 from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, ImmersionUser, Training,
-    TrainingDomain, TrainingSubdomain, PublicType,
-    UniversityYear)
+    CourseType, GeneralBachelorTeaching, ImmersionUser,
+    PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear,
+)
 
 from .admin_forms import (
     BachelorMentionForm, BuildingForm, CampusForm,
     CancelTypeForm, ComponentForm, CourseTypeForm,
-    GeneralBachelorTeachingForm, TrainingForm,
-    TrainingDomainForm, TrainingSubdomainForm,
-    CourseTypeForm, PublicTypeForm, UniversityYearForm)
+    GeneralBachelorTeachingForm, ImmersionUserCreationForm,
+    PublicTypeForm, TrainingForm, TrainingDomainForm,
+    TrainingSubdomainForm, UniversityYearForm
+)
+
 
 class AdminWithRequest:
     """
@@ -35,7 +38,7 @@ class AdminWithRequest:
 
 class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
     #form = ImmersionUserChangeForm
-    #add_form = ImmersionUserCreationForm
+    add_form = ImmersionUserCreationForm
 
     add_fieldsets = (
         (None, {
@@ -53,15 +56,14 @@ class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
 
-    """
+
     class Media:
         js = (
-            'js/immersion_user.js',  # app static folder
+            'js/immersion_user.js', # implements user search
         )
         css = {
-            'all': ('css/immersion.css',)
+            'all': ('css/immersionlyceens.css',)
         }
-    """
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -216,7 +218,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj:
-            print(obj.start_date)
             if obj.start_date <= datetime.today().date():
                 messages.warning(request, _("""This component can't be deleted """
                     """because university year has already started"""))

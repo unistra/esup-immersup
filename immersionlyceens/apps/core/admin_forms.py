@@ -2,12 +2,14 @@ from datetime import datetime
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
 from .models import (
     BachelorMention, Building, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, Training, TrainingDomain,
-    TrainingSubdomain, CourseType, PublicType,
-    UniversityYear)
+    CourseType, GeneralBachelorTeaching, ImmersionUser,
+    PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear
+)
 
 class BachelorMentionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -391,4 +393,16 @@ class UniversityYearForm(forms.ModelForm):
 
     class Meta:
         model = UniversityYear
+        fields = '__all__'
+
+
+class ImmersionUserCreationForm(UserCreationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["password1"].required = False
+        self.fields["password2"].required = False
+
+    class Meta(UserCreationForm.Meta):
+        model = ImmersionUser
         fields = '__all__'

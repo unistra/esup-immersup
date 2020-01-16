@@ -14,6 +14,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
+    path('api/', include('immersionlyceens.libs.api.urls')),
 ]
 
 # debug toolbar for dev
