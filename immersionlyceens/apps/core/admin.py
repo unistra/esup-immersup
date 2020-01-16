@@ -51,15 +51,15 @@ class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
 
-    """
+
     class Media:
         js = (
+            # 'js/jquery-3.4.1.slim.min.js',
             'js/immersion_user.js',  # app static folder
         )
         css = {
-            'all': ('css/immersion.css',)
+            'all': ('css/immersionlyceens.css',)
         }
-    """
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
