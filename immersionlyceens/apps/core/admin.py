@@ -110,7 +110,8 @@ class BachelorMentionAdmin(admin.ModelAdmin):
 class HighSchoolAdmin(admin.ModelAdmin):
     form = HighSchoolForm
     list_display = ('label', 'city', 'email', 'head_teacher_name',
-                    'referent_name', 'convention_start_date', 'convention_end_date')
+                    'referent_name', 'convention_start_date',
+                    'convention_end_date')
     list_filter = ('city',)
     search_fields = ('label', 'label', 'head_teacher_name', 'referent_name')
 

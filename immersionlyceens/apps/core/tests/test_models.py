@@ -18,7 +18,8 @@ class CampusTestCase(TestCase):
 
     def test_building_str(self):
         test_campus = Campus.objects.create(label='MyCampus')
-        test_building = Building.objects.create(label='MyBuilding', campus=test_campus)
+        test_building = Building.objects.create(
+            label='MyBuilding', campus=test_campus)
         self.assertEqual(str(test_building), 'MyBuilding')
 
 

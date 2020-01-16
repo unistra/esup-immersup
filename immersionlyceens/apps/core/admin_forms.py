@@ -20,7 +20,7 @@ class CourseDomainForm(forms.ModelForm):
             valid_user = user.is_scuio_ip_manager()
         except AttributeError:
             pass
-            
+
         if not valid_user:
             raise forms.ValidationError(
                 _("Valid user required")
@@ -94,7 +94,7 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
-        
+
         if instance.department:
             dep_choices = get_cities(instance.department)
         else:
@@ -104,7 +104,7 @@ class HighSchoolForm(forms.ModelForm):
             zip_choices = get_zipcodes(instance.department, instance.city)
         else:
             zip_choices = ''
- 
+
         self.fields['city'] = forms.TypedChoiceField(
             label=_("City"),
             widget=forms.Select(),
@@ -118,7 +118,7 @@ class HighSchoolForm(forms.ModelForm):
             required=True
         )
 
-    def clean(self): 
+    def clean(self):
         cleaned_data = super().clean()
         valid_user = False
 
