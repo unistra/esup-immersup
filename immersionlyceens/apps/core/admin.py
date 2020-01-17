@@ -6,15 +6,49 @@ from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (BachelorMentionForm, BuildingForm, CampusForm,
-                          CancelTypeForm, ComponentForm, CourseTypeForm,
-                          GeneralBachelorTeachingForm, HighSchoolForm,
-                          ImmersionUserCreationForm, PublicTypeForm,
-                          TrainingDomainForm, TrainingForm,
-                          TrainingSubdomainForm, UniversityYearForm)
+    CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm,
+    HighSchoolForm, ImmersionUserCreationForm, PublicTypeForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm)
+
 from .models import (BachelorMention, Building, Campus, CancelType, Component,
-                     CourseType, GeneralBachelorTeaching, HighSchool,
-                     ImmersionUser, PublicType, Training, TrainingDomain,
-                     TrainingSubdomain, UniversityYear)
+    CourseType, GeneralBachelorTeaching, HighSchool, ImmersionUser, PublicType,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear)
+
+
+class CustomAdminSite(admin.AdminSite):
+    def get_app_list(self, request):
+        """
+        Return a sorted list of all the installed apps that have been
+        registered in this site.
+        """
+        ordering = {
+            'ImmersionUser': 1,
+            'UniversityYear': 2,
+            'HighSchool': 3,
+            'GeneralBachelorTeaching': 4,
+            'BachelorMention': 5,
+            'Campus': 6,
+            'Building': 7,
+            'Component': 8,
+            'TrainingDomain': 9,
+            'TrainingSubdomain': 10,
+            'Training': 11,
+            'CourseType': 12,
+            'PublicType': 13,
+            'CancelType': 14,
+        }
+
+        app_dict = self._build_app_dict(request)
+
+        # Sort the apps alphabetically.
+        app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
+
+        # Sort the models alphabetically within each app.
+        # key=lambda x: x['name']
+        for app in app_list:
+            app['models'].sort(key=lambda x: ordering[x.get('object_name')])
+
+        return app_list
 
 
 class AdminWithRequest:
@@ -80,8 +114,9 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj and TrainingSubdomain.objects.filter(
                 training_domain=obj).exists():
-            messages.warning(request, _("""This training domain can't be deleted """
-                                        """because it is used by training subdomains"""))
+            messages.warning(request, _(
+                """This training domain can't be deleted """
+                """because it is used by training subdomains"""))
             return False
 
         return True
@@ -104,8 +139,9 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():
-            messages.warning(request, _("""This training subdomain can't be deleted """
-                                        """because it is used by a training"""))
+            messages.warning(request, _(
+                """This training subdomain can't be deleted """
+                """because it is used by a training"""))
             return False
 
         return True
@@ -154,8 +190,9 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(components=obj).exists():
-            messages.warning(request, _("""This component can't be deleted """
-                                        """because it is used by a training"""))
+            messages.warning(request, _(
+                """This component can't be deleted """
+                """because it is used by a training"""))
             return False
 
         return True
@@ -215,12 +252,14 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj:
             if obj.start_date <= datetime.today().date():
-                messages.warning(request, _("""This component can't be deleted """
-                                            """because university year has already started"""))
+                messages.warning(request, _(
+                    """This component can't be deleted """
+                    """because university year has already started"""))
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _("""This component can't be deleted """
-                                            """because a purge date is defined"""))
+                messages.warning(request, _(
+                    """This component can't be deleted """
+                    """because a purge date is defined"""))
                 return False
 
         return True
@@ -229,8 +268,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 class HighSchoolAdmin(admin.ModelAdmin):
     form = HighSchoolForm
     list_display = ('label', 'city', 'email', 'head_teacher_name',
-                    'referent_name', 'convention_start_date',
-                    'convention_end_date')
+        'referent_name', 'convention_start_date', 'convention_end_date')
     list_filter = ('city',)
     search_fields = ('label', 'label', 'head_teacher_name', 'referent_name')
 
@@ -241,8 +279,7 @@ class HighSchoolAdmin(admin.ModelAdmin):
             'js/admin_highschool.js',
         )
 
-
-
+admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
