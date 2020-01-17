@@ -347,7 +347,7 @@ HIJACK_USE_BOOTSTRAP = True
 # Where admins are redirected to after hijacking a user
 HIJACK_LOGIN_REDIRECT_URL = '/'
 # Where admins are redirected to after releasing a user
-HIJACK_LOGOUT_REDIRECT_URL = '/admin/auth/user/'
+HIJACK_LOGOUT_REDIRECT_URL = '/'
 HIJACK_ALLOW_GET_REQUESTS = True
 HIJACK_REGISTER_ADMIN = False
 
@@ -388,4 +388,3 @@ LDAP_API_EMAIL_ATTR = ''
 LDAP_API_EMAIL_USERNAME = ''
 LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
-
