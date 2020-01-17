@@ -11,12 +11,12 @@ from .admin_forms import (BachelorMentionForm, BuildingForm, CampusForm,
                           ImmersionUserCreationForm, PublicTypeForm,
                           TrainingDomainForm, TrainingForm,
                           TrainingSubdomainForm, UniversityYearForm,
-                          Holiday, Vacation, Calendar)
+                          HolidayForm, VacationForm, CalendarForm)
 from .models import (BachelorMention, Building, Campus, CancelType, Component,
                      CourseType, GeneralBachelorTeaching, HighSchool,
                      ImmersionUser, PublicType, Training, TrainingDomain,
                      TrainingSubdomain, UniversityYear,
-                     HolidayForm, VacationForm, CalendarForm)
+                     Holiday, Vacation, Calendar)
 
 
 class CustomAdminSite(admin.AdminSite):
