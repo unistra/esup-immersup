@@ -6,13 +6,15 @@ from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (BachelorMentionForm, BuildingForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm,
-    HighSchoolForm, ImmersionUserCreationForm, PublicTypeForm, TrainingDomainForm,
-    TrainingForm, TrainingSubdomainForm, UniversityYearForm)
-
+                          CancelTypeForm, ComponentForm, CourseTypeForm,
+                          GeneralBachelorTeachingForm, HighSchoolForm,
+                          ImmersionUserCreationForm, PublicTypeForm,
+                          TrainingDomainForm, TrainingForm,
+                          TrainingSubdomainForm, UniversityYearForm)
 from .models import (BachelorMention, Building, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, HighSchool, ImmersionUser, PublicType,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear)
+                     CourseType, GeneralBachelorTeaching, HighSchool,
+                     ImmersionUser, PublicType, Training, TrainingDomain,
+                     TrainingSubdomain, UniversityYear)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -153,6 +155,24 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     search_fields = ('label',)
 
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Building.objects.filter(campus=obj).exists():
+            messages.warning(request, _(
+                """This campus can't be deleted """
+                """because it is used by a building"""))
+            return False
+
+        return True
+
 
 class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BuildingForm
@@ -265,7 +285,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
-class HighSchoolAdmin(admin.ModelAdmin):
+class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HighSchoolForm
     list_display = ('label', 'city', 'email', 'head_teacher_name',
         'referent_name', 'convention_start_date', 'convention_end_date')
