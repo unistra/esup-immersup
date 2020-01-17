@@ -2,26 +2,64 @@ from datetime import datetime
 
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from hijack_admin.admin import HijackUserAdminMixin
 from django.utils.translation import ugettext_lazy as _
+from hijack_admin.admin import HijackUserAdminMixin
 
-from .models import (
-    BachelorMention, Building, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, ImmersionUser, Training,
-    TrainingDomain, TrainingSubdomain, PublicType,
-    UniversityYear, Holiday, Vacation, Calendar)
+from .admin_forms import (BachelorMentionForm, BuildingForm, CampusForm,
+                          CancelTypeForm, ComponentForm, CourseTypeForm,
+                          GeneralBachelorTeachingForm, HighSchoolForm,
+                          ImmersionUserCreationForm, PublicTypeForm,
+                          TrainingDomainForm, TrainingForm,
+                          TrainingSubdomainForm, UniversityYearForm,
+                          Holiday, Vacation, Calendar)
+from .models import (BachelorMention, Building, Campus, CancelType, Component,
+                     CourseType, GeneralBachelorTeaching, HighSchool,
+                     ImmersionUser, PublicType, Training, TrainingDomain,
+                     TrainingSubdomain, UniversityYear,
+                     HolidayForm, VacationForm, CalendarForm)
 
-from .admin_forms import (
-    BachelorMentionForm, BuildingForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm,
-    GeneralBachelorTeachingForm, TrainingForm,
-    TrainingDomainForm, TrainingSubdomainForm,
-    CourseTypeForm, PublicTypeForm, UniversityYearForm, HolidayForm, VacationForm, CalendarForm)
+
+class CustomAdminSite(admin.AdminSite):
+    def get_app_list(self, request):
+        """
+        Return a sorted list of all the installed apps that have been
+        registered in this site.
+        """
+        ordering = {
+            'ImmersionUser': 1,
+            'UniversityYear': 2,
+            'HighSchool': 3,
+            'GeneralBachelorTeaching': 4,
+            'BachelorMention': 5,
+            'Campus': 6,
+            'Building': 7,
+            'Component': 8,
+            'TrainingDomain': 9,
+            'TrainingSubdomain': 10,
+            'Training': 11,
+            'CourseType': 12,
+            'PublicType': 13,
+            'CancelType': 14,
+        }
+
+        app_dict = self._build_app_dict(request)
+
+        # Sort the apps alphabetically.
+        app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
+
+        # Sort the models alphabetically within each app.
+        # key=lambda x: x['name']
+        for app in app_list:
+            app['models'].sort(key=lambda x: ordering[x.get('object_name')])
+
+        return app_list
+
 
 class AdminWithRequest:
     """
     Class used to pass request object to admin form
     """
+
     def get_form(self, request, obj=None, **kwargs):
         AdminForm = super().get_form(request, obj, **kwargs)
 
@@ -35,7 +73,7 @@ class AdminWithRequest:
 
 class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
     #form = ImmersionUserChangeForm
-    #add_form = ImmersionUserCreationForm
+    add_form = ImmersionUserCreationForm
 
     add_fieldsets = (
         (None, {
@@ -47,21 +85,19 @@ class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
 
     # add hijack button to display list of users
     list_display = ('username', 'email', 'first_name',
-        'last_name', 'is_staff', 'hijack_field',)
+                    'last_name', 'is_staff', 'hijack_field',)
 
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
 
-    """
     class Media:
         js = (
-            'js/immersion_user.js',  # app static folder
+            'js/immersion_user.js',  # implements user search
         )
         css = {
-            'all': ('css/immersion.css',)
+            'all': ('css/immersionlyceens.css',)
         }
-    """
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -106,7 +142,8 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():
-            messages.warning(request, _("""This training subdomain can't be deleted """
+            messages.warning(request, _(
+                """This training subdomain can't be deleted """
                 """because it is used by a training"""))
             return False
 
@@ -118,6 +155,24 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'active')
     list_filter = ('active',)
     search_fields = ('label',)
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Building.objects.filter(campus=obj).exists():
+            messages.warning(request, _(
+                """This campus can't be deleted """
+                """because it is used by a building"""))
+            return False
+
+        return True
 
 
 class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -156,7 +211,8 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(components=obj).exists():
-            messages.warning(request, _("""This component can't be deleted """
+            messages.warning(request, _(
+                """This component can't be deleted """
                 """because it is used by a training"""))
             return False
 
@@ -216,13 +272,14 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj:
-            print(obj.start_date)
             if obj.start_date <= datetime.today().date():
-                messages.warning(request, _("""This component can't be deleted """
+                messages.warning(request, _(
+                    """This component can't be deleted """
                     """because university year has already started"""))
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _("""This component can't be deleted """
+                messages.warning(request, _(
+                    """This component can't be deleted """
                     """because a purge date is defined"""))
                 return False
 
@@ -289,6 +346,22 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         )
 
 
+class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = HighSchoolForm
+    list_display = ('label', 'city', 'email', 'head_teacher_name',
+        'referent_name', 'convention_start_date', 'convention_end_date')
+    list_filter = ('city',)
+    search_fields = ('label', 'label', 'head_teacher_name', 'referent_name')
+
+    class Media:
+        # TODO: check why I can't use django.jquery stuff !!!!!
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/admin_highschool.js',
+        )
+
+admin.site = CustomAdminSite(name='Repositories')
+
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
@@ -297,6 +370,7 @@ admin.site.register(Component, ComponentAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)
+admin.site.register(HighSchool, HighSchoolAdmin)
 admin.site.register(CancelType, CancelTypeAdmin)
 admin.site.register(CourseType, CourseTypeAdmin)
 admin.site.register(GeneralBachelorTeaching, GeneralBachelorTeachingAdmin)

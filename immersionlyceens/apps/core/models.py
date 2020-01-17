@@ -8,6 +8,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
+from immersionlyceens.fields import UpperCharField
+
+from .utils import get_cities, get_departments
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +113,7 @@ class Component(models.Model):
     code = models.CharField(_("Code"), max_length=16, unique=True)
     label = models.CharField(_("Label"), max_length=128)
     url = models.URLField(_("Website address"), max_length=256,
-        blank=True, null=True)
+                          blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
@@ -124,7 +127,8 @@ class Component(models.Model):
         try:
             super().validate_unique()
         except ValidationError as e:
-            raise ValidationError(_('A component with this code already exists'))
+            raise ValidationError(
+                _('A component with this code already exists'))
 
 
 class Training(models.Model):
@@ -135,9 +139,9 @@ class Training(models.Model):
     training_subdomains = models.ManyToManyField(TrainingSubdomain,
         verbose_name=_("Training subdomains"), blank=False, related_name='Trainings')
     components = models.ManyToManyField(Component, verbose_name=_("Components"),
-        blank=False, related_name='Trainings')
+                                        blank=False, related_name='Trainings')
     url = models.URLField(_("Website address"), max_length=256,
-        blank=True, null=True)
+                          blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
@@ -156,6 +160,9 @@ class Training(models.Model):
 
 
 class Campus(models.Model):
+    """
+    Campus class
+    """
     label = models.CharField(_("Label"), max_length=255, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -176,9 +183,8 @@ class Campus(models.Model):
 
 class BachelorMention(models.Model):
     """
-    bachelor degree mentions
+    Bachelor degree mentions
     """
-
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -199,8 +205,10 @@ class BachelorMention(models.Model):
                 _('A bachelor mention with this label already exists'))
 
 
-        
 class Building(models.Model):
+    """
+    Building class
+    """
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
     campus = models.ForeignKey(Campus, verbose_name=("Campus"),
@@ -209,8 +217,8 @@ class Building(models.Model):
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
-        verbose_name= _('Building')
-        unique_together= ('campus', 'label')
+        verbose_name = _('Building')
+        unique_together = ('campus', 'label')
 
     def __str__(self):
         # TODO: Should we display campus label as well (????)
@@ -228,7 +236,6 @@ class CancelType(models.Model):
     """
     Cancel type
     """
-
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -251,8 +258,9 @@ class CancelType(models.Model):
 
 
 class CourseType(models.Model):
-    """Course type"""
-
+    """
+    Course type
+    """
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -278,7 +286,6 @@ class GeneralBachelorTeaching(models.Model):
     """
     General bachelor specialty teaching
     """
-
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -301,8 +308,9 @@ class GeneralBachelorTeaching(models.Model):
 
 
 class PublicType(models.Model):
-    """Public type"""
-
+    """
+    Public type
+    """
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -325,8 +333,9 @@ class PublicType(models.Model):
 
 
 class UniversityYear(models.Model):
-    """University year"""
-
+    """
+    University year
+    """
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=False)
     start_date = models.DateField(_("Start date"))
@@ -450,3 +459,54 @@ class Calendar(models.Model):
 
 
 
+
+class HighSchool(models.Model):
+    """
+    HighSchool class
+    """
+    class Meta:
+        verbose_name = _('High school')
+        unique_together = ('label', 'city')
+
+    label = models.CharField(
+        _("Label"), max_length=255, blank=False, null=False)
+    address = models.CharField(
+        _("Address"), max_length=255, blank=False, null=False)
+    address2 = models.CharField(
+        _("Address2"), max_length=255, blank=True, null=True)
+    address3 = models.CharField(
+        _("Address3"), max_length=255, blank=True, null=True)
+    department = models.CharField(
+        _("Department"), max_length=128, blank=False, null=False,
+        choices=get_departments())
+    city = UpperCharField(
+        _("City"), max_length=255, blank=False, null=False,
+        choices=get_cities())
+    zip_code = models.CharField(
+        _("Zip code"), max_length=128, blank=False, null=False)
+    phone_number = models.CharField(
+        _("Phone number"), max_length=20, null=False, blank=False)
+    fax = models.CharField(
+        _("Fax"), max_length=20, null=True, blank=True)
+    email = models.EmailField(_('Email'))
+    head_teacher_name = models.CharField(
+        _("Head teacher name"),
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text=_('civility last name first name')
+    )
+    referent_name = models.CharField(
+        _('Referent name'), max_length=255, blank=False, null=False,
+        help_text=_('last name first name'))
+    referent_phone_number = models.CharField(
+        _("Referent phone number"), max_length=20, blank=False, null=False)
+    referent_email = models.EmailField(_('Referent email'))
+    convention_start_date = models.DateField(
+        _("Convention start date"), null=True, blank=True)
+    convention_end_date = models.DateField(
+        _("Convention end date"), null=True, blank=True)
+
+    def __str__(self):
+        # TODO: Should we display city as well (????)
+        return self.label

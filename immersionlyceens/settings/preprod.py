@@ -38,3 +38,35 @@ LOGGING['handlers']['file']['filename'] = '{{ remote_current_path }}/log/app.log
 ##############
 
 SECRET_KEY = '{{ secret_key }}'
+
+
+#################
+# APIs settings #
+#################
+
+# Feel free to implement your own accounts search functions and 
+# enter your plugin name here :)
+
+ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
+
+
+#####################
+# LDAP API settings #
+#####################
+
+# Server
+LDAP_API_HOST = '{{ ldap_api_host }}'
+LDAP_API_PORT = '{{ ldap_api_port }}'
+LDAP_API_DN = '{{ ldap_api_dn }}'
+LDAP_API_PASSWORD = '{{ ldap_api_password }}'
+LDAP_API_BASE_DN = '{{ ldap_api_base_dn }}'
+
+# Filters and attributes
+LDAP_API_ACCOUNTS_FILTER = '{{ ldap_api_accounts_filter }}'
+LDAP_API_SEARCH_ATTR = '{{ ldap_api_search_attr }}'
+LDAP_API_DISPLAY_ATTR = '{{ ldap_api_display_attr }}'
+LDAP_API_EMAIL_ATTR = '{{ ldap_api_email_attr }}'
+LDAP_API_USERNAME_ATTR = '{{ ldap_api_username_attr }}'
+LDAP_API_LASTNAME_ATTR = '{{ ldap_api_lastname_attr }}'
+LDAP_API_FIRSTNAME_ATTR = '{{ ldap_api_firstname_attr }}'
+

@@ -5,8 +5,9 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import BachelorMention, Building, Campus, CancelType, CourseType, PublicType, UniversityYear, Holiday, \
-    Vacation, Calendar
+from ..models import (BachelorMention, Building, Campus, CancelType,
+                      CourseType, PublicType, UniversityYear,
+                      Holiday, Vacation, Calendar)
 
 
 class CampusTestCase(TestCase):

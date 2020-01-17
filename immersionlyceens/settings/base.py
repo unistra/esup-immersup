@@ -347,7 +347,7 @@ HIJACK_USE_BOOTSTRAP = True
 # Where admins are redirected to after hijacking a user
 HIJACK_LOGIN_REDIRECT_URL = '/'
 # Where admins are redirected to after releasing a user
-HIJACK_LOGOUT_REDIRECT_URL = '/admin/auth/user/'
+HIJACK_LOGOUT_REDIRECT_URL = '/'
 HIJACK_ALLOW_GET_REQUESTS = True
 HIJACK_REGISTER_ADMIN = False
 
@@ -357,5 +357,34 @@ HIJACK_REGISTER_ADMIN = False
 #######################
 
 ADMIN_SITE_HEADER = _('Immersion')
-ADMIN_SITE_TITLE = _('Immmersion Admin Page')
+ADMIN_SITE_TITLE = _('Immersion Admin Page')
 ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
+
+
+#################
+# APIs settings #
+#################
+
+ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
+
+#####################
+# LDAP API settings #
+#####################
+
+# Server
+LDAP_API_HOST = ''
+LDAP_API_PORT = ''
+LDAP_API_DN = ''
+LDAP_API_PASSWORD = ''
+LDAP_API_BASE_DN = ''
+
+# Filters
+LDAP_API_ACCOUNTS_FILTER = ''
+
+# Attributes
+LDAP_API_SEARCH_ATTR = ''
+LDAP_API_DISPLAY_ATTR = ''
+LDAP_API_EMAIL_ATTR = ''
+LDAP_API_EMAIL_USERNAME = ''
+LDAP_API_LASTNAME_ATTR = ''
+LDAP_API_FIRSTNAME_ATTR = ''
