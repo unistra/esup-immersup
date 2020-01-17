@@ -106,6 +106,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingDomainForm
     list_display = ('label', 'active')
     list_filter = ('active',)
+    ordering = ('label', )
     search_fields = ('label',)
 
     def get_actions(self, request):
@@ -132,6 +133,7 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingSubdomainForm
     list_display = ('label', 'training_domain', 'active')
     list_filter = ('active',)
+    ordering = ('label',)
     search_fields = ('label',)
 
     def get_actions(self, request):
@@ -157,6 +159,7 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CampusForm
     list_display = ('label', 'active')
     list_filter = ('active',)
+    ordering = ('label',)
     search_fields = ('label',)
 
     def get_actions(self, request):
@@ -182,18 +185,21 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BuildingForm
     list_display = ('label', 'campus', 'url', 'active')
     list_filter = ('campus', 'active')
+    ordering = ('campus', 'label',)
     search_fields = ('label',)
 
 
 class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorMentionForm
     list_display = ('label', 'active')
+    ordering = ('label',)
 
 
 class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = GeneralBachelorTeachingForm
     list_display = ('label', 'active')
     list_filter = ('active',)
+    ordering = ('label',)
     search_fields = ('label',)
 
 
@@ -201,6 +207,7 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ComponentForm
     list_display = ('code', 'label', 'active')
     list_filter = ('active',)
+    ordering = ('label',)
     search_fields = ('label',)
 
     def get_actions(self, request):
@@ -227,22 +234,26 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     filter_horizontal = ('components', 'training_subdomains', )
     list_display = ('label', 'active')
     list_filter = ('active',)
+    ordering = ('label',)
     search_fields = ('label',)
 
 
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
     list_display = ('label', 'active')
+    ordering = ('label',)
 
 
 class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CourseTypeForm
     list_display = ('label', 'active')
+    ordering = ('label',)
 
 
 class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = PublicTypeForm
     list_display = ('label', 'active')
+    ordering = ('label',)
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -294,6 +305,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'city', 'email', 'head_teacher_name',
         'referent_name', 'convention_start_date', 'convention_end_date')
     list_filter = ('city',)
+    ordering = ('label',)
     search_fields = ('label', 'label', 'head_teacher_name', 'referent_name')
 
     class Media:
