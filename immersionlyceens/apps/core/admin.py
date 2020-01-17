@@ -281,6 +281,12 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label',)
     search_fields = ('label',)
 
+    class Media:
+        # TODO: check why I can't use django.jquery stuff !!!!!
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/admin_calendar.js',
+        )
     # def get_readonly_fields(self, request, obj=None):
     #     fields = ['active', 'purge_date']
     #     if obj:

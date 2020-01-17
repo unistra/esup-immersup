@@ -418,17 +418,17 @@ class Calendar(models.Model):
     label = models.CharField(_("Label"), max_length=256, unique=True)
     calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_YEAR, default="YEAR")
 
-    year_start_date = models.DateField(null=True)
-    year_end_date = models.DateField(null=True)
-    year_registration_start_date = models.DateField(null=True)
+    year_start_date = models.DateField(null=True, blank=True)
+    year_end_date = models.DateField(null=True, blank=True)
+    year_registration_start_date = models.DateField(null=True, blank=True)
     year_nb_authorized_immersion = models.PositiveIntegerField(default=4)
 
-    semester1_start_date = models.DateField(null=True)
-    semester1_end_date = models.DateField(null=True)
-    semester1_nb_authorized_immersion = models.DateField(null=True)
-    semester2_start_date = models.DateField(null=True)
-    semester2_end_date = models.DateField(null=True)
-    semester2_registration_start_date = models.DateField(null=True)
+    semester1_start_date = models.DateField(null=True, blank=True)
+    semester1_end_date = models.DateField(null=True, blank=True)
+    semester1_registration_start_date = models.DateField(null=True, blank=True)
+    semester2_start_date = models.DateField(null=True, blank=True)
+    semester2_end_date = models.DateField(null=True, blank=True)
+    semester2_registration_start_date = models.DateField(null=True, blank=True)
     registration_start_date_per_semester = models.PositiveIntegerField(default=2)
 
     class Meta:
