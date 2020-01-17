@@ -2,21 +2,23 @@ from datetime import datetime
 
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
-from .admin_forms import (BachelorMentionForm, BuildingForm, CampusForm,
-                          CancelTypeForm, ComponentForm, CourseTypeForm,
-                          GeneralBachelorTeachingForm, HighSchoolForm,
+from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
+                          CampusForm, CancelTypeForm, ComponentForm,
+                          CourseTypeForm, GeneralBachelorTeachingForm,
+                          HighSchoolForm, HolidayForm,
                           ImmersionUserCreationForm, PublicTypeForm,
                           TrainingDomainForm, TrainingForm,
                           TrainingSubdomainForm, UniversityYearForm,
-                          HolidayForm, VacationForm, CalendarForm)
-from .models import (BachelorMention, Building, Campus, CancelType, Component,
-                     CourseType, GeneralBachelorTeaching, HighSchool,
-                     ImmersionUser, PublicType, Training, TrainingDomain,
-                     TrainingSubdomain, UniversityYear,
-                     Holiday, Vacation, Calendar)
+                          VacationForm)
+from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
+                     Component, CourseType, GeneralBachelorTeaching,
+                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
+                     TrainingDomain, TrainingSubdomain, UniversityYear,
+                     Vacation)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -398,3 +400,5 @@ admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
+# Hide Site django app
+admin.site.unregister(Site)
