@@ -38,7 +38,7 @@ class LdapAPI(BaseAccountsAPI):
             'display_name': settings.LDAP_API_DISPLAY_ATTR,
         }
 
-        search_filter = "(%s=%s)" % (
+        search_filter = "(%s=%s*)" % (
             settings.LDAP_API_SEARCH_ATTR,
             search_value,
         )
@@ -69,7 +69,7 @@ class LdapAPI(BaseAccountsAPI):
             for k in attributes.keys():
                 val = account['attributes'].get(attributes[k], b'')
                 result[k] = self.decode_value(val[0]) \
-                    if isinstance(val, list) else self.decode_value(val)
+                    if isinstance(val, list) and len(val) else self.decode_value(val)
             results.append(result)
 
         return results

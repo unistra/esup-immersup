@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from django.views.i18n import JavaScriptCatalog
 
 from .views import home
 
@@ -15,6 +16,7 @@ urlpatterns = [
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('api/', include('immersionlyceens.libs.api.urls')),
+    path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
 ]
 
 # debug toolbar for dev

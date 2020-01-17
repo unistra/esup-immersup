@@ -15,11 +15,20 @@ function getCookie(name) {
   return cookieValue;
 }
 window.addEventListener("load", function() {
-(function($) {
+  (function($) {
     var query_order = 0;
+    var results;
+    var results_text = gettext("Results");
+    var select_text = gettext("Select a user ...");
 
     $(document).ready(function() {
-        $('#id_username').after("<label id='livesearch_label'>User found :</label><div id='livesearch' class='vTextField'></div>");
+        $('#id_username').after(
+            "<label id='livesearch_label'>"+results_text+" :</label>" +
+
+              "<select id='live_select' style='visibility:hidden'></select>"
+
+        );
+
         $('#id_username').on('input', function() {
             if(this.value.length >= 2) {
               var csrftoken = getCookie('csrftoken');
@@ -42,29 +51,24 @@ window.addEventListener("load", function() {
 
                     // Prevent previous (longer) query from erasing latest one
                     if(query >= query_order) {
-                        // document.getElementById("livesearch").innerHTML = "";
-                        document.getElementById("livesearch").style.border = "1px solid #A5ACB2";
                         document.getElementById("livesearch_label").style.visibility = "visible";
-                        document.getElementById("livesearch").style.visibility = "visible";
+                        document.getElementById("live_select").style.visibility = "visible";
 
                         if (json.length <= 1) {
-                            document.getElementById("livesearch").innerHTML="Not found";
-
                             $('#id_email').val("");
                             $('#id_first_name').val("");
                             $('#id_last_name').val("");
                         }
+                        else {
+                          results=json;
 
-                        if (json[1]) {
-                          $('#id_email').val(json[1]['email']);
-                          $('#id_first_name').val(json[1]['firstname']);
-                          $('#id_last_name').val(json[1]['lastname']);
-                        }
-
-                        for(var i=1; i<json.length; i++) {
-                            document.getElementById("livesearch").innerHTML =
-                                // json[i]["firstname"] + " " + json[i]["lastname"];
-                                json[i]["display_name"];
+                          $('#live_select').empty().append(
+                              "<option value=''>"+select_text+"</option>"
+                          );
+                          for (var i = 1; i < json.length; i++) {
+                            $('#live_select').append(
+                                "<option value='"+i+"'>"+json[i]['display_name']+"</option>");
+                          }
                         }
                     }
                  },
@@ -76,16 +80,30 @@ window.addEventListener("load", function() {
               });
             }
             else {
-              document.getElementById("livesearch").style.visibility = "hidden";
-              document.getElementById("livesearch").innerHTML="";
+              document.getElementById("live_select").style.visibility = "hidden";
               document.getElementById("livesearch_label").style.visibility = "hidden";
-              document.getElementById("livesearch").style.border="0px";
 
               $('#id_email').val("");
               $('#id_first_name').val("");
               $('#id_last_name').val("");
             }
         });
+
+        $('#live_select').on('change', function (e, json) {
+          var optionSelected = $("option:selected", this);
+          var valueSelected = this.value;
+
+          if(this.value!='') {
+            $('#id_email').val(results[valueSelected]['email']);
+            $('#id_first_name').val(results[valueSelected]['firstname']);
+            $('#id_last_name').val(results[valueSelected]['lastname']);
+          }
+          else {
+            $('#id_email').val("");
+            $('#id_first_name').val("");
+            $('#id_last_name').val("");
+          }
+        });
     });    
-})(django.jQuery)
+  })(django.jQuery)
 });

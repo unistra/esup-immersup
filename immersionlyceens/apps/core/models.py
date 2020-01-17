@@ -85,8 +85,9 @@ class TrainingSubdomain(models.Model):
     Training subdomain class
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
-    training_domain = models.ForeignKey(TrainingDomain, verbose_name=_("Training domain"), default=None, blank=False,
-                                        null=False, on_delete=models.CASCADE, related_name='Subdomains')
+    training_domain = models.ForeignKey(TrainingDomain,
+        verbose_name=_("Training domain"), default=None, blank=False,
+        null=False, on_delete=models.CASCADE, related_name='Subdomains')
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
@@ -135,7 +136,7 @@ class Training(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     training_subdomains = models.ManyToManyField(TrainingSubdomain,
-                                                 verbose_name=_("Training subdomains"), blank=False, related_name='Trainings')
+        verbose_name=_("Training subdomains"), blank=False, related_name='Trainings')
     components = models.ManyToManyField(Component, verbose_name=_("Components"),
                                         blank=False, related_name='Trainings')
     url = models.URLField(_("Website address"), max_length=256,
@@ -210,7 +211,7 @@ class Building(models.Model):
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
     campus = models.ForeignKey(Campus, verbose_name=("Campus"),
-                               default=None, on_delete=models.CASCADE, related_name="buildings")
+        default=None, on_delete=models.CASCADE, related_name="buildings")
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
