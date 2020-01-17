@@ -39,33 +39,6 @@ class BachelorMentionForm(forms.ModelForm):
         fields = '__all__'
 
 
-class BuildingForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
-
-        return cleaned_data
-
-    class Meta:
-        model = Building
-        fields = '__all__'
-
-
 class CampusForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -205,6 +178,7 @@ class BuildingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        self.fields['campus'].queryset = Campus.objects.order_by('label')
 
     def clean(self):
         cleaned_data = super().clean()
