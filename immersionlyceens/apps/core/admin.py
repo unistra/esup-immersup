@@ -44,6 +44,9 @@ class CustomAdminSite(admin.AdminSite):
             'CourseType': 12,
             'PublicType': 13,
             'CancelType': 14,
+            'Holiday': 15,
+            'Vacation': 16,
+            'Calendar': 17,
         }
 
         app_dict = self._build_app_dict(request)
