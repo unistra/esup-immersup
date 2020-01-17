@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-17 16:01+0100\n"
+"POT-Creation-Date: 2020-01-17 16:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: immersionlyceens/apps/core/admin.py:126
+#: immersionlyceens/apps/core/admin.py:131
 msgid ""
 "This training domain can't be deleted because it is used by training "
 "subdomains"
@@ -26,33 +26,33 @@ msgstr ""
 "Ce domaine de formation ne peut pas être supprimé car il est utilisé par un "
 "sous-domaine de formation"
 
-#: immersionlyceens/apps/core/admin.py:152
+#: immersionlyceens/apps/core/admin.py:157
 msgid ""
 "This training subdomain can't be deleted because it is used by a training"
 msgstr ""
 "Ce sous-domaine de formation ne peut pas être supprimé car il est utilisé "
 "par une formation"
 
-#: immersionlyceens/apps/core/admin.py:178
+#: immersionlyceens/apps/core/admin.py:183
 msgid "This campus can't be deleted because it is used by a building"
 msgstr "Ce campus ne peut pas être supprimé car il est utilisé par un bâtiment"
 
-#: immersionlyceens/apps/core/admin.py:226
+#: immersionlyceens/apps/core/admin.py:231
 msgid "This component can't be deleted because it is used by a training"
 msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
-#: immersionlyceens/apps/core/admin.py:292
-#: immersionlyceens/apps/core/admin.py:340
+#: immersionlyceens/apps/core/admin.py:297
+#: immersionlyceens/apps/core/admin.py:345
 msgid ""
 "This component can't be deleted because university year has already started"
 msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
-#: immersionlyceens/apps/core/admin.py:297
-#: immersionlyceens/apps/core/admin.py:344
+#: immersionlyceens/apps/core/admin.py:302
+#: immersionlyceens/apps/core/admin.py:349
 msgid "This component can't be deleted because a purge date is defined"
 msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
@@ -99,11 +99,13 @@ msgstr "Champs obligatoires non renseignés"
 
 #: immersionlyceens/apps/core/admin_forms.py:510
 msgid "Semester 1 start date greater than semester 1 end date"
-msgstr "La date de début du semestre 1 est postérieure à la date de fin du semestre 1"
+msgstr ""
+"La date de début du semestre 1 est postérieure à la date de fin du semestre 1"
 
 #: immersionlyceens/apps/core/admin_forms.py:515
 msgid "Semester 2 start date greater than semester 2 end date"
-msgstr "La date de début du semestre2 est postérieure à la date de fin du semestre 2"
+msgstr ""
+"La date de début du semestre2 est postérieure à la date de fin du semestre 2"
 
 #: immersionlyceens/apps/core/admin_forms.py:520
 msgid "Semester 1 ends after the begining of semester 2"
@@ -303,10 +305,12 @@ msgid "A public type with this label already exists"
 msgstr "Un type d'annulation avec ce nom existe déjà"
 
 #: immersionlyceens/apps/core/models.py:341
+#: immersionlyceens/apps/core/models.py:398
 msgid "Start date"
 msgstr "Date de début"
 
 #: immersionlyceens/apps/core/models.py:342
+#: immersionlyceens/apps/core/models.py:399
 msgid "End date"
 msgstr "Date de fin"
 
@@ -325,6 +329,10 @@ msgstr "Année universitaire"
 #: immersionlyceens/apps/core/models.py:349
 msgid "University years"
 msgstr "Années universitaires"
+
+#: immersionlyceens/apps/core/models.py:374
+msgid "Date"
+msgstr "Date"
 
 #: immersionlyceens/apps/core/models.py:378
 msgid "Holiday"
@@ -353,6 +361,50 @@ msgstr "Une période de vacances avec ce nom existe déjà"
 #: immersionlyceens/apps/core/models.py:428
 msgid "Calendar mode"
 msgstr "Mode"
+
+#: immersionlyceens/apps/core/models.py:430
+msgid "Year start date"
+msgstr "Date de début d'année"
+
+#: immersionlyceens/apps/core/models.py:431
+msgid "Year end date"
+msgstr "Date de fin d'année"
+
+#: immersionlyceens/apps/core/models.py:432
+msgid "Year start registration date"
+msgstr "Date d'inscription"
+
+#: immersionlyceens/apps/core/models.py:433
+msgid "Number of authorized immersions per year"
+msgstr "Nombre d'immersions authorisées par an"
+
+#: immersionlyceens/apps/core/models.py:435
+msgid "Semester 1 start date"
+msgstr "Date de début du semestre 1"
+
+#: immersionlyceens/apps/core/models.py:436
+msgid "Semester 1 end date"
+msgstr "Date de fin du semestre 1"
+
+#: immersionlyceens/apps/core/models.py:437
+msgid "Semester 1 start registration date"
+msgstr "Date de début d'inscription du semestre 1"
+
+#: immersionlyceens/apps/core/models.py:438
+msgid "Semester 2 start date"
+msgstr "Date de début du semestre 2"
+
+#: immersionlyceens/apps/core/models.py:439
+msgid "Semester 2 end date"
+msgstr "Date de fin du semestre 2"
+
+#: immersionlyceens/apps/core/models.py:440
+msgid "Semester 2 start registration date"
+msgstr "Date de début d'inscription du semestre 2"
+
+#: immersionlyceens/apps/core/models.py:441
+msgid "Number of authorized immersions per semester"
+msgstr "Nombre d'immersions autorisées par semestre"
 
 #: immersionlyceens/apps/core/models.py:445
 msgid "Calendar"
