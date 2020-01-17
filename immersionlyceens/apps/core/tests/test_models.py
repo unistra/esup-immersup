@@ -5,7 +5,8 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import BachelorMention, Building, Campus, CancelType, CourseType, PublicType, UniversityYear
+from ..models import BachelorMention, Building, Campus, CancelType, CourseType, PublicType, UniversityYear, Holiday, \
+    Vacation, Calendar
 
 
 class CampusTestCase(TestCase):
@@ -71,6 +72,7 @@ class PublicTypeTestCase(TestCase):
         o = PublicType.objects.create(label="PublicType")
         self.assertTrue(o.active)
 
+
 class UniversityYearTestCase(TestCase):
 
     def test_public_type_str(self):
@@ -104,3 +106,41 @@ class UniversityYearTestCase(TestCase):
         o2.label = 'Coucou'
         o2.save()
         self.assertTrue(o2.active)
+
+
+class TestHolidayCase(TestCase):
+
+    def test_holiday_str(self):
+        label = "Holiday"
+        o = Holiday.objects.create(
+            label=label,
+            date=datetime.datetime.today().date(),
+        )
+        self.assertEqual(str(o), label)
+
+
+class TestVacationCase(TestCase):
+
+    def test_vacation_str(self):
+        label = "Vacation"
+        o = Vacation.objects.create(
+            label=label,
+            start_date=datetime.datetime.today().date(),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+        )
+        self.assertEqual(str(o), label)
+
+
+class TestCalendarCase(TestCase):
+
+    def test_calendar_str(self):
+        label = "Calendar"
+        o = Calendar.objects.create(
+            label=label,
+            year_start_date=datetime.datetime.today().date(),
+            year_end_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
+            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            year_nb_authorized_immersion=4
+        )
+
+        self.assertEqual(str(o), label)

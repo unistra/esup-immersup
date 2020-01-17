@@ -538,8 +538,3 @@ class CalendarForm(forms.ModelForm):
     class Meta:
         model = Calendar
         fields = '__all__'
-
-
-# Vacation
-# Calendar
-
