@@ -16,6 +16,10 @@ from .models import (BachelorMention, Building, Campus, CancelType, Component,
 
 
 class CustomAdminSite(admin.AdminSite):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._registry.update(admin.site._registry)
+
     def get_app_list(self, request):
         """
         Return a sorted list of all the installed apps that have been
@@ -46,7 +50,7 @@ class CustomAdminSite(admin.AdminSite):
         # Sort the models alphabetically within each app.
         # key=lambda x: x['name']
         for app in app_list:
-            app['models'].sort(key=lambda x: ordering[x.get('object_name')])
+            app['models'].sort(key=lambda x: ordering.get(x.get('object_name')))
 
         return app_list
 
