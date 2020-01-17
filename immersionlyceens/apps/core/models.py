@@ -427,18 +427,18 @@ class Calendar(models.Model):
     label = models.CharField(_("Label"), max_length=256, unique=True)
     calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
 
-    year_start_date = models.DateField(null=True, blank=True)
-    year_end_date = models.DateField(null=True, blank=True)
-    year_registration_start_date = models.DateField(null=True, blank=True)
-    year_nb_authorized_immersion = models.PositiveIntegerField(default=4)
+    year_start_date = models.DateField(_("Year start date"), null=True, blank=True)
+    year_end_date = models.DateField(_("Year end date"), null=True, blank=True)
+    year_registration_start_date = models.DateField(_("Year start registration date"), null=True, blank=True)
+    year_nb_authorized_immersion = models.PositiveIntegerField(_("Number of authorized immersions per year"), default=4)
 
-    semester1_start_date = models.DateField(null=True, blank=True)
-    semester1_end_date = models.DateField(null=True, blank=True)
-    semester1_registration_start_date = models.DateField(null=True, blank=True)
-    semester2_start_date = models.DateField(null=True, blank=True)
-    semester2_end_date = models.DateField(null=True, blank=True)
-    semester2_registration_start_date = models.DateField(null=True, blank=True)
-    registration_start_date_per_semester = models.PositiveIntegerField(default=2)
+    semester1_start_date = models.DateField(_("Semester 1 start date"), null=True, blank=True)
+    semester1_end_date = models.DateField(_("Semester 1 end date"), null=True, blank=True)
+    semester1_registration_start_date = models.DateField(_("Semester 1 start registration date"), null=True, blank=True)
+    semester2_start_date = models.DateField(_("Semester 2 start date"), null=True, blank=True)
+    semester2_end_date = models.DateField(_("Semester 2 end date"), null=True, blank=True)
+    semester2_registration_start_date = models.DateField(_("Semester 2 start registration date"), null=True, blank=True)
+    registration_start_date_per_semester = models.PositiveIntegerField(_("Number of authorized immersions per semester"), default=2)
 
     class Meta:
         """Meta class"""
