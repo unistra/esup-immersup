@@ -152,6 +152,9 @@ class TrainingSubdomainForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        self.fields['training_domain'].queryset = \
+            self.fields['training_domain'].queryset.order_by('label')
+
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
@@ -206,6 +209,12 @@ class TrainingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        self.fields['training_subdomains'].queryset = \
+            self.fields['training_subdomains'].queryset.order_by('label')
+
+        self.fields['components'].queryset = \
+            self.fields['components'].queryset.order_by('label')
 
     def clean(self):
         cleaned_data = super().clean()
