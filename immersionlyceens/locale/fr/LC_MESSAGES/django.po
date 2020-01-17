@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-16 21:48+0100\n"
+"POT-Creation-Date: 2020-01-17 07:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -71,15 +71,15 @@ msgstr "Vous n'avez pas les droits suffisants"
 
 #: immersionlyceens/apps/core/admin_forms.py:384
 msgid "Start date can't be today or earlier"
-msgstr ""
+msgstr "La date de début doit se situer dans le futur"
 
 #: immersionlyceens/apps/core/admin_forms.py:388
 msgid "Start date greater than end date"
-msgstr ""
+msgstr "La date de début est postérieure à la date de fin"
 
 #: immersionlyceens/apps/core/admin_forms.py:392
 msgid "Start of registration date greater than end date"
-msgstr ""
+msgstr "La date de début de création des comptes est postérieure à la date de fin"
 
 #: immersionlyceens/apps/core/admin_forms.py:432
 #: immersionlyceens/apps/core/models.py:388
@@ -254,7 +254,8 @@ msgstr "Enseignements de spécialité d'un baccalauréat général"
 #: immersionlyceens/apps/core/models.py:305
 msgid "A specialty teaching with this label already exists"
 msgstr ""
-"Un enseignement de spécialité d'un baccalauréat général avec ce nom existe déjà"
+"Un enseignement de spécialité d'un baccalauréat général avec ce nom existe "
+"déjà"
 
 #: immersionlyceens/apps/core/models.py:317
 #: immersionlyceens/apps/core/models.py:318
@@ -359,7 +360,7 @@ msgid "Immersion"
 msgstr "Immersion"
 
 #: immersionlyceens/settings/base.py:360
-msgid "Immmersion Admin Page"
+msgid "Immersion Admin Page"
 msgstr "Immersion - Interface d'administration"
 
 #: immersionlyceens/settings/base.py:361

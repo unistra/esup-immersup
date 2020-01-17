@@ -357,7 +357,7 @@ HIJACK_REGISTER_ADMIN = False
 #######################
 
 ADMIN_SITE_HEADER = _('Immersion')
-ADMIN_SITE_TITLE = _('Immmersion Admin Page')
+ADMIN_SITE_TITLE = _('Immersion Admin Page')
 ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
 
 
