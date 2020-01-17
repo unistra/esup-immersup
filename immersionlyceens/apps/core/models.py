@@ -371,7 +371,7 @@ class Holiday(models.Model):
     """University year"""
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    date = models.DateField()
+    date = models.DateField(_("Date"))
 
     class Meta:
         """Meta class"""
@@ -395,8 +395,8 @@ class Vacation(models.Model):
     """University year"""
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(_("Start date"))
+    end_date = models.DateField(_("End date"))
 
     class Meta:
         """Meta class"""
