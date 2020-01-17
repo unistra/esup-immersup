@@ -410,13 +410,13 @@ class Vacation(models.Model):
 class Calendar(models.Model):
     """University year"""
 
-    CALENDAR_YEAR = [
+    CALENDAR_MODE = [
         ('YEAR', 'Year'),
         ('SEMESTER', 'Semester'),
     ]
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_YEAR, default="YEAR")
+    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
 
     year_start_date = models.DateField(null=True, blank=True)
     year_end_date = models.DateField(null=True, blank=True)

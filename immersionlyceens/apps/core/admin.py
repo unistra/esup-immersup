@@ -287,20 +287,6 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
             'js/jquery-3.4.1.slim.min.js',
             'js/admin_calendar.js',
         )
-    # def get_readonly_fields(self, request, obj=None):
-    #     fields = ['active', 'purge_date']
-    #     if obj:
-    #         if obj.purge_date is not None:
-    #             return list(set(
-    #                 [field.name for field in self.opts.local_fields] +
-    #                 [field.name for field in self.opts.local_many_to_many]
-    #             ))
-    #
-    #         elif obj.start_date <= datetime.today().date():
-    #             fields.append('start_date')
-    #     return fields
-
-
 
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -319,4 +305,3 @@ admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
-
