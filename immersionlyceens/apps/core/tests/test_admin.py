@@ -13,15 +13,18 @@ from ..admin_forms import (BachelorMentionForm, BuildingForm, CampusForm,
                            CancelTypeForm, ComponentForm, CourseTypeForm,
                            GeneralBachelorTeachingForm, HighSchoolForm,
                            PublicTypeForm, TrainingDomainForm,
-                           TrainingSubdomainForm, UniversityYearForm)
+                           TrainingSubdomainForm, UniversityYearForm,
+                           CalendarForm, HolidayForm, VacationForm)
 from ..models import (BachelorMention, Building, Campus, CancelType, Component,
                       CourseType, GeneralBachelorTeaching, HighSchool,
                       PublicType, TrainingDomain, TrainingSubdomain,
-                      UniversityYear)
+                      UniversityYear,
+                      Calendar, Holiday, Vacation)
 
 
 class MockRequest:
     pass
+
 
 # request = MockRequest()
 
@@ -40,6 +43,7 @@ class AdminFormsTestCase(TestCase):
         """
         SetUp for Admin Forms tests
         """
+
         self.site = AdminSite()
         self.superuser = get_user_model().objects.create_superuser(
             username='super', password='pass', email='immersion@no-reply.com')
@@ -793,3 +797,61 @@ class AdminFormsTestCase(TestCase):
       self.assertFalse(form.is_valid())
       self.assertFalse(HighSchool.objects.filter(
           label='Degrassi Junior School').exists())
+
+    def test_holiday_creation(self):
+        """
+        Test public type mention creation with group rights
+        """
+        data = {
+            'label': 'Holiday',
+            'date': datetime.datetime.today().date() + datetime.timedelta(days=2),
+        }
+
+        request.user = self.scuio_user
+
+        form = HolidayForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Holiday.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data['label'] = 'test failure'
+
+        request.user = self.ref_cmp_user
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(Holiday.objects.filter(
+            label='test_fail').exists())
+
+    def test_vacation_creation(self):
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+        }
+
+        request.user = self.scuio_user
+
+        form = VacationForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Vacation.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data['label'] = 'test failure'
+
+        request.user = self.ref_cmp_user
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(Vacation.objects.filter(
+            label='test failure').exists())
+
+        # wrong dates
+        data['label'] = 'test failure 2'
+        data['end_date'] = datetime.datetime.today().date() + datetime.timedelta(days=1)
+
+        request.user = self.ref_cmp_user
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(Vacation.objects.filter(
+            label='test failure 2').exists())

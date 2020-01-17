@@ -10,11 +10,13 @@ from .admin_forms import (BachelorMentionForm, BuildingForm, CampusForm,
                           GeneralBachelorTeachingForm, HighSchoolForm,
                           ImmersionUserCreationForm, PublicTypeForm,
                           TrainingDomainForm, TrainingForm,
-                          TrainingSubdomainForm, UniversityYearForm)
+                          TrainingSubdomainForm, UniversityYearForm,
+                          Holiday, Vacation, Calendar)
 from .models import (BachelorMention, Building, Campus, CancelType, Component,
                      CourseType, GeneralBachelorTeaching, HighSchool,
                      ImmersionUser, PublicType, Training, TrainingDomain,
-                     TrainingSubdomain, UniversityYear)
+                     TrainingSubdomain, UniversityYear,
+                     HolidayForm, VacationForm, CalendarForm)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -121,8 +123,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj and TrainingSubdomain.objects.filter(
                 training_domain=obj).exists():
-            messages.warning(request, _(
-                """This training domain can't be deleted """
+            messages.warning(request, _("""This training domain can't be deleted """
                 """because it is used by training subdomains"""))
             return False
 
@@ -300,6 +301,66 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
+class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = HolidayForm
+    list_display = ('label', 'date')
+
+
+class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = VacationForm
+    list_display = ('label', 'start_date', 'end_date')
+
+
+class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = UniversityYearForm
+    list_display = ('label', 'start_date', 'end_date', 'active',)
+    list_filter = ('active',)
+    search_fields = ('label',)
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = ['active', 'purge_date']
+        if obj:
+            if obj.purge_date is not None:
+                return list(set(
+                    [field.name for field in self.opts.local_fields] +
+                    [field.name for field in self.opts.local_many_to_many]
+                ))
+
+            elif obj.start_date <= datetime.today().date():
+                fields.append('start_date')
+        return fields
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj:
+            print(obj.start_date)
+            if obj.start_date <= datetime.today().date():
+                messages.warning(request, _("""This component can't be deleted """
+                    """because university year has already started"""))
+                return False
+            elif obj.purge_date is not None:
+                messages.warning(request, _("""This component can't be deleted """
+                    """because a purge date is defined"""))
+                return False
+
+        return True
+
+
+class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = CalendarForm
+    list_display = ('label',)
+    search_fields = ('label',)
+
+    class Media:
+        # TODO: check why I can't use django.jquery stuff !!!!!
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/admin_calendar.js',
+        )
+
+
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HighSchoolForm
     list_display = ('label', 'city', 'email', 'head_teacher_name',
@@ -331,3 +392,6 @@ admin.site.register(CourseType, CourseTypeAdmin)
 admin.site.register(GeneralBachelorTeaching, GeneralBachelorTeachingAdmin)
 admin.site.register(PublicType, PublicTypeAdmin)
 admin.site.register(UniversityYear, UniversityYearAdmin)
+admin.site.register(Holiday, HolidayAdmin)
+admin.site.register(Vacation, VacationAdmin)
+admin.site.register(Calendar, CalendarAdmin)
