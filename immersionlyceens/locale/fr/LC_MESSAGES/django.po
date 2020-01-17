@@ -176,7 +176,7 @@ msgstr "Composantes d'enseignement"
 
 #: immersionlyceens/apps/core/models.py:130
 msgid "A component with this code already exists"
-msgstr "Une composante d'enseignement avec ce nom existe déjà"
+msgstr "Une composante d'enseignement avec ce code existe déjà"
 
 #: immersionlyceens/apps/core/models.py:139
 msgid "Training subdomains"
