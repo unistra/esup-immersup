@@ -372,15 +372,15 @@ msgstr "Mode"
 
 #: immersionlyceens/apps/core/models.py:430
 msgid "Year start date"
-msgstr "Date de début d'année"
+msgstr "Date de début des immersions"
 
 #: immersionlyceens/apps/core/models.py:431
 msgid "Year end date"
-msgstr "Date de fin d'année"
+msgstr "Date de fin des immersions"
 
 #: immersionlyceens/apps/core/models.py:432
 msgid "Year start registration date"
-msgstr "Date d'inscription"
+msgstr "Date de début des inscriptions aux immersions"
 
 #: immersionlyceens/apps/core/models.py:433
 msgid "Number of authorized immersions per year"
@@ -388,11 +388,11 @@ msgstr "Nombre d'immersions authorisées par an"
 
 #: immersionlyceens/apps/core/models.py:435
 msgid "Semester 1 start date"
-msgstr "Date de début du semestre 1"
+msgstr "Date de début des immersions du semestre 1"
 
 #: immersionlyceens/apps/core/models.py:436
 msgid "Semester 1 end date"
-msgstr "Date de fin du semestre 1"
+msgstr "Date de fin des immersions du semestre 1"
 
 #: immersionlyceens/apps/core/models.py:437
 msgid "Semester 1 start registration date"
@@ -400,11 +400,11 @@ msgstr "Date de début d'inscription du semestre 1"
 
 #: immersionlyceens/apps/core/models.py:438
 msgid "Semester 2 start date"
-msgstr "Date de début du semestre 2"
+msgstr "Date de début des immersions du semestre 2"
 
 #: immersionlyceens/apps/core/models.py:439
 msgid "Semester 2 end date"
-msgstr "Date de fin du semestre 2"
+msgstr "Date de début des immersions du semestre 2"
 
 #: immersionlyceens/apps/core/models.py:440
 msgid "Semester 2 start registration date"
