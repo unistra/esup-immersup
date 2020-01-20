@@ -61,6 +61,9 @@ class CustomAdminSite(admin.AdminSite):
         for app in app_list:
             app['models'].sort(key=lambda x: ordering.get(x.get('object_name')))
 
+        # Hide Sites model in django admin
+        app_list = [i for i in app_list if not (i['name'] == 'Sites')]
+
         return app_list
 
 
@@ -432,6 +435,3 @@ admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
-# Hide Site django app
-# commented out : break reverse url for /admin/auth/group/
-# admin.site.unregister(Site)
