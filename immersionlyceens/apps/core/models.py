@@ -440,6 +440,8 @@ class Calendar(models.Model):
     semester2_registration_start_date = models.DateField(_("Semester 2 start registration date"), null=True, blank=True)
     registration_start_date_per_semester = models.PositiveIntegerField(_("Number of authorized immersions per semester"), default=2)
 
+    global_evaluation_date = models.DateField(_("Global evaluation send date"), null=True, blank=True)
+
     class Meta:
         """Meta class"""
         verbose_name = _('Calendar')
