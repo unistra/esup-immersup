@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-17 16:37+0100\n"
+"POT-Creation-Date: 2020-01-20 11:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,12 +112,12 @@ msgid "Semester 1 ends after the begining of semester 2"
 msgstr "Le semestre 1 termine après le début du semestre 2"
 
 #: immersionlyceens/apps/core/admin_forms.py:561
-#: immersionlyceens/apps/core/models.py:483
+#: immersionlyceens/apps/core/models.py:485
 msgid "City"
 msgstr "Ville"
 
 #: immersionlyceens/apps/core/admin_forms.py:567
-#: immersionlyceens/apps/core/models.py:486
+#: immersionlyceens/apps/core/models.py:488
 msgid "Zip code"
 msgstr "Code postal"
 
@@ -144,7 +144,7 @@ msgstr "Utilisateur"
 #: immersionlyceens/apps/core/models.py:373
 #: immersionlyceens/apps/core/models.py:397
 #: immersionlyceens/apps/core/models.py:427
-#: immersionlyceens/apps/core/models.py:472
+#: immersionlyceens/apps/core/models.py:474
 msgid "Label"
 msgstr "Libellé"
 
@@ -406,79 +406,83 @@ msgstr "Date de début d'inscription du semestre 2"
 msgid "Number of authorized immersions per semester"
 msgstr "Nombre d'immersions autorisées par semestre"
 
-#: immersionlyceens/apps/core/models.py:445
+#: immersionlyceens/apps/core/models.py:443
+msgid "Global evaluation send date"
+msgstr "Date d'envoi de l'évalution globale"
+
+#: immersionlyceens/apps/core/models.py:447
 msgid "Calendar"
 msgstr "Calendrier"
 
-#: immersionlyceens/apps/core/models.py:446
+#: immersionlyceens/apps/core/models.py:448
 msgid "Calendars"
 msgstr "Calendriers"
 
-#: immersionlyceens/apps/core/models.py:458
+#: immersionlyceens/apps/core/models.py:460
 msgid "A calendar with this label already exists"
 msgstr "Un calendrier avec ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:468
+#: immersionlyceens/apps/core/models.py:470
 msgid "High school"
 msgstr "Lycée"
 
-#: immersionlyceens/apps/core/models.py:474
+#: immersionlyceens/apps/core/models.py:476
 msgid "Address"
 msgstr "Adresse"
 
-#: immersionlyceens/apps/core/models.py:476
+#: immersionlyceens/apps/core/models.py:478
 msgid "Address2"
 msgstr "Adresse2"
 
-#: immersionlyceens/apps/core/models.py:478
+#: immersionlyceens/apps/core/models.py:480
 msgid "Address3"
 msgstr "Adresse3"
 
-#: immersionlyceens/apps/core/models.py:480
+#: immersionlyceens/apps/core/models.py:482
 msgid "Department"
 msgstr "Département"
 
-#: immersionlyceens/apps/core/models.py:488
+#: immersionlyceens/apps/core/models.py:490
 msgid "Phone number"
 msgstr "Téléphone"
 
-#: immersionlyceens/apps/core/models.py:490
+#: immersionlyceens/apps/core/models.py:492
 msgid "Fax"
 msgstr "Fax"
 
-#: immersionlyceens/apps/core/models.py:491
+#: immersionlyceens/apps/core/models.py:493
 msgid "Email"
 msgstr "Courriel"
 
-#: immersionlyceens/apps/core/models.py:493
+#: immersionlyceens/apps/core/models.py:495
 msgid "Head teacher name"
 msgstr "Chef d'établissement"
 
-#: immersionlyceens/apps/core/models.py:497
+#: immersionlyceens/apps/core/models.py:499
 msgid "civility last name first name"
 msgstr "civilité nom prénom"
 
-#: immersionlyceens/apps/core/models.py:500
+#: immersionlyceens/apps/core/models.py:502
 msgid "Referent name"
 msgstr "Nom du référent lycée"
 
-#: immersionlyceens/apps/core/models.py:501
+#: immersionlyceens/apps/core/models.py:503
 msgid "last name first name"
 msgstr "nom prénom"
 
-#: immersionlyceens/apps/core/models.py:503
+#: immersionlyceens/apps/core/models.py:505
 msgid "Referent phone number"
 msgstr "Téléphone du référent"
 
-#: immersionlyceens/apps/core/models.py:504
+#: immersionlyceens/apps/core/models.py:506
 msgid "Referent email"
 msgstr "Courriel du référent"
 
-#: immersionlyceens/apps/core/models.py:506
+#: immersionlyceens/apps/core/models.py:508
 msgid "Convention start date"
 msgstr "Date de début de la convention"
 
-#: immersionlyceens/apps/core/models.py:508
+#: immersionlyceens/apps/core/models.py:510
 msgid "Convention end date"
 msgstr "Date de fin de la convention"
 
