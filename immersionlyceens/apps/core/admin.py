@@ -358,6 +358,38 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label',)
     search_fields = ('label',)
 
+    def get_readonly_fields(self, request, obj=None):
+        fields = []
+        if obj:
+
+            # global evaluation date
+            if (obj.year_start_date and obj.year_start_date <= datetime.today().date())\
+                    or (obj.global_evaluation_date and obj.global_evaluation_date <= datetime.today().date()):
+                fields.append('global_evaluation_date')
+
+            # year_start > today
+            if obj.year_start_date and obj.year_start_date <= datetime.today().date():
+                fields.append('year_start_date')
+
+            # semester1_start > today
+            if obj.semester1_start_date and obj.semester1_start_date <= datetime.today().date():
+                fields.append('year_start_date')
+                fields.append('calendar_mode')
+            # semester1_end > today
+            if obj.semester1_end_date and obj.semester1_end_date <= datetime.today().date():
+                fields.append('semester1_end_date')
+                fields.append('semester1_registration_start_date')
+
+            # semester2_start > today
+            if obj.semester2_start_date and obj.semester2_start_date <= datetime.today().date():
+                fields.append('year_start_date')
+            # semester2_end > today
+            if obj.semester2_end_date and obj.semester2_end_date <= datetime.today().date():
+                fields.append('semester1_end_date')
+                fields.append('semester1_registration_start_date')
+
+        return fields
+
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
         js = (
