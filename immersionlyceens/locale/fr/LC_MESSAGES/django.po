@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-20 11:18+0100\n"
+"POT-Creation-Date: 2020-01-20 15:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,65 +58,65 @@ msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
-#: immersionlyceens/apps/core/admin_forms.py:32
-#: immersionlyceens/apps/core/admin_forms.py:59
-#: immersionlyceens/apps/core/admin_forms.py:86
-#: immersionlyceens/apps/core/admin_forms.py:113
-#: immersionlyceens/apps/core/admin_forms.py:140
-#: immersionlyceens/apps/core/admin_forms.py:170
-#: immersionlyceens/apps/core/admin_forms.py:198
-#: immersionlyceens/apps/core/admin_forms.py:231
-#: immersionlyceens/apps/core/admin_forms.py:266
-#: immersionlyceens/apps/core/admin_forms.py:293
-#: immersionlyceens/apps/core/admin_forms.py:328
-#: immersionlyceens/apps/core/admin_forms.py:362
-#: immersionlyceens/apps/core/admin_forms.py:405
-#: immersionlyceens/apps/core/admin_forms.py:437
-#: immersionlyceens/apps/core/admin_forms.py:484
-#: immersionlyceens/apps/core/admin_forms.py:585
+#: immersionlyceens/apps/core/admin_forms.py:33
+#: immersionlyceens/apps/core/admin_forms.py:60
+#: immersionlyceens/apps/core/admin_forms.py:87
+#: immersionlyceens/apps/core/admin_forms.py:114
+#: immersionlyceens/apps/core/admin_forms.py:141
+#: immersionlyceens/apps/core/admin_forms.py:171
+#: immersionlyceens/apps/core/admin_forms.py:199
+#: immersionlyceens/apps/core/admin_forms.py:232
+#: immersionlyceens/apps/core/admin_forms.py:267
+#: immersionlyceens/apps/core/admin_forms.py:294
+#: immersionlyceens/apps/core/admin_forms.py:325
+#: immersionlyceens/apps/core/admin_forms.py:359
+#: immersionlyceens/apps/core/admin_forms.py:402
+#: immersionlyceens/apps/core/admin_forms.py:434
+#: immersionlyceens/apps/core/admin_forms.py:481
+#: immersionlyceens/apps/core/admin_forms.py:590
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
-#: immersionlyceens/apps/core/admin_forms.py:367
+#: immersionlyceens/apps/core/admin_forms.py:364
 msgid "Start date can't be today or earlier"
 msgstr "La date de début doit se situer dans le futur"
 
-#: immersionlyceens/apps/core/admin_forms.py:371
-#: immersionlyceens/apps/core/admin_forms.py:442
-#: immersionlyceens/apps/core/admin_forms.py:505
+#: immersionlyceens/apps/core/admin_forms.py:368
+#: immersionlyceens/apps/core/admin_forms.py:439
+#: immersionlyceens/apps/core/admin_forms.py:502
 msgid "Start date greater than end date"
 msgstr "La date de début est postérieure à la date de fin"
 
-#: immersionlyceens/apps/core/admin_forms.py:375
+#: immersionlyceens/apps/core/admin_forms.py:372
 msgid "Start of registration date greater than end date"
 msgstr ""
 "La date de début de création des comptes est postérieure à la date de fin"
 
-#: immersionlyceens/apps/core/admin_forms.py:492
-#: immersionlyceens/apps/core/admin_forms.py:499
+#: immersionlyceens/apps/core/admin_forms.py:489
+#: immersionlyceens/apps/core/admin_forms.py:496
 msgid "Mandatory fields not filled in"
 msgstr "Champs obligatoires non renseignés"
 
-#: immersionlyceens/apps/core/admin_forms.py:510
+#: immersionlyceens/apps/core/admin_forms.py:507
 msgid "Semester 1 start date greater than semester 1 end date"
 msgstr ""
 "La date de début du semestre 1 est postérieure à la date de fin du semestre 1"
 
-#: immersionlyceens/apps/core/admin_forms.py:515
+#: immersionlyceens/apps/core/admin_forms.py:512
 msgid "Semester 2 start date greater than semester 2 end date"
 msgstr ""
 "La date de début du semestre2 est postérieure à la date de fin du semestre 2"
 
-#: immersionlyceens/apps/core/admin_forms.py:520
+#: immersionlyceens/apps/core/admin_forms.py:517
 msgid "Semester 1 ends after the begining of semester 2"
 msgstr "Le semestre 1 termine après le début du semestre 2"
 
-#: immersionlyceens/apps/core/admin_forms.py:561
+#: immersionlyceens/apps/core/admin_forms.py:566
 #: immersionlyceens/apps/core/models.py:485
 msgid "City"
 msgstr "Ville"
 
-#: immersionlyceens/apps/core/admin_forms.py:567
+#: immersionlyceens/apps/core/admin_forms.py:572
 #: immersionlyceens/apps/core/models.py:488
 msgid "Zip code"
 msgstr "Code postal"
@@ -357,6 +357,14 @@ msgstr "Vacances"
 #: immersionlyceens/apps/core/models.py:416
 msgid "A vacation with this label already exists"
 msgstr "Une période de vacances avec ce nom existe déjà"
+
+#: immersionlyceens/apps/core/models.py:423
+msgid "Year"
+msgstr "Année"
+
+#: immersionlyceens/apps/core/models.py:424
+msgid "Semester"
+msgstr "Semestre"
 
 #: immersionlyceens/apps/core/models.py:428
 msgid "Calendar mode"
