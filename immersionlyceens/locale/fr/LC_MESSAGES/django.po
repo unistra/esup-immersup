@@ -316,7 +316,7 @@ msgstr "Date de fin"
 
 #: immersionlyceens/apps/core/models.py:343
 msgid "Registration date"
-msgstr "Date d'inscription"
+msgstr "Date de début de création de compte lycéens/étudiants"
 
 #: immersionlyceens/apps/core/models.py:344
 msgid "Purge date"
