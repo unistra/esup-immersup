@@ -433,4 +433,5 @@ admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
 # Hide Site django app
-admin.site.unregister(Site)
+# commented out : break reverse url for /admin/auth/group/
+# admin.site.unregister(Site)
