@@ -420,8 +420,8 @@ class Calendar(models.Model):
     """University year"""
 
     CALENDAR_MODE = [
-        ('YEAR', 'Year'),
-        ('SEMESTER', 'Semester'),
+        ('YEAR', _('Year')),
+        ('SEMESTER', _('Semester')),
     ]
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
