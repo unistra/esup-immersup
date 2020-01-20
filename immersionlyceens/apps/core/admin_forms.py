@@ -5,10 +5,11 @@ from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.translation import ugettext_lazy as _
 
-from .models import (BachelorMention, Building, Campus, CancelType, Component,
-                     CourseType, GeneralBachelorTeaching, HighSchool,
-                     ImmersionUser, PublicType, Training, TrainingDomain,
-                     TrainingSubdomain, UniversityYear, Holiday, Vacation, Calendar)
+from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
+                     Component, CourseType, GeneralBachelorTeaching,
+                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
+                     TrainingDomain, TrainingSubdomain, UniversityYear,
+                     Vacation)
 from .utils import get_cities, get_zipcodes
 
 
@@ -541,22 +542,30 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        instance = getattr(self, 'instance', None)
 
-        if instance.department:
-            dep_choices = get_cities(instance.department)
-        else:
-            dep_choices = ''
+        city_choices = [('', '---------'), ]
+        zip_choices = [('', '---------'), ]
 
-        if instance.city:
-            zip_choices = get_zipcodes(instance.department, instance.city)
-        else:
-            zip_choices = ''
+        # Put datas in choices fields if form instance
+        if self.instance.department:
+            city_choices = get_cities(self.instance.department)
+
+        if self.instance.city:
+            zip_choices = get_zipcodes(
+                self.instance.department, self.instance.city)
+
+        # Put datas in choices fields if form data
+        if 'department' in self.data:
+            city_choices = get_cities(self.data.get('department'))
+
+        if 'city' in self.data:
+            zip_choices = get_zipcodes(
+                self.data.get('department'), self.data.get('city'))
 
         self.fields['city'] = forms.TypedChoiceField(
             label=_("City"),
             widget=forms.Select(),
-            choices=dep_choices,
+            choices=city_choices,
             required=True
         )
         self.fields['zip_code'] = forms.TypedChoiceField(

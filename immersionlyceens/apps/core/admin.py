@@ -404,7 +404,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'referent_name', 'convention_start_date', 'convention_end_date')
     list_filter = ('city',)
     ordering = ('label',)
-    search_fields = ('label', 'label', 'head_teacher_name', 'referent_name')
+    search_fields = ('label', 'city', 'head_teacher_name', 'referent_name')
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!

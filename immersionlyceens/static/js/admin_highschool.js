@@ -11,7 +11,7 @@ $(document).on('change', 'select#id_department', function() {
       $('select#id_city').html(options)
     },
   })
-  $('select#id_zip_code').html('<option value=""></option>')
+  $('select#id_zip_code').html('<option value="">---------</option>')
 });
 $(document).on('change', 'select#id_city', () => {
   $.ajax({
