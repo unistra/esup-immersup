@@ -309,10 +309,6 @@ class PublicTypeForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        # Disable code field if it already exists
-        if self.initial:
-            self.fields["code"].disabled = True
-
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
