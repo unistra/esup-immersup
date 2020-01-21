@@ -7,16 +7,18 @@ from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
-    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
-    ImmersionUserCreationForm, ImmersionUserChangeForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm)
-
+                          CampusForm, CancelTypeForm, ComponentForm,
+                          CourseTypeForm, GeneralBachelorTeachingForm,
+                          HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+                          ImmersionUserCreationForm, PublicTypeForm,
+                          TrainingDomainForm, TrainingForm,
+                          TrainingSubdomainForm, UniversityYearForm,
+                          VacationForm)
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation)
+                     Component, CourseType, GeneralBachelorTeaching,
+                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
+                     TrainingDomain, TrainingSubdomain, UniversityYear,
+                     Vacation)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -504,10 +506,11 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
-        js = (
-            'js/jquery-3.4.1.slim.min.js',
-            'js/admin_highschool.js',
-        )
+        if settings.USE_GEOAPI:
+          js = (
+              'js/jquery-3.4.1.slim.min.js',
+              'js/admin_highschool.js',
+          )
 
 admin.site = CustomAdminSite(name='Repositories')
 

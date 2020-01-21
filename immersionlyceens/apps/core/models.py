@@ -9,10 +9,11 @@ from django.db import models
 from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.fields import UpperCharField
-
-from .utils import get_cities, get_departments
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
 logger = logging.getLogger(__name__)
+
+
 
 
 class Component(models.Model):
@@ -116,8 +117,8 @@ class TrainingSubdomain(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     training_domain = models.ForeignKey(TrainingDomain,
-        verbose_name=_("Training domain"), default=None, blank=False,
-        null=False, on_delete=models.CASCADE, related_name='Subdomains')
+                                        verbose_name=_("Training domain"), default=None, blank=False,
+                                        null=False, on_delete=models.CASCADE, related_name='Subdomains')
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
@@ -217,7 +218,7 @@ class Building(models.Model):
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
     campus = models.ForeignKey(Campus, verbose_name=("Campus"),
-        default=None, on_delete=models.CASCADE, related_name="buildings")
+                               default=None, on_delete=models.CASCADE, related_name="buildings")
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -275,7 +276,7 @@ class CourseType(models.Model):
         verbose_name_plural = _('Course type')
 
     def __str__(self):
-        """str"""
+        """str"""  # from .utils import get_cities, get_departments
         return self.label
 
     def validate_unique(self, exclude=None):
@@ -430,20 +431,31 @@ class Calendar(models.Model):
     ]
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
+    calendar_mode = models.CharField(
+        _("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
 
-    year_start_date = models.DateField(_("Year start date"), null=True, blank=True)
+    year_start_date = models.DateField(
+        _("Year start date"), null=True, blank=True)
     year_end_date = models.DateField(_("Year end date"), null=True, blank=True)
-    year_registration_start_date = models.DateField(_("Year start registration date"), null=True, blank=True)
-    year_nb_authorized_immersion = models.PositiveIntegerField(_("Number of authorized immersions per year"), default=4)
+    year_registration_start_date = models.DateField(
+        _("Year start registration date"), null=True, blank=True)
+    year_nb_authorized_immersion = models.PositiveIntegerField(
+        _("Number of authorized immersions per year"), default=4)
 
-    semester1_start_date = models.DateField(_("Semester 1 start date"), null=True, blank=True)
-    semester1_end_date = models.DateField(_("Semester 1 end date"), null=True, blank=True)
-    semester1_registration_start_date = models.DateField(_("Semester 1 start registration date"), null=True, blank=True)
-    semester2_start_date = models.DateField(_("Semester 2 start date"), null=True, blank=True)
-    semester2_end_date = models.DateField(_("Semester 2 end date"), null=True, blank=True)
-    semester2_registration_start_date = models.DateField(_("Semester 2 start registration date"), null=True, blank=True)
-    registration_start_date_per_semester = models.PositiveIntegerField(_("Number of authorized immersions per semester"), default=2)
+    semester1_start_date = models.DateField(
+        _("Semester 1 start date"), null=True, blank=True)
+    semester1_end_date = models.DateField(
+        _("Semester 1 end date"), null=True, blank=True)
+    semester1_registration_start_date = models.DateField(
+        _("Semester 1 start registration date"), null=True, blank=True)
+    semester2_start_date = models.DateField(
+        _("Semester 2 start date"), null=True, blank=True)
+    semester2_end_date = models.DateField(
+        _("Semester 2 end date"), null=True, blank=True)
+    semester2_registration_start_date = models.DateField(
+        _("Semester 2 start registration date"), null=True, blank=True)
+    registration_start_date_per_semester = models.PositiveIntegerField(
+        _("Number of authorized immersions per semester"), default=2)
 
     global_evaluation_date = models.DateField(_("Global evaluation send date"), null=True, blank=True)
 
@@ -465,8 +477,6 @@ class Calendar(models.Model):
                 _('A calendar with this label already exists'))
 
 
-
-
 class HighSchool(models.Model):
     """
     HighSchool class
@@ -474,6 +484,13 @@ class HighSchool(models.Model):
     class Meta:
         verbose_name = _('High school')
         unique_together = ('label', 'city')
+
+    choices_departments = choices_cities = ""
+
+    if settings.USE_GEOAPI:
+        choices_departments = get_departments()
+        choices_cities = get_cities()
+
 
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
@@ -485,10 +502,10 @@ class HighSchool(models.Model):
         _("Address3"), max_length=255, blank=True, null=True)
     department = models.CharField(
         _("Department"), max_length=128, blank=False, null=False,
-        choices=get_departments())
+        choices=choices_departments)
     city = UpperCharField(
         _("City"), max_length=255, blank=False, null=False,
-        choices=get_cities())
+        choices=choices_cities)
     zip_code = models.CharField(
         _("Zip code"), max_length=128, blank=False, null=False)
     phone_number = models.CharField(

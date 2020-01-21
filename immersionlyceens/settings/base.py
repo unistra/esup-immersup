@@ -360,7 +360,6 @@ ADMIN_SITE_HEADER = _('Immersion')
 ADMIN_SITE_TITLE = _('Immersion Admin Page')
 ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
 
-
 #################
 # APIs settings #
 #################
@@ -404,3 +403,10 @@ ADMIN_MODELS_ORDER = {
 HAS_RIGHTS_ON_GROUP = {
     'SCUIO-IP' : ['REF-CMP', ]
 }
+
+####################
+# Geo Api settings #
+####################
+
+USE_GEOAPI = True
+GEOAPI_BASE_URL = "https://geo.api.gouv.fr"

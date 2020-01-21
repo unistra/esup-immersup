@@ -2,18 +2,17 @@ from datetime import datetime
 
 from django import forms
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.models import Group
 from django.utils.translation import ugettext_lazy as _
+from immersionlyceens.libs.geoapi.utils import get_cities, get_zipcodes
 
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
                      Component, CourseType, GeneralBachelorTeaching,
                      HighSchool, Holiday, ImmersionUser, PublicType, Training,
                      TrainingDomain, TrainingSubdomain, UniversityYear,
                      Vacation)
-from .utils import get_cities, get_zipcodes
-
 
 
 class BachelorMentionForm(forms.ModelForm):
@@ -386,6 +385,7 @@ class HolidayForm(forms.ModelForm):
     """
     University Year form class
     """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -416,6 +416,7 @@ class VacationForm(forms.ModelForm):
     """
     University Year form class
     """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -453,6 +454,7 @@ class CalendarForm(forms.ModelForm):
     """
     University Year form class
     """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -463,14 +465,17 @@ class CalendarForm(forms.ModelForm):
 
         year_start_date = cleaned_data.get('year_start_date')
         year_end_date = cleaned_data.get('year_end_date')
-        year_registration_start_date = cleaned_data.get('year_registration_start_date')
+        year_registration_start_date = cleaned_data.get(
+            'year_registration_start_date')
 
         s1_start_date = cleaned_data.get('semester1_start_date')
         s1_end_date = cleaned_data.get('semester1_end_date')
-        s1_registration_start_date = cleaned_data.get('semester1_registration_start_date')
+        s1_registration_start_date = cleaned_data.get(
+            'semester1_registration_start_date')
         s2_start_date = cleaned_data.get('semester2_start_date')
         s2_end_date = cleaned_data.get('semester2_end_date')
-        s2_registration_start_date = cleaned_data.get('semester2_registration_start_date')
+        s2_registration_start_date = cleaned_data.get(
+            'semester2_registration_start_date')
         valid_user = False
 
         try:
@@ -623,37 +628,38 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        city_choices = [('', '---------'), ]
-        zip_choices = [('', '---------'), ]
+        if settings.USE_GEOAPI:
+          city_choices = [('', '---------'), ]
+          zip_choices = [('', '---------'), ]
 
-        # Put datas in choices fields if form instance
-        if self.instance.department:
-            city_choices = get_cities(self.instance.department)
+          # Put datas in choices fields if form instance
+          if self.instance.department:
+              city_choices = get_cities(self.instance.department)
 
-        if self.instance.city:
-            zip_choices = get_zipcodes(
-                self.instance.department, self.instance.city)
+          if self.instance.city:
+              zip_choices = get_zipcodes(
+                  self.instance.department, self.instance.city)
 
-        # Put datas in choices fields if form data
-        if 'department' in self.data:
-            city_choices = get_cities(self.data.get('department'))
+          # Put datas in choices fields if form data
+          if 'department' in self.data:
+              city_choices = get_cities(self.data.get('department'))
 
-        if 'city' in self.data:
-            zip_choices = get_zipcodes(
-                self.data.get('department'), self.data.get('city'))
+          if 'city' in self.data:
+              zip_choices = get_zipcodes(
+                  self.data.get('department'), self.data.get('city'))
 
-        self.fields['city'] = forms.TypedChoiceField(
-            label=_("City"),
-            widget=forms.Select(),
-            choices=city_choices,
-            required=True
-        )
-        self.fields['zip_code'] = forms.TypedChoiceField(
-            label=_("Zip code"),
-            widget=forms.Select(),
-            choices=zip_choices,
-            required=True
-        )
+          self.fields['city'] = forms.TypedChoiceField(
+              label=_("City"),
+              widget=forms.Select(),
+              choices=city_choices,
+              required=True
+          )
+          self.fields['zip_code'] = forms.TypedChoiceField(
+              label=_("Zip code"),
+              widget=forms.Select(),
+              choices=zip_choices,
+              required=True
+          )
 
     def clean(self):
         cleaned_data = super().clean()
