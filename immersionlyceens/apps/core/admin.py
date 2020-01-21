@@ -43,7 +43,7 @@ class CustomAdminSite(admin.AdminSite):
 
         for app in app_list:
             if not settings.ADMIN_MODELS_ORDER.get(app['app_label'].lower()):
-                app['models'].sort(key=lambda x: x['app_label'])
+                app['models'].sort(key=lambda x: x.get('app_label'))
             else:
                 app['models'].sort(
                     key=lambda x: self.find_in_list(
