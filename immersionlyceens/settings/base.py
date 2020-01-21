@@ -398,3 +398,4 @@ ADMIN_APPS_ORDER = [
               'PublicType', 'CancelType', 'Holiday', 'Vacation', 'Calendar']),
     # uncomment next line for sites app
     # ('sites', ['Site'])
+]
