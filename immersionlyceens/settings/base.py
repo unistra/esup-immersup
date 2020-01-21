@@ -388,3 +388,13 @@ LDAP_API_EMAIL_ATTR = ''
 LDAP_API_EMAIL_USERNAME = ''
 LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
+
+# Displaying apps order in ADMIN
+ADMIN_APPS_ORDER = [
+    ('auth', ['Group']),
+    ('core', ['ImmersionUser', 'UniversityYear', 'HighSchool', 'GeneralBachelorTeaching',
+              'BachelorMention', 'Campus', 'Building', 'Component',
+              'TrainingDomain', 'TrainingSubdomain', 'Training', 'CourseType',
+              'PublicType', 'CancelType', 'Holiday', 'Vacation', 'Calendar']),
+    # uncomment next line for sites app
+    # ('sites', ['Site'])

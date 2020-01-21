@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.sites.models import Site
@@ -26,50 +27,20 @@ class CustomAdminSite(admin.AdminSite):
         super().__init__(*args, **kwargs)
         self._registry.update(admin.site._registry)
 
+
     def get_app_list(self, request):
-        """
-        Return a sorted list of all the installed apps that have been
-        registered in this site.
-        """
-        ordering = {
-            'ImmersionUser': 1,
-            'UniversityYear': 2,
-            'HighSchool': 3,
-            'GeneralBachelorTeaching': 4,
-            'BachelorMention': 5,
-            'Campus': 6,
-            'Building': 7,
-            'Component': 8,
-            'TrainingDomain': 9,
-            'TrainingSubdomain': 10,
-            'Training': 11,
-            'CourseType': 12,
-            'PublicType': 13,
-            'CancelType': 14,
-            'Holiday': 15,
-            'Vacation': 16,
-            'Calendar': 17,
-        }
-
         app_dict = self._build_app_dict(request)
-
-        # Sort the apps alphabetically.
-        app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
-
-        # Sort the models alphabetically within each app.
-        # key=lambda x: x['name']
-        for app in app_list:
-            app['models'].sort(key=lambda x: ordering.get(x.get('object_name')))
-
-        # Hide Sites model in django admin
-        app_list = [i for i in app_list if not (i['name'] == 'Sites')]
-
-        return app_list
+        for app_name, object_list in settings.ADMIN_APPS_ORDER:
+            app = app_dict[app_name]
+            app['models'].sort(key=lambda x: object_list.index(x['object_name']))
+            yield app
 
 
 class AdminWithRequest:
     """
-    Class used to pass request object to admin form
+    Class used to pass request object to admin form        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
     """
 
     def get_form(self, request, obj=None, **kwargs):
@@ -132,7 +103,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj and TrainingSubdomain.objects.filter(
                 training_domain=obj).exists():
             messages.warning(request, _("""This training domain can't be deleted """
-                """because it is used by training subdomains"""))
+                                        """because it is used by training subdomains"""))
             return False
 
         return True
@@ -149,9 +120,9 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
         # Disable delete
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -179,9 +150,9 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -231,9 +202,9 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
         actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -354,13 +325,14 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj:
-            print(obj.start_date)
             if obj.start_date <= datetime.today().date():
-                messages.warning(request, _("""This component can't be deleted """
+                messages.warning(request, _(
+                    """This component can't be deleted """
                     """because university year has already started"""))
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _("""This component can't be deleted """
+                messages.warning(request, _(
+                    """This component can't be deleted """
                     """because a purge date is defined"""))
                 return False
 
@@ -415,7 +387,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HighSchoolForm
     list_display = ('label', 'city', 'email', 'head_teacher_name',
-        'referent_name', 'convention_start_date', 'convention_end_date')
+                    'referent_name', 'convention_start_date', 'convention_end_date')
     list_filter = ('city',)
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name', 'referent_name')
@@ -425,9 +397,9 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
