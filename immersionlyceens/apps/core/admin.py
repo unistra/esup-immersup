@@ -25,13 +25,23 @@ class CustomAdminSite(admin.AdminSite):
         super().__init__(*args, **kwargs)
         self._registry.update(admin.site._registry)
 
-
     def get_app_list(self, request):
         app_dict = self._build_app_dict(request)
         for app_name, object_list in settings.ADMIN_APPS_ORDER:
-            app = app_dict[app_name]
-            app['models'].sort(key=lambda x: object_list.index(x['object_name']))
-            yield app
+            try:
+              app = app_dict[app_name]
+              app['models'].sort(key=lambda x: object_list.index(x['object_name']))
+              yield app
+            except KeyError:
+              app = None
+
+    def app_index(self, request, app_label, extra_context=None):
+        if not extra_context:
+            extra_context = {}
+
+        extra_context['app_list'] = [self._build_app_dict(request, app_label)]
+
+        return super().app_index(request, app_label, extra_context=extra_context)
 
 
 class AdminWithRequest:
