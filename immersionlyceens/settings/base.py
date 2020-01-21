@@ -390,6 +390,16 @@ LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
 
 # Displaying apps order in ADMIN
+ADMIN_APPS_ORDER = [ 'auth', 'core' ]
+
+ADMIN_MODELS_ORDER = {
+    'core' : ['ImmersionUser', 'UniversityYear', 'HighSchool',
+        'GeneralBachelorTeaching', 'BachelorMention', 'Campus',
+        'Building', 'Component', 'TrainingDomain', 'TrainingSubdomain',
+        'Training', 'CourseType', 'PublicType', 'CancelType', 'Holiday',
+        'Vacation', 'Calendar']
+}
+"""
 ADMIN_APPS_ORDER = [
     ('auth', ['Group']),
     ('core', ['ImmersionUser', 'UniversityYear', 'HighSchool', 'GeneralBachelorTeaching',
@@ -399,3 +409,4 @@ ADMIN_APPS_ORDER = [
     # uncomment next line for sites app
     # ('sites', ['Site'])
 ]
+"""

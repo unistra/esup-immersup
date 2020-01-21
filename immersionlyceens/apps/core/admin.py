@@ -25,13 +25,47 @@ class CustomAdminSite(admin.AdminSite):
         super().__init__(*args, **kwargs)
         self._registry.update(admin.site._registry)
 
+    def find_in_list(self, l, value):
+        try:
+            return l.index(value)
+        except ValueError:
+            return 999
 
     def get_app_list(self, request):
+        """
+        Custom apps and models order
+        """
         app_dict = self._build_app_dict(request)
-        for app_name, object_list in settings.ADMIN_APPS_ORDER:
-            app = app_dict[app_name]
-            app['models'].sort(key=lambda x: object_list.index(x['object_name']))
+        app_list = sorted(app_dict.values(),
+            key=lambda x: self.find_in_list(
+                settings.ADMIN_APPS_ORDER, x['app_label'].lower())
+        )
+
+        for app in app_list:
+            if not settings.ADMIN_MODELS_ORDER.get(app['app_label'].lower()):
+                app['models'].sort(key=lambda x: x['app_label'])
+            else:
+                app['models'].sort(
+                    key=lambda x: self.find_in_list(
+                        settings.ADMIN_MODELS_ORDER[app['app_label'].lower()],
+                        x.get('object_name')))
+
             yield app
+
+
+    def app_index(self, request, app_label, extra_context=None):
+        """
+        Custom order for app models
+        """
+        if settings.ADMIN_MODELS_ORDER.get(app_label):
+            app_dict = self._build_app_dict(request, app_label)
+            app_dict['models'].sort(
+                key=lambda x: self.find_in_list(
+                    settings.ADMIN_MODELS_ORDER[app_label], x.get('object_name')))
+
+            extra_context = {'app_list': [app_dict]}
+
+        return super().app_index(request, app_label, extra_context)
 
 
 class AdminWithRequest:
@@ -81,6 +115,16 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
+        if obj and request.user.is_scuio_ip_manager() and \
+                obj.groups.filter(name__in=['REF-CMP']).exists:
+            return True
+
+        return False
 
     class Media:
         js = (
