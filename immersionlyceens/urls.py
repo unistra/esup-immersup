@@ -7,7 +7,6 @@ from django.views.i18n import JavaScriptCatalog
 from .views import home
 
 admin.autodiscover()
-admin.site.unregister(Site)
 
 urlpatterns = [
     # Examples:
