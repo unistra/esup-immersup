@@ -242,7 +242,7 @@ DJANGO_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
+    # 'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
@@ -399,14 +399,3 @@ ADMIN_MODELS_ORDER = {
         'Training', 'CourseType', 'PublicType', 'CancelType', 'Holiday',
         'Vacation', 'Calendar']
 }
-"""
-ADMIN_APPS_ORDER = [
-    ('auth', ['Group']),
-    ('core', ['ImmersionUser', 'UniversityYear', 'HighSchool', 'GeneralBachelorTeaching',
-              'BachelorMention', 'Campus', 'Building', 'Component',
-              'TrainingDomain', 'TrainingSubdomain', 'Training', 'CourseType',
-              'PublicType', 'CancelType', 'Holiday', 'Vacation', 'Calendar']),
-    # uncomment next line for sites app
-    # ('sites', ['Site'])
-]
-"""

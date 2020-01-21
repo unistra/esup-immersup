@@ -3,7 +3,6 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
