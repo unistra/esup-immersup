@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django import forms
+from django.contrib.auth.models import Group
 from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.translation import ugettext_lazy as _
@@ -526,10 +527,107 @@ class CalendarForm(forms.ModelForm):
 
 class ImmersionUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
         self.fields["password1"].required = False
         self.fields["password2"].required = False
+
+    class Meta(UserCreationForm.Meta):
+        model = ImmersionUser
+        fields = '__all__'
+
+
+class ImmersionUserChangeForm(UserChangeForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        if not self.request.user.is_superuser:
+            # Filter groups a SCUIO-IP users can add
+            if self.request.user.has_groups('SCUIO-IP'):
+                # Add groups to this list if needed
+                can_add_groups = ['REF-CMP', ]
+                """
+                self.fields['groups'].queryset = Group.objects.filter(
+                    name__in=can_add_groups)\
+                    .union(self.request.user.groups.all())
+                """
+                """
+                self.fields['groups'].queryset = self.fields['groups'].queryset\
+                    .filter(name__in=can_add_groups)\
+                    .union(self.request.user.groups.all())
+                """
+
+                self.fields['groups'].limit_choices_to = {
+                    'name__in' : can_add_groups
+                }
+
+            self.fields["is_staff"].disabled = True
+            self.fields["is_superuser"].disabled = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        groups = cleaned_data['groups']
+        components = cleaned_data['components']
+        forbidden_msg = _("Forbidden")
+
+        if groups.filter(name='SCUIO-IP').exists():
+            cleaned_data['is_staff'] = True
+
+        if groups.filter(name='REF-CMP').exists() and \
+            not components.count():
+            msg = _("This field is mandatory for a user belonging to 'REF-CMP' group")
+            self._errors['components'] = self.error_class([msg])
+            del cleaned_data["components"]
+
+
+        if not self.request.user.is_superuser:
+            # Check and alter fields when authenticated user is a member of SCUIO-IP group
+            if self.request.user.has_groups('SCUIO-IP'):
+                if self.instance.is_scuio_ip_manager():
+                    raise forms.ValidationError(
+                        _("You don't have enough privileges to modify this account")
+                    )
+
+                # Add groups to this list when needed
+                can_change_groups = ['REF-CMP', ]
+
+                current_groups = set(
+                    self.instance.groups.all().values_list('name', flat=True))
+                new_groups = set(groups.all().values_list('name', flat=True))
+
+                forbidden_groups = [
+                    g for g in current_groups.symmetric_difference(new_groups)
+                    if g not in can_change_groups
+                ]
+
+                if forbidden_groups:
+                    raise forms.ValidationError(
+                        _("You can't modify these groups : %s" %
+                          ', '.join(x for x in forbidden_groups))
+                    )
+
+            if self.request.user.id == self.instance.id:
+                raise forms.ValidationError(
+                    _("You can't modify your own account")
+                )
+
+            if self.instance.is_superuser != cleaned_data["is_superuser"]:
+                self._errors['is_superuser'] = self.error_class([forbidden_msg])
+
+                raise forms.ValidationError(
+                    _("You can't modify the superuser status")
+                )
+
+            if self.instance.is_staff != cleaned_data["is_staff"]:
+                self._errors['is_staff'] = self.error_class([forbidden_msg])
+
+                raise forms.ValidationError(
+                    _("You can't modify the staff status")
+                )
+
+        return cleaned_data
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
