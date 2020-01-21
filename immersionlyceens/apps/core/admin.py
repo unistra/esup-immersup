@@ -52,7 +52,6 @@ class CustomAdminSite(admin.AdminSite):
 
             yield app
 
-
     def app_index(self, request, app_label, extra_context=None):
         """
         Custom order for app models
