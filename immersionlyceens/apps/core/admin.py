@@ -147,8 +147,11 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_actions(self, request):
         # Disable delete
-        actions = super().get_actions(request)
-        del actions['delete_selected']
+        # Manage KeyError if rights for groups don't include delete !
+        try:
+          del actions['delete_selected']
+        except KeyError:
+          pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -174,7 +177,11 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_actions(self, request):
         # Disable delete
         actions = super().get_actions(request)
-        del actions['delete_selected']
+        # Manage KeyError if rights for groups don't include delete !
+        try:
+          del actions['delete_selected']
+        except KeyError:
+          pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -222,7 +229,11 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_actions(self, request):
         # Disable delete
         actions = super().get_actions(request)
-        del actions['delete_selected']
+        # Manage KeyError if rights for groups don't include delete !
+        try:
+          del actions['delete_selected']
+        except KeyError:
+          pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -408,6 +419,24 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('city',)
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name', 'referent_name')
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        # Manage KeyError if rights for groups don't include delete !
+        try:
+          del actions['delete_selected']
+        except KeyError:
+          pass
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        # Only superadmin could delete Highschool items
+        # TODO: maybe only use model groups rights !!!
+        if request.user.is_superuser:
+            return True
+
+        return False
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
