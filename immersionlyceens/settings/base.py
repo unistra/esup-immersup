@@ -399,3 +399,8 @@ ADMIN_MODELS_ORDER = {
         'Training', 'CourseType', 'PublicType', 'CancelType', 'Holiday',
         'Vacation', 'Calendar']
 }
+
+# Define groups rights on others here ?
+HAS_RIGHTS_ON_GROUP = {
+    'SCUIO-IP' : ['REF-CMP', ]
+}

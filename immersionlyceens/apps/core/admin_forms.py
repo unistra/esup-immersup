@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
@@ -12,6 +13,7 @@ from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
                      TrainingDomain, TrainingSubdomain, UniversityYear,
                      Vacation)
 from .utils import get_cities, get_zipcodes
+
 
 
 class BachelorMentionForm(forms.ModelForm):
@@ -483,7 +485,6 @@ class CalendarForm(forms.ModelForm):
             )
 
         # YEAR MODE
-        print(calendar_mode)
         if calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[0][0].lower():
             if not year_start_date or not year_end_date or not year_registration_start_date:
                 raise forms.ValidationError(
@@ -545,25 +546,6 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
-            # Filter groups a SCUIO-IP users can add
-            if self.request.user.has_groups('SCUIO-IP'):
-                # Add groups to this list if needed
-                can_add_groups = ['REF-CMP', ]
-                """
-                self.fields['groups'].queryset = Group.objects.filter(
-                    name__in=can_add_groups)\
-                    .union(self.request.user.groups.all())
-                """
-                """
-                self.fields['groups'].queryset = self.fields['groups'].queryset\
-                    .filter(name__in=can_add_groups)\
-                    .union(self.request.user.groups.all())
-                """
-
-                self.fields['groups'].limit_choices_to = {
-                    'name__in' : can_add_groups
-                }
-
             self.fields["is_staff"].disabled = True
             self.fields["is_superuser"].disabled = True
 
@@ -592,7 +574,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                     )
 
                 # Add groups to this list when needed
-                can_change_groups = ['REF-CMP', ]
+                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP', )
 
                 current_groups = set(
                     self.instance.groups.all().values_list('name', flat=True))

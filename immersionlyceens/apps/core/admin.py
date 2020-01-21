@@ -88,15 +88,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
     filter_horizontal = ('components', 'groups', 'user_permissions')
 
-    # Add Components in permissions fieldset after Group selection
-    lst = list(UserAdmin.fieldsets)
-    permissions_fields = list(lst[2])
-    permissions_fields_list = list(permissions_fields[1]['fields'])
-    permissions_fields_list.insert(4, 'components')
-    lst[2] = ('Permissions', {'fields': tuple(permissions_fields_list)})
-
-    fieldsets = tuple(lst)
-
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
@@ -114,15 +105,54 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        # Disable delete
+        try:
+            del actions['delete_selected']
+        except KeyError:
+            pass
+        return actions
+
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
+        if obj:
+            if request.user.is_superuser:
+                return True
 
-        if obj and request.user.is_scuio_ip_manager() and \
-                obj.groups.filter(name__in=['REF-CMP']).exists:
-            return True
+            # A user can only be deleted if the authenticated user has
+            # rights on ALL his groups
+            if request.user.is_scuio_ip_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP')
 
-        return False
+                if not(set(x for x in user_groups) - set(rights)):
+                    return True
+
+            messages.warning(request, _(
+                """You don't have enough privileges to delete """
+                """this account"""))
+
+            return False
+
+    def get_fieldsets(self, request, obj=None):
+        # Add Components in permissions fieldset after Group selection
+        lst = list(UserAdmin.fieldsets)
+        permissions_fields = list(lst[2])
+        permissions_fields_list = list(permissions_fields[1]['fields'])
+        permissions_fields_list.insert(4, 'components')
+
+        if not request.user.is_superuser:
+            # Remove components widget for non superusers
+            try:
+                permissions_fields_list.remove('user_permissions')
+            except ValueError:
+                pass
+
+        lst[2] = ('Permissions', {'fields': tuple(permissions_fields_list)})
+
+        fieldsets = tuple(lst)
+
+        return fieldsets
 
     class Media:
         js = (
@@ -141,9 +171,12 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def get_actions(self, request):
-        # Disable delete
         actions = super().get_actions(request)
-        del actions['delete_selected']
+        # Disable delete
+        try:
+            del actions['delete_selected']
+        except KeyError:
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -169,6 +202,7 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_actions(self, request):
         # Disable delete
+        actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
             del actions['delete_selected']
