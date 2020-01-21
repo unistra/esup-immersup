@@ -36,9 +36,7 @@ class CustomAdminSite(admin.AdminSite):
 
 class AdminWithRequest:
     """
-    Class used to pass request object to admin form        actions = super().get_actions(request)
-        del actions['delete_selected']
-        return actions
+    Class used to pass request object to admin form
     """
 
     def get_form(self, request, obj=None, **kwargs):
@@ -112,8 +110,9 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj and TrainingSubdomain.objects.filter(
                 training_domain=obj).exists():
-            messages.warning(request, _("""This training domain can't be deleted """
-                                        """because it is used by training subdomains"""))
+            messages.warning(request, _(
+                """This training domain can't be deleted """
+                """because it is used by training subdomains"""))
             return False
 
         return True
@@ -360,27 +359,33 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 
             # global evaluation date
             if (obj.year_start_date and obj.year_start_date <= datetime.today().date())\
-                    or (obj.global_evaluation_date and obj.global_evaluation_date <= datetime.today().date()):
+                    or (obj.global_evaluation_date \
+                        and obj.global_evaluation_date <= datetime.today().date()):
                 fields.append('global_evaluation_date')
 
             # year_start > today
-            if obj.year_start_date and obj.year_start_date <= datetime.today().date():
+            if obj.year_start_date and \
+                obj.year_start_date <= datetime.today().date():
                 fields.append('year_start_date')
 
             # semester1_start > today
-            if obj.semester1_start_date and obj.semester1_start_date <= datetime.today().date():
+            if obj.semester1_start_date and \
+                obj.semester1_start_date <= datetime.today().date():
                 fields.append('year_start_date')
                 fields.append('calendar_mode')
             # semester1_end > today
-            if obj.semester1_end_date and obj.semester1_end_date <= datetime.today().date():
+            if obj.semester1_end_date and \
+                obj.semester1_end_date <= datetime.today().date():
                 fields.append('semester1_end_date')
                 fields.append('semester1_registration_start_date')
 
             # semester2_start > today
-            if obj.semester2_start_date and obj.semester2_start_date <= datetime.today().date():
+            if obj.semester2_start_date and \
+                obj.semester2_start_date <= datetime.today().date():
                 fields.append('year_start_date')
             # semester2_end > today
-            if obj.semester2_end_date and obj.semester2_end_date <= datetime.today().date():
+            if obj.semester2_end_date and \
+                obj.semester2_end_date <= datetime.today().date():
                 fields.append('semester1_end_date')
                 fields.append('semester1_registration_start_date')
 
@@ -397,7 +402,8 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HighSchoolForm
     list_display = ('label', 'city', 'email', 'head_teacher_name',
-                    'referent_name', 'convention_start_date', 'convention_end_date')
+                    'referent_name', 'convention_start_date',
+                    'convention_end_date')
     list_filter = ('city',)
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name', 'referent_name')
