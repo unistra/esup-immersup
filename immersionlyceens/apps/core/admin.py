@@ -8,18 +8,16 @@ from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
-                          CampusForm, CancelTypeForm, ComponentForm,
-                          CourseTypeForm, GeneralBachelorTeachingForm,
-                          HighSchoolForm, HolidayForm,
-                          ImmersionUserCreationForm, PublicTypeForm,
-                          TrainingDomainForm, TrainingForm,
-                          TrainingSubdomainForm, UniversityYearForm,
-                          VacationForm)
+    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
+    ImmersionUserCreationForm, ImmersionUserChangeForm, PublicTypeForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm)
+
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-                     Component, CourseType, GeneralBachelorTeaching,
-                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
-                     TrainingDomain, TrainingSubdomain, UniversityYear,
-                     Vacation)
+    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -54,9 +52,20 @@ class AdminWithRequest:
         return AdminFormWithRequest
 
 
-class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
-    #form = ImmersionUserChangeForm
+class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
+    form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
+
+    filter_horizontal = ('components', 'groups', 'user_permissions')
+
+    # Add Components in permissions fieldset after Group selection
+    lst = list(UserAdmin.fieldsets)
+    permissions_fields = list(lst[2])
+    permissions_fields_list = list(permissions_fields[1]['fields'])
+    permissions_fields_list.insert(4, 'components')
+    lst[2] = ('Permissions', {'fields': tuple(permissions_fields_list)})
+
+    fieldsets = tuple(lst)
 
     add_fieldsets = (
         (None, {
@@ -68,7 +77,8 @@ class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
 
     # add hijack button to display list of users
     list_display = ('username', 'email', 'first_name',
-                    'last_name', 'is_staff', 'hijack_field',)
+                    'last_name', 'is_superuser', 'is_staff',
+                    'hijack_field',)
 
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
