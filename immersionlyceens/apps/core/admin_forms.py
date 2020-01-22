@@ -9,10 +9,9 @@ from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.libs.geoapi.utils import get_cities, get_zipcodes
 
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-                     Component, CourseType, GeneralBachelorTeaching,
-                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
-                     TrainingDomain, TrainingSubdomain, UniversityYear,
-                     Vacation)
+    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation)
 
 
 class BachelorMentionForm(forms.ModelForm):
@@ -383,7 +382,7 @@ class UniversityYearForm(forms.ModelForm):
 
 class HolidayForm(forms.ModelForm):
     """
-    University Year form class
+    Holiday form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -414,7 +413,7 @@ class HolidayForm(forms.ModelForm):
 
 class VacationForm(forms.ModelForm):
     """
-    University Year form class
+    Vacations form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -452,7 +451,7 @@ class VacationForm(forms.ModelForm):
 
 class CalendarForm(forms.ModelForm):
     """
-    University Year form class
+    Calendar form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -490,15 +489,18 @@ class CalendarForm(forms.ModelForm):
             )
 
         # YEAR MODE
-        if calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[0][0].lower():
-            if not year_start_date or not year_end_date or not year_registration_start_date:
+        if calendar_mode and \
+            calendar_mode.lower() == Calendar.CALENDAR_MODE[0][0].lower():
+            if not all([
+                year_start_date, year_end_date, year_registration_start_date]):
                 raise forms.ValidationError(
                     _("Mandatory fields not filled in")
                 )
         # SEMESTER MODE
-        elif calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
-            if not s1_start_date or not s1_end_date or not s1_registration_start_date \
-                    or not s2_start_date or not s2_end_date or not s2_registration_start_date:
+        elif calendar_mode and \
+            calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
+            if not all([s1_start_date, s1_end_date, s1_registration_start_date,
+                s2_start_date, s2_end_date, s2_registration_start_date]):
                 raise forms.ValidationError(
                     _("Mandatory fields not filled in")
                 )
@@ -565,13 +567,15 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if groups.filter(name='REF-CMP').exists() and \
             not components.count():
-            msg = _("This field is mandatory for a user belonging to 'REF-CMP' group")
+            msg = _(
+                "This field is mandatory for a user belonging to 'REF-CMP' group")
             self._errors['components'] = self.error_class([msg])
             del cleaned_data["components"]
 
 
         if not self.request.user.is_superuser:
-            # Check and alter fields when authenticated user is a member of SCUIO-IP group
+            # Check and alter fields when authenticated user is
+            # a member of SCUIO-IP group
             if self.request.user.has_groups('SCUIO-IP'):
                 if self.instance.is_scuio_ip_manager():
                     raise forms.ValidationError(

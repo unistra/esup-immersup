@@ -7,18 +7,15 @@ from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
-                          CampusForm, CancelTypeForm, ComponentForm,
-                          CourseTypeForm, GeneralBachelorTeachingForm,
-                          HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-                          ImmersionUserCreationForm, PublicTypeForm,
-                          TrainingDomainForm, TrainingForm,
-                          TrainingSubdomainForm, UniversityYearForm,
-                          VacationForm)
+    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm, PublicTypeForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm)
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-                     Component, CourseType, GeneralBachelorTeaching,
-                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
-                     TrainingDomain, TrainingSubdomain, UniversityYear,
-                     Vacation)
+    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation)
 
 
 class CustomAdminSite(admin.AdminSite):

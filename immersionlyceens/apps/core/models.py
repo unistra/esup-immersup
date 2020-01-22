@@ -117,8 +117,8 @@ class TrainingSubdomain(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     training_domain = models.ForeignKey(TrainingDomain,
-                                        verbose_name=_("Training domain"), default=None, blank=False,
-                                        null=False, on_delete=models.CASCADE, related_name='Subdomains')
+        verbose_name=_("Training domain"), default=None, blank=False,
+        null=False, on_delete=models.CASCADE, related_name='Subdomains')
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
@@ -218,7 +218,7 @@ class Building(models.Model):
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
     campus = models.ForeignKey(Campus, verbose_name=("Campus"),
-                               default=None, on_delete=models.CASCADE, related_name="buildings")
+        default=None, on_delete=models.CASCADE, related_name="buildings")
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -457,7 +457,8 @@ class Calendar(models.Model):
     registration_start_date_per_semester = models.PositiveIntegerField(
         _("Number of authorized immersions per semester"), default=2)
 
-    global_evaluation_date = models.DateField(_("Global evaluation send date"), null=True, blank=True)
+    global_evaluation_date = models.DateField(
+        _("Global evaluation send date"), null=True, blank=True)
 
     class Meta:
         """Meta class"""
