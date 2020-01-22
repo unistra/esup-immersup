@@ -406,7 +406,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         """Singleton"""
-        return len(Calendar.objects.all()) <= 0
+        return not Calendar.objects.exists()
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
