@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
+from .apps.core import views as core_views
 from .views import home
 
 admin.autodiscover()
@@ -16,6 +17,8 @@ urlpatterns = [
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+
+    path('/import/holiday', core_views.import_holidays, name='import_holidays'),
 ]
 
 # debug toolbar for dev
