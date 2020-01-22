@@ -18,7 +18,7 @@ urlpatterns = [
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
 
-    path('/import/holiday', core_views.import_holidays, name='import_holidays'),
+    path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
 ]
 
 # debug toolbar for dev

@@ -104,3 +104,11 @@ LDAP_API_EMAIL_ATTR = environ.get('LDAP_API_EMAIL_ATTR', '')
 LDAP_API_USERNAME_ATTR = environ.get('LDAP_API_USERNAME_ATTR', '')
 LDAP_API_LASTNAME_ATTR = environ.get('LDAP_API_LASTNAME_ATTR', '')
 LDAP_API_FIRSTNAME_ATTR = environ.get('LDAP_API_FIRSTNAME_ATTR', '')
+
+WITH_HOLIDAY_API = True
+HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'
+HOLIDAY_API_MAP = {
+    'date': 'date',
+    'label': 'nom_jour_ferie'
+}
+HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
