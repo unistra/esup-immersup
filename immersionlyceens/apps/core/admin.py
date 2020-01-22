@@ -95,11 +95,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
         }),
     )
 
-    # add hijack button to display list of users
-    list_display = ('username', 'email', 'first_name',
-                    'last_name', 'is_superuser', 'is_staff',
-                    'hijack_field',)
-
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
@@ -132,6 +127,19 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
                 """this account"""))
 
             return False
+
+    def get_list_display(self, request):
+        list_display = [
+            'username', 'email', 'first_name', 'last_name', 'is_superuser',
+            'is_staff'
+        ]
+
+        # add hijack button for admin users
+        if request.user.is_superuser:
+            list_display.append('hijack_field')
+
+        return list_display
+
 
     def get_fieldsets(self, request, obj=None):
         # Add Components in permissions fieldset after Group selection
