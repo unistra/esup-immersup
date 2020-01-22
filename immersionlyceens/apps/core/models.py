@@ -216,7 +216,7 @@ class Building(models.Model):
     """
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
-    campus = models.ForeignKey(Campus, verbose_name=("Campus"),
+    campus = models.ForeignKey(Campus, verbose_name=_("Campus"),
         default=None, on_delete=models.CASCADE, related_name="buildings")
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
@@ -534,3 +534,25 @@ class HighSchool(models.Model):
     def __str__(self):
         # TODO: Should we display city as well (????)
         return self.label
+
+
+class Course(models.Model):
+    """
+    Course class
+    """
+
+    label = models.CharField(
+        _("Label"), max_length=255, blank=False, null=False)
+
+    training = models.ForeignKey(Training, verbose_name=_("Training"),
+        null=False, blank=False, on_delete=models.CASCADE, related_name="courses")
+
+    published = models.BooleanField(_("Published"), default=True)
+
+    teachers = models.ManyToManyField(ImmersionUser, verbose_name=_("Teachers"),
+        related_name='courses')
+
+    class Meta:
+        verbose_name = _('Course')
+        verbose_name_plural = _('Courses')
+        unique_together = ('training', 'label')
