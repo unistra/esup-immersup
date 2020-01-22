@@ -383,6 +383,7 @@ class HolidayForm(forms.ModelForm):
     """
     University Year form class
     """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -391,15 +392,29 @@ class HolidayForm(forms.ModelForm):
         cleaned_data = super().clean()
         valid_user = False
 
+        _date = cleaned_data.get('date')
+
         try:
             user = self.request.user
             valid_user = user.is_scuio_ip_manager()
         except AttributeError:
             pass
-
         if not valid_user:
             raise forms.ValidationError(
                 _("You don't have the required privileges")
+            )
+
+        # existence if an active university year
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            raise forms.ValidationError(
+                _("You have to set an university year")
+            )
+        univ_year = univ_years[0]
+
+        if _date and (_date < univ_year.start_date or _date > univ_year.end_date):
+            raise forms.ValidationError(
+                _("Holiday must set between university year dates")
             )
 
         return cleaned_data
@@ -413,6 +428,7 @@ class VacationForm(forms.ModelForm):
     """
     University Year form class
     """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -428,16 +444,32 @@ class VacationForm(forms.ModelForm):
             valid_user = user.is_scuio_ip_manager()
         except AttributeError:
             pass
-
         if not valid_user:
             raise forms.ValidationError(
                 _("You don't have the required privileges")
             )
 
-        if start_date and end_date and start_date >= end_date:
+        # existence if an active university year
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
             raise forms.ValidationError(
-                _("Start date greater than end date")
+                _("You have to set an university year")
             )
+        univ_year = univ_years[0]
+
+        if start_date and end_date:
+            if start_date >= end_date:
+                raise forms.ValidationError(
+                    _("Start date greater than end date")
+                )
+            if start_date < univ_year.start_date or start_date > univ_year.end_date:
+                raise forms.ValidationError(
+                    _("Vacation start date must set between university year dates")
+                )
+            if end_date < univ_year.start_date or end_date > univ_year.end_date:
+                raise forms.ValidationError(
+                    _("Vacation end date must set between university year dates")
+                )
 
         return cleaned_data
 
@@ -450,6 +482,7 @@ class CalendarForm(forms.ModelForm):
     """
     University Year form class
     """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -470,24 +503,41 @@ class CalendarForm(forms.ModelForm):
         s2_registration_start_date = cleaned_data.get('semester2_registration_start_date')
         valid_user = False
 
+        # Test user group
         try:
             user = self.request.user
             valid_user = user.is_scuio_ip_manager()
         except AttributeError:
             pass
-
         if not valid_user:
             raise forms.ValidationError(
                 _("You don't have the required privileges")
             )
 
+        # existance if an active university year
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            raise forms.ValidationError(
+                _("You have to set an university year")
+            )
+        univ_year = univ_years[0]
+
         # YEAR MODE
-        print(calendar_mode)
         if calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[0][0].lower():
             if not year_start_date or not year_end_date or not year_registration_start_date:
                 raise forms.ValidationError(
                     _("Mandatory fields not filled in")
                 )
+            if year_start_date and year_end_date:
+                if year_start_date < univ_year.start_date or year_start_date > univ_year.end_date:
+                    raise forms.ValidationError(
+                        _("Start date must set between university year dates")
+                    )
+                if year_end_date < univ_year.start_date or year_end_date > univ_year.end_date:
+                    raise forms.ValidationError(
+                        _("End date must set between university year dates")
+                    )
+
         # SEMESTER MODE
         elif calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
             if not s1_start_date or not s1_end_date or not s1_registration_start_date \
@@ -495,6 +545,20 @@ class CalendarForm(forms.ModelForm):
                 raise forms.ValidationError(
                     _("Mandatory fields not filled in")
                 )
+            if s1_start_date and s2_start_date and s1_end_date and \
+                    s2_end_date and s1_registration_start_date and s2_registration_start_date:
+                if s1_start_date < univ_year.start_date or s1_start_date > univ_year.end_date:
+                    raise forms.ValidationError(_("semester 1 start date must set between university year dates"))
+                if s2_start_date < univ_year.start_date or s2_start_date > univ_year.end_date:
+                    raise forms.ValidationError(_("semester 2 start date must set between university year dates"))
+                if s1_end_date < univ_year.start_date or s1_end_date > univ_year.end_date:
+                    raise forms.ValidationError(_("semester 1 end date must set between university year dates"))
+                if s2_end_date < univ_year.start_date or s2_end_date > univ_year.end_date:
+                    raise forms.ValidationError(_("semester 2 end date must set between university year dates"))
+                if s1_registration_start_date < univ_year.start_date or s1_registration_start_date > univ_year.end_date:
+                    raise forms.ValidationError(_("semester 1 start registration date must set between university year dates"))
+                if s2_registration_start_date < univ_year.start_date or s2_registration_start_date > univ_year.end_date:
+                    raise forms.ValidationError(_("semester 2 start registration date must set between university year dates"))
 
         # start < end
         if year_start_date and year_end_date and year_start_date >= year_end_date:
