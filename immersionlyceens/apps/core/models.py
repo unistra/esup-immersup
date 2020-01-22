@@ -126,7 +126,8 @@ class TrainingSubdomain(models.Model):
         verbose_name_plural = _('Training sub domains')
 
     def __str__(self):
-        return self.label
+        domain = self.training_domain or _("No domain")
+        return "%s - %s" % (domain, self.label)
 
     def validate_unique(self, exclude=None):
         try:
