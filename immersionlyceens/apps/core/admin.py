@@ -377,7 +377,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj:
 
             # global evaluation date
-            if (obj.year_start_date and obj.year_start_date <= datetime.today().date())\
+            if (obj.year_start_date and obj.year_start_date <= datetime.today().date()) \
                     or (obj.global_evaluation_date and obj.global_evaluation_date <= datetime.today().date()):
                 fields.append('global_evaluation_date')
 
@@ -403,6 +403,10 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
                 fields.append('semester1_registration_start_date')
 
         return fields
+
+    def has_add_permission(self, request):
+        """Singleton"""
+        return len(Calendar.objects.all()) <= 0
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
