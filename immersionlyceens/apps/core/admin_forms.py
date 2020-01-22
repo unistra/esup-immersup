@@ -213,10 +213,13 @@ class TrainingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['training_subdomains'].queryset = \
-            self.fields['training_subdomains'].queryset.order_by('label')
+            self.fields['training_subdomains'].queryset\
+                .filter(training_domain__active=True,
+                        active=True)\
+                .order_by('training_domain__label', 'label')
 
         self.fields['components'].queryset = \
-            self.fields['components'].queryset.order_by('label')
+            self.fields['components'].queryset.order_by('label', 'code')
 
     def clean(self):
         cleaned_data = super().clean()
