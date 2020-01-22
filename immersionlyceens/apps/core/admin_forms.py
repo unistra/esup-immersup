@@ -219,7 +219,7 @@ class TrainingForm(forms.ModelForm):
                 .order_by('training_domain__label', 'label')
 
         self.fields['components'].queryset = \
-            self.fields['components'].queryset.order_by('label', 'code')
+            self.fields['components'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()

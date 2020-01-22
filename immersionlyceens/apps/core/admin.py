@@ -142,22 +142,26 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
 
     def get_fieldsets(self, request, obj=None):
-        # Add Components in permissions fieldset after Group selection
-        lst = list(UserAdmin.fieldsets)
-        permissions_fields = list(lst[2])
-        permissions_fields_list = list(permissions_fields[1]['fields'])
-        permissions_fields_list.insert(4, 'components')
+        # On user change, add Components in permissions fieldset
+        # after Group selection
+        if not obj:
+            return super().get_fieldsets(request, obj)
+        else:
+            lst = list(UserAdmin.fieldsets)
+            permissions_fields = list(lst[2])
+            permissions_fields_list = list(permissions_fields[1]['fields'])
+            permissions_fields_list.insert(4, 'components')
 
-        if not request.user.is_superuser:
-            # Remove components widget for non superusers
-            try:
-                permissions_fields_list.remove('user_permissions')
-            except ValueError:
-                pass
+            if not request.user.is_superuser:
+                # Remove components widget for non superusers
+                try:
+                    permissions_fields_list.remove('user_permissions')
+                except ValueError:
+                    pass
 
-        lst[2] = ('Permissions', {'fields': tuple(permissions_fields_list)})
+            lst[2] = ('Permissions', {'fields': tuple(permissions_fields_list)})
 
-        fieldsets = tuple(lst)
+            fieldsets = tuple(lst)
 
         return fieldsets
 

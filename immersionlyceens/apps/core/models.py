@@ -14,8 +14,6 @@ from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 logger = logging.getLogger(__name__)
 
 
-
-
 class Component(models.Model):
     """
     Component class
@@ -45,6 +43,7 @@ class ImmersionUser(AbstractUser):
     """
     Main user class
     """
+
     _user_filters = [
         lambda has_group, su: has_group or su,
         lambda has_group, su: has_group and not su
@@ -59,8 +58,7 @@ class ImmersionUser(AbstractUser):
     }
 
     components = models.ManyToManyField(Component,
-        verbose_name=_("Components"), blank=True,
-        related_name='referents')
+        verbose_name=_("Components"), blank=True, related_name='referents')
 
     class Meta:
         verbose_name = _('User')

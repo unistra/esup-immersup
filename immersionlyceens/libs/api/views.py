@@ -35,7 +35,7 @@ def ajax_get_person(request):
             persons_list = [query_order]
 
             users = accounts_client.search_user(search_str)
-            if users:
+            if users != False:
                 users = sorted(users, key = lambda u:[u['lastname'], u['firstname']])
                 response['data'] = persons_list + users
             else:
