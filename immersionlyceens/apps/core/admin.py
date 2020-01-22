@@ -13,7 +13,7 @@ from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
     TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
     VacationForm)
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
     ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
     UniversityYear, Vacation)
 
@@ -323,6 +323,19 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     ordering = ('label',)
     search_fields = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Course.objects.filter(
+                training=obj).exists():
+            messages.warning(request, _(
+                """This training can't be deleted because """
+                """it is used by some courses"""))
+            return False
+
+        return True
 
 
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
