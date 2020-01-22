@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils.module_loading import import_string
+from django.utils.translation import gettext
 
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request)
@@ -17,8 +18,15 @@ logger = logging.getLogger(__name__)
 
 def ajax_get_person(request):
     if settings.ACCOUNTS_CLIENT:
+        response = {'msg': '', 'data': []}
+
         accounts_api = import_string(settings.ACCOUNTS_CLIENT)
-        accounts_client = accounts_api()
+
+        try:
+            accounts_client = accounts_api()
+        except:
+            response['msg'] = gettext("Error : can't query LDAP server")
+            return JsonResponse(response, safe=False)
 
         search_str = request.POST.get("username", None)
 
@@ -27,8 +35,10 @@ def ajax_get_person(request):
             persons_list = [query_order]
 
             users = accounts_client.search_user(search_str)
-            users = sorted(users, key = lambda u:[u['lastname'], u['firstname']])
+            if users:
+                users = sorted(users, key = lambda u:[u['lastname'], u['firstname']])
+                response['data'] = persons_list + users
+            else:
+                response['msg'] = gettext("Error : can't query LDAP server")
 
-            return JsonResponse(persons_list + users, safe=False)
-            
-    return JsonResponse([], safe=False)
+    return JsonResponse(response, safe=False)
