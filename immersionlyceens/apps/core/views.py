@@ -31,25 +31,34 @@ def import_holidays(request):
             logger.error(str(exc))
             return redirect(redirect_url)
 
+        # get API holidays
         try:
             data = requests.get(url.format(year=u.start_date.year)).json()
-            print(data)
             for elem in requests.get(url.format(year=u.end_date.year)).json():
                 data.append(elem)
         except Exception as exc:
             logging.error(str(exc))
 
+        # store
         for holiday in data:
             if isinstance(holiday, dict):
-                _date_unformated = holiday[settings.HOLIDAY_API_MAP['date']]
-                _date = datetime.strptime(_date_unformated, settings.HOLIDAY_API_DATE_FORMAT)
-                _label = holiday[settings.HOLIDAY_API_MAP['label']] + ' ' + str(_date.year)
+                _label = None
+                _date = None
 
+                # get mapped fields
                 try:
-                    h = Holiday(label=_label, date=_date).save()
-                except IntegrityError:
-                    print('dd')
-                    pass
+                    _date_unformated = holiday[settings.HOLIDAY_API_MAP['date']]
+                    _date = datetime.strptime(_date_unformated, settings.HOLIDAY_API_DATE_FORMAT)
+                    _label = holiday[settings.HOLIDAY_API_MAP['label']] + ' ' + str(_date.year)
+                except ValueError as exc:
+                    logger.error(str(exc))
+
+                # Save
+                try:
+                    Holiday(label=_label, date=_date).save()
+                except IntegrityError as exc:
+                    logger.warn(str(exc))
+
 
     # TODO: dynamic redirect
     return redirect(redirect_url)
