@@ -441,6 +441,13 @@ class AdminFormsTestCase(TestCase):
         """
         Test public type mention creation with group rights
         """
+        UniversityYear(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+        ).save()
+
         data = {
             'label': 'Holiday',
             'date': datetime.datetime.today().date() + datetime.timedelta(days=2),
@@ -463,6 +470,13 @@ class AdminFormsTestCase(TestCase):
             label='test_fail').exists())
 
     def test_vacation_creation(self):
+
+        UniversityYear(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+        ).save()
         data = {
             'label': 'Vacation',
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
