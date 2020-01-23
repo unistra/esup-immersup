@@ -1,13 +1,12 @@
 from datetime import datetime
 
-from hijack_admin.admin import HijackUserAdminMixin
-
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
+from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
@@ -617,22 +616,31 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = AccompanyingDocumentForm
-    list_display = ('label', 'description', 'public_type', 'fileName', 'fileUrl')
+    # list_display = ('label', 'description', 'public_type', 'fileUrl')
     ordering = ('label',)
     search_fields = ('label', 'fileName')
     list_filter = ('public_type',)
 
-    def fileUrl(self, obj):
-        if obj.document:
-            return format_html(f'<a href="{obj.document.url}">{obj.document.url}</a>')
-        else:
-            return format_html('<a href=""></a>')
+    # def fileUrl(self, obj):
+    #     if obj.document:
+    #         return format_html(f'<a href="{obj.document.url}">{obj.document.url}</a>')
+    #     else:
+    #         return format_html('<a href=""></a>')
 
-    def fileName(self, obj):
-        return str(obj.document)
+    def get_list_display(self, request):
 
-    fileUrl.short_description = _("Document Address")
-    fileName.short_description = _("Document Name")
+        def file_url(obj):
+            url = request.build_absolute_uri(reverse('accompanying_document', args=(obj.pk, )))
+            return format_html(f'<a href="{url}">{url}</a>')
+            
+        file_url.short_description = _('Address')
+
+        return (
+            'label', 'description', 'public_type', file_url,
+        )
+
+    # file_url.short_description = _("Document Address")
+
 
 
 admin.site = CustomAdminSite(name='Repositories')

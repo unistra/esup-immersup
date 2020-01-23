@@ -2,15 +2,16 @@ import enum
 import logging
 from functools import partial
 
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import format_html
-from django.utils.translation import pgettext, ugettext_lazy as _
+from django.utils.translation import pgettext
+from django.utils.translation import ugettext_lazy as _
+
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
 logger = logging.getLogger(__name__)
 
@@ -595,7 +596,7 @@ class AccompanyingDocument(models.Model):
     )
     description = models.CharField(_("Description"), max_length=255, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
-    document = models.FileField(_("Document"), blank=False, null=False)
+    document = models.FileField(_("Document"), upload_to='uploads/docs/%Y' ,blank=False, null=False)
 
     class Meta:
         """Meta class"""

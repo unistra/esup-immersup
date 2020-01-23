@@ -496,7 +496,6 @@ class AdminFormsTestCase(TestCase):
         request.user = self.scuio_user
 
         form = AccompanyingDocumentForm(data=data, files=file, request=request)
-        print(form.errors)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(AccompanyingDocument.objects.filter(label=data['label']).exists())
