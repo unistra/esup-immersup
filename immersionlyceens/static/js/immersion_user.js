@@ -24,9 +24,8 @@ window.addEventListener("load", function() {
     $(document).ready(function() {
         $('#id_username').after(
             "<label id='livesearch_label'>"+results_text+" :</label>" +
-
-              "<select id='live_select' style='visibility:hidden'></select>"
-
+            "<select id='live_select' style='visibility:hidden'></select>" +
+            "<label id='ws_message' style='display:none; width:300px;'></label>"
         );
 
         $('#id_username').on('input', function() {
@@ -47,27 +46,37 @@ window.addEventListener("load", function() {
                  },
 
                  success : function(json) {
-                    query = json[0];
+                    var msg = json['msg'];
+                    var query = json['data'][0];
+
+                    if(msg != '') {
+                      document.getElementById("ws_message").innerHTML = msg;
+                      $('#ws_message').show();
+                    }
+                    else {
+                      document.getElementById("ws_message").innerHTML = "";
+                      $('#ws_message').hide();
+                    }
 
                     // Prevent previous (longer) query from erasing latest one
                     if(query >= query_order) {
                         document.getElementById("livesearch_label").style.visibility = "visible";
                         document.getElementById("live_select").style.visibility = "visible";
 
-                        if (json.length <= 1) {
+                        if (json['data'].length <= 1) {
                             $('#id_email').val("");
                             $('#id_first_name').val("");
                             $('#id_last_name').val("");
                         }
                         else {
-                          results=json;
+                          results=json['data'];
 
                           $('#live_select').empty().append(
                               "<option value=''>"+select_text+"</option>"
                           );
-                          for (var i = 1; i < json.length; i++) {
+                          for (var i = 1; i < json['data'].length; i++) {
                             $('#live_select').append(
-                                "<option value='"+i+"'>"+json[i]['display_name']+"</option>");
+                                "<option value='"+i+"'>"+json['data'][i]['display_name']+"</option>");
                           }
                         }
                     }
@@ -94,11 +103,13 @@ window.addEventListener("load", function() {
           var valueSelected = this.value;
 
           if(this.value!='') {
+            $('#id_username').val(results[valueSelected]['username']);
             $('#id_email').val(results[valueSelected]['email']);
             $('#id_first_name').val(results[valueSelected]['firstname']);
             $('#id_last_name').val(results[valueSelected]['lastname']);
           }
           else {
+            $('#id_username').val("");
             $('#id_email').val("");
             $('#id_first_name').val("");
             $('#id_last_name').val("");

@@ -1,16 +1,17 @@
 from datetime import datetime
 
 from django import forms
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.models import Group
 from django.utils.translation import ugettext_lazy as _
+from immersionlyceens.libs.geoapi.utils import get_cities, get_zipcodes
 
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-                     Component, CourseType, GeneralBachelorTeaching,
-                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
-                     TrainingDomain, TrainingSubdomain, UniversityYear,
-                     Vacation)
-from .utils import get_cities, get_zipcodes
+    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation)
 
 
 class BachelorMentionForm(forms.ModelForm):
@@ -212,10 +213,13 @@ class TrainingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['training_subdomains'].queryset = \
-            self.fields['training_subdomains'].queryset.order_by('label')
+            self.fields['training_subdomains'].queryset\
+                .filter(training_domain__active=True,
+                        active=True)\
+                .order_by('training_domain__label', 'label')
 
         self.fields['components'].queryset = \
-            self.fields['components'].queryset.order_by('label')
+            self.fields['components'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -381,7 +385,7 @@ class UniversityYearForm(forms.ModelForm):
 
 class HolidayForm(forms.ModelForm):
     """
-    University Year form class
+    Holiday form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -426,7 +430,7 @@ class HolidayForm(forms.ModelForm):
 
 class VacationForm(forms.ModelForm):
     """
-    University Year form class
+    Vacations form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -480,7 +484,7 @@ class VacationForm(forms.ModelForm):
 
 class CalendarForm(forms.ModelForm):
     """
-    University Year form class
+    Calendar form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -493,14 +497,17 @@ class CalendarForm(forms.ModelForm):
 
         year_start_date = cleaned_data.get('year_start_date')
         year_end_date = cleaned_data.get('year_end_date')
-        year_registration_start_date = cleaned_data.get('year_registration_start_date')
+        year_registration_start_date = cleaned_data.get(
+            'year_registration_start_date')
 
         s1_start_date = cleaned_data.get('semester1_start_date')
         s1_end_date = cleaned_data.get('semester1_end_date')
-        s1_registration_start_date = cleaned_data.get('semester1_registration_start_date')
+        s1_registration_start_date = cleaned_data.get(
+            'semester1_registration_start_date')
         s2_start_date = cleaned_data.get('semester2_start_date')
         s2_end_date = cleaned_data.get('semester2_end_date')
-        s2_registration_start_date = cleaned_data.get('semester2_registration_start_date')
+        s2_registration_start_date = cleaned_data.get(
+            'semester2_registration_start_date')
         valid_user = False
 
         # Test user group
@@ -523,8 +530,10 @@ class CalendarForm(forms.ModelForm):
         univ_year = univ_years[0]
 
         # YEAR MODE
-        if calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[0][0].lower():
-            if not year_start_date or not year_end_date or not year_registration_start_date:
+        if calendar_mode and \
+            calendar_mode.lower() == Calendar.CALENDAR_MODE[0][0].lower():
+            if not all([
+                year_start_date, year_end_date, year_registration_start_date]):
                 raise forms.ValidationError(
                     _("Mandatory fields not filled in")
                 )
@@ -539,9 +548,10 @@ class CalendarForm(forms.ModelForm):
                     )
 
         # SEMESTER MODE
-        elif calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
-            if not s1_start_date or not s1_end_date or not s1_registration_start_date \
-                    or not s2_start_date or not s2_end_date or not s2_registration_start_date:
+        elif calendar_mode and \
+            calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
+            if not all([s1_start_date, s1_end_date, s1_registration_start_date,
+                s2_start_date, s2_end_date, s2_registration_start_date]):
                 raise forms.ValidationError(
                     _("Mandatory fields not filled in")
                 )
@@ -591,10 +601,98 @@ class CalendarForm(forms.ModelForm):
 
 class ImmersionUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
         self.fields["password1"].required = False
         self.fields["password2"].required = False
+
+    class Meta(UserCreationForm.Meta):
+        model = ImmersionUser
+        fields = '__all__'
+
+
+class ImmersionUserChangeForm(UserChangeForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        if not self.request.user.is_superuser:
+            if self.fields.get("is_staff"):
+                self.fields["is_staff"].disabled = True
+            if self.fields.get("is_superuser"):
+                self.fields["is_superuser"].disabled = True
+
+            if self.request.user.id == self.instance.id:
+                self.fields["groups"].disabled = True
+                self.fields["components"].disabled = True
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        groups = cleaned_data['groups']
+        components = cleaned_data['components']
+        forbidden_msg = _("Forbidden")
+
+        is_own_account = self.request.user.id == self.instance.id
+
+        if groups.filter(name='SCUIO-IP').exists():
+            cleaned_data['is_staff'] = True
+
+        if groups.filter(name='REF-CMP').exists() and \
+            not components.count():
+            msg = _(
+                "This field is mandatory for a user belonging to 'REF-CMP' group")
+            self._errors['components'] = self.error_class([msg])
+            del cleaned_data["components"]
+
+
+        if not self.request.user.is_superuser:
+            # Check and alter fields when authenticated user is
+            # a member of SCUIO-IP group
+            if is_own_account:
+                del cleaned_data['groups']
+                del cleaned_data['components']
+
+            elif self.request.user.has_groups('SCUIO-IP'):
+                if self.instance.is_scuio_ip_manager():
+                    raise forms.ValidationError(
+                        _("You don't have enough privileges to modify this account")
+                    )
+
+                # Add groups to this list when needed
+                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP', )
+
+                current_groups = set(
+                    self.instance.groups.all().values_list('name', flat=True))
+                new_groups = set(groups.all().values_list('name', flat=True))
+
+                forbidden_groups = [
+                    g for g in current_groups.symmetric_difference(new_groups)
+                    if g not in can_change_groups
+                ]
+
+                if forbidden_groups:
+                    raise forms.ValidationError(
+                        _("You can't modify these groups : %s" %
+                          ', '.join(x for x in forbidden_groups))
+                    )
+
+            if self.instance.is_superuser != cleaned_data["is_superuser"]:
+                self._errors['is_superuser'] = self.error_class([forbidden_msg])
+
+                raise forms.ValidationError(
+                    _("You can't modify the superuser status")
+                )
+
+            if self.instance.is_staff != cleaned_data["is_staff"]:
+                self._errors['is_staff'] = self.error_class([forbidden_msg])
+
+                raise forms.ValidationError(
+                    _("You can't modify the staff status")
+                )
+
+        return cleaned_data
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
@@ -607,37 +705,38 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        city_choices = [('', '---------'), ]
-        zip_choices = [('', '---------'), ]
+        if settings.USE_GEOAPI:
+          city_choices = [('', '---------'), ]
+          zip_choices = [('', '---------'), ]
 
-        # Put datas in choices fields if form instance
-        if self.instance.department:
-            city_choices = get_cities(self.instance.department)
+          # Put datas in choices fields if form instance
+          if self.instance.department:
+              city_choices = get_cities(self.instance.department)
 
-        if self.instance.city:
-            zip_choices = get_zipcodes(
-                self.instance.department, self.instance.city)
+          if self.instance.city:
+              zip_choices = get_zipcodes(
+                  self.instance.department, self.instance.city)
 
-        # Put datas in choices fields if form data
-        if 'department' in self.data:
-            city_choices = get_cities(self.data.get('department'))
+          # Put datas in choices fields if form data
+          if 'department' in self.data:
+              city_choices = get_cities(self.data.get('department'))
 
-        if 'city' in self.data:
-            zip_choices = get_zipcodes(
-                self.data.get('department'), self.data.get('city'))
+          if 'city' in self.data:
+              zip_choices = get_zipcodes(
+                  self.data.get('department'), self.data.get('city'))
 
-        self.fields['city'] = forms.TypedChoiceField(
-            label=_("City"),
-            widget=forms.Select(),
-            choices=city_choices,
-            required=True
-        )
-        self.fields['zip_code'] = forms.TypedChoiceField(
-            label=_("Zip code"),
-            widget=forms.Select(),
-            choices=zip_choices,
-            required=True
-        )
+          self.fields['city'] = forms.TypedChoiceField(
+              label=_("City"),
+              widget=forms.Select(),
+              choices=city_choices,
+              required=True
+          )
+          self.fields['zip_code'] = forms.TypedChoiceField(
+              label=_("Zip code"),
+              widget=forms.Select(),
+              choices=zip_choices,
+              required=True
+          )
 
     def clean(self):
         cleaned_data = super().clean()

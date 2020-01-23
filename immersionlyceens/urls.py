@@ -16,6 +16,7 @@ urlpatterns = [
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('api/', include('immersionlyceens.libs.api.urls')),
+    path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
 
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),

@@ -9,16 +9,41 @@ from django.db import models
 from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.fields import UpperCharField
-
-from .utils import get_cities, get_departments
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
 logger = logging.getLogger(__name__)
+
+
+class Component(models.Model):
+    """
+    Component class
+    """
+    code = models.CharField(_("Code"), max_length=16, unique=True)
+    label = models.CharField(_("Label"), max_length=128)
+    url = models.URLField(_("Website address"), max_length=256,
+                          blank=True, null=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name = _('Component')
+        verbose_name_plural = _('Components')
+
+    def __str__(self):
+        return "%s : %s" % (self.code, self.label)
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(
+                _('A component with this code already exists'))
 
 
 class ImmersionUser(AbstractUser):
     """
     Main user class
     """
+
     _user_filters = [
         lambda has_group, su: has_group or su,
         lambda has_group, su: has_group and not su
@@ -31,6 +56,9 @@ class ImmersionUser(AbstractUser):
         'ENS-CH': 'teacher',
         'SRV-JUR': 'legal_department_staff',
     }
+
+    components = models.ManyToManyField(Component,
+        verbose_name=_("Components"), blank=True, related_name='referents')
 
     class Meta:
         verbose_name = _('User')
@@ -96,7 +124,8 @@ class TrainingSubdomain(models.Model):
         verbose_name_plural = _('Training sub domains')
 
     def __str__(self):
-        return self.label
+        domain = self.training_domain or _("No domain")
+        return "%s - %s" % (domain, self.label)
 
     def validate_unique(self, exclude=None):
         try:
@@ -106,42 +135,18 @@ class TrainingSubdomain(models.Model):
                 _('A training sub domain with this label already exists'))
 
 
-class Component(models.Model):
-    """
-    Component class
-    """
-    code = models.CharField(_("Code"), max_length=16, unique=True)
-    label = models.CharField(_("Label"), max_length=128)
-    url = models.URLField(_("Website address"), max_length=256,
-                          blank=True, null=True)
-    active = models.BooleanField(_("Active"), default=True)
-
-    class Meta:
-        verbose_name = _('Component')
-        verbose_name_plural = _('Components')
-
-    def __str__(self):
-        return "%s : %s" % (self.code, self.label)
-
-    def validate_unique(self, exclude=None):
-        try:
-            super().validate_unique()
-        except ValidationError as e:
-            raise ValidationError(
-                _('A component with this code already exists'))
-
-
 class Training(models.Model):
     """
     Training class
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     training_subdomains = models.ManyToManyField(TrainingSubdomain,
-        verbose_name=_("Training subdomains"), blank=False, related_name='Trainings')
+        verbose_name=_("Training subdomains"), blank=False,
+        related_name='Trainings')
     components = models.ManyToManyField(Component, verbose_name=_("Components"),
-                                        blank=False, related_name='Trainings')
+        blank=False, related_name='Trainings')
     url = models.URLField(_("Website address"), max_length=256,
-                          blank=True, null=True)
+        blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
@@ -211,7 +216,7 @@ class Building(models.Model):
     """
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
-    campus = models.ForeignKey(Campus, verbose_name=("Campus"),
+    campus = models.ForeignKey(Campus, verbose_name=_("Campus"),
         default=None, on_delete=models.CASCADE, related_name="buildings")
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
@@ -270,7 +275,7 @@ class CourseType(models.Model):
         verbose_name_plural = _('Course type')
 
     def __str__(self):
-        """str"""
+        """str"""  # from .utils import get_cities, get_departments
         return self.label
 
     def validate_unique(self, exclude=None):
@@ -425,22 +430,34 @@ class Calendar(models.Model):
     ]
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
+    calendar_mode = models.CharField(
+        _("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
 
-    year_start_date = models.DateField(_("Year start date"), null=True, blank=True)
+    year_start_date = models.DateField(
+        _("Year start date"), null=True, blank=True)
     year_end_date = models.DateField(_("Year end date"), null=True, blank=True)
-    year_registration_start_date = models.DateField(_("Year start registration date"), null=True, blank=True)
-    year_nb_authorized_immersion = models.PositiveIntegerField(_("Number of authorized immersions per year"), default=4)
+    year_registration_start_date = models.DateField(
+        _("Year start registration date"), null=True, blank=True)
+    year_nb_authorized_immersion = models.PositiveIntegerField(
+        _("Number of authorized immersions per year"), default=4)
 
-    semester1_start_date = models.DateField(_("Semester 1 start date"), null=True, blank=True)
-    semester1_end_date = models.DateField(_("Semester 1 end date"), null=True, blank=True)
-    semester1_registration_start_date = models.DateField(_("Semester 1 start registration date"), null=True, blank=True)
-    semester2_start_date = models.DateField(_("Semester 2 start date"), null=True, blank=True)
-    semester2_end_date = models.DateField(_("Semester 2 end date"), null=True, blank=True)
-    semester2_registration_start_date = models.DateField(_("Semester 2 start registration date"), null=True, blank=True)
-    registration_start_date_per_semester = models.PositiveIntegerField(_("Number of authorized immersions per semester"), default=2)
+    semester1_start_date = models.DateField(
+        _("Semester 1 start date"), null=True, blank=True)
+    semester1_end_date = models.DateField(
+        _("Semester 1 end date"), null=True, blank=True)
+    semester1_registration_start_date = models.DateField(
+        _("Semester 1 start registration date"), null=True, blank=True)
+    semester2_start_date = models.DateField(
+        _("Semester 2 start date"), null=True, blank=True)
+    semester2_end_date = models.DateField(
+        _("Semester 2 end date"), null=True, blank=True)
+    semester2_registration_start_date = models.DateField(
+        _("Semester 2 start registration date"), null=True, blank=True)
+    registration_start_date_per_semester = models.PositiveIntegerField(
+        _("Number of authorized immersions per semester"), default=2)
 
-    global_evaluation_date = models.DateField(_("Global evaluation send date"), null=True, blank=True)
+    global_evaluation_date = models.DateField(
+        _("Global evaluation send date"), null=True, blank=True)
 
     class Meta:
         """Meta class"""
@@ -460,8 +477,6 @@ class Calendar(models.Model):
                 _('A calendar with this label already exists'))
 
 
-
-
 class HighSchool(models.Model):
     """
     HighSchool class
@@ -469,6 +484,13 @@ class HighSchool(models.Model):
     class Meta:
         verbose_name = _('High school')
         unique_together = ('label', 'city')
+
+    choices_departments = choices_cities = ""
+
+    if settings.USE_GEOAPI:
+        choices_departments = get_departments()
+        choices_cities = get_cities()
+
 
     label = models.CharField(
         _("Label"), max_length=255, blank=False, null=False)
@@ -480,10 +502,10 @@ class HighSchool(models.Model):
         _("Address3"), max_length=255, blank=True, null=True)
     department = models.CharField(
         _("Department"), max_length=128, blank=False, null=False,
-        choices=get_departments())
+        choices=choices_departments)
     city = UpperCharField(
         _("City"), max_length=255, blank=False, null=False,
-        choices=get_cities())
+        choices=choices_cities)
     zip_code = models.CharField(
         _("Zip code"), max_length=128, blank=False, null=False)
     phone_number = models.CharField(
@@ -512,3 +534,25 @@ class HighSchool(models.Model):
     def __str__(self):
         # TODO: Should we display city as well (????)
         return self.label
+
+
+class Course(models.Model):
+    """
+    Course class
+    """
+
+    label = models.CharField(
+        _("Label"), max_length=255, blank=False, null=False)
+
+    training = models.ForeignKey(Training, verbose_name=_("Training"),
+        null=False, blank=False, on_delete=models.CASCADE, related_name="courses")
+
+    published = models.BooleanField(_("Published"), default=True)
+
+    teachers = models.ManyToManyField(ImmersionUser, verbose_name=_("Teachers"),
+        related_name='courses')
+
+    class Meta:
+        verbose_name = _('Course')
+        verbose_name_plural = _('Courses')
+        unique_together = ('training', 'label')

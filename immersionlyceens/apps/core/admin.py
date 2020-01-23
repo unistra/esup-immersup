@@ -1,24 +1,21 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
-                          CampusForm, CancelTypeForm, ComponentForm,
-                          CourseTypeForm, GeneralBachelorTeachingForm,
-                          HighSchoolForm, HolidayForm,
-                          ImmersionUserCreationForm, PublicTypeForm,
-                          TrainingDomainForm, TrainingForm,
-                          TrainingSubdomainForm, UniversityYearForm,
-                          VacationForm)
+    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm, PublicTypeForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm)
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-                     Component, CourseType, GeneralBachelorTeaching,
-                     HighSchool, Holiday, ImmersionUser, PublicType, Training,
-                     TrainingDomain, TrainingSubdomain, UniversityYear,
-                     Vacation)
+    Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -26,45 +23,46 @@ class CustomAdminSite(admin.AdminSite):
         super().__init__(*args, **kwargs)
         self._registry.update(admin.site._registry)
 
+    def find_in_list(self, l, value):
+        try:
+            return l.index(value)
+        except ValueError:
+            return 999
+
     def get_app_list(self, request):
         """
-        Return a sorted list of all the installed apps that have been
-        registered in this site.
+        Custom apps and models order
         """
-        ordering = {
-            'ImmersionUser': 1,
-            'UniversityYear': 2,
-            'HighSchool': 3,
-            'GeneralBachelorTeaching': 4,
-            'BachelorMention': 5,
-            'Campus': 6,
-            'Building': 7,
-            'Component': 8,
-            'TrainingDomain': 9,
-            'TrainingSubdomain': 10,
-            'Training': 11,
-            'CourseType': 12,
-            'PublicType': 13,
-            'CancelType': 14,
-            'Holiday': 15,
-            'Vacation': 16,
-            'Calendar': 17,
-        }
-
         app_dict = self._build_app_dict(request)
+        app_list = sorted(app_dict.values(),
+            key=lambda x: self.find_in_list(
+                settings.ADMIN_APPS_ORDER, x['app_label'].lower())
+        )
 
-        # Sort the apps alphabetically.
-        app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
-
-        # Sort the models alphabetically within each app.
-        # key=lambda x: x['name']
         for app in app_list:
-            app['models'].sort(key=lambda x: ordering.get(x.get('object_name')))
+            if not settings.ADMIN_MODELS_ORDER.get(app['app_label'].lower()):
+                app['models'].sort(key=lambda x: x.get('app_label'))
+            else:
+                app['models'].sort(
+                    key=lambda x: self.find_in_list(
+                        settings.ADMIN_MODELS_ORDER[app['app_label'].lower()],
+                        x.get('object_name')))
 
-        # Hide Sites model in django admin
-        app_list = [i for i in app_list if not (i['name'] == 'Sites')]
+            yield app
 
-        return app_list
+    def app_index(self, request, app_label, extra_context=None):
+        """
+        Custom order for app models
+        """
+        if settings.ADMIN_MODELS_ORDER.get(app_label):
+            app_dict = self._build_app_dict(request, app_label)
+            app_dict['models'].sort(
+                key=lambda x: self.find_in_list(
+                    settings.ADMIN_MODELS_ORDER[app_label], x.get('object_name')))
+
+            extra_context = {'app_list': [app_dict]}
+
+        return super().app_index(request, app_label, extra_context)
 
 
 class AdminWithRequest:
@@ -83,9 +81,11 @@ class AdminWithRequest:
         return AdminFormWithRequest
 
 
-class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
-    #form = ImmersionUserChangeForm
+class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
+    form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
+
+    filter_horizontal = ('components', 'groups', 'user_permissions')
 
     add_fieldsets = (
         (None, {
@@ -95,13 +95,96 @@ class CustomUserAdmin(UserAdmin, HijackUserAdminMixin):
         }),
     )
 
-    # add hijack button to display list of users
-    list_display = ('username', 'email', 'first_name',
-                    'last_name', 'is_staff', 'hijack_field',)
-
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        # Disable delete
+        try:
+            del actions['delete_selected']
+        except KeyError:
+            pass
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        no_delete_msg = _("You don't have enough privileges to delete this account")
+
+        if obj:
+            if request.user.is_superuser:
+                return True
+            elif obj.is_superuser:
+                messages.warning(request, no_delete_msg)
+                return False
+
+            # A user can only be deleted if not superuser and the authenticated user has
+            # rights on ALL his groups
+            if request.user.is_scuio_ip_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP')
+
+                if not(set(x for x in user_groups) - set(rights)):
+                    return True
+
+            messages.warning(request, no_delete_msg)
+
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            if request.user.is_superuser or request.user == obj:
+                return True
+            elif obj.is_superuser:
+                return False
+
+            # A user can only be updated if not superuser and the authenticated user has
+            # rights on ALL his groups
+            if request.user.is_scuio_ip_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP')
+
+                if not (set(x for x in user_groups) - set(rights)):
+                    return True
+
+            return False
+
+    def get_list_display(self, request):
+        list_display = [
+            'username', 'email', 'first_name', 'last_name', 'is_superuser',
+            'is_staff'
+        ]
+
+        # add hijack button for admin users
+        if request.user.is_superuser:
+            list_display.append('hijack_field')
+
+        return list_display
+
+
+    def get_fieldsets(self, request, obj=None):
+        # On user change, add Components in permissions fieldset
+        # after Group selection
+        if not obj:
+            return super().get_fieldsets(request, obj)
+        else:
+            lst = list(UserAdmin.fieldsets)
+            permissions_fields = list(lst[2])
+            permissions_fields_list = list(permissions_fields[1]['fields'])
+            permissions_fields_list.insert(4, 'components')
+
+            if not request.user.is_superuser:
+                # Remove components widget for non superusers
+                try:
+                    permissions_fields_list.remove('user_permissions')
+                except ValueError:
+                    pass
+
+            lst[2] = ('Permissions', {'fields': tuple(permissions_fields_list)})
+
+            fieldsets = tuple(lst)
+
+        return fieldsets
 
     class Media:
         js = (
@@ -120,9 +203,12 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def get_actions(self, request):
-        # Disable delete
         actions = super().get_actions(request)
-        del actions['delete_selected']
+        # Disable delete
+        try:
+            del actions['delete_selected']
+        except KeyError:
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -131,7 +217,8 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj and TrainingSubdomain.objects.filter(
                 training_domain=obj).exists():
-            messages.warning(request, _("""This training domain can't be deleted """
+            messages.warning(request, _(
+                """This training domain can't be deleted """
                 """because it is used by training subdomains"""))
             return False
 
@@ -147,11 +234,12 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_actions(self, request):
         # Disable delete
+        actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -179,9 +267,9 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -231,9 +319,9 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
         actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):
@@ -256,6 +344,19 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     ordering = ('label',)
     search_fields = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Course.objects.filter(
+                training=obj).exists():
+            messages.warning(request, _(
+                """This training can't be deleted because """
+                """it is used by some courses"""))
+            return False
+
+        return True
 
 
 class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -354,13 +455,14 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj:
-            print(obj.start_date)
             if obj.start_date <= datetime.today().date():
-                messages.warning(request, _("""This component can't be deleted """
+                messages.warning(request, _(
+                    """This component can't be deleted """
                     """because university year has already started"""))
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _("""This component can't be deleted """
+                messages.warning(request, _(
+                    """This component can't be deleted """
                     """because a purge date is defined"""))
                 return False
 
@@ -382,23 +484,28 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
                 fields.append('global_evaluation_date')
 
             # year_start > today
-            if obj.year_start_date and obj.year_start_date <= datetime.today().date():
+            if obj.year_start_date and \
+                obj.year_start_date <= datetime.today().date():
                 fields.append('year_start_date')
 
             # semester1_start > today
-            if obj.semester1_start_date and obj.semester1_start_date <= datetime.today().date():
+            if obj.semester1_start_date and \
+                obj.semester1_start_date <= datetime.today().date():
                 fields.append('year_start_date')
                 fields.append('calendar_mode')
             # semester1_end > today
-            if obj.semester1_end_date and obj.semester1_end_date <= datetime.today().date():
+            if obj.semester1_end_date and \
+                obj.semester1_end_date <= datetime.today().date():
                 fields.append('semester1_end_date')
                 fields.append('semester1_registration_start_date')
 
             # semester2_start > today
-            if obj.semester2_start_date and obj.semester2_start_date <= datetime.today().date():
+            if obj.semester2_start_date and \
+                obj.semester2_start_date <= datetime.today().date():
                 fields.append('year_start_date')
             # semester2_end > today
-            if obj.semester2_end_date and obj.semester2_end_date <= datetime.today().date():
+            if obj.semester2_end_date and \
+                obj.semester2_end_date <= datetime.today().date():
                 fields.append('semester1_end_date')
                 fields.append('semester1_registration_start_date')
 
@@ -419,7 +526,8 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HighSchoolForm
     list_display = ('label', 'city', 'email', 'head_teacher_name',
-        'referent_name', 'convention_start_date', 'convention_end_date')
+                    'referent_name', 'convention_start_date',
+                    'convention_end_date')
     list_filter = ('city',)
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name', 'referent_name')
@@ -429,9 +537,9 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         actions = super().get_actions(request)
         # Manage KeyError if rights for groups don't include delete !
         try:
-          del actions['delete_selected']
+            del actions['delete_selected']
         except KeyError:
-          pass
+            pass
         return actions
 
     def has_delete_permission(self, request, obj=None):

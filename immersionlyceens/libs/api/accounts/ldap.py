@@ -1,4 +1,5 @@
 import ldap3
+import sys
 import logging
 from ldap3 import Connection, Server, SUBTREE, ALL
 from .base import BaseAccountsAPI

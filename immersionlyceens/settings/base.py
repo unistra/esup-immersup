@@ -242,7 +242,7 @@ DJANGO_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
+    # 'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
@@ -360,7 +360,6 @@ ADMIN_SITE_HEADER = _('Immersion')
 ADMIN_SITE_TITLE = _('Immersion Admin Page')
 ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
 
-
 #################
 # APIs settings #
 #################
@@ -388,3 +387,26 @@ LDAP_API_EMAIL_ATTR = ''
 LDAP_API_EMAIL_USERNAME = ''
 LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
+
+# Displaying apps order in ADMIN
+ADMIN_APPS_ORDER = [ 'auth', 'core' ]
+
+ADMIN_MODELS_ORDER = {
+    'core' : ['ImmersionUser', 'UniversityYear', 'HighSchool',
+        'GeneralBachelorTeaching', 'BachelorMention', 'Campus',
+        'Building', 'Component', 'TrainingDomain', 'TrainingSubdomain',
+        'Training', 'CourseType', 'PublicType', 'CancelType', 'Holiday',
+        'Vacation', 'Calendar']
+}
+
+# Define groups rights on others here ?
+HAS_RIGHTS_ON_GROUP = {
+    'SCUIO-IP' : ['REF-CMP', ]
+}
+
+####################
+# Geo Api settings #
+####################
+
+USE_GEOAPI = True
+GEOAPI_BASE_URL = "https://geo.api.gouv.fr"
