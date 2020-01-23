@@ -592,11 +592,18 @@ class AccompanyingDocument(models.Model):
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
     public_type = models.ForeignKey(
-        PublicType, null=False, blank=False, related_name="publictypes", on_delete=models.CASCADE,
+        PublicType,
+        verbose_name=_("Public type"),
+        null=False,
+        blank=False,
+        related_name="publictypes",
+        on_delete=models.CASCADE,
     )
     description = models.CharField(_("Description"), max_length=255, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
-    document = models.FileField(_("Document"), upload_to='uploads/docs/%Y' ,blank=False, null=False)
+    document = models.FileField(
+        _("Document"), upload_to='uploads/docs/%Y', blank=False, null=False
+    )
 
     class Meta:
         """Meta class"""
