@@ -6,3 +6,4 @@ django-cas-sso
 django-extensions
 ldap3
 requests
+django-summernote
