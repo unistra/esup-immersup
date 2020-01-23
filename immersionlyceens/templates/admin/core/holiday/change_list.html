@@ -1,9 +1,14 @@
 {% extends "admin/change_list.html" %}
 {% load i18n %}
+{% load immersionlyceens_tags %}
 
 {% block object-tools-items %}
-    <li>
-        <a href="{% url 'import_holidays' %}" class="addlink">{% trans 'Import holidays' %}</a>
-    </li>
+
+    {% settings_get 'WITH_HOLIDAY_API' as with_holidays %}
+    {% if with_holidays %}
+        <li>
+            <a href="{% url 'import_holidays' %}" class="addlink">{% trans 'Import holidays' %}</a>
+        </li>
+    {% endif %}
     {{ block.super }}
 {% endblock %}
