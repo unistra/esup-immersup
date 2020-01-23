@@ -256,12 +256,14 @@ THIRD_PARTY_APPS = [
     'hijack',
     'compat',
     'hijack_admin',
+    'django_summernote',
 ]
 
 LOCAL_APPS = [
     'immersionlyceens',
     'immersionlyceens.apps.core',
 ]
+
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
