@@ -20,6 +20,7 @@ urlpatterns = [
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
 
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
+    path('summernote/', include('django_summernote.urls')),
 ]
 
 # debug toolbar for dev

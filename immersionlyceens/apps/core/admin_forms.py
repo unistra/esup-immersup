@@ -9,9 +9,9 @@ from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.libs.geoapi.utils import get_cities, get_zipcodes
 
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation)
+                     Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+                     ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+                     UniversityYear, Vacation, InformationText)
 
 
 class BachelorMentionForm(forms.ModelForm):
@@ -758,3 +758,18 @@ class HighSchoolForm(forms.ModelForm):
     class Meta:
         model = HighSchool
         fields = '__all__'
+
+
+class InformationTextForm(forms.ModelForm):
+    """
+    Information text form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = InformationText
+        fields = '__all__'
+

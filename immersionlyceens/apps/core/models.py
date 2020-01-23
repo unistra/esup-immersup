@@ -556,3 +556,14 @@ class Course(models.Model):
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
         unique_together = ('training', 'label')
+
+
+class InformationText(models.Model):
+    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
+    code = models.CharField(_("Code"), max_length=64, blank=False, null=False)
+    content = models.TextField(_('Content'), max_length=2000, blank=False, null=False)
+    active = models.BooleanField(_("Active"), default=True)
+
+    class Meta:
+        verbose_name = _('Information text')
+        verbose_name_plural = _('Information texts')

@@ -4,18 +4,20 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
+from django_summernote.admin import SummernoteModelAdmin
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
-    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm)
+                          CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
+                          GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
+                          ImmersionUserChangeForm, ImmersionUserCreationForm, PublicTypeForm,
+                          TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+                          UniversityYearForm,
+                          VacationForm, InformationTextForm)
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-    Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation)
+                     Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+                     ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+                     UniversityYear, Vacation, InformationText)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -557,6 +559,21 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
             'js/admin_highschool.js',
         )
 
+
+class InformationTextAdmin(AdminWithRequest, SummernoteModelAdmin):
+    form = InformationTextForm
+    list_display = ('label', 'code', 'active')
+    list_filter = ('label', 'code')
+    ordering = ('label',)
+    search_fields = ('label', 'code', 'active')
+
+    class Media:
+        # TODO: check why I can't use django.jquery stuff !!!!!
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/text_formation.js',
+        )
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -576,3 +593,4 @@ admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
+admin.site.register(InformationText, InformationTextAdmin)
