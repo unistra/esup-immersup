@@ -588,7 +588,7 @@ class CalendarForm(forms.ModelForm):
         # end1 < start2
         if s1_end_date and s2_start_date and s1_end_date >= s2_start_date:
             raise forms.ValidationError(
-                _("Semester 1 ends after the begining of semester 2")
+                _("Semester 1 ends after the beginning of semester 2")
             )
         # <==>   start1 < end1 < start2 < end2
 
