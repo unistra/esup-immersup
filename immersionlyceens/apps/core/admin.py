@@ -109,11 +109,16 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
+        no_delete_msg = _("You don't have enough privileges to delete this account")
+
         if obj:
             if request.user.is_superuser:
                 return True
+            elif obj.is_superuser:
+                messages.warning(request, no_delete_msg)
+                return False
 
-            # A user can only be deleted if the authenticated user has
+            # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
             if request.user.is_scuio_ip_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
@@ -122,9 +127,25 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
                 if not(set(x for x in user_groups) - set(rights)):
                     return True
 
-            messages.warning(request, _(
-                """You don't have enough privileges to delete """
-                """this account"""))
+            messages.warning(request, no_delete_msg)
+
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            if request.user.is_superuser or request.user == obj:
+                return True
+            elif obj.is_superuser:
+                return False
+
+            # A user can only be updated if not superuser and the authenticated user has
+            # rights on ALL his groups
+            if request.user.is_scuio_ip_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP')
+
+                if not (set(x for x in user_groups) - set(rights)):
+                    return True
 
             return False
 

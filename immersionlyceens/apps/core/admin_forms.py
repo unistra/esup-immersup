@@ -556,14 +556,23 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
-            self.fields["is_staff"].disabled = True
-            self.fields["is_superuser"].disabled = True
+            if self.fields.get("is_staff"):
+                self.fields["is_staff"].disabled = True
+            if self.fields.get("is_superuser"):
+                self.fields["is_superuser"].disabled = True
+
+            if self.request.user.id == self.instance.id:
+                self.fields["groups"].disabled = True
+                self.fields["components"].disabled = True
+
 
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data['groups']
         components = cleaned_data['components']
         forbidden_msg = _("Forbidden")
+
+        is_own_account = self.request.user.id == self.instance.id
 
         if groups.filter(name='SCUIO-IP').exists():
             cleaned_data['is_staff'] = True
@@ -579,7 +588,11 @@ class ImmersionUserChangeForm(UserChangeForm):
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
             # a member of SCUIO-IP group
-            if self.request.user.has_groups('SCUIO-IP'):
+            if is_own_account:
+                del cleaned_data['groups']
+                del cleaned_data['components']
+
+            elif self.request.user.has_groups('SCUIO-IP'):
                 if self.instance.is_scuio_ip_manager():
                     raise forms.ValidationError(
                         _("You don't have enough privileges to modify this account")
@@ -602,11 +615,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                         _("You can't modify these groups : %s" %
                           ', '.join(x for x in forbidden_groups))
                     )
-
-            if self.request.user.id == self.instance.id:
-                raise forms.ValidationError(
-                    _("You can't modify your own account")
-                )
 
             if self.instance.is_superuser != cleaned_data["is_superuser"]:
                 self._errors['is_superuser'] = self.error_class([forbidden_msg])
