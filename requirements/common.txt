@@ -1,6 +1,7 @@
 Django>2.2,<2.3
 django-hijack
 django-hijack-admin
+django-tinymce
 psycopg2
 django-cas-sso
 django-extensions

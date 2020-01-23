@@ -256,6 +256,8 @@ THIRD_PARTY_APPS = [
     'hijack',
     'compat',
     'hijack_admin',
+    'tinymce',
+    #'multiselectfield',
 ]
 
 LOCAL_APPS = [
@@ -396,7 +398,7 @@ ADMIN_MODELS_ORDER = {
         'GeneralBachelorTeaching', 'BachelorMention', 'Campus',
         'Building', 'Component', 'TrainingDomain', 'TrainingSubdomain',
         'Training', 'CourseType', 'PublicType', 'CancelType', 'Holiday',
-        'Vacation', 'Calendar']
+        'Vacation', 'Calendar', 'MailTemplate']
 }
 
 # Define groups rights on others here ?

@@ -18,6 +18,7 @@ urlpatterns = [
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+    path('tinymce/', include('tinymce.urls')),
 
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
 ]

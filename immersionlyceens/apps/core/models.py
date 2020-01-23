@@ -11,6 +11,9 @@ from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
+from tinymce import models as tinymce_models
+# from multiselectfield import MultiSelectField
+
 logger = logging.getLogger(__name__)
 
 
@@ -556,3 +559,58 @@ class Course(models.Model):
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
         unique_together = ('training', 'label')
+
+class MailTemplate(models.Model):
+    """
+    Mail templates with HTML content
+    """
+
+    VARS = [
+        (1, "${annee}", _("Year")),
+        (2, "${cours.libelle}", _("Course label")),
+        (3, "${cours.nbplaceslibre}", _("Free course slots")),
+        (4, "${creneau.batiment}", _("Time slot building")),
+        (5, "${creneau.campus}", _("Time slot campus")),
+        (6, "${creneau.composante}", _("Time slot component")),
+        (7, "${creneau.cours}", _("Time slot course")),
+        (8, "${creneau.date}", _("Time slot date")),
+        (9, "${creneau.enseignants}", _("Time slot teachers")),
+        (10, "${creneau.formation}", _("Time slot training")),
+        (11, "${creneau.heuredebut}", _("Time slot start time")),
+        (12, "${creneau.heurefin}", _("Time slot end time")),
+        (13, "${creneau.info}", _("Time slot information")),
+        (14, "${creneau.salle}", _("Time slot room")),
+        (15, "${creneau.type}", _("Time slot type")),
+        (16, "${ens.nom}", _("Teacher last name")),
+        (17, "${ens.prenom}", _("Teacher first name")),
+        (18, "${identifiant}", _("Username")),
+        (19, "${intituleLycee}", _("High school name")),
+        (20, "${jourDestructionCptMin}", _("Account destruction date")),
+        (21, "${lienCreneau}", _("Time slot link")),
+        (22, "${lienGlobal}", _("Survey link")),
+        (23, "${lienValidation}", _("Validation link")),
+        (24, "${listeInscrits.etablissement}", _("Subscribers establishment")),
+        (25, "${listeInscrits.nom}", _("Subsribers lastname")), # /!\
+        (26, "${listeInscrits.prenom}", _("Subsribers firstname")), # /!\
+        (27, "${lycee}", _("High school")),
+        (28, "${motifAnnulation}", _("Cancellation reason")),
+        (29, "${nom}", _("Recipient last name")),
+        (30, "${password}", _("Recipient password")),
+        (31, "${prenom}", _("Recipient fist name")),
+        (32, "${referentlycee.nom}", _("High school referent last name")),
+        (33, "${referentlycee.prenom}", _("High school referent first name")),
+        (34, "${urlPlateforme}", _("Platform link")),
+    ]
+
+    VARS_CHOICES = [(v[0], v[1]) for v in VARS]
+
+    code = models.CharField(_("Code"), max_length=128, blank=False, null=False, unique=True)
+    label = models.CharField(_("Label"), max_length=128, blank=False, null=False, unique=True)
+    description = models.CharField(_("Description"), max_length=512, blank=False, null=False)
+    subject = models.CharField(_("Subject"), max_length=256, blank=False, null=False)
+    body = tinymce_models.HTMLField(_("Body"), blank=False, null=False)
+    active = models.BooleanField(_("Active"), default=True)
+    """
+    available_vars = MultiSelectField(_("Available variables"), choices=VARS_CHOICES,
+        null=True, blank=True)
+    """

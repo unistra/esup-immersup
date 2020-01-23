@@ -9,12 +9,12 @@ from hijack_admin.admin import HijackUserAdminMixin
 from .admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
     GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm)
+    ImmersionUserChangeForm, ImmersionUserCreationForm, MailTemplateForm,
+    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm)
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
     Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    ImmersionUser, MailTemplate, PublicType, Training, TrainingDomain, TrainingSubdomain,
     UniversityYear, Vacation)
 
 
@@ -148,6 +148,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
                     return True
 
             return False
+
+        return True
 
     def get_list_display(self, request):
         list_display = [
@@ -545,10 +547,8 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # Only superadmin could delete Highschool items
         # TODO: maybe only use model groups rights !!!
-        if request.user.is_superuser:
-            return True
+        return request.user.is_superuser
 
-        return False
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
@@ -556,6 +556,15 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
             'js/jquery-3.4.1.slim.min.js',
             'js/admin_highschool.js',
         )
+
+class MailTemplateAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = MailTemplateForm
+    list_display = ('code', 'label')
+
+    def has_delete_permission(self, request, obj=None):
+        # Only a superuser can delete a template
+        return request.user.is_superuser
+
 
 admin.site = CustomAdminSite(name='Repositories')
 
@@ -576,3 +585,4 @@ admin.site.register(UniversityYear, UniversityYearAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
+admin.site.register(MailTemplate, MailTemplateAdmin)

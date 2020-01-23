@@ -10,8 +10,8 @@ from immersionlyceens.libs.geoapi.utils import get_cities, get_zipcodes
 
 from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
     Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation)
+    ImmersionUser, MailTemplate, PublicType, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation)
 
 
 class BachelorMentionForm(forms.ModelForm):
@@ -618,10 +618,9 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
-            if self.fields.get("is_staff"):
-                self.fields["is_staff"].disabled = True
-            if self.fields.get("is_superuser"):
-                self.fields["is_superuser"].disabled = True
+            self.fields["is_staff"].disabled = True
+            self.fields["is_superuser"].disabled = True
+            self.fields["username"].disabled = True
 
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
@@ -757,4 +756,38 @@ class HighSchoolForm(forms.ModelForm):
 
     class Meta:
         model = HighSchool
+        fields = '__all__'
+
+
+class MailTemplateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        # Useful ?
+        # self.fields["available_vars"] = forms.MultipleChoiceField(choices=MailTemplate.VARS_CHOICES)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        code = cleaned_data.get("code", '')
+
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        cleaned_data["code"] = code.upper()
+
+        return cleaned_data
+
+    class Meta:
+        model = MailTemplate
         fields = '__all__'
