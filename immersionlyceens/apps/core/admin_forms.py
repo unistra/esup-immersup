@@ -343,7 +343,7 @@ class UniversityYearForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        if start_date and start_date <= datetime.today().date():
+        if start_date and start_date < datetime.today().date():
             raise forms.ValidationError(_("Start date can't be today or earlier"))
         if start_date and end_date and start_date >= end_date:
             raise forms.ValidationError(_("Start date greater than end date"))

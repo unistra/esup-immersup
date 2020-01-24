@@ -444,7 +444,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                 messages.warning(
                     request,
                     _(
-                        """This component can't be deleted """
+                        """This university year can't be deleted """
                         """because university year has already started"""
                     ),
                 )
@@ -453,7 +453,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                 messages.warning(
                     request,
                     _(
-                        """This component can't be deleted """
+                        """This university year can't be deleted """
                         """because a purge date is defined"""
                     ),
                 )
