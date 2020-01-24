@@ -3,10 +3,10 @@
 """
 """
 
-from fabric.api import (env, roles, execute, task)
 from os.path import join
 
 import pydiploy
+from fabric.api import env, execute, roles, task
 
 # edit config here !
 
@@ -123,6 +123,7 @@ def test():
         'ldap_api_lastname_attr': "LDAP_API_LASTNAME_ATTR",
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
     }
+    env.extra_symlink_dirs = ['immersionlyceens/media']
     execute(build_env)
 
 

@@ -256,13 +256,14 @@ THIRD_PARTY_APPS = [
     'hijack',
     'compat',
     'hijack_admin',
-    'multiselectfield',
+    'django_summernote',
 ]
 
 LOCAL_APPS = [
     'immersionlyceens',
     'immersionlyceens.apps.core',
 ]
+
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -281,21 +282,15 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'default': {
-            'format': '%(levelname)s %(asctime)s %(name)s:%(lineno)s %(message)s'
-        },
+        'default': {'format': '%(levelname)s %(asctime)s %(name)s:%(lineno)s %(message)s'},
         'django.server': {
             '()': 'django.utils.log.ServerFormatter',
             'format': '[%(server_time)s] %(message)s',
         },
     },
     'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
+        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse',},
+        'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue',},
     },
     'handlers': {
         'console': {
@@ -311,7 +306,7 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
         },
         'file': {
             'level': 'INFO',
@@ -319,25 +314,18 @@ LOGGING = {
             'filename': '',
             'maxBytes': 209715200,
             'backupCount': 3,
-            'formatter': 'default'
-        }
+            'formatter': 'default',
+        },
     },
     'loggers': {
-        'django': {
-            'handlers': ['console', 'mail_admins'],
-            'level': 'INFO',
-        },
-        'django.server': {
-            'handlers': ['django.server'],
-            'level': 'INFO',
-            'propagate': False,
-        },
+        'django': {'handlers': ['console', 'mail_admins'], 'level': 'INFO',},
+        'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False,},
         'immersionlyceens': {
             'handlers': ['mail_admins', 'file'],
             'level': 'ERROR',
-            'propagate': True
-        }
-    }
+            'propagate': True,
+        },
+    },
 }
 
 #################
@@ -390,7 +378,7 @@ LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = [ 'auth', 'core' ]
+ADMIN_APPS_ORDER = ['auth', 'core']
 
 ADMIN_MODELS_ORDER = {
     'core' : ['ImmersionUser', 'UniversityYear', 'HighSchool',
@@ -401,9 +389,7 @@ ADMIN_MODELS_ORDER = {
 }
 
 # Define groups rights on others here ?
-HAS_RIGHTS_ON_GROUP = {
-    'SCUIO-IP' : ['REF-CMP', ]
-}
+HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP',]}
 
 ####################
 # Geo Api settings #
