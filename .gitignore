@@ -53,3 +53,5 @@ htmlcov/
 
 # local virtual env
 venv
+
+deploy.sh
