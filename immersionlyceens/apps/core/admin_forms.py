@@ -6,8 +6,11 @@ from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.utils.translation import ugettext_lazy as _
+from django_summernote.widgets import SummernoteWidget, SummernoteInplaceWidget
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
+
+
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, MailTemplate,
@@ -715,8 +718,11 @@ class MailTemplateForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        # Useful ?
-        # self.fields["available_vars"] = forms.MultipleChoiceField(choices=MailTemplate.VARS_CHOICES)
+        self.fields['available_vars'].queryset = \
+            self.fields['available_vars'].queryset.order_by('code')
+
+        if not self.request.user.is_superuser:
+            self.fields['available_vars'].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
@@ -742,6 +748,9 @@ class MailTemplateForm(forms.ModelForm):
     class Meta:
         model = MailTemplate
         fields = '__all__'
+        widgets = {
+            'body' : SummernoteWidget(),
+        }
 
 
 class AccompanyingDocumentForm(forms.ModelForm):

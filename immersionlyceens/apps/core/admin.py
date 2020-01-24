@@ -621,13 +621,19 @@ class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         )
 
 
-class MailTemplateAdmin(AdminWithRequest, admin.ModelAdmin):
+class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
     list_display = ('code', 'label')
+    filter_horizontal = ('available_vars', )
+
+    summernote_fields = ('body', )
 
     def has_delete_permission(self, request, obj=None):
         # Only a superuser can delete a template
         return request.user.is_superuser
+
+    class Media:
+        css = {'all': ('css/immersionlyceens.css',)}
 
 
 admin.site = CustomAdminSite(name='Repositories')
