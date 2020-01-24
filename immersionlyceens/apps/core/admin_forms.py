@@ -6,12 +6,14 @@ from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.utils.translation import ugettext_lazy as _
-from immersionlyceens.libs.geoapi.utils import get_cities, get_zipcodes
 
-from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-                     Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-                     ImmersionUser, PublicType, Training, TrainingDomain, TrainingSubdomain,
-                     UniversityYear, Vacation, InformationText)
+from ...libs.geoapi.utils import get_cities, get_zipcodes
+from .models import (
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
+    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, PublicType, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    InformationText
+)
 
 
 class BachelorMentionForm(forms.ModelForm):
@@ -30,9 +32,7 @@ class BachelorMentionForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -57,9 +57,7 @@ class CampusForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -84,9 +82,7 @@ class CancelTypeForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -111,9 +107,7 @@ class CourseTypeForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -138,9 +132,7 @@ class TrainingDomainForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -154,8 +146,9 @@ class TrainingSubdomainForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['training_domain'].queryset = \
-            self.fields['training_domain'].queryset.order_by('label')
+        self.fields['training_domain'].queryset = self.fields['training_domain'].queryset.order_by(
+            'label'
+        )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -168,9 +161,7 @@ class TrainingSubdomainForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -196,9 +187,7 @@ class BuildingForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -212,14 +201,15 @@ class TrainingForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['training_subdomains'].queryset = \
-            self.fields['training_subdomains'].queryset\
-                .filter(training_domain__active=True,
-                        active=True)\
-                .order_by('training_domain__label', 'label')
+        self.fields['training_subdomains'].queryset = (
+            self.fields['training_subdomains']
+            .queryset.filter(training_domain__active=True, active=True)
+            .order_by('training_domain__label', 'label')
+        )
 
-        self.fields['components'].queryset = \
-            self.fields['components'].queryset.order_by('code', 'label')
+        self.fields['components'].queryset = self.fields['components'].queryset.order_by(
+            'code', 'label'
+        )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -232,9 +222,7 @@ class TrainingForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -267,9 +255,7 @@ class ComponentForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -294,9 +280,7 @@ class GeneralBachelorTeachingForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -325,9 +309,7 @@ class PublicTypeForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
@@ -359,22 +341,14 @@ class UniversityYearForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         if start_date and start_date <= datetime.today().date():
-            raise forms.ValidationError(
-                _("Start date can't be today or earlier")
-            )
+            raise forms.ValidationError(_("Start date can't be today or earlier"))
         if start_date and end_date and start_date >= end_date:
-            raise forms.ValidationError(
-                _("Start date greater than end date")
-            )
+            raise forms.ValidationError(_("Start date greater than end date"))
         if registration_start_date and end_date and registration_start_date >= end_date:
-            raise forms.ValidationError(
-                _("Start of registration date greater than end date")
-            )
+            raise forms.ValidationError(_("Start of registration date greater than end date"))
 
         return cleaned_data
 
@@ -404,9 +378,7 @@ class HolidayForm(forms.ModelForm):
         except AttributeError:
             pass
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         # existence if an active university year
         univ_years = UniversityYear.objects.filter(active=True)
@@ -449,9 +421,7 @@ class VacationForm(forms.ModelForm):
         except AttributeError:
             pass
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         # existence if an active university year
         univ_years = UniversityYear.objects.filter(active=True)
@@ -497,17 +467,14 @@ class CalendarForm(forms.ModelForm):
 
         year_start_date = cleaned_data.get('year_start_date')
         year_end_date = cleaned_data.get('year_end_date')
-        year_registration_start_date = cleaned_data.get(
-            'year_registration_start_date')
+        year_registration_start_date = cleaned_data.get('year_registration_start_date')
 
         s1_start_date = cleaned_data.get('semester1_start_date')
         s1_end_date = cleaned_data.get('semester1_end_date')
-        s1_registration_start_date = cleaned_data.get(
-            'semester1_registration_start_date')
+        s1_registration_start_date = cleaned_data.get('semester1_registration_start_date')
         s2_start_date = cleaned_data.get('semester2_start_date')
         s2_end_date = cleaned_data.get('semester2_end_date')
-        s2_registration_start_date = cleaned_data.get(
-            'semester2_registration_start_date')
+        s2_registration_start_date = cleaned_data.get('semester2_registration_start_date')
         valid_user = False
 
         # Test user group
@@ -517,9 +484,7 @@ class CalendarForm(forms.ModelForm):
         except AttributeError:
             pass
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         # existance if an active university year
         univ_years = UniversityYear.objects.filter(active=True)
@@ -572,9 +537,7 @@ class CalendarForm(forms.ModelForm):
 
         # start < end
         if year_start_date and year_end_date and year_start_date >= year_end_date:
-            raise forms.ValidationError(
-                _("Start date greater than end date")
-            )
+            raise forms.ValidationError(_("Start date greater than end date"))
         # start1 < end1
         if s1_start_date and s1_end_date and s1_start_date >= s1_end_date:
             raise forms.ValidationError(
@@ -639,13 +602,10 @@ class ImmersionUserChangeForm(UserChangeForm):
         if groups.filter(name='SCUIO-IP').exists():
             cleaned_data['is_staff'] = True
 
-        if groups.filter(name='REF-CMP').exists() and \
-            not components.count():
-            msg = _(
-                "This field is mandatory for a user belonging to 'REF-CMP' group")
+        if groups.filter(name='REF-CMP').exists() and not components.count():
+            msg = _("This field is mandatory for a user belonging to 'REF-CMP' group")
             self._errors['components'] = self.error_class([msg])
             del cleaned_data["components"]
-
 
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
@@ -661,36 +621,34 @@ class ImmersionUserChangeForm(UserChangeForm):
                     )
 
                 # Add groups to this list when needed
-                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP', )
+                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP',)
 
-                current_groups = set(
-                    self.instance.groups.all().values_list('name', flat=True))
+                current_groups = set(self.instance.groups.all().values_list('name', flat=True))
                 new_groups = set(groups.all().values_list('name', flat=True))
 
                 forbidden_groups = [
-                    g for g in current_groups.symmetric_difference(new_groups)
+                    g
+                    for g in current_groups.symmetric_difference(new_groups)
                     if g not in can_change_groups
                 ]
 
                 if forbidden_groups:
                     raise forms.ValidationError(
-                        _("You can't modify these groups : %s" %
-                          ', '.join(x for x in forbidden_groups))
+                        _(
+                            "You can't modify these groups : %s"
+                            % ', '.join(x for x in forbidden_groups)
+                        )
                     )
 
             if self.instance.is_superuser != cleaned_data["is_superuser"]:
                 self._errors['is_superuser'] = self.error_class([forbidden_msg])
 
-                raise forms.ValidationError(
-                    _("You can't modify the superuser status")
-                )
+                raise forms.ValidationError(_("You can't modify the superuser status"))
 
             if self.instance.is_staff != cleaned_data["is_staff"]:
                 self._errors['is_staff'] = self.error_class([forbidden_msg])
 
-                raise forms.ValidationError(
-                    _("You can't modify the staff status")
-                )
+                raise forms.ValidationError(_("You can't modify the staff status"))
 
         return cleaned_data
 
@@ -700,43 +658,38 @@ class ImmersionUserChangeForm(UserChangeForm):
 
 
 class HighSchoolForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
         if settings.USE_GEOAPI:
-          city_choices = [('', '---------'), ]
-          zip_choices = [('', '---------'), ]
+            city_choices = [
+                ('', '---------'),
+            ]
+            zip_choices = [
+                ('', '---------'),
+            ]
 
-          # Put datas in choices fields if form instance
-          if self.instance.department:
-              city_choices = get_cities(self.instance.department)
+            # Put datas in choices fields if form instance
+            if self.instance.department:
+                city_choices = get_cities(self.instance.department)
 
-          if self.instance.city:
-              zip_choices = get_zipcodes(
-                  self.instance.department, self.instance.city)
+            if self.instance.city:
+                zip_choices = get_zipcodes(self.instance.department, self.instance.city)
 
-          # Put datas in choices fields if form data
-          if 'department' in self.data:
-              city_choices = get_cities(self.data.get('department'))
+            # Put datas in choices fields if form data
+            if 'department' in self.data:
+                city_choices = get_cities(self.data.get('department'))
 
-          if 'city' in self.data:
-              zip_choices = get_zipcodes(
-                  self.data.get('department'), self.data.get('city'))
+            if 'city' in self.data:
+                zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
 
-          self.fields['city'] = forms.TypedChoiceField(
-              label=_("City"),
-              widget=forms.Select(),
-              choices=city_choices,
-              required=True
-          )
-          self.fields['zip_code'] = forms.TypedChoiceField(
-              label=_("Zip code"),
-              widget=forms.Select(),
-              choices=zip_choices,
-              required=True
-          )
+            self.fields['city'] = forms.TypedChoiceField(
+                label=_("City"), widget=forms.Select(), choices=city_choices, required=True
+            )
+            self.fields['zip_code'] = forms.TypedChoiceField(
+                label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
+            )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -749,14 +702,42 @@ class HighSchoolForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         return cleaned_data
 
     class Meta:
         model = HighSchool
+        fields = '__all__'
+
+
+class AccompanyingDocumentForm(forms.ModelForm):
+    """
+    Accompanying document form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        # TODO: should we use only pdfs ?
+        return cleaned_data
+
+    class Meta:
+        model = AccompanyingDocument
         fields = '__all__'
 
 

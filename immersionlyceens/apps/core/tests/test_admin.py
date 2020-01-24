@@ -7,18 +7,20 @@ from django.conf import settings
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 
-from ..admin_forms import (BachelorMentionForm, BuildingForm, CalendarForm,
-                           CampusForm, CancelTypeForm, ComponentForm,
-                           CourseTypeForm, GeneralBachelorTeachingForm,
-                           HighSchoolForm, HolidayForm, PublicTypeForm,
-                           TrainingDomainForm, TrainingSubdomainForm,
-                           UniversityYearForm, VacationForm)
-from ..models import (BachelorMention, Building, Calendar, Campus, CancelType,
-                      Component, CourseType, GeneralBachelorTeaching,
-                      HighSchool, Holiday, PublicType, TrainingDomain,
-                      TrainingSubdomain, UniversityYear, Vacation)
+from ..admin_forms import (
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
+    CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
+    HolidayForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm,
+)
+from ..models import (
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
+    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, PublicType, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
+)
 
 
 class MockRequest:
@@ -36,6 +38,7 @@ class AdminFormsTestCase(TestCase):
     """
     Main admin forms tests class
     """
+
     fixtures = ['group']
 
     def setUp(self):
@@ -45,15 +48,24 @@ class AdminFormsTestCase(TestCase):
 
         self.site = AdminSite()
         self.superuser = get_user_model().objects.create_superuser(
-            username='super', password='pass', email='immersion@no-reply.com')
+            username='super', password='pass', email='immersion@no-reply.com'
+        )
 
         self.scuio_user = get_user_model().objects.create_user(
-            username='cmp', password='pass', email='immersion@no-reply.com',
-            first_name='cmp', last_name='cmp')
+            username='cmp',
+            password='pass',
+            email='immersion@no-reply.com',
+            first_name='cmp',
+            last_name='cmp',
+        )
 
         self.ref_cmp_user = get_user_model().objects.create_user(
-            username='ref_cmp', password='pass', email='immersion@no-reply.com',
-            first_name='ref_cmp', last_name='ref_cmp')
+            username='ref_cmp',
+            password='pass',
+            email='immersion@no-reply.com',
+            first_name='ref_cmp',
+            last_name='ref_cmp',
+        )
 
         Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
         Group.objects.get(name='REF-CMP').user_set.add(self.ref_cmp_user)
@@ -76,8 +88,7 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_cmp_user
         form = TrainingDomainForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(TrainingDomain.objects.filter(
-            label='test_fail').exists())
+        self.assertFalse(TrainingDomain.objects.filter(label='test_fail').exists())
 
     def test_training_sub_domain_creation(self):
         """
@@ -96,16 +107,14 @@ class AdminFormsTestCase(TestCase):
 
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(TrainingSubdomain.objects.filter(
-            label='sd test').exists())
+        self.assertTrue(TrainingSubdomain.objects.filter(label='sd test').exists())
 
         # Validation fail (invalid user)
         data = {'label': 'test_fail', 'training_domain': td, 'active': True}
         request.user = self.ref_cmp_user
         form = TrainingSubdomainForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(TrainingSubdomain.objects.filter(
-            label='test_fail').exists())
+        self.assertFalse(TrainingSubdomain.objects.filter(label='test_fail').exists())
 
     def test_campus_creation(self):
         """
@@ -126,8 +135,7 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_cmp_user
         form = CampusForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(Campus.objects.filter(
-            label='test_fail').exists())
+        self.assertFalse(Campus.objects.filter(label='test_fail').exists())
 
     def test_building_creation(self):
         """
@@ -139,7 +147,7 @@ class AdminFormsTestCase(TestCase):
             'label': 'testBuilding',
             'campus': testCampus.pk,
             'url': 'https://www.building.com',
-            'active': True
+            'active': True,
         }
 
         request.user = self.scuio_user
@@ -154,19 +162,13 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_cmp_user
         form = BuildingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(Building.objects.filter(
-            label='test_fail').exists())
+        self.assertFalse(Building.objects.filter(label='test_fail').exists())
 
     def test_component_creation(self):
         """
         Test admin Component creation with group rights
         """
-        data = {
-            'code': 'AB123',
-            'label': 'test',
-            'url': 'http://url.fr',
-            'active': True
-        }
+        data = {'code': 'AB123', 'label': 'test', 'url': 'http://url.fr', 'active': True}
 
         request.user = self.scuio_user
 
@@ -192,16 +194,12 @@ class AdminFormsTestCase(TestCase):
         """
         training_domain_data = {'label': 'domain', 'active': True}
         training_subdomain_data = {'label': 'subdomain', 'active': True}
-        component_data = {
-            'code': 'AB123',
-            'label': 'test',
-            'url': 'http://url.fr',
-            'active': True
-        }
+        component_data = {'code': 'AB123', 'label': 'test', 'url': 'http://url.fr', 'active': True}
 
         training_domain = TrainingDomain.objects.create(**training_domain_data)
         training_subdomain = TrainingSubdomain.objects.create(
-            training_domain=training_domain, **training_subdomain_data)
+            training_domain=training_domain, **training_subdomain_data
+        )
         component = Component.objects.create(**component_data)
 
         self.assertTrue(TrainingDomain.objects.all().exists())
@@ -211,8 +209,8 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'test',
             'url': 'http://url.fr',
-            'components': [component.pk, ],
-            'training_subdomains': [training_subdomain.pk, ],
+            'components': [component.pk,],
+            'training_subdomains': [training_subdomain.pk,],
         }
 
     def test_bachelor_mention_creation(self):
@@ -220,127 +218,102 @@ class AdminFormsTestCase(TestCase):
         Test admin bachelor mention creation with group rights
         """
 
-        data = {
-            'label': 'testBachelor',
-            'active': True
-        }
+        data = {'label': 'testBachelor', 'active': True}
 
         request.user = self.scuio_user
 
         form = BachelorMentionForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(BachelorMention.objects.filter(
-            label=data['label']).exists())
+        self.assertTrue(BachelorMention.objects.filter(label=data['label']).exists())
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
         request.user = self.ref_cmp_user
         form = BachelorMentionForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(BachelorMention.objects.filter(
-            label='test_failure').exists())
+        self.assertFalse(BachelorMention.objects.filter(label='test_failure').exists())
 
     def test_cancel_type_creation(self):
         """
         Test admin bachelor mention creation with group rights
         """
 
-        data = {
-            'label': 'testBachelor',
-            'active': True
-        }
+        data = {'label': 'testBachelor', 'active': True}
 
         request.user = self.scuio_user
 
         form = CancelTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(CancelType.objects.filter(
-            label=data['label']).exists())
+        self.assertTrue(CancelType.objects.filter(label=data['label']).exists())
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
         request.user = self.ref_cmp_user
         form = CancelTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(CancelType.objects.filter(
-            label='test_failure').exists())
+        self.assertFalse(CancelType.objects.filter(label='test_failure').exists())
 
     def test_course_type_creation(self):
         """
         Test course type creation with group rights
         """
-        data = {
-            'label': 'testCourse',
-            'active': True
-        }
+        data = {'label': 'testCourse', 'active': True}
 
         request.user = self.scuio_user
 
         form = CourseTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(CourseType.objects.filter(
-            label=data['label']).exists())
+        self.assertTrue(CourseType.objects.filter(label=data['label']).exists())
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
         request.user = self.ref_cmp_user
         form = CourseTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(CourseType.objects.filter(
-            label='test_failure').exists())
+        self.assertFalse(CourseType.objects.filter(label='test_failure').exists())
 
     def test_general_bachelor_teaching_creation(self):
         """
         Test general bachelor specialty teaching creation with group rights
         """
-        data = {
-            'label': 'test',
-            'active': True
-        }
+        data = {'label': 'test', 'active': True}
 
         request.user = self.scuio_user
 
         form = GeneralBachelorTeachingForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(GeneralBachelorTeaching.objects.filter(
-            label=data['label']).exists())
+        self.assertTrue(GeneralBachelorTeaching.objects.filter(label=data['label']).exists())
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
         request.user = self.ref_cmp_user
         form = GeneralBachelorTeachingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(GeneralBachelorTeaching.objects.filter(
-            label='test_failure').exists())
+        self.assertFalse(GeneralBachelorTeaching.objects.filter(label='test_failure').exists())
 
     def test_public_type_creation(self):
         """
         Test public type mention creation with group rights
         """
-        data = {
-            'label': 'testCourse',
-            'active': True
-        }
+        data = {'label': 'testCourse', 'active': True}
 
         request.user = self.scuio_user
 
         form = PublicTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(PublicType.objects.filter(
-            label=data['label']).exists())
+        self.assertTrue(PublicType.objects.filter(label=data['label']).exists())
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
         request.user = self.ref_cmp_user
         form = PublicTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(PublicType.objects.filter(
-            label='test_fail').exists())
+        self.assertFalse(PublicType.objects.filter(label='test_fail').exists())
 
     def test_university_year_creation(self):
         """
@@ -360,8 +333,7 @@ class AdminFormsTestCase(TestCase):
         form = UniversityYearForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(UniversityYear.objects.filter(
-            label=data['label']).exists())
+        self.assertTrue(UniversityYear.objects.filter(label=data['label']).exists())
 
         # Validation fail (invalid user)
         data = {
@@ -374,8 +346,7 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_cmp_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(UniversityYear.objects.filter(
-            label='test_fail').exists())
+        self.assertFalse(UniversityYear.objects.filter(label='test_fail').exists())
 
     def test_highschool_creation(self):
         """
@@ -398,7 +369,7 @@ class AdminFormsTestCase(TestCase):
             'referent_phone_number': '+30102030',
             'referent_email': 'franck.lemmer@caramail.com',
             'convention_start_date': datetime.datetime.today().date(),
-            'convention_end_date': ''
+            'convention_end_date': '',
         }
 
         request.user = self.scuio_user
@@ -409,8 +380,7 @@ class AdminFormsTestCase(TestCase):
         form.fields['zip_code'].choices = [('68100', '68100')]
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(HighSchool.objects.filter(
-            label='Santo Domingo').exists())
+        self.assertTrue(HighSchool.objects.filter(label='Santo Domingo').exists())
 
         # Validation fail (invalid user)
         data = {
@@ -429,13 +399,12 @@ class AdminFormsTestCase(TestCase):
             'referent_phone_number': '+30102030',
             'referent_email': 'spike@caramail.com',
             'convention_start_date': datetime.datetime.today().date(),
-            'convention_end_date': ''
+            'convention_end_date': '',
         }
         request.user = self.ref_cmp_user
         form = HighSchoolForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(HighSchool.objects.filter(
-            label='Degrassi Junior School').exists())
+        self.assertFalse(HighSchool.objects.filter(label='Degrassi Junior School').exists())
 
     def test_holiday_creation(self):
         """
@@ -466,8 +435,7 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_cmp_user
         form = HolidayForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(Holiday.objects.filter(
-            label='test_fail').exists())
+        self.assertFalse(Holiday.objects.filter(label='test_fail').exists())
 
     def test_vacation_creation(self):
 
@@ -496,16 +464,45 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_cmp_user
         form = HolidayForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(Vacation.objects.filter(
-            label='test failure').exists())
+        self.assertFalse(Vacation.objects.filter(label='test failure').exists())
 
         # wrong dates
         data['label'] = 'test failure 2'
-        data['end_date'] = datetime.datetime.today().date() + \
-            datetime.timedelta(days=1)
+        data['end_date'] = datetime.datetime.today().date() + datetime.timedelta(days=1)
 
         request.user = self.ref_cmp_user
         form = HolidayForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(Vacation.objects.filter(
-            label='test failure 2').exists())
+        self.assertFalse(Vacation.objects.filter(label='test failure 2').exists())
+
+    def test_accompanying_document_creation(self):
+        """
+        Test public type mention creation with group rights
+        """
+
+        public_type_data = {'label': 'testPublicType', 'active': True}
+        public_type = PublicType.objects.create(**public_type_data)
+
+        file = {'document': SimpleUploadedFile("testpron.jpg", b"toto")}
+
+        data = {
+            'label': 'testDocument',
+            'public_type': public_type.pk,
+            'description': 'testDescription',
+            'active': True,
+        }
+
+
+        request.user = self.scuio_user
+
+        form = AccompanyingDocumentForm(data=data, files=file, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(AccompanyingDocument.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = AccompanyingDocumentForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(AccompanyingDocument.objects.filter(label='test_fail').exists())

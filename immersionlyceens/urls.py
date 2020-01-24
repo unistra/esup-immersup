@@ -1,10 +1,11 @@
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
 from .apps.core import views as core_views
-from .views import home
+from .views import home, serve_accompanying_document
 
 admin.autodiscover()
 
@@ -18,14 +19,19 @@ urlpatterns = [
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
-
+    path(
+        'dl/<int:accompanying_document_id>',
+        serve_accompanying_document,
+        name='accompanying_document',
+    ),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('summernote/', include('django_summernote.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # debug toolbar for dev
-if settings.DEBUG and 'debug_toolbar'in settings.INSTALLED_APPS:
+if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     import debug_toolbar
+
     urlpatterns += [
         path('__debug__/', include(debug_toolbar.urls)),
     ]
