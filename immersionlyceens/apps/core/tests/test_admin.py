@@ -324,7 +324,7 @@ class AdminFormsTestCase(TestCase):
             'active': True,
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-            'registration_start_date': datetime.datetime.today().date(),
+            'registration_start_date': datetime.datetime.today().date()+ datetime.timedelta(days=3),
             'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
 
