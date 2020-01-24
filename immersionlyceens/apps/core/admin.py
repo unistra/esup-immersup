@@ -479,6 +479,8 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
@@ -492,6 +494,8 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def has_add_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
@@ -509,6 +513,9 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'start_date', 'end_date')
 
     def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
@@ -521,6 +528,9 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
@@ -534,6 +544,9 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def has_add_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
@@ -559,6 +572,8 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         fields = ['active', 'purge_date']
+        if request.user.is_superuser:
+            return fields
         if obj:
             if obj.purge_date is not None:
                 return list(
@@ -573,6 +588,9 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         return fields
 
     def has_delete_permission(self, request, obj=None):
+
+        if request.user.is_superuser:
+            return True
         if not request.user.is_scuio_ip_manager():
             return False
 
@@ -606,6 +624,8 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         fields = []
+        if request.user.is_superuser:
+            return []
         if obj:
 
             # global evaluation date
@@ -641,6 +661,13 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_add_permission(self, request):
         """Singleton"""
         return not Calendar.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
