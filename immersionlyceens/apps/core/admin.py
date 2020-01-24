@@ -164,6 +164,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
             return False
 
+        return True
+
     def get_list_display(self, request):
         list_display = ['username', 'email', 'first_name', 'last_name', 'is_superuser', 'is_staff']
 
