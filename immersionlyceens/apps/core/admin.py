@@ -662,13 +662,6 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         """Singleton"""
         return not Calendar.objects.exists()
 
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
         js = (
