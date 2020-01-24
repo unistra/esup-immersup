@@ -567,6 +567,15 @@ class InformationTextAdmin(AdminWithRequest, SummernoteModelAdmin):
     ordering = ('label',)
     search_fields = ('label', 'code', 'active')
 
+    def get_readonly_fields(self, request, obj=None):
+        fields = []
+        if obj:
+            if obj.label:
+                fields.append('label')
+            if obj.code:
+                fields.append('code')
+        return fields
+
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
         js = (
