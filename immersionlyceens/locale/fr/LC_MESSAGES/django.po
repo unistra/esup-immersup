@@ -120,7 +120,7 @@ msgstr "La date de début est postérieure à la date de fin"
 msgid "Start of registration date must be set between start and end date"
 msgstr ""
 "Date de début des inscriptions aux immersions doit être entre les dates de début et "
-"de fin de l'année universitaire en cous"
+"de fin de l'année universitaire en cours"
 
 #: immersionlyceens/apps/core/admin_forms.py:390
 #: immersionlyceens/apps/core/admin_forms.py:439
