@@ -14,7 +14,7 @@ from .admin_forms import (
     CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
     HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, PublicTypeForm,
     TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
-)
+    InformationTextForm)
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
     Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, PublicType,
