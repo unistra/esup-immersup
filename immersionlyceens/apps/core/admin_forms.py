@@ -10,9 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, PublicType, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    InformationText
+    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, InformationText,
+    PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -767,4 +766,3 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
-
