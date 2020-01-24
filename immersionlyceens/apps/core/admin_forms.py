@@ -343,12 +343,14 @@ class UniversityYearForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        if start_date and start_date < datetime.today().date():
+        if start_date and start_date <= datetime.today().date():
             raise forms.ValidationError(_("Start date can't be today or earlier"))
         if start_date and end_date and start_date >= end_date:
             raise forms.ValidationError(_("Start date greater than end date"))
+        if registration_start_date and start_date and registration_start_date < start_date:
+            raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
         if registration_start_date and end_date and registration_start_date >= end_date:
-            raise forms.ValidationError(_("Start of registration date greater than end date"))
+            raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
 
         return cleaned_data
 
@@ -389,7 +391,7 @@ class HolidayForm(forms.ModelForm):
             )
         univ_year = univ_years[0]
 
-        if _date and (_date < univ_year.start_date or _date > univ_year.end_date):
+        if _date and (_date < univ_year.start_date or _date >= univ_year.end_date):
             raise forms.ValidationError(
                 _("Holiday must set between university year dates")
             )
@@ -447,7 +449,7 @@ class VacationForm(forms.ModelForm):
                 raise forms.ValidationError(
                     _("Vacation start date must set between university year dates")
                 )
-            if end_date < univ_year.start_date or end_date > univ_year.end_date:
+            if end_date < univ_year.start_date or end_date >= univ_year.end_date:
                 raise forms.ValidationError(
                     _("Vacation end date must set between university year dates")
                 )
@@ -517,11 +519,11 @@ class CalendarForm(forms.ModelForm):
             if year_start_date and year_end_date:
                 if year_start_date < univ_year.start_date or year_start_date > univ_year.end_date:
                     raise forms.ValidationError(
-                        _("Start date must set between university year dates")
+                        _("Start date must be set between university year dates")
                     )
                 if year_end_date < univ_year.start_date or year_end_date > univ_year.end_date:
                     raise forms.ValidationError(
-                        _("End date must set between university year dates")
+                        _("End date must set be between university year dates")
                     )
 
         # SEMESTER MODE
