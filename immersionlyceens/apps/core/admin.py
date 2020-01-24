@@ -1,25 +1,27 @@
 from datetime import datetime
 
+from django_summernote.admin import SummernoteModelAdmin
+from hijack_admin.admin import HijackUserAdminMixin
+
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
-from django_summernote.admin import SummernoteModelAdmin
-from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
     CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
-    InformationTextForm)
+    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm,
+    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm,
+)
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, PublicType,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    InformationText
+    Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
+    InformationText, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -242,7 +244,10 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
 class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingSubdomainForm
     list_display = ('label', 'training_domain', 'active')
-    list_filter = ('training_domain', 'active',)
+    list_filter = (
+        'training_domain',
+        'active',
+    )
     ordering = ('label',)
     search_fields = ('label',)
 
@@ -492,7 +497,6 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return True
 
-
     def has_add_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
@@ -541,7 +545,6 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         return True
-
 
     def has_add_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -729,36 +732,39 @@ class InformationTextAdmin(AdminWithRequest, SummernoteModelAdmin):
         return fields
 
 
-
 class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = AccompanyingDocumentForm
-    # list_display = ('label', 'description', 'public_type', 'fileUrl')
     ordering = ('label',)
-    search_fields = ('label', 'fileName')
-    list_filter = ('public_type',)
-
-    # def fileUrl(self, obj):
-    #     if obj.document:
-    #         return format_html(f'<a href="{obj.document.url}">{obj.document.url}</a>')
-    #     else:
-    #         return format_html('<a href=""></a>')
+    search_fields = ('label',)
+    list_filter = ('public_type', 'active')
 
     def get_list_display(self, request):
-
         def file_url(obj):
-            url = request.build_absolute_uri(reverse('accompanying_document', args=(obj.pk, )))
+            url = request.build_absolute_uri(reverse('accompanying_document', args=(obj.pk,)))
             return format_html(f'<a href="{url}">{url}</a>')
 
         file_url.short_description = _('Address')
 
-        return (
-            'label', 'description', 'public_type', file_url,
-        )
-
-    # file_url.short_description = _("Document Address")
+        return ('label', 'description', 'public_type', file_url, 'active')
 
 
+class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = PublicDocumentForm
+    ordering = ('label',)
+    search_fields = ('label',)
+    list_filter = ('published',)
+    readonly_fields = ('published',)
 
+    def get_list_display(self, request):
+        def file_url(obj):
+            url = request.build_absolute_uri(reverse('public_document', args=(obj.pk,)))
+            return format_html(f'<a href="{url}">{url}</a>')
+
+        file_url.short_description = _('Address')
+
+        return ('label', file_url, 'active', 'published')
+
+      
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -780,3 +786,4 @@ admin.site.register(Vacation, VacationAdmin)
 admin.site.register(Calendar, CalendarAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
+admin.site.register(PublicDocument, PublicDocumentAdmin)

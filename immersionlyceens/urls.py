@@ -5,7 +5,7 @@ from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
 from .apps.core import views as core_views
-from .views import home, serve_accompanying_document
+from .views import home, serve_accompanying_document, serve_public_document
 
 admin.autodiscover()
 
@@ -20,10 +20,11 @@ urlpatterns = [
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path(
-        'dl/<int:accompanying_document_id>',
+        'dl/accdoc/<int:accompanying_document_id>',
         serve_accompanying_document,
         name='accompanying_document',
     ),
+    path('dl/pubdoc/<int:public_document_id>', serve_public_document, name='public_document',),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('summernote/', include('django_summernote.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
