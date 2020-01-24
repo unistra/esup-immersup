@@ -332,6 +332,7 @@ class UniversityYearForm(forms.ModelForm):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         registration_start_date = cleaned_data.get('registration_start_date')
+        label = cleaned_data.get('label')
         valid_user = False
 
         try:
@@ -351,6 +352,18 @@ class UniversityYearForm(forms.ModelForm):
             raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
         if registration_start_date and end_date and registration_start_date >= end_date:
             raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
+
+        if start_date and end_date:
+            all_univ_year = UniversityYear.objects.exclude(label=label)
+            for uy in all_univ_year:
+                if start_date >= uy.start_date or start_date <= uy.end_date:
+                    raise forms.ValidationError(
+                        _("University year starts inside another university year")
+                    )
+                if end_date >= uy.start_date or end_date <= uy.end_date:
+                    raise forms.ValidationError(
+                        _("University year ends inside another university year")
+                    )
 
         return cleaned_data
 
@@ -373,6 +386,7 @@ class HolidayForm(forms.ModelForm):
         valid_user = False
 
         _date = cleaned_data.get('date')
+        label = cleaned_data.get('label')
         now = datetime.now().date()
 
         try:
@@ -401,6 +415,13 @@ class HolidayForm(forms.ModelForm):
                 _("Holiday must be set in the future")
             )
 
+        all_holidays = Holiday.objects.exclude(label=label)
+        for hol in all_holidays:
+            if _date == hol.date:
+                raise forms.ValidationError(
+                    _("Holiday date already exists in other holiday")
+                )
+
         return cleaned_data
 
     class Meta:
@@ -419,6 +440,7 @@ class VacationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        label = cleaned_data.get('label')
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         now = datetime.now().date()
@@ -458,6 +480,16 @@ class VacationForm(forms.ModelForm):
                     _("Vacation start date must be set in the future")
                 )
 
+            all_vacations = Vacation.objects.exclude(label=label)
+            for v in all_vacations:
+                if start_date >= v.start_date or start_date <= v.end_date:
+                    raise forms.ValidationError(
+                        _("Vacation start inside another vacation")
+                    )
+                if end_date >= v.start_date or end_date <= v.end_date:
+                    raise forms.ValidationError(
+                        _("Vacation end inside another vacation")
+                    )
 
         return cleaned_data
 
