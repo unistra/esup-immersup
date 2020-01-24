@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-24 09:33+0100\n"
+"POT-Creation-Date: 2020-01-24 10:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,6 +54,17 @@ msgstr ""
 "plusieurs cours"
 
 #: immersionlyceens/apps/core/admin.py:447
+msgid ""
+"This university year can't be deleted because university year has already "
+"started"
+msgstr ""
+"Cette année universitaire ne peut pas être supprimée car elle a déjà commencée"
+
+#: immersionlyceens/apps/core/admin.py:456
+msgid "This university year can't be deleted because a purge date is defined"
+msgstr ""
+"Cette année universitaire ne peut pas être supprimée car une date de purge est définie"
+
 #: immersionlyceens/apps/core/admin.py:510
 msgid ""
 "This component can't be deleted because university year has already started"
@@ -61,7 +72,6 @@ msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
-#: immersionlyceens/apps/core/admin.py:456
 #: immersionlyceens/apps/core/admin.py:519
 msgid "This component can't be deleted because a purge date is defined"
 msgstr ""
