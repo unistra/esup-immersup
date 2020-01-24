@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-24 14:21+0100\n"
+"POT-Creation-Date: 2020-01-24 14:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -67,20 +67,20 @@ msgstr ""
 "Cette année universitaire ne peut pas être supprimée car une date de purge "
 "est définie"
 
-#: immersionlyceens/apps/core/admin.py:584
+#: immersionlyceens/apps/core/admin.py:602
 msgid ""
 "This component can't be deleted because university year has already started"
 msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
-#: immersionlyceens/apps/core/admin.py:593
+#: immersionlyceens/apps/core/admin.py:611
 msgid "This component can't be deleted because a purge date is defined"
 msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
-#: immersionlyceens/apps/core/admin.py:732
+#: immersionlyceens/apps/core/admin.py:759
 #: immersionlyceens/apps/core/models.py:520
 msgid "Address"
 msgstr "Adresse"
@@ -97,11 +97,11 @@ msgstr "Adresse"
 #: immersionlyceens/apps/core/admin_forms.py:283
 #: immersionlyceens/apps/core/admin_forms.py:312
 #: immersionlyceens/apps/core/admin_forms.py:344
-#: immersionlyceens/apps/core/admin_forms.py:382
-#: immersionlyceens/apps/core/admin_forms.py:431
-#: immersionlyceens/apps/core/admin_forms.py:499
-#: immersionlyceens/apps/core/admin_forms.py:717
-#: immersionlyceens/apps/core/admin_forms.py:746
+#: immersionlyceens/apps/core/admin_forms.py:384
+#: immersionlyceens/apps/core/admin_forms.py:433
+#: immersionlyceens/apps/core/admin_forms.py:501
+#: immersionlyceens/apps/core/admin_forms.py:719
+#: immersionlyceens/apps/core/admin_forms.py:748
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -110,154 +110,152 @@ msgid "Start date can't be today or earlier"
 msgstr "La date de début doit se situer dans le futur"
 
 #: immersionlyceens/apps/core/admin_forms.py:349
-#: immersionlyceens/apps/core/admin_forms.py:444
-#: immersionlyceens/apps/core/admin_forms.py:552
+#: immersionlyceens/apps/core/admin_forms.py:446
+#: immersionlyceens/apps/core/admin_forms.py:554
 msgid "Start date greater than end date"
 msgstr "La date de début est postérieure à la date de fin"
 
 #: immersionlyceens/apps/core/admin_forms.py:351
-msgid "Start of registration date greater than end date"
+#: immersionlyceens/apps/core/admin_forms.py:353
+msgid "Start of registration date must be set between start and end date"
 msgstr ""
-"La date de début de création des comptes est postérieure à la date de fin"
+"Date de début des inscriptions aux immersions doit être entre les dates de début et "
+"de fin de l'année universitaire en cous"
 
-#: immersionlyceens/apps/core/admin_forms.py:388
-#: immersionlyceens/apps/core/admin_forms.py:437
-#: immersionlyceens/apps/core/admin_forms.py:505
+#: immersionlyceens/apps/core/admin_forms.py:390
+#: immersionlyceens/apps/core/admin_forms.py:439
+#: immersionlyceens/apps/core/admin_forms.py:507
 msgid "You have to set an university year"
 msgstr "Vous devez définir une année universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:394
+#: immersionlyceens/apps/core/admin_forms.py:396
 msgid "Holiday must set between university year dates"
 msgstr ""
 "Le jour férié doit être entre les dates de début et de fin de l'année "
 "universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:399
+#: immersionlyceens/apps/core/admin_forms.py:401
 msgid "Holiday must be set in the future"
-msgstr ""
-"Le jour férié doit être paramétré dans le futur"
-"universitaire en cours"
+msgstr "Le jour férié doit être paramétré dans le futuruniversitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:448
+#: immersionlyceens/apps/core/admin_forms.py:450
 msgid "Vacation start date must set between university year dates"
 msgstr ""
 "La date de début d'une période de vacances doit être entre les dates de "
 "début et de fin de l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:452
+#: immersionlyceens/apps/core/admin_forms.py:454
 msgid "Vacation end date must set between university year dates"
 msgstr ""
 "La date de fin d'une période de vacances doit être entre les dates de début "
 "et de fin de l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:456
-#, fuzzy
-#| msgid "Vacation start date must set between university year dates"
+#: immersionlyceens/apps/core/admin_forms.py:458
 msgid "Vacation start date must be set in the future"
 msgstr ""
 "La date de début d'une période de vacances doit être entre les dates de "
 "début et de fin de l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:515
-#: immersionlyceens/apps/core/admin_forms.py:533
+#: immersionlyceens/apps/core/admin_forms.py:517
+#: immersionlyceens/apps/core/admin_forms.py:535
 msgid "Mandatory fields not filled in"
 msgstr "Champs obligatoires non renseignés"
 
-#: immersionlyceens/apps/core/admin_forms.py:520
-msgid "Start date must set between university year dates"
+#: immersionlyceens/apps/core/admin_forms.py:522
+msgid "Start date must be set between university year dates"
 msgstr ""
 "La date de début doit être entre les dates de début et de fin de l'année "
 "universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:524
-msgid "End date must set between university year dates"
+#: immersionlyceens/apps/core/admin_forms.py:526
+msgid "End date must set be between university year dates"
 msgstr ""
 "La date de fin doit être entre les dates de début et de fin de l'année "
 "universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:538
+#: immersionlyceens/apps/core/admin_forms.py:540
 msgid "semester 1 start date must set between university year dates"
 msgstr ""
 "La date de début du semestre 1 doit être entre les dayte de l'année "
 "universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:540
+#: immersionlyceens/apps/core/admin_forms.py:542
 msgid "semester 2 start date must set between university year dates"
 msgstr ""
 "La date de début du semestre 2 doit être entre les dayte de l'année "
 "universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:542
+#: immersionlyceens/apps/core/admin_forms.py:544
 msgid "semester 1 end date must set between university year dates"
 msgstr ""
 "La date de fin du semestre 1 doit être entre les dates de début et de fin de "
 "l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:544
+#: immersionlyceens/apps/core/admin_forms.py:546
 msgid "semester 2 end date must set between university year dates"
 msgstr ""
 "La date de fin du semestre 2 doit être entre les dates de début et de fin de "
 "l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:546
+#: immersionlyceens/apps/core/admin_forms.py:548
 msgid ""
 "semester 1 start registration date must set between university year dates"
 msgstr ""
 "La date de début d'inscription du semestre 1 doit être entre les dayte de "
 "l'année universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:548
+#: immersionlyceens/apps/core/admin_forms.py:550
 msgid ""
 "semester 2 start registration date must set between university year dates"
 msgstr ""
 "La date de début d'inscription du semestre 2 doit être entre les dayte de "
 "l'année universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:556
+#: immersionlyceens/apps/core/admin_forms.py:558
 msgid "Semester 1 start date greater than semester 1 end date"
 msgstr ""
 "La date de début du semestre 1 est postérieure à la date de fin du semestre 1"
 
-#: immersionlyceens/apps/core/admin_forms.py:561
+#: immersionlyceens/apps/core/admin_forms.py:563
 msgid "Semester 2 start date greater than semester 2 end date"
 msgstr ""
 "La date de début du semestre2 est postérieure à la date de fin du semestre 2"
 
-#: immersionlyceens/apps/core/admin_forms.py:566
+#: immersionlyceens/apps/core/admin_forms.py:568
 msgid "Semester 1 ends after the beginning of semester 2"
 msgstr "Le semestre 1 termine après le début du semestre 2"
 
-#: immersionlyceens/apps/core/admin_forms.py:610
+#: immersionlyceens/apps/core/admin_forms.py:612
 msgid "Forbidden"
 msgstr "Non autorisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:618
+#: immersionlyceens/apps/core/admin_forms.py:620
 msgid "This field is mandatory for a user belonging to 'REF-CMP' group"
 msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-CMP'"
 
-#: immersionlyceens/apps/core/admin_forms.py:632
+#: immersionlyceens/apps/core/admin_forms.py:634
 msgid "You don't have enough privileges to modify this account"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce compte"
 
-#: immersionlyceens/apps/core/admin_forms.py:650
+#: immersionlyceens/apps/core/admin_forms.py:652
 #, python-format
 msgid "You can't modify these groups : %s"
 msgstr "Vous ne pouvez pas modifier ces groupes : %s"
 
-#: immersionlyceens/apps/core/admin_forms.py:658
+#: immersionlyceens/apps/core/admin_forms.py:660
 msgid "You can't modify the superuser status"
 msgstr "Vous ne pouvez pas modifier le statut super-utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:663
+#: immersionlyceens/apps/core/admin_forms.py:665
 msgid "You can't modify the staff status"
 msgstr "Vous ne pouvez pas modifier le statut d'équipe"
 
-#: immersionlyceens/apps/core/admin_forms.py:700
+#: immersionlyceens/apps/core/admin_forms.py:702
 #: immersionlyceens/apps/core/models.py:527
 msgid "City"
 msgstr "Ville"
 
-#: immersionlyceens/apps/core/admin_forms.py:703
+#: immersionlyceens/apps/core/admin_forms.py:705
 #: immersionlyceens/apps/core/models.py:529
 msgid "Zip code"
 msgstr "Code postal"
@@ -727,7 +725,9 @@ msgstr "Attention ce document va être supprimé de la partie publique"
 
 #: immersionlyceens/templates/admin/core/accompanyingdocument/delete_selected_confirmation.html:3
 msgid "Warning document(s) will be removed from public interface"
-msgstr "Attention les documents sélectionnés vont être supprimés de la partie publique"
+msgstr ""
+"Attention les documents sélectionnés vont être supprimés de la partie "
+"publique"
 
 #: immersionlyceens/templates/admin/core/holiday/change_list.html:10
 msgid "Import holidays"
