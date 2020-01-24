@@ -242,7 +242,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
 class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingSubdomainForm
     list_display = ('label', 'training_domain', 'active')
-    list_filter = ('active',)
+    list_filter = ('training_domain', 'active',)
     ordering = ('label',)
     search_fields = ('label',)
 
