@@ -7,20 +7,13 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.utils.translation import ugettext_lazy as _
 
-<<<<<<< HEAD
-from .models import (BachelorMention, Building, Calendar, Campus, CancelType,
-    Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, MailTemplate, PublicType, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation)
-=======
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, PublicType, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, MailTemplate,
+    PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
     InformationText
 )
->>>>>>> develop
 
 
 class BachelorMentionForm(forms.ModelForm):
