@@ -71,14 +71,13 @@ msgstr ""
 msgid ""
 "This component can't be deleted because university year has already started"
 msgstr ""
-"Cette composante ne peut pas être supprimée car elle est utilisée par une "
-"formation"
+"Cette année universitaire ne peut pas être supprimée car elle a déja commencée"
 
 #: immersionlyceens/apps/core/admin.py:611
 msgid "This component can't be deleted because a purge date is defined"
 msgstr ""
-"Cette composante ne peut pas être supprimée car elle est utilisée par une "
-"formation"
+"Cette année universitaire ne peut pas être supprimée car une date de purge "
+"est déjà définie"
 
 #: immersionlyceens/apps/core/admin.py:759
 #: immersionlyceens/apps/core/models.py:520
