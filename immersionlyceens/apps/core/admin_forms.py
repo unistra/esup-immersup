@@ -371,6 +371,7 @@ class HolidayForm(forms.ModelForm):
         valid_user = False
 
         _date = cleaned_data.get('date')
+        now = datetime.now().date()
 
         try:
             user = self.request.user
@@ -393,6 +394,11 @@ class HolidayForm(forms.ModelForm):
                 _("Holiday must set between university year dates")
             )
 
+        if _date < now:
+            raise forms.ValidationError(
+                _("Holiday must be set in the future")
+            )
+
         return cleaned_data
 
     class Meta:
@@ -413,6 +419,7 @@ class VacationForm(forms.ModelForm):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
+        now = datetime.now().date()
         valid_user = False
 
         try:
@@ -444,6 +451,11 @@ class VacationForm(forms.ModelForm):
                 raise forms.ValidationError(
                     _("Vacation end date must set between university year dates")
                 )
+            if start_date < now:
+                raise forms.ValidationError(
+                    _("Vacation start date must be set in the future")
+                )
+
 
         return cleaned_data
 

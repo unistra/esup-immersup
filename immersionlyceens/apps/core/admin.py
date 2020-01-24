@@ -466,10 +466,84 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HolidayForm
     list_display = ('label', 'date')
 
+    def has_delete_permission(self, request, obj=None):
+        now = datetime.now().date()
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            return True
+        univ_year = univ_years[0]
+
+        if now >= univ_year.start_date:
+            return False
+
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        now = datetime.now().date()
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            return True
+        univ_year = univ_years[0]
+
+        if now >= univ_year.start_date:
+            return False
+
+        return True
+
+
+    def has_add_permission(self, request, obj=None):
+        now = datetime.now().date()
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            return True
+        univ_year = univ_years[0]
+
+        if now >= univ_year.start_date:
+            return False
+
+        return True
+
 
 class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
     form = VacationForm
     list_display = ('label', 'start_date', 'end_date')
+
+    def has_delete_permission(self, request, obj=None):
+        now = datetime.now().date()
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            return True
+        univ_year = univ_years[0]
+
+        if now >= univ_year.start_date:
+            return False
+
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        now = datetime.now().date()
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            return True
+        univ_year = univ_years[0]
+
+        if now >= univ_year.start_date:
+            return False
+
+        return True
+
+
+    def has_add_permission(self, request, obj=None):
+        now = datetime.now().date()
+        univ_years = UniversityYear.objects.filter(active=True)
+        if len(univ_years) <= 0:
+            return True
+        univ_year = univ_years[0]
+
+        if now >= univ_year.start_date:
+            return False
+
+        return True
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
