@@ -477,7 +477,8 @@ class Calendar(models.Model):
         _("Semester 2 start registration date"), null=True, blank=True
     )
     registration_start_date_per_semester = models.PositiveIntegerField(
-        _("Number of authorized immersions per semester"), default=2)
+        _("Number of authorized immersions per semester"), default=2
+    )
 
     global_evaluation_date = models.DateField(
         _("Global evaluation send date"), null=True, blank=True
@@ -510,7 +511,7 @@ class HighSchool(models.Model):
         verbose_name = _('High school')
         unique_together = ('label', 'city')
 
-    choices_departments = choices_cities = ""
+    choices_departments = choices_cities = choices_zipcodes = []
 
     if settings.USE_GEOAPI:
         choices_departments = get_departments()
@@ -526,7 +527,9 @@ class HighSchool(models.Model):
     city = UpperCharField(
         _("City"), max_length=255, blank=False, null=False, choices=choices_cities
     )
-    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
+    zip_code = models.CharField(
+        _("Zip code"), max_length=128, blank=False, null=False, choices=choices_zipcodes
+    )
     phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
     email = models.EmailField(_('Email'))
@@ -595,7 +598,6 @@ class InformationText(models.Model):
         verbose_name_plural = _('Information texts')
 
 
-
 class AccompanyingDocument(models.Model):
     """
     AccompanyingDocument class
@@ -613,7 +615,7 @@ class AccompanyingDocument(models.Model):
     description = models.CharField(_("Description"), max_length=255, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
-        _("Document"), upload_to='uploads/docs/%Y', blank=False, null=False
+        _("Document"), upload_to='uploads/accompanyingdocs/%Y', blank=False, null=False
     )
 
     class Meta:
@@ -632,3 +634,33 @@ class AccompanyingDocument(models.Model):
             super(AccompanyingDocument, self).validate_unique()
         except ValidationError as e:
             raise ValidationError(_('An accompanying document with this label already exists'))
+
+
+class PublicDocument(models.Model):
+    """
+    PublicDocument class
+    """
+
+    label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    document = models.FileField(
+        _("Document"), upload_to='uploads/publicdocs/%Y', blank=False, null=False
+    )
+    published = models.BooleanField(_("Published"), default=False)
+
+    class Meta:
+        """Meta class"""
+
+        verbose_name = _('Public document')
+        verbose_name_plural = _('Public documents')
+
+    def __str__(self):
+        """str"""
+        return self.label
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(PublicDocument, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('A public document with this label already exists'))
