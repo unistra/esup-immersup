@@ -11,8 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
-from tinymce import models as tinymce_models
-# from multiselectfield import MultiSelectField
+from multiselectfield import MultiSelectField
 
 logger = logging.getLogger(__name__)
 
@@ -560,6 +559,9 @@ class Course(models.Model):
         verbose_name_plural = _('Courses')
         unique_together = ('training', 'label')
 
+
+
+
 class MailTemplate(models.Model):
     """
     Mail templates with HTML content
@@ -590,16 +592,15 @@ class MailTemplate(models.Model):
         (22, "${lienGlobal}", _("Survey link")),
         (23, "${lienValidation}", _("Validation link")),
         (24, "${listeInscrits.etablissement}", _("Subscribers establishment")),
-        (25, "${listeInscrits.nom}", _("Subsribers lastname")), # /!\
-        (26, "${listeInscrits.prenom}", _("Subsribers firstname")), # /!\
-        (27, "${lycee}", _("High school")),
-        (28, "${motifAnnulation}", _("Cancellation reason")),
-        (29, "${nom}", _("Recipient last name")),
-        (30, "${password}", _("Recipient password")),
-        (31, "${prenom}", _("Recipient fist name")),
-        (32, "${referentlycee.nom}", _("High school referent last name")),
-        (33, "${referentlycee.prenom}", _("High school referent first name")),
-        (34, "${urlPlateforme}", _("Platform link")),
+        (25, "${listeInscrits}", _("Subscribers")),
+        (26, "${lycee}", _("High school")),
+        (27, "${motifAnnulation}", _("Cancellation reason")),
+        (28, "${nom}", _("Recipient last name")),
+        (29, "${password}", _("Recipient password")),
+        (30, "${prenom}", _("Recipient fist name")),
+        (31, "${referentlycee.nom}", _("High school referent last name")),
+        (32, "${referentlycee.prenom}", _("High school referent first name")),
+        (33, "${urlPlateforme}", _("Platform link")),
     ]
 
     VARS_CHOICES = [(v[0], v[1]) for v in VARS]
@@ -608,9 +609,9 @@ class MailTemplate(models.Model):
     label = models.CharField(_("Label"), max_length=128, blank=False, null=False, unique=True)
     description = models.CharField(_("Description"), max_length=512, blank=False, null=False)
     subject = models.CharField(_("Subject"), max_length=256, blank=False, null=False)
-    body = tinymce_models.HTMLField(_("Body"), blank=False, null=False)
+    body = models.TextField(_("Body"), blank=False, null=False)
     active = models.BooleanField(_("Active"), default=True)
-    """
+
     available_vars = MultiSelectField(_("Available variables"), choices=VARS_CHOICES,
         null=True, blank=True)
-    """
+

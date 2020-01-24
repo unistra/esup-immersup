@@ -256,8 +256,7 @@ THIRD_PARTY_APPS = [
     'hijack',
     'compat',
     'hijack_admin',
-    'tinymce',
-    #'multiselectfield',
+    'multiselectfield',
 ]
 
 LOCAL_APPS = [
