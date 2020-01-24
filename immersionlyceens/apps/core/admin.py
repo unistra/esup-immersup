@@ -576,12 +576,6 @@ class InformationTextAdmin(AdminWithRequest, SummernoteModelAdmin):
                 fields.append('code')
         return fields
 
-    class Media:
-        # TODO: check why I can't use django.jquery stuff !!!!!
-        js = (
-            'js/jquery-3.4.1.slim.min.js',
-            'js/text_formation.js',
-        )
 
 admin.site = CustomAdminSite(name='Repositories')
 
