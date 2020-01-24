@@ -1,0 +1,6 @@
+{% extends "admin/delete_selected_confirmation.html" %} {% load i18n %} {% block content %}
+<p class="errornote">
+    {% trans 'Warning document(s) will be removed from public interface' %}
+</p>
+
+{{ block.super }} {% endblock %}
