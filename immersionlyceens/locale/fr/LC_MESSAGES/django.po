@@ -560,7 +560,7 @@ msgstr "Date de début des immersions du semestre 2"
 
 #: immersionlyceens/apps/core/models.py:475
 msgid "Semester 2 end date"
-msgstr "Date de début des immersions du semestre 2"
+msgstr "Date de fin des immersions du semestre 2"
 
 #: immersionlyceens/apps/core/models.py:477
 msgid "Semester 2 start registration date"
