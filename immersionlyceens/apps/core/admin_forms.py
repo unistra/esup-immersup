@@ -361,6 +361,10 @@ class UniversityYearForm(forms.ModelForm):
         if start_date and end_date:
             all_univ_year = UniversityYear.objects.exclude(label=label)
             for uy in all_univ_year:
+                if uy.active:
+                    raise forms.ValidationError(
+                        _("All university years are not purged. you can't create a new one")
+                    )
                 if uy.date_is_between(start_date):
                     raise forms.ValidationError(
                         _("University year starts inside another university year")
