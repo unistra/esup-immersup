@@ -472,11 +472,16 @@ class VacationForm(forms.ModelForm):
                 raise forms.ValidationError(_("Vacation start date must be set in the future"))
 
             all_vacations = Vacation.objects.exclude(label=label)
-            for v in all_vacations:
-                if start_date >= v.start_date or start_date <= v.end_date:
+            for vac in all_vacations:
+                if vac.date_is_between(start_date):
                     raise forms.ValidationError(_("Vacation start inside another vacation"))
-                if end_date >= v.start_date or end_date <= v.end_date:
+                if vac.date_is_between(end_date):
                     raise forms.ValidationError(_("Vacation end inside another vacation"))
+                if start_date <= vac.start_date and vac.start_date <= end_date:
+                    raise forms.ValidationError(_("A vacation exists inside this vacation"))
+                if start_date <= vac.end_date and vac.end_date <= end_date:
+                    raise forms.ValidationError(_("A vacation exists inside this vacation"))
+
         return cleaned_data
 
     class Meta:
