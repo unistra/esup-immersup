@@ -1,5 +1,4 @@
 import re
-
 from datetime import datetime
 
 from django import forms
@@ -9,11 +8,9 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
-from django_summernote.widgets import SummernoteWidget, SummernoteInplaceWidget
+from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
-
-
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, InformationText,
@@ -379,13 +376,9 @@ class UniversityYearForm(forms.ModelForm):
                         _("University year ends inside another university year")
                     )
                 if start_date <= uy.start_date <= end_date:
-                    raise forms.ValidationError(
-                        _("University year contains another")
-                    )
+                    raise forms.ValidationError(_("University year contains another"))
                 if start_date <= uy.end_date <= end_date:
-                    raise forms.ValidationError(
-                        _("University year contains another")
-                    )
+                    raise forms.ValidationError(_("University year contains another"))
 
         return cleaned_data
 
@@ -793,8 +786,9 @@ class MailTemplateForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['available_vars'].queryset = \
-            self.fields['available_vars'].queryset.order_by('code')
+        self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by(
+            'code'
+        )
 
         if not self.request.user.is_superuser:
             self.fields['available_vars'].disabled = True
@@ -816,9 +810,7 @@ class MailTemplateForm(forms.ModelForm):
             pass
 
         if not valid_user:
-            raise forms.ValidationError(
-                _("You don't have the required privileges")
-            )
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         cleaned_data["code"] = code.upper()
 
@@ -834,20 +826,24 @@ class MailTemplateForm(forms.ModelForm):
         ]
 
         if forbidden_vars_list:
-            forbidden_vars_msg = _("The message body contains forbidden variables : ") \
-                + ', '.join(forbidden_vars_list)
+            forbidden_vars_msg = _("The message body contains forbidden variables : ") + ', '.join(
+                forbidden_vars_list
+            )
 
             body_errors_list.append(self.error_class([forbidden_vars_msg]))
 
         # Check for unknown variables in body
         all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)
-        unknown_vars = [ v for v in all_vars if not
-            MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()
+        unknown_vars = [
+            v
+            for v in all_vars
+            if not MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()
         ]
 
         if unknown_vars:
-            unknown_vars_msg = _("The message body contains unknown variable(s) : ") \
-                + ', '.join(unknown_vars)
+            unknown_vars_msg = _("The message body contains unknown variable(s) : ") + ', '.join(
+                unknown_vars
+            )
             body_errors_list.append(self.error_class([unknown_vars_msg]))
 
         if body_errors_list:
@@ -859,7 +855,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body' : SummernoteWidget(),
+            'body': SummernoteWidget(),
         }
 
 
@@ -867,6 +863,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
     """
     Accompanying document form class
     """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -876,10 +873,12 @@ class AccompanyingDocumentForm(forms.ModelForm):
         content_type = document.content_type.split('/')[1]
         if content_type in settings.CONTENT_TYPES:
             if document.size > int(settings.MAX_UPLOAD_SIZE):
-                maxupload = filesizeformat(settings.MAX_UPLOAD_SIZE)
-                current_size = filesizeformat(document.size)
                 raise forms.ValidationError(
-                    _(F'Please keep filesize under {maxupload}. Current filesize {current_size}')
+                    _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s')
+                    % {
+                        'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                        'current_size': filesizeformat(document.size),
+                    }
                 )
         else:
             raise forms.ValidationError(_('File type is not allowed'))
@@ -934,11 +933,10 @@ class PublicDocumentForm(forms.ModelForm):
         content_type = document.content_type.split('/')[1]
         if content_type in settings.CONTENT_TYPES:
             if document.size > int(settings.MAX_UPLOAD_SIZE):
-                maxupload = filesizeformat(settings.MAX_UPLOAD_SIZE)
-                current_size = filesizeformat(document.size)
-                raise forms.ValidationError(
-                    _(F'Please keep filesize under {maxupload}. Current filesize {current_size}')
-                )
+                _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
+                    'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                    'current_size': filesizeformat(document.size),
+                }
         else:
             raise forms.ValidationError(_('File type is not allowed'))
         return document
@@ -956,7 +954,6 @@ class PublicDocumentForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        # TODO: should we use only pdfs ?
         return cleaned_data
 
     class Meta:

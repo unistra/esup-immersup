@@ -492,7 +492,6 @@ class AdminFormsTestCase(TestCase):
             'active': True,
         }
 
-
         request.user = self.scuio_user
 
         form = AccompanyingDocumentForm(data=data, files=file, request=request)

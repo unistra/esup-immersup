@@ -10,7 +10,6 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
-
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
     CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
@@ -21,8 +20,8 @@ from .admin_forms import (
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
     Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
-    InformationText, MailTemplate, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    InformationText, MailTemplate, PublicDocument, PublicType, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -98,17 +97,13 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
     filter_horizontal = ('components', 'groups', 'user_permissions')
 
-    add_fieldsets = ((None, {
-        'classes': ('wide',),
-        'fields': (
-            'username',
-            'password1',
-            'password2',
-            'email',
-            'first_name',
-            'last_name',
-        )},
-    ))
+    add_fieldsets = (
+        None,
+        {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2', 'email', 'first_name', 'last_name',),
+        },
+    )
 
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
@@ -225,9 +220,13 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and TrainingSubdomain.objects.filter(training_domain=obj).exists():
-            messages.warning(request, _(
-                """This training domain can't be deleted """
-                """because it is used by training subdomains"""))
+            messages.warning(
+                request,
+                _(
+                    """This training domain can't be deleted """
+                    """because it is used by training subdomains"""
+                ),
+            )
             return False
 
         return True
@@ -258,9 +257,13 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():
-            messages.warning(request, _(
-                """This training subdomain can't be deleted """
-                """because it is used by a training"""))
+            messages.warning(
+                request,
+                _(
+                    """This training subdomain can't be deleted """
+                    """because it is used by a training"""
+                ),
+            )
             return False
 
         return True
@@ -288,8 +291,8 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Building.objects.filter(campus=obj).exists():
-            messages.warning(request, _(
-                "This campus can't be deleted because it is used by a building")
+            messages.warning(
+                request, _("This campus can't be deleted because it is used by a building")
             )
             return False
 
@@ -343,8 +346,8 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(components=obj).exists():
-            messages.warning(request, _(
-                "This component can't be deleted because it is used by a training")
+            messages.warning(
+                request, _("This component can't be deleted because it is used by a training")
             )
             return False
 
@@ -364,8 +367,8 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Course.objects.filter(training=obj).exists():
-            messages.warning( request, _(
-                "This training can't be deleted because it is used by some courses"),
+            messages.warning(
+                request, _("This training can't be deleted because it is used by some courses"),
             )
             return False
 
@@ -423,14 +426,22 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj:
             if obj.start_date <= datetime.today().date():
-                messages.warning(request, _(
-                    """This university year can't be deleted """
-                    """because university year has already started"""))
+                messages.warning(
+                    request,
+                    _(
+                        """This university year can't be deleted """
+                        """because university year has already started"""
+                    ),
+                )
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _(
-                    """This university year can't be deleted """
-                    """because a purge date is defined"""))
+                messages.warning(
+                    request,
+                    _(
+                        """This university year can't be deleted """
+                        """because a purge date is defined"""
+                    ),
+                )
                 return False
 
         return True
@@ -568,13 +579,17 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj:
             if obj.start_date <= datetime.today().date():
-                messages.warning(request, _(
-                    """This component can't be deleted """
-                    """because university year has already started"""))
+                messages.warning(
+                    request,
+                    _(
+                        """This component can't be deleted """
+                        """because university year has already started"""
+                    ),
+                )
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _(
-                    "This component can't be deleted because a purge date is defined")
+                messages.warning(
+                    request, _("This component can't be deleted because a purge date is defined")
                 )
                 return False
 
@@ -587,24 +602,22 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
     fieldsets = (
         (None, {'fields': ('label', 'calendar_mode', 'global_evaluation_date')}),
-        (_('Year mode'), {'fields': (
-            'year_registration_start_date',
-            'year_start_date',
-            'year_end_date',
-        )}),
-        (_('Semester mode'), {'fields': (
-            'registration_start_date_per_semester',
-            'semester1_registration_start_date',
-            'semester2_registration_start_date',
-        )}),
-        (_('Semester 1'), {'fields': (
-            'semester1_start_date',
-            'semester1_end_date',
-        )}),
-        (_('Semester 2'), {'fields': (
-            'semester2_start_date',
-            'semester2_end_date',
-        )}),
+        (
+            _('Year mode'),
+            {'fields': ('year_registration_start_date', 'year_start_date', 'year_end_date',)},
+        ),
+        (
+            _('Semester mode'),
+            {
+                'fields': (
+                    'registration_start_date_per_semester',
+                    'semester1_registration_start_date',
+                    'semester2_registration_start_date',
+                )
+            },
+        ),
+        (_('Semester 1'), {'fields': ('semester1_start_date', 'semester1_end_date',)}),
+        (_('Semester 2'), {'fields': ('semester2_start_date', 'semester2_end_date',)}),
     )
 
     def get_readonly_fields(self, request, obj=None):
@@ -685,7 +698,6 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         # TODO: maybe only use model groups rights !!!
         return request.user.is_superuser
 
-
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
         if settings.USE_GEOAPI:
@@ -748,9 +760,8 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
     list_display = ('code', 'label')
-    filter_horizontal = ('available_vars', )
-
-    summernote_fields = ('body', )
+    filter_horizontal = ('available_vars',)
+    summernote_fields = ('body',)
 
     def has_delete_permission(self, request, obj=None):
         # Only a superuser can delete a template
@@ -759,7 +770,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     class Media:
         css = {'all': ('css/immersionlyceens.css',)}
 
-      
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
