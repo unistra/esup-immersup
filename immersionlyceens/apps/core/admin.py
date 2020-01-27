@@ -624,6 +624,27 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CalendarForm
     list_display = ('label',)
     search_fields = ('label',)
+    fieldsets = (
+        (None, {'fields': ('label', 'calendar_mode', 'global_evaluation_date')}),
+        (_('Year mode'), {'fields': (
+            'year_registration_start_date',
+            'year_start_date',
+            'year_end_date',
+        )}),
+        (_('Semester mode'), {'fields': (
+            'registration_start_date_per_semester',
+            'semester1_registration_start_date',
+            'semester2_registration_start_date',
+        )}),
+        (_('Semester 1'), {'fields': (
+            'semester1_start_date',
+            'semester1_end_date',
+        )}),
+        (_('Semester 2'), {'fields': (
+            'semester2_start_date',
+            'semester2_end_date',
+        )}),
+    )
 
     def get_readonly_fields(self, request, obj=None):
         fields = []
