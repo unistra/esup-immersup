@@ -40,14 +40,6 @@ input[type=number]::-webkit-outer-spin-button {
    width: 100%;
 }
 
-.input-iban {
-   width: 55px;
-}
-
-.input-iban-key {
-   width: 40px;
-}
-
 .glyphicon-margin-left {
    margin-left: 20px;
 }
