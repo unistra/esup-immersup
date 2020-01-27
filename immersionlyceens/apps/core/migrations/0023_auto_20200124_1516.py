@@ -22,10 +22,6 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Template variables',
             },
         ),
-        migrations.RemoveField(
-            model_name='mailtemplate',
-            name='available_vars',
-        ),
         migrations.AddField(
             model_name='mailtemplate',
             name='available_vars',

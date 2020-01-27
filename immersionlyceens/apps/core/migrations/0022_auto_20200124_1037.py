@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import multiselectfield.db.fields
 
 
 class Migration(migrations.Migration):
@@ -22,7 +21,6 @@ class Migration(migrations.Migration):
                 ('subject', models.CharField(max_length=256, verbose_name='Subject')),
                 ('body', models.TextField(verbose_name='Body')),
                 ('active', models.BooleanField(default=True, verbose_name='Active')),
-                ('available_vars', multiselectfield.db.fields.MultiSelectField(blank=True, choices=[(1, '${annee}'), (2, '${cours.libelle}'), (3, '${cours.nbplaceslibre}'), (4, '${creneau.batiment}'), (5, '${creneau.campus}'), (6, '${creneau.composante}'), (7, '${creneau.cours}'), (8, '${creneau.date}'), (9, '${creneau.enseignants}'), (10, '${creneau.formation}'), (11, '${creneau.heuredebut}'), (12, '${creneau.heurefin}'), (13, '${creneau.info}'), (14, '${creneau.salle}'), (15, '${creneau.type}'), (16, '${ens.nom}'), (17, '${ens.prenom}'), (18, '${identifiant}'), (19, '${intituleLycee}'), (20, '${jourDestructionCptMin}'), (21, '${lienCreneau}'), (22, '${lienGlobal}'), (23, '${lienValidation}'), (24, '${listeInscrits.etablissement}'), (25, '${listeInscrits}'), (26, '${lycee}'), (27, '${motifAnnulation}'), (28, '${nom}'), (29, '${password}'), (30, '${prenom}'), (31, '${referentlycee.nom}'), (32, '${referentlycee.prenom}'), (33, '${urlPlateforme}')], max_length=89, null=True, verbose_name='Available variables')),
             ],
         ),
         migrations.AlterField(
