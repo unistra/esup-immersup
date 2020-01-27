@@ -876,9 +876,10 @@ class AccompanyingDocumentForm(forms.ModelForm):
         content_type = document.content_type.split('/')[1]
         if content_type in settings.CONTENT_TYPES:
             if document.size > int(settings.MAX_UPLOAD_SIZE):
+                maxupload = filesizeformat(settings.MAX_UPLOAD_SIZE)
+                current_size = filesizeformat(document.size)
                 raise forms.ValidationError(
-                    _('Please keep filesize under %s. Current filesize %s')
-                    % (filesizeformat(settings.MAX_UPLOAD_SIZE), filesizeformat(document.size))
+                    _(F'Please keep filesize under {maxupload}. Current filesize {current_size}')
                 )
         else:
             raise forms.ValidationError(_('File type is not allowed'))
@@ -933,9 +934,10 @@ class PublicDocumentForm(forms.ModelForm):
         content_type = document.content_type.split('/')[1]
         if content_type in settings.CONTENT_TYPES:
             if document.size > int(settings.MAX_UPLOAD_SIZE):
+                maxupload = filesizeformat(settings.MAX_UPLOAD_SIZE)
+                current_size = filesizeformat(document.size)
                 raise forms.ValidationError(
-                    _('Please keep filesize under %s. Current filesize %s')
-                    % (filesizeformat(settings.MAX_UPLOAD_SIZE), filesizeformat(document.size))
+                    _(F'Please keep filesize under {maxupload}. Current filesize {current_size}')
                 )
         else:
             raise forms.ValidationError(_('File type is not allowed'))
