@@ -1,3 +1,5 @@
+import re
+
 from datetime import datetime
 
 from django import forms
@@ -14,8 +16,8 @@ from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, MailTemplate,
-    PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    InformationText
+    PublicType, MailTemplateVars, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation, InformationText
 )
 
 
@@ -723,10 +725,14 @@ class MailTemplateForm(forms.ModelForm):
 
         if not self.request.user.is_superuser:
             self.fields['available_vars'].disabled = True
+            self.fields['label'].disabled = True
+            self.fields['code'].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
         code = cleaned_data.get("code", '')
+        body = cleaned_data.get("body", '')
+        available_vars = cleaned_data.get("available_vars", '')
 
         valid_user = False
 
@@ -742,6 +748,37 @@ class MailTemplateForm(forms.ModelForm):
             )
 
         cleaned_data["code"] = code.upper()
+
+        body_errors_list = []
+
+        # Check variables and raise an error if forbidden ones are found
+        forbidden_vars = MailTemplateVars.objects.exclude(
+            code__in=[v.code for v in available_vars]
+        )
+
+        forbidden_vars_list = [
+            f_var.code for f_var in forbidden_vars if f_var.code.lower() in body.lower()
+        ]
+
+        if forbidden_vars_list:
+            forbidden_vars_msg = _("The message body contains forbidden variables : ") \
+                + ', '.join(forbidden_vars_list)
+
+            body_errors_list.append(self.error_class([forbidden_vars_msg]))
+
+        # Check for unknown variables in body
+        all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)
+        unknown_vars = [ v for v in all_vars if not
+            MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()
+        ]
+
+        if unknown_vars:
+            unknown_vars_msg = _("The message body contains unknown variable(s) : ") \
+                + ', '.join(unknown_vars)
+            body_errors_list.append(self.error_class([unknown_vars_msg]))
+
+        if body_errors_list:
+            raise forms.ValidationError(body_errors_list)
 
         return cleaned_data
 
