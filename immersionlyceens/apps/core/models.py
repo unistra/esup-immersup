@@ -394,6 +394,9 @@ class UniversityYear(models.Model):
             self.active = True
         super(UniversityYear, self).save(*args, **kwargs)
 
+    def date_is_between(self, _date):
+        return self.start_date <= _date and _date <= self.end_date
+
 
 class Holiday(models.Model):
     """University year"""
@@ -443,6 +446,8 @@ class Vacation(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A vacation with this label already exists'))
 
+    def date_is_between(self, _date):
+        return self.start_date <= _date and _date <= self.end_date
 
 class Calendar(models.Model):
     """University year"""
@@ -500,6 +505,12 @@ class Calendar(models.Model):
             super(Calendar, self).validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A calendar with this label already exists'))
+
+    def date_is_between(self, _date):
+        if self.calendar_mode == 'YEAR':
+            return self.year_start_date <= _date and _date <= self.year_end_date
+        else:
+            return self.semester1_start_date <= _date and _date <= self.semester2_end_date
 
 
 class HighSchool(models.Model):
