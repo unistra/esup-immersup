@@ -361,13 +361,21 @@ class UniversityYearForm(forms.ModelForm):
         if start_date and end_date:
             all_univ_year = UniversityYear.objects.exclude(label=label)
             for uy in all_univ_year:
-                if start_date >= uy.start_date or start_date <= uy.end_date:
+                if uy.date_is_between(start_date):
                     raise forms.ValidationError(
                         _("University year starts inside another university year")
                     )
-                if end_date >= uy.start_date or end_date <= uy.end_date:
+                if uy.date_is_between(end_date):
                     raise forms.ValidationError(
                         _("University year ends inside another university year")
+                    )
+                if start_date <= uy.start_date <= end_date:
+                    raise forms.ValidationError(
+                        _("University year contains another")
+                    )
+                if start_date <= uy.end_date <= end_date:
+                    raise forms.ValidationError(
+                        _("University year contains another")
                     )
 
         return cleaned_data
