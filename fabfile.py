@@ -13,14 +13,15 @@ from fabric.api import env, execute, roles, task
 env.remote_owner = 'django'  # remote server user
 env.remote_group = 'di'  # remote server group
 
-env.application_name = 'immersionlyceens'   # name of webapp
+env.application_name = 'immersionlyceens'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
 env.remote_python_version = '3.6'  # python version
 env.remote_virtualenv_root = join(env.remote_home, '.virtualenvs')  # venv root
-env.remote_virtualenv_dir = join(env.remote_virtualenv_root,
-                                 env.application_name)  # venv for webapp dir
+env.remote_virtualenv_dir = join(
+    env.remote_virtualenv_root, env.application_name
+)  # venv for webapp dir
 # git repository url
 env.remote_repo_url = 'git@git.unistra.fr:di/immersionlyceens.git'
 env.local_tmp_dir = '/tmp'  # tmp dir
@@ -37,7 +38,7 @@ env.verbose_output = False  # True for verbose output
 # env.dest_path = '' # if not set using env_local_tmp_dir
 # env.excluded_files = ['pron.jpg'] # file(s) that rsync should exclude when deploying app
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
-env.extra_pkg_to_install = ['python3.6-dev'] # extra debian/ubuntu package(s) to install on remote
+env.extra_pkg_to_install = ['python3.6-dev']  # extra debian/ubuntu package(s) to install on remote
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
 # env.verbose = True # verbose display for pydiploy default value = True
@@ -131,19 +132,20 @@ def test():
 def preprod():
     """Define preprod stage"""
     env.roledefs = {
-        'web': ['immersionlyceens-pprd.net'],
-        'lb': ['lb.immersionlyceens-pprd.net'],
+        'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
+        'lb': ['django-rp-pprd.di.unistra.fr'],
     }
+
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
-    env.server_name = 'immersionlyceens-pprd.net'
-    env.short_server_name = 'immersionlyceens-pprd'
+    env.server_name = 'immersion-pprd.unistra.fr'
+    env.short_server_name = 'immersion-pprd'
     env.static_folder = '/site_media/'
-    env.server_ip = ''
+    env.server_ip = '130.79.254.50'
     env.no_shared_sessions = False
     env.server_ssl_on = True
-    env.path_to_cert = '/etc/ssl/certs/immersionlyceens.net.pem'
-    env.path_to_cert_key = '/etc/ssl/private/immersionlyceens.net.key'
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'preprod'
     env.socket_port = ''
     env.map_settings = {
@@ -171,10 +173,7 @@ def preprod():
 @task
 def prod():
     """Define prod stage"""
-    env.roledefs = {
-        'web': ['immersionlyceens.net'],
-        'lb': ['lb.immersionlyceens.net']
-    }
+    env.roledefs = {'web': ['immersionlyceens.net'], 'lb': ['lb.immersionlyceens.net']}
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
     env.server_name = 'immersionlyceens.net'
@@ -207,6 +206,7 @@ def prod():
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
     }
     execute(build_env)
+
 
 # dont touch after that point if you don't know what you are doing !
 
@@ -296,8 +296,7 @@ def post_install_frontend():
 @task
 def install_postgres(user=None, dbname=None, password=None):
     """Install Postgres on remote"""
-    execute(pydiploy.django.install_postgres_server,
-            user=user, dbname=dbname, password=password)
+    execute(pydiploy.django.install_postgres_server, user=user, dbname=dbname, password=password)
 
 
 @task
