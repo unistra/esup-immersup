@@ -483,7 +483,7 @@ class AdminFormsTestCase(TestCase):
         public_type_data = {'label': 'testPublicType', 'active': True}
         public_type = PublicType.objects.create(**public_type_data)
 
-        file = {'document': SimpleUploadedFile("testpron.jpg", b"toto")}
+        file = {'document': SimpleUploadedFile("testpron.pdf", b"toto")}
 
         data = {
             'label': 'testDocument',
