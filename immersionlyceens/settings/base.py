@@ -336,7 +336,17 @@ HIJACK_USE_BOOTSTRAP = True
 # Where admins are redirected to after hijacking a user
 HIJACK_LOGIN_REDIRECT_URL = '/'
 # Where admins are redirected to after releasing a user
-HIJACK_LOGOUT_REDIRECT_URL = '/'
+HIJACK_LOGOUT_REDIRECT_URL = '/'  # Add to your settings file
+CONTENT_TYPES = ['image', 'video']
+# 2.5MB - 2621440
+# 5MB - 5242880
+# 10MB - 10485760
+# 20MB - 20971520
+# 50MB - 5242880
+# 100MB - 104857600
+# 250MB - 214958080
+# 500MB - 429916160
+MAX_UPLOAD_SIZE = "5242880"
 HIJACK_ALLOW_GET_REQUESTS = True
 HIJACK_REGISTER_ADMIN = False
 
@@ -411,3 +421,24 @@ HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP',]}
 
 USE_GEOAPI = True
 GEOAPI_BASE_URL = "https://geo.api.gouv.fr"
+
+
+####################
+# Uploads settings #
+####################
+
+# Type of docs
+CONTENT_TYPES = ['doc', 'pdf', 'xls', 'ods', 'odt']
+
+# Max size
+# 20mo for now !!!
+MAX_UPLOAD_SIZE = "20971520"
+# Values :
+# 2.5MB - 2621440
+# 5MB - 5242880
+# 10MB - 10485760
+# 20MB - 20971520
+# 50MB - 5242880
+# 100MB - 104857600
+# 250MB - 214958080
+# 500MB - 429916160

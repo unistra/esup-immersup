@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
@@ -416,9 +417,7 @@ class HolidayForm(forms.ModelForm):
         all_holidays = Holiday.objects.exclude(label=label)
         for hol in all_holidays:
             if _date == hol.date:
-                raise forms.ValidationError(
-                    _("Holiday date already exists in other holiday")
-                )
+                raise forms.ValidationError(_("Holiday date already exists in other holiday"))
 
         return cleaned_data
 
@@ -470,20 +469,14 @@ class VacationForm(forms.ModelForm):
                     _("Vacation end date must set between university year dates")
                 )
             if start_date < now:
-                raise forms.ValidationError(
-                    _("Vacation start date must be set in the future")
-                )
+                raise forms.ValidationError(_("Vacation start date must be set in the future"))
 
             all_vacations = Vacation.objects.exclude(label=label)
             for v in all_vacations:
                 if start_date >= v.start_date or start_date <= v.end_date:
-                    raise forms.ValidationError(
-                        _("Vacation start inside another vacation")
-                    )
+                    raise forms.ValidationError(_("Vacation start inside another vacation"))
                 if end_date >= v.start_date or end_date <= v.end_date:
-                    raise forms.ValidationError(
-                        _("Vacation end inside another vacation")
-                    )
+                    raise forms.ValidationError(_("Vacation end inside another vacation"))
         return cleaned_data
 
     class Meta:
@@ -783,6 +776,19 @@ class AccompanyingDocumentForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+    def clean_document(self):
+        document = self.cleaned_data['document']
+        content_type = document.content_type.split('/')[1]
+        if content_type in settings.CONTENT_TYPES:
+            if document.size > int(settings.MAX_UPLOAD_SIZE):
+                raise forms.ValidationError(
+                    _('Please keep filesize under %s. Current filesize %s')
+                    % (filesizeformat(settings.MAX_UPLOAD_SIZE), filesizeformat(document.size))
+                )
+        else:
+            raise forms.ValidationError(_('File type is not allowed'))
+        return document
+
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
@@ -796,7 +802,6 @@ class AccompanyingDocumentForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
-        # TODO: should we use only pdfs ?
         return cleaned_data
 
     class Meta:
@@ -826,6 +831,19 @@ class PublicDocumentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+    def clean_document(self):
+        document = self.cleaned_data['document']
+        content_type = document.content_type.split('/')[1]
+        if content_type in settings.CONTENT_TYPES:
+            if document.size > int(settings.MAX_UPLOAD_SIZE):
+                raise forms.ValidationError(
+                    _('Please keep filesize under %s. Current filesize %s')
+                    % (filesizeformat(settings.MAX_UPLOAD_SIZE), filesizeformat(document.size))
+                )
+        else:
+            raise forms.ValidationError(_('File type is not allowed'))
+        return document
 
     def clean(self):
         cleaned_data = super().clean()
