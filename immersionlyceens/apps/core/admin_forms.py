@@ -1,3 +1,5 @@
+import re
+
 from datetime import datetime
 
 from django import forms
@@ -7,13 +9,16 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
+from django_summernote.widgets import SummernoteWidget, SummernoteInplaceWidget
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
+
+
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
     CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, InformationText,
-    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -655,10 +660,9 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
-            if self.fields.get("is_staff"):
-                self.fields["is_staff"].disabled = True
-            if self.fields.get("is_superuser"):
-                self.fields["is_superuser"].disabled = True
+            self.fields["is_staff"].disabled = True
+            self.fields["is_superuser"].disabled = True
+            self.fields["username"].disabled = True
 
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
@@ -784,11 +788,85 @@ class HighSchoolForm(forms.ModelForm):
         fields = '__all__'
 
 
+class MailTemplateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        self.fields['available_vars'].queryset = \
+            self.fields['available_vars'].queryset.order_by('code')
+
+        if not self.request.user.is_superuser:
+            self.fields['available_vars'].disabled = True
+            self.fields['label'].disabled = True
+            self.fields['code'].disabled = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        code = cleaned_data.get("code", '')
+        body = cleaned_data.get("body", '')
+        available_vars = cleaned_data.get("available_vars", '')
+
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(
+                _("You don't have the required privileges")
+            )
+
+        cleaned_data["code"] = code.upper()
+
+        body_errors_list = []
+
+        # Check variables and raise an error if forbidden ones are found
+        forbidden_vars = MailTemplateVars.objects.exclude(
+            code__in=[v.code for v in available_vars]
+        )
+
+        forbidden_vars_list = [
+            f_var.code for f_var in forbidden_vars if f_var.code.lower() in body.lower()
+        ]
+
+        if forbidden_vars_list:
+            forbidden_vars_msg = _("The message body contains forbidden variables : ") \
+                + ', '.join(forbidden_vars_list)
+
+            body_errors_list.append(self.error_class([forbidden_vars_msg]))
+
+        # Check for unknown variables in body
+        all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)
+        unknown_vars = [ v for v in all_vars if not
+            MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()
+        ]
+
+        if unknown_vars:
+            unknown_vars_msg = _("The message body contains unknown variable(s) : ") \
+                + ', '.join(unknown_vars)
+            body_errors_list.append(self.error_class([unknown_vars_msg]))
+
+        if body_errors_list:
+            raise forms.ValidationError(body_errors_list)
+
+        return cleaned_data
+
+    class Meta:
+        model = MailTemplate
+        fields = '__all__'
+        widgets = {
+            'body' : SummernoteWidget(),
+        }
+
+
 class AccompanyingDocumentForm(forms.ModelForm):
     """
     Accompanying document form class
     """
-
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -808,6 +886,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+
         valid_user = False
 
         try:

@@ -391,25 +391,11 @@ LDAP_API_FIRSTNAME_ATTR = ''
 ADMIN_APPS_ORDER = ['auth', 'core']
 
 ADMIN_MODELS_ORDER = {
-    'core': [
-        'ImmersionUser',
-        'UniversityYear',
-        'HighSchool',
-        'GeneralBachelorTeaching',
-        'BachelorMention',
-        'Campus',
-        'Building',
-        'Component',
-        'TrainingDomain',
-        'TrainingSubdomain',
-        'Training',
-        'CourseType',
-        'PublicType',
-        'CancelType',
-        'Holiday',
-        'Vacation',
-        'Calendar',
-    ]
+    'core' : ['ImmersionUser', 'UniversityYear', 'HighSchool',
+        'GeneralBachelorTeaching', 'BachelorMention', 'Campus',
+        'Building', 'Component', 'TrainingDomain', 'TrainingSubdomain',
+        'Training', 'CourseType', 'PublicType', 'CancelType', 'Holiday',
+        'Vacation', 'Calendar', 'MailTemplate']
 }
 
 # Define groups rights on others here ?

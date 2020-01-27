@@ -6,8 +6,6 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.html import format_html
-from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.fields import UpperCharField
@@ -596,6 +594,41 @@ class Course(models.Model):
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
         unique_together = ('training', 'label')
+
+
+class MailTemplateVars(models.Model):
+    code = models.CharField(_("Code"), max_length=64, blank=False, null=False, unique=True)
+    description = models.CharField(_("Description"), max_length=128, blank=False, null=False, unique=True)
+
+    def __str__(self):
+        return "%s : %s" % (self.code, self.description)
+
+    class Meta:
+        verbose_name = _('Template variable')
+        verbose_name_plural = _('Template variables')
+
+
+class MailTemplate(models.Model):
+    """
+    Mail templates with HTML content
+    """
+    code = models.CharField(_("Code"), max_length=128, blank=False, null=False, unique=True)
+    label = models.CharField(_("Label"), max_length=128, blank=False, null=False, unique=True)
+    description = models.CharField(_("Description"), max_length=512, blank=False, null=False)
+    subject = models.CharField(_("Subject"), max_length=256, blank=False, null=False)
+    body = models.TextField(_("Body"), blank=False, null=False)
+    active = models.BooleanField(_("Active"), default=True)
+
+    available_vars = models.ManyToManyField(MailTemplateVars, related_name='mail_templates',
+        verbose_name=_("Available variables"), blank=False
+    )
+
+    def __str__(self):
+        return "%s : %s" % (self.code, self.label)
+
+    class Meta:
+        verbose_name = _('Mail template')
+        verbose_name_plural = _('Mail templates')
 
 
 class InformationText(models.Model):
