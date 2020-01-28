@@ -447,6 +447,7 @@ class Vacation(models.Model):
     def date_is_between(self, _date):
         return self.start_date <= _date and _date <= self.end_date
 
+
 class Calendar(models.Model):
     """University year"""
 
@@ -598,7 +599,9 @@ class Course(models.Model):
 
 class MailTemplateVars(models.Model):
     code = models.CharField(_("Code"), max_length=64, blank=False, null=False, unique=True)
-    description = models.CharField(_("Description"), max_length=128, blank=False, null=False, unique=True)
+    description = models.CharField(
+        _("Description"), max_length=128, blank=False, null=False, unique=True
+    )
 
     def __str__(self):
         return "%s : %s" % (self.code, self.description)
@@ -612,6 +615,7 @@ class MailTemplate(models.Model):
     """
     Mail templates with HTML content
     """
+
     code = models.CharField(_("Code"), max_length=128, blank=False, null=False, unique=True)
     label = models.CharField(_("Label"), max_length=128, blank=False, null=False, unique=True)
     description = models.CharField(_("Description"), max_length=512, blank=False, null=False)
@@ -619,8 +623,11 @@ class MailTemplate(models.Model):
     body = models.TextField(_("Body"), blank=False, null=False)
     active = models.BooleanField(_("Active"), default=True)
 
-    available_vars = models.ManyToManyField(MailTemplateVars, related_name='mail_templates',
-        verbose_name=_("Available variables"), blank=False
+    available_vars = models.ManyToManyField(
+        MailTemplateVars,
+        related_name='mail_templates',
+        verbose_name=_("Available variables"),
+        blank=False,
     )
 
     def __str__(self):
@@ -633,13 +640,25 @@ class MailTemplate(models.Model):
 
 class InformationText(models.Model):
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-    code = models.CharField(_("Code"), max_length=64, blank=False, null=False)
+    code = models.CharField(
+        _("Code"),
+        max_length=64,
+        help_text=_('civility last name first name'),
+        blank=False,
+        null=False,
+    )
     content = models.TextField(_('Content'), max_length=2000, blank=False, null=False)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
         verbose_name = _('Information text')
         verbose_name_plural = _('Information texts')
+
+
+class CustomDeleteManager(models.Manager):
+    def delete(self):
+        for obj in self.get_queryset():
+            obj.delete()
 
 
 class AccompanyingDocument(models.Model):
@@ -659,8 +678,14 @@ class AccompanyingDocument(models.Model):
     description = models.CharField(_("Description"), max_length=255, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
-        _("Document"), upload_to='uploads/accompanyingdocs/%Y', blank=False, null=False
+        _("Document"),
+        upload_to='uploads/accompanyingdocs/%Y',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
     )
+
+    objects = CustomDeleteManager()
 
     class Meta:
         """Meta class"""
@@ -679,6 +704,11 @@ class AccompanyingDocument(models.Model):
         except ValidationError as e:
             raise ValidationError(_('An accompanying document with this label already exists'))
 
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from document Filefield"""
+        self.document.storage.delete(self.document.name)
+        super().delete()
+
 
 class PublicDocument(models.Model):
     """
@@ -688,9 +718,15 @@ class PublicDocument(models.Model):
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
-        _("Document"), upload_to='uploads/publicdocs/%Y', blank=False, null=False
+        _("Document"),
+        upload_to='uploads/publicdocs/%Y',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
     )
     published = models.BooleanField(_("Published"), default=False)
+
+    objects = CustomDeleteManager()
 
     class Meta:
         """Meta class"""
@@ -708,3 +744,8 @@ class PublicDocument(models.Model):
             super(PublicDocument, self).validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A public document with this label already exists'))
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from document Filefield"""
+        self.document.storage.delete(self.document.name)
+        super().delete()

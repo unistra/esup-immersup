@@ -2,16 +2,17 @@ import datetime
 
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import (BachelorMention, Building, Campus, CancelType,
-                      CourseType, PublicType, UniversityYear,
-                      Holiday, Vacation, Calendar)
+from ..models import (
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CourseType,
+    Holiday, PublicDocument, PublicType, UniversityYear, Vacation,
+)
 
 
 class CampusTestCase(TestCase):
-
     def test_campus_str(self):
         test_campus = Campus.objects.create(label='MyCampus')
         self.assertEqual(str(test_campus), 'MyCampus')
@@ -27,7 +28,6 @@ class CampusTestCase(TestCase):
 
 
 class BachelorMentionTestCase(TestCase):
-
     def test_bachelor_mention_str(self):
         label = "Techo parade"
         o = BachelorMention.objects.create(label=label)
@@ -39,7 +39,6 @@ class BachelorMentionTestCase(TestCase):
 
 
 class CancelTypeTestCase(TestCase):
-
     def test_cancel_type_str(self):
         label = "Cancel type"
         o = CancelType.objects.create(label=label)
@@ -51,7 +50,6 @@ class CancelTypeTestCase(TestCase):
 
 
 class CourseTypeTestCase(TestCase):
-
     def test_course_type_str(self):
         label = "course type"
         o = CourseType.objects.create(label=label)
@@ -63,7 +61,6 @@ class CourseTypeTestCase(TestCase):
 
 
 class PublicTypeTestCase(TestCase):
-
     def test_public_type_str(self):
         label = "PublicType"
         o = PublicType.objects.create(label=label)
@@ -75,7 +72,6 @@ class PublicTypeTestCase(TestCase):
 
 
 class UniversityYearTestCase(TestCase):
-
     def test_public_type_str(self):
         label = "UniversityYear"
         o = UniversityYear.objects.create(
@@ -133,18 +129,13 @@ class UniversityYearTestCase(TestCase):
 
 
 class TestHolidayCase(TestCase):
-
     def test_holiday_str(self):
         label = "Holiday"
-        o = Holiday.objects.create(
-            label=label,
-            date=datetime.datetime.today().date(),
-        )
+        o = Holiday.objects.create(label=label, date=datetime.datetime.today().date(),)
         self.assertEqual(str(o), label)
 
 
 class TestVacationCase(TestCase):
-
     def test_vacation_str(self):
         label = "Vacation"
         o = Vacation.objects.create(
@@ -179,15 +170,15 @@ class TestVacationCase(TestCase):
 
 
 class TestCalendarCase(TestCase):
-
     def test_calendar_str(self):
         label = "Calendar"
         o = Calendar.objects.create(
             label=label,
             year_start_date=datetime.datetime.today().date(),
             year_end_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
-            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            year_nb_authorized_immersion=4
+            year_registration_start_date=datetime.datetime.today().date()
+            + datetime.timedelta(days=1),
+            year_nb_authorized_immersion=4,
         )
 
         self.assertEqual(str(o), label)
@@ -216,3 +207,39 @@ class TestCalendarCase(TestCase):
 
         # start < end < date
         self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
+
+
+class TestAccompanyingDocumentCase(TestCase):
+    def test_accompanying_document_str(self):
+        label = "testDocument"
+
+        public_type_data = {'label': 'testPublicType', 'active': True}
+        public_type = PublicType.objects.create(**public_type_data)
+
+        data = {
+            'label': label,
+            'public_type': public_type,
+            'description': 'testDescription',
+            'active': True,
+            'document': SimpleUploadedFile(
+                "testpron.pdf", b"toto", content_type="application/pdf"
+            ),
+        }
+        o = AccompanyingDocument.objects.create(**data)
+        self.assertEqual(str(o), label)
+
+
+class TestPublicDocumentCase(TestCase):
+    def test_public_document_str(self):
+        label = "testDocument"
+
+        data = {
+            'label': label,
+            'active': True,
+            'document': SimpleUploadedFile(
+                "testpron.pdf", b"toto", content_type="application/pdf"
+            ),
+            'published': False,
+        }
+        o = PublicDocument.objects.create(**data)
+        self.assertEqual(str(o), label)
