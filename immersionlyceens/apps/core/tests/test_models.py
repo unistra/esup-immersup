@@ -108,6 +108,29 @@ class UniversityYearTestCase(TestCase):
         o2.save()
         self.assertTrue(o2.active)
 
+    def test_university_year__date_is_between(self):
+        now = datetime.datetime.today().date()
+        o = UniversityYear.objects.create(
+            label='UniversityYear',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=3),
+            registration_start_date=datetime.datetime.today().date(),
+        )
+
+        # inside
+        # start < date < end
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=2)))
+        # start = date
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=1)))
+        # end = date
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=3)))
+
+        # date < start < end
+        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=-99)))
+
+        # start < end < date
+        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
+
 
 class TestHolidayCase(TestCase):
 
@@ -131,6 +154,29 @@ class TestVacationCase(TestCase):
         )
         self.assertEqual(str(o), label)
 
+    def test_vacation__date_is_between(self):
+        now = datetime.datetime.today().date()
+        o = Vacation.objects.create(
+            label="Vacation",
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=3),
+        )
+
+        # inside
+        # start < date < end
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=2)))
+        # start = date
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=1)))
+        # end = date
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=3)))
+
+        # date < start < end
+        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=-99)))
+
+        # start < end < date
+        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
+
+
 
 class TestCalendarCase(TestCase):
 
@@ -145,3 +191,28 @@ class TestCalendarCase(TestCase):
         )
 
         self.assertEqual(str(o), label)
+
+    def test_calendar__date_is_between(self):
+        now = datetime.datetime.today().date()
+        o = Calendar.objects.create(
+            label='Calendar',
+            year_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            year_end_date=datetime.datetime.today().date() + datetime.timedelta(days=3),
+            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
+                days=1),
+            year_nb_authorized_immersion=4
+        )
+
+        # inside
+        # start < date < end
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=2)))
+        # start = date
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=1)))
+        # end = date
+        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=3)))
+
+        # date < start < end
+        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=-99)))
+
+        # start < end < date
+        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
