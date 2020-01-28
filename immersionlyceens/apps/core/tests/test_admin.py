@@ -13,13 +13,13 @@ from django.test import RequestFactory, TestCase
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
     CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
-    HolidayForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm,
+    HolidayForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, PublicType, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, PublicDocument, PublicType,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -477,7 +477,7 @@ class AdminFormsTestCase(TestCase):
 
     def test_accompanying_document_creation(self):
         """
-        Test public type mention creation with group rights
+        Test accompanying document creation with group rights
         """
 
         public_type_data = {'label': 'testPublicType', 'active': True}
@@ -499,9 +499,47 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(AccompanyingDocument.objects.filter(label=data['label']).exists())
 
+        # Validation fail (invalid file format
+        file['content_type'] = "application/fail"
+        form = AccompanyingDocumentForm(data=data, files=file, request=request)
+        self.assertFalse(form.is_valid())
+
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
         request.user = self.ref_cmp_user
         form = AccompanyingDocumentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(AccompanyingDocument.objects.filter(label='test_fail').exists())
+
+
+    def test_public_document_creation(self):
+        """
+        Test public document creation with group rights
+        """
+
+        file = {'document': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
+
+        data = {
+            'label': 'testPublicDocument',
+            'active': True,
+            'published': False
+        }
+
+        request.user = self.scuio_user
+
+        form = PublicDocumentForm(data=data, files=file, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(PublicDocument.objects.filter(label=data['label']).exists())
+
+        # Validation fail (invalid file format
+        file['content_type'] = "application/fail"
+        form = PublicDocumentForm(data=data, files=file, request=request)
+        self.assertFalse(form.is_valid())
+
+        # Validation fail (invalid user)
+        data = {'label': 'test_failure', 'active': True}
+        request.user = self.ref_cmp_user
+        form = PublicDocumentForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(PublicDocument.objects.filter(label='test_fail').exists())
