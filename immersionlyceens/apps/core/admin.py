@@ -410,8 +410,6 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                     )
                 )
 
-            elif obj.start_date <= datetime.today().date():
-                fields.append('start_date')
         return fields
 
     # def get_actions(self, request):
