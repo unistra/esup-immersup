@@ -2,14 +2,14 @@ import enum
 import logging
 from functools import partial
 
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
 logger = logging.getLogger(__name__)
 
@@ -640,7 +640,13 @@ class MailTemplate(models.Model):
 
 class InformationText(models.Model):
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-    code = models.CharField(_("Code"), max_length=64, blank=False, null=False)
+    code = models.CharField(
+        _("Code"),
+        max_length=64,
+        help_text=_('civility last name first name'),
+        blank=False,
+        null=False,
+    )
     content = models.TextField(_('Content'), max_length=2000, blank=False, null=False)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -672,7 +678,11 @@ class AccompanyingDocument(models.Model):
     description = models.CharField(_("Description"), max_length=255, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
-        _("Document"), upload_to='uploads/accompanyingdocs/%Y', blank=False, null=False
+        _("Document"),
+        upload_to='uploads/accompanyingdocs/%Y',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
     )
 
     objects = CustomDeleteManager()
@@ -708,7 +718,11 @@ class PublicDocument(models.Model):
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
-        _("Document"), upload_to='uploads/publicdocs/%Y', blank=False, null=False
+        _("Document"),
+        upload_to='uploads/publicdocs/%Y',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
     )
     published = models.BooleanField(_("Published"), default=False)
 
