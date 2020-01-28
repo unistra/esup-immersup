@@ -45,7 +45,7 @@ SECRET_KEY = '{{ secret_key }}'
 # APIs settings #
 #################
 
-# Feel free to implement your own accounts search functions and 
+# Feel free to implement your own accounts search functions and
 # enter your plugin name here :)
 
 ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
@@ -74,10 +74,7 @@ LDAP_API_FIRSTNAME_ATTR = '{{ ldap_api_firstname_attr }}'
 
 WITH_HOLIDAY_API = True
 HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'
-HOLIDAY_API_MAP = {
-    'date': 'date',
-    'label': 'nom_jour_ferie'
-}
+HOLIDAY_API_MAP = {'date': 'date', 'label': 'nom_jour_ferie'}
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
 
@@ -89,9 +86,7 @@ SUMMERNOTE_THEME = 'bs4'
 SUMMERNOTE_CONFIG = {
     'spellCheck': True,
     'iframe': True,
-    'summernote': {
-        'lang': 'fr-FR',
-    },
+    'summernote': {'lang': 'fr-FR',},
     'codeviewIframeFilter': True,
     'disable_attachment': True,
     'toolbar': [
@@ -106,62 +101,25 @@ SUMMERNOTE_CONFIG = {
                 'superscript',
                 'subscript',
                 'clear',
-            ]
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ]
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
             ],
         ],
-        [
-            'others',
-            [
-                'link',
-                'table',
-                'hr'
-            ],
-        ],
-        [
-            'view',
-            [
-                'codeview',
-                'undo',
-                'redo',
-                'fullscreen'
-            ],
-        ],
+        ['font', ['fontsize', 'forecolor', 'paragraph',]],
+        ['misc', ['ol', 'ul', 'height',],],
+        ['others', ['link', 'table', 'hr'],],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'],],
     ],
     'popover': {
         'link': ['link', ['linkDialogShow', 'unlink']],
         'table': [
-            [
-                'add',
-                [
-                    'addRowDown',
-                    'addRowUp',
-                    'addColLeft',
-                    'addColRight'
-                ]
-            ],
-            [
-                'delete',
-                [
-                    'deleteRow',
-                    'deleteCol',
-                    'deleteTable'
-                ]
-            ],
+            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
         ],
-    }
+    },
 }
+
+########################
+# UPLOAD configuration #
+########################
+
+# url for logos upload
+MEDIA_ROOT = '/nfs/immersion'
