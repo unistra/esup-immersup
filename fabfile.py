@@ -137,6 +137,7 @@ def preprod():
     }
 
     # env.user = 'root'  # user for ssh
+
     env.backends = env.roledefs['web']
     env.server_name = 'immersion-pprd.unistra.fr'
     env.short_server_name = 'immersion-pprd'
@@ -147,7 +148,7 @@ def preprod():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'preprod'
-    env.socket_port = ''
+    env.socket_port = '8032'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",
