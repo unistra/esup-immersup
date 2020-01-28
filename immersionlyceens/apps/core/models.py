@@ -667,15 +667,13 @@ class AccompanyingDocument(models.Model):
     """
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
-    public_type = models.ForeignKey(
+    public_type = models.ManyToManyField(
         PublicType,
         verbose_name=_("Public type"),
-        null=False,
         blank=False,
         related_name="publictypes",
-        on_delete=models.CASCADE,
     )
-    description = models.CharField(_("Description"), max_length=255, blank=True, null=True)
+    description = models.TextField(_("Description"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
         _("Document"),
