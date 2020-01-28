@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-27 17:43+0100\n"
+"POT-Creation-Date: 2020-01-28 08:55+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -81,28 +81,20 @@ msgstr ""
 "est déjà définie"
 
 #: immersionlyceens/apps/core/admin.py:606
-#, fuzzy
-#| msgid "Calendar mode"
 msgid "Year mode"
-msgstr "Mode"
+msgstr "Mode annuel"
 
 #: immersionlyceens/apps/core/admin.py:610
-#, fuzzy
-#| msgid "Semester"
 msgid "Semester mode"
-msgstr "Semestre"
+msgstr "Mode semestriel"
 
 #: immersionlyceens/apps/core/admin.py:619
-#, fuzzy
-#| msgid "Semester"
 msgid "Semester 1"
-msgstr "Semestre"
+msgstr "Semestre 1"
 
 #: immersionlyceens/apps/core/admin.py:620
-#, fuzzy
-#| msgid "Semester"
 msgid "Semester 2"
-msgstr "Semestre"
+msgstr "Semestre 2"
 
 #: immersionlyceens/apps/core/admin.py:738
 #: immersionlyceens/apps/core/admin.py:755
@@ -214,10 +206,8 @@ msgstr "La période de congés termine dans une autre période de congés"
 
 #: immersionlyceens/apps/core/admin_forms.py:491
 #: immersionlyceens/apps/core/admin_forms.py:493
-#, fuzzy
-#| msgid "Vacation start inside another vacation"
 msgid "A vacation exists inside this vacation"
-msgstr "La période de congés commence dans une autre période de congés"
+msgstr "Une période de vacances existe à l'intérieur de celle-ci"
 
 #: immersionlyceens/apps/core/admin_forms.py:545
 #: immersionlyceens/apps/core/admin_forms.py:568
