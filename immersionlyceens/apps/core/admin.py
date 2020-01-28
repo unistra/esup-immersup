@@ -97,13 +97,17 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
     filter_horizontal = ('components', 'groups', 'user_permissions')
 
-    add_fieldsets = (
-        None,
-        {
-            'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'email', 'first_name', 'last_name',),
-        },
-    )
+    add_fieldsets = ((None, {
+        'classes': ('wide',),
+        'fields': (
+            'username',
+            'password1',
+            'password2',
+            'email',
+            'first_name',
+            'last_name',
+        ),},
+    ),)
 
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
@@ -767,6 +771,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
 
     class Media:
         css = {'all': ('css/immersionlyceens.css',)}
+        js = ('js/immersion_mail_templates.js',)
 
 
 admin.site = CustomAdminSite(name='Repositories')
