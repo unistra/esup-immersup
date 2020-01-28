@@ -107,8 +107,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
             'email',
             'first_name',
             'last_name',
-        )},
-    ))
+        ),},
+    ),)
 
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
@@ -737,6 +737,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
 
     class Media:
         css = {'all': ('css/immersionlyceens.css',)}
+        js = ('js/immersion_mail_templates.js',)
 
       
 admin.site = CustomAdminSite(name='Repositories')
