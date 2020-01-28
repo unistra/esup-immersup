@@ -348,6 +348,58 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(UniversityYear.objects.filter(label='test_fail').exists())
 
+    def test_university_year_constraint__fail_before_now(self):
+        request.user = self.scuio_user
+        data = {
+            'label': 'test_ok',
+            'active': True,
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=-99),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
+            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
+        }
+        request.user = self.scuio_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_university_year_constraint__fail_start_greater_end(self):
+        request.user = self.scuio_user
+        data = {
+            'label': 'test_ok',
+            'active': True,
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=99),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=9),
+            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
+        }
+        request.user = self.scuio_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_university_year_constraint__fail_registrtion_before_start(self):
+        request.user = self.scuio_user
+        data = {
+            'label': 'test_ok',
+            'active': True,
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
+            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
+        }
+        request.user = self.scuio_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_university_year_constraint__fail_registrtion_after_end(self):
+        request.user = self.scuio_user
+        data = {
+            'label': 'test_ok',
+            'active': True,
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
+            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=20),
+        }
+        request.user = self.scuio_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
     def test_highschool_creation(self):
         """
         Test admin HighSchool creation with group rights
@@ -438,7 +490,6 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(Holiday.objects.filter(label='test_fail').exists())
 
     def test_vacation_creation(self):
-
         UniversityYear(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
@@ -475,6 +526,109 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(Vacation.objects.filter(label='test failure 2').exists())
 
+    def test_vacation__fail_before_univ_year_(self):
+        request.user = self.scuio_user
+        UniversityYear(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
+                days=1),
+        ).save()
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=-10),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+        }
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_vacation__fail_after_univ_year_(self):
+        request.user = self.scuio_user
+        UniversityYear(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
+                days=1),
+        ).save()
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=40),
+        }
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_vacation__fail_start_date_inside_other_vacation(self):
+        request.user = self.scuio_user
+        UniversityYear(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
+                days=1),
+        ).save()
+        Vacation(
+            label='Vac 1',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
+        ).save()
+
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=40),
+        }
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_vacation__fail_end_date_inside_other_vacation(self):
+        request.user = self.scuio_user
+        UniversityYear(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
+                days=1),
+        ).save()
+        Vacation(
+            label='Vac 1',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=50),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=60),
+        ).save()
+
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=55),
+        }
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_vacation__fail_other_vacation_inside_this_one(self):
+        request.user = self.scuio_user
+        UniversityYear(
+            label='Hello',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
+                days=1),
+        ).save()
+        Vacation(
+            label='Vac 1',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=30),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=40),
+        ).save()
+
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=60),
+        }
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
     def test_accompanying_document_creation(self):
         """
         Test public type mention creation with group rights
@@ -505,3 +659,300 @@ class AdminFormsTestCase(TestCase):
         form = AccompanyingDocumentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(AccompanyingDocument.objects.filter(label='test_fail').exists())
+
+    def test_calendar_creation__year_mode(self):
+        """
+        Test public type mention creation with group rights
+        """
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        data_year = {
+            'label': 'Calendar year',
+            'calendar_mode': 'YEAR',
+            'year_start_date': now + datetime.timedelta(days=5),
+            'year_end_date': now + datetime.timedelta(days=50),
+            'year_registration_start_date': now + datetime.timedelta(days=2),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        request.user = self.scuio_user
+
+        form = CalendarForm(data=data_year, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Calendar.objects.filter(label=data_year['label']).exists())
+
+    def test_calendar_creation__semester_mode(self):
+        """
+        Test public type mention creation with group rights
+        """
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        data_year = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=5),
+            'semester1_end_date': now + datetime.timedelta(days=20),
+            'semester1_start_date': now + datetime.timedelta(days=6),
+            'semester2_start_date': now + datetime.timedelta(days=25),
+            'semester2_end_date': now + datetime.timedelta(days=50),
+            'semester2_registration_start_date': now + datetime.timedelta(days=26),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        request.user = self.scuio_user
+
+        form = CalendarForm(data=data_year, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Calendar.objects.filter(label=data_year['label']).exists())
+
+    def test_calendar__validation_fail_start_before_year_begining(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=10),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'YEAR',
+            'year_start_date': now + datetime.timedelta(days=5),
+            'year_end_date': now + datetime.timedelta(days=50),
+            'year_registration_start_date': now + datetime.timedelta(days=2),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_end_after_year_end(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'YEAR',
+            'year_start_date': now + datetime.timedelta(days=5),
+            'year_end_date': now + datetime.timedelta(days=1000),
+            'year_registration_start_date': now + datetime.timedelta(days=2),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_start_after_end(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'YEAR',
+            'year_start_date': now + datetime.timedelta(days=50),
+            'year_end_date': now + datetime.timedelta(days=10),
+            'year_registration_start_date': now + datetime.timedelta(days=2),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_semestrer1_start_after_end_of_semester_end(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=5),
+            'semester1_start_date': now + datetime.timedelta(days=21),
+            'semester1_end_date': now + datetime.timedelta(days=20),
+            'semester2_start_date': now + datetime.timedelta(days=25),
+            'semester2_end_date': now + datetime.timedelta(days=50),
+            'semester2_registration_start_date': now + datetime.timedelta(days=26),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_semestrer1_end_after_start_semester2_start(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=5),
+            'semester1_start_date': now + datetime.timedelta(days=5),
+            'semester1_end_date': now + datetime.timedelta(days=30),
+            'semester2_start_date': now + datetime.timedelta(days=25),
+            'semester2_end_date': now + datetime.timedelta(days=50),
+            'semester2_registration_start_date': now + datetime.timedelta(days=26),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_semestrer2_start_after_end_semester2_end(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=5),
+            'semester1_start_date': now + datetime.timedelta(days=5),
+            'semester1_end_date': now + datetime.timedelta(days=20),
+            'semester2_start_date': now + datetime.timedelta(days=60),
+            'semester2_end_date': now + datetime.timedelta(days=50),
+            'semester2_registration_start_date': now + datetime.timedelta(days=26),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_sem1_registration_before_year_begining(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=4),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=1),
+            'semester1_start_date': now + datetime.timedelta(days=5),
+            'semester1_end_date': now + datetime.timedelta(days=20),
+            'semester2_start_date': now + datetime.timedelta(days=60),
+            'semester2_end_date': now + datetime.timedelta(days=50),
+            'semester2_registration_start_date': now + datetime.timedelta(days=26),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_sem2_registration_before_year_begining(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=4),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=6),
+            'semester1_start_date': now + datetime.timedelta(days=5),
+            'semester1_end_date': now + datetime.timedelta(days=20),
+            'semester2_start_date': now + datetime.timedelta(days=60),
+            'semester2_end_date': now + datetime.timedelta(days=50),
+            'semester2_registration_start_date': now + datetime.timedelta(days=1),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+    def test_calendar__validation_fail_sem2_registration_before_year_begining(self):
+        now = datetime.datetime.today().date()
+        UniversityYear(
+            label='University Year',
+            active=True,
+            start_date=now + datetime.timedelta(days=4),
+            end_date=now + datetime.timedelta(days=100),
+            registration_start_date=now + datetime.timedelta(days=3),
+            purge_date=now + datetime.timedelta(days=5),
+        ).save()
+        request.user = self.scuio_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=6),
+            'semester1_start_date': now + datetime.timedelta(days=5),
+            'semester1_end_date': now + datetime.timedelta(days=20),
+            'semester2_start_date': now + datetime.timedelta(days=60),
+            'semester2_end_date': now + datetime.timedelta(days=50),
+            'semester2_registration_start_date': now + datetime.timedelta(days=1),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'registration_start_date_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())

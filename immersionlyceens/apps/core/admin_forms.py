@@ -418,16 +418,17 @@ class HolidayForm(forms.ModelForm):
             raise forms.ValidationError(_("You have to set an university year"))
         univ_year = univ_years[0]
 
-        if _date and (_date < univ_year.start_date or _date >= univ_year.end_date):
-            raise forms.ValidationError(_("Holiday must set between university year dates"))
+        if _date:
+            if _date and (_date < univ_year.start_date or _date >= univ_year.end_date):
+                raise forms.ValidationError(_("Holiday must set between university year dates"))
 
-        if _date < now:
-            raise forms.ValidationError(_("Holiday must be set in the future"))
+            if _date < now:
+                raise forms.ValidationError(_("Holiday must be set in the future"))
 
-        all_holidays = Holiday.objects.exclude(label=label)
-        for hol in all_holidays:
-            if _date == hol.date:
-                raise forms.ValidationError(_("Holiday date already exists in other holiday"))
+            all_holidays = Holiday.objects.exclude(label=label)
+            for hol in all_holidays:
+                if _date == hol.date:
+                    raise forms.ValidationError(_("Holiday date already exists in other holiday"))
 
         return cleaned_data
 
