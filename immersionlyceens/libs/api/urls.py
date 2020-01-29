@@ -9,4 +9,9 @@ from . import views
 
 urlpatterns = [
     path('get_person', views.ajax_get_person, name='PersonByName'),
+    path(
+        'get_available_documents/',
+        views.get_ajax_documents,
+        name='get_available_documents',
+    )
 ]

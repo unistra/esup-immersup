@@ -7,6 +7,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.urls import reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
 
@@ -42,3 +43,24 @@ def ajax_get_person(request):
                 response['msg'] = gettext("Error : can't query LDAP server")
 
     return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+def get_ajax_documents(request):
+    from immersionlyceens.apps.core.models import AccompanyingDocument
+
+    response = {'msg': '', 'data': []}
+
+    documents = AccompanyingDocument.objects.filter(active=True)
+    response['data'] = [{
+        'id': document.id,
+        'label': document.label,
+        'url': request.build_absolute_uri(reverse('accompanying_document', args=(document.pk,))),
+    } for document in documents]
+    return JsonResponse(response, safe=False)
+
+
+
+
+
+
