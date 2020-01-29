@@ -13,6 +13,8 @@ from django.utils.translation import gettext
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request)
 
+from immersionlyceens.apps.core.models import MailTemplateVars
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,5 +42,22 @@ def ajax_get_person(request):
                 response['data'] = persons_list + users
             else:
                 response['msg'] = gettext("Error : can't query LDAP server")
+
+    return JsonResponse(response, safe=False)
+
+@is_ajax_request
+def ajax_get_available_vars(request, template_id=None):
+    response = {'msg': '', 'data': []}
+
+    # template_id = request.GET.get("template_id", None)
+
+    if template_id:
+        template_vars = MailTemplateVars.objects.filter(mail_templates=template_id)
+        response["data"] = [ {
+            'id':v.id,
+            'code':v.code,
+            'description':v.description } for v in template_vars ]
+    else:
+        response["msg"] = gettext("Error : no template id")
 
     return JsonResponse(response, safe=False)

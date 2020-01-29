@@ -805,8 +805,16 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         return request.user.is_superuser
 
     class Media:
-        css = {'all': ('css/immersionlyceens.css',)}
-        js = ('js/immersion_mail_templates.js',)
+        css = {'all': ('css/immersionlyceens.css',
+                       'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
+                       'js/vendor/datatables/datatables.min.css',
+                       'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',)
+        }
+        js = ('js/vendor/jquery/jquery-3.4.1.min.js',
+              'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
+              'js/immersion_mail_templates.js',
+              'js/vendor/datatables/datatables.min.js',
+              'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',)
 
 
 admin.site = CustomAdminSite(name='Repositories')

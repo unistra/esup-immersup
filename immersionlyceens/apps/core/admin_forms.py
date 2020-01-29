@@ -796,6 +796,7 @@ class MailTemplateForm(forms.ModelForm):
             self.fields['label'].disabled = True
             self.fields['code'].disabled = True
 
+
     def clean(self):
         cleaned_data = super().clean()
         code = cleaned_data.get("code", '')
@@ -856,7 +857,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body': SummernoteWidget(),
+            'body' : SummernoteInplaceWidget(),
         }
 
 
