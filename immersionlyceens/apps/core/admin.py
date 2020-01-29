@@ -759,8 +759,7 @@ class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
             return format_html(f'<a href="{url}">{url}</a>')
 
         file_url.short_description = _('Address')
-
-        return ('label', 'description', 'public_type', file_url, 'active')
+        return ('label', 'description', 'get_types', file_url, 'active')
 
 
 class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):

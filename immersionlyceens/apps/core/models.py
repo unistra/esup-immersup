@@ -668,10 +668,7 @@ class AccompanyingDocument(models.Model):
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False, unique=True)
     public_type = models.ManyToManyField(
-        PublicType,
-        verbose_name=_("Public type"),
-        blank=False,
-        related_name="publictypes",
+        PublicType, verbose_name=_("Public type"), blank=False, related_name="publictypes",
     )
     description = models.TextField(_("Description"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
@@ -706,6 +703,11 @@ class AccompanyingDocument(models.Model):
         """Delete file uploaded from document Filefield"""
         self.document.storage.delete(self.document.name)
         super().delete()
+
+    def get_types(self):
+        return ",".join([t.label for t in self.public_type.all()])
+
+    get_types.short_description = _('Public type')
 
 
 class PublicDocument(models.Model):
