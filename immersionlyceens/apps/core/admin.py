@@ -97,17 +97,22 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
     filter_horizontal = ('components', 'groups', 'user_permissions')
 
-    add_fieldsets = ((None, {
-        'classes': ('wide',),
-        'fields': (
-            'username',
-            'password1',
-            'password2',
-            'email',
-            'first_name',
-            'last_name',
-        ),},
-    ),)
+    add_fieldsets = (
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': (
+                    'username',
+                    'password1',
+                    'password2',
+                    'email',
+                    'first_name',
+                    'last_name',
+                ),
+            },
+        ),
+    )
 
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
@@ -395,6 +400,22 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = PublicTypeForm
     list_display = ('label', 'active')
     ordering = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and AccompanyingDocument.objects.filter(public_type=obj).exists():
+            messages.warning(
+                request,
+                _(
+                    """This public type can't be deleted """
+                    """because it is used by accompanying document(s)"""
+                ),
+            )
+            return False
+
+        return True    
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
