@@ -415,7 +415,7 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
             )
             return False
 
-        return True    
+        return True
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -778,6 +778,20 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         file_url.short_description = _('Address')
 
         return ('label', file_url, 'active', 'published')
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj:
+            if obj.published:
+                messages.warning(
+                    request,
+                    _("This document is used in public interface : deletion not allowed "),
+                )
+                return False
+
+        return True
 
 
 class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
