@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-28 08:55+0100\n"
+"POT-Creation-Date: 2020-01-29 14:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: immersionlyceens/apps/core/admin.py:122
+#: immersionlyceens/apps/core/admin.py:131
 msgid "You don't have enough privileges to delete this account"
 msgstr "Vous n'avez pas les droits suffisants pour supprimer ce compte"
 
-#: immersionlyceens/apps/core/admin.py:226
+#: immersionlyceens/apps/core/admin.py:235
 msgid ""
 "This training domain can't be deleted because it is used by training "
 "subdomains"
@@ -30,30 +30,37 @@ msgstr ""
 "Ce domaine de formation ne peut pas être supprimé car il est utilisé par un "
 "sous-domaine de formation"
 
-#: immersionlyceens/apps/core/admin.py:263
+#: immersionlyceens/apps/core/admin.py:272
 msgid ""
 "This training subdomain can't be deleted because it is used by a training"
 msgstr ""
 "Ce sous-domaine de formation ne peut pas être supprimé car il est utilisé "
 "par une formation"
 
-#: immersionlyceens/apps/core/admin.py:295
+#: immersionlyceens/apps/core/admin.py:304
 msgid "This campus can't be deleted because it is used by a building"
 msgstr "Ce campus ne peut pas être supprimé car il est utilisé par un bâtiment"
 
-#: immersionlyceens/apps/core/admin.py:350
+#: immersionlyceens/apps/core/admin.py:359
 msgid "This component can't be deleted because it is used by a training"
 msgstr ""
 "Cette composante ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
-#: immersionlyceens/apps/core/admin.py:371
+#: immersionlyceens/apps/core/admin.py:380
 msgid "This training can't be deleted because it is used by some courses"
 msgstr ""
 "Cette formation ne peut pas être supprimée car elle est utilisée par un ou "
 "plusieurs cours"
 
-#: immersionlyceens/apps/core/admin.py:432
+#: immersionlyceens/apps/core/admin.py:412
+msgid ""
+"This public type can't be deleted because it is used by accompanying "
+"document(s)"
+msgstr ""
+"Des documents d'accompagnement sont rattachés à ce type de public : Suppression impossible"
+
+#: immersionlyceens/apps/core/admin.py:455
 msgid ""
 "This university year can't be deleted because university year has already "
 "started"
@@ -61,46 +68,50 @@ msgstr ""
 "Cette année universitaire ne peut pas être supprimée car elle a déjà "
 "commencée"
 
-#: immersionlyceens/apps/core/admin.py:441
+#: immersionlyceens/apps/core/admin.py:464
 msgid "This university year can't be deleted because a purge date is defined"
 msgstr ""
 "Cette année universitaire ne peut pas être supprimée car une date de purge "
 "est définie"
 
-#: immersionlyceens/apps/core/admin.py:585
+#: immersionlyceens/apps/core/admin.py:608
 msgid ""
 "This component can't be deleted because university year has already started"
 msgstr ""
 "Cette année universitaire ne peut pas être supprimée car elle a déja "
 "commencée"
 
-#: immersionlyceens/apps/core/admin.py:592
+#: immersionlyceens/apps/core/admin.py:615
 msgid "This component can't be deleted because a purge date is defined"
 msgstr ""
 "Cette année universitaire ne peut pas être supprimée car une date de purge "
 "est déjà définie"
 
-#: immersionlyceens/apps/core/admin.py:606
+#: immersionlyceens/apps/core/admin.py:629
 msgid "Year mode"
 msgstr "Mode annuel"
 
-#: immersionlyceens/apps/core/admin.py:610
+#: immersionlyceens/apps/core/admin.py:633
 msgid "Semester mode"
 msgstr "Mode semestriel"
 
-#: immersionlyceens/apps/core/admin.py:619
+#: immersionlyceens/apps/core/admin.py:642
 msgid "Semester 1"
 msgstr "Semestre 1"
 
-#: immersionlyceens/apps/core/admin.py:620
+#: immersionlyceens/apps/core/admin.py:643
 msgid "Semester 2"
 msgstr "Semestre 2"
 
-#: immersionlyceens/apps/core/admin.py:738
-#: immersionlyceens/apps/core/admin.py:755
-#: immersionlyceens/apps/core/models.py:530
+#: immersionlyceens/apps/core/admin.py:761
+#: immersionlyceens/apps/core/admin.py:777
+#: immersionlyceens/apps/core/models.py:531
 msgid "Address"
 msgstr "Adresse"
+
+#: immersionlyceens/apps/core/admin.py:789
+msgid "This document is used in public interface : deletion not allowed "
+msgstr "Ce document est utilisé dans la partie publique : Suppression impossible"
 
 #: immersionlyceens/apps/core/admin_forms.py:38
 #: immersionlyceens/apps/core/admin_forms.py:63
@@ -115,12 +126,12 @@ msgstr "Adresse"
 #: immersionlyceens/apps/core/admin_forms.py:315
 #: immersionlyceens/apps/core/admin_forms.py:348
 #: immersionlyceens/apps/core/admin_forms.py:413
-#: immersionlyceens/apps/core/admin_forms.py:462
-#: immersionlyceens/apps/core/admin_forms.py:534
-#: immersionlyceens/apps/core/admin_forms.py:775
-#: immersionlyceens/apps/core/admin_forms.py:813
-#: immersionlyceens/apps/core/admin_forms.py:899
-#: immersionlyceens/apps/core/admin_forms.py:955
+#: immersionlyceens/apps/core/admin_forms.py:463
+#: immersionlyceens/apps/core/admin_forms.py:535
+#: immersionlyceens/apps/core/admin_forms.py:776
+#: immersionlyceens/apps/core/admin_forms.py:815
+#: immersionlyceens/apps/core/admin_forms.py:901
+#: immersionlyceens/apps/core/admin_forms.py:957
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -129,8 +140,8 @@ msgid "Start date can't be today or earlier"
 msgstr "La date de début doit se situer dans le futur"
 
 #: immersionlyceens/apps/core/admin_forms.py:353
-#: immersionlyceens/apps/core/admin_forms.py:472
-#: immersionlyceens/apps/core/admin_forms.py:614
+#: immersionlyceens/apps/core/admin_forms.py:473
+#: immersionlyceens/apps/core/admin_forms.py:615
 msgid "Start date greater than end date"
 msgstr "La date de début est postérieure à la date de fin"
 
@@ -143,8 +154,9 @@ msgstr ""
 
 #: immersionlyceens/apps/core/admin_forms.py:368
 msgid "All university years are not purged. you can't create a new one"
-msgstr "Toutes les années universitaires ne sont pas purgées. "
-"Vous ne pouvez pas en créer une nouvelle"
+msgstr ""
+"Toutes les années universitaires ne sont pas purgées. Vous ne pouvez pas en "
+"créer une nouvelle"
 
 #: immersionlyceens/apps/core/admin_forms.py:372
 msgid "University year starts inside another university year"
@@ -160,170 +172,170 @@ msgid "University year contains another"
 msgstr "La date de début de l'année universitaire est contenue dans une autre"
 
 #: immersionlyceens/apps/core/admin_forms.py:418
-#: immersionlyceens/apps/core/admin_forms.py:467
-#: immersionlyceens/apps/core/admin_forms.py:539
+#: immersionlyceens/apps/core/admin_forms.py:468
+#: immersionlyceens/apps/core/admin_forms.py:540
 msgid "You have to set an university year"
 msgstr "Vous devez définir une année universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:422
+#: immersionlyceens/apps/core/admin_forms.py:423
 msgid "Holiday must set between university year dates"
 msgstr ""
 "Le jour férié doit être entre les dates de début et de fin de l'année "
 "universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:425
+#: immersionlyceens/apps/core/admin_forms.py:426
 msgid "Holiday must be set in the future"
 msgstr "Le jour férié doit être paramétré dans le futur"
 
-#: immersionlyceens/apps/core/admin_forms.py:430
+#: immersionlyceens/apps/core/admin_forms.py:431
 msgid "Holiday date already exists in other holiday"
 msgstr "La date du jour férié existe déja"
 
-#: immersionlyceens/apps/core/admin_forms.py:475
+#: immersionlyceens/apps/core/admin_forms.py:476
 msgid "Vacation start date must set between university year dates"
 msgstr ""
 "La date de début d'une période de vacances doit être entre les dates de "
 "début et de fin de l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:479
+#: immersionlyceens/apps/core/admin_forms.py:480
 msgid "Vacation end date must set between university year dates"
 msgstr ""
 "La date de fin d'une période de vacances doit être entre les dates de début "
 "et de fin de l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:482
+#: immersionlyceens/apps/core/admin_forms.py:483
 msgid "Vacation start date must be set in the future"
 msgstr ""
 "La date de début d'une période de vacances doit être entre les dates de "
 "début et de fin de l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:487
+#: immersionlyceens/apps/core/admin_forms.py:488
 msgid "Vacation start inside another vacation"
 msgstr "La période de congés commence dans une autre période de congés"
 
-#: immersionlyceens/apps/core/admin_forms.py:489
+#: immersionlyceens/apps/core/admin_forms.py:490
 msgid "Vacation end inside another vacation"
 msgstr "La période de congés termine dans une autre période de congés"
 
-#: immersionlyceens/apps/core/admin_forms.py:491
-#: immersionlyceens/apps/core/admin_forms.py:493
+#: immersionlyceens/apps/core/admin_forms.py:492
+#: immersionlyceens/apps/core/admin_forms.py:494
 msgid "A vacation exists inside this vacation"
 msgstr "Une période de vacances existe à l'intérieur de celle-ci"
 
-#: immersionlyceens/apps/core/admin_forms.py:545
-#: immersionlyceens/apps/core/admin_forms.py:568
+#: immersionlyceens/apps/core/admin_forms.py:546
+#: immersionlyceens/apps/core/admin_forms.py:569
 msgid "Mandatory fields not filled in"
 msgstr "Champs obligatoires non renseignés"
 
-#: immersionlyceens/apps/core/admin_forms.py:549
+#: immersionlyceens/apps/core/admin_forms.py:550
 msgid "Start date must be set between university year dates"
 msgstr ""
 "La date de début doit être entre les dates de début et de fin de l'année "
 "universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:553
+#: immersionlyceens/apps/core/admin_forms.py:554
 msgid "End date must set be between university year dates"
 msgstr ""
 "La date de fin doit être entre les dates de début et de fin de l'année "
 "universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:579
+#: immersionlyceens/apps/core/admin_forms.py:580
 msgid "semester 1 start date must set between university year dates"
 msgstr ""
 "La date de début du semestre 1 doit être entre les dates de l'année "
 "universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:583
+#: immersionlyceens/apps/core/admin_forms.py:584
 msgid "semester 2 start date must set between university year dates"
 msgstr ""
 "La date de début du semestre 2 doit être entre les dates de l'année "
 "universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:587
+#: immersionlyceens/apps/core/admin_forms.py:588
 msgid "semester 1 end date must set between university year dates"
 msgstr ""
 "La date de fin du semestre 1 doit être entre les dates de début et de fin de "
 "l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:591
+#: immersionlyceens/apps/core/admin_forms.py:592
 msgid "semester 2 end date must set between university year dates"
 msgstr ""
 "La date de fin du semestre 2 doit être entre les dates de début et de fin de "
 "l'année universitaire en cours"
 
-#: immersionlyceens/apps/core/admin_forms.py:599
+#: immersionlyceens/apps/core/admin_forms.py:600
 msgid ""
 "semester 1 start registration date must set between university year dates"
 msgstr ""
 "La date de début d'inscription du semestre 1 doit être entre les dates de "
 "l'année universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:608
+#: immersionlyceens/apps/core/admin_forms.py:609
 msgid ""
 "semester 2 start registration date must set between university year dates"
 msgstr ""
 "La date de début d'inscription du semestre 2 doit être entre les dates de "
 "l'année universitaire"
 
-#: immersionlyceens/apps/core/admin_forms.py:618
+#: immersionlyceens/apps/core/admin_forms.py:619
 msgid "Semester 1 start date greater than semester 1 end date"
 msgstr ""
 "La date de début du semestre 1 est postérieure à la date de fin du semestre 1"
 
-#: immersionlyceens/apps/core/admin_forms.py:623
+#: immersionlyceens/apps/core/admin_forms.py:624
 msgid "Semester 2 start date greater than semester 2 end date"
 msgstr ""
 "La date de début du semestre2 est postérieure à la date de fin du semestre 2"
 
-#: immersionlyceens/apps/core/admin_forms.py:627
+#: immersionlyceens/apps/core/admin_forms.py:628
 msgid "Semester 1 ends after the beginning of semester 2"
 msgstr "Le semestre 1 termine après le début du semestre 2"
 
-#: immersionlyceens/apps/core/admin_forms.py:668
+#: immersionlyceens/apps/core/admin_forms.py:669
 msgid "Forbidden"
 msgstr "Non autorisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:676
+#: immersionlyceens/apps/core/admin_forms.py:677
 msgid "This field is mandatory for a user belonging to 'REF-CMP' group"
 msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-CMP'"
 
-#: immersionlyceens/apps/core/admin_forms.py:690
+#: immersionlyceens/apps/core/admin_forms.py:691
 msgid "You don't have enough privileges to modify this account"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce compte"
 
-#: immersionlyceens/apps/core/admin_forms.py:708
+#: immersionlyceens/apps/core/admin_forms.py:709
 #, python-format
 msgid "You can't modify these groups : %s"
 msgstr "Vous ne pouvez pas modifier ces groupes : %s"
 
-#: immersionlyceens/apps/core/admin_forms.py:716
+#: immersionlyceens/apps/core/admin_forms.py:717
 msgid "You can't modify the superuser status"
 msgstr "Vous ne pouvez pas modifier le statut super-utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:721
+#: immersionlyceens/apps/core/admin_forms.py:722
 msgid "You can't modify the staff status"
 msgstr "Vous ne pouvez pas modifier le statut d'équipe"
 
-#: immersionlyceens/apps/core/admin_forms.py:758
-#: immersionlyceens/apps/core/models.py:537
+#: immersionlyceens/apps/core/admin_forms.py:759
+#: immersionlyceens/apps/core/models.py:538
 msgid "City"
 msgstr "Ville"
 
-#: immersionlyceens/apps/core/admin_forms.py:761
-#: immersionlyceens/apps/core/models.py:540
+#: immersionlyceens/apps/core/admin_forms.py:762
+#: immersionlyceens/apps/core/models.py:541
 msgid "Zip code"
 msgstr "Code postal"
 
-#: immersionlyceens/apps/core/admin_forms.py:829
+#: immersionlyceens/apps/core/admin_forms.py:831
 msgid "The message body contains forbidden variables : "
 msgstr "Le corps du message contient des variables non autorisées : "
 
-#: immersionlyceens/apps/core/admin_forms.py:844
+#: immersionlyceens/apps/core/admin_forms.py:846
 msgid "The message body contains unknown variable(s) : "
 msgstr "Le corps du message contient des variables inconnues : "
 
-#: immersionlyceens/apps/core/admin_forms.py:877
-#: immersionlyceens/apps/core/admin_forms.py:936
+#: immersionlyceens/apps/core/admin_forms.py:879
+#: immersionlyceens/apps/core/admin_forms.py:938
 #, python-format
 msgid ""
 "Please keep filesize under %(maxupload)s. Current filesize %(current_size)s"
@@ -331,8 +343,8 @@ msgstr ""
 "Veuillez téléverser des fichiers dont la taille n'excède pas %(maxupload)s. "
 "Taille actuelle : %(current_size)s"
 
-#: immersionlyceens/apps/core/admin_forms.py:884
-#: immersionlyceens/apps/core/admin_forms.py:941
+#: immersionlyceens/apps/core/admin_forms.py:886
+#: immersionlyceens/apps/core/admin_forms.py:943
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
@@ -341,9 +353,10 @@ msgid "Repositories"
 msgstr "Référentiels"
 
 #: immersionlyceens/apps/core/models.py:22
-#: immersionlyceens/apps/core/models.py:600
-#: immersionlyceens/apps/core/models.py:615
-#: immersionlyceens/apps/core/models.py:636
+#: immersionlyceens/apps/core/models.py:601
+#: immersionlyceens/apps/core/models.py:619
+#: immersionlyceens/apps/core/models.py:644
+#: immersionlyceens/templates/admin/core/modals/modal_template_vars.html:6
 msgid "Code"
 msgstr "Code"
 
@@ -361,13 +374,13 @@ msgstr "Code"
 #: immersionlyceens/apps/core/models.py:365
 #: immersionlyceens/apps/core/models.py:402
 #: immersionlyceens/apps/core/models.py:426
-#: immersionlyceens/apps/core/models.py:458
-#: immersionlyceens/apps/core/models.py:529
-#: immersionlyceens/apps/core/models.py:576
-#: immersionlyceens/apps/core/models.py:616
-#: immersionlyceens/apps/core/models.py:635
-#: immersionlyceens/apps/core/models.py:650
-#: immersionlyceens/apps/core/models.py:688
+#: immersionlyceens/apps/core/models.py:459
+#: immersionlyceens/apps/core/models.py:530
+#: immersionlyceens/apps/core/models.py:577
+#: immersionlyceens/apps/core/models.py:620
+#: immersionlyceens/apps/core/models.py:642
+#: immersionlyceens/apps/core/models.py:669
+#: immersionlyceens/apps/core/models.py:718
 msgid "Label"
 msgstr "Libellé"
 
@@ -388,10 +401,10 @@ msgstr "Site web"
 #: immersionlyceens/apps/core/models.py:314
 #: immersionlyceens/apps/core/models.py:340
 #: immersionlyceens/apps/core/models.py:366
-#: immersionlyceens/apps/core/models.py:620
-#: immersionlyceens/apps/core/models.py:638
-#: immersionlyceens/apps/core/models.py:660
-#: immersionlyceens/apps/core/models.py:689
+#: immersionlyceens/apps/core/models.py:624
+#: immersionlyceens/apps/core/models.py:651
+#: immersionlyceens/apps/core/models.py:674
+#: immersionlyceens/apps/core/models.py:719
 msgid "Active"
 msgstr "En service"
 
@@ -447,7 +460,7 @@ msgid "Training subdomains"
 msgstr "Sous-domaines de formation"
 
 #: immersionlyceens/apps/core/models.py:163
-#: immersionlyceens/apps/core/models.py:580
+#: immersionlyceens/apps/core/models.py:581
 msgid "Training"
 msgstr "Formation"
 
@@ -529,7 +542,8 @@ msgstr ""
 "déjà"
 
 #: immersionlyceens/apps/core/models.py:345
-#: immersionlyceens/apps/core/models.py:653
+#: immersionlyceens/apps/core/models.py:671
+#: immersionlyceens/apps/core/models.py:710
 msgid "Public type"
 msgstr "Type de public"
 
@@ -596,233 +610,245 @@ msgstr "Vacances"
 msgid "A vacation with this label already exists"
 msgstr "Une période de vacances avec ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:454
+#: immersionlyceens/apps/core/models.py:455
 msgid "Year"
 msgstr "Année"
 
-#: immersionlyceens/apps/core/models.py:455
+#: immersionlyceens/apps/core/models.py:456
 msgid "Semester"
 msgstr "Semestre"
 
-#: immersionlyceens/apps/core/models.py:460
+#: immersionlyceens/apps/core/models.py:461
 msgid "Calendar mode"
 msgstr "Mode"
 
-#: immersionlyceens/apps/core/models.py:463
+#: immersionlyceens/apps/core/models.py:464
 msgid "Year start date"
 msgstr "Date de début des immersions"
 
-#: immersionlyceens/apps/core/models.py:464
+#: immersionlyceens/apps/core/models.py:465
 msgid "Year end date"
 msgstr "Date de fin des immersions"
 
-#: immersionlyceens/apps/core/models.py:466
+#: immersionlyceens/apps/core/models.py:467
 msgid "Year start registration date"
 msgstr "Date de début des inscriptions aux immersions"
 
-#: immersionlyceens/apps/core/models.py:469
+#: immersionlyceens/apps/core/models.py:470
 msgid "Number of authorized immersions per year"
 msgstr "Nombre d'immersions autorisées par an"
 
-#: immersionlyceens/apps/core/models.py:472
+#: immersionlyceens/apps/core/models.py:473
 msgid "Semester 1 start date"
 msgstr "Date de début des immersions du semestre 1"
 
-#: immersionlyceens/apps/core/models.py:473
+#: immersionlyceens/apps/core/models.py:474
 msgid "Semester 1 end date"
 msgstr "Date de fin des immersions du semestre 1"
 
-#: immersionlyceens/apps/core/models.py:475
+#: immersionlyceens/apps/core/models.py:476
 msgid "Semester 1 start registration date"
 msgstr "Date de début d'inscription du semestre 1"
 
-#: immersionlyceens/apps/core/models.py:477
+#: immersionlyceens/apps/core/models.py:478
 msgid "Semester 2 start date"
 msgstr "Date de début des immersions du semestre 2"
 
-#: immersionlyceens/apps/core/models.py:478
+#: immersionlyceens/apps/core/models.py:479
 msgid "Semester 2 end date"
 msgstr "Date de fin des immersions du semestre 2"
 
-#: immersionlyceens/apps/core/models.py:480
+#: immersionlyceens/apps/core/models.py:481
 msgid "Semester 2 start registration date"
 msgstr "Date de début d'inscription du semestre 2"
 
-#: immersionlyceens/apps/core/models.py:483
+#: immersionlyceens/apps/core/models.py:484
 msgid "Number of authorized immersions per semester"
 msgstr "Nombre d'immersions autorisées par semestre"
 
-#: immersionlyceens/apps/core/models.py:487
+#: immersionlyceens/apps/core/models.py:488
 msgid "Global evaluation send date"
 msgstr "Date d'envoi de l'évaluation globale"
 
-#: immersionlyceens/apps/core/models.py:493
+#: immersionlyceens/apps/core/models.py:494
 msgid "Calendar"
 msgstr "Calendrier"
 
-#: immersionlyceens/apps/core/models.py:494
+#: immersionlyceens/apps/core/models.py:495
 msgid "Calendars"
 msgstr "Calendriers"
 
-#: immersionlyceens/apps/core/models.py:505
+#: immersionlyceens/apps/core/models.py:506
 msgid "A calendar with this label already exists"
 msgstr "Un calendrier avec ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:520
+#: immersionlyceens/apps/core/models.py:521
 msgid "High school"
 msgstr "Lycée"
 
-#: immersionlyceens/apps/core/models.py:531
+#: immersionlyceens/apps/core/models.py:532
 msgid "Address2"
 msgstr "Adresse2"
 
-#: immersionlyceens/apps/core/models.py:532
+#: immersionlyceens/apps/core/models.py:533
 msgid "Address3"
 msgstr "Adresse3"
 
-#: immersionlyceens/apps/core/models.py:534
+#: immersionlyceens/apps/core/models.py:535
 msgid "Department"
 msgstr "Département"
 
-#: immersionlyceens/apps/core/models.py:542
+#: immersionlyceens/apps/core/models.py:543
 msgid "Phone number"
 msgstr "Téléphone"
 
-#: immersionlyceens/apps/core/models.py:543
+#: immersionlyceens/apps/core/models.py:544
 msgid "Fax"
 msgstr "Fax"
 
-#: immersionlyceens/apps/core/models.py:544
+#: immersionlyceens/apps/core/models.py:545
 msgid "Email"
 msgstr "Courriel"
 
-#: immersionlyceens/apps/core/models.py:546
+#: immersionlyceens/apps/core/models.py:547
 msgid "Head teacher name"
 msgstr "Chef d'établissement"
 
-#: immersionlyceens/apps/core/models.py:550
+#: immersionlyceens/apps/core/models.py:551
+#: immersionlyceens/apps/core/models.py:646
 msgid "civility last name first name"
 msgstr "civilité nom prénom"
 
-#: immersionlyceens/apps/core/models.py:553
+#: immersionlyceens/apps/core/models.py:554
 msgid "Referent name"
 msgstr "Nom du référent lycée"
 
-#: immersionlyceens/apps/core/models.py:557
+#: immersionlyceens/apps/core/models.py:558
 msgid "last name first name"
 msgstr "nom prénom"
 
-#: immersionlyceens/apps/core/models.py:560
+#: immersionlyceens/apps/core/models.py:561
 msgid "Referent phone number"
 msgstr "Téléphone du référent"
 
-#: immersionlyceens/apps/core/models.py:562
+#: immersionlyceens/apps/core/models.py:563
 msgid "Referent email"
 msgstr "Courriel du référent"
 
-#: immersionlyceens/apps/core/models.py:563
+#: immersionlyceens/apps/core/models.py:564
 msgid "Convention start date"
 msgstr "Date de début de la convention"
 
-#: immersionlyceens/apps/core/models.py:564
+#: immersionlyceens/apps/core/models.py:565
 msgid "Convention end date"
 msgstr "Date de fin de la convention"
 
-#: immersionlyceens/apps/core/models.py:587
-#: immersionlyceens/apps/core/models.py:693
+#: immersionlyceens/apps/core/models.py:588
+#: immersionlyceens/apps/core/models.py:727
 msgid "Published"
 msgstr "Publié"
 
-#: immersionlyceens/apps/core/models.py:590
+#: immersionlyceens/apps/core/models.py:591
 msgid "Teachers"
 msgstr "Enseignants"
 
-#: immersionlyceens/apps/core/models.py:594
+#: immersionlyceens/apps/core/models.py:595
 msgid "Course"
 msgstr "Cours"
 
-#: immersionlyceens/apps/core/models.py:595
+#: immersionlyceens/apps/core/models.py:596
 msgid "Courses"
 msgstr "Cours"
 
-#: immersionlyceens/apps/core/models.py:601
-#: immersionlyceens/apps/core/models.py:617
-#: immersionlyceens/apps/core/models.py:659
+#: immersionlyceens/apps/core/models.py:603
+#: immersionlyceens/apps/core/models.py:621
+#: immersionlyceens/apps/core/models.py:673
+#: immersionlyceens/templates/admin/core/modals/modal_template_vars.html:7
 msgid "Description"
 msgstr "Description"
 
-#: immersionlyceens/apps/core/models.py:607
+#: immersionlyceens/apps/core/models.py:610
 msgid "Template variable"
 msgstr "Variable de modèle"
 
-#: immersionlyceens/apps/core/models.py:608
+#: immersionlyceens/apps/core/models.py:611
 msgid "Template variables"
 msgstr "Variables de modèle"
 
-#: immersionlyceens/apps/core/models.py:618
+#: immersionlyceens/apps/core/models.py:622
 msgid "Subject"
 msgstr "Sujet"
 
-#: immersionlyceens/apps/core/models.py:619
+#: immersionlyceens/apps/core/models.py:623
 msgid "Body"
 msgstr "Corps"
 
-#: immersionlyceens/apps/core/models.py:623
+#: immersionlyceens/apps/core/models.py:629
 msgid "Available variables"
 msgstr "Variables autorisées"
 
-#: immersionlyceens/apps/core/models.py:630
+#: immersionlyceens/apps/core/models.py:637
 msgid "Mail template"
 msgstr "Modèle de message"
 
-#: immersionlyceens/apps/core/models.py:631
+#: immersionlyceens/apps/core/models.py:638
 msgid "Mail templates"
 msgstr "Modèles de messages"
 
-#: immersionlyceens/apps/core/models.py:637
+#: immersionlyceens/apps/core/models.py:650
 msgid "Content"
 msgstr "Contenu"
 
-#: immersionlyceens/apps/core/models.py:641
+#: immersionlyceens/apps/core/models.py:654
 msgid "Information text"
 msgstr "Texte d'information"
 
-#: immersionlyceens/apps/core/models.py:642
+#: immersionlyceens/apps/core/models.py:655
 msgid "Information texts"
 msgstr "Textes d'information"
 
-#: immersionlyceens/apps/core/models.py:662
-#: immersionlyceens/apps/core/models.py:691
+#: immersionlyceens/apps/core/models.py:676
+#: immersionlyceens/apps/core/models.py:721
 msgid "Document"
 msgstr "Document"
 
-#: immersionlyceens/apps/core/models.py:668
+#: immersionlyceens/apps/core/models.py:680
+#: immersionlyceens/apps/core/models.py:725
+#, python-format
+msgid "Only files with type (%s)"
+msgstr "Seulement des fichiers de type (%s)"
+
+#: immersionlyceens/apps/core/models.py:688
 msgid "Accompanying document"
 msgstr "Document d'accompagnement"
 
-#: immersionlyceens/apps/core/models.py:669
+#: immersionlyceens/apps/core/models.py:689
 msgid "Accompanying documents"
 msgstr "Documents d'accompagnement"
 
-#: immersionlyceens/apps/core/models.py:680
+#: immersionlyceens/apps/core/models.py:700
 msgid "An accompanying document with this label already exists"
 msgstr "Un document d'accompagnement avec ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:698
+#: immersionlyceens/apps/core/models.py:734
 msgid "Public document"
 msgstr "Document public"
 
-#: immersionlyceens/apps/core/models.py:699
+#: immersionlyceens/apps/core/models.py:735
 msgid "Public documents"
 msgstr "Documents publics"
 
-#: immersionlyceens/apps/core/models.py:710
+#: immersionlyceens/apps/core/models.py:746
 msgid "A public document with this label already exists"
 msgstr "Un document public avec ce nom existe déjà"
 
-#: immersionlyceens/libs/api/views.py:28 immersionlyceens/libs/api/views.py:42
+#: immersionlyceens/libs/api/views.py:30 immersionlyceens/libs/api/views.py:44
 msgid "Error : can't query LDAP server"
 msgstr "Erreur : requête LDAP impossible"
+
+#: immersionlyceens/libs/api/views.py:61
+msgid "Error : no template id"
+msgstr "Erreur : pas d'id de template"
 
 #: immersionlyceens/settings/base.py:358
 msgid "Immersion"
@@ -858,6 +884,10 @@ msgstr ""
 #: immersionlyceens/templates/admin/core/holiday/change_list.html:10
 msgid "Import holidays"
 msgstr "Import des jours fériés"
+
+#: immersionlyceens/templates/admin/core/modals/modal_template_vars.html:2
+msgid "Available vars for this message"
+msgstr "Variables disponibles pour ce message"
 
 #: immersionlyceens/templates/fragments/main_footer.html:7
 #: immersionlyceens/templates/modals/modal_legal.html:7

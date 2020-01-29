@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
@@ -796,7 +797,6 @@ class MailTemplateForm(forms.ModelForm):
             self.fields['label'].disabled = True
             self.fields['code'].disabled = True
 
-
     def clean(self):
         cleaned_data = super().clean()
         code = cleaned_data.get("code", '')
@@ -857,7 +857,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body' : SummernoteInplaceWidget(),
+            'body': SummernoteInplaceWidget(),
         }
 
 
@@ -872,18 +872,22 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
     def clean_document(self):
         document = self.cleaned_data['document']
-        content_type = document.content_type.split('/')[1]
-        if content_type in settings.CONTENT_TYPES:
-            if document.size > int(settings.MAX_UPLOAD_SIZE):
-                raise forms.ValidationError(
-                    _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s')
-                    % {
-                        'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
-                        'current_size': filesizeformat(document.size),
-                    }
-                )
-        else:
-            raise forms.ValidationError(_('File type is not allowed'))
+        if document and isinstance(document, UploadedFile):
+            content_type = document.content_type.split('/')[1]
+            if content_type in settings.CONTENT_TYPES:
+                if document.size > int(settings.MAX_UPLOAD_SIZE):
+                    raise forms.ValidationError(
+                        _(
+                            'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'
+                        )
+                        % {
+                            'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                            'current_size': filesizeformat(document.size),
+                        }
+                    )
+            else:
+                raise forms.ValidationError(_('File type is not allowed'))
+
         return document
 
     def clean(self):
@@ -932,15 +936,18 @@ class PublicDocumentForm(forms.ModelForm):
 
     def clean_document(self):
         document = self.cleaned_data['document']
-        content_type = document.content_type.split('/')[1]
-        if content_type in settings.CONTENT_TYPES:
-            if document.size > int(settings.MAX_UPLOAD_SIZE):
-                _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
-                    'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
-                    'current_size': filesizeformat(document.size),
-                }
-        else:
-            raise forms.ValidationError(_('File type is not allowed'))
+        if document and isinstance(document, UploadedFile):
+            content_type = document.content_type.split('/')[1]
+            if content_type in settings.CONTENT_TYPES:
+                if document.size > int(settings.MAX_UPLOAD_SIZE):
+                    _(
+                        'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'
+                    ) % {
+                        'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                        'current_size': filesizeformat(document.size),
+                    }
+            else:
+                raise forms.ValidationError(_('File type is not allowed'))
         return document
 
     def clean(self):
