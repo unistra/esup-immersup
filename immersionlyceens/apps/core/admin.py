@@ -1,27 +1,27 @@
 from datetime import datetime
 
-from django_summernote.admin import SummernoteModelAdmin
-from hijack_admin.admin import HijackUserAdminMixin
-
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
+from django_summernote.admin import SummernoteModelAdmin
+from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm,
-    MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm,
+    CalendarForm, CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm,
+    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm,
 )
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
-    InformationText, MailTemplate, PublicDocument, PublicType, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
+    CancelType, Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -816,6 +816,23 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
               'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',)
 
 
+
+class AttendanceCertificateModelAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = AttendanceCertificateModelForm
+
+    list_display = ('__str__', 'show_merge_fields')
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        return True
+
+    def has_add_permission(self, request):
+        """Only one obj is valid"""
+        return not AttendanceCertificateModel.objects.exists()        
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -839,3 +856,4 @@ admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
 admin.site.register(PublicDocument, PublicDocumentAdmin)
+admin.site.register(AttendanceCertificateModel, AttendanceCertificateModelAdmin)

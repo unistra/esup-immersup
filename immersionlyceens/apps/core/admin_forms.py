@@ -13,10 +13,10 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, InformationText,
-    MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
+    CancelType, Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
+    InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -967,4 +967,50 @@ class PublicDocumentForm(forms.ModelForm):
 
     class Meta:
         model = PublicDocument
+        fields = '__all__'
+
+
+class AttendanceCertificateModelForm(forms.ModelForm):
+    """
+    Public document form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_document(self):
+        document = self.cleaned_data['document']
+        if document and isinstance(document, UploadedFile):
+            content_type = document.content_type.split('/')[1]
+            # TODO: check others merge documents types (???)
+            if content_type in ('vnd.openxmlformats-officedocument.wordprocessingml.document',):
+                if document.size > int(settings.MAX_UPLOAD_SIZE):
+                    _(
+                        'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'
+                    ) % {
+                        'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                        'current_size': filesizeformat(document.size),
+                    }
+            else:
+                raise forms.ValidationError(_('File type is not allowed'))
+        return document
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = AttendanceCertificateModel
         fields = '__all__'
