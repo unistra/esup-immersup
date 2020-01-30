@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CourseType,
     Holiday, PublicDocument, PublicType, UniversityYear, Vacation,
-)
+    Slot, Training, TrainingDomain, TrainingSubdomain, Component, Course)
 
 
 class CampusTestCase(TestCase):
@@ -246,3 +246,51 @@ class TestPublicDocumentCase(TestCase):
         }
         o = PublicDocument.objects.create(**data)
         self.assertEqual(str(o), label)
+
+
+class TestSlotCase(TestCase):
+    def test_slot__creation(self):
+        # Component
+        c = Component(label='my component', code='R2D2', url='https://google.fr')
+        c.save()
+        # Training domain
+        td = TrainingDomain(label='my_domain')
+        td.save()
+        # Training subdomain
+        tsd = TrainingSubdomain(label='my_sub_domain', training_domain=td)
+        tsd.save()
+        # Training
+        t = Training(label='training',) #  training_subdomains={tsd}, components=[c, ])
+        t.save()
+        t.training_subdomains.add(tsd)
+        t.components.add(c)
+
+        # Course type
+        ct = CourseType(label='CM')
+        ct.save()
+        # Course
+        course = Course(label='my super course', training=t)
+        course.save()
+
+        # Campus
+        campus = Campus(label='Campus Esplanade')
+        campus.save()
+        # Building
+        building = Building(label='Le portique', campus=campus)
+        building.save()
+
+        s = Slot(
+            training=t,
+            course=course,
+            course_type=ct,
+            campus=campus,
+            building=building,
+            room='Secret room',
+            date=datetime.datetime.today(),
+            start_time=datetime.datetime.now(),
+            end_time=datetime.datetime.now(),
+            n_places=10,
+            additional_information='Additional information',
+        )
+        s.save()
+        self.assertTrue(Slot.objects.filter(id=s.id).count() > 0)

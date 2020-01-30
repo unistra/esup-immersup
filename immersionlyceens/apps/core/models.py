@@ -801,3 +801,88 @@ class AttendanceCertificateModel(models.Model):
 
     get_merge_fields.short_description = _('Variables')
     show_merge_fields.short_description = _('Variables')
+
+
+
+class Slot(models.Model):
+    """
+    Course class
+    """
+
+    training = models.ForeignKey(
+        Training,
+        verbose_name=_("Training"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="slots",
+    )
+    course = models.ForeignKey(
+        Course,
+        verbose_name=_("Course"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="slots",
+    )
+    course = models.ForeignKey(
+        Course,
+        verbose_name=_("Course"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="slots",
+    )
+    course_type = models.ForeignKey(
+        CourseType,
+        verbose_name=_("Course Type"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="slots",
+    )
+
+    campus = models.ForeignKey(
+        Campus,
+        verbose_name=_("Campus"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="slots",
+    )
+    building = models.ForeignKey(
+        Building,
+        verbose_name=_("Building"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="slots",
+    )
+    room = models.CharField(_("Room"), max_length=16, blank=False, null=False)
+
+    date = models.DateField(_('Date'))
+    start_time = models.TimeField(_('Start time'))
+    end_time = models.TimeField(_('Start time'))
+
+    teachers = models.ManyToManyField(
+        ImmersionUser, verbose_name=_("Teachers"), related_name='slots'
+    )
+
+    n_places = models.PositiveIntegerField(_('Number of places'))
+    additional_information = models.CharField(_('Additional information'), max_length=128)
+
+    published = models.BooleanField(_("Published"), default=True)
+
+    class Meta:
+        verbose_name = _('Slot')
+        verbose_name_plural = _('Slots')
+        # unique_together = (
+        #     'training',
+        #     'course',
+        #     'course_type',
+        #     'campus',
+        #     'building',
+        #     'date',
+        #     'start_time',
+        #     'end_time',
+        # )
