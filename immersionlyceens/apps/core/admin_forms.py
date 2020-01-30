@@ -1,3 +1,4 @@
+import mimetypes
 import re
 from datetime import datetime
 
@@ -873,8 +874,10 @@ class AccompanyingDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            content_type = document.content_type.split('/')[1]
-            if content_type in settings.CONTENT_TYPES:
+            # See settings content types allowed
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
+
+            if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _(
@@ -923,9 +926,7 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
-        widgets = {
-            'content': SummernoteWidget
-        }
+        widgets = {'content': SummernoteWidget}
 
 
 class PublicDocumentForm(forms.ModelForm):
@@ -940,8 +941,10 @@ class PublicDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            content_type = document.content_type.split('/')[1]
-            if content_type in settings.CONTENT_TYPES:
+            # See settings content types allowed
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
+
+            if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     _(
                         'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'

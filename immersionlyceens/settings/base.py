@@ -429,14 +429,14 @@ GEOAPI_BASE_URL = "https://geo.api.gouv.fr"
 ####################
 
 # Type of docs
-#  vnd.openxmlformats-officedocument.wordprocessingml.document = docx
+# Use extension of files authorized !
 CONTENT_TYPES = [
     'doc',
     'pdf',
     'xls',
     'ods',
     'odt',
-    'vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'docx',
 ]
 
 # Max size

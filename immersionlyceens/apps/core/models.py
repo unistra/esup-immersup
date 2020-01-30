@@ -679,7 +679,7 @@ class AccompanyingDocument(models.Model):
         upload_to='uploads/accompanyingdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join("docx" if s == "vnd.openxmlformats-officedocument.wordprocessingml.document" else s for s in settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
     )
 
     objects = CustomDeleteManager()
