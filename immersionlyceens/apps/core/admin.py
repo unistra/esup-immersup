@@ -709,7 +709,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
             )
 
 
-class InformationTextAdmin(AdminWithRequest, SummernoteModelAdmin):
+class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     form = InformationTextForm
     list_display = ('label', 'code', 'active')
     list_filter = ('label', 'code')
@@ -724,6 +724,21 @@ class InformationTextAdmin(AdminWithRequest, SummernoteModelAdmin):
             if obj.code:
                 fields.append('code')
         return fields
+
+    class Media:
+        css = {'all': ('css/immersionlyceens.css',
+                       'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
+                       'js/vendor/datatables/datatables.min.css',
+                       'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',)
+               }
+        js = (
+              'js/vendor/jquery/jquery-3.4.1.min.js',
+              'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
+              'js/admin_information_text.js',
+              'js/vendor/datatables/datatables.min.js',
+              'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
+        )
+
 
 
 class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
