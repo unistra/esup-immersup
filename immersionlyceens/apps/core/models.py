@@ -673,12 +673,13 @@ class AccompanyingDocument(models.Model):
     )
     description = models.TextField(_("Description"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
+    # TODO: change type mime param to implement labels !
     document = models.FileField(
         _("Document"),
         upload_to='uploads/accompanyingdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%s)' % ','.join("docx" if s == "vnd.openxmlformats-officedocument.wordprocessingml.document" else s for s in settings.CONTENT_TYPES)),
     )
 
     objects = CustomDeleteManager()
@@ -706,6 +707,7 @@ class AccompanyingDocument(models.Model):
         super().delete()
 
     def get_types(self):
+        # TODO: 
         return ",".join([t.label for t in self.public_type.all()])
 
     get_types.short_description = _('Public type')

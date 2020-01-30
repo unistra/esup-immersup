@@ -391,11 +391,26 @@ LDAP_API_FIRSTNAME_ATTR = ''
 ADMIN_APPS_ORDER = ['auth', 'core']
 
 ADMIN_MODELS_ORDER = {
-    'core' : ['ImmersionUser', 'UniversityYear', 'HighSchool',
-        'GeneralBachelorTeaching', 'BachelorMention', 'Campus',
-        'Building', 'Component', 'TrainingDomain', 'TrainingSubdomain',
-        'Training', 'CourseType', 'PublicType', 'CancelType', 'Holiday',
-        'Vacation', 'Calendar', 'MailTemplate']
+    'core': [
+        'ImmersionUser',
+        'UniversityYear',
+        'HighSchool',
+        'GeneralBachelorTeaching',
+        'BachelorMention',
+        'Campus',
+        'Building',
+        'Component',
+        'TrainingDomain',
+        'TrainingSubdomain',
+        'Training',
+        'CourseType',
+        'PublicType',
+        'CancelType',
+        'Holiday',
+        'Vacation',
+        'Calendar',
+        'MailTemplate',
+    ]
 }
 
 # Define groups rights on others here ?
@@ -414,7 +429,15 @@ GEOAPI_BASE_URL = "https://geo.api.gouv.fr"
 ####################
 
 # Type of docs
-CONTENT_TYPES = ['doc', 'pdf', 'xls', 'ods', 'odt']
+#  vnd.openxmlformats-officedocument.wordprocessingml.document = docx
+CONTENT_TYPES = [
+    'doc',
+    'pdf',
+    'xls',
+    'ods',
+    'odt',
+    'vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
 
 # Max size
 # 20mo for now !!!
