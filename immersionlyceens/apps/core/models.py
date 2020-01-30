@@ -751,6 +751,7 @@ class PublicDocument(models.Model):
         self.document.storage.delete(self.document.name)
         super().delete()
 
+
 class AttendanceCertificateModel(models.Model):
     """
     Attendance Certificate Model class
@@ -768,6 +769,7 @@ class AttendanceCertificateModel(models.Model):
 
     class Meta:
         """Meta class"""
+
         verbose_name = _('Attendance certificate model')
         verbose_name_plural = _('Attendance certificate model')
 
@@ -780,7 +782,7 @@ class AttendanceCertificateModel(models.Model):
         self.document.storage.delete(self.document.name)
         super().delete()
 
-    def save(self,*args, **kwargs):
+    def save(self, *args, **kwargs):
         # Be sure to not save an other attendance certificate model !!!!
         if not self.pk and AttendanceCertificateModel.objects.exists():
             raise ValidationError('only one Attendance certificate model is allowed')
@@ -794,9 +796,8 @@ class AttendanceCertificateModel(models.Model):
 
     def show_merge_fields(self):
         if self.document:
-            doc = MailMerge(self.document.path)
-            return ", ".join([ d for d in doc.get_merge_fields()])
-        return ""
+            fields = MailMerge(self.document.path).get_merge_fields()
+            return ", ".join([d for d in fields]) if bool(fields) else _('No variables in file')
 
     get_merge_fields.short_description = _('Variables')
     show_merge_fields.short_description = _('Variables')

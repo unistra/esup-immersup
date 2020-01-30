@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-30 09:03+0100\n"
+"POT-Creation-Date: 2020-01-30 09:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -814,7 +814,7 @@ msgstr "Textes d'information"
 
 #: immersionlyceens/apps/core/models.py:677
 #: immersionlyceens/apps/core/models.py:722
-#: immersionlyceens/apps/core/models.py:760
+#: immersionlyceens/apps/core/models.py:761
 msgid "Document"
 msgstr "Document"
 
@@ -848,17 +848,21 @@ msgstr "Documents publics"
 msgid "A public document with this label already exists"
 msgstr "Un document public avec ce nom existe déjà"
 
-#: immersionlyceens/apps/core/models.py:764
+#: immersionlyceens/apps/core/models.py:765
 msgid "Only files with type (docx)"
 msgstr "Seulement des fichiers de type (docx)"
 
-#: immersionlyceens/apps/core/models.py:771
-#: immersionlyceens/apps/core/models.py:772
+#: immersionlyceens/apps/core/models.py:773
+#: immersionlyceens/apps/core/models.py:774
 msgid "Attendance certificate model"
 msgstr "Modèle d'attestation de présence"
 
-#: immersionlyceens/apps/core/models.py:801
+#: immersionlyceens/apps/core/models.py:800
+msgid "No variables in file"
+msgstr "Pas de variables dans le fichier"
+
 #: immersionlyceens/apps/core/models.py:802
+#: immersionlyceens/apps/core/models.py:803
 msgid "Variables"
 msgstr "Variables"
 
