@@ -593,6 +593,14 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                 fields.append('start_date')
         return fields
 
+    def has_add_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        elif request.user.is_scuio_ip_manager():
+            return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
+        else:
+            return False
+
     def has_delete_permission(self, request, obj=None):
 
         if request.user.is_superuser:
