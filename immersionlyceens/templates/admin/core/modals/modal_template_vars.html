@@ -1,0 +1,69 @@
+{% load immersionlyceens_tags i18n static staticfiles %}
+<div id="template_vars_dialog" title="{% trans 'Available vars for this message' %}">
+  <table id="variables_table" class="display dataTable" cellspacing="0" width="100%">
+  <thead>
+    <tr>
+      <th>{% trans 'Code' %}</th>
+      <th>{% trans 'Description' %}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+  </table>
+</div>
+<script>
+  {% autoescape off %}
+    var template_id = {{ object_id }}
+  {% endautoescape %}
+
+  // no alert msg in gui when error
+  $.fn.dataTableExt.errMode = 'console';
+
+  var dtr = $('#variables_table').DataTable({
+    'processing': false,
+    'order': [
+      [1, "asc"]
+    ],
+    'serverSide': false,
+    'responsive': false,
+    'info': false,
+    'ajax': {
+      url: "/api/get_available_vars/" + template_id,
+      dataSrc: function (json) {
+        if (json['data'] != undefined && json['data'].length != 0) {
+          return json['data'];
+        }
+      }
+    },
+    'searching': true,
+    'paging': true,
+    'ordering': true,
+    'language': {
+      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    },
+    'columns': [
+      {"data": "code",
+       "render": function(data, type, row) {
+         return "<span onclick=\"paste_content(data='"+data+"')\">"+data+"</span>";
+        },
+      },
+      {"data": "description"},
+
+    ],
+    "columnDefs": [
+      {
+        "defaultContent": "",
+        "targets": "_all"
+      }
+    ],
+  });
+
+  function paste_content(data) {
+    $('#id_body_iframe').contents().find('.note-editable').append("<p>"+data+"</p>");
+  }
+
+</script>

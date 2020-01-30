@@ -1,27 +1,27 @@
 from datetime import datetime
 
-from django_summernote.admin import SummernoteModelAdmin
-from hijack_admin.admin import HijackUserAdminMixin
-
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
+from django_summernote.admin import SummernoteModelAdmin
+from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm,
-    MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm,
+    CalendarForm, CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm,
+    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm,
 )
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
-    InformationText, MailTemplate, PublicDocument, PublicType, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
+    CancelType, Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -97,17 +97,22 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
     filter_horizontal = ('components', 'groups', 'user_permissions')
 
-    add_fieldsets = ((None, {
-        'classes': ('wide',),
-        'fields': (
-            'username',
-            'password1',
-            'password2',
-            'email',
-            'first_name',
-            'last_name',
-        ),},
-    ),)
+    add_fieldsets = (
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': (
+                    'username',
+                    'password1',
+                    'password2',
+                    'email',
+                    'first_name',
+                    'last_name',
+                ),
+            },
+        ),
+    )
 
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
@@ -395,6 +400,22 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = PublicTypeForm
     list_display = ('label', 'active')
     ordering = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and AccompanyingDocument.objects.filter(public_type=obj).exists():
+            messages.warning(
+                request,
+                _(
+                    """This public type can't be deleted """
+                    """because it is used by accompanying document(s)"""
+                ),
+            )
+            return False
+
+        return True
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -753,8 +774,7 @@ class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
             return format_html(f'<a href="{url}">{url}</a>')
 
         file_url.short_description = _('Address')
-
-        return ('label', 'description', 'public_type', file_url, 'active')
+        return ('label', 'description', 'get_types', file_url, 'active')
 
 
 class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -773,6 +793,20 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return ('label', file_url, 'active', 'published')
 
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj:
+            if obj.published:
+                messages.warning(
+                    request,
+                    _("This document is used in public interface : deletion not allowed "),
+                )
+                return False
+
+        return True
+
 
 class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
@@ -785,8 +819,33 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         return request.user.is_superuser
 
     class Media:
-        css = {'all': ('css/immersionlyceens.css',)}
-        js = ('js/immersion_mail_templates.js',)
+        css = {'all': ('css/immersionlyceens.css',
+                       'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
+                       'js/vendor/datatables/datatables.min.css',
+                       'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',)
+        }
+        js = ('js/vendor/jquery/jquery-3.4.1.min.js',
+              'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
+              'js/immersion_mail_templates.js',
+              'js/vendor/datatables/datatables.min.js',
+              'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',)
+
+
+
+class AttendanceCertificateModelAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = AttendanceCertificateModelForm
+
+    list_display = ('__str__', 'show_merge_fields')
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        return True
+
+    def has_add_permission(self, request):
+        """Only one obj is valid"""
+        return not AttendanceCertificateModel.objects.exists()        
 
 
 admin.site = CustomAdminSite(name='Repositories')
@@ -812,3 +871,4 @@ admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
 admin.site.register(PublicDocument, PublicDocumentAdmin)
+admin.site.register(AttendanceCertificateModel, AttendanceCertificateModelAdmin)
