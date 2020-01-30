@@ -10,6 +10,7 @@ from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
+from .utils import SummernoteWidgetDocumentsEmbeded
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
@@ -918,6 +919,9 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
+        widgets = {
+            'content': SummernoteWidget
+        }
 
 
 class PublicDocumentForm(forms.ModelForm):
