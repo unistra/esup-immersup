@@ -1,0 +1,8 @@
+{% extends "admin/change_form.html" %}
+{% load i18n immersionlyceens_tags static staticfiles %}
+{% block content %}
+
+    {% include '../modals/modal_information_text_docs.html' %}
+    {{ block.super }}
+
+{% endblock %}
