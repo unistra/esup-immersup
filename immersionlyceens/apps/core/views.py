@@ -88,9 +88,37 @@ def list_of_components(request):
             return redirect('slots_list', component=components)
 
     else:
+        # TODO: error handler
         return render(request, 'base.html')
 
 
 # TODO : AUTH
 def list_of_slots(request, component):
-    return render(request, 'slots/list_slots.html')
+    template = 'slots/list_slots.html'
+
+    if request.user.is_component_manager():
+        if component not in [c.id for c in request.user.components.all()]:
+            pass
+            # TODO: Not authorized
+    elif not request.user.is_scuio_ip_manager() or not request.user.is_superuser():
+        pass
+    else:
+        return render(request, 'base.html')
+
+    context = {
+        'component': Component.objects.get(id=component)
+    }
+    return render(request, template, context=context)
+
+
+# TODO: AUTH
+def add_slot(request):
+    return render(request, 'slot/add_slot.html')
+
+# TODO: AUTH
+def modify_slot(request, slot_id):
+    return render(request, 'base.html')
+
+# TODO: AUTH
+def del_slot(request, slot_id):
+    return render(request, 'base.html')
