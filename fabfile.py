@@ -124,7 +124,7 @@ def test():
         'ldap_api_lastname_attr': "LDAP_API_LASTNAME_ATTR",
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
     }
-    env.extra_symlink_dirs = ['immersionlyceens/media']
+    env.extra_symlink_dirs = ['media']
     execute(build_env)
 
 
