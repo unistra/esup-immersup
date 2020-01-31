@@ -8,7 +8,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CourseType,
-    Holiday, PublicDocument, PublicType, UniversityYear, Vacation,
+    EvaluationFormLink, EvaluationType, Holiday, PublicDocument, PublicType, UniversityYear,
+    Vacation,
 )
 
 
@@ -246,3 +247,8 @@ class TestPublicDocumentCase(TestCase):
         }
         o = PublicDocument.objects.create(**data)
         self.assertEqual(str(o), label)
+
+class TestEvaluationTypeCase(TestCase):
+    def test_evaluation_type_str(self):
+        o = EvaluationType.objects.create(code='testCode', label= 'testLabel' )
+        self.assertEqual(str(o), 'testCode : testLabel')

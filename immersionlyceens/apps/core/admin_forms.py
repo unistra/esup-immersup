@@ -14,9 +14,10 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
     AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
-    CancelType, Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
-    InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CancelType, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
+    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation,
 )
 
 
@@ -1013,4 +1014,54 @@ class AttendanceCertificateModelForm(forms.ModelForm):
 
     class Meta:
         model = AttendanceCertificateModel
+        fields = '__all__'
+
+
+class EvaluationTypeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_superuser
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = EvaluationType
+        fields = '__all__'
+
+
+class EvaluationFormLinkForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = EvaluationFormLink
         fields = '__all__'
