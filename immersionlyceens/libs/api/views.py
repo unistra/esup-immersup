@@ -1,7 +1,7 @@
 """
 API Views
 """
-
+import datetime
 import logging
 
 from django.conf import settings
@@ -75,8 +75,51 @@ def get_ajax_documents(request):
         'label': document.label,
         'url': request.build_absolute_uri(reverse('accompanying_document', args=(document.pk,))),
     } for document in documents]
+
     return JsonResponse(response, safe=False)
 
+
+@is_ajax_request
+def get_ajax_slots(request, component=None):
+    # TODO: auth access test
+
+
+    response = {'msg': '', 'data': []}
+    if component:
+        response['data'] = [
+            {
+                'id': 1,
+                'published': True,
+                'course_label': 'Super cours',
+                'course_type': 'TP',
+                'date': 'Mardi 21-01-2020',
+                'time': '8:00 - 10:00',
+                'building': 'Esplanade - Math-Info',
+                'room': '420',
+                'teachers': ', '.join(['Alexandre COMBEAU', 'Matthieu FUCHS']),
+                'n_register': 24,
+                'n_places': 35,
+                'additional_information': 'lorem ipsum sit amet dolor'
+            },
+            {
+                'id': 2,
+                'published': False,
+                'course_label': 'Hyper cours',
+                'course_type': 'TP',
+                'date': 'jeudi 23-01-2020',
+                'time': '8:00 - 10:00',
+                'building': 'Esplanade - Math-Info',
+                'room': '105',
+                'teachers': ', '.join(['Alexandre COMBEAU']),
+                'n_register': 15,
+                'n_places': 20,
+                'additional_information': 'lorem ipsum sit amet dolor'
+            }
+        ]
+    else:
+        response['msg'] = gettext('Error : component id')
+
+    return JsonResponse(response, safe=False)
 
 
 
