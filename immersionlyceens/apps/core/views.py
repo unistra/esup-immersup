@@ -113,11 +113,11 @@ def list_of_slots(request, component):
 
 # TODO: AUTH
 def add_slot(request):
-    return render(request, 'slot/add_slot.html')
+    return render(request, 'slots/add_slot.html')
 
 # TODO: AUTH
 def modify_slot(request, slot_id):
-    return render(request, 'base.html')
+    return render(request, 'slots/modify_slot.html')
 
 # TODO: AUTH
 def del_slot(request, slot_id):
