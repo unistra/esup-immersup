@@ -1,9 +1,149 @@
 {% extends "base.html" %}
 
 {% load i18n %}
+{% load static %}
+{% load staticfiles %}
+
+{% block head-css %}
+    <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/vendor/datatables/datatables.min.css' %}">
+{% endblock %}
 
 {% block content %}
+<div class="container">
+    <br>
+    <div>
+        <h4>{% trans "Slot" %} - {{ component.label }}</h4>
+    </div>
+    <br>
+    <div>
+        <a href="{% url 'add_slot' %}" class="btn btn-secondary">&#10133; {% trans 'New slot' %}</a>
+    </div>
 
-    List of slots
+    <br>
+    <div>
+        <table id="list_of_slots" class="display dataTable" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>{% trans 'Published' %}</th>
+                    <th>{% trans 'Course label' %}</th>
+                    <th>{% trans 'Course type' %}</th>
+                    <th>{% trans 'Date' %}</th>
+                    <th>{% trans 'Schedule' %}</th>
+                    <th>{% trans 'Campus' %} - {% trans 'Building' %}</th>
+                    <th>{% trans 'Room' %}</th>
+                    <th>{% trans 'Teachers' %}</th>
+                    <th>{% trans '# of registration' %}</th>
+                    <th>{% trans 'Additional information' %}</th>
+                    <th>{% trans 'Control' %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
 
+{% block foot-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js' %}"></script>
+<script>
+$(document).ready(function(){
+    $.fn.dataTableExt.errMode = 'console';
+    $('#list_of_slots').DataTable({
+        ajax: {
+          url: '/api/get_slots/{{ component.id }}',
+          dataSrc: function (json) {
+            if (json['data'] != undefined && json['data'].length != 0) {
+                console.log(json['data']);
+              return json['data'];
+            }
+          }
+        },
+        order: [[1, "asc"]],
+        processing: false,
+        serverSide: false,
+        responsive: true,
+        info: false,
+        search: true,
+        paging: true,
+        ordering: true,
+        language: {url: '{% static "js/vendor/i18n/" %}{{ LANGUAGE_CODE }}.json'},
+        columns: [
+            {data: 'published', render: function(data, type, row){
+                return (data) ? '&#10004;' : '&#10060;';
+                }},
+            {data: 'course_label'},
+            {data: 'course_type'},
+            {data: 'date'},
+            {data: 'time'},
+            {data: 'building'},
+            {data: 'room'},
+            {data: 'teachers'},
+            {data: 'n_register', render: function(data, type, row) {
+                    let current = data;
+                    let n = row['n_places'];
+
+                    // <div class="progress">
+                    //     <div class="progress-bar w-75" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                    // </div>>
+                    element = '<span>' + current + '/' + n + '</span>' +
+                        '<div class="progress">' +
+                        '    <div' +
+                        '       class="progress-bar"' +
+                        '       role="progressbar"' +
+                        '       aria-valuenow="' + current + '"' +
+                        '       aria-valuemin="0"' +
+                        '       aria-valuemax="' + n + '"' +
+                        '       style="width: ' + Math.round(current/n * 100) + '%"' +
+                        '></div>' +
+                        '</div>';
+                    return element;
+                }},
+            {data: 'additional_information'},
+            {data: 'id', render: function(data, type, row) {
+                    let element = '<div>\n' +
+                        '        <a href="#duplicate" class="btn btn-light"\n' +
+                        '           style="background-image: url(\'{% static "img/duplicate.png" %}\');\n' +
+                        '                    background-repeat: no-repeat;\n' +
+                        '                    background-position: center center;\n' +
+                        '                    background-size: 60%;"\n' +
+                        '        >&nbsp;&nbsp;</a>\n' +
+                        '        <a href="/core/slot/modify/' + data + '" class="btn btn-light">&#x270E;</a>\n' +
+                        '        <button class="btn btn-light" onclick="delete_slot(' + data + ')">&#x1F5D1;</button>\n' +
+                        '    </div>';
+                    return element;
+                }},
+
+        ],
+        columnDefs: [{
+            defaultContent: 'No content',
+            targets: '_all'
+        }],
+    });
+});
+
+function delete_slot(slot_id) {
+    if (confirm('{% trans "Do you really want to delete this slot ?" %}')) {
+        console.log('Delete <slot::' + slot_id + '>');
+        window.location = '/core/slot/modify/' + slot_id;
+    }
+}
+</script>
 {% endblock %}
