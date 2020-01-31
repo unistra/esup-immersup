@@ -12,14 +12,14 @@ from django.test import RequestFactory, TestCase
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
-    HolidayForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
+    TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    CourseType, GeneralBachelorTeaching, HighSchool, Holiday, PublicDocument, PublicType,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
+    PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -995,3 +995,59 @@ class AdminFormsTestCase(TestCase):
         form = PublicDocumentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(PublicDocument.objects.filter(label='test_fail').exists())
+
+
+    def test_evaluation_type_creation(self):
+        """
+        Test evaluation type creation
+        """
+
+        # Only superuser can create evaluation type
+        data = { 'code': 'testCode', 'label': 'testLabel'}
+
+        request.user = self.superuser
+
+        form = EvaluationTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(EvaluationType.objects.filter(label=data['label']).exists())
+
+        # Unique code !
+        data = { 'code': 'testCode', 'label': 'testLabel'}
+
+        form = EvaluationTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        # Validation fail (invalid user)
+        data = { 'code': 'testCode', 'label': 'test_failure'}
+        request.user = self.scuio_user
+        form = EvaluationTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(EvaluationType.objects.filter(label='test_fail').exists())
+
+
+    def test_evaluation_form_link_creation(self):
+        """
+        Test Evaluation form link creation
+        """
+
+        type = EvaluationType.objects.create(code='testCode', label='testLabel')
+
+        request.user = self.scuio_user
+
+        data = { 'evaluation_type': type.pk, 'url': 'http://youpron.com' }
+        form = EvaluationFormLinkForm(data=data, request=request)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(EvaluationFormLink.objects.filter(url=data['url']).exists())
+
+        # Validation fail (invalid user)
+        request.user = self.ref_cmp_user
+
+        type = EvaluationType.objects.create(code='testNoobCode', label='testNoobLabel')
+
+        data = { 'evaluation_type': type.pk, 'url': 'http://canihazcookie.com' }
+        form = EvaluationFormLinkForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertFalse(EvaluationFormLink.objects.filter(url=data['url']).exists())
