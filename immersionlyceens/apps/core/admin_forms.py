@@ -1,3 +1,4 @@
+import mimetypes
 import re
 from datetime import datetime
 
@@ -14,9 +15,10 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
     AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
-    CancelType, Component, CourseType, GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
-    InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CancelType, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
+    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation,
 )
 
 
@@ -873,8 +875,10 @@ class AccompanyingDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            content_type = document.content_type.split('/')[1]
-            if content_type in settings.CONTENT_TYPES:
+            # See settings content types allowed
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
+
+            if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
                         _(
@@ -923,6 +927,7 @@ class InformationTextForm(forms.ModelForm):
     class Meta:
         model = InformationText
         fields = '__all__'
+        widgets = {'content': SummernoteWidget}
 
 
 class PublicDocumentForm(forms.ModelForm):
@@ -937,8 +942,10 @@ class PublicDocumentForm(forms.ModelForm):
     def clean_document(self):
         document = self.cleaned_data['document']
         if document and isinstance(document, UploadedFile):
-            content_type = document.content_type.split('/')[1]
-            if content_type in settings.CONTENT_TYPES:
+            # See settings content types allowed
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in settings.CONTENT_TYPES]
+
+            if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     _(
                         'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'
@@ -1013,4 +1020,54 @@ class AttendanceCertificateModelForm(forms.ModelForm):
 
     class Meta:
         model = AttendanceCertificateModel
+        fields = '__all__'
+
+
+class EvaluationTypeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_superuser
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = EvaluationType
+        fields = '__all__'
+
+
+class EvaluationFormLinkForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = EvaluationFormLink
         fields = '__all__'

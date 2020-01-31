@@ -34,6 +34,9 @@ def serve_accompanying_document(request, accompanying_document_id):
             FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type
         )
         response['Content-Length'] = os.path.getsize(_file)
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+            os.path.basename(_file)
+        )
 
     except Exception as e:
         return HttpResponseNotFound()
@@ -54,6 +57,9 @@ def serve_public_document(request, public_document_id):
             FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type
         )
         response['Content-Length'] = os.path.getsize(_file)
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+            os.path.basename(_file)
+        )
 
     except Exception as e:
         return HttpResponseNotFound()
