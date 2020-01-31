@@ -72,7 +72,7 @@ def ajax_get_courses(request, component_id=None):
     response = {'msg': '', 'data': []}
 
     if not component_id:
-        response['msg'] = gettext("Error : a component ")
+        response['msg'] = gettext("Error : a valid component must be selected")
 
     courses = Course.objects.prefetch_related('training').filter(
         training__components=component_id)

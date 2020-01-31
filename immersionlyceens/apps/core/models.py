@@ -902,7 +902,7 @@ class Slot(models.Model):
     )
     course_type = models.ForeignKey(
         CourseType,
-        verbose_name=_("Course Type"),
+        verbose_name=_("Course type"),
         null=False,
         blank=False,
         on_delete=models.CASCADE,
