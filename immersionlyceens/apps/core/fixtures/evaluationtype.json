@@ -1,0 +1,1 @@
+[{"model": "core.evaluationtype", "pk": 1, "fields": {"code": "EVA_CRENEAU", "label": "\u00c9valuation d'un cr\u00e9neau"}}, {"model": "core.evaluationtype", "pk": 2, "fields": {"code": "EVA_DISPOSITIF", "label": "\u00c9valuation d'un dispositif"}}]
