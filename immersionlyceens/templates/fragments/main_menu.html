@@ -1,4 +1,5 @@
 {% load static i18n immersionlyceens_tags %}
+{% authorized_groups request.user %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="#">
         <img src="{% static 'img/unistra-white.png'%}" class="d-inline-block align-top" alt=""> Immersion Lyc&eacute;ens</a>
@@ -16,6 +17,17 @@
                     Admin
                 </a>
             </li>
+            {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {% trans 'Courses' %}
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
+              </div>
+            </li>
+            {{ authorized_groups }}
+            {% endif %}
         </ul>
     </div>
 </nav>

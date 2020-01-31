@@ -12,6 +12,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from .managers import (ActiveManager, ComponentQuerySet)
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +26,8 @@ class Component(models.Model):
     label = models.CharField(_("Label"), max_length=128)
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
+
+    activated = ActiveManager.from_queryset(ComponentQuerySet)()
 
     class Meta:
         verbose_name = _('Component')
@@ -592,6 +596,9 @@ class Course(models.Model):
         ImmersionUser, verbose_name=_("Teachers"), related_name='courses'
     )
 
+    def __str__(self):
+        return self.label
+
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
@@ -895,7 +902,7 @@ class Slot(models.Model):
     )
     course_type = models.ForeignKey(
         CourseType,
-        verbose_name=_("Course Type"),
+        verbose_name=_("Course type"),
         null=False,
         blank=False,
         on_delete=models.CASCADE,

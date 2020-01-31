@@ -14,7 +14,7 @@ urlpatterns = [
     # Examples:
     path('', home, name='home'),
     path('admin/', admin.site.urls),
-    # path('core/', include('immersionlyceens.apps.core.urls')),
+    path('core/', include('immersionlyceens.apps.core.urls')),
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('api/', include('immersionlyceens.libs.api.urls')),

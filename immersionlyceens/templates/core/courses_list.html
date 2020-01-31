@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<!-- <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}"> -->
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Courses list" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div id="feedback_validated" class="alert alert-success alert-dismissable fade in" style="display:none"></div>
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Courses list" %}
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <a class="btn btn-secondary btn-sm" href="#" role="button">{% trans 'New course' %}</a>
+          <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Duplicate a course' %}</a>
+          <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Edit a course' %}</a>
+          <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Delete a course' %}</a>
+        </div>
+      </div>
+      <div id="cmp_filter" style="padding-bottom:10px; padding-top:20px;">
+        <label for="cmps">{% trans 'Select a component' %} :</label>
+        <select id="cmps">
+          {% for component in components %}
+            <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>{{ component.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <table id="courses_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th><span id="published_filter"></span>{% trans 'Published' %}</th>
+          <th>{% trans 'Training' %}</th>
+          <th>{% trans 'Label' %}</th>
+          <th>{% trans 'Teachers' %}</th>
+          <th>{% trans 'Published slots' %}</th>
+          <th>{% trans 'Registered students' %}</th>
+          <th>{% trans 'Alerts' %}</th>
+        </tr>
+      </thead>
+      <tfoot>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+  var dt = $('#courses_table').DataTable({
+      'processing': false,
+      'order': [
+          [1, "asc"]
+       ],
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_courses/" + $('#cmps option:selected').val() + "/",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+      },
+      'columns': [
+          { "data": "published",
+            "render": function (data) {
+              if (data) {
+                txt="{% trans 'Yes' %}";
+              }
+              else {
+                txt="{% trans 'No' %}";
+              }
+
+              return txt;
+            },
+          },
+          { "data": "training_label"},
+          { "data": "label" },
+          { "data": "teachers",
+            "render": function (data) {
+              let txt = "";
+              $.each(data, function(index, value) {
+                txt += value+"<br>";
+              });
+              return txt;
+            },
+          },
+          { "data": "published_slots_count" },
+          { "data": "registered_students_count" },
+          { "data": "alerts_count" },
+
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+        {
+          "orderable": false, "targets": 6
+        },
+      ],
+    });
+    // Reload the table when cge changes in selectbox
+    $('#cmps').change( function() {
+      dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
+      // $("#id_add_course").attr("href", "/core/course/" + $('#cmps option:selected').val());
+    });
+
+    // Filters init
+    yadcf.init(dt, [{
+          column_number: 0,
+          filter_default_label: "",
+          filter_container_id: "published_filter",
+      },
+    ]);
+});
+</script>
+{% endblock %}
