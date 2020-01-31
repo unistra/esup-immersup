@@ -5,6 +5,11 @@ import requests
 from django.conf import settings
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
+
+from .models import ImmersionUser, Component
+
+from immersionlyceens.decorators import groups_required
+
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -62,3 +67,18 @@ def import_holidays(request):
 
     # TODO: dynamic redirect
     return redirect(redirect_url)
+
+groups_required('SCUIO-IP','REF-CMP')
+def courses_list(request):
+    component_id = None
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+
+    if allowed_comps.count() == 1:
+        component_id = allowed_comps.first().id
+
+    context = {
+        "components": allowed_comps,
+        "component_id": component_id
+    }
+
+    return render(request, 'core/courses_list.html', context)

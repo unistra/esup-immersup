@@ -12,6 +12,8 @@ from mailmerge import MailMerge
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
+from .managers import (ActiveManager, ComponentQuerySet)
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +26,8 @@ class Component(models.Model):
     label = models.CharField(_("Label"), max_length=128)
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
+
+    activated = ActiveManager.from_queryset(ComponentQuerySet)()
 
     class Meta:
         verbose_name = _('Component')
@@ -591,6 +595,9 @@ class Course(models.Model):
     teachers = models.ManyToManyField(
         ImmersionUser, verbose_name=_("Teachers"), related_name='courses'
     )
+
+    def __str__(self):
+        return self.label
 
     class Meta:
         verbose_name = _('Course')

@@ -13,7 +13,11 @@ from django.utils.translation import gettext
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request)
 
-from immersionlyceens.apps.core.models import MailTemplateVars
+from immersionlyceens.apps.core.models import (
+    MailTemplateVars, Course
+)
+
+from immersionlyceens.decorators import groups_required
 
 logger = logging.getLogger(__name__)
 
@@ -45,11 +49,10 @@ def ajax_get_person(request):
 
     return JsonResponse(response, safe=False)
 
+
 @is_ajax_request
 def ajax_get_available_vars(request, template_id=None):
     response = {'msg': '', 'data': []}
-
-    # template_id = request.GET.get("template_id", None)
 
     if template_id:
         template_vars = MailTemplateVars.objects.filter(mail_templates=template_id)
@@ -59,5 +62,38 @@ def ajax_get_available_vars(request, template_id=None):
             'description':v.description } for v in template_vars ]
     else:
         response["msg"] = gettext("Error : no template id")
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('SCUIO-IP','REF-CMP')
+def ajax_get_courses(request, component_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not component_id:
+        response['msg'] = gettext("Error : a component ")
+
+    courses = Course.objects.prefetch_related('training').filter(
+        training__components=component_id)
+
+    for course in courses:
+        course_data = {
+            'id': course.id,
+            'published': course.published,
+            'training_label': course.training.label,
+            'label': course.label,
+            'teachers': [],
+            'published_slots_count': 0, # TODO
+            'registered_students_count': 0, # TODO
+            'alerts_count': 0, # TODO
+        }
+
+        for teacher in course.teachers.all().order_by('last_name','first_name'):
+            course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
+
+        response['data'].append(course_data.copy())
+
+    print(response);
 
     return JsonResponse(response, safe=False)
