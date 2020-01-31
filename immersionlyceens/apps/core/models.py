@@ -2,15 +2,15 @@ import enum
 import logging
 from functools import partial
 
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
+from mailmerge import MailMerge
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from mailmerge import MailMerge
-
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
 logger = logging.getLogger(__name__)
 
@@ -673,6 +673,7 @@ class AccompanyingDocument(models.Model):
     )
     description = models.TextField(_("Description"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
+    # TODO: change type mime param to implement labels !
     document = models.FileField(
         _("Document"),
         upload_to='uploads/accompanyingdocs/%Y',
@@ -706,6 +707,7 @@ class AccompanyingDocument(models.Model):
         super().delete()
 
     def get_types(self):
+        # TODO:
         return ",".join([t.label for t in self.public_type.all()])
 
     get_types.short_description = _('Public type')
@@ -801,6 +803,64 @@ class AttendanceCertificateModel(models.Model):
 
     get_merge_fields.short_description = _('Variables')
     show_merge_fields.short_description = _('Variables')
+
+
+
+
+class EvaluationType(models.Model):
+    """
+    Evaluation type class
+    """
+
+    code = models.CharField(_("Code"), max_length=30, unique=True)
+    label = models.CharField(_("Label"), max_length=128)
+
+    class Meta:
+        """Meta class"""
+
+        verbose_name = _('Evaluation type')
+        verbose_name_plural = _('Evaluation types')
+
+    def __str__(self):
+        """str"""
+        return f'{self.code} : {self.label}'
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('An evaluation type with this code already exists'))
+
+
+class EvaluationFormLink(models.Model):
+    """
+    Evaluation form links class
+    """
+
+    evaluation_type = models.OneToOneField(
+        EvaluationType,
+        verbose_name=_("Evaluation type"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="evaluationtypes",
+        primary_key=True,
+    )
+
+    url = models.URLField(_("Link"), max_length=256, blank=True, null=True)
+    active = models.BooleanField(_("Active"), default=False)
+
+    class Meta:
+        """Meta class"""
+
+        verbose_name = _('Evaluation form link')
+        verbose_name_plural = _('Evaluation forms links')
+
+    def validate_unique(self, exclude=None):
+        try:
+            super().validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('An evaluation form link with this evaluation type already exists'))
 
 
 

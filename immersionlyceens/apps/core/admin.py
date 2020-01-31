@@ -12,16 +12,17 @@ from hijack_admin.admin import HijackUserAdminMixin
 from .admin_forms import (
     AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm,
     CalendarForm, CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
-    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm,
-    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm,
+    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
+    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm,
+    MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm,
+    TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
-    CancelType, Component, Course, CourseType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CancelType, Component, Course, CourseType, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
+    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation,
 )
 
 
@@ -593,6 +594,14 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                 fields.append('start_date')
         return fields
 
+    def has_add_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        elif request.user.is_scuio_ip_manager():
+            return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
+        else:
+            return False
+
     def has_delete_permission(self, request, obj=None):
 
         if request.user.is_superuser:
@@ -845,7 +854,17 @@ class AttendanceCertificateModelAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         """Only one obj is valid"""
-        return not AttendanceCertificateModel.objects.exists()        
+        return not AttendanceCertificateModel.objects.exists()
+
+class EvaluationTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = EvaluationTypeForm
+    list_display = ('code', 'label')
+    ordering = ('label',)
+
+class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = EvaluationFormLinkForm
+    list_display = ("evaluation_type", "url",)
+    ordering = ('evaluation_type',)
 
 
 admin.site = CustomAdminSite(name='Repositories')
@@ -872,3 +891,5 @@ admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
 admin.site.register(PublicDocument, PublicDocumentAdmin)
 admin.site.register(AttendanceCertificateModel, AttendanceCertificateModelAdmin)
+admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
+admin.site.register(EvaluationType, EvaluationTypeAdmin)
