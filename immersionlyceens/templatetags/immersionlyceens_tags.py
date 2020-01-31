@@ -9,7 +9,7 @@ from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-# TODO: uncomment later 
+# TODO: uncomment later
 # from immersionlyceens.apps.core.models import ImmersionLyceenUser
 
 register = template.Library()
@@ -69,7 +69,7 @@ def immersionlyceens_users(parser, token):
 class UserNode(template.Node):
     def render(self, context):
         # TODO: uncomment
-        #context['gedisco_users'] = ImmersionLyceenUser.objects.all().order_by('-username')
+        # context['gedisco_users'] = ImmersionLyceenUser.objects.all().order_by('-username')
         return ''
 
 
@@ -85,6 +85,13 @@ class AuthorizedGroupsNode(template.Node):
 
     def render(self, context):
         user = self.user.resolve(context)
-        context['authorized_groups'] = [
-            g.name for g in user.authorized_groups()]
+        context['authorized_groups'] = [g.name for g in user.authorized_groups()]
         return ''
+
+
+@register.filter
+def in_groups(value, args):
+    # TODO: check if working  everywhere !!!
+    if not isinstance(value, set):
+        value = set(value)
+    return value & set(args.split(','))
