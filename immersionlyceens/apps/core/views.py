@@ -9,9 +9,10 @@ from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
-from .models import ImmersionUser, Component
-
 from immersionlyceens.decorators import groups_required
+
+from .models import ImmersionUser, Component, Course
+from .forms import CourseForm
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,7 @@ def import_holidays(request):
     # TODO: dynamic redirect
     return redirect(redirect_url)
 
+
 groups_required('SCUIO-IP','REF-CMP')
 def courses_list(request):
     component_id = None
@@ -85,3 +87,28 @@ def courses_list(request):
     }
 
     return render(request, 'core/courses_list.html', context)
+
+
+groups_required('SCUIO-IP','REF-CMP')
+def course(request):
+    component_id = None
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+
+    if allowed_comps.count() == 1:
+        component_id = allowed_comps.first().id
+
+    if request.method == 'POST':
+        course_form = CourseForm(request.POST)
+
+        # if form.is_valid():
+
+    else:
+        course_form = CourseForm()
+
+    context = {
+        "components": allowed_comps,
+        "component_id": component_id,
+        "course_form": course_form
+    }
+
+    return render(request, 'core/course.html', context)

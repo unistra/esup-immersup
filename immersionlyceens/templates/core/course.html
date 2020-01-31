@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block title %}
+{% if course %}
+  {% trans "Update a course" %}
+{% else %}
+  {% trans "New course" %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% if course %}
+        {% trans "Update a course" %}
+      {% else %}
+        {% trans "Create a new course" %}
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <label for="cmps" class="col-sm-2 col-form-label">{% trans 'Select a component' %} :</label>
+        <div class="col-sm-6">
+          <select id="cmps">
+            {% for component in components %}
+              <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>{{ component.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <form class="" role="form" action="/core/course/{{ course.id }}" method="POST">
+      {% csrf_token %}
+        <div class="form-group row">
+          <label for="training" class="col-sm-2 col-form-label">{% trans 'Training' %}</label>
+          <div class="col-sm-6">
+            {{ course_form.training }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="label" class="col-sm-2 col-form-label">{% trans 'Course label' %}</label>
+          <div class="col-sm-6">
+            {{ course_form.label }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="url" class="col-sm-2 col-form-label">{% trans 'Url' %}</label>
+          <div class="col-sm-6">
+            {{ course_form.url }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="published" class="col-sm-2 col-form-label">{% trans 'Published' %}</label>
+          <div class="col-sm-6">
+            {{ course_form.label }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="teachers" class="col-sm-2 col-form-label">{% trans 'Teachers' %}</label>
+          <div class="col-sm-6">
+            {{ course_form.teachers }}
+          </div>
+        </div>
+        <div class="row">
+        <div class="col-md-6">
+            <a class="btn btn-secondary btn-sm" href="#" role="button">{% trans 'Cancel' %}</a>
+            <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Save' %}</a>
+            <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Save and duplicate' %}</a>
+            <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Save and add new' %}</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

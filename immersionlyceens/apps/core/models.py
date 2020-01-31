@@ -596,6 +596,8 @@ class Course(models.Model):
         ImmersionUser, verbose_name=_("Teachers"), related_name='courses'
     )
 
+    url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
+
     def __str__(self):
         return self.label
 
