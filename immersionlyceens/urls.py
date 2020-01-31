@@ -9,6 +9,7 @@ from .views import home, serve_accompanying_document, serve_public_document
 
 admin.autodiscover()
 
+
 urlpatterns = [
     # Examples:
     path('', home, name='home'),
@@ -17,6 +18,7 @@ urlpatterns = [
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('api/', include('immersionlyceens.libs.api.urls')),
+    path('core/', include('immersionlyceens.apps.core.urls')),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path(
@@ -28,7 +30,6 @@ urlpatterns = [
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('summernote/', include('django_summernote.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
 # debug toolbar for dev
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     import debug_toolbar

@@ -8,6 +8,9 @@ from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+
+from immersionlyceens.apps.core.models import Component
+
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -65,3 +68,29 @@ def import_holidays(request):
 
     # TODO: dynamic redirect
     return redirect(redirect_url)
+
+
+# TODO : AUTH
+def list_of_components(request):
+    template = 'slots/list_components.html'
+
+    if request.user.is_scuio_ip_manager() or request.user.is_superuser():
+        # components = sorted(Component.objects.all(), lambda e: e.code)
+        components = Component.objects.all()
+        return render(request, template, context={'components': components})
+
+    elif request.user.is_component_manager():
+        if request.user.components.count() > 1:
+            print(request.user.components.count())
+            return render(request, template, context={'components': request.user.components.all()})
+        else:  # Only one
+            components = sorted(request.user.components.all()[0].id, lambda e: e.code)
+            return redirect('slots_list', component=components)
+
+    else:
+        return render(request, 'base.html')
+
+
+# TODO : AUTH
+def list_of_slots(request, component):
+    return render(request, 'slots/list_slots.html')
