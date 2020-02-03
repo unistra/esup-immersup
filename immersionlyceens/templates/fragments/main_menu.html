@@ -1,32 +1,47 @@
 {% load static i18n immersionlyceens_tags %}
 {% authorized_groups request.user %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand" href="{% url 'home' %}">
         <img src="{% static 'img/unistra-white.png'%}" class="d-inline-block align-top" alt=""> Immersion Lyc&eacute;ens</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'admin:index' %}">
-                    Admin
-                </a>
-            </li>
-            {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              {% trans 'Courses' %}
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
-              </div>
-            </li>
+        <div class="navbar-nav mr-auto">
+          {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% trans 'Courses' %}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
+            </div>
+          </div>
+          {% endif %}
+          {% if user.is_staff %}
+          <a class="nav-item nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
+            {% if user.is_superuser %}
+            {% include "./user_selector.html" %}
             {% endif %}
-        </ul>
+          {% endif %}
+        </div>
+        {# user menu bar #}
+        <div class="navbar-nav">
+          <div class="nav-item dropdown dropdown-menu-right">
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fas fa-user"></i> 
+                {% if request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}
+                <span class="caret"></span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <span class="dropdown-item text-center">{% trans "Profil"%} : <strong>{% if user.is_superuser %}{% trans "Admin" %}<br/>{% endif %}{{ request.user.groups.all|join:", "}}</strong></span>
+                <span class="dropbown-divider"></span>
+                <div class="dropdown-item text-center">
+                    <a class="dropdown-item" href="{% url 'django_cas:logout' %}"><span class="glyphicon glyphicon-log-out"></span> {% trans "Logout" %}</a>
+                </div>
+            </div>
+          </div>
+        </div>
     </div>
 </nav>
