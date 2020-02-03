@@ -900,14 +900,6 @@ class Slot(models.Model):
         on_delete=models.CASCADE,
         related_name="slots",
     )
-    course = models.ForeignKey(
-        Course,
-        verbose_name=_("Course"),
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="slots",
-    )
     course_type = models.ForeignKey(
         CourseType,
         verbose_name=_("Course type"),
