@@ -27,7 +27,8 @@ class Component(models.Model):
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
-    activated = ActiveManager.from_queryset(ComponentQuerySet)()
+    objects = models.Manager() # default manager
+    activated = ActiveManager.from_queryset(ComponentQuerySet)() # returns only activated components
 
     class Meta:
         verbose_name = _('Component')
