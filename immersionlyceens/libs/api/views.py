@@ -116,41 +116,32 @@ def get_ajax_documents(request):
 
 @is_ajax_request
 def get_ajax_slots(request, component=None):
+    from immersionlyceens.apps.core.models import Slot
     # TODO: auth access test
 
     response = {'msg': '', 'data': []}
     if component:
-        # TODO: use real data !!
-        response['data'] = [
-            {
-                'id': 1,
-                'published': True,
-                'course_label': 'Super cours',
-                'course_type': 'TP',
-                'date': 'Mardi 21-01-2020',
-                'time': '8:00 - 10:00',
-                'building': 'Esplanade - Math-Info',
-                'room': '420',
-                'teachers': ', '.join(['Alexandre COMBEAU', 'Matthieu FUCHS']),
-                'n_register': 24,
-                'n_places': 35,
-                'additional_information': 'lorem ipsum sit amet dolor'
-            },
-            {
-                'id': 2,
-                'published': False,
-                'course_label': 'Hyper cours',
-                'course_type': 'TP',
-                'date': 'jeudi 23-01-2020',
-                'time': '8:00 - 10:00',
-                'building': 'Esplanade - Math-Info',
-                'room': '105',
-                'teachers': ', '.join(['Alexandre COMBEAU']),
-                'n_register': 15,
-                'n_places': 20,
-                'additional_information': 'lorem ipsum sit amet dolor'
-            }
-        ]
+        slots = Slot.objects.filter(training__components__id=component)
+
+        data = [{
+            'id': slot.id,
+            'published': slot.published,
+            'course_label': slot.course.label,
+            'course_type': slot.course_type.label,
+            'date': slot.date.strftime('%a %d-%d-%Y'),
+            'time': '{s} - {e}'.format(
+                s=slot.start_time.strftime('%Hh%M'),
+                e=slot.end_time.strftime('%Hh%M'),
+            ),
+            'building': slot.building.label,
+            'room': slot.room,
+            'teachers': ', '.join([str(e) for e in slot.teachers.all()]),
+            'n_register': 10,
+            'n_places': slot.n_places,
+            'additional_information': slot.additional_information,
+        } for slot in slots]
+
+        response['data'] = data
     else:
         response['msg'] = gettext('Error : component id')
 
