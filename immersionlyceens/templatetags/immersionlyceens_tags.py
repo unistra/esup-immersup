@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 # TODO: uncomment later
-# from immersionlyceens.apps.core.models import ImmersionLyceenUser
+from ..apps.core.models import ImmersionUser
 
 register = template.Library()
 
@@ -62,14 +62,14 @@ def in_list(value, the_list):
 
 
 @register.tag
-def immersionlyceens_users(parser, token):
+def immersion_users(parser, token):
     return UserNode()
 
 
 class UserNode(template.Node):
     def render(self, context):
         # TODO: uncomment
-        # context['gedisco_users'] = ImmersionLyceenUser.objects.all().order_by('-username')
+        context['immersion_users'] = ImmersionUser.objects.all().order_by('-username')
         return ''
 
 
@@ -85,13 +85,14 @@ class AuthorizedGroupsNode(template.Node):
 
     def render(self, context):
         user = self.user.resolve(context)
-        context['authorized_groups'] = [g.name for g in user.authorized_groups()]
+        # User shoud be not an anonymous one !!!
+        if user.id is not None:
+            context['authorized_groups'] = {g.name for g in user.authorized_groups()}
+        else:
+            context['authorized_groups'] = set()
         return ''
 
 
 @register.filter
 def in_groups(value, args):
-    # TODO: check if working  everywhere !!!
-    if not isinstance(value, set):
-        value = set(value)
     return value & set(args.split(','))
