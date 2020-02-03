@@ -118,7 +118,6 @@ def get_ajax_documents(request):
 def get_ajax_slots(request, component=None):
     # TODO: auth access test
 
-
     response = {'msg': '', 'data': []}
     if component:
         # TODO: use real data !!
@@ -155,10 +154,4 @@ def get_ajax_slots(request, component=None):
     else:
         response['msg'] = gettext('Error : component id')
 
-
     return JsonResponse(response, safe=False)
-
-
-
-
-
