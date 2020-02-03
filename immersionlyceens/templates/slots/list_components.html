@@ -2,6 +2,7 @@
 {% load i18n %}
 
 {% block content %}
+<div class="container">
     <br>
     <div>
         <h4>{% trans 'My authorized components' %} ( {{ components|length }} )</h4>
@@ -36,4 +37,5 @@
             </tbody>
         </table>
     </div>
+</div>
 {% endblock %}
