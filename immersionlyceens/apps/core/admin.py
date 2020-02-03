@@ -749,11 +749,19 @@ class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         fields = []
         if obj:
+            if not request.user.is_superuser:
+                fields.append('description')
             if obj.label:
                 fields.append('label')
             if obj.code:
                 fields.append('code')
         return fields
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
     class Media:
         css = {'all': ('css/immersionlyceens.css',

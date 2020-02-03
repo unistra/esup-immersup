@@ -652,11 +652,18 @@ class InformationText(models.Model):
     code = models.CharField(
         _("Code"),
         max_length=64,
-        help_text=_('civility last name first name'),
         blank=False,
         null=False,
     )
-    content = models.TextField(_('Content'), max_length=2000, blank=False, null=False)
+    # 10K chars => MOA demand
+    content = models.TextField(_('Content'), max_length=10000, blank=False, null=False)
+    description = models.TextField(
+        _('Description'),
+        max_length=2000,
+        blank=False,
+        null=False,
+        default=''
+    )
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
