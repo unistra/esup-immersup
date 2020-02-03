@@ -98,6 +98,7 @@ def ajax_get_courses(request, component_id=None):
 
 
 @is_ajax_request
+@groups_required('SCUIO-IP','REF-CMP')
 def get_ajax_documents(request):
     from immersionlyceens.apps.core.models import AccompanyingDocument
 
@@ -115,6 +116,7 @@ def get_ajax_documents(request):
 
 
 @is_ajax_request
+@groups_required('SCUIO-IP','REF-CMP')
 def get_ajax_slots(request, component=None):
     from immersionlyceens.apps.core.models import Slot
     # TODO: auth access test
