@@ -126,9 +126,19 @@ def add_slot(request):
 def modify_slot(request, slot_id):
     return render(request, 'slots/modify_slot.html')
 
+
 # TODO: AUTH
+# @groups_required('SCUIO-IP','REF-CMP')
 def del_slot(request, slot_id):
-    return render(request, 'base.html')
+    print('dsfgfdsgfdsgsfdgfdsgsgsfsfdg')
+    from immersionlyceens.apps.core.models import Slot
+    # todo: check if user can delete this slot
+    slot = Slot.objects.get(id=slot_id)
+    slot.delete()
+    # todo check if obj is delete and return good response
+
+    return HttpResponse('ok')
+
 
 groups_required('SCUIO-IP','REF-CMP')
 def courses_list(request):
