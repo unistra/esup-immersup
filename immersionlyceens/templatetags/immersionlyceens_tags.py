@@ -90,6 +90,7 @@ class AuthorizedGroupsNode(template.Node):
             context['authorized_groups'] = {g.name for g in user.authorized_groups()}
         else:
             context['authorized_groups'] = set()
+        # context['authorized_groups'] = [g.name for g in user.authorized_groups()]
         return ''
 
 
