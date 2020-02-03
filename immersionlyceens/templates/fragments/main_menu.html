@@ -18,6 +18,14 @@
               <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
             </div>
           </div>
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% trans 'Components' %}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="{% url 'components_list' %}">{% trans 'Components list' %}</a>
+            </div>
+          </div>
           {% endif %}
           {% if user.is_staff %}
           <a class="nav-item nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
