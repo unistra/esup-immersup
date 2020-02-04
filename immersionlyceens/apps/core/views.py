@@ -14,8 +14,8 @@ from django.contrib.auth.models import Group
 
 from immersionlyceens.decorators import groups_required
 
-from .models import ImmersionUser, Component, Course
-from .forms import CourseForm
+from .models import ImmersionUser, Component, Course, Training
+from .forms import CourseForm, SlotForm
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +120,28 @@ def list_of_slots(request, component):
 
 # TODO: AUTH
 def add_slot(request):
-    return render(request, 'slots/add_slot.html')
+    teachers_list = []
+    component_id = None
+    slot_form = None
+    allowed_comps = Component.activated.user_cmps(
+        request.user,
+        ['SCUIO-IP', 'REF-CMP']
+    ).order_by("code", "label")
+
+    if allowed_comps.count() == 1:
+        component_id = allowed_comps.first().id
+
+    if request.method == 'POST' and request.POST.get('save'):
+        pass
+    else:
+        slot_form = SlotForm()
+
+    print(slot_form)
+    context = {
+        "trainings": Training.objects.filter(active=True),
+        "slot_form": slot_form,
+    }
+    return render(request, 'slots/add_slot.html', context=context)
 
 # TODO: AUTH
 def modify_slot(request, slot_id):

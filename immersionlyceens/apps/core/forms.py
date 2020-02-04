@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 from django.forms.widgets import DateInput
 
-from .models import (Course, Training, ImmersionUser, UniversityYear)
+from .models import (Course, Training, ImmersionUser, UniversityYear, Slot)
 
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -42,3 +42,30 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = ('id', 'label', 'url', 'published', 'training')
+
+
+class SlotForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance', None)
+
+        # self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
+
+        for elem in ['course', 'course_type', 'campus', 'building',
+                  'room', 'date', 'start_time', 'end_time', 'n_places',
+                  'additional_information', 'published',]:
+            self.fields[elem].widget.attrs.update({'class': 'form-control'})
+
+        if instance:
+            self.fields['id'].widget = forms.HiddenInput()
+
+    class Meta:
+        model = Slot
+        fields = ('id', 'course', 'course_type', 'campus', 'building',
+                  'room', 'date', 'start_time', 'end_time', 'n_places',
+                  'additional_information', 'published',)
+        widgets = {
+            'additional_information': forms.Textarea(),
+            'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
+        }

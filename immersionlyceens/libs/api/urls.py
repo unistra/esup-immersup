@@ -12,7 +12,7 @@ urlpatterns = [
     path('get_available_vars/<int:template_id>', views.ajax_get_available_vars, name='GetAvailableVars'),
     path('get_courses/<int:component_id>/', views.ajax_get_courses, name='GetCourses'),
     path('get_available_documents/', views.get_ajax_documents, name='get_available_documents'),
-    path('get_slots/<int:component>', views.get_ajax_slots, name='get_slots',)
+    path('get_slots/<int:component>', views.get_ajax_slots, name='get_slots',),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
     path('get_available_documents/', views.get_ajax_documents, name='get_available_documents',)
 ]

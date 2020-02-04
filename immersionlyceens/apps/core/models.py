@@ -702,6 +702,9 @@ class InformationText(models.Model):
         super().delete(using, keep_parents)
         self.__class__.update_documents_pulishment()
 
+    def __str__(self):
+        return self.label
+
     class Meta:
         verbose_name = _('Information text')
         verbose_name_plural = _('Information texts')
@@ -920,14 +923,6 @@ class Slot(models.Model):
     Course class
     """
 
-    training = models.ForeignKey(
-        Training,
-        verbose_name=_("Training"),
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="slots",
-    )
     course = models.ForeignKey(
         Course,
         verbose_name=_("Course"),
@@ -965,14 +960,14 @@ class Slot(models.Model):
 
     date = models.DateField(_('Date'))
     start_time = models.TimeField(_('Start time'))
-    end_time = models.TimeField(_('Start time'))
+    end_time = models.TimeField(_('End time'))
 
     teachers = models.ManyToManyField(
         ImmersionUser, verbose_name=_("Teachers"), related_name='slots'
     )
 
     n_places = models.PositiveIntegerField(_('Number of places'))
-    additional_information = models.CharField(_('Additional information'), max_length=128)
+    additional_information = models.CharField(_('Additional information'), max_length=128, null=True)
 
     published = models.BooleanField(_("Published"), default=True)
 
