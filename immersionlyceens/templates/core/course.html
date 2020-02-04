@@ -90,7 +90,7 @@
         </div>
         <div class="row">
         <div class="col-md-6">
-            <a href="" class="btn btn-secondary btn-sm" name="cancel">{% trans 'Cancel' %}</a>
+            <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm" name="cancel">{% trans 'Cancel' %}</a>
             <input type="submit" class="btn btn-secondary btn-sm" name="save" style="margin-left:15px;" value="{% trans 'Save' %}">
             <input type="submit" class="btn btn-secondary btn-sm" name="save_duplicate" style="margin-left:15px;" value="{% trans 'Save and duplicate' %}">
             <input type="submit" class="btn btn-secondary btn-sm" name="save_add_new" style="margin-left:15px;" value="{% trans 'Save and add new' %}">
@@ -134,6 +134,8 @@
               $this.show();
             }
           });
+
+          $("#id_training").val($("#id_training option:first").val());
         }
       }
     })
