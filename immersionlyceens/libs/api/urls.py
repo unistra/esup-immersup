@@ -19,4 +19,5 @@ urlpatterns = [
     path('get_my_courses/<int:user_id>/', views.ajax_get_my_courses, name='GetMyCourses'),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slots/<int:component>', views.get_ajax_slots, name='get_slots'),
+    path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
 ]
