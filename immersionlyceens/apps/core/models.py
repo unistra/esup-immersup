@@ -1,6 +1,9 @@
 import enum
 import logging
+import re
 from functools import partial
+
+from django.db.models import Q
 
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
@@ -665,6 +668,37 @@ class InformationText(models.Model):
         default=''
     )
     active = models.BooleanField(_("Active"), default=True)
+
+    def get_documents_id(self):
+        find = re.compile(r'(?P<pub>\/dl\/pubdoc\/(?P<pk>\d+))')
+        return list({e[1] for e in re.findall(find, self.content)})
+
+    @classmethod
+    def get_all_documents_id(cls):
+        texts = InformationText.objects.all()
+        l = []
+        for text in texts:
+            for _id in text.get_documents_id():
+                l.append(int(_id))
+
+        return list(set(l))
+
+    @classmethod
+    def update_documents_pulishment(cls):
+        texts_docs_id = cls.get_all_documents_id()
+
+        PublicDocument.objects.filter(id__in=texts_docs_id).update(published=True)
+        PublicDocument.objects.filter(~Q(id__in=texts_docs_id)).update(published=False)
+        print(texts_docs_id)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.__class__.update_documents_pulishment()
+        super().save()
+
+    def delete(self, using=None, keep_parents=False):
+        super().delete(using, keep_parents)
+        self.__class__.update_documents_pulishment()
 
     class Meta:
         verbose_name = _('Information text')
