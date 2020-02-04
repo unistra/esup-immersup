@@ -27,7 +27,7 @@ class CourseForm(forms.ModelForm):
                 _("Error : multiple active university years"))
         except UniversityYear.DoesNotExist:
             raise forms.ValidationError(
-                _("Error : can't find an active university year"))
+                _("Error : can't find any active university year"))
 
         if active_year.start_date and active_year.end_date:
             if not (active_year.start_date <= datetime.today().date() <= active_year.end_date):

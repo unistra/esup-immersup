@@ -36,7 +36,7 @@
                 <span class="caret"></span>
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                <span class="dropdown-item text-center">{% trans "Profil"%} : <strong>{% if user.is_superuser %}{% trans "Admin" %}<br/>{% endif %}{{ request.user.groups.all|join:", "}}</strong></span>
+                <span class="dropdown-item text-center">{% trans "Profile" %} : <strong>{% if user.is_superuser %}{% trans "Admin" %}<br/>{% endif %}{{ request.user.groups.all|join:", "}}</strong></span>
                 <span class="dropbown-divider"></span>
                 <div class="dropdown-item text-center">
                     <a class="dropdown-item" href="{% url 'django_cas:logout' %}"><span class="glyphicon glyphicon-log-out"></span> {% trans "Logout" %}</a>
