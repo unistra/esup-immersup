@@ -3,18 +3,16 @@ import logging
 from datetime import datetime
 
 import requests
+from immersionlyceens.apps.core.models import Component
+from immersionlyceens.decorators import groups_required
+
 from django.conf import settings
 from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 
-from immersionlyceens.apps.core.models import Component
-
-
-from .models import ImmersionUser, Component
-
-from immersionlyceens.decorators import groups_required
+from .models import Component, ImmersionUser
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +26,12 @@ def import_holidays(request):
 
     redirect_url = '/admin/core/holiday'
 
-    if settings.WITH_HOLIDAY_API \
-            and settings.HOLIDAY_API_URL\
-            and settings.HOLIDAY_API_MAP\
-            and settings.HOLIDAY_API_DATE_FORMAT:
+    if (
+        settings.WITH_HOLIDAY_API
+        and settings.HOLIDAY_API_URL
+        and settings.HOLIDAY_API_MAP
+        and settings.HOLIDAY_API_DATE_FORMAT
+    ):
         url = settings.HOLIDAY_API_URL
 
         # get holidays data
@@ -70,14 +70,13 @@ def import_holidays(request):
                 except IntegrityError as exc:
                     logger.warn(str(exc))
 
-
     # TODO: dynamic redirect
     return redirect(redirect_url)
 
 
 # TODO : AUTH
 # groups_required('SCUIO-IP','REF-CMP')
-def list_of_components(request):
+def components_list(request):
     template = 'slots/list_components.html'
 
     if request.user.is_scuio_ip_manager or request.user.is_superuser():
@@ -99,7 +98,7 @@ def list_of_components(request):
 
 
 # TODO : AUTH
-def list_of_slots(request, component):
+def slots_list(request, component):
     template = 'slots/list_slots.html'
 
     if request.user.is_component_manager():
@@ -111,10 +110,7 @@ def list_of_slots(request, component):
     else:
         return render(request, 'base.html')
 
-    context = {
-        'component': Component.activated.get(id=component)
-    }
-    print(context)
+    context = {'component': Component.activated.get(id=component)}
     return render(request, template, context=context)
 
 
@@ -122,15 +118,18 @@ def list_of_slots(request, component):
 def add_slot(request):
     return render(request, 'slots/add_slot.html')
 
+
 # TODO: AUTH
 def modify_slot(request, slot_id):
     return render(request, 'slots/modify_slot.html')
+
 
 # TODO: AUTH
 def del_slot(request, slot_id):
     return render(request, 'base.html')
 
-groups_required('SCUIO-IP','REF-CMP')
+
+@groups_required('SCUIO-IP', 'REF-CMP')
 def courses_list(request):
     component_id = None
     allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
@@ -138,9 +137,25 @@ def courses_list(request):
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
 
-    context = {
-        "components": allowed_comps,
-        "component_id": component_id
-    }
+    context = {"components": allowed_comps, "component_id": component_id}
 
     return render(request, 'core/courses_list.html', context)
+
+
+@groups_required('ENS-CH',)
+def mycourses(request):
+
+    component_id = None
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+
+    if allowed_comps.count() == 1:
+        component_id = allowed_comps.first().id
+
+    context = {"components": allowed_comps, "component_id": component_id}
+
+    return render(request, 'core/mycourses.html', context)
+
+
+@groups_required('ENS-CH',)
+def myslots(request):
+    return render(request, 'core/myslots.html')
