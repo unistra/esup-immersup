@@ -6,8 +6,11 @@ import requests
 from django.conf import settings
 from django.core import serializers
 from django.db import IntegrityError
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.models import Group
 
 from immersionlyceens.decorators import groups_required
 
@@ -76,7 +79,7 @@ def import_holidays(request):
 groups_required('SCUIO-IP','REF-CMP')
 def courses_list(request):
     component_id = None
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
 
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
@@ -91,24 +94,67 @@ def courses_list(request):
 
 groups_required('SCUIO-IP','REF-CMP')
 def course(request):
+    teachers_list = []
     component_id = None
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
 
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST.get('save'):
         course_form = CourseForm(request.POST)
 
-        # if form.is_valid():
+        # Teachers
+        teachers_list = request.POST.get('teachers_list', [])
 
+        try:
+            teachers_list = json.loads(teachers_list)
+        except Exception:
+            messages.error(request, _("At least one teacher is required"))
+
+        else:
+            if course_form.is_valid():
+                course = course_form.save()
+
+                for teacher in teachers_list:
+                    teacher_user = None
+                    if isinstance(teacher, dict):
+                        try:
+                            teacher_user = ImmersionUser.objects.get(username=teacher['username'])
+                        except ImmersionUser.DoesNotExist:
+                            teacher_user = ImmersionUser.objects.create(
+                                username = teacher['username'],
+                                last_name = teacher['lastname'],
+                                first_name = teacher['firstname'],
+                                email=teacher['email'],
+                            )
+
+                            messages.success(request, _("User '%s' created" % teacher['username']))
+
+                        try:
+                            Group.objects.get(name='ENS-CH').user_set.add(teacher_user)
+                        except Exception:
+                            messages.error(request,
+                                _("Couldn't add group 'ENS-CH' to user '%s'" % teacher['username']))
+
+                        if teacher_user:
+                            course.teachers.add(teacher_user)
+
+                messages.success(request, _("Course successfully saved"))
+                return HttpResponseRedirect('/core/course')
+            else:
+                for err_field,err_list in course_form.errors.get_json_data().items():
+                    for error in err_list:
+                        if error.get("message"):
+                            messages.error(request, error.get("message"))
     else:
         course_form = CourseForm()
 
     context = {
         "components": allowed_comps,
         "component_id": component_id,
-        "course_form": course_form
+        "course_form": course_form,
+        "teachers": json.dumps(teachers_list)
     }
 
     return render(request, 'core/course.html', context)

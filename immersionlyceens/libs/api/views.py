@@ -15,7 +15,7 @@ from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request)
 
 from immersionlyceens.apps.core.models import (
-    MailTemplateVars, Course
+    MailTemplateVars, Course, Training,
 )
 
 from immersionlyceens.decorators import groups_required
@@ -93,6 +93,31 @@ def ajax_get_courses(request, component_id=None):
             course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
 
         response['data'].append(course_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+def ajax_get_trainings(request):
+    response = {'msg': '', 'data': []}
+
+    component_id = request.POST.get("component_id")
+
+    if not component_id:
+        response['msg'] = gettext("Error : a valid component must be selected")
+        return JsonResponse(response, safe=False)
+
+    trainings = Training.objects.prefetch_related('training_subdomains')\
+        .filter(components=component_id, active=True)
+
+    for training in trainings:
+        training_data = {
+            'id': training.id,
+            'label': training.label,
+            'subdomain': [s.label for s in training.training_subdomains.filter(active=True)],
+        }
+
+        response['data'].append(training_data.copy())
 
     return JsonResponse(response, safe=False)
 
