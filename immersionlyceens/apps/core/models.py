@@ -3,19 +3,18 @@ import logging
 import re
 from functools import partial
 
-from django.db.models import Q
-
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
-from mailmerge import MailMerge
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
+from mailmerge import MailMerge
 
-from .managers import (ActiveManager, ComponentQuerySet)
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
+
+from .managers import ActiveManager, ComponentQuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -691,7 +690,6 @@ class InformationText(models.Model):
 
         PublicDocument.objects.filter(id__in=texts_docs_id).update(published=True)
         PublicDocument.objects.filter(~Q(id__in=texts_docs_id)).update(published=False)
-        print(texts_docs_id)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

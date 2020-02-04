@@ -3,9 +3,6 @@ import logging
 from datetime import datetime
 
 import requests
-from immersionlyceens.apps.core.models import Component
-from immersionlyceens.decorators import groups_required
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
@@ -14,6 +11,9 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.utils.translation import ugettext_lazy as _
+
+from immersionlyceens.apps.core.models import Component
+from immersionlyceens.decorators import groups_required
 
 from .forms import CourseForm
 from .models import Component, Course, ImmersionUser
@@ -90,7 +90,6 @@ def components_list(request):
 
     elif request.user.is_component_manager:
         if request.user.components.count() > 1:
-            print(request.user.components.count())
             return render(request, template, context={'components': request.user.components.all()})
         else:  # Only one
             components = sorted(request.user.components.all()[0].id, lambda e: e.code)
