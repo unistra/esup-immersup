@@ -100,16 +100,16 @@ def ajax_get_courses(request, component_id=None):
 @is_ajax_request
 @groups_required('SCUIO-IP','REF-CMP')
 def get_ajax_documents(request):
-    from immersionlyceens.apps.core.models import AccompanyingDocument
+    from immersionlyceens.apps.core.models import PublicDocument
 
     response = {'msg': '', 'data': []}
 
-    documents = AccompanyingDocument.objects.filter(active=True)
+    documents = PublicDocument.objects.filter(active=True)
 
     response['data'] = [{
         'id': document.id,
         'label': document.label,
-        'url': request.build_absolute_uri(reverse('accompanying_document', args=(document.pk,))),
+        'url': request.build_absolute_uri(reverse('public_document', args=(document.pk,))),
     } for document in documents]
 
     return JsonResponse(response, safe=False)
