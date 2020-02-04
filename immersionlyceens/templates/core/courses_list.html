@@ -37,7 +37,9 @@
         <label for="cmps">{% trans 'Select a component' %} :</label>
         <select id="cmps">
           {% for component in components %}
-            <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>{{ component.label }}</option>
+            <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>
+              {{ component.code }} - {{ component.label }}
+            </option>
           {% endfor %}
         </select>
       </div>

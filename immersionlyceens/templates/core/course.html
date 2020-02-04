@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% if course %}
+  {% trans "Update a course" %}
+{% else %}
+  {% trans "New course" %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px; width:70%;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% if course %}
+        {% trans "Update a course" %}
+      {% else %}
+        {% trans "Create a new course" %}
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <label for="cmps" class="col-sm-3 col-form-label">{% trans 'Component' %} :</label>
+        <div class="col-sm-6">
+          <select id="cmps">
+            {% for component in components %}
+              <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>
+                {{ component.code }} - {{ component.label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <form class="" role="form" action="/core/course" method="POST">
+      {% csrf_token %}
+        {{ course_form.id }}
+        <div class="form-group row">
+          <label for="training" class="col-sm-3 col-form-label">{% trans 'Training' %} :</label>
+          <div class="col-sm-3">
+            {{ course_form.training }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.training.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="label" class="col-sm-3 col-form-label">{% trans 'Course label' %} :</label>
+          <div class="col-sm-3">
+            {{ course_form.label }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.label.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="url" class="col-sm-3 col-form-label">{% trans 'Url' %} :</label>
+          <div class="col-sm-3">
+            {{ course_form.url }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.url.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="published" class="col-sm-3 col-form-label">{% trans 'Published' %} :</label>
+          <div class="col-sm-3">
+            {{ course_form.published }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.published.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="teachers" class="col-sm-3 col-form-label">{% trans 'Teachers' %} :</label>
+          <div class="col-sm-9">
+            {% trans 'Search' %} : <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
+            <select id='live_select' style='display:none;'></select>
+            <a class="btn btn-secondary btn-sm" href="#" role="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</a>
+            <label id='ws_message' style='display:none; width:300px;'></label>
+            <ul id="id_teachers"></ul>
+            {{ course_form.teachers.errors }}
+            <input type="hidden" value="" name="teachers_list" id="id_teachers_list">
+          </div>
+        </div>
+        <div class="row">
+        <div class="col-md-6">
+            <a href="" class="btn btn-secondary btn-sm" name="cancel">{% trans 'Cancel' %}</a>
+            <input type="submit" class="btn btn-secondary btn-sm" name="save" style="margin-left:15px;" value="{% trans 'Save' %}">
+            <input type="submit" class="btn btn-secondary btn-sm" name="save_duplicate" style="margin-left:15px;" value="{% trans 'Save and duplicate' %}">
+            <input type="submit" class="btn btn-secondary btn-sm" name="save_add_new" style="margin-left:15px;" value="{% trans 'Save and add new' %}">
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  var json_results;
+  var query_order = 0;
+
+  {% autoescape on %}
+  var teachers_array = {{ teachers|safe }};
+  {% endautoescape %}
+
+  function set_trainings(cmp_id) {
+    $.ajax({
+      url: "{% url 'GetTrainings' %}",
+      type: 'POST',
+      data: {
+        'component_id': cmp_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        if(json["data"] != 'undefined') {
+          var trainings_list = [];
+          $.each(json["data"], function(i, item) {
+            trainings_list.push(item["id"]);
+          });
+
+          $("#id_training").children().each(function() {
+            var $this = $(this);
+
+            if($.inArray(parseInt($this.val()), trainings_list) == -1) {
+              $this.hide();
+            }
+            else {
+              $this.show();
+            }
+          });
+        }
+      }
+    })
+  }
+
+  function refresh_teachers_list() {
+    $("#id_teachers").empty();
+    $.each(teachers_array, function(i, item) {
+      $("#id_teachers").append(
+          "<li>" +
+          "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_teacher('"+item['username']+"')\">X</button> " +
+          item['display_name'] +
+          "</li>"
+      );
+    });
+
+    $('#id_teachers_list').val(JSON.stringify(teachers_array));
+  }
+
+  function remove_teacher(username) {
+    teachers_array = $.grep(teachers_array, function(value) {
+      return value["username"] != username;
+    });
+
+    refresh_teachers_list();
+  };
+
+  $('#cmps').change( function() {
+    let cmp_id = $('#cmps option:selected').val();
+    set_trainings(cmp_id);
+  });
+
+  $('#live_select').change(function () {
+    let val = $('#live_select option:selected').val();
+
+    if(val != '') {
+      $('#id_add_button').show();
+    }
+    else {
+      $('#id_add_button').hide();
+    }
+  });
+
+  $('#id_add_button').click(function() {
+    let json_index = $('#live_select option:selected').val();
+
+    if($.inArray(json_results[json_index], teachers_array) == -1) {
+      teachers_array.push(json_results[json_index]);
+    }
+
+    refresh_teachers_list();
+  });
+
+  $('#person_search').on('input', function() {
+    if (this.value.length >= 2) {
+      var csrftoken = getCookie('csrftoken');
+      query_order += 1;
+
+      $.ajax({
+        beforeSend: function (request) {
+          request.setRequestHeader("X-CSRFToken", csrftoken);
+        },
+
+        url: "/api/get_person",
+        type: "POST",
+        data: {
+          username: this.value,
+          query_order: query_order
+        },
+
+        success: function (json) {
+          var msg = json['msg'];
+          var query = json['data'][0];
+
+          if (msg != '') {
+            $('#ws_message').innerHTML = msg;
+            $('#ws_message').show();
+          } else {
+            document.getElementById("ws_message").innerHTML = "";
+            $('#ws_message').hide();
+          }
+
+          // Prevent previous (longer) query from erasing latest one
+          if (query >= query_order) {
+            $("#live_select").show();
+
+            if (json['data'].length <= 1) {
+              $('#live_select').empty();
+            } else {
+              json_results = json['data'];
+
+              $('#live_select').empty().append(
+                  "<option value='' disabled>" + "{% trans 'Select a person' %} ..." + "</option>"
+              );
+              for (var i = 1; i < json['data'].length; i++) {
+                $('#live_select').append(
+                  "<option value='" + i + "'>" + json['data'][i]['display_name'] + "</option>");
+              }
+              $('#id_add_button').show();
+            }
+          }
+        },
+        error: function (e) {
+          obj = JSON.stringify(e);
+          console.log("Error : " + obj);
+        }
+      });
+    }
+  });
+
+  $(document).ready(function() {
+    set_trainings($('#cmps option:selected').val());
+
+    if (teachers_array) {
+      refresh_teachers_list();
+    }
+
+  });
+</script>
+{% endblock %}
