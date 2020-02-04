@@ -790,14 +790,15 @@ class MailTemplateForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by(
-            'code'
-        )
-
         if not self.request.user.is_superuser:
-            self.fields['available_vars'].disabled = True
+            self.fields['available_vars'].widget = forms.MultipleHiddenInput()
+            self.fields['description'].disabled = True
             self.fields['label'].disabled = True
             self.fields['code'].disabled = True
+        else:
+            self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by(
+                'code'
+            )
 
     def clean(self):
         cleaned_data = super().clean()
