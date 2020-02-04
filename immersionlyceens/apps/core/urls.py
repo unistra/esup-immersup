@@ -15,4 +15,5 @@ urlpatterns = [
     path('slot/delete:<int:slot_id>', views.del_slot, name='delete_slot'),
     path('courses_list', views.courses_list, name='courses_list'),
     path('course', views.course, name='course'),
+    path('course/<int:course_id>', views.course, name='course'),
 ]

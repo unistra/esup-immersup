@@ -148,16 +148,33 @@ def courses_list(request):
 
 
 groups_required('SCUIO-IP','REF-CMP')
-def course(request):
+def course(request, course_id=None):
     teachers_list = []
     component_id = None
+    course = None
     allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
 
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
 
+    if course_id:
+        try:
+            course = Course.objects.get(pk=course_id)
+            course_form = CourseForm(instance=course)
+
+            teachers_list = [{
+                "username": t.username,
+                "lastname": t.last_name,
+                "firstname": t.first_name,
+                "email": t.email,
+                "display_name": "%s %s" % (t.last_name, t.first_name),
+                "is_removable": not t.slots.filter(course=course_id).exists(),
+            } for t in course.teachers.all()]
+        except Course.DoesNotExist:
+            course_form = CourseForm()
+
     if request.method == 'POST' and request.POST.get('save'):
-        course_form = CourseForm(request.POST)
+        course_form = CourseForm(request.POST, instance=course)
 
         # Teachers
         teachers_list = request.POST.get('teachers_list', [])
@@ -169,8 +186,13 @@ def course(request):
 
         else:
             if course_form.is_valid():
-                course = course_form.save()
+                new_course = course_form.save()
 
+                current_teachers = [
+                    u for u in new_course.teachers.all().values_list('username', flat=True) ]
+                new_teachers = [ teacher.get('username') for teacher in teachers_list ]
+
+                # Teachers to add
                 for teacher in teachers_list:
                     teacher_user = None
                     if isinstance(teacher, dict):
@@ -193,19 +215,29 @@ def course(request):
                                 _("Couldn't add group 'ENS-CH' to user '%s'" % teacher['username']))
 
                         if teacher_user:
-                            course.teachers.add(teacher_user)
+                            new_course.teachers.add(teacher_user)
 
-                messages.success(request, _("Course successfully saved"))
-                return HttpResponseRedirect('/core/course')
+                # Teachers to remove
+                remove_list = set(current_teachers) - set(new_teachers)
+                for username in remove_list:
+                    try:
+                        user = ImmersionUser.objects.get(username=username)
+                        new_course.teachers.remove(user)
+                    except ImmersionUser.DoesNotExist:
+                        pass
+
+                if course:
+                    messages.success(request, _("Course successfully updated"))
+                else:
+                    messages.success(request, _("Course successfully save"))
             else:
                 for err_field,err_list in course_form.errors.get_json_data().items():
                     for error in err_list:
                         if error.get("message"):
                             messages.error(request, error.get("message"))
-    else:
-        course_form = CourseForm()
 
     context = {
+        "course": course,
         "components": allowed_comps,
         "component_id": component_id,
         "course_form": course_form,

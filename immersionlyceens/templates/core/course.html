@@ -37,7 +37,7 @@
           </select>
         </div>
       </div>
-      <form class="" role="form" action="/core/course" method="POST">
+      <form class="" role="form" action="/core/course{% if course %}/{{ course.id }}{% endif %}" method="POST">
       {% csrf_token %}
         {{ course_form.id }}
         <div class="form-group row">
@@ -104,6 +104,7 @@
 <script type="text/javascript">
   var json_results;
   var query_order = 0;
+  var training_id = {{ course.training_id }};
 
   {% autoescape on %}
   var teachers_array = {{ teachers|safe }};
@@ -135,7 +136,12 @@
             }
           });
 
-          $("#id_training").val($("#id_training option:first").val());
+          if(training_id) {
+            $("#id_training").val(training_id);
+          }
+          else {
+            $("#id_training").val($("#id_training option:first").val());
+          }
         }
       }
     })
@@ -144,12 +150,15 @@
   function refresh_teachers_list() {
     $("#id_teachers").empty();
     $.each(teachers_array, function(i, item) {
-      $("#id_teachers").append(
-          "<li>" +
-          "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_teacher('"+item['username']+"')\">X</button> " +
-          item['display_name'] +
-          "</li>"
-      );
+      let txt = "<li>";
+
+      if(item["is_removable"] == true || item["is_removable"] == undefined) {
+        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_teacher('"+item['username']+"')\">X</button> ";
+      }
+
+      txt += item['display_name'] + "</li>"
+
+      $("#id_teachers").append(txt);
     });
 
     $('#id_teachers_list').val(JSON.stringify(teachers_array));

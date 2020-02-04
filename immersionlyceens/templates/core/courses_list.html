@@ -107,7 +107,11 @@ $(document).ready(function() {
             },
           },
           { "data": "training_label"},
-          { "data": "label" },
+          { "data": "label",
+            "render": function (data, type, row) {
+              return "<a href='/core/course/" + row.id + "'>"+data+"</a>";
+            },
+          },
           { "data": "teachers",
             "render": function (data) {
               let txt = "";

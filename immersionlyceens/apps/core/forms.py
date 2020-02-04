@@ -10,12 +10,7 @@ from .models import (Course, Training, ImmersionUser, UniversityYear)
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        instance = kwargs.get('instance', None)
-
         self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
-
-        if instance:
-            self.fields['id'].widget = forms.HiddenInput()
 
     def clean(self):
         cleaned_data = super().clean()
