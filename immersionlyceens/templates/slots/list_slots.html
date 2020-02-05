@@ -15,52 +15,55 @@
     <p id="top_indicator__content" class="text-center text-light"></p>
 </div>
 <div class="container">
-
-
     <br>
-    <div>
-        <h4>{% trans "Slot" %} - {{ component.label }}</h4>
+    <div class="card">
+        <div class="card-header text-white bg-secondary">
+            {% trans "Slot" %} - {{ component.label }}
+        </div>
+        <div class="card-body">
+            <div>
+                <a href="{% url 'add_slot' %}" class="btn btn-secondary">&#10133; {% trans 'New slot' %}</a>
+            </div>
+            <br>
+            <table id="list_of_slots"
+                   class="display dataTable table-bordered"
+                   cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>{% trans 'Published' %}</th>
+                        <th>{% trans 'Course label' %}</th>
+                        <th>{% trans 'Course type' %}</th>
+                        <th>{% trans 'Date' %}</th>
+                        <th>{% trans 'Schedule' %}</th>
+                        <th>{% trans 'Campus' %} - {% trans 'Building' %}</th>
+                        <th>{% trans 'Room' %}</th>
+                        <th>{% trans 'Teachers' %}</th>
+                        <th>{% trans '# of registration' %}</th>
+                        <th>{% trans 'Additional information' %}</th>
+                        <th>{% trans 'Control' %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
     <br>
-    <div>
-        <a href="{% url 'add_slot' %}" class="btn btn-secondary">&#10133; {% trans 'New slot' %}</a>
-    </div>
-
     <br>
-    <div>
-        <table id="list_of_slots" class="display dataTable" cellspacing="0" width="100%">
-            <thead>
-                <tr>
-                    <th>{% trans 'Published' %}</th>
-                    <th>{% trans 'Course label' %}</th>
-                    <th>{% trans 'Course type' %}</th>
-                    <th>{% trans 'Date' %}</th>
-                    <th>{% trans 'Schedule' %}</th>
-                    <th>{% trans 'Campus' %} - {% trans 'Building' %}</th>
-                    <th>{% trans 'Room' %}</th>
-                    <th>{% trans 'Teachers' %}</th>
-                    <th>{% trans '# of registration' %}</th>
-                    <th>{% trans 'Additional information' %}</th>
-                    <th>{% trans 'Control' %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <br>
 </div>
 
 {% endblock %}
@@ -113,7 +116,7 @@ $(document).ready(function(){
             }
           }
         },
-        order: [[1, "asc"]],
+        order: [[3, "desc"]],
         processing: false,
         serverSide: false,
         responsive: true,
@@ -124,7 +127,7 @@ $(document).ready(function(){
         language: {url: '{% static "js/vendor/i18n/" %}{{ LANGUAGE_CODE }}.json'},
         columns: [
             {data: 'published', render: function(data, type, row){
-                return (data) ? '&#10004;' : '&#10060;';
+                return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
                 }},
             {data: 'course_label'},
             {data: 'course_type'},

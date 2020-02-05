@@ -162,7 +162,9 @@ def get_ajax_slots(request, component=None):
             ),
             'building': slot.building.label,
             'room': slot.room,
-            'teachers': ', '.join([str(e) for e in slot.teachers.all()]),
+            'teachers': ', '.join([
+                '{} {}'.format(e.first_name, e.last_name.upper())
+                for e in slot.teachers.all()]),
             'n_register': 10,
             'n_places': slot.n_places,
             'additional_information': slot.additional_information,
