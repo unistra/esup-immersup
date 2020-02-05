@@ -260,7 +260,7 @@ def course(request, course_id=None):
                 if course:
                     messages.success(request, _("Course successfully updated"))
                 else:
-                    messages.success(request, _("Course successfully save"))
+                    messages.success(request, _("Course successfully saved"))
             else:
                 for err_field, err_list in course_form.errors.get_json_data().items():
                     for error in err_list:
