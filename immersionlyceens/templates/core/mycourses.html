@@ -23,7 +23,7 @@
   <div id="feedback_validated" class="alert alert-success alert-dismissable fade in" style="display:none"></div>
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans "My courses" %}
+    {% trans "Courses" %} - {{ request.user.last_name }} {{ request.user.first_name }}
     </div>
     <div class="card-body">
       <span class="row pull-right"><input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm"></span>
@@ -31,13 +31,13 @@
         width="100%">
         <thead>
           <tr>
-            <th><span id="published_filter"></span>{% trans 'Published' %}</th>
-            <th><span id="component_filter"></span>{% trans 'Components' %}</th>
-            <th><span id="training_filter"></span>{% trans 'Training' %}</th>
-            <th><span id="label_filter"></span>{% trans 'Label' %}</th>
-            <th><span id="teacher_filter"></span>{% trans 'Teachers' %}</th>
-            <th><span id="published_slots_filter"></span>{% trans 'Published slots' %}</th>
-            <th><span id="registered_students_filter"></span>{% trans 'Registered students' %}</th>
+            <th id="published_filter">{% trans 'Published' %}</th>
+            <th id="component_filter">{% trans 'Components' %}</th>
+            <th id="training_filter">{% trans 'Training' %}</th>
+            <th id="label_filter">{% trans 'Label' %}</th>
+            <th id="teacher_filter">{% trans 'Teachers' %}</th>
+            <th id="published_slots_filter">{% trans 'Published slots' %}</th>
+            <th id="registered_students_filter">{% trans 'Registered students' %}</th>
           </tr>
         </thead>
         <tfoot>
