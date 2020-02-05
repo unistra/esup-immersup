@@ -90,6 +90,27 @@ class ImmersionUser(AbstractUser):
             self.is_superuser, self.groups.filter(name__in=groups).exists()
         )
 
+    def has_course_rights(self, course_id):
+        """
+        Check if the user can update / delete a course
+        :param course_id: Course id
+        :return: boolean
+        """
+        if self.is_superuser or self.has_groups('REF-CMP', 'SCUIO-IP'):
+            return True
+
+        try:
+            course = Course.objects.get(pk=course_id)
+            course_components = course.training.components.all()
+
+            if course_components & self.components.all():
+                return True
+
+        except Course.DoesNotExist:
+            return False
+
+        return False
+
     def authorized_groups(self):
         user_filter = {} if self.is_superuser else {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
