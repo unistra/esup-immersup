@@ -133,7 +133,7 @@ def del_slot(request, slot_id):
 
 @groups_required('SCUIO-IP', 'REF-CMP')
 def courses_list(request):
-    can_update_course = False
+    can_update_courses = False
     component_id = None
     allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by(
         "code", "label"
@@ -145,20 +145,20 @@ def courses_list(request):
     # Check if we can update courses
     try:
         active_year = UniversityYear.objects.get(active=True)
-        can_update_course = active_year.date_is_between(datetime.today().date())
+        can_update_courses = active_year.date_is_between(datetime.today().date())
     except UniversityYear.DoesNotExist:
         pass
     except UniversityYear.MultipleObjectsReturned:
         pass
 
-    if not can_update_course:
+    if not can_update_courses:
         messages.warning(request,
-            _("Courses cannot be updated because the active university year has not begun yet."))
+            _("Courses cannot be updated or deleted because the active university year has not begun yet."))
 
     context = {
         "components": allowed_comps,
         "component_id": component_id,
-        "can_update_course": can_update_course
+        "can_update_courses": can_update_courses
     }
 
     return render(request, 'core/courses_list.html', context)

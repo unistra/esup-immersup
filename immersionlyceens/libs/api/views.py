@@ -200,12 +200,41 @@ def ajax_get_courses(request, component_id=None):
             'published_slots_count': 0,  # TODO
             'registered_students_count': 0,  # TODO
             'alerts_count': 0,  # TODO
+            'can_delete': not course.slots.exists(),
         }
 
         for teacher in course.teachers.all().order_by('last_name', 'first_name'):
             course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
 
         response['data'].append(course_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('SCUIO-IP', 'REF-CMP')
+def ajax_delete_course(request):
+    response = {'msg': '', 'error':''}
+    course_id = request.POST.get('course_id')
+
+    if not course_id:
+        response['error'] = gettext("Error : a valid course must be selected")
+        return JsonResponse(response, safe=False)
+
+    # Check rights
+    if not request.user.has_course_rights(course_id):
+        response['error'] = gettext("Error : you can't delete this course")
+        return JsonResponse(response, safe=False)
+
+    try:
+        course = Course.objects.get(pk=course_id)
+        if not course.slots.exists():
+            course.delete()
+            response['msg'] = gettext("Course successfully deleted")
+        else:
+            response['error'] = gettext("Error : slots are linked to this course")
+    except Course.DoesNotExist:
+        pass
 
     return JsonResponse(response, safe=False)
 

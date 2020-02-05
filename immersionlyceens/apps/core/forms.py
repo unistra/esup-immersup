@@ -17,14 +17,9 @@ class CourseForm(forms.ModelForm):
             allowed_comps = Component.activated.user_cmps(self.request.user)
             self.fields["component"].queryset = allowed_comps.order_by('code', 'label')
 
-            if self.instance.id:
-                # Check user rights
-                training = self.instance.training
-                course_comps = training.components.all()
-
-                if not (course_comps & allowed_comps).exists():
-                    for field in self.fields:
-                        self.fields[field].disabled = True
+            if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
+                for field in self.fields:
+                    self.fields[field].disabled = True
         else:
             self.fields["component"].queryset = self.fields["component"].queryset.order_by('code', 'label')
 
