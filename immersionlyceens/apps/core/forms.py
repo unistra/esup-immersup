@@ -13,15 +13,20 @@ class CourseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
 
-        if self.instance.id and self.request:
-            # Check user rights
+        if self.request:
             allowed_comps = Component.activated.user_cmps(self.request.user)
-            training = self.instance.training
-            course_comps = training.components.all()
+            self.fields["component"].queryset = allowed_comps.order_by('code', 'label')
 
-            if not (course_comps & allowed_comps).exists():
-                for field in self.fields:
-                    self.fields[field].disabled = True
+            if self.instance.id:
+                # Check user rights
+                training = self.instance.training
+                course_comps = training.components.all()
+
+                if not (course_comps & allowed_comps).exists():
+                    for field in self.fields:
+                        self.fields[field].disabled = True
+        else:
+            self.fields["component"].queryset = self.fields["component"].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -57,4 +62,4 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'training')
+        fields = ('id', 'label', 'url', 'published', 'training', 'component')

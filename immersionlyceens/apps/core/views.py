@@ -167,19 +167,14 @@ def courses_list(request):
 groups_required('SCUIO-IP','REF-CMP')
 def course(request, course_id=None):
     teachers_list = []
-    component_id = None
     course = None
     course_form = None
     update_rights = True
     allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
 
-    if allowed_comps.count() == 1:
-        component_id = allowed_comps.first().id
-
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
-            component_id = course.training.components.first().id
             course_form = CourseForm(instance=course, request=request)
 
             teachers_list = [{
@@ -194,7 +189,7 @@ def course(request, course_id=None):
             course_form = CourseForm(request=request)
 
         # check user rights
-        if not (course.get_components_queryset() & allowed_comps).exists():
+        if course and not (course.get_components_queryset() & allowed_comps).exists():
             update_rights = False
             messages.error(request,
                 _("You don't have enough privileges to update this course"))
@@ -261,6 +256,8 @@ def course(request, course_id=None):
                     messages.success(request, _("Course successfully updated"))
                 else:
                     messages.success(request, _("Course successfully saved"))
+
+                return HttpResponseRedirect("/core/courses_list")
             else:
                 for err_field, err_list in course_form.errors.get_json_data().items():
                     for error in err_list:
@@ -272,8 +269,6 @@ def course(request, course_id=None):
 
     context = {
         "course": course,
-        "components": allowed_comps,
-        "component_id": component_id,
         "course_form": course_form,
         "teachers": json.dumps(teachers_list),
         "update_rights": update_rights,

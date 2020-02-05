@@ -275,7 +275,7 @@ class TestSlotCase(TestCase):
         ct = CourseType(label='CM')
         ct.save()
         # Course
-        course = Course(label='my super course', training=t)
+        course = Course(label='my super course', training=t, component=c)
         course.save()
 
         # Campus

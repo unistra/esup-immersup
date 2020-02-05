@@ -26,21 +26,18 @@
       {% endif %}
     </div>
     <div class="card-body">
-      <div class="row">
-        <label for="cmps" class="col-sm-3 col-form-label">{% trans 'Component' %} :</label>
-        <div class="col-sm-6">
-          <select id="cmps">
-            {% for component in components %}
-              <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>
-                {{ component.code }} - {{ component.label }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
       <form class="" role="form" action="/core/course{% if course %}/{{ course.id }}{% endif %}" method="POST">
       {% csrf_token %}
         {{ course_form.id }}
+        <div class="form-group row">
+          <label for="component" class="col-sm-3 col-form-label">{% trans 'Component' %} :</label>
+          <div class="col-sm-3">
+            {{ course_form.component }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.component.errors }}
+          </div>
+        </div>
         <div class="form-group row">
           <label for="training" class="col-sm-3 col-form-label">{% trans 'Training' %} :</label>
           <div class="col-sm-3">
@@ -183,8 +180,8 @@
     refresh_teachers_list();
   };
 
-  $('#cmps').change( function() {
-    let cmp_id = $('#cmps option:selected').val();
+  $('#id_component').change( function() {
+    let cmp_id = $('#id_component option:selected').val();
     set_trainings(cmp_id);
   });
 
@@ -267,7 +264,7 @@
   });
 
   $(document).ready(function() {
-    set_trainings($('#cmps option:selected').val());
+    set_trainings($('#id_component option:selected').val());
 
     if (teachers_array) {
       refresh_teachers_list();
@@ -276,6 +273,7 @@
     if (can_update == "False") {
       $("#id_search_label").hide();
       $("#person_search").hide();
+      $('input[name^="save"]').hide();
     }
 
   });
