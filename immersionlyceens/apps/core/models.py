@@ -593,6 +593,15 @@ class Course(models.Model):
         related_name="courses",
     )
 
+    component = models.ForeignKey(
+        Component,
+        verbose_name=_("Component"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="courses",
+    )
+
     published = models.BooleanField(_("Published"), default=True)
 
     teachers = models.ManyToManyField(
@@ -924,14 +933,6 @@ class Slot(models.Model):
     training = models.ForeignKey(
         Training,
         verbose_name=_("Training"),
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="slots",
-    )
-    course = models.ForeignKey(
-        Course,
-        verbose_name=_("Course"),
         null=False,
         blank=False,
         on_delete=models.CASCADE,
