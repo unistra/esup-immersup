@@ -975,7 +975,7 @@ class Slot(models.Model):
 
     date = models.DateField(_('Date'))
     start_time = models.TimeField(_('Start time'))
-    end_time = models.TimeField(_('Start time'))
+    end_time = models.TimeField(_('End time'))
 
     teachers = models.ManyToManyField(
         ImmersionUser, verbose_name=_("Teachers"), related_name='slots'
