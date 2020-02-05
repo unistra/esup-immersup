@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "My slots" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div id="feedback_validated" class="alert alert-success alert-dismissable fade in" style="display:none"></div>
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
+    </div>
+    <div class="card-body">
+      <form class="form-inline pull-right">
+        <div class="form-group">
+          <div class="form-group form-check mx-sm-3 mb-2">
+            <label for="filter_past_slots" class="form-check-label"> {% trans 'Include past slots with emargements' %}
+            <input type="checkbox" id="filter_past_slots" value="" class="form-check-input ml-md-2"></label>
+          </div>
+          <div class="form-group mb-2">
+            <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
+          </div>
+        </div>
+      </form>
+      <table id="courses_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="90%">
+        <thead>
+          <tr>
+            <th id="published_filter">{% trans 'Published' %}</th>
+            <th id="component_filter">{% trans 'Comp.' %}</th>
+            <th id="training_filter">{% trans 'Training' %}</th>
+            <th id="label_filter">{% trans 'Label' %}</th>
+            <th id="course_type_filter">{% trans 'Course type' %}</th>
+            <th id="date_filter">{% trans 'Date' %}</th></th>
+            <th id="start_time_filter">{% trans 'Start time' %}</th>
+            <th id="end_time_filter">{% trans 'End time' %}</th>
+            <th id="campus_filter">{% trans 'Campus' %}</th>
+            <th id="building_filter">{% trans 'Building' %}</th>
+            <th id="room_filter">{% trans 'Room' %}</th>
+            <th id="teacher_filter">{% trans 'Teachers' %}</th>
+            <th id="registered_students_filter">{% trans 'Registered students' %}</th>
+            <th id="additional_info_filter">{% trans 'Additional info.' %}<></th>
+            <th id="emargements_filter">{% trans 'Emargements' %}<></th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  $(document).ready(function () {
+    var dt = $('#courses_table').DataTable({
+      'processing': false,
+      'order': [
+        [1, "asc"]
+      ],
+      'pageLength': 15,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_my_slots/" + {{ request.user.id }} + "/",
+    dataSrc: function (json) {
+      if (json['data'] != undefined) {
+        return json['data'];
+      }
+    }
+      },
+    'searching': true,
+    'language': {
+    url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+  },
+    'columns': [
+    {
+      "data": "published",
+      "render": function (data) {
+        if (data) {
+          txt = "{% trans 'Yes' %}";
+        }
+        else {
+          txt = "{% trans 'No' %}";
+        }
+
+        return txt;
+      },
+    },
+    { "data": "components" },
+    { "data": "training_label" },
+    { "data": "label" },
+    { "data": "course_type"},
+    { "data": "date"},
+    { "data": "start_time"},
+    { "data": "end_time"},
+    { "data": "campus"},
+    { "data": "building"},
+    { "data": "room"},
+    {
+      "data": "teachers",
+      "render": function (data) {
+        let txt = "";
+        $.each(data, function (name, email) {
+          txt += "<a href='mailto:" + email + "'>" + name + "</a><br>";
+        });
+        return txt;
+      },
+    },
+    { "data": "registered_students_count" },
+    { "data": "additional_information" },
+    { "data": "emargements"},
+  ],
+    "columnDefs": [
+    {
+      "defaultContent": "",
+      "targets": "_all"
+    },
+  ],
+
+    });
+
+  // All filters reset action
+  $('#filters_reset_all').click(function () {
+    yadcf.exResetAllFilters(dt);
+  });
+
+  // Filters init
+  yadcf.init(dt, [{
+    column_number: 0,
+    filter_default_label: "",
+    filter_container_id: "published_filter",
+    style_class: "form-control",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 1,
+    filter_type: "text",
+    filter_default_label: "",
+    filter_container_id: "component_filter",
+    style_class: "form-control",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 2,
+    filter_type: "text",
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "training_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 3,
+    filter_type: "text",
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "label_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 4,
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "course_type_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 5,
+    filter_type: "range_date",
+    style_class: "form-control",
+    datepicker_type: 'bootstrap-datepicker',
+    filter_container_id: "date_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 6,
+    style_class: "form-control",
+    filter_container_id: "start_time_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 7,
+    style_class: "form-control",
+    filter_container_id: "end_time_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 8,
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "campus_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 9,
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "building_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 10,
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "room_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 11,
+    filter_type: "text",
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "teacher_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 12,
+    filter_type: "range_number_slider",
+    style_class: "form-control",
+    filter_container_id: "registered_students_filter",
+  }, {
+    column_number: 13,
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "additional_info_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 14,
+    filter_default_label: "",
+    style_class: "form-control",
+    filter_container_id: "emargements_filter",
+    filter_reset_button_text: false,
+  }
+  ]);
+});
+</script>
+{% endblock %}

@@ -4,15 +4,15 @@ API Views
 import datetime
 import logging
 
-from immersionlyceens.apps.core.models import Course, MailTemplateVars, Training
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
+
+from immersionlyceens.apps.core.models import Course, MailTemplateVars, Training
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -242,5 +242,51 @@ def ajax_get_my_courses(request, user_id=None):
             course_data['components'].append(component.label)
 
         response['data'].append(course_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('ENS-CH')
+def ajax_get_my_slots(request, user_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not user_id:
+        response['msg'] = gettext("Error : a valid user must be passed")
+
+    courses = Course.objects.prefetch_related('training').filter(teachers=user_id)
+
+    for course in courses:
+        for s in course.training.slots.all():
+            course_data = {
+                'id': course.id,
+                'published': course.published,
+                'components': [],
+                'training_label': course.training.label,
+                'course_type': s.course_type.label,
+                'campus': s.campus.label,
+                'building': s.building.label,
+                'room': s.room,
+                'date': s.date,
+                'start_time': s.start_time,
+                'end_time': s.end_time,
+
+                'label': course.label,
+                'teachers': {},
+                'published_slots_count': 0,  # TODO
+                'registered_students_count': 0,  # TODO
+                'additional_information': s.additional_information, # TODO
+                'emargements': '', # TODO
+            }
+
+            for teacher in course.teachers.all().order_by('last_name', 'first_name'):
+                course_data['teachers'].update(
+                    [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
+                )
+
+            for component in course.training.components.all().order_by('label'):
+                course_data['components'].append(component.label)
+
+            response['data'].append(course_data.copy())
 
     return JsonResponse(response, safe=False)
