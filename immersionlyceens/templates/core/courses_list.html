@@ -72,6 +72,8 @@
 </div>
 <script type="text/javascript">
 $(document).ready(function() {
+  var updatable = "{{ can_update_course }}";
+
   var dt = $('#courses_table').DataTable({
       'processing': false,
       'order': [
@@ -109,7 +111,12 @@ $(document).ready(function() {
           { "data": "training_label"},
           { "data": "label",
             "render": function (data, type, row) {
-              return "<a href='/core/course/" + row.id + "'>"+data+"</a>";
+              if(updatable == "True") {
+                return "<a href='/core/course/" + row.id + "'>"+data+"</a>";
+              }
+              else {
+                return data;
+              }
             },
           },
           { "data": "teachers",
@@ -136,10 +143,9 @@ $(document).ready(function() {
         },
       ],
     });
-    // Reload the table when cge changes in selectbox
+    // Reload the table when component changes in selectbox
     $('#cmps').change( function() {
       dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
-      // $("#id_add_course").attr("href", "/core/course/" + $('#cmps option:selected').val());
     });
 
     // Filters init

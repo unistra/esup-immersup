@@ -764,19 +764,21 @@ class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
         return request.user.is_superuser
 
     class Media:
-        css = {'all': ('css/immersionlyceens.css',
-                       'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
-                       'js/vendor/datatables/datatables.min.css',
-                       'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',)
-               }
+        css = {
+            'all': (
+                'css/immersionlyceens.css',
+                'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
+                'js/vendor/datatables/datatables.min.css',
+                'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',
+            )
+        }
         js = (
-              'js/vendor/jquery/jquery-3.4.1.min.js',
-              'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-              'js/admin_information_text.js',
-              'js/vendor/datatables/datatables.min.js',
-              'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
+            'js/vendor/jquery/jquery-3.4.1.min.js',
+            'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
+            'js/admin_information_text.js',
+            'js/vendor/datatables/datatables.min.js',
+            'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
         )
-
 
 
 class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -836,17 +838,21 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         return request.user.is_superuser
 
     class Media:
-        css = {'all': ('css/immersionlyceens.css',
-                       'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
-                       'js/vendor/datatables/datatables.min.css',
-                       'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',)
+        css = {
+            'all': (
+                'css/immersionlyceens.css',
+                'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
+                'js/vendor/datatables/datatables.min.css',
+                'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',
+            )
         }
-        js = ('js/vendor/jquery/jquery-3.4.1.min.js',
-              'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-              'js/immersion_mail_templates.js',
-              'js/vendor/datatables/datatables.min.js',
-              'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',)
-
+        js = (
+            'js/vendor/jquery/jquery-3.4.1.min.js',
+            'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
+            'js/immersion_mail_templates.js',
+            'js/vendor/datatables/datatables.min.js',
+            'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
+        )
 
 
 class AttendanceCertificateModelAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -864,15 +870,25 @@ class AttendanceCertificateModelAdmin(AdminWithRequest, admin.ModelAdmin):
         """Only one obj is valid"""
         return not AttendanceCertificateModel.objects.exists()
 
+
 class EvaluationTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EvaluationTypeForm
     list_display = ('code', 'label')
     ordering = ('label',)
 
+
 class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EvaluationFormLinkForm
-    list_display = ("evaluation_type", "url",)
+    list_display = (
+        "evaluation_type",
+        "url",
+    )
     ordering = ('evaluation_type',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return ['evaluation_type',]
+        return self.readonly_fields
 
 
 admin.site = CustomAdminSite(name='Repositories')
