@@ -66,6 +66,9 @@ class SlotForm(forms.ModelForm):
                   'room', 'date', 'start_time', 'end_time', 'n_places',
                   'additional_information', 'published',)
         widgets = {
-            'additional_information': forms.Textarea(),
+            'additional_information': forms.Textarea(attrs={
+                'placeholder': _('Input additional information'),
+            }),
             'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
+            'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
         }

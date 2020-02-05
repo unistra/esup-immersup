@@ -16,7 +16,7 @@ from immersionlyceens.decorators import (
 
 from immersionlyceens.apps.core.models import (
     MailTemplateVars, Course, Training,
-)
+    Building, ImmersionUser)
 
 from immersionlyceens.decorators import groups_required
 
@@ -148,7 +148,7 @@ def get_ajax_slots(request, component=None):
 
     response = {'msg': '', 'data': []}
     if component:
-        slots = Slot.objects.filter(training__components__id=component)
+        slots = Slot.objects.filter(course__training__components__id=component)
 
         data = [{
             'id': slot.id,
@@ -171,5 +171,65 @@ def get_ajax_slots(request, component=None):
         response['data'] = data
     else:
         response['msg'] = gettext('Error : component id')
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('SCUIO-IP','REF-CMP')
+def ajax_get_courses_by_training(request, training_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not training_id:
+        response['msg'] = gettext("Error : a valid training must be selected")
+
+    courses = Course.objects.prefetch_related('training').filter(
+        training__id=training_id)
+
+    for course in courses:
+        course_data = {
+            'key': course.id,
+            'label': course.label,
+        }
+        response['data'].append(course_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@groups_required('SCUIO-IP','REF-CMP')
+def ajax_get_buildings(request, campus_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not campus_id:
+        response['msg'] = gettext("Error : a valid campus must be selected")
+
+    buildings = Building.objects.filter(campus_id=campus_id)
+
+    for building in buildings:
+        buildings_data = {
+            'id': building.id,
+            'label': building.label,
+        }
+        response['data'].append(buildings_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@groups_required('SCUIO-IP','REF-CMP')
+def ajax_get_course_teachers(request, course_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not course_id:
+        response['msg'] = gettext("Error : a valid course must be selected")
+    else:
+        teachers = Course.objects.get(id=course_id).teachers.all()
+
+        for teacher in teachers:
+            teachers_data = {
+                'id': teacher.id,
+                'first_name': teacher.first_name,
+                'last_name': teacher.last_name.upper(),
+            }
+            response['data'].append(teachers_data.copy())
 
     return JsonResponse(response, safe=False)

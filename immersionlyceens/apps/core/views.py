@@ -119,24 +119,36 @@ def list_of_slots(request, component):
 
 
 # TODO: AUTH
-def add_slot(request):
-    teachers_list = []
-    component_id = None
+def add_slot(request, slot_id=None):
     slot_form = None
     allowed_comps = Component.activated.user_cmps(
         request.user,
         ['SCUIO-IP', 'REF-CMP']
     ).order_by("code", "label")
+    context = {}
+    slot = None
 
-    if allowed_comps.count() == 1:
-        component_id = allowed_comps.first().id
+    # if allowed_comps.count() == 1:
+    #     component_id = allowed_comps.first().id
 
-    if request.method == 'POST' and request.POST.get('save'):
-        pass
+    if request.method == 'POST' and (request.POST.get('save') or \
+            request.POST.get('duplicate') or \
+            request.POST.get('save_add')):
+
+        slot_form = SlotForm(request.POST, instance=slot)
+        if slot_form.is_valid():
+            slot_form.save()
+            for teacher in request.POST.getlist('teachers', []):
+                slot_form.instance.teachers.add(teacher)
+        if request.POST.get('save'):
+            return redirect('components_list')
+        elif request.POST.get('save_add'):
+            return redirect('add_slot')
+        else:
+            return redirect('components_list') # todo: handle duplication
     else:
         slot_form = SlotForm()
 
-    print(slot_form)
     context = {
         "trainings": Training.objects.filter(active=True),
         "slot_form": slot_form,

@@ -15,7 +15,7 @@
     <div class="card">
         <div class="card-header text-white bg-secondary">
             {% if slot %}
-                {% trans 'Add a new slot' %}
+                {% trans 'modify slot' %}
             {% else %}
                 {% trans 'Add a new slot' %}
             {% endif %}
@@ -24,15 +24,15 @@
             <div class="row">
                 ??
             </div>
-            <form method="POST" class="form-group" role="form">
+            <form method="POST" action="{% url 'add_slot' %}" class="form-group" role="form">
                 {% csrf_token %}
                 {{ slot_form.id }}
 
                 <div class="form-group row">
                     <label for="training" class="col-form-label col-sm-3">{% trans 'Training' %}</label>
                     <div class="col-sm-6">
-                        <select name="training" id="training">
-                                <option value="" selected>{% trans 'Choose a value' %}</option>
+                        <select name="training" id="training" class="form-control">
+                            <option value="" selected>{% trans 'Choose a value' %}</option>
                             {% for training in trainings %}
                                 <option value="{{ training.id }}">{{ training.label }}</option>
                             {% endfor %}
@@ -91,7 +91,13 @@
                     </div>
                 </div>
 
-                <!-- TEACHERS -->
+                <div class="form-group row">
+                    <label for="teachers" class="col-form-label col-sm-3">{% trans 'Taechers' %}</label>
+                    <div class="col-sm-6 ">
+                        <select name="teachers" id="id_teachers" class="form-control" multiple="multiple">
+                        </select>
+                    </div>
+                </div>
 
                 <div class="form-group row">
                     <label for="n_places" class="col-form-label col-sm-3">{% trans 'Number of places' %}</label>
@@ -115,14 +121,17 @@
                 </div>
 
                 <div class="form-group">
-                    <button id="back" class="btn btn-danger">{% trans 'Cancel' %}</button>
-                    <input type="submit" class="btn btn-primary" value="{% trans 'Save' %}">
-                    <button id="duplicate_save" class="btn btn-secondary">{% trans 'Save and duplicate' %}</button>
-                    <button id="save_add" class="btn btn-secondary">{% trans 'Save and add' %}</button>
+                    <button name="cancel" id="back" class="btn btn-danger">{% trans 'Cancel' %}</button>
+                    <input name="save" type="submit" class="btn btn-primary" value="{% trans 'Save' %}">
+                    <button name="duplicate" id="duplicate_save" class="btn btn-secondary">{% trans 'Save and duplicate' %}</button>
+                    <button name="save_add" id="save_add" class="btn btn-secondary">{% trans 'Save and add' %}</button>
                 </div>
             </form>
         </div>
     </div>
+    <br>
+    <br>
+    <br>
 </div>
 {% endblock %}
 
@@ -131,24 +140,74 @@
 <script src="{% static 'js/core/add_slot.js' %}"></script>
 <script>
 $(document).ready(function(){
-    $('#id_date').get(0).type = 'date';
-    $('#id_start_time').get(0).type = 'time';
-    $('#id_end_time').get(0).type = 'time';
-
-    $('#training').change(function(event){
-        let value = event.target.value;
+    function load_course(value) {
+        console.log(value);
         $.ajax({
-            url: '/api/courses/' + value,
+            url: '/api/get_courses_by_training/' + value,
             success: function(data){
                 if ( data['data'] && data['data'].length !== 0 ) {
+                    $('#id_course').html('');
+                    $('#id_course').append(
+                        '<option value="">{% trans 'Choose a value' %}</option>'
+                    );
                     data['data'].forEach(function(e){
-                        let element = '<option value="' + e['key'] + '">' + e['value'] + '</option>';
+                        console.log(e);
+                        let element = '<option value="' + e['key'] + '">' + e['label'] + '</option>';
                         $('#id_course').append(element);
                     });
                 }
             }
         });
-    });
+    }
+
+    function load_buildings(value){
+        $.ajax({
+            url: '/api/get_buildings/' + value,
+            success: function(data){
+                if ( data['data'] && data['data'].length !== 0 ) {
+                    $('#id_building').html('');
+                    $('#id_building').append(
+                        '<option value="">{% trans 'Choose a value' %}</option>'
+                    );
+                    data['data'].forEach(function(e){
+                        console.log(e);
+                        let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                        $('#id_building').append(element);
+                    });
+                }
+            }
+        });
+    }
+
+    function load_teachers(value) {
+        $.ajax({
+            url: '/api/get_course_teachers/' + value,
+            success: function(data){
+                console.log(data);
+                if ( data['data'] && data['data'].length !== 0 ) {
+                    $('#id_teachers').html('');
+                    data['data'].forEach(function(e){
+                        let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
+                        let element = '<option value="' + e['id'] + '">' + name + '</option>';
+                        $('#id_teachers').append(element);
+                    });
+                }
+            },
+            error: function() {$('#id_teachers').html('');}
+        });
+    }
+
+    $('#id_date').get(0).type = 'date';
+    $('#id_start_time').get(0).type = 'time';
+    $('#id_end_time').get(0).type = 'time';
+
+    load_course($('#training').val());
+    load_buildings($('#id_campus').val());
+    load_teachers($('#id_course').val());
+
+    $('#training').change(function(event){ load_course(event.target.value); });
+    $('#id_campus').change(function(event){ load_buildings(event.target.value); });
+    $('#id_course').change(function(event){ load_teachers(event.target.value); });
 });
 </script>
 {% endblock %}
