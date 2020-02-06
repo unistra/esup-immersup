@@ -21,7 +21,9 @@
 <div class="container-fluid" style="padding-top:20px; width:70%;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% if course %}
+      {% if duplicate %}
+        {% trans "Duplicate a course" %}
+      {% elif course %}
         {% trans "Update a course" %}
       {% else %}
         {% trans "Create a new course" %}

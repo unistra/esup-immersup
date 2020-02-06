@@ -29,8 +29,6 @@
       <div class="row">
         <div class="col-md-6">
           <a class="btn btn-secondary btn-sm" href="{% url 'course' %}">{% trans 'New course' %}</a>
-          <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Duplicate a course' %}</a>
-          <a class="btn btn-secondary btn-sm" href="#" role="button" style="margin-left:15px;">{% trans 'Delete a course' %}</a>
         </div>
       </div>
       <div id="cmp_filter" style="padding-bottom:10px; padding-top:20px;">
@@ -119,7 +117,8 @@
     dt = $('#courses_table').DataTable({
       'processing': false,
       'order': [
-          [1, "asc"]
+          [1, "asc"],
+          [2, "asc"]
        ],
       'pageLength': 15,
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -175,12 +174,13 @@
           { "data": "alerts_count" },
           { "data": "",
             "render": function (data, type, row) {
+              var icons = "<a href='/core/course/"+row.id+"/1' class=\"btn btn-secondary btn-sm\"><i class=\"fa fas fa-copy\"></i></a>\n";
               if(row.can_delete) {
-                return "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"delete_course('" + row.id + "')\">X</button>";
+                icons += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"delete_course('" + row.id + "')\"><i class=\"fa fas fa-trash\"</i></button>";
               }
-              else {
-                return "";
-              }
+
+              return icons;
+
             },
           },
       ],
