@@ -12,7 +12,6 @@ urlpatterns = [
     path('components/', views.components_list, name='components_list'),
     path('course', views.course, name='course'),
     path('courses_list', views.courses_list, name='courses_list'),
-    path('courses_list', views.courses_list, name='courses_list'),
     path('mycourses/', views.mycourses, name='mycourses'),
     path('myslots/', views.myslots, name='myslots'),
     path('slot/add', views.add_slot, name='add_slot'),
