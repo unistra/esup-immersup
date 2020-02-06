@@ -3,16 +3,16 @@ import logging
 import re
 from functools import partial
 
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
+from mailmerge import MailMerge
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from mailmerge import MailMerge
-
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 
 from .managers import ActiveManager, ComponentQuerySet
 
@@ -761,7 +761,7 @@ class AccompanyingDocument(models.Model):
         upload_to='uploads/accompanyingdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%(authorized_types)s)' % {'authorized_types': ','.join(settings.CONTENT_TYPES)}),
     )
 
     objects = CustomDeleteManager()
@@ -807,7 +807,7 @@ class PublicDocument(models.Model):
         upload_to='uploads/publicdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%(authorized_types)s)' % {'authorized_types': ','.join(settings.CONTENT_TYPES)}),
     )
     published = models.BooleanField(_("Published"), default=False)
 
@@ -937,6 +937,10 @@ class EvaluationFormLink(models.Model):
 
         verbose_name = _('Evaluation form link')
         verbose_name_plural = _('Evaluation forms links')
+
+    def __str__(self):
+        """str"""
+        return (f'{self.evaluation_type.label} : {self.url}')
 
     def validate_unique(self, exclude=None):
         try:
