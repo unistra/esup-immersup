@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-17 09:25+0100\n"
+"POT-Creation-Date: 2020-02-06 15:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,20 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: immersionlyceens/static/css/vendor/yadcf/jquery.dataTables.yadcf.js:2360
+#: immersionlyceens/static/css/vendor/yadcf/src/jquery.dataTables.yadcf.js:2360
+#: immersionlyceens/static/js/vendor/yadcf/jquery.dataTables.yadcf.js:2360
+msgid "tr"
+msgstr ""
+
+#: immersionlyceens/static/js/admin_information_text.js:6
+msgid "View available documents"
+msgstr "Voir les documents disponibles"
+
+#: immersionlyceens/static/js/immersion_mail_templates.js:21
+msgid "View available variables"
+msgstr "Voir les variables disponibles"
 
 #: immersionlyceens/static/js/immersion_user.js:21
 msgid "Results"
