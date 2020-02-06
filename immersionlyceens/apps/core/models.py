@@ -29,8 +29,10 @@ class Component(models.Model):
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
-    objects = models.Manager() # default manager
-    activated = ActiveManager.from_queryset(ComponentQuerySet)() # returns only activated components
+    objects = models.Manager()  # default manager
+    activated = ActiveManager.from_queryset(
+        ComponentQuerySet
+    )()  # returns only activated components
 
     class Meta:
         verbose_name = _('Component')
@@ -686,20 +688,11 @@ class MailTemplate(models.Model):
 
 class InformationText(models.Model):
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-    code = models.CharField(
-        _("Code"),
-        max_length=64,
-        blank=False,
-        null=False,
-    )
+    code = models.CharField(_("Code"), max_length=64, blank=False, null=False,)
     # 10K chars => MOA demand
     content = models.TextField(_('Content'), max_length=10000, blank=False, null=False)
     description = models.TextField(
-        _('Description'),
-        max_length=2000,
-        blank=False,
-        null=False,
-        default=''
+        _('Description'), max_length=2000, blank=False, null=False, default=''
     )
     active = models.BooleanField(_("Active"), default=True)
 
@@ -724,8 +717,7 @@ class InformationText(models.Model):
         PublicDocument.objects.filter(id__in=texts_docs_id).update(published=True)
         PublicDocument.objects.filter(~Q(id__in=texts_docs_id)).update(published=False)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.__class__.update_documents_publishment()
         super().save()
 
@@ -761,7 +753,8 @@ class AccompanyingDocument(models.Model):
         upload_to='uploads/accompanyingdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%(authorized_types)s)')
+        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
     )
 
     objects = CustomDeleteManager()
@@ -807,7 +800,8 @@ class PublicDocument(models.Model):
         upload_to='uploads/publicdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%(authorized_types)s)')
+        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
     )
     published = models.BooleanField(_("Published"), default=False)
 
@@ -887,8 +881,6 @@ class AttendanceCertificateModel(models.Model):
     show_merge_fields.short_description = _('Variables')
 
 
-
-
 class EvaluationType(models.Model):
     """
     Evaluation type class
@@ -938,12 +930,17 @@ class EvaluationFormLink(models.Model):
         verbose_name = _('Evaluation form link')
         verbose_name_plural = _('Evaluation forms links')
 
+    def __str__(self):
+        """str"""
+        return f'{self.evaluation_type.label} : {self.url}'
+
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
         except ValidationError as e:
-            raise ValidationError(_('An evaluation form link with this evaluation type already exists'))
-
+            raise ValidationError(
+                _('An evaluation form link with this evaluation type already exists')
+            )
 
 
 class Slot(models.Model):
