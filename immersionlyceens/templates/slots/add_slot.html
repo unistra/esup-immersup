@@ -21,10 +21,12 @@
             {% endif %}
         </div>
         <div class="card-body">
-            <div class="row">
-                ??
-            </div>
-            <form method="POST" action="{% url 'add_slot' %}" class="form-group" role="form">
+
+            {% include 'slots/add_slot__controls.html' %}
+            <br>
+            <br>
+
+            <form method="POST" action="{% url 'add_slot' %}" class="form-group" role="form" id="add_slot">
                 {% csrf_token %}
                 {{ slot_form.id }}
 
@@ -120,12 +122,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <button name="cancel" id="back" class="btn btn-danger">{% trans 'Cancel' %}</button>
-                    <input name="save" type="submit" class="btn btn-primary" value="{% trans 'Save' %}">
-                    <button name="duplicate" id="duplicate_save" class="btn btn-secondary">{% trans 'Save and duplicate' %}</button>
-                    <button name="save_add" id="save_add" class="btn btn-secondary">{% trans 'Save and add' %}</button>
-                </div>
+                {% include 'slots/add_slot__controls.html' %}
             </form>
         </div>
     </div>
@@ -197,17 +194,27 @@ $(document).ready(function(){
         });
     }
 
+    $('.back_btn').click(function (event) {
+        if (confirm("{% trans 'Did you really want to cancel this creation?' %}")){
+            window.location = "{{ request.META.HTTP_REFERER }}";
+        }
+    });
+
     $('#id_date').get(0).type = 'date';
     $('#id_start_time').get(0).type = 'time';
     $('#id_end_time').get(0).type = 'time';
 
     load_course($('#training').val());
-    load_buildings($('#id_campus').val());
+    load_buildings($('#id_campus').val())
     load_teachers($('#id_course').val());
 
     $('#training').change(function(event){ load_course(event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
+
+    // {% if modification %}
+
+    // {% endif%}
 });
 </script>
 {% endblock %}

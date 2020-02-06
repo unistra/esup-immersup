@@ -1,0 +1,10 @@
+{% load i18n %}
+
+<div class="form-group">
+    <button name="cancel" class="btn btn-danger back_btn">{% trans 'Cancel' %}</button>
+    <input name="save" class="btn btn-primary" value="{% trans 'Save' %}" type="submit">
+    <input name="duplicate" class="btn btn-secondary duplicate_save_btn"
+           value="{% trans 'Save and duplicate' %}" type="submit">
+    <input name="save_add" class="btn btn-secondary save_add_btn"
+           value="{% trans 'Save and add' %}" type="submit">
+</div>

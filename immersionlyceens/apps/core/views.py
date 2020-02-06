@@ -14,7 +14,7 @@ from django.contrib.auth.models import Group
 
 from immersionlyceens.decorators import groups_required
 
-from .models import ImmersionUser, Component, Course, Training
+from .models import ImmersionUser, Component, Course, Training, Slot
 from .forms import CourseForm, SlotForm
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,6 @@ def list_of_components(request):
 
     elif request.user.is_component_manager:
         if request.user.components.count() > 1:
-            print(request.user.components.count())
             return render(request, template, context={'components': request.user.components.all()})
         else:  # Only one
             components = sorted(request.user.components.all()[0].id, lambda e: e.code)
@@ -114,23 +113,14 @@ def list_of_slots(request, component):
     context = {
         'component': Component.activated.get(id=component)
     }
-    print(context)
     return render(request, template, context=context)
 
 
-# TODO: AUTH
+groups_required('SCUIO-IP','REF-CMP')
 def add_slot(request, slot_id=None):
     slot_form = None
-    allowed_comps = Component.activated.user_cmps(
-        request.user,
-        ['SCUIO-IP', 'REF-CMP']
-    ).order_by("code", "label")
     context = {}
     slot = None
-
-    # if allowed_comps.count() == 1:
-    #     component_id = allowed_comps.first().id
-
     if request.method == 'POST' and (request.POST.get('save') or \
             request.POST.get('duplicate') or \
             request.POST.get('save_add')):
@@ -140,18 +130,32 @@ def add_slot(request, slot_id=None):
             slot_form.save()
             for teacher in request.POST.getlist('teachers', []):
                 slot_form.instance.teachers.add(teacher)
+        else:
+            # TODO: error handle
+            print('FAILURE')
+
         if request.POST.get('save'):
             return redirect('components_list')
         elif request.POST.get('save_add'):
             return redirect('add_slot')
+        elif request.POST.get('duplicate'):
+            context = {
+                "trainings": Training.objects.filter(active=True),
+                "slot_form": slot_form,
+                "ready_load": False,
+            }
+            print(slot_form)
+            print('DUPLICATE')
+            return render(request, 'slots/add_slot.html', context=context)
         else:
-            return redirect('components_list') # todo: handle duplication
+            return redirect('/')
     else:
         slot_form = SlotForm()
 
     context = {
         "trainings": Training.objects.filter(active=True),
         "slot_form": slot_form,
+        "ready_load": True,
     }
     return render(request, 'slots/add_slot.html', context=context)
 
@@ -163,7 +167,6 @@ def modify_slot(request, slot_id):
 # TODO: AUTH
 # @groups_required('SCUIO-IP','REF-CMP')
 def del_slot(request, slot_id):
-    print('dsfgfdsgfdsgsfdgfdsgsgsfsfdg')
     from immersionlyceens.apps.core.models import Slot
     # todo: check if user can delete this slot
     slot = Slot.objects.get(id=slot_id)
