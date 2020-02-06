@@ -223,9 +223,9 @@ def course(request, course_id=None, duplicate=False):
 
         try:
             teachers_list = json.loads(teachers_list)
+            assertTrue(len(teachers_list) > 0)
         except Exception:
             messages.error(request, _("At least one teacher is required"))
-
         else:
             if course_form.is_valid():
                 new_course = course_form.save()
