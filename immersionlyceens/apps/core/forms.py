@@ -14,7 +14,7 @@ class CourseForm(forms.ModelForm):
         self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
 
         if self.request:
-            allowed_comps = Component.activated.user_cmps(self.request.user)
+            allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
             self.fields["component"].queryset = allowed_comps.order_by('code', 'label')
 
             if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
@@ -45,7 +45,7 @@ class CourseForm(forms.ModelForm):
 
         # Check user rights
         if self.request:
-            allowed_comps = Component.activated.user_cmps(self.request.user)
+            allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
             training = cleaned_data['training']
             course_comps = training.components.all()
 
