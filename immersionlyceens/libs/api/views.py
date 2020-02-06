@@ -7,7 +7,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.urls import reverse
+from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
 
@@ -250,6 +250,8 @@ def ajax_get_my_courses(request, user_id=None):
 @groups_required('ENS-CH')
 def ajax_get_my_slots(request, user_id=None):
     response = {'msg': '', 'data': []}
+    # TODO: filter on emargement which should be set !
+    past_slots = (resolve(request.path_info).url_name == 'GetMySlotsAll')
 
     if not user_id:
         response['msg'] = gettext("Error : a valid user must be passed")
@@ -257,7 +259,8 @@ def ajax_get_my_slots(request, user_id=None):
     courses = Course.objects.prefetch_related('training').filter(teachers=user_id)
 
     for course in courses:
-        for s in course.training.slots.all():
+        slots = course.training.slots.all() if past_slots else course.training.slots.filter(date__gte=datetime.datetime.now())
+        for s in slots:
             course_data = {
                 'id': course.id,
                 'published': course.published,
