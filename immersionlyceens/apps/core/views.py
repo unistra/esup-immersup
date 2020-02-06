@@ -165,8 +165,9 @@ def courses_list(request):
 
 
 groups_required('SCUIO-IP','REF-CMP')
-def course(request, course_id=None):
+def course(request, course_id=None, duplicate=False):
     teachers_list = []
+    save_method = None
     course = None
     course_form = None
     update_rights = True
@@ -175,7 +176,6 @@ def course(request, course_id=None):
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
-            course_form = CourseForm(instance=course, request=request)
 
             teachers_list = [{
                 "username": t.username,
@@ -185,6 +185,20 @@ def course(request, course_id=None):
                 "display_name": "%s %s" % (t.last_name, t.first_name),
                 "is_removable": not t.slots.filter(course=course_id).exists(),
             } for t in course.teachers.all()]
+
+            if duplicate:
+                data = {
+                    'component':course.component,
+                    'training':course.training,
+                    'published':course.published,
+                    'label':course.label,
+                    'url':course.url,
+                }
+                course = Course(**data)
+                # course_form = CourseForm(initial=data, request=request)
+                course_form = CourseForm(instance=course, request=request)
+            else:
+                course_form = CourseForm(instance=course, request=request)
         except Course.DoesNotExist:
             course_form = CourseForm(request=request)
 
@@ -194,7 +208,14 @@ def course(request, course_id=None):
             messages.error(request,
                 _("You don't have enough privileges to update this course"))
 
-    if request.method == 'POST' and request.POST.get('save'):
+    if request.POST.get('save'):
+        save_method = 'save'
+    elif request.POST.get('save_add_new'):
+        save_method = 'save_add_new'
+    elif request.POST.get('save_duplicate'):
+        save_method = 'save_duplicate'
+
+    if request.method == 'POST' and save_method:
         course_form = CourseForm(request.POST, instance=course, request=request)
 
         # Teachers
@@ -257,7 +278,12 @@ def course(request, course_id=None):
                 else:
                     messages.success(request, _("Course successfully saved"))
 
-                return HttpResponseRedirect("/core/courses_list")
+                if save_method == "save":
+                    return HttpResponseRedirect("/core/courses_list")
+                elif save_method == "save_duplicate":
+                    return HttpResponseRedirect("/core/course/%s/1" % new_course.id)
+                elif save_method == "save_add_new":
+                    return HttpResponseRedirect("/core/course")
             else:
                 for err_field, err_list in course_form.errors.get_json_data().items():
                     for error in err_list:
@@ -270,6 +296,7 @@ def course(request, course_id=None):
     context = {
         "course": course,
         "course_form": course_form,
+        "duplicate": True if duplicate else False,
         "teachers": json.dumps(teachers_list),
         "update_rights": update_rights,
     }

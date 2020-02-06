@@ -8,7 +8,9 @@
 <script src="{% static 'js/immersionlyceens.js' %}"></script>
 {% endblock %}
 {% block title %}
-{% if course %}
+{% if duplicate %}
+  {% trans "Duplicate a course" %}
+{% elif course %}
   {% trans "Update a course" %}
 {% else %}
   {% trans "New course" %}
@@ -26,11 +28,11 @@
       {% endif %}
     </div>
     <div class="card-body">
-      <form class="" role="form" action="/core/course{% if course %}/{{ course.id }}{% endif %}" method="POST">
+      <form class="" role="form" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
       {% csrf_token %}
         {{ course_form.id }}
         <div class="form-group row">
-          <label for="component" class="col-sm-3 col-form-label">{% trans 'Component' %} :</label>
+          <label for="id_component" class="col-sm-3 col-form-label">{% trans 'Component' %} :</label>
           <div class="col-sm-3">
             {{ course_form.component }}
           </div>
@@ -39,7 +41,7 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="training" class="col-sm-3 col-form-label">{% trans 'Training' %} :</label>
+          <label for="id_training" class="col-sm-3 col-form-label">{% trans 'Training' %} :</label>
           <div class="col-sm-3">
             {{ course_form.training }}
           </div>
@@ -48,7 +50,7 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="label" class="col-sm-3 col-form-label">{% trans 'Course label' %} :</label>
+          <label for="id_label" class="col-sm-3 col-form-label">{% trans 'Course label' %} :</label>
           <div class="col-sm-3">
             {{ course_form.label }}
           </div>
@@ -57,7 +59,7 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="url" class="col-sm-3 col-form-label">{% trans 'Url' %} :</label>
+          <label for="id_url" class="col-sm-3 col-form-label">{% trans 'Url' %} :</label>
           <div class="col-sm-3">
             {{ course_form.url }}
           </div>
@@ -66,7 +68,7 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="published" class="col-sm-3 col-form-label">{% trans 'Published' %} :</label>
+          <label for="id_published" class="col-sm-3 col-form-label">{% trans 'Published' %} :</label>
           <div class="col-sm-3">
             {{ course_form.published }}
           </div>
@@ -75,7 +77,7 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="teachers" class="col-sm-3 col-form-label">{% trans 'Teachers' %} :</label>
+          <label for="person_search" class="col-sm-3 col-form-label">{% trans 'Teachers' %} :</label>
           <div class="col-sm-9">
             <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
             <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
@@ -88,7 +90,7 @@
           </div>
         </div>
         <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm" name="cancel">{% trans 'Cancel' %}</a>
             <input type="submit" class="btn btn-secondary btn-sm" name="save" style="margin-left:15px;" value="{% trans 'Save' %}">
             <input type="submit" class="btn btn-secondary btn-sm" name="save_duplicate" style="margin-left:15px;" value="{% trans 'Save and duplicate' %}">
@@ -103,7 +105,7 @@
 <script type="text/javascript">
   var json_results;
   var query_order = 0;
-  var training_id = "{{ course.training_id }}";
+  var training_id = "{{ course_form.training.value }}";
   var can_update = "{{ update_rights }}";
 
   {% autoescape on %}
@@ -228,10 +230,10 @@
           var query = json['data'][0];
 
           if (msg != '') {
-            $('#ws_message').innerHTML = msg;
+            $('#ws_message').html(msg);
             $('#ws_message').show();
           } else {
-            document.getElementById("ws_message").innerHTML = "";
+            $('#ws_message').html("");
             $('#ws_message').hide();
           }
 
