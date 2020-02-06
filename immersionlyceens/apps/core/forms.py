@@ -58,7 +58,9 @@ class SlotForm(forms.ModelForm):
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         if instance:
-            self.fields['id'].widget = forms.HiddenInput()
+            self.fields['date'].value = instance.date
+        # if instance:
+        #     self.fields['id'].widget = forms.HiddenInput()
 
     class Meta:
         model = Slot
@@ -71,4 +73,5 @@ class SlotForm(forms.ModelForm):
             }),
             'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
             'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
+            'date': forms.DateInput(format='%m/%d/%Y'),
         }

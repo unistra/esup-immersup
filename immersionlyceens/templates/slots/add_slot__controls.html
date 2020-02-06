@@ -1,10 +1,23 @@
 {% load i18n %}
 
 <div class="form-group">
+    {% if errors %}
+        {{ errors.errors }}
+        {{ errors.non_field }}
+    {% endif %}
+
     <button name="cancel" class="btn btn-danger back_btn">{% trans 'Cancel' %}</button>
-    <input name="save" class="btn btn-primary" value="{% trans 'Save' %}" type="submit">
-    <input name="duplicate" class="btn btn-secondary duplicate_save_btn"
-           value="{% trans 'Save and duplicate' %}" type="submit">
-    <input name="save_add" class="btn btn-secondary save_add_btn"
+    {% if slot %}
+        <input name="save" class="btn btn-primary" value="{% trans 'Modify' %}" type="submit">
+        <input name="duplicate" class="btn btn-secondary duplicate_save_btn"
+               value="{% trans 'Modify and duplicate' %}" type="submit">
+        <input name="save_add" class="btn btn-secondary save_add_btn"
+               value="{% trans 'Modify and add' %}" type="submit">
+    {% else %}
+        <input name="save" class="btn btn-primary" value="{% trans 'Save' %}" type="submit">
+        <input name="duplicate" class="btn btn-secondary duplicate_save_btn"
+               value="{% trans 'Save and duplicate' %}" type="submit">
+        <input name="save_add" class="btn btn-secondary save_add_btn"
            value="{% trans 'Save and add' %}" type="submit">
+    {% endif %}
 </div>

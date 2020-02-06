@@ -22,11 +22,12 @@
         </div>
         <div class="card-body">
 
-            {% include 'slots/add_slot__controls.html' %}
-            <br>
-            <br>
+            <form method="POST" class="form-group" role="form" id="add_slot">
 
-            <form method="POST" action="{% url 'add_slot' %}" class="form-group" role="form" id="add_slot">
+                {% include 'slots/add_slot__controls.html' %}
+                <br>
+                <br>
+
                 {% csrf_token %}
                 {{ slot_form.id }}
 
@@ -94,9 +95,18 @@
                 </div>
 
                 <div class="form-group row">
-                    <label for="teachers" class="col-form-label col-sm-3">{% trans 'Taechers' %}</label>
+                    <label for="teachers" class="col-form-label col-sm-3">{% trans 'Teachers' %}</label>
                     <div class="col-sm-6 ">
                         <select name="teachers" id="id_teachers" class="form-control" multiple="multiple">
+                        {% if slot %}
+                            {% for teacher in slot.course.teachers.all %}
+                                <option value="{{ teacher.id }}"
+                                    {% if teacher in slot.teachers.all %}selected{% endif %}
+                                >
+                                    {{ teacher.first_name }} {{ teacher.last_name|upper }}
+                                </option>
+                            {% endfor %}
+                        {% endif %}
                         </select>
                     </div>
                 </div>
@@ -121,7 +131,7 @@
                         {{ slot_form.published }}
                     </div>
                 </div>
-
+                <input type="hidden" name="modify">
                 {% include 'slots/add_slot__controls.html' %}
             </form>
         </div>
@@ -204,17 +214,59 @@ $(document).ready(function(){
     $('#id_start_time').get(0).type = 'time';
     $('#id_end_time').get(0).type = 'time';
 
-    load_course($('#training').val());
-    load_buildings($('#id_campus').val())
-    load_teachers($('#id_course').val());
+
+    {% if not slot %}
+        load_course($('#training').val());
+        load_buildings($('#id_campus').val());
+        load_teachers($('#id_course').val());
+    {% endif %}
 
     $('#training').change(function(event){ load_course(event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
 
-    // {% if modification %}
+    {% if slot %}
+    $('#id_campus option[type="{{ slot.campus.id }}"]').attr('selected', '');
+    $.ajax({
+        url: '/api/get_courses_by_training/' + {{ slot.course.training.id }},
+        success: function(data){
+            if ( data['data'] ) {
+                $('#id_course').html('');
+                data['data'].forEach(function(e){
+                    console.log(e)
+                    var selected = '';
+                    if ( {{ slot.course.id }} == e.id ) {
+                        selected = ' selected';
+                    }
+                    let element = '<option ' + selected + ' value="' + e.key + '">' + e.label + '</option>';
+                    $('#id_course').append(element);
+                });
+            }
+        }
+    });
 
-    // {% endif%}
+    $.ajax({
+        url: '/api/get_buildings/' + {{ slot.campus.id }},
+        success: function(data){
+            if ( data['data'] && data['data'].length !== 0 ) {
+                $('#id_building').html('');
+                $('#id_building').append(
+                    '<option value="">{% trans 'Choose a value' %}</option>'
+                );
+                data['data'].forEach(function(e){
+                    let selected = '';
+                    if ( {{ slot.building.id }} == e.id ) {
+                        selected = ' selected';
+                    }
+                    let element = '<option value="' + e['id'] + '"' + selected +
+                        '>' + e['label'] + '</option>';
+                    $('#id_building').append(element);
+                });
+            }
+        }
+    });
+
+    {% endif%}
 });
 </script>
 {% endblock %}

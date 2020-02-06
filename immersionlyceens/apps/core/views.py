@@ -161,7 +161,68 @@ def add_slot(request, slot_id=None):
 
 # TODO: AUTH
 def modify_slot(request, slot_id):
-    return render(request, 'slots/modify_slot.html')
+
+    slot = Slot.objects.get(id=slot_id)
+    slot_form = SlotForm(instance=slot)
+
+    if request.method == 'POST' and (request.POST.get('save') or \
+            request.POST.get('duplicate') or \
+            request.POST.get('save_add')):
+
+        slot_form = SlotForm(request.POST, instance=slot)
+        if slot_form.is_valid():
+            slot_form.save()
+            for teacher in request.POST.getlist('teachers', []):
+                slot_form.instance.teachers.add(teacher)
+        else:
+
+            context = {
+                "slot": slot,
+                "trainings": Training.objects.filter(active=True),
+                "slot_form": slot_form,
+                "ready_load": True,
+                "errors": {
+                    'errors': slot_form.errors,
+                    'non_field': slot_form.non_field_errors,
+                }
+            }
+            return render(request, 'slots/add_slot.html', context=context)
+            # TODO: error handle
+            print('FAILURE')
+
+        if request.POST.get('save'):
+            return redirect('modify_slot', slot_id=slot_id)
+        elif request.POST.get('save_add'):
+            return redirect('add_slot')
+        elif request.POST.get('duplicate'):
+            context = {
+                "trainings": Training.objects.filter(active=True),
+                "slot_form": slot_form,
+                "ready_load": False,
+            }
+            print(slot_form)
+            print('DUPLICATE')
+            return render(request, 'slots/add_slot.html', context=context)
+        else:
+            context = {
+                "slot": slot,
+                "trainings": Training.objects.filter(active=True),
+                "slot_form": slot_form,
+                "ready_load": True,
+                "errors": {
+                    'errors': slot_form.errors,
+                    'non_field': slot_form.non_field_errors,
+                }
+            }
+            return render(request, 'slots/add_slot.html', context=context)
+
+    context = {
+        "slot": slot,
+        "trainings": Training.objects.filter(active=True),
+        "slot_form": slot_form,
+        "ready_load": True,
+    }
+    return render(request, 'slots/add_slot.html', context=context)
 
 
 # TODO: AUTH
@@ -176,7 +237,6 @@ def del_slot(request, slot_id):
     return HttpResponse('ok')
 
 
-
 groups_required('SCUIO-IP','REF-CMP')
 def courses_list(request):
     component_id = None
@@ -187,7 +247,7 @@ def courses_list(request):
 
     context = {
         "components": allowed_comps,
-        "component_id": component_id
+        "component_id": component_id,
     }
 
     return render(request, 'core/courses_list.html', context)
@@ -255,7 +315,7 @@ def course(request):
         "components": allowed_comps,
         "component_id": component_id,
         "course_form": course_form,
-        "teachers": json.dumps(teachers_list)
+        "teachers": json.dumps(teachers_list),
     }
 
     return render(request, 'core/course.html', context)
