@@ -84,6 +84,7 @@ def ajax_get_courses(request, component_id=None):
             'published_slots_count': 0,  # TODO
             'registered_students_count': 0,  # TODO
             'alerts_count': 0,  # TODO
+            'can_delete': not course.slots.exists(),
         }
         
         for teacher in course.teachers.all().order_by('last_name', 'first_name'):
