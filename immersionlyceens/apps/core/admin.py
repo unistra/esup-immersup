@@ -670,7 +670,12 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         (None, {'fields': ('label', 'calendar_mode', 'global_evaluation_date')}),
         (
             _('Year mode'),
-            {'fields': ('year_registration_start_date', 'year_start_date', 'year_end_date',)},
+            {'fields': (
+                'year_nb_authorized_immersion',
+                'year_registration_start_date',
+                'year_start_date',
+                'year_end_date',
+            )},
         ),
         (
             _('Semester mode'),
@@ -688,43 +693,44 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         fields = []
-        if request.user.is_superuser:
-            return []
-        if obj:
 
-            # global evaluation date
-            if (obj.year_start_date and obj.year_start_date <= datetime.today().date()) or (
-                obj.global_evaluation_date
-                and obj.global_evaluation_date <= datetime.today().date()
-            ):
+        uy = None
+        university_years = UniversityYear.objects.filter(active=True)
+        if university_years.count() > 0:
+            uy = university_years[0]
+
+        if uy is None or request.user.is_superuser:
+            return []
+
+        if obj:
+            if uy.start_date <= datetime.today().date():
+                fields = [
+                    'label',
+                    'year_start_date',
+                    'year_end_date',
+                    'semester1_start_date',
+                    'semester1_end_date',
+                    'semester2_start_date',
+                    'semester2_end_date',
+                    'year_registration_start_date',
+                    'semester1_registration_start_date',
+                    'semester2_registration_start_date',
+                    'year_nb_authorized_immersion',
+                    'registration_start_date_per_semester',
+                ]
+
+            if uy.end_date <= datetime.today().date():
                 fields.append('global_evaluation_date')
 
-            # year_start > today
-            if obj.year_start_date and obj.year_start_date <= datetime.today().date():
-                fields.append('year_start_date')
-
-            # semester1_start > today
-            if obj.semester1_start_date and obj.semester1_start_date <= datetime.today().date():
-                fields.append('year_start_date')
-                fields.append('calendar_mode')
-            # semester1_end > today
-            if obj.semester1_end_date and obj.semester1_end_date <= datetime.today().date():
-                fields.append('semester1_end_date')
-                fields.append('semester1_registration_start_date')
-
-            # semester2_start > today
-            if obj.semester2_start_date and obj.semester2_start_date <= datetime.today().date():
-                fields.append('year_start_date')
-            # semester2_end > today
-            if obj.semester2_end_date and obj.semester2_end_date <= datetime.today().date():
-                fields.append('semester1_end_date')
-                fields.append('semester1_registration_start_date')
-
-        return fields
+        return list(set(fields))
 
     def has_add_permission(self, request):
         """Singleton"""
         return not Calendar.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!

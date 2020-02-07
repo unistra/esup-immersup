@@ -545,8 +545,8 @@ class CalendarForm(forms.ModelForm):
 
         # YEAR MODE
         if calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[0][0].lower():
-            if not all([year_start_date, year_end_date, year_registration_start_date]):
-                raise forms.ValidationError(_("Mandatory fields not filled in"))
+            # if not all([year_start_date, year_end_date, year_registration_start_date]):
+            #     raise forms.ValidationError(_("Mandatory fields not filled in"))
             if year_start_date and year_end_date:
                 if year_start_date < univ_year.start_date or year_start_date > univ_year.end_date:
                     raise forms.ValidationError(
@@ -559,17 +559,17 @@ class CalendarForm(forms.ModelForm):
 
         # SEMESTER MODE
         elif calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
-            if not all(
-                [
-                    s1_start_date,
-                    s1_end_date,
-                    s1_registration_start_date,
-                    s2_start_date,
-                    s2_end_date,
-                    s2_registration_start_date,
-                ]
-            ):
-                raise forms.ValidationError(_("Mandatory fields not filled in"))
+            # if not all(
+            #     [
+            #         s1_start_date,
+            #         s1_end_date,
+            #         s1_registration_start_date,
+            #         s2_start_date,
+            #         s2_end_date,
+            #         s2_registration_start_date,
+            #     ]
+            # ):
+            #     raise forms.ValidationError(_("Mandatory fields not filled in"))
             if (
                 s1_start_date
                 and s2_start_date

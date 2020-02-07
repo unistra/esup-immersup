@@ -4,18 +4,17 @@ API Views
 import datetime
 import logging
 
+from immersionlyceens.apps.core.models import (
+    Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
-
-from immersionlyceens.apps.core.models import (
-    Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
-)
-
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +134,7 @@ def get_ajax_documents(request):
             reverse('public_document', args=(document.pk,))
         ),
     } for document in documents]
-    
+
     return JsonResponse(response, safe=False)
 
 
@@ -159,7 +158,7 @@ def get_ajax_slots(request, component=None):
                 s=slot.start_time.strftime('%Hh%M'),
                 e=slot.end_time.strftime('%Hh%M'),
             ),
-            'building': slot.building.label,
+            'building': '' + slot.building.label + ' - ' + slot.campus.label,
             'room': slot.room,
             'teachers': ', '.join([
                 '{} {}'.format(e.first_name, e.last_name.upper())
@@ -278,7 +277,7 @@ def ajax_get_my_courses(request, user_id=None):
         course_data = {
             'id': course.id,
             'published': course.published,
-            'components': [],
+            'component': course.component.label,
             'training_label': course.training.label,
             'label': course.label,
             'teachers': {},
@@ -291,9 +290,6 @@ def ajax_get_my_courses(request, user_id=None):
             course_data['teachers'].update(
                 [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
             )
-
-        for component in course.training.components.all().order_by('label'):
-            course_data['components'].append(component.label)
 
         response['data'].append(course_data.copy())
 
@@ -318,7 +314,7 @@ def ajax_get_my_slots(request, user_id=None):
             course_data = {
                 'id': course.id,
                 'published': course.published,
-                'components': [],
+                'component': course.component.label,
                 'training_label': course.training.label,
                 'course_type': s.course_type.label,
                 'campus': s.campus.label,
@@ -327,22 +323,19 @@ def ajax_get_my_slots(request, user_id=None):
                 'date': s.date.strftime("%d/%m/%Y"),
                 'start_time': s.start_time.strftime("%H:%M"),
                 'end_time': s.end_time.strftime("%H:%M"),
-
                 'label': course.label,
                 'teachers': {},
                 'published_slots_count': 0,  # TODO
                 'registered_students_count': { "capacity": s.n_places, "students_count": 4},  # TODO
-                'additional_information': s.additional_information, # TODO
+                'additional_information': s.additional_information,
                 'emargements': '', # TODO
+                'alert_count': '', # TODO
             }
 
             for teacher in course.teachers.all().order_by('last_name', 'first_name'):
                 course_data['teachers'].update(
                     [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
                 )
-
-            for component in course.training.components.all().order_by('label'):
-                course_data['components'].append(component.label)
 
             response['data'].append(course_data.copy())
 
