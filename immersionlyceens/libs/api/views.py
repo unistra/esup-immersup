@@ -14,7 +14,6 @@ from django.utils.translation import gettext
 from immersionlyceens.apps.core.models import (
     Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
 )
-
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
@@ -135,7 +134,7 @@ def get_ajax_documents(request):
             reverse('public_document', args=(document.pk,))
         ),
     } for document in documents]
-    
+
     return JsonResponse(response, safe=False)
 
 
@@ -318,7 +317,7 @@ def ajax_get_my_slots(request, user_id=None):
             course_data = {
                 'id': course.id,
                 'published': course.published,
-                'components': [],
+                'components': course.component.label,
                 'training_label': course.training.label,
                 'course_type': s.course_type.label,
                 'campus': s.campus.label,
@@ -327,7 +326,6 @@ def ajax_get_my_slots(request, user_id=None):
                 'date': s.date.strftime("%d/%m/%Y"),
                 'start_time': s.start_time.strftime("%H:%M"),
                 'end_time': s.end_time.strftime("%H:%M"),
-
                 'label': course.label,
                 'teachers': {},
                 'published_slots_count': 0,  # TODO
@@ -340,9 +338,6 @@ def ajax_get_my_slots(request, user_id=None):
                 course_data['teachers'].update(
                     [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
                 )
-
-            for component in course.training.components.all().order_by('label'):
-                course_data['components'].append(component.label)
 
             response['data'].append(course_data.copy())
 
