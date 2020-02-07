@@ -158,7 +158,7 @@ def get_ajax_slots(request, component=None):
                 s=slot.start_time.strftime('%Hh%M'),
                 e=slot.end_time.strftime('%Hh%M'),
             ),
-            'building': slot.building.label,
+            'building': '' + slot.building.label + ' - ' + slot.campus.label,
             'room': slot.room,
             'teachers': ', '.join([
                 '{} {}'.format(e.first_name, e.last_name.upper())
