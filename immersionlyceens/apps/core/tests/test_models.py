@@ -286,7 +286,6 @@ class TestSlotCase(TestCase):
         building.save()
 
         s = Slot(
-            training=t,
             course=course,
             course_type=ct,
             campus=campus,
