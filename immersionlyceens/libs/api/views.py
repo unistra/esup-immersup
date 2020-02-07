@@ -17,7 +17,6 @@ from immersionlyceens.apps.core.models import (
 
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -88,12 +87,12 @@ def ajax_get_courses(request, component_id=None):
             'alerts_count': 0,  # TODO
             'can_delete': not course.slots.exists(),
         }
-        
+
         for teacher in course.teachers.all().order_by('last_name', 'first_name'):
             course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
 
         response['data'].append(course_data.copy())
-    
+
     return JsonResponse(response, safe=False)
 
 
@@ -314,7 +313,7 @@ def ajax_get_my_slots(request, user_id=None):
     courses = Course.objects.prefetch_related('training').filter(teachers=user_id)
 
     for course in courses:
-        slots = course.training.slots.all() if past_slots else course.training.slots.filter(date__gte=datetime.datetime.now())
+        slots = course.slots.all() if past_slots else course.slots.filter(date__gte=datetime.datetime.now())
         for s in slots:
             course_data = {
                 'id': course.id,

@@ -14,8 +14,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.decorators import groups_required
 
-from .models import ImmersionUser, Component, Course, Training, Slot, UniversityYear
 from .forms import CourseForm, SlotForm
+from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ def import_holidays(request):
 def components_list(request):
     template = 'slots/list_components.html'
 
-    if request.user.is_scuio_ip_manager or request.user.is_superuser():
+    if request.user.is_scuio_ip_manager or request.user.is_superuser:
         # components = sorted(Component.objects.all(), lambda e: e.code)
         components = Component.activated.all()
         return render(request, template, context={'components': components})
@@ -107,7 +107,7 @@ def slots_list(request, component):
         if component not in [c.id for c in request.user.components.all()]:
             pass
             # TODO: Not authorized
-    elif not request.user.is_scuio_ip_manager() or not request.user.is_superuser():
+    elif not request.user.is_scuio_ip_manager() or not request.user.is_superuser:
         pass
     else:
         return render(request, 'base.html')
@@ -410,7 +410,17 @@ def course(request, course_id=None, duplicate=False):
 
 @groups_required('ENS-CH',)
 def mycourses(request):
-    return render(request, 'core/mycourses.html')
+
+    component_id = None
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+
+    if allowed_comps.count() == 1:
+        component_id = allowed_comps.first().id
+
+    context = {"components": allowed_comps, "component_id": component_id}
+
+    return render(request, 'core/mycourses.html', context)
+
 
 
 @groups_required('ENS-CH',)
