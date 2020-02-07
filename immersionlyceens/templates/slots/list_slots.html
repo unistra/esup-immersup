@@ -110,8 +110,6 @@ $(document).ready(function(){
           url: '/api/get_slots/{{ component.id }}',
           dataSrc: function (json) {
             if (json['data'] != undefined && json['data'].length != 0) {
-
-                console.log('Hello');
               return json['data'];
             }
           }
@@ -185,12 +183,10 @@ function delete_slot(slot_id) {
         $.post({
             url: "/core/slot/delete/" + slot_id,
             success: function(data) {
-                console.log(data);
                 show_top_indicator("{% trans 'A slot is correctly deleted' %}");
                 reload_data();
             },
         });
-        console.log('Delete <slot::' + slot_id + '>');
         show_top_indicator("{% trans 'A slot is correctly delete' %}");
         reload_data();
 
@@ -204,7 +200,6 @@ function reload_data() {
 }
 
 function show_top_indicator(text) {
-    console.log('Hedfsfdsd');
     let fade = 1000;
     let display = 3000;
     $('#top_indicator__content').html(text);

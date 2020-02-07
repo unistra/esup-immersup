@@ -26,6 +26,12 @@
 
                 {% include 'slots/add_slot__controls.html' %}
                 <br>
+
+                {% if errors %}
+                <div class="alert alert-danger">
+                    {{ errors.errors }}
+                </div>
+                {% endif %}
                 <br>
 
                 {% csrf_token %}
@@ -148,7 +154,6 @@
 <script>
 $(document).ready(function(){
     function load_course(value) {
-        console.log(value);
         $.ajax({
             url: '/api/get_courses_by_training/' + value,
             success: function(data){
@@ -158,7 +163,6 @@ $(document).ready(function(){
                         '<option value="">{% trans 'Choose a value' %}</option>'
                     );
                     data['data'].forEach(function(e){
-                        console.log(e);
                         let element = '<option value="' + e['key'] + '">' + e['label'] + '</option>';
                         $('#id_course').append(element);
                     });
@@ -171,26 +175,25 @@ $(document).ready(function(){
         $.ajax({
             url: '/api/get_buildings/' + value,
             success: function(data){
-                if ( data['data'] && data['data'].length !== 0 ) {
-                    $('#id_building').html('');
-                    $('#id_building').append(
-                        '<option value="">{% trans 'Choose a value' %}</option>'
-                    );
-                    data['data'].forEach(function(e){
-                        console.log(e);
-                        let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
-                        $('#id_building').append(element);
-                    });
+                    if ( data['data'] && data['data'].length !== 0 ) {
+                        $('#id_building').html('');
+                        $('#id_building').append(
+                            '<option value="">{% trans 'Choose a value' %}</option>'
+                        );
+                        data['data'].forEach(function(e){
+                            let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                            $('#id_building').append(element);
+                        });
+                    }
                 }
-            }
-        });
+            });
+
     }
 
     function load_teachers(value) {
         $.ajax({
             url: '/api/get_course_teachers/' + value,
             success: function(data){
-                console.log(data);
                 if ( data['data'] && data['data'].length !== 0 ) {
                     $('#id_teachers').html('');
                     data['data'].forEach(function(e){
@@ -210,12 +213,13 @@ $(document).ready(function(){
         }
     });
 
-    $('#id_date').get(0).type = 'date';
+    // $('#id_date').get(0).type = 'date';
     $('#id_start_time').get(0).type = 'time';
     $('#id_end_time').get(0).type = 'time';
 
 
     {% if not slot %}
+        $('#id_date').get(0).type = 'date';
         load_course($('#training').val());
         load_buildings($('#id_campus').val());
         load_teachers($('#id_course').val());
@@ -233,7 +237,6 @@ $(document).ready(function(){
             if ( data['data'] ) {
                 $('#id_course').html('');
                 data['data'].forEach(function(e){
-                    console.log(e)
                     var selected = '';
                     if ( {{ slot.course.id }} == e.id ) {
                         selected = ' selected';

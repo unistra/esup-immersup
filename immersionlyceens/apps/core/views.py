@@ -131,8 +131,13 @@ def add_slot(request, slot_id=None):
             for teacher in request.POST.getlist('teachers', []):
                 slot_form.instance.teachers.add(teacher)
         else:
-            # TODO: error handle
-            print('FAILURE')
+            context = {
+                "trainings": Training.objects.filter(active=True),
+                "slot_form": slot_form,
+                "ready_load": True,
+                "errors": slot_form.errors,
+            }
+            return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
             return redirect('components_list')
@@ -144,8 +149,6 @@ def add_slot(request, slot_id=None):
                 "slot_form": slot_form,
                 "ready_load": False,
             }
-            print(slot_form)
-            print('DUPLICATE')
             return render(request, 'slots/add_slot.html', context=context)
         else:
             return redirect('/')
@@ -172,6 +175,7 @@ def modify_slot(request, slot_id):
         slot_form = SlotForm(request.POST, instance=slot)
         if slot_form.is_valid():
             slot_form.save()
+            slot_form.instance.teachers.clear()
             for teacher in request.POST.getlist('teachers', []):
                 slot_form.instance.teachers.add(teacher)
         else:
@@ -181,14 +185,9 @@ def modify_slot(request, slot_id):
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": True,
-                "errors": {
-                    'errors': slot_form.errors,
-                    'non_field': slot_form.non_field_errors,
-                }
+                "errors": slot_form.errors,
             }
             return render(request, 'slots/add_slot.html', context=context)
-            # TODO: error handle
-            print('FAILURE')
 
         if request.POST.get('save'):
             return redirect('modify_slot', slot_id=slot_id)
@@ -200,8 +199,6 @@ def modify_slot(request, slot_id):
                 "slot_form": slot_form,
                 "ready_load": False,
             }
-            print(slot_form)
-            print('DUPLICATE')
             return render(request, 'slots/add_slot.html', context=context)
         else:
             context = {
@@ -209,10 +206,7 @@ def modify_slot(request, slot_id):
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": True,
-                "errors": {
-                    'errors': slot_form.errors,
-                    'non_field': slot_form.non_field_errors,
-                }
+                "errors": slot_form.errors,
             }
             return render(request, 'slots/add_slot.html', context=context)
 
