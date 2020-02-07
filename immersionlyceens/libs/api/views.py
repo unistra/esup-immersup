@@ -77,7 +77,7 @@ def ajax_get_courses(request, component_id=None):
     if not component_id:
         response['msg'] = gettext("Error : a valid component must be selected")
 
-    courses = Course.objects.prefetch_related('training').filter(training__components=component_id)
+    courses = Course.objects.prefetch_related('training','component').filter(training__components=component_id)
 
     for course in courses:
         course_data = {
@@ -85,17 +85,19 @@ def ajax_get_courses(request, component_id=None):
             'published': course.published,
             'training_label': course.training.label,
             'label': course.label,
+            'component_code': course.component.code,
+            'component_id': course.component.id,
             'teachers': [],
             'published_slots_count': 0,  # TODO
             'registered_students_count': 0,  # TODO
             'alerts_count': 0,  # TODO
         }
-
+        
         for teacher in course.teachers.all().order_by('last_name', 'first_name'):
             course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
 
         response['data'].append(course_data.copy())
-
+    
     return JsonResponse(response, safe=False)
 
 
@@ -240,37 +242,6 @@ def ajax_get_course_teachers(request, course_id=None):
                 'last_name': teacher.last_name.upper(),
             }
             response['data'].append(teachers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_courses(request, component_id=None):
-    response = {'msg': '', 'data': []}
-
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
-
-    courses = Course.objects.prefetch_related('training').filter(training__components=component_id)
-
-    for course in courses:
-        course_data = {
-            'id': course.id,
-            'published': course.published,
-            'training_label': course.training.label,
-            'label': course.label,
-            'teachers': [],
-            'published_slots_count': 0,  # TODO
-            'registered_students_count': 0,  # TODO
-            'alerts_count': 0,  # TODO
-            'can_delete': not course.slots.exists(),
-        }
-
-        for teacher in course.teachers.all().order_by('last_name', 'first_name'):
-            course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
-
-        response['data'].append(course_data.copy())
 
     return JsonResponse(response, safe=False)
 
