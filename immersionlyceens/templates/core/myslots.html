@@ -13,6 +13,8 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% comment %} Comment following line if using english ! {% endcomment %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 {% endblock %}
 {% block title %}
 {% trans "My slots" %}
@@ -23,7 +25,7 @@
   <div id="feedback_validated" class="alert alert-success alert-dismissable fade in" style="display:none"></div>
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans "Slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
+      {% trans "Slots" %} - {{ request.user.last_name }} {{ request.user.first_name }} {{ LANGUAGE_CODE }}
     </div>
     <div class="card-body">
       <form class="form-inline pull-right">
@@ -175,21 +177,18 @@
     filter_reset_button_text: false,
   }, {
     column_number: 1,
-    filter_type: "text",
     filter_default_label: "",
     filter_container_id: "component_filter",
     style_class: "form-control",
     filter_reset_button_text: false,
   }, {
     column_number: 2,
-    filter_type: "text",
     filter_default_label: "",
     style_class: "form-control",
     filter_container_id: "training_filter",
     filter_reset_button_text: false,
   }, {
     column_number: 3,
-    filter_type: "text",
     filter_default_label: "",
     style_class: "form-control",
     filter_container_id: "label_filter",
@@ -204,16 +203,21 @@
     column_number: 5,
     filter_type: "range_date",
     style_class: "form-control",
-    datepicker_type: 'bootstrap-datepicker',
+    //datepicker_type: 'bootstrap-datepicker',
     filter_container_id: "date_filter",
+    moment_date_format: 'DD/MM/YYYY',
+    date_format:  'dd/mm/yyyy',
     filter_reset_button_text: false,
+    filter_default_label: ["",""],
   }, {
     column_number: 6,
+    filter_default_label: "",
     style_class: "form-control",
     filter_container_id: "start_time_filter",
     filter_reset_button_text: false,
   }, {
     column_number: 7,
+    filter_default_label: "",
     style_class: "form-control",
     filter_container_id: "end_time_filter",
     filter_reset_button_text: false,
