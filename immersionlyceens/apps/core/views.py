@@ -82,7 +82,7 @@ def import_holidays(request):
 def components_list(request):
     template = 'slots/list_components.html'
 
-    if request.user.is_scuio_ip_manager or request.user.is_superuser:
+    if request.user.is_scuio_ip_manager() or request.user.is_superuser:
         # components = sorted(Component.objects.all(), lambda e: e.code)
         components = Component.activated.all()
         return render(request, template, context={'components': components})
@@ -91,8 +91,8 @@ def components_list(request):
         if request.user.components.count() > 1:
             return render(request, template, context={'components': request.user.components.all()})
         else:  # Only one
-            components = sorted(request.user.components.all()[0].id, lambda e: e.code)
-            return redirect('slots_list', component=components)
+            components = request.user.components.all()
+            return redirect('slots_list', component=components[0].id)
 
     else:
         # TODO: error handler
