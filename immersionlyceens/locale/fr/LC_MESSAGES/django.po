@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-07 12:42+0100\n"
+"POT-Creation-Date: 2020-02-07 20:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -440,7 +440,7 @@ msgstr "Code"
 #: immersionlyceens/apps/core/models.py:747
 #: immersionlyceens/apps/core/models.py:799
 #: immersionlyceens/apps/core/models.py:893
-#: immersionlyceens/templates/core/courses_list.html:50
+#: immersionlyceens/templates/core/courses_list.html:49
 #: immersionlyceens/templates/core/mycourses.html:38
 #: immersionlyceens/templates/core/myslots.html:50
 #: immersionlyceens/templates/slots/list_components.html:16
@@ -852,7 +852,7 @@ msgstr "Publié"
 #: immersionlyceens/apps/core/models.py:631
 #: immersionlyceens/apps/core/models.py:994
 #: immersionlyceens/templates/core/course.html:82
-#: immersionlyceens/templates/core/courses_list.html:51
+#: immersionlyceens/templates/core/courses_list.html:50
 #: immersionlyceens/templates/core/mycourses.html:39
 #: immersionlyceens/templates/core/myslots.html:58
 #: immersionlyceens/templates/slots/add_slot.html:104
@@ -1072,49 +1072,49 @@ msgstr "Cours modifié avec succès"
 msgid "Course successfully saved"
 msgstr "Cours enregistré avec succès"
 
-#: immersionlyceens/libs/api/views.py:31 immersionlyceens/libs/api/views.py:45
+#: immersionlyceens/libs/api/views.py:32 immersionlyceens/libs/api/views.py:46
 msgid "Error : can't query LDAP server"
 msgstr "Erreur : requête LDAP impossible"
 
-#: immersionlyceens/libs/api/views.py:60
+#: immersionlyceens/libs/api/views.py:61
 msgid "Error : no template id"
 msgstr "Erreur : pas d'id de template"
 
-#: immersionlyceens/libs/api/views.py:71 immersionlyceens/libs/api/views.py:104
+#: immersionlyceens/libs/api/views.py:72 immersionlyceens/libs/api/views.py:106
 msgid "Error : a valid component must be selected"
 msgstr "Erreur : une composante valide doit être sélectionnée"
 
-#: immersionlyceens/libs/api/views.py:177
+#: immersionlyceens/libs/api/views.py:174
 msgid "Error : component id"
 msgstr "Erreur : pas d'identifiant de composante"
 
-#: immersionlyceens/libs/api/views.py:188
+#: immersionlyceens/libs/api/views.py:185
 msgid "Error : a valid training must be selected"
 msgstr "Erreur : une formation valide doit être sélectionné"
 
-#: immersionlyceens/libs/api/views.py:208
+#: immersionlyceens/libs/api/views.py:205
 msgid "Error : a valid campus must be selected"
 msgstr "Erreur : un campus valide doit être sélectionné"
 
-#: immersionlyceens/libs/api/views.py:227
-#: immersionlyceens/libs/api/views.py:249
+#: immersionlyceens/libs/api/views.py:224
+#: immersionlyceens/libs/api/views.py:246
 msgid "Error : a valid course must be selected"
 msgstr "Erreur : un cours valide doit être sélectionné"
 
-#: immersionlyceens/libs/api/views.py:254
+#: immersionlyceens/libs/api/views.py:251
 msgid "Error : you can't delete this course"
 msgstr "Erreur : vous ne pouvez pas supprimer ce cours"
 
-#: immersionlyceens/libs/api/views.py:261
+#: immersionlyceens/libs/api/views.py:258
 msgid "Course successfully deleted"
 msgstr "Cours supprimé avec succès"
 
-#: immersionlyceens/libs/api/views.py:263
+#: immersionlyceens/libs/api/views.py:260
 msgid "Error : slots are linked to this course"
 msgstr "Erreur : des créneaux sont liés à ce cours"
 
-#: immersionlyceens/libs/api/views.py:276
-#: immersionlyceens/libs/api/views.py:314
+#: immersionlyceens/libs/api/views.py:273
+#: immersionlyceens/libs/api/views.py:311
 msgid "Error : a valid user must be passed"
 msgstr "Erreur : une utilisateur valide doit être renseigné"
 
@@ -1239,39 +1239,39 @@ msgstr "Liste des cours"
 msgid "Select a component"
 msgstr "Sélectionnez une composante"
 
-#: immersionlyceens/templates/core/courses_list.html:49
-msgid "Managed by"
-msgstr "Gérée par"
-
-#: immersionlyceens/templates/core/courses_list.html:52
+#: immersionlyceens/templates/core/courses_list.html:51
 #: immersionlyceens/templates/core/mycourses.html:40
 msgid "Published slots"
 msgstr "Créneaux publiés"
 
-#: immersionlyceens/templates/core/courses_list.html:53
+#: immersionlyceens/templates/core/courses_list.html:52
 #: immersionlyceens/templates/core/mycourses.html:41
 #: immersionlyceens/templates/core/myslots.html:59
 msgid "Registered students"
 msgstr "Nb inscrits"
 
-#: immersionlyceens/templates/core/courses_list.html:54
+#: immersionlyceens/templates/core/courses_list.html:53
 msgid "Alerts"
 msgstr "Nb alertes"
 
-#: immersionlyceens/templates/core/courses_list.html:128
+#: immersionlyceens/templates/core/courses_list.html:81
+msgid "Do you really want to delete this course ?"
+msgstr "Voulez-vous vraiment supprimer ce cours ?"
+
+#: immersionlyceens/templates/core/courses_list.html:126
 #: immersionlyceens/templates/core/mycourses.html:67
 #: immersionlyceens/templates/core/myslots.html:95
 msgid "All"
 msgstr "Tous"
 
-#: immersionlyceens/templates/core/courses_list.html:147
+#: immersionlyceens/templates/core/courses_list.html:145
 #: immersionlyceens/templates/core/mycourses.html:87
 #: immersionlyceens/templates/core/myslots.html:115
 #: immersionlyceens/templates/slots/list_slots.html:128
 msgid "Yes"
 msgstr "Oui"
 
-#: immersionlyceens/templates/core/courses_list.html:150
+#: immersionlyceens/templates/core/courses_list.html:148
 #: immersionlyceens/templates/core/mycourses.html:90
 #: immersionlyceens/templates/core/myslots.html:118
 #: immersionlyceens/templates/slots/list_slots.html:128
@@ -1444,6 +1444,9 @@ msgstr "Un créneau a été correctement supprimé"
 #: immersionlyceens/templates/slots/list_slots.html:190
 msgid "A slot is correctly delete"
 msgstr "Un créneau a été correctement supprimé"
+
+#~ msgid "Managed by"
+#~ msgstr "Gérée par"
 
 #~ msgid "Only files with type (%s)"
 #~ msgstr "Seulement des fichiers de type (%s)"
