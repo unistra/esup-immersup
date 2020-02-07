@@ -32,6 +32,7 @@ def is_post_request(view_func):
 
 def groups_required(*groups, login_url='/'):
     def in_groups(user):
-        return user.has_groups(*groups)
+        return getattr(user, 'has_groups', False) and user.has_groups(*groups)
+
     return user_passes_test(in_groups, login_url=login_url)
 

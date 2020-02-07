@@ -4,17 +4,19 @@ API Views
 import datetime
 import logging
 
-from immersionlyceens.apps.core.models import (
-    Building, Course, ImmersionUser, MailTemplateVars, Training,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
+
+from immersionlyceens.apps.core.models import (
+    Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
+)
+
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
 
 logger = logging.getLogger(__name__)
 
@@ -123,23 +125,18 @@ def ajax_get_trainings(request):
 @is_ajax_request
 @groups_required('SCUIO-IP','REF-CMP')
 def get_ajax_documents(request):
-    from immersionlyceens.apps.core.models import PublicDocument
-
     response = {'msg': '', 'data': []}
 
     documents = PublicDocument.objects.filter(active=True)
 
-    response['data'] = [
-        {
-            'id': document.id,
-            'label': document.label,
-            'url': request.build_absolute_uri(
-                reverse('public_document', args=(document.pk,))
-            ),
-        }
-        for document in documents
-    ]
-
+    response['data'] = [{
+        'id': document.id,
+        'label': document.label,
+        'url': request.build_absolute_uri(
+            reverse('public_document', args=(document.pk,))
+        ),
+    } for document in documents]
+    
     return JsonResponse(response, safe=False)
 
 
