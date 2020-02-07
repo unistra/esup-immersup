@@ -90,4 +90,6 @@ class SlotForm(forms.ModelForm):
             'date': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': _('dd/mm/yyyy')}),
         }
 
-        fields = ('id', 'label', 'url', 'published', 'training', 'component')
+        fields = ('id', 'course', 'course_type', 'campus', 'building',
+                  'room', 'date', 'start_time', 'end_time', 'n_places',
+                  'additional_information', 'published',)
