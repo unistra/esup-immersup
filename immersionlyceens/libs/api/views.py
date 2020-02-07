@@ -134,7 +134,7 @@ def get_ajax_documents(request):
             'id': document.id,
             'label': document.label,
             'url': request.build_absolute_uri(
-                reverse('accompanying_document', args=(document.pk,))
+                reverse('public_document', args=(document.pk,))
             ),
         }
         for document in documents
