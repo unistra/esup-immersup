@@ -57,7 +57,7 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'training')
+        fields = ('id', 'label', 'url', 'published', 'training', 'component')
 
 
 class SlotForm(forms.ModelForm):
