@@ -87,7 +87,7 @@ class SlotForm(forms.ModelForm):
             }),
             'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
             'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
-            'date': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': _('dd/mm/yyyy')}),
+            'date': forms.DateInput(format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy')}),
         }
 
         fields = ('id', 'course', 'course_type', 'campus', 'building',
