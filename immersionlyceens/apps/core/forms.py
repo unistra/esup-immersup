@@ -5,17 +5,23 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 from django.forms.widgets import DateInput
 
-from .models import (Course, Training, ImmersionUser, UniversityYear, Slot)
+from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot)
 
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
-        instance = kwargs.get('instance', None)
-
         self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
 
-        if instance:
-            self.fields['id'].widget = forms.HiddenInput()
+        if self.request:
+            allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
+            self.fields["component"].queryset = allowed_comps.order_by('code', 'label')
+
+            if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
+                for field in self.fields:
+                    self.fields[field].disabled = True
+        else:
+            self.fields["component"].queryset = self.fields["component"].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -27,7 +33,7 @@ class CourseForm(forms.ModelForm):
                 _("Error : multiple active university years"))
         except UniversityYear.DoesNotExist:
             raise forms.ValidationError(
-                _("Error : can't find an active university year"))
+                _("Error : can't find any active university year"))
 
         if active_year.start_date and active_year.end_date:
             if not (active_year.start_date <= datetime.today().date() <= active_year.end_date):
@@ -36,6 +42,16 @@ class CourseForm(forms.ModelForm):
         else:
             raise forms.ValidationError(
                 _("Error : dates of active university year improperly configured"))
+
+        # Check user rights
+        if self.request:
+            allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
+            training = cleaned_data['training']
+            course_comps = training.components.all()
+
+            if not (course_comps & allowed_comps).exists():
+                raise forms.ValidationError(
+                    _("You don't have enough privileges to update this course"))
 
         return cleaned_data
 
@@ -73,3 +89,5 @@ class SlotForm(forms.ModelForm):
             'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
             'date': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': _('dd/mm/yyyy')}),
         }
+
+        fields = ('id', 'label', 'url', 'published', 'training', 'component')

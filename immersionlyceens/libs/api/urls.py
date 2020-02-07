@@ -5,6 +5,7 @@ Url configuration for the core application API
 """
 
 from django.urls import path
+
 from . import views
 
 urlpatterns = [

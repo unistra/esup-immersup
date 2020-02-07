@@ -3,19 +3,18 @@ import logging
 import re
 from functools import partial
 
-from django.db.models import Q
-
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
-from mailmerge import MailMerge
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
+from mailmerge import MailMerge
 
-from .managers import (ActiveManager, ComponentQuerySet)
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
+
+from .managers import ActiveManager, ComponentQuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +29,10 @@ class Component(models.Model):
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
-    objects = models.Manager() # default manager
-    activated = ActiveManager.from_queryset(ComponentQuerySet)() # returns only activated components
+    objects = models.Manager()  # default manager
+    activated = ActiveManager.from_queryset(
+        ComponentQuerySet
+    )()  # returns only activated components
 
     class Meta:
         verbose_name = _('Component')
@@ -90,6 +91,27 @@ class ImmersionUser(AbstractUser):
         return self._user_filters[negated](
             self.is_superuser, self.groups.filter(name__in=groups).exists()
         )
+
+    def has_course_rights(self, course_id):
+        """
+        Check if the user can update / delete a course
+        :param course_id: Course id
+        :return: boolean
+        """
+        if self.is_superuser or self.has_groups('REF-CMP', 'SCUIO-IP'):
+            return True
+
+        try:
+            course = Course.objects.get(pk=course_id)
+            course_components = course.training.components.all()
+
+            if course_components & self.components.all():
+                return True
+
+        except Course.DoesNotExist:
+            return False
+
+        return False
 
     def authorized_groups(self):
         user_filter = {} if self.is_superuser else {'user__id': self.pk}
@@ -393,16 +415,16 @@ class UniversityYear(models.Model):
         try:
             super(UniversityYear, self).validate_unique()
         except ValidationError as e:
-            raise ValidationError(_('A public type with this label already exists'))
+            raise ValidationError(_('A university year with this label already exists'))
 
     def save(self, *args, **kwargs):
-        objs = UniversityYear.objects.filter(active=True)
-        if len(objs) < 1:
+        if not UniversityYear.objects.filter(active=True).exists():
             self.active = True
+
         super(UniversityYear, self).save(*args, **kwargs)
 
     def date_is_between(self, _date):
-        return self.start_date <= _date and _date <= self.end_date
+        return self.start_date <= _date <= self.end_date
 
 
 class Holiday(models.Model):
@@ -594,6 +616,15 @@ class Course(models.Model):
         related_name="courses",
     )
 
+    component = models.ForeignKey(
+        Component,
+        verbose_name=_("Component"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="courses",
+    )
+
     published = models.BooleanField(_("Published"), default=True)
 
     teachers = models.ManyToManyField(
@@ -604,6 +635,9 @@ class Course(models.Model):
 
     def __str__(self):
         return self.label
+
+    def get_components_queryset(self):
+        return self.training.components.all()
 
     class Meta:
         verbose_name = _('Course')
@@ -654,20 +688,11 @@ class MailTemplate(models.Model):
 
 class InformationText(models.Model):
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-    code = models.CharField(
-        _("Code"),
-        max_length=64,
-        blank=False,
-        null=False,
-    )
+    code = models.CharField(_("Code"), max_length=64, blank=False, null=False,)
     # 10K chars => MOA demand
     content = models.TextField(_('Content'), max_length=10000, blank=False, null=False)
     description = models.TextField(
-        _('Description'),
-        max_length=2000,
-        blank=False,
-        null=False,
-        default=''
+        _('Description'), max_length=2000, blank=False, null=False, default=''
     )
     active = models.BooleanField(_("Active"), default=True)
 
@@ -686,21 +711,19 @@ class InformationText(models.Model):
         return list(set(l))
 
     @classmethod
-    def update_documents_pulishment(cls):
+    def update_documents_publishment(cls):
         texts_docs_id = cls.get_all_documents_id()
 
         PublicDocument.objects.filter(id__in=texts_docs_id).update(published=True)
         PublicDocument.objects.filter(~Q(id__in=texts_docs_id)).update(published=False)
-        print(texts_docs_id)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        self.__class__.update_documents_pulishment()
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.__class__.update_documents_publishment()
         super().save()
 
     def delete(self, using=None, keep_parents=False):
         super().delete(using, keep_parents)
-        self.__class__.update_documents_pulishment()
+        self.__class__.update_documents_publishment()
 
     def __str__(self):
         return self.label
@@ -733,7 +756,8 @@ class AccompanyingDocument(models.Model):
         upload_to='uploads/accompanyingdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%(authorized_types)s)')
+        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
     )
 
     objects = CustomDeleteManager()
@@ -779,7 +803,8 @@ class PublicDocument(models.Model):
         upload_to='uploads/publicdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%s)' % ','.join(settings.CONTENT_TYPES)),
+        help_text=_('Only files with type (%(authorized_types)s)')
+        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
     )
     published = models.BooleanField(_("Published"), default=False)
 
@@ -859,8 +884,6 @@ class AttendanceCertificateModel(models.Model):
     show_merge_fields.short_description = _('Variables')
 
 
-
-
 class EvaluationType(models.Model):
     """
     Evaluation type class
@@ -910,12 +933,17 @@ class EvaluationFormLink(models.Model):
         verbose_name = _('Evaluation form link')
         verbose_name_plural = _('Evaluation forms links')
 
+    def __str__(self):
+        """str"""
+        return f'{self.evaluation_type.label} : {self.url}'
+
     def validate_unique(self, exclude=None):
         try:
             super().validate_unique()
         except ValidationError as e:
-            raise ValidationError(_('An evaluation form link with this evaluation type already exists'))
-
+            raise ValidationError(
+                _('An evaluation form link with this evaluation type already exists')
+            )
 
 
 class Slot(models.Model):
