@@ -1321,7 +1321,7 @@ msgstr "Crédits"
 
 #: immersionlyceens/templates/fragments/main_menu.html:31
 msgid "Components list"
-msgstr "List des composantes d'enseignement"
+msgstr "Liste des composantes d'enseignement"
 
 #: immersionlyceens/templates/fragments/main_menu.html:40
 msgid "Consult"
@@ -1403,7 +1403,7 @@ msgstr "Enregistrer et ajouter un nouveau"
 
 #: immersionlyceens/templates/slots/list_components.html:9
 msgid "My authorized components"
-msgstr "Mes componsantes autorisées"
+msgstr "Mes composantes autorisées"
 
 #: immersionlyceens/templates/slots/list_slots.html:25
 msgid "New slot"
