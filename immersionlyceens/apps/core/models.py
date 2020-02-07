@@ -718,8 +718,8 @@ class InformationText(models.Model):
         PublicDocument.objects.filter(~Q(id__in=texts_docs_id)).update(published=False)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.__class__.update_documents_publishment()
         super().save()
+        self.__class__.update_documents_publishment()
 
     def delete(self, using=None, keep_parents=False):
         super().delete(using, keep_parents)
@@ -995,7 +995,9 @@ class Slot(models.Model):
     )
 
     n_places = models.PositiveIntegerField(_('Number of places'))
-    additional_information = models.CharField(_('Additional information'), max_length=128, null=True)
+    additional_information = models.CharField(
+        _('Additional information'), max_length=128, null=True
+    )
 
     published = models.BooleanField(_("Published"), default=True)
 
