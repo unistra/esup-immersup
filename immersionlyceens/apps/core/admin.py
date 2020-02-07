@@ -418,6 +418,18 @@ class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'active')
     ordering = ('label',)
 
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Slot.objects.filter(course_type=obj).exists():
+            messages.warning(
+                request, _("This course type can't be deleted because it is used by some slots"),
+            )
+            return False
+
+        return True
+
 
 class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = PublicTypeForm
