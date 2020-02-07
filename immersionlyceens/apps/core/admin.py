@@ -21,7 +21,7 @@ from .models import (
     AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
     CancelType, Component, Course, CourseType, EvaluationFormLink, EvaluationType,
     GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
-    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    PublicDocument, PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
     Vacation,
 )
 
@@ -318,6 +318,28 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
         'label',
     )
     search_fields = ('label',)
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        # Manage KeyError if rights for groups don't include delete !
+        try:
+            del actions['delete_selected']
+        except KeyError:
+            pass
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Slot.objects.filter(building=obj).exists():
+            messages.warning(
+                request, _("This building can't be deleted because it is used by a slot")
+            )
+            return False
+
+        return True
 
 
 class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
