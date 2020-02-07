@@ -410,7 +410,17 @@ def course(request, course_id=None, duplicate=False):
 
 @groups_required('ENS-CH',)
 def mycourses(request):
-    return render(request, 'core/mycourses.html')
+
+    component_id = None
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+
+    if allowed_comps.count() == 1:
+        component_id = allowed_comps.first().id
+
+    context = {"components": allowed_comps, "component_id": component_id}
+
+    return render(request, 'core/mycourses.html', context)
+
 
 
 @groups_required('ENS-CH',)
