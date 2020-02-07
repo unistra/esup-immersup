@@ -670,7 +670,12 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         (None, {'fields': ('label', 'calendar_mode', 'global_evaluation_date')}),
         (
             _('Year mode'),
-            {'fields': ('year_registration_start_date', 'year_start_date', 'year_end_date',)},
+            {'fields': (
+                'year_nb_authorized_immersion',
+                'year_registration_start_date',
+                'year_start_date',
+                'year_end_date',
+            )},
         ),
         (
             _('Semester mode'),
@@ -700,6 +705,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj:
             if uy.start_date <= datetime.today().date():
                 fields = [
+                    'label',
                     'year_start_date',
                     'year_end_date',
                     'semester1_start_date',
@@ -709,6 +715,8 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
                     'year_registration_start_date',
                     'semester1_registration_start_date',
                     'semester2_registration_start_date',
+                    'year_nb_authorized_immersion',
+                    'registration_start_date_per_semester',
                 ]
 
             if uy.end_date <= datetime.today().date():
@@ -719,6 +727,10 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_add_permission(self, request):
         """Singleton"""
         return not Calendar.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!

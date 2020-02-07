@@ -76,6 +76,13 @@ class SlotForm(forms.ModelForm):
         if instance:
             self.fields['date'].value = instance.date
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+
+
+        return cleaned_data
+
     class Meta:
         model = Slot
         fields = ('id', 'course', 'course_type', 'campus', 'building',
