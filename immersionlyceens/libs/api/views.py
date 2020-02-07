@@ -4,7 +4,9 @@ API Views
 import datetime
 import logging
 
-from immersionlyceens.apps.core.models import Course, MailTemplateVars, Training
+from immersionlyceens.apps.core.models import (
+    Building, Course, ImmersionUser, MailTemplateVars, Training,
+)
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from django.conf import settings
@@ -13,15 +15,6 @@ from django.http import JsonResponse
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
-
-from immersionlyceens.decorators import (
-    groups_required, is_ajax_request, is_post_request)
-
-from immersionlyceens.apps.core.models import (
-    MailTemplateVars, Course, Training,
-    Building, ImmersionUser)
-
-from immersionlyceens.decorators import groups_required
 
 logger = logging.getLogger(__name__)
 
@@ -341,7 +334,7 @@ def ajax_get_my_slots(request, user_id=None):
                 'label': course.label,
                 'teachers': {},
                 'published_slots_count': 0,  # TODO
-                'registered_students_count': 0,  # TODO
+                'registered_students_count': { "capacity": s.n_places, "students_count": 4},  # TODO
                 'additional_information': s.additional_information, # TODO
                 'emargements': '', # TODO
             }
