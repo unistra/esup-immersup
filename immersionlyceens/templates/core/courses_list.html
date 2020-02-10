@@ -46,6 +46,7 @@
         <tr>
           <th><span id="published_filter"></span>{% trans 'Published' %}</th>
           <th>{% trans 'Training' %}</th>
+          <th><span id="managed_by_filter">{% trans 'Managed by' %}</th>
           <th>{% trans 'Label' %}</th>
           <th>{% trans 'Teachers' %}</th>
           <th>{% trans 'Published slots' %}</th>
@@ -64,6 +65,7 @@
           <td></td>
           <td></td>
           <td></td>
+          <td></td>
         </tr>
       </tfoot>
       </table>
@@ -74,7 +76,8 @@
   var dt;
   var updatable = "{{ can_update_courses }}";
   var feedback;
-
+  var current_component_id;
+  
   function delete_course(course_id) {
     var csrftoken = getCookie('csrftoken');
 
@@ -115,6 +118,7 @@
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
+    current_component_id = $('#cmps option:selected').val();
 
     dt = $('#courses_table').DataTable({
       'processing': false,
@@ -154,7 +158,7 @@
           { "data": "training_label"},
           { "data": "label",
             "render": function (data, type, row) {
-              if(updatable == "True") {
+              if(updatable == "True" && row.component_id == current_component_id) {
                 return "<a href='/core/course/" + row.id + "'>"+data+"</a>";
               }
               else {
@@ -176,9 +180,13 @@
           { "data": "alerts_count" },
           { "data": "",
             "render": function (data, type, row) {
-              var icons = "<a href='/core/course/"+row.id+"/1' class=\"btn btn-secondary btn-sm\"><i class=\"fa fas fa-copy\"></i></a>\n";
-              if(row.can_delete) {
-                icons += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"delete_course('" + row.id + "')\"><i class=\"fa fas fa-trash\"</i></button>";
+              var icons = "";
+              if(row.component_id == current_component_id) {
+                icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-secondary btn-sm\"><i class=\"fa fas fa-copy\"></i></a>\n";
+              
+                if(row.can_delete) {
+                  icons += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"delete_course('" + row.id + "')\"><i class=\"fa fas fa-trash\"</i></button>";
+                }
               }
 
               return icons;
@@ -199,6 +207,7 @@
     // Reload the table when component changes in selectbox
     $('#cmps').change( function() {
       dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
+      current_component_id = $('#cmps option:selected').val();
     });
 
     // Filters init
@@ -206,6 +215,11 @@
           column_number: 0,
           filter_default_label: "",
           filter_container_id: "published_filter",
+      },
+      {
+          column_number: 2,
+          filter_default_label: "",
+          filter_container_id: "managed_by_filter",
       },
     ]);
   });
