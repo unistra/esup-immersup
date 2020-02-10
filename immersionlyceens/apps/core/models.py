@@ -962,8 +962,8 @@ class Slot(models.Model):
     course_type = models.ForeignKey(
         CourseType,
         verbose_name=_("Course type"),
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="slots",
     )
@@ -971,24 +971,24 @@ class Slot(models.Model):
     campus = models.ForeignKey(
         Campus,
         verbose_name=_("Campus"),
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="slots",
     )
     building = models.ForeignKey(
         Building,
         verbose_name=_("Building"),
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="slots",
     )
-    room = models.CharField(_("Room"), max_length=16, blank=False, null=False)
+    room = models.CharField(_("Room"), max_length=16, blank=True, null=True)
 
-    date = models.DateField(_('Date'))
-    start_time = models.TimeField(_('Start time'))
-    end_time = models.TimeField(_('End time'))
+    date = models.DateField(_('Date'), blank=True, null=True)
+    start_time = models.TimeField(_('Start time'), blank=True, null=True)
+    end_time = models.TimeField(_('End time'), blank=True, null=True)
 
     teachers = models.ManyToManyField(
         ImmersionUser, verbose_name=_("Teachers"), related_name='slots'
@@ -996,10 +996,10 @@ class Slot(models.Model):
 
     n_places = models.PositiveIntegerField(_('Number of places'))
     additional_information = models.CharField(
-        _('Additional information'), max_length=128, null=True
+        _('Additional information'), max_length=128, null=True, blank=True
     )
 
-    published = models.BooleanField(_("Published"), default=True)
+    published = models.BooleanField(_("Published"), default=True, null=False)
 
     class Meta:
         verbose_name = _('Slot')
