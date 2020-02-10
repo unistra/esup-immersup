@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 from django.forms.widgets import DateInput
 
-from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot)
+from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar)
 
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -79,7 +79,23 @@ class SlotForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
+        cals = Calendar.objects.filters(active=True)
+        cal = None
+        if cals.count() > 0:
+            cal = cals[0]
+        if not cal:
+            raise forms.ValidationError(
+                _('Error: A calendar is required to set a slot.')
+            )
 
+        pub = cleaned_data.get('published')
+        if pub is not None:
+            if pub:
+                # Mandatory fields
+                if not all(cleaned_data.get(e) for e in ['course', 'course', 'campus',
+                            'building', 'room', 'date', 'start_date', 'end_date',
+                            'n_places']):
+                    raise forms.ValidationError(_('Required fields are not filled in'))
 
         return cleaned_data
 
