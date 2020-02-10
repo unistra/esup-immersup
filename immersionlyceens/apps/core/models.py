@@ -1014,3 +1014,12 @@ class Slot(models.Model):
         #     'start_time',
         #     'end_time',
         # )
+
+
+class GeneralSettings(models.Model):
+    setting = models.CharField(_("Setting name"), max_length=128, unique=True)
+    value = models.CharField(_("Setting value"), max_length=256)
+
+    class Meta:
+        verbose_name = _('General setting')
+        verbose_name_plural = _('General settings')

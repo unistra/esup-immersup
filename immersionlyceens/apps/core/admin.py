@@ -10,18 +10,60 @@ from django_summernote.admin import SummernoteModelAdmin
 from hijack_admin.admin import HijackUserAdminMixin
 
 from .admin_forms import (
-    AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm,
-    CalendarForm, CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm,
-    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm,
-    MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm,
+    AttendanceCertificateModelForm,
+    BachelorMentionForm,
+    BuildingForm,
+    CalendarForm,
+    CampusForm,
+    CancelTypeForm,
+    ComponentForm,
+    CourseTypeForm,
+    EvaluationFormLinkForm,
+    EvaluationTypeForm,
+    GeneralBachelorTeachingForm,
+    GeneralSettingsForm,
+    HighSchoolForm,
+    HolidayForm,
+    ImmersionUserChangeForm,
+    ImmersionUserCreationForm,
+    InformationTextForm,
+    MailTemplateForm,
+    PublicDocumentForm,
+    PublicTypeForm,
+    TrainingDomainForm,
+    TrainingForm,
+    TrainingSubdomainForm,
+    UniversityYearForm,
+    VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
-    CancelType, Component, Course, CourseType, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
-    PublicDocument, PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    AccompanyingDocument,
+    AttendanceCertificateModel,
+    BachelorMention,
+    Building,
+    Calendar,
+    Campus,
+    CancelType,
+    Component,
+    Course,
+    CourseType,
+    EvaluationFormLink,
+    EvaluationType,
+    GeneralBachelorTeaching,
+    GeneralSettings,
+    HighSchool,
+    Holiday,
+    ImmersionUser,
+    InformationText,
+    MailTemplate,
+    PublicDocument,
+    PublicType,
+    Slot,
+    Training,
+    TrainingDomain,
+    TrainingSubdomain,
+    UniversityYear,
     Vacation,
 )
 
@@ -670,12 +712,14 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         (None, {'fields': ('label', 'calendar_mode', 'global_evaluation_date')}),
         (
             _('Year mode'),
-            {'fields': (
-                'year_nb_authorized_immersion',
-                'year_registration_start_date',
-                'year_start_date',
-                'year_end_date',
-            )},
+            {
+                'fields': (
+                    'year_nb_authorized_immersion',
+                    'year_registration_start_date',
+                    'year_start_date',
+                    'year_end_date',
+                )
+            },
         ),
         (
             _('Semester mode'),
@@ -730,7 +774,6 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
-
 
     class Media:
         # TODO: check why I can't use django.jquery stuff !!!!!
@@ -927,8 +970,16 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            return ['evaluation_type',]
+            return [
+                'evaluation_type',
+            ]
         return self.readonly_fields
+
+
+class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = GeneralSettingsForm
+    list_display = ('setting', 'value')
+    ordering = ('setting',)
 
 
 admin.site = CustomAdminSite(name='Repositories')
@@ -957,3 +1008,4 @@ admin.site.register(PublicDocument, PublicDocumentAdmin)
 admin.site.register(AttendanceCertificateModel, AttendanceCertificateModelAdmin)
 admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
+admin.site.register(GeneralSettings, GeneralSettingsAdmin)
