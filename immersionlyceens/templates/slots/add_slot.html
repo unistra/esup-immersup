@@ -153,6 +153,36 @@
 <script src="{% static 'js/core/add_slot.js' %}"></script>
 <script>
 $(document).ready(function(){
+    function toggle_required_fields () {
+        let published = $('#id_published').prop('checked');
+        if (published) {
+            let mandatory = [
+                'course', 'course_type', 'campus',
+                'building', 'room', 'date', 'start_time', 'end_time',
+                'teachers', 'n_places'
+            ];
+            mandatory.forEach(function(e){
+                $('#id_' + e).attr('required', 'sfdgsg');
+            });
+        } else {
+
+            let not_mandatory = [
+                'course_type', 'campus', 'building', 'room', 'date',
+                'start_date', 'end_date', 'teachers', 'n_places'
+            ];
+            let mandatory = ['training', 'course'];
+
+            not_mandatory.forEach(function(e){
+                $('#id_' + e).removeAttr('required');
+            });
+            mandatory.forEach(function(e){
+                $('#id_' + e).attr('required', 'sfdgsg');
+            });
+
+
+        }
+    }
+
     function load_course(value) {
         $.ajax({
             url: '/api/get_courses_by_training/' + value,
@@ -175,19 +205,18 @@ $(document).ready(function(){
         $.ajax({
             url: '/api/get_buildings/' + value,
             success: function(data){
-                    if ( data['data'] && data['data'].length !== 0 ) {
-                        $('#id_building').html('');
-                        $('#id_building').append(
-                            '<option value="">{% trans 'Choose a value' %}</option>'
-                        );
-                        data['data'].forEach(function(e){
-                            let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
-                            $('#id_building').append(element);
-                        });
-                    }
+                if ( data['data'] && data['data'].length !== 0 ) {
+                    $('#id_building').html('');
+                    $('#id_building').append(
+                        '<option value="">{% trans 'Choose a value' %}</option>'
+                    );
+                    data['data'].forEach(function(e){
+                        let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                        $('#id_building').append(element);
+                    });
                 }
-            });
-
+            }
+        });
     }
 
     function load_teachers(value) {
@@ -225,9 +254,12 @@ $(document).ready(function(){
         load_teachers($('#id_course').val());
     {% endif %}
 
+    toggle_required_fields();
+
     $('#training').change(function(event){ load_course(event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
+    $('#id_published').on('change', function(){ toggle_required_fields(); });
 
     {% if slot %}
     $('#id_campus option[type="{{ slot.campus.id }}"]').attr('selected', '');
@@ -249,7 +281,7 @@ $(document).ready(function(){
     });
 
     $.ajax({
-        url: '/api/get_buildings/' + {{ slot.campus.id }},
+        url: '/api/get_buildings/' + "{{ slot.campus.id }}",
         success: function(data){
             if ( data['data'] && data['data'].length !== 0 ) {
                 $('#id_building').html('');
@@ -258,7 +290,7 @@ $(document).ready(function(){
                 );
                 data['data'].forEach(function(e){
                     let selected = '';
-                    if ( {{ slot.building.id }} == e.id ) {
+                    if ( "{{ slot.building.id }}" == ('' + e.id) ) {
                         selected = ' selected';
                     }
                     let element = '<option value="' + e['id'] + '"' + selected +
