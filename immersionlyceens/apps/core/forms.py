@@ -79,7 +79,7 @@ class SlotForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        cals = Calendar.objects.filters(active=True)
+        cals = Calendar.objects.all()
         cal = None
         if cals.count() > 0:
             cal = cals[0]
@@ -96,6 +96,19 @@ class SlotForm(forms.ModelForm):
                             'building', 'room', 'date', 'start_date', 'end_date',
                             'n_places']):
                     raise forms.ValidationError(_('Required fields are not filled in'))
+
+        _date = cleaned_data.get('date')
+        if _date and not cal.date_is_between(_date):
+            raise forms.ValidationError({
+                'date': _('Error: The date must be between the dates of the current calendar')
+                })
+
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        if start_time and end_time and start_time >= end_time:
+            raise forms.ValidationError({
+                'start_time': _('Error: Start time must be set before end time')
+            })
 
         return cleaned_data
 
