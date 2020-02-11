@@ -170,6 +170,27 @@
 <script src="{% static 'js/core/add_slot.js' %}"></script>
 <script>
 $(document).ready(function(){
+    function check_date() {
+        $.ajax({
+            url: '/api/check_vacations',
+            data: {
+                date: $('#id_date').val(),
+            },
+            success: function(data) {
+                if ( data['data'] ) {
+                    if (data['data']['is_between']) {
+                        if (!confirm("{% trans 'This date is inside a vacation or a haliday. Are you sure that you want a slot with this date ?' %}")) {
+                            $('#id_date').val('');
+                        }
+                    }
+                }
+            },
+        });
+    }
+    $('#id_date').on('change', function() {
+        check_date();
+    });
+
     // See https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
     function getCookie(name) {
         var cookieValue = null;
