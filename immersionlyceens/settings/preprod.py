@@ -3,6 +3,7 @@
 import os
 from os import environ
 from os.path import normpath
+import socket
 
 from .base import *
 
@@ -76,6 +77,14 @@ WITH_HOLIDAY_API = True
 HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'
 HOLIDAY_API_MAP = {'date': 'date', 'label': 'nom_jour_ferie'}
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
+
+#######################
+# Email configuration #
+#######################
+
+EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.ConsoleBackend'
+FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-pprd@unistra.fr"
+DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
 
 # SUMMER NOTE

@@ -17,6 +17,7 @@ from immersionlyceens.decorators import groups_required
 from .forms import CourseForm, SlotForm
 from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear
 
+
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -351,6 +352,8 @@ def course(request, course_id=None, duplicate=False):
                                 first_name=teacher['firstname'],
                                 email=teacher['email'],
                             )
+
+                            teacher_user.send_message(request, 'CPT_CREATE_ENS')
 
                             messages.success(request, _("User '%s' created" % teacher['username']))
 

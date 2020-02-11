@@ -388,6 +388,23 @@ LDAP_API_EMAIL_USERNAME = ''
 LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
 
+#######################
+# Email configuration #
+#######################
+
+DEFAULT_FROM_EMAIL = 'support@unistra.fr'
+
+# EMAIL_BACKEND choices :
+#     - immersionlyceens.libs.mails.backends.EmailBackend
+#     - immersionlyceens.libs.mails.backends.ConsoleBackend
+#     - immersionlyceens.libs.mails.backends.FileBackend
+EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
+EMAIL_HOST = '127.0.0.1'
+FROM_ADDR = 'no.reply@unistra.fr'
+
+FORCE_EMAIL_ADDRESS = None
+
+
 # Displaying apps order in ADMIN
 ADMIN_APPS_ORDER = ['auth', 'core']
 
