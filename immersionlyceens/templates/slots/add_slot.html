@@ -187,9 +187,6 @@ $(document).ready(function(){
             },
         });
     }
-    $('#id_date').on('change', function() {
-        check_date();
-    });
 
     // See https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
     function getCookie(name) {
@@ -239,7 +236,6 @@ $(document).ready(function(){
     }
 
     function load_trainings(value) {
-        console.log(value);
         $.post({
             beforeSend: function (request) {
                    request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
@@ -316,6 +312,16 @@ $(document).ready(function(){
         });
     }
 
+    // Chenge input type
+    $('#id_start_time').get(0).type = 'time';
+    $('#id_end_time').get(0).type = 'time';
+
+    // Date check
+    $('#id_date').on('change', function() {
+        check_date();
+    });
+
+    // Back button + confirm
     $('.back_btn').click(function (event) {
         if (confirm("{% trans 'Did you really want to cancel this creation?' %}")){
             c = $('#component').val();
@@ -324,9 +330,7 @@ $(document).ready(function(){
         }
     });
 
-    $('#id_start_time').get(0).type = 'time';
-    $('#id_end_time').get(0).type = 'time';
-
+    // if it's a modifitation
     {% if not slot %}
         $('#id_date').get(0).type = 'date';
         load_trainings($('#component').val());
@@ -335,8 +339,10 @@ $(document).ready(function(){
         load_teachers($('#id_course').val());
     {% endif %}
 
+    // toggle
     toggle_required_fields();
 
+    // add change handler
     $('#component').change(function(event){ load_trainings(event.target.value); });
     $('#training').change(function(event){ load_course(event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
