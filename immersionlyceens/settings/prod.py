@@ -3,6 +3,7 @@
 import os
 from os import environ
 from os.path import normpath
+import socket
 
 from .base import *
 
@@ -75,6 +76,13 @@ HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.j
 HOLIDAY_API_MAP = {'date': 'date', 'label': 'nom_jour_ferie'}
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
+#######################
+# Email configuration #
+#######################
+
+# If needed
+
+#######################
 
 # SUMMER NOTE
 BASE_DIR = os.getcwd()

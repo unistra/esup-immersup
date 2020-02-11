@@ -3,6 +3,7 @@
 import os
 from os import environ
 from os.path import normpath
+import socket
 
 from .base import *
 
@@ -78,6 +79,13 @@ HOLIDAY_API_MAP = {
     'label': 'nom_jour_ferie'
 }
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
+
+#######################
+# Email configuration #
+#######################
+
+FORCE_ACTIVATION_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
+DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
 
 # SUMMER NOTE
