@@ -49,14 +49,14 @@ class RegistrationForm(UserCreationForm):
 
         email = cleaned_data.get('email')
 
-        if ImmersionUser.objects.filter(email=email).exists:
+        if ImmersionUser.objects.filter(email=email).exists():
             raise forms.ValidationError(
                 _("Error : an account already exists with this email address"))
 
         username = settings.USERNAME_PREFIX + email
 
         # Shouldn't get there if the email unicity test fails
-        if ImmersionUser.objects.filter(username=username).exists:
+        if ImmersionUser.objects.filter(username=username).exists():
             raise forms.ValidationError(
                 _("Error : duplicated account detected"))
 

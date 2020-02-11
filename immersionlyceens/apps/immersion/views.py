@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, HttpResponseRedirect
@@ -28,10 +28,14 @@ def login(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                # If student has filled his record
-                return HttpResponseRedirect("/immersion")
-                # Else
-                # return HttpResponseRedirect("/immersion/record")
+                # Activated account ?
+                if not user.is_valid():
+                    messages.error(request, _("Your account hasn't been enabled yet."))
+                else:
+                    # If student has filled his record
+                    return HttpResponseRedirect("/immersion")
+                    # Else
+                    # return HttpResponseRedirect("/immersion/record")
             else:
                 messages.error(request, _("Authentication error"))
     else:
@@ -54,7 +58,7 @@ def register(request):
             new_user.username = form.cleaned_data.get("username")
             new_user.validation_string = uuid.uuid4().hex
             new_user.destruction_date = \
-                datetime.today().date() + datetime.timedelta(days=settings.DESTRUCTION_DELAY)
+                datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
 
             new_user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
@@ -80,12 +84,19 @@ def recovery(request):
     pass
 
 
-def activate(request):
-    print(request.GET)
+def activate(request, hash=None):
+    if hash:
+        try:
+            user = ImmersionUser.objects.get(validation_string=hash)
+            user.validate_account()
+            messages.success(request, _("Your account is now enabled. Thanks !"))
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("Invalid activation data"))
+            return HttpResponseRedirect("/immersion/login")
 
     context = {}
 
-    return render(request, 'immersion/login.html', context)
+    return HttpResponseRedirect("/immersion/login")
 
 @login_required
 def home(request):
