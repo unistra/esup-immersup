@@ -171,6 +171,13 @@ def modify_slot(request, slot_id):
     slot = Slot.objects.get(id=slot_id)
     slot_form = SlotForm(instance=slot)
 
+    # get components
+    components = []
+    if request.user.is_superuser or request.user.is_scuio_ip_manager():
+        components = Component.activated.all()
+    elif request.user.is_component_manager:
+        components = request.user.components.all()
+
     if request.method == 'POST' and (request.POST.get('save') or \
             request.POST.get('duplicate') or \
             request.POST.get('save_add')):
@@ -185,6 +192,7 @@ def modify_slot(request, slot_id):
 
             context = {
                 "slot": slot,
+                "components": components,
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": True,
@@ -198,6 +206,7 @@ def modify_slot(request, slot_id):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):
             context = {
+                "components": components,
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": False,
@@ -206,6 +215,7 @@ def modify_slot(request, slot_id):
         else:
             context = {
                 "slot": slot,
+                "components": components,
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": True,
@@ -215,6 +225,7 @@ def modify_slot(request, slot_id):
 
     context = {
         "slot": slot,
+        "components": components,
         "trainings": Training.objects.filter(active=True),
         "slot_form": slot_form,
         "ready_load": True,

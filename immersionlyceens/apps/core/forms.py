@@ -92,9 +92,8 @@ class SlotForm(forms.ModelForm):
         if pub is not None:
             if pub:
                 # Mandatory fields
-                if not all(cleaned_data.get(e) for e in ['course', 'course', 'campus',
-                            'building', 'room', 'date', 'start_date', 'end_date',
-                            'n_places']):
+                if not all(cleaned_data.get(e) for e in ['course', 'course_type', 'campus',
+                            'building', 'room', 'date', 'start_time', 'end_time',]):
                     raise forms.ValidationError(_('Required fields are not filled in'))
 
         _date = cleaned_data.get('date')
