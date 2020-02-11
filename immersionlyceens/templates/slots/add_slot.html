@@ -297,7 +297,9 @@ $(document).ready(function(){
 
     $('.back_btn').click(function (event) {
         if (confirm("{% trans 'Did you really want to cancel this creation?' %}")){
-            window.location = "{{ request.META.HTTP_REFERER }}";
+            c = $('#component').val();
+            t = $('#training').val();
+            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
         }
     });
 

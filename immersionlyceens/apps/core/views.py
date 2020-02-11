@@ -81,6 +81,9 @@ def import_holidays(request):
 def slots_list(request):
     template = 'slots/list_slots.html'
 
+    comp_id = request.GET.get('c')
+    train_id = request.GET.get('t')
+
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
         components = Component.activated.all()
@@ -92,6 +95,14 @@ def slots_list(request):
     context = {
         'components': components,
     }
+
+    if comp_id:
+        context['component_id'] = comp_id
+    if train_id:
+        context['training_id'] = train_id
+
+    print(context)
+
     return render(request, template, context=context)
 
 

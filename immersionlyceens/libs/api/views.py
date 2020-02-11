@@ -149,7 +149,7 @@ def get_ajax_slots(request):
 
     response = {'msg': '', 'data': []}
     slots = []
-    if train_id or train_id[0] is not '':
+    if train_id or train_id is not '' and train_id[0] is not '':
         slots = Slot.objects.filter(course__training__id=train_id)
     elif comp_id or comp_id is not '':
         slots = Slot.objects.filter(course__training__components__id=comp_id)

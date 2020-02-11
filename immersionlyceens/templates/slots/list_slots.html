@@ -33,11 +33,7 @@
                     <div class="col-sm-6">
                         <select name="component" id="component" class="form-control">
                         {% for comp in components %}
-                            {% if forloop.first %}
-                                <option selected value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
-                            {% else %}
-                                <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
-                            {% endif %}
+                            <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
                         {% endfor %}
                         </select>
                     </div>
@@ -107,7 +103,11 @@
 <script>
 $(document).ready(function(){
 
-    function load_trainings( comp_id ) {
+    {% if component_id %}
+        $('#component option[value="{{ component_id }}"]').attr('selected', '');
+    {% endif %}
+
+    function load_trainings( comp_id, first=false ) {
         $.post({
           url: '/api/get_trainings',
           data: {component_id: comp_id},
@@ -119,6 +119,15 @@ $(document).ready(function(){
                        let elem  = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
                        $('#training').append(elem);
                     });
+                    if ( first ) {
+                        {% if training_id %}
+                            $('#training option[value="{{ training_id }}"]').attr('selected', '');
+                            reload_data();
+                        {% endif %}
+
+                    }
+
+
                 } else {
                     $('#training').append('<option value="">-------------</option>');
                 }
@@ -158,7 +167,7 @@ $(document).ready(function(){
         }
     });
 
-    load_trainings($('#component').val());
+    load_trainings($('#component').val(), true);
     $("#component").on('change', function(event){
         load_trainings(event.target.value);
         reload_data();
