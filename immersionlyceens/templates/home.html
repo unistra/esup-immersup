@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% block title %}
+{% trans "Homepage" %}
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-10">
+      <section id="home_txt">
+      {{ welcome_txt | safe}}
+      </section>
+    </div>
+    <div>
+    <aside>
+      <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}">
+      {% trans 'Tweeter feed' %}
+      </a>
+      <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    </aside>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3 text-center">
+      <a href="{% url 'procedure' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" title="{{ procedure_txt.content }}">{% trans 'Procedure' %}</a>
+    </div>
+    <div class="col-sm-3 text-center">
+      <a href="{% url 'offer' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" title="{{ offer_txt.content }}">{% trans 'Offer' %}</a>
+    </div>
+    <div class="col-sm-3 text-center">
+      <a href="{% url 'accompanying' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" title="{{ accomp_txt.content }}">{% trans 'Accompaniment' %}</a>
+    </div>
+  </div>
+  <div class="row">
+  </div>
+</div>
+{% endblock %}
+<script>
+$(document).ready(function() {
+    $("body").tooltip({ selector: '[data-toggle=tooltip]' });
+});
+</script>

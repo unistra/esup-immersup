@@ -7,12 +7,13 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum, Count
 from django.utils.translation import ugettext_lazy as _
 from mailmerge import MailMerge
 
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
+from immersionlyceens.libs.mails.utils import send_email
 
 from .managers import ActiveManager, ComponentQuerySet
 
@@ -30,9 +31,7 @@ class Component(models.Model):
     active = models.BooleanField(_("Active"), default=True)
 
     objects = models.Manager()  # default manager
-    activated = ActiveManager.from_queryset(
-        ComponentQuerySet
-    )()  # returns only activated components
+    activated = ActiveManager.from_queryset(ComponentQuerySet)()  # returns only activated components
 
     class Meta:
         verbose_name = _('Component')
@@ -113,9 +112,43 @@ class ImmersionUser(AbstractUser):
 
         return False
 
+
     def authorized_groups(self):
         user_filter = {} if self.is_superuser else {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
+
+
+    def send_message(self, request, template_code, **kwargs):
+        """
+        Get a MailTemplate by its code, replace variables and send
+        :param message_code: Code of message to send
+        :return: True if message sent else False
+        """
+
+        try:
+            template = MailTemplate.objects.get(code=template_code, active=True)
+        except MailTemplate.DoesNotExist:
+            msg = _("Email not sent : template %s not found or inactive" % template_code)
+            logger.error(msg)
+            return msg
+
+        try:
+            message_body = template.parse_vars(user=self, request=request, **kwargs)
+            send_email(self.email, template.subject, message_body)
+        except Exception as e:
+            msg = _("Error while sending mail : %s" % e)
+            logger.exception(msg)
+            return msg
+
+        return None
+
+    def destruction_date(self):
+        # TODO
+        return "cette date"
+
+    def validation_link(self):
+        # TODO
+        return "this link"
 
 
 class TrainingDomain(models.Model):
@@ -639,6 +672,10 @@ class Course(models.Model):
     def get_components_queryset(self):
         return self.training.components.all()
 
+    def free_seats(self):
+        # TODO
+        return self.slots.annotate(total_seats=Sum('n_places'))
+
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
@@ -680,6 +717,16 @@ class MailTemplate(models.Model):
 
     def __str__(self):
         return "%s : %s" % (self.code, self.label)
+
+    def parse_vars(self, user, request, **kwargs):
+        # Import parser here because it depends on core models
+        from immersionlyceens.libs.mails.variables_parser import parser
+        return parser(
+            user=user,
+            request=request,
+            message_body=self.body,
+            vars=[v for v in self.available_vars.all()],
+            **kwargs)
 
     class Meta:
         verbose_name = _('Mail template')
@@ -1004,13 +1051,12 @@ class Slot(models.Model):
     class Meta:
         verbose_name = _('Slot')
         verbose_name_plural = _('Slots')
-        # unique_together = (
-        #     'training',
-        #     'course',
-        #     'course_type',
-        #     'campus',
-        #     'building',
-        #     'date',
-        #     'start_time',
-        #     'end_time',
-        # )
+
+
+class GeneralSettings(models.Model):
+    setting = models.CharField(_("Setting name"), max_length=128, unique=True)
+    value = models.CharField(_("Setting value"), max_length=256)
+
+    class Meta:
+        verbose_name = _('General setting')
+        verbose_name_plural = _('General settings')

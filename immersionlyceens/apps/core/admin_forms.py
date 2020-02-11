@@ -2,6 +2,8 @@ import mimetypes
 import re
 from datetime import datetime
 
+from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
+
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -10,15 +12,14 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
-from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
     AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
     CancelType, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
+    MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -796,9 +797,9 @@ class MailTemplateForm(forms.ModelForm):
             self.fields['label'].disabled = True
             self.fields['code'].disabled = True
         else:
-            self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by(
-                'code'
-            )
+            self.fields['available_vars'].queryset = self.fields[
+                'available_vars'
+            ].queryset.order_by('code')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -1071,4 +1072,29 @@ class EvaluationFormLinkForm(forms.ModelForm):
 
     class Meta:
         model = EvaluationFormLink
+        fields = '__all__'
+
+
+class GeneralSettingsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = GeneralSettings
         fields = '__all__'

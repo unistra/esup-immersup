@@ -14,11 +14,42 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, render
 
-from immersionlyceens.apps.core.models import AccompanyingDocument, PublicDocument
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument,
+    GeneralSettings,
+    InformationText,
+    PublicDocument,
+)
 
 
 def home(request):
-    return render(request, 'base.html')
+    """Homepage view"""
+    context = {
+        'welcome_txt': InformationText.objects.get(code="ACCUEIL").content,
+        'procedure_txt': InformationText.objects.get(code="INFO_BULLE_PROCEDURE").content,
+        'offer_txt': InformationText.objects.get(code="INFO_BULLE_OFFRE").content,
+        'accomp_txt': InformationText.objects.get(code="INFO_BULLE_ACCOMPAGNEMENT").content,
+        'twitter_url': GeneralSettings.objects.get(setting="TWITTER_ACCOUNT_URL").value,
+    }
+    return render(request, 'home.html', context)
+
+
+def offer(request):
+    """Offer view"""
+    context = {}
+    return render(request, 'offer.html', context)
+
+
+def accompanying(request):
+    """Accompanying view"""
+    context = {}
+    return render(request, 'accompanying.html', context)
+
+
+def procedure(request):
+    """Procedure view"""
+    context = {}
+    return render(request, 'procedure.html', context)
 
 
 def serve_accompanying_document(request, accompanying_document_id):
