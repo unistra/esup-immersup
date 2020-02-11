@@ -128,14 +128,19 @@ class ImmersionUser(AbstractUser):
         try:
             template = MailTemplate.objects.get(code=template_code, active=True)
         except MailTemplate.DoesNotExist:
-            logger.error("Cannot send mail : template %s not found or inactive" % template_code)
-            return False
+            msg = _("Email not sent : template %s not found or inactive" % template_code)
+            logger.error(msg)
+            return msg
 
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
             send_email(self.email, template.subject, message_body)
         except Exception as e:
-            logger.exception("Error while sending mail : %s", e)
+            msg = _("Error while sending mail : %s" % e)
+            logger.exception(msg)
+            return msg
+
+        return None
 
     def destruction_date(self):
         # TODO

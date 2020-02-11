@@ -353,9 +353,14 @@ def course(request, course_id=None, duplicate=False):
                                 email=teacher['email'],
                             )
 
-                            teacher_user.send_message(request, 'CPT_CREATE_ENS')
-
                             messages.success(request, _("User '%s' created" % teacher['username']))
+                            return_msg = teacher_user.send_message(request, 'CPT_CREATE_ENS')
+
+                            if not return_msg:
+                                messages.success(request,
+                                    _("A confirmation email has been sent to %s" % teacher['email']))
+                            else:
+                                messages.warning(request, return_msg)
 
                         try:
                             Group.objects.get(name='ENS-CH').user_set.add(teacher_user)
