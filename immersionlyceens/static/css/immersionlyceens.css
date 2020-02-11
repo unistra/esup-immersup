@@ -5,31 +5,31 @@ input[type="checkbox"] {
 
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 #livesearch {
     width: 300px;
     visibility: hidden;
     display: inline-block;
-    float:left;
+    float: left;
 }
 
 #livesearch_label {
     width: 120px;
-    margin-left:20px;
+    margin-left: 20px;
     visibility: hidden;
     display: inline-block;
-    float:left;
+    float: left;
 }
 
 #id_username {
-    float:left;
+    float: left;
 }
 
 .top-buffer {
-    margin-top:20px;
+    margin-top: 20px;
 }
 
 .warning {
@@ -37,11 +37,11 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .styled-select {
-   width: 100%;
+    width: 100%;
 }
 
 .glyphicon-margin-left {
-   margin-left: 20px;
+    margin-left: 20px;
 }
 
 .glyphicon-refresh-animate {
@@ -52,18 +52,30 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 @keyframes spin {
-    from { transform: scale(1) rotate(0deg);}
-    to { transform: scale(1) rotate(360deg);}
+    from {
+        transform: scale(1) rotate(0deg);
+    }
+    to {
+        transform: scale(1) rotate(360deg);
+    }
 }
 
 @-webkit-keyframes spinw {
-    from { -webkit-transform: rotate(0deg);}
-    to { -webkit-transform: rotate(360deg);}
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
 }
 
 @-moz-keyframes spinm {
-    from { -moz-transform: rotate(0deg);}
-    to { -moz-transform: rotate(360deg);}
+    from {
+        -moz-transform: rotate(0deg);
+    }
+    to {
+        -moz-transform: rotate(360deg);
+    }
 }
 
 .panel-heading .glyphicon {
@@ -74,17 +86,24 @@ input[type=number]::-webkit-outer-spin-button {
     width: 95%;
 }
 
+
 /* Fix long string content for filters */
+
 .yadcf-filter {
     width: 100px;
 }
 
+
 /* No hover effect on specific element of a nav pill */
-.nav>li.no-effect>a:hover, .nav>li.no-effect>a:focus {
+
+.nav>li.no-effect>a:hover,
+.nav>li.no-effect>a:focus {
     background-color: transparent;
 }
 
+
 /* Scrollable modal body */
+
 .modal-scrollable {
     overflow-y: initial !important
 }
@@ -95,7 +114,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .icon-spinner {
-    display:none;
+    display: none;
 }
 
 .glyphicon-spin {
@@ -104,42 +123,57 @@ input[type=number]::-webkit-outer-spin-button {
     -o-animation: spin 2s infinite linear;
     animation: spin 2s infinite linear;
 }
+
 @-moz-keyframes spin {
-  0% {
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    -moz-transform: rotate(359deg);
-  }
+    0% {
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        -moz-transform: rotate(359deg);
+    }
 }
+
 @-webkit-keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-  }
-  100% {
-    -webkit-transform: rotate(359deg);
-  }
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+    }
 }
+
 @-o-keyframes spin {
-  0% {
-    -o-transform: rotate(0deg);
-  }
-  100% {
-    -o-transform: rotate(359deg);
-  }
+    0% {
+        -o-transform: rotate(0deg);
+    }
+    100% {
+        -o-transform: rotate(359deg);
+    }
 }
+
 @keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-  100% {
-    -webkit-transform: rotate(359deg);
-    transform: rotate(359deg);
-  }
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
 }
 
 .selector select {
     width: 380px;
     height: 10em;
+}
+
+
+/* No style on anchors */
+
+a.unlink {
+    color: inherit;
+}
+
+a.unlink:hover {
+    color: inherit;
 }

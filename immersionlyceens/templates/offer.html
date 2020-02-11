@@ -4,17 +4,20 @@
 {% trans "Offer" %}
 {% endblock %}
 {% block content %}
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-sm-10">
-      <section id="offer_txt">
-      Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Bibbeleskaas jetz rossbolla sech choucroute un schwanz geburtstàg, Chinette dû, ìch bier deppfele schiesser. Flammekueche de knèkes Seppele gal! a hopla geburtstàg, alles fraü Chulia Roberts oder knäckes dûû blottkopf. Noch bredele schissabibala, yeuh e schmutz. E gewurtztraminer doch Carola schneck, schmutz a riesling de chambon eme rucksack Roger dû hopla geiss, jetz Chorchette de Scharrarbergheim. Kouglopf ech ìch wurscht gueut mitt schneck jetz a schiss mannele, knèkes saucisse de Niederhausbergen of fill mauls schéni fleischwurcht schnaps de eme gal nüdle blottkopf, de Chulien Roger hop pfourtz! bett mer ech schpeck un salami schmutz. Gal!
-      </section>
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / {% trans "Offer" %}
     </div>
-
-
+    <div class="card-body">
+      <div class="row">
+        <div class="col-sm-6">
+          <section id="offer_txt">
+          Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Bibbeleskaas jetz rossbolla sech choucroute un schwanz geburtstàg, Chinette dû, ìch bier deppfele schiesser. Flammekueche de knèkes Seppele gal! a hopla geburtstàg, alles fraü Chulia Roberts oder knäckes dûû blottkopf. Noch bredele schissabibala, yeuh e schmutz. E gewurtztraminer doch Carola schneck, schmutz a riesling de chambon eme rucksack Roger dû hopla geiss, jetz Chorchette de Scharrarbergheim. Kouglopf ech ìch wurscht gueut mitt schneck jetz a schiss mannele, knèkes saucisse de Niederhausbergen of fill mauls schéni fleischwurcht schnaps de eme gal nüdle blottkopf, de Chulien Roger hop pfourtz! bett mer ech schpeck un salami schmutz. Gal!
+          </section>
+        </div>
+      </div>
+    </div>
   </div>
-
 </div>
-
 {% endblock %}
