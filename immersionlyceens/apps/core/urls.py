@@ -16,6 +16,7 @@ urlpatterns = [
     path('slots/', views.slots_list, name='slots_list'),
     # path('slots/<int:component>/', views.slots_list, name='slots_list'),
     path('slot/add', views.add_slot, name='add_slot'),
+    path('slot/add/<int:slot_id>', views.add_slot, name='duplicate_slot'),
     path('slot/modify/<int:slot_id>', views.modify_slot, name='modify_slot'),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
     path('course/<int:course_id>', views.course, name='modify_course'),

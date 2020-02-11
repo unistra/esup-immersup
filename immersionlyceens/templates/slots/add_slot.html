@@ -15,7 +15,11 @@
     <div class="card">
         <div class="card-header text-white bg-secondary">
             {% if slot %}
-                {% trans 'modify slot' %}
+                {% if slot.id %}
+                    {% trans 'modify slot' %}
+                {% else %}
+                    {% trans 'duplicate slot' %}
+                {% endif %}
             {% else %}
                 {% trans 'Add a new slot' %}
             {% endif %}

@@ -110,6 +110,11 @@ def add_slot(request, slot_id=None):
     context = {}
     slot = None
 
+    if slot_id:
+        slot = Slot.objects.get(id=slot_id)
+        print(slot)
+        slot.id = None
+
     # get components
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
@@ -152,6 +157,8 @@ def add_slot(request, slot_id=None):
             return render(request, 'slots/add_slot.html', context=context)
         else:
             return redirect('/')
+    elif slot:
+        slot_form = SlotForm(instance=slot)
     else:
         slot_form = SlotForm()
 
@@ -160,6 +167,8 @@ def add_slot(request, slot_id=None):
         "slot_form": slot_form,
         "ready_load": True,
     }
+    if slot:
+        context['slot'] = slot
     return render(request, 'slots/add_slot.html', context=context)
 
 
