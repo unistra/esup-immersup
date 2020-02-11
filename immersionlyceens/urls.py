@@ -21,7 +21,6 @@ urlpatterns = [
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('core/', include('immersionlyceens.apps.core.urls')),
-    path('core/', include('immersionlyceens.apps.core.urls')),
     path(
         'dl/accdoc/<int:accompanying_document_id>',
         serve_accompanying_document,
@@ -34,6 +33,7 @@ urlpatterns = [
     path('offer', offer, name='offer'),
     path('procedure', procedure, name='procedure'),
     path('summernote/', include('django_summernote.urls')),
+    path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # debug toolbar for dev
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:

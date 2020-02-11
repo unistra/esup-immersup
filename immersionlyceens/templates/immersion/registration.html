@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block content %}
+<h2>{% trans 'Immersion Lycéens - New account' %}</h2>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans 'Please fill this form to create your account' %} :
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+          <label for="id_lastname" class="col-sm-2 col-form-label">{% trans 'Last name' %} :</label>
+          <div class="col-sm-3">
+            {{ form.last_name }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.last_name.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_firstname" class="col-sm-2 col-form-label">{% trans 'First name' %} :</label>
+          <div class="col-sm-3">
+            {{ form.first_name }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.first_name.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_email" class="col-sm-2 col-form-label">{% trans 'Email' %} :</label>
+          <div class="col-sm-3">
+            {{ form.email }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.email.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_email2" class="col-sm-2 col-form-label">{% trans 'Email (confirmation)' %} :</label>
+          <div class="col-sm-3">
+            {{ form.email2 }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.email2.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_password1" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
+          <div class="col-sm-3">
+            {{ form.password1 }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.password1.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_password2" class="col-sm-2 col-form-label">{% trans 'Password (confirmation)' %} :</label>
+          <div class="col-sm-3">
+            {{ form.password2 }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.password2.errors }}
+          </div>
+        </div>
+        <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

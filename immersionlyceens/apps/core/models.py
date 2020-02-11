@@ -9,6 +9,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q, Sum, Count
 from django.utils.translation import ugettext_lazy as _
+from django.urls import reverse
+
 from mailmerge import MailMerge
 
 from immersionlyceens.fields import UpperCharField
@@ -68,6 +70,11 @@ class ImmersionUser(AbstractUser):
     components = models.ManyToManyField(
         Component, verbose_name=_("Components"), blank=True, related_name='referents'
     )
+
+    destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
+
+    validation_string = models.TextField(_("Account validation string"),
+        blank=True, null=True, unique=True)
 
     class Meta:
         verbose_name = _('User')
@@ -142,13 +149,24 @@ class ImmersionUser(AbstractUser):
 
         return None
 
+    def validate_account(self):
+        self.validation_string = None
+        self.destruction_date = None
+        self.save()
+
     def destruction_date(self):
         # TODO
         return "cette date"
 
     def validation_link(self):
         # TODO
-        return "this link"
+        return reverse('immersion:activate') + "/" + self.validation_string
+
+    def is_valid(self):
+        """
+        :return: True if account is validated else False
+        """
+        return self.validation_string is None
 
 
 class TrainingDomain(models.Model):

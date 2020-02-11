@@ -24,12 +24,38 @@ from immersionlyceens.apps.core.models import (
 
 def home(request):
     """Homepage view"""
+
+    try:
+        welcome_txt = InformationText.objects.get(code="ACCUEIL").content
+    except InformationText.DoesNotExist:
+        welcome_txt = ''
+
+    try:
+        procedure_txt = InformationText.objects.get(code="INFO_BULLE_PROCEDURE").content
+    except InformationText.DoesNotExist:
+        procedure_txt = ''
+
+    try:
+        offer_txt = InformationText.objects.get(code="INFO_BULLE_OFFRE").content
+    except InformationText.DoesNotExist:
+        offer_txt = ''
+
+    try:
+        accomp_txt = InformationText.objects.get(code="INFO_BULLE_ACCOMPAGNEMENT").content
+    except InformationText.DoesNotExist:
+        accomp_txt = ''
+
+    try:
+        twitter_url = InformationText.objects.get(code="TWITTER_ACCOUNT_URL").value
+    except InformationText.DoesNotExist:
+        twitter_url = ''
+
     context = {
-        'welcome_txt': InformationText.objects.get(code="ACCUEIL").content,
-        'procedure_txt': InformationText.objects.get(code="INFO_BULLE_PROCEDURE").content,
-        'offer_txt': InformationText.objects.get(code="INFO_BULLE_OFFRE").content,
-        'accomp_txt': InformationText.objects.get(code="INFO_BULLE_ACCOMPAGNEMENT").content,
-        'twitter_url': GeneralSettings.objects.get(setting="TWITTER_ACCOUNT_URL").value,
+        'welcome_txt': welcome_txt,
+        'procedure_txt': procedure_txt,
+        'offer_txt': offer_txt,
+        'accomp_txt': accomp_txt,
+        'twitter_url': twitter_url,
     }
     return render(request, 'home.html', context)
 

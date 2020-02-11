@@ -78,7 +78,7 @@
           <span class="dropdown-item text-center">{% trans "You are"%} : </span>
 
           <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %}</a>
-          <a class="dropdown-item" href="#">{% trans 'Highschool member' %}</a>
+          <a class="dropdown-item" href="{% url 'immersion:login' %}">{% trans 'Highschool member' %}</a>
         </div>
 
         {% endif %}

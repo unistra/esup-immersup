@@ -263,6 +263,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'immersionlyceens',
     'immersionlyceens.apps.core',
+    'immersionlyceens.apps.immersion',
 ]
 
 
@@ -469,3 +470,7 @@ MAX_UPLOAD_SIZE = "20971520"
 # 100MB - 104857600
 # 250MB - 214958080
 # 500MB - 429916160
+
+# Highschool students settings
+USERNAME_PREFIX = "@HIGHSCHOOL@_"
+DESTRUCTION_DELAY = 5 # in days
