@@ -483,6 +483,9 @@ class Holiday(models.Model):
         except ValidationError as e:
             raise ValidationError(_('An holiday with this label already exists'))
 
+    @classmethod
+    def date_is_a_holiday(cls, _date):
+        return Holiday.objects.filter(date=_date).exists()
 
 class Vacation(models.Model):
     """University year"""
@@ -511,6 +514,12 @@ class Vacation(models.Model):
     def date_is_between(self, _date):
         return self.start_date <= _date and _date <= self.end_date
 
+    @classmethod
+    def date_is_inside_a_vacation(cls, _date):
+        for v in Vacation.objects.all():
+            if v.date_is_between(_date):
+                return True
+        return False
 
 class Calendar(models.Model):
     """University year"""
