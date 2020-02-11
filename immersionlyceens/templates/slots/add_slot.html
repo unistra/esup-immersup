@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+<script src="../../static/js/bootstrap.bundle.min.js"></script>{% extends "base.html" %}
 
 {% load i18n %}
 {% load static %}
@@ -118,19 +118,22 @@
                 </div>
 
                 <div class="form-group row">
-                    <label for="teachers" class="col-form-label col-sm-3">{% trans 'Teachers' %}</label>
-                    <div class="col-sm-6 ">
-                        <select name="teachers" id="id_teachers" class="form-control" multiple="multiple">
-                        {% if slot %}
-                            {% for teacher in slot.course.teachers.all %}
-                                <option value="{{ teacher.id }}"
-                                    {% if teacher in slot.teachers.all %}selected{% endif %}
-                                >
-                                    {{ teacher.first_name }} {{ teacher.last_name|upper }}
-                                </option>
+                    <label class="col-sm-3">{% trans 'Teachers' %}</label>
+                    <div class="form-group col-sm-9 row">
+                        <div class="form-check" id="id_teachers">
+                            {% if slot %}
+                            {% for t in slot.course.teachers.all %}
+                            <div class="custom-control custom-checkbox">
+                                {% if t in slot.teachers.all %}
+                                    <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                {% else %}
+                                    <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                {% endif %}
+                                <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                            </div>
                             {% endfor %}
-                        {% endif %}
-                        </select>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
@@ -167,7 +170,6 @@
 
 {% block foot-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/core/add_slot.js' %}"></script>
 <script>
 $(document).ready(function(){
     function check_date() {
@@ -304,6 +306,11 @@ $(document).ready(function(){
                     data['data'].forEach(function(e){
                         let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
                         let element = '<option value="' + e['id'] + '">' + name + '</option>';
+
+                        element = '<div class="custom-checkbox custom-control">';
+                        element += '<input type="checkbox" name="teacher_' + e['id'] + '" value="' + e['id'] + '">';
+                        element += '<label for="teacher_' + e['id'] + '">' + name +'</label>';
+                        element += '</div>';
                         $('#id_teachers').append(element);
                     });
                 }
