@@ -101,20 +101,19 @@ def components_list(request):
 
 
 # TODO : AUTH
-def slots_list(request, component):
+def slots_list(request):
     template = 'slots/list_slots.html'
 
-    if request.user.is_component_manager():
-        if component not in [c.id for c in request.user.components.all()]:
-            pass
-            # TODO: Not authorized
-    elif not request.user.is_scuio_ip_manager() or not request.user.is_superuser:
-        pass
+    components = []
+    if request.user.is_superuser or request.user.is_scuio_ip_manager():
+        components = Component.activated.all()
+    elif request.user.is_component_manager():
+        components = request.user.components.all()
     else:
         return render(request, 'base.html')
 
     context = {
-        'component': Component.activated.get(id=component)
+        'components': components,
     }
     return render(request, template, context=context)
 
