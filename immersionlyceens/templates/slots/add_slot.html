@@ -38,13 +38,30 @@
                 {{ slot_form.id }}
 
                 <div class="form-group row">
+                    <label for="training" class="col-form-label col-sm-3">{% trans 'Component' %}</label>
+                    <div class="col-sm-6">
+                        <select name="component" id="component" class="form-control">
+                            {% if components|length > 1 %}
+                                <option value="" selected>{% trans 'Choose a value' %}</option>
+                                {% for component in components %}
+                                    <option value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% endfor %}
+                            {% else %}
+                                {% for component in components %}
+                                    <option selected value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
                     <label for="training" class="col-form-label col-sm-3">{% trans 'Training' %}</label>
                     <div class="col-sm-6">
                         <select name="training" id="training" class="form-control">
                             <option value="" selected>{% trans 'Choose a value' %}</option>
-                            {% for training in trainings %}
-                                <option value="{{ training.id }}">{{ training.label }}</option>
-                            {% endfor %}
+<!--                            {% for training in trainings %}-->
+<!--                                <option value="{{ training.id }}">{{ training.label }}</option>-->
+<!--                            {% endfor %}-->
                         </select>
                     </div>
                 </div>
@@ -153,6 +170,23 @@
 <script src="{% static 'js/core/add_slot.js' %}"></script>
 <script>
 $(document).ready(function(){
+    // See https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     function toggle_required_fields () {
         let published = $('#id_published').prop('checked');
         if (published) {
@@ -183,11 +217,36 @@ $(document).ready(function(){
         }
     }
 
+    function load_trainings(value) {
+        console.log(value);
+        $.post({
+            beforeSend: function (request) {
+                   request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            },
+            url: '{% url "GetTrainings" %}',
+            data: {
+                component_id: value,
+            },
+            success: function(data){
+                if ( data['data'] ) {
+                    $('#training').html('');
+                    $('#training').append(
+                        '<option value="">{% trans 'Choose a value' %}</option>'
+                    );
+                    data['data'].forEach(function(e){
+                        let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                        $('#training').append(element);
+                    });
+                }
+            }
+        });
+    }
+
     function load_course(value) {
         $.ajax({
             url: '/api/get_courses_by_training/' + value,
             success: function(data){
-                if ( data['data'] && data['data'].length !== 0 ) {
+                if ( data['data']) {
                     $('#id_course').html('');
                     $('#id_course').append(
                         '<option value="">{% trans 'Choose a value' %}</option>'
@@ -205,7 +264,7 @@ $(document).ready(function(){
         $.ajax({
             url: '/api/get_buildings/' + value,
             success: function(data){
-                if ( data['data'] && data['data'].length !== 0 ) {
+                if ( data['data']) {
                     $('#id_building').html('');
                     $('#id_building').append(
                         '<option value="">{% trans 'Choose a value' %}</option>'
@@ -223,7 +282,7 @@ $(document).ready(function(){
         $.ajax({
             url: '/api/get_course_teachers/' + value,
             success: function(data){
-                if ( data['data'] && data['data'].length !== 0 ) {
+                if ( data['data'] ) {
                     $('#id_teachers').html('');
                     data['data'].forEach(function(e){
                         let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
@@ -246,9 +305,9 @@ $(document).ready(function(){
     $('#id_start_time').get(0).type = 'time';
     $('#id_end_time').get(0).type = 'time';
 
-
     {% if not slot %}
         $('#id_date').get(0).type = 'date';
+        load_trainings($('#component').val());
         load_course($('#training').val());
         load_buildings($('#id_campus').val());
         load_teachers($('#id_course').val());
@@ -256,6 +315,7 @@ $(document).ready(function(){
 
     toggle_required_fields();
 
+    $('#component').change(function(event){ load_trainings(event.target.value); });
     $('#training').change(function(event){ load_course(event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
@@ -263,43 +323,57 @@ $(document).ready(function(){
 
     {% if slot %}
     $('#id_campus option[type="{{ slot.campus.id }}"]').attr('selected', '');
-    $.ajax({
-        url: '/api/get_courses_by_training/' + {{ slot.course.training.id }},
-        success: function(data){
-            if ( data['data'] ) {
-                $('#id_course').html('');
-                data['data'].forEach(function(e){
-                    var selected = '';
-                    if ( {{ slot.course.id }} == e.id ) {
-                        selected = ' selected';
-                    }
-                    let element = '<option ' + selected + ' value="' + e.key + '">' + e.label + '</option>';
-                    $('#id_course').append(element);
-                });
-            }
-        }
-    });
 
-    $.ajax({
-        url: '/api/get_buildings/' + "{{ slot.campus.id }}",
-        success: function(data){
-            if ( data['data'] && data['data'].length !== 0 ) {
-                $('#id_building').html('');
-                $('#id_building').append(
-                    '<option value="">{% trans 'Choose a value' %}</option>'
-                );
-                data['data'].forEach(function(e){
-                    let selected = '';
-                    if ( "{{ slot.building.id }}" == ('' + e.id) ) {
-                        selected = ' selected';
-                    }
-                    let element = '<option value="' + e['id'] + '"' + selected +
-                        '>' + e['label'] + '</option>';
-                    $('#id_building').append(element);
-                });
-            }
-        }
-    });
+    $('#id_course').html('');
+    $('#id_course').append(
+        '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
+    );
+
+    // $.ajax({
+    //     url: '/api/get_courses_by_training/' + {{ slot.course.training.id }},
+    //     success: function(data){
+    //         if ( data['data'] ) {
+    //             $('#id_course').html('');
+    //             data['data'].forEach(function(e){
+    //                 var selected = '';
+    //                 if ( {{ slot.course.id }} == e.id ) {
+    //                     selected = ' selected';
+    //                 }
+    //                 let element = '<option ' + selected + ' value="' + e.key + '">' + e.label + '</option>';
+    //                 $('#id_course').append(element);
+    //             });
+    //         }
+    //     }
+    // });
+
+
+    {% if slot.campus %}
+        $('#id_campus').html('');
+        $('#id_campus').append(
+            '<option selected value="{{ slot.campus.id }}">{{ slot.campus.label }}</option>'
+        );
+    {% endif %}
+
+    // $.ajax({
+    //     url: '/api/get_buildings/' + "{{ slot.campus.id }}",
+    //     success: function(data){
+    //         if ( data['data'] ) {
+    //             $('#id_building').html('');
+    //             $('#id_building').append(
+    //                 '<option value="">{% trans 'Choose a value' %}</option>'
+    //             );
+    //             data['data'].forEach(function(e){
+    //                 let selected = '';
+    //                 if ( "{{ slot.building.id }}" == ('' + e.id) ) {
+    //                     selected = ' selected';
+    //                 }
+    //                 let element = '<option value="' + e['id'] + '"' + selected +
+    //                     '>' + e['label'] + '</option>';
+    //                 $('#id_building').append(element);
+    //             });
+    //         }
+    //     }
+    // });
 
     {% endif%}
 });
