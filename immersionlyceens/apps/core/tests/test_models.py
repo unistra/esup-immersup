@@ -135,6 +135,18 @@ class TestHolidayCase(TestCase):
         o = Holiday.objects.create(label=label, date=datetime.datetime.today().date(),)
         self.assertEqual(str(o), label)
 
+    def test_holiday__date_is_a_holiday(self):
+        o = Holiday.objects.create(label="Holiday", date=datetime.datetime.today().date(), )
+
+        self.assertTrue(
+            Holiday.date_is_a_holiday(datetime.datetime.today().date())
+        )
+        self.assertFalse(
+            Holiday.date_is_a_holiday(
+                datetime.datetime.today().date() + datetime.timedelta(days=1)
+            )
+        )
+
 
 class TestVacationCase(TestCase):
     def test_vacation_str(self):
@@ -168,6 +180,20 @@ class TestVacationCase(TestCase):
         # start < end < date
         self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
 
+    def test_vacation__date_is_inside_a_vacation(self):
+        now = datetime.datetime.today().date()
+        o = Vacation.objects.create(
+            label="Vacation",
+            start_date=now + datetime.timedelta(days=1),
+            end_date=now + datetime.timedelta(days=3),
+        )
+
+        self.assertTrue(Vacation.date_is_inside_a_vacation(
+            now + datetime.timedelta(days=2))
+        )
+        self.assertFalse(Vacation.date_is_inside_a_vacation(
+            now + datetime.timedelta(days=999))
+        )
 
 
 class TestCalendarCase(TestCase):
