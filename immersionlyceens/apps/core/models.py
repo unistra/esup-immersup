@@ -811,7 +811,10 @@ class AccompanyingDocument(models.Model):
     )
     description = models.TextField(_("Description"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
-    # TODO: change type mime param to implement labels !
+    activated = ActiveManager.from_queryset(
+        ComponentQuerySet
+    )()  # returns only activated components
+
     document = models.FileField(
         _("Document"),
         upload_to='uploads/accompanyingdocs/%Y',

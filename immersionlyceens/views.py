@@ -4,22 +4,16 @@ import mimetypes
 import os
 from wsgiref.util import FileWrapper
 
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, GeneralSettings, InformationText, PublicDocument,
+)
+
 from django.conf import settings
 from django.http import (
-    HttpResponse,
-    HttpResponseBadRequest,
-    HttpResponseForbidden,
-    HttpResponseNotFound,
+    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound,
     StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
-
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument,
-    GeneralSettings,
-    InformationText,
-    PublicDocument,
-)
 
 
 def home(request):
@@ -42,7 +36,10 @@ def offer(request):
 
 def accompanying(request):
     """Accompanying view"""
-    context = {}
+    context = {
+        'accomp_txt': InformationText.objects.get(code="ACCOMPAGNEMENT").content,
+        'accomp_docs': AccompanyingDocument.activated.all(),
+    }
     return render(request, 'accompanying.html', context)
 
 
