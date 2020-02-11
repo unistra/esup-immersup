@@ -154,7 +154,7 @@ class ImmersionUser(AbstractUser):
         self.destruction_date = None
         self.save()
 
-    def destruction_date(self):
+    def get_destruction_date(self):
         # TODO
         return "cette date"
 
