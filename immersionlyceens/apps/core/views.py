@@ -101,8 +101,6 @@ def slots_list(request):
     if train_id:
         context['training_id'] = train_id
 
-    print(context)
-
     return render(request, template, context=context)
 
 
@@ -126,7 +124,11 @@ def add_slot(request, slot_id=None):
         slot_form = SlotForm(request.POST, instance=slot)
         if slot_form.is_valid():
             slot_form.save()
-            for teacher in request.POST.getlist('teachers', []):
+            teachers = []
+            teacher_prefix = 'teacher_'
+            for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
+                teachers.append(teacher_id)
+            for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
         else:
             context = {
@@ -182,10 +184,13 @@ def modify_slot(request, slot_id):
         if slot_form.is_valid():
             slot_form.save()
             slot_form.instance.teachers.clear()
-            for teacher in request.POST.getlist('teachers', []):
+            teachers = []
+            teacher_prefix = 'teacher_'
+            for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
+                teachers.append(teacher_id)
+            for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
         else:
-
             context = {
                 "slot": slot,
                 "components": components,
