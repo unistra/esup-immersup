@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+<script src="../../static/js/bootstrap.bundle.min.js"></script>{% extends "base.html" %}
 
 {% load i18n %}
 {% load static %}
@@ -38,13 +38,30 @@
                 {{ slot_form.id }}
 
                 <div class="form-group row">
+                    <label for="training" class="col-form-label col-sm-3">{% trans 'Component' %}</label>
+                    <div class="col-sm-6">
+                        <select name="component" id="component" class="form-control">
+                            {% if components|length > 1 %}
+                                <option value="" selected>{% trans 'Choose a value' %}</option>
+                                {% for component in components %}
+                                    <option value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% endfor %}
+                            {% else %}
+                                {% for component in components %}
+                                    <option selected value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
                     <label for="training" class="col-form-label col-sm-3">{% trans 'Training' %}</label>
                     <div class="col-sm-6">
                         <select name="training" id="training" class="form-control">
                             <option value="" selected>{% trans 'Choose a value' %}</option>
-                            {% for training in trainings %}
-                                <option value="{{ training.id }}">{{ training.label }}</option>
-                            {% endfor %}
+<!--                            {% for training in trainings %}-->
+<!--                                <option value="{{ training.id }}">{{ training.label }}</option>-->
+<!--                            {% endfor %}-->
                         </select>
                     </div>
                 </div>
@@ -101,19 +118,22 @@
                 </div>
 
                 <div class="form-group row">
-                    <label for="teachers" class="col-form-label col-sm-3">{% trans 'Teachers' %}</label>
-                    <div class="col-sm-6 ">
-                        <select name="teachers" id="id_teachers" class="form-control" multiple="multiple">
-                        {% if slot %}
-                            {% for teacher in slot.course.teachers.all %}
-                                <option value="{{ teacher.id }}"
-                                    {% if teacher in slot.teachers.all %}selected{% endif %}
-                                >
-                                    {{ teacher.first_name }} {{ teacher.last_name|upper }}
-                                </option>
+                    <label class="col-sm-3">{% trans 'Teachers' %}</label>
+                    <div class="form-group col-sm-9 row">
+                        <div class="form-check" id="id_teachers">
+                            {% if slot %}
+                            {% for t in slot.course.teachers.all %}
+                            <div class="custom-control custom-checkbox">
+                                {% if t in slot.teachers.all %}
+                                    <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                {% else %}
+                                    <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                {% endif %}
+                                <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                            </div>
                             {% endfor %}
-                        {% endif %}
-                        </select>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
@@ -150,14 +170,102 @@
 
 {% block foot-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/core/add_slot.js' %}"></script>
 <script>
 $(document).ready(function(){
+    function check_date() {
+        $.ajax({
+            url: '/api/check_vacations',
+            data: {
+                date: $('#id_date').val(),
+            },
+            success: function(data) {
+                if ( data['data'] ) {
+                    if (data['data']['is_between']) {
+                        if (!confirm("{% trans 'This date is inside a vacation or a haliday. Are you sure that you want a slot with this date ?' %}")) {
+                            $('#id_date').val('');
+                        }
+                    }
+                }
+            },
+        });
+    }
+
+    // See https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function toggle_required_fields () {
+        let published = $('#id_published').prop('checked');
+        if (published) {
+            let mandatory = [
+                'course', 'course_type', 'campus',
+                'building', 'room', 'date', 'start_time', 'end_time',
+                'teachers', 'n_places'
+            ];
+            mandatory.forEach(function(e){
+                $('#id_' + e).attr('required', 'sfdgsg');
+            });
+        } else {
+
+            let not_mandatory = [
+                'course_type', 'campus', 'building', 'room', 'date',
+                'start_date', 'end_date', 'teachers', 'n_places'
+            ];
+            let mandatory = ['training', 'course'];
+
+            not_mandatory.forEach(function(e){
+                $('#id_' + e).removeAttr('required');
+            });
+            mandatory.forEach(function(e){
+                $('#id_' + e).attr('required', 'sfdgsg');
+            });
+
+
+        }
+    }
+
+    function load_trainings(value) {
+        $.post({
+            beforeSend: function (request) {
+                   request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            },
+            url: '{% url "GetTrainings" %}',
+            data: {
+                component_id: value,
+            },
+            success: function(data){
+                if ( data['data'] ) {
+                    $('#training').html('');
+                    $('#training').append(
+                        '<option value="">{% trans 'Choose a value' %}</option>'
+                    );
+                    data['data'].forEach(function(e){
+                        let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                        $('#training').append(element);
+                    });
+                }
+            }
+        });
+    }
+
     function load_course(value) {
         $.ajax({
             url: '/api/get_courses_by_training/' + value,
             success: function(data){
-                if ( data['data'] && data['data'].length !== 0 ) {
+                if ( data['data']) {
                     $('#id_course').html('');
                     $('#id_course').append(
                         '<option value="">{% trans 'Choose a value' %}</option>'
@@ -175,30 +283,34 @@ $(document).ready(function(){
         $.ajax({
             url: '/api/get_buildings/' + value,
             success: function(data){
-                    if ( data['data'] && data['data'].length !== 0 ) {
-                        $('#id_building').html('');
-                        $('#id_building').append(
-                            '<option value="">{% trans 'Choose a value' %}</option>'
-                        );
-                        data['data'].forEach(function(e){
-                            let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
-                            $('#id_building').append(element);
-                        });
-                    }
+                if ( data['data']) {
+                    $('#id_building').html('');
+                    $('#id_building').append(
+                        '<option value="">{% trans 'Choose a value' %}</option>'
+                    );
+                    data['data'].forEach(function(e){
+                        let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                        $('#id_building').append(element);
+                    });
                 }
-            });
-
+            }
+        });
     }
 
     function load_teachers(value) {
         $.ajax({
             url: '/api/get_course_teachers/' + value,
             success: function(data){
-                if ( data['data'] && data['data'].length !== 0 ) {
+                if ( data['data'] ) {
                     $('#id_teachers').html('');
                     data['data'].forEach(function(e){
                         let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
                         let element = '<option value="' + e['id'] + '">' + name + '</option>';
+
+                        element = '<div class="custom-checkbox custom-control">';
+                        element += '<input type="checkbox" name="teacher_' + e['id'] + '" value="' + e['id'] + '">';
+                        element += '<label for="teacher_' + e['id'] + '">' + name +'</label>';
+                        element += '</div>';
                         $('#id_teachers').append(element);
                     });
                 }
@@ -207,67 +319,58 @@ $(document).ready(function(){
         });
     }
 
-    $('.back_btn').click(function (event) {
-        if (confirm("{% trans 'Did you really want to cancel this creation?' %}")){
-            window.location = "{{ request.META.HTTP_REFERER }}";
-        }
-    });
-
-    // $('#id_date').get(0).type = 'date';
+    // Chenge input type
     $('#id_start_time').get(0).type = 'time';
     $('#id_end_time').get(0).type = 'time';
 
+    // Date check
+    $('#id_date').on('change', function() {
+        check_date();
+    });
 
+    // Back button + confirm
+    $('.back_btn').click(function (event) {
+        if (confirm("{% trans 'Did you really want to cancel this creation?' %}")){
+            c = $('#component').val();
+            t = $('#training').val();
+            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
+        }
+    });
+
+    // if it's a modifitation
     {% if not slot %}
         $('#id_date').get(0).type = 'date';
+        load_trainings($('#component').val());
         load_course($('#training').val());
         load_buildings($('#id_campus').val());
         load_teachers($('#id_course').val());
     {% endif %}
 
+    // toggle
+    toggle_required_fields();
+
+    // add change handler
+    $('#component').change(function(event){ load_trainings(event.target.value); });
     $('#training').change(function(event){ load_course(event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
+    $('#id_published').on('change', function(){ toggle_required_fields(); });
 
     {% if slot %}
     $('#id_campus option[type="{{ slot.campus.id }}"]').attr('selected', '');
-    $.ajax({
-        url: '/api/get_courses_by_training/' + {{ slot.course.training.id }},
-        success: function(data){
-            if ( data['data'] ) {
-                $('#id_course').html('');
-                data['data'].forEach(function(e){
-                    var selected = '';
-                    if ( {{ slot.course.id }} == e.id ) {
-                        selected = ' selected';
-                    }
-                    let element = '<option ' + selected + ' value="' + e.key + '">' + e.label + '</option>';
-                    $('#id_course').append(element);
-                });
-            }
-        }
-    });
 
-    $.ajax({
-        url: '/api/get_buildings/' + {{ slot.campus.id }},
-        success: function(data){
-            if ( data['data'] && data['data'].length !== 0 ) {
-                $('#id_building').html('');
-                $('#id_building').append(
-                    '<option value="">{% trans 'Choose a value' %}</option>'
-                );
-                data['data'].forEach(function(e){
-                    let selected = '';
-                    if ( {{ slot.building.id }} == e.id ) {
-                        selected = ' selected';
-                    }
-                    let element = '<option value="' + e['id'] + '"' + selected +
-                        '>' + e['label'] + '</option>';
-                    $('#id_building').append(element);
-                });
-            }
-        }
-    });
+    $('#id_course').html('');
+    $('#id_course').append(
+        '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
+    );
+
+    {% if slot.campus %}
+        $('#id_campus').html('');
+        $('#id_campus').append(
+            '<option selected value="{{ slot.campus.id }}">{{ slot.campus.label }}</option>'
+        );
+    {% endif %}
+
 
     {% endif%}
 });

@@ -9,6 +9,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
     path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
     path('get_agreed_highschools', views.ajax_get_agreed_highschools, name='GetAgreedHighSchools'),
     path('get_available_documents/', views.get_ajax_documents, name='get_available_documents',),
@@ -34,6 +35,6 @@ urlpatterns = [
     path('get_my_slots/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlots'),
     path('get_my_slots/all/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlotsAll'),
     path('get_person', views.ajax_get_person, name='PersonByName'),
-    path('get_slots/<int:component>', views.get_ajax_slots, name='get_slots',),
+    path('get_slots', views.get_ajax_slots, name='get_slots',),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
 ]

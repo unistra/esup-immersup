@@ -14,15 +14,43 @@
 <div id="top_indicator" class="w-100 bg-success pt-2 pb-1 fixed-top">
     <p id="top_indicator__content" class="text-center text-light"></p>
 </div>
-<div class="container">
+<div class="container-fluid" style="padding-top: 20px; width: 98%;">
     <br>
     <div class="card">
         <div class="card-header text-white bg-secondary">
-            {% trans "Slot" %} - {{ component.label }}
+            {% trans "Slot" %}
         </div>
         <div class="card-body">
             <div>
                 <a href="{% url 'add_slot' %}" class="btn btn-secondary">&#10133; {% trans 'New slot' %}</a>
+            </div>
+            <div>
+
+                <div class="form-group row">
+                    <label for="component"
+                           class="col-form-label col-sm-3"
+                    >{% trans "Component" %}</label>
+                    <div class="col-sm-6">
+                        <select name="component" id="component" class="form-control">
+                        {% for comp in components %}
+                            <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+
+
+                <div class="form-group row">
+                    <label for="training"
+                           class="col-form-label col-sm-3"
+                    >{% trans "Training" %}</label>
+                    <div class="col-sm-6">
+                        <select name="training" id="training" class="form-control">
+                                <option value="">-------------</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <br>
             <table id="list_of_slots"
@@ -74,6 +102,41 @@
 <script src="{% static 'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js' %}"></script>
 <script>
 $(document).ready(function(){
+
+    {% if component_id %}
+        $('#component option[value="{{ component_id }}"]').attr('selected', '');
+    {% endif %}
+
+    function load_trainings( comp_id, first=false ) {
+        $.post({
+          url: '/api/get_trainings',
+          data: {component_id: comp_id},
+          success: function (data) {
+              if ( data['data'] ) {
+                $('#training').html('');
+                if ( data['data'].length > 0 ) {
+                    data['data'].forEach(function(e){
+                       let elem  = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                       $('#training').append(elem);
+                    });
+                    if ( first ) {
+                        {% if training_id %}
+                            $('#training option[value="{{ training_id }}"]').attr('selected', '');
+                            reload_data();
+                        {% endif %}
+
+                    }
+
+
+                } else {
+                    $('#training').append('<option value="">-------------</option>');
+                }
+
+              }
+          },
+        });
+    }
+
     function csrfSafeMethod(method) {
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
@@ -104,14 +167,31 @@ $(document).ready(function(){
         }
     });
 
+    load_trainings($('#component').val(), true);
+    $("#component").on('change', function(event){
+        load_trainings(event.target.value);
+        reload_data();
+    });
+    $('#training').on('change', function(event) {
+        reload_data();
+    });
+
+
     $('#top_indicator').hide();
     $('#list_of_slots').DataTable({
         ajax: {
-          url: '/api/get_slots/{{ component.id }}',
+          url: '/api/get_slots',
+          data: function(d) {
+              d.training_id = $('#training').val();
+              d.component_id = $('#component').val();
+
+              return d
+          },
           dataSrc: function (json) {
             if (json['data'] != undefined && json['data'].length != 0) {
               return json['data'];
             }
+            return [];
           }
         },
         order: [[3, "desc"]],

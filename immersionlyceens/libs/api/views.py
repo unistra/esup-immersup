@@ -4,6 +4,11 @@ API Views
 import datetime
 import logging
 
+from immersionlyceens.apps.core.models import (
+    Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
+    Vacation, Holiday)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
@@ -156,38 +161,45 @@ def get_ajax_slots(request, component=None):
 
     # TODO: auth access test
 
+    comp_id = request.GET.get('component_id');
+    train_id = request.GET.get('training_id');
+
     response = {'msg': '', 'data': []}
-    if component:
-        slots = Slot.objects.filter(course__training__components__id=component)
-
-        data = [
-            {
-                'id': slot.id,
-                'published': slot.published,
-                'course_label': slot.course.label,
-                'course_type': slot.course_type.label,
-                'date': slot.date.strftime('%a %d-%d-%Y'),
-                'time': '{s} - {e}'.format(
-                    s=slot.start_time.strftime('%Hh%M'), e=slot.end_time.strftime('%Hh%M'),
-                ),
-                'building': '' + slot.building.label + ' - ' + slot.campus.label,
-                'room': slot.room,
-                'teachers': ', '.join(
-                    [
-                        '{} {}'.format(e.first_name, e.last_name.upper())
-                        for e in slot.teachers.all()
-                    ]
-                ),
-                'n_register': 10,
-                'n_places': slot.n_places,
-                'additional_information': slot.additional_information,
-            }
-            for slot in slots
-        ]
-
-        response['data'] = data
+    slots = []
+    if train_id or train_id is not '' and train_id[0] is not '':
+        slots = Slot.objects.filter(course__training__id=train_id)
+    elif comp_id or comp_id is not '':
+        slots = Slot.objects.filter(course__training__components__id=comp_id)
     else:
-        response['msg'] = gettext('Error : component id')
+        slots = Slot.objects.all()
+
+    all_data = []
+    for slot in slots:
+        data = {
+            'id': slot.id,
+            'published': slot.published,
+            'course_label': slot.course.label,
+            'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
+            'time': '{s} - {e}'.format(
+                s=slot.start_time.strftime('%Hh%M') or '',
+                e=slot.end_time.strftime('%Hh%M') or '',
+            ) if slot.start_time is not None and slot.end_time is not None else '-',
+            'building': '{} - {}'.format(
+                slot.building.label,
+                slot.campus.label
+            ) if slot.building is not None and slot.campus is not None else '-',
+            'room': slot.room if slot.room is not None else '-',
+            'teachers': ', '.join([
+                '{} {}'.format(e.first_name, e.last_name.upper())
+                for e in slot.teachers.all()]),
+            'n_register': 10, # todo: registration count
+            'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
+            'additional_information': slot.additional_information,
+        }
+        all_data.append(data)
+
+    response['data'] = all_data
 
     return JsonResponse(response, safe=False)
 
@@ -373,4 +385,29 @@ def ajax_get_agreed_highschools(request):
         # Bouhhhh
         pass
 
+    return JsonResponse(response, safe=False)
+
+
+# @is_ajax_request
+@groups_required('SCUIO-IP', 'REF-CMP')
+def ajax_check_date_between_vacation(request):
+    response = {'data': [], 'msg': ''}
+
+    _date = request.GET.get('date')
+
+    if _date:
+        # two format date
+        try:
+            formated_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
+        except ValueError:
+            formated_date = datetime.datetime.strptime(_date, '%d-%m-%Y')
+
+
+        response['data'] = {
+            'is_between': (Vacation.date_is_inside_a_vacation(formated_date.date()) or
+                           Holiday.date_is_a_holiday(formated_date.date()))
+        }
+    else:
+        response['msg']: gettext('Error: A date is required')
+    print(response)
     return JsonResponse(response, safe=False)
