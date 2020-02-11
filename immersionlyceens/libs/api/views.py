@@ -140,42 +140,49 @@ def get_ajax_documents(request):
 
 @is_ajax_request
 @groups_required('SCUIO-IP','REF-CMP')
-def get_ajax_slots(request, component=None):
+def get_ajax_slots(request):
     from immersionlyceens.apps.core.models import Slot
     # TODO: auth access test
 
-    response = {'msg': '', 'data': []}
-    if component:
-        slots = Slot.objects.filter(course__training__components__id=component)
-        all_data = []
-        for slot in slots:
-            data = {
-                'id': slot.id,
-                'published': slot.published,
-                'course_label': slot.course.label,
-                'course_type': slot.course_type.label if slot.course_type is not None else '-',
-                'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
-                'time': '{s} - {e}'.format(
-                    s=slot.start_time.strftime('%Hh%M') or '',
-                    e=slot.end_time.strftime('%Hh%M') or '',
-                ) if slot.start_time is not None and slot.end_time is not None else '-',
-                'building': '{} - {}'.format(
-                    slot.building.label,
-                    slot.campus.label
-                ) if slot.building is not None and slot.campus is not None else '-',
-                'room': slot.room if slot.room is not None else '-',
-                'teachers': ', '.join([
-                    '{} {}'.format(e.first_name, e.last_name.upper())
-                    for e in slot.teachers.all()]),
-                'n_register': 10, # todo: registration count
-                'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
-                'additional_information': slot.additional_information,
-            }
-            all_data.append(data)
+    comp_id = request.GET.get('component_id');
+    train_id = request.GET.get('training_id');
 
-        response['data'] = all_data
+    response = {'msg': '', 'data': []}
+    slots = []
+    if train_id or train_id[0] is not '':
+        slots = Slot.objects.filter(course__training__id=train_id)
+    elif comp_id or comp_id is not '':
+        slots = Slot.objects.filter(course__training__components__id=comp_id)
     else:
-        response['msg'] = gettext('Error : component id')
+        slots = Slot.objects.all()
+
+    all_data = []
+    for slot in slots:
+        data = {
+            'id': slot.id,
+            'published': slot.published,
+            'course_label': slot.course.label,
+            'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
+            'time': '{s} - {e}'.format(
+                s=slot.start_time.strftime('%Hh%M') or '',
+                e=slot.end_time.strftime('%Hh%M') or '',
+            ) if slot.start_time is not None and slot.end_time is not None else '-',
+            'building': '{} - {}'.format(
+                slot.building.label,
+                slot.campus.label
+            ) if slot.building is not None and slot.campus is not None else '-',
+            'room': slot.room if slot.room is not None else '-',
+            'teachers': ', '.join([
+                '{} {}'.format(e.first_name, e.last_name.upper())
+                for e in slot.teachers.all()]),
+            'n_register': 10, # todo: registration count
+            'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
+            'additional_information': slot.additional_information,
+        }
+        all_data.append(data)
+
+    response['data'] = all_data
 
     return JsonResponse(response, safe=False)
 
