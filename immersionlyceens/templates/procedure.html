@@ -1,19 +1,105 @@
 {% extends "base.html" %}
 {% load static staticfiles i18n immersionlyceens_tags %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<!-- <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}"> -->
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% endblock %}
 {% block title %}
 {% trans "Procedure" %}
 {% endblock %}
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid" style="padding-top:20px;">
   <div class="row">
-    <div class="col-sm-10">
+    <div class="col-sm-5 col-sm-offset-1">
       <section id="procedure_txt">
-      Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Bibbeleskaas jetz rossbolla sech choucroute un schwanz geburtstàg, Chinette dû, ìch bier deppfele schiesser. Flammekueche de knèkes Seppele gal! a hopla geburtstàg, alles fraü Chulia Roberts oder knäckes dûû blottkopf. Noch bredele schissabibala, yeuh e schmutz. E gewurtztraminer doch Carola schneck, schmutz a riesling de chambon eme rucksack Roger dû hopla geiss, jetz Chorchette de Scharrarbergheim. Kouglopf ech ìch wurscht gueut mitt schneck jetz a schiss mannele, knèkes saucisse de Niederhausbergen of fill mauls schéni fleischwurcht schnaps de eme gal nüdle blottkopf, de Chulien Roger hop pfourtz! bett mer ech schpeck un salami schmutz. Gal!
+      {{ procedure_txt|safe }}
       </section>
     </div>
-
-
+    <div class="col-sm-5 col-sm-offset-1">
+      <section id="procedure_group_txt">
+      {{ procedure_group_txt|safe }}
+      </section>
+    </div>
   </div>
-
+  <div class="row border-top my-3"></div>
+  <div class="row" style="padding-top:20px;">
+    <div class="col offset-sm-1 text-center">
+        <form class="form-inline justify-content-center">
+        <i class="fa fas fa-search" aria-hidden="true"></i>
+        <input class="form-control form-control-sm ml-4 w-25" id="search_highschool" type="text" aria-label="{% trans 'Search Highschool'%}">
+        </form>
+    </div>
+  </div>
+  <div class="row" style="padding-top:20px;padding-bottom:20px;">
+    <div class="col table-responsive" style="width: 98%">
+      <table id="highschool_table" class="table table-striped table-bordered nowrap dt-body-nowrap">
+        <thead>
+          <tr>
+            <th>{% trans 'Name' %}</th>
+            <th>{% trans 'City' %}</th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 </div>
+<script type="text/javascript">
+  $(document).ready(function() {
+
+    dt = $('#highschool_table').DataTable({
+      'processing': false,
+      'order': [
+          [0, "asc"],
+          [1, "asc"]
+       ],
+      dom: 'ltpr',
+      lengthChange: false,
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "{% url 'GetAgreedHighSchools' %}",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'][0];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+      },
+      'columns': [
+          { "data": "label"},
+          { "data": "city" },
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+      ],
+    });
+
+    $('#search_highschool').keyup( function() {
+         dt.search($(this).val()).draw();
+     } );
+  });
+</script>
 {% endblock %}

@@ -3,18 +3,18 @@ import logging
 import re
 from functools import partial
 
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
+from mailmerge import MailMerge
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from mailmerge import MailMerge
 
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
-
-from .managers import ActiveManager, ComponentQuerySet
+from .managers import ActiveManager, ComponentQuerySet, HighSchoolAgreedManager
 
 logger = logging.getLogger(__name__)
 
@@ -594,6 +594,9 @@ class HighSchool(models.Model):
     referent_email = models.EmailField(_('Referent email'))
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
+
+    objects = models.Manager()  # default manager
+    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
 
     def __str__(self):
         # TODO: Should we display city as well (????)
