@@ -301,7 +301,6 @@ $(document).ready(function(){
         }
     });
 
-    // $('#id_date').get(0).type = 'date';
     $('#id_start_time').get(0).type = 'time';
     $('#id_end_time').get(0).type = 'time';
 
@@ -329,24 +328,6 @@ $(document).ready(function(){
         '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
     );
 
-    // $.ajax({
-    //     url: '/api/get_courses_by_training/' + {{ slot.course.training.id }},
-    //     success: function(data){
-    //         if ( data['data'] ) {
-    //             $('#id_course').html('');
-    //             data['data'].forEach(function(e){
-    //                 var selected = '';
-    //                 if ( {{ slot.course.id }} == e.id ) {
-    //                     selected = ' selected';
-    //                 }
-    //                 let element = '<option ' + selected + ' value="' + e.key + '">' + e.label + '</option>';
-    //                 $('#id_course').append(element);
-    //             });
-    //         }
-    //     }
-    // });
-
-
     {% if slot.campus %}
         $('#id_campus').html('');
         $('#id_campus').append(
@@ -354,26 +335,6 @@ $(document).ready(function(){
         );
     {% endif %}
 
-    // $.ajax({
-    //     url: '/api/get_buildings/' + "{{ slot.campus.id }}",
-    //     success: function(data){
-    //         if ( data['data'] ) {
-    //             $('#id_building').html('');
-    //             $('#id_building').append(
-    //                 '<option value="">{% trans 'Choose a value' %}</option>'
-    //             );
-    //             data['data'].forEach(function(e){
-    //                 let selected = '';
-    //                 if ( "{{ slot.building.id }}" == ('' + e.id) ) {
-    //                     selected = ' selected';
-    //                 }
-    //                 let element = '<option value="' + e['id'] + '"' + selected +
-    //                     '>' + e['label'] + '</option>';
-    //                 $('#id_building').append(element);
-    //             });
-    //         }
-    //     }
-    // });
 
     {% endif%}
 });
