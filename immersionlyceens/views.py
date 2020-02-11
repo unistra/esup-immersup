@@ -48,7 +48,12 @@ def accompanying(request):
 
 def procedure(request):
     """Procedure view"""
-    context = {}
+    context = {
+        'procedure_txt': InformationText.objects.get(code="PROCEDURE_LYCEE").content,
+        'procedure_group_txt': InformationText.objects.get(
+            code="PROCEDURE_IMMERSION_GROUPE"
+        ).content,
+    }
     return render(request, 'procedure.html', context)
 
 

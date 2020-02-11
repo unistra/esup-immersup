@@ -4,17 +4,24 @@ API Views
 import datetime
 import logging
 
-from immersionlyceens.apps.core.models import (
-    Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core import serializers
 from django.http import JsonResponse
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
+
+from immersionlyceens.apps.core.models import (
+    Building,
+    Course,
+    HighSchool,
+    ImmersionUser,
+    MailTemplateVars,
+    PublicDocument,
+    Training,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +77,9 @@ def ajax_get_courses(request, component_id=None):
     if not component_id:
         response['msg'] = gettext("Error : a valid component must be selected")
 
-    courses = Course.objects.prefetch_related('training','component').filter(training__components=component_id)
+    courses = Course.objects.prefetch_related('training', 'component').filter(
+        training__components=component_id
+    )
 
     for course in courses:
         course_data = {
@@ -105,8 +114,9 @@ def ajax_get_trainings(request):
         response['msg'] = gettext("Error : a valid component must be selected")
         return JsonResponse(response, safe=False)
 
-    trainings = Training.objects.prefetch_related('training_subdomains')\
-        .filter(components=component_id, active=True)
+    trainings = Training.objects.prefetch_related('training_subdomains').filter(
+        components=component_id, active=True
+    )
 
     for training in trainings:
         training_data = {
@@ -121,52 +131,59 @@ def ajax_get_trainings(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def get_ajax_documents(request):
     response = {'msg': '', 'data': []}
 
     documents = PublicDocument.objects.filter(active=True)
 
-    response['data'] = [{
-        'id': document.id,
-        'label': document.label,
-        'url': request.build_absolute_uri(
-            reverse('public_document', args=(document.pk,))
-        ),
-    } for document in documents]
+    response['data'] = [
+        {
+            'id': document.id,
+            'label': document.label,
+            'url': request.build_absolute_uri(reverse('public_document', args=(document.pk,))),
+        }
+        for document in documents
+    ]
 
     return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def get_ajax_slots(request, component=None):
     from immersionlyceens.apps.core.models import Slot
+
     # TODO: auth access test
 
     response = {'msg': '', 'data': []}
     if component:
         slots = Slot.objects.filter(course__training__components__id=component)
 
-        data = [{
-            'id': slot.id,
-            'published': slot.published,
-            'course_label': slot.course.label,
-            'course_type': slot.course_type.label,
-            'date': slot.date.strftime('%a %d-%d-%Y'),
-            'time': '{s} - {e}'.format(
-                s=slot.start_time.strftime('%Hh%M'),
-                e=slot.end_time.strftime('%Hh%M'),
-            ),
-            'building': '' + slot.building.label + ' - ' + slot.campus.label,
-            'room': slot.room,
-            'teachers': ', '.join([
-                '{} {}'.format(e.first_name, e.last_name.upper())
-                for e in slot.teachers.all()]),
-            'n_register': 10,
-            'n_places': slot.n_places,
-            'additional_information': slot.additional_information,
-        } for slot in slots]
+        data = [
+            {
+                'id': slot.id,
+                'published': slot.published,
+                'course_label': slot.course.label,
+                'course_type': slot.course_type.label,
+                'date': slot.date.strftime('%a %d-%d-%Y'),
+                'time': '{s} - {e}'.format(
+                    s=slot.start_time.strftime('%Hh%M'), e=slot.end_time.strftime('%Hh%M'),
+                ),
+                'building': '' + slot.building.label + ' - ' + slot.campus.label,
+                'room': slot.room,
+                'teachers': ', '.join(
+                    [
+                        '{} {}'.format(e.first_name, e.last_name.upper())
+                        for e in slot.teachers.all()
+                    ]
+                ),
+                'n_register': 10,
+                'n_places': slot.n_places,
+                'additional_information': slot.additional_information,
+            }
+            for slot in slots
+        ]
 
         response['data'] = data
     else:
@@ -176,15 +193,14 @@ def get_ajax_slots(request, component=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_courses_by_training(request, training_id=None):
     response = {'msg': '', 'data': []}
 
     if not training_id:
         response['msg'] = gettext("Error : a valid training must be selected")
 
-    courses = Course.objects.prefetch_related('training').filter(
-        training__id=training_id)
+    courses = Course.objects.prefetch_related('training').filter(training__id=training_id)
 
     for course in courses:
         course_data = {
@@ -195,8 +211,9 @@ def ajax_get_courses_by_training(request, training_id=None):
 
     return JsonResponse(response, safe=False)
 
+
 @is_ajax_request
-@groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
@@ -214,8 +231,9 @@ def ajax_get_buildings(request, campus_id=None):
 
     return JsonResponse(response, safe=False)
 
+
 @is_ajax_request
-@groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_course_teachers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
@@ -238,7 +256,7 @@ def ajax_get_course_teachers(request, course_id=None):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_delete_course(request):
-    response = {'msg': '', 'error':''}
+    response = {'msg': '', 'error': ''}
     course_id = request.POST.get('course_id')
 
     if not course_id:
@@ -301,7 +319,7 @@ def ajax_get_my_courses(request, user_id=None):
 def ajax_get_my_slots(request, user_id=None):
     response = {'msg': '', 'data': []}
     # TODO: filter on emargement which should be set !
-    past_slots = (resolve(request.path_info).url_name == 'GetMySlotsAll')
+    past_slots = resolve(request.path_info).url_name == 'GetMySlotsAll'
 
     if not user_id:
         response['msg'] = gettext("Error : a valid user must be passed")
@@ -309,7 +327,11 @@ def ajax_get_my_slots(request, user_id=None):
     courses = Course.objects.prefetch_related('training').filter(teachers=user_id)
 
     for course in courses:
-        slots = course.slots.all() if past_slots else course.slots.filter(date__gte=datetime.datetime.now())
+        slots = (
+            course.slots.all()
+            if past_slots
+            else course.slots.filter(date__gte=datetime.datetime.now())
+        )
         for s in slots:
             course_data = {
                 'id': course.id,
@@ -326,10 +348,10 @@ def ajax_get_my_slots(request, user_id=None):
                 'label': course.label,
                 'teachers': {},
                 'published_slots_count': 0,  # TODO
-                'registered_students_count': { "capacity": s.n_places, "students_count": 4},  # TODO
+                'registered_students_count': {"capacity": s.n_places, "students_count": 4},  # TODO
                 'additional_information': s.additional_information,
-                'emargements': '', # TODO
-                'alert_count': '', # TODO
+                'emargements': '',  # TODO
+                'alert_count': '',  # TODO
             }
 
             for teacher in course.teachers.all().order_by('last_name', 'first_name'):
@@ -338,5 +360,17 @@ def ajax_get_my_slots(request, user_id=None):
                 )
 
             response['data'].append(course_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+# @is_ajax_request
+def ajax_get_agreed_highschools(request):
+    response = {'msg': '', 'data': []}
+    try:
+        response['data'].append(list(HighSchool.agreed.all().order_by('city').values()))
+    except:
+        # Bouhhhh
+        pass
 
     return JsonResponse(response, safe=False)

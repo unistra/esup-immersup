@@ -10,6 +10,7 @@ from . import views
 
 urlpatterns = [
     path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
+    path('get_agreed_highschools', views.ajax_get_agreed_highschools, name='GetAgreedHighSchools'),
     path('get_available_documents/', views.get_ajax_documents, name='get_available_documents',),
     path('get_available_documents/', views.get_ajax_documents, name='get_available_documents'),
     path(

@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q, Sum, Count
+from django.db.models import Count, Q, Sum
 from django.utils.translation import ugettext_lazy as _
 from mailmerge import MailMerge
 
@@ -15,7 +15,7 @@ from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 from immersionlyceens.libs.mails.utils import send_email
 
-from .managers import ActiveManager, ComponentQuerySet
+from .managers import ActiveManager, ComponentQuerySet, HighSchoolAgreedManager
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,9 @@ class Component(models.Model):
     active = models.BooleanField(_("Active"), default=True)
 
     objects = models.Manager()  # default manager
-    activated = ActiveManager.from_queryset(ComponentQuerySet)()  # returns only activated components
+    activated = ActiveManager.from_queryset(
+        ComponentQuerySet
+    )()  # returns only activated components
 
     class Meta:
         verbose_name = _('Component')
@@ -112,11 +114,9 @@ class ImmersionUser(AbstractUser):
 
         return False
 
-
     def authorized_groups(self):
         user_filter = {} if self.is_superuser else {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
-
 
     def send_message(self, request, template_code, **kwargs):
         """
@@ -628,6 +628,9 @@ class HighSchool(models.Model):
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
 
+    objects = models.Manager()  # default manager
+    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
+
     def __str__(self):
         # TODO: Should we display city as well (????)
         return self.label
@@ -721,12 +724,14 @@ class MailTemplate(models.Model):
     def parse_vars(self, user, request, **kwargs):
         # Import parser here because it depends on core models
         from immersionlyceens.libs.mails.variables_parser import parser
+
         return parser(
             user=user,
             request=request,
             message_body=self.body,
             vars=[v for v in self.available_vars.all()],
-            **kwargs)
+            **kwargs,
+        )
 
     class Meta:
         verbose_name = _('Mail template')
