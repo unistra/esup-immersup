@@ -6,7 +6,7 @@ import logging
 
 from immersionlyceens.apps.core.models import (
     Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
-)
+    Vacation, Holiday)
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from django.conf import settings
@@ -351,4 +351,29 @@ def ajax_get_my_slots(request, user_id=None):
 
             response['data'].append(course_data.copy())
 
+    return JsonResponse(response, safe=False)
+
+
+# @is_ajax_request
+@groups_required('SCUIO-IP', 'REF-CMP')
+def ajax_check_date_between_vacation(request):
+    response = {'data': [], 'msg': ''}
+
+    _date = request.GET.get('date')
+
+    if _date:
+        # two format date
+        try:
+            formated_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
+        except ValueError:
+            formated_date = datetime.datetime.strptime(_date, '%d-%m-%Y')
+
+
+        response['data'] = {
+            'is_between': (Vacation.date_is_inside_a_vacation(formated_date.date()) or
+                           Holiday.date_is_a_holiday(formated_date.date()))
+        }
+    else:
+        response['msg']: gettext('Error: A date is required')
+    print(response)
     return JsonResponse(response, safe=False)

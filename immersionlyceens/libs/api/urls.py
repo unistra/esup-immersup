@@ -9,6 +9,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
     path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
     path('get_available_documents/', views.get_ajax_documents, name='get_available_documents',),
     path('get_available_documents/', views.get_ajax_documents, name='get_available_documents'),
