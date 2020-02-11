@@ -77,29 +77,6 @@ def import_holidays(request):
     # TODO: dynamic redirect
     return redirect(redirect_url)
 
-
-# TODO : AUTH
-# groups_required('SCUIO-IP','REF-CMP')
-def components_list(request):
-    template = 'slots/list_components.html'
-
-    if request.user.is_scuio_ip_manager() or request.user.is_superuser:
-        # components = sorted(Component.objects.all(), lambda e: e.code)
-        components = Component.activated.all()
-        return render(request, template, context={})
-
-    elif request.user.is_component_manager:
-        if request.user.components.count() > 1:
-            return render(request, template, context={'components': request.user.components.all()})
-        else:  # Only one
-            components = request.user.components.all()
-            return redirect('slots_list', component=components[0].id)
-
-    else:
-        # TODO: error handler
-        return render(request, 'base.html')
-
-
 # TODO : AUTH
 def slots_list(request):
     template = 'slots/list_slots.html'

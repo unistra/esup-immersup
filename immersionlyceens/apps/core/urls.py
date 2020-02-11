@@ -13,7 +13,6 @@ urlpatterns = [
     path('courses_list', views.courses_list, name='courses_list'),
     path('mycourses/', views.mycourses, name='mycourses'),
     path('myslots/', views.myslots, name='myslots'),
-    path('components/', views.components_list, name='components_list'),
     path('slots/', views.slots_list, name='slots_list'),
     # path('slots/<int:component>/', views.slots_list, name='slots_list'),
     path('slot/add', views.add_slot, name='add_slot'),
