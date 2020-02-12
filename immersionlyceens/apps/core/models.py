@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models import Q, Sum, Count
 from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
+from django.template.defaultfilters import date as _date
 
 from mailmerge import MailMerge
 
@@ -134,6 +135,7 @@ class ImmersionUser(AbstractUser):
 
         try:
             template = MailTemplate.objects.get(code=template_code, active=True)
+            logger.debug("Template found : %s" % template)
         except MailTemplate.DoesNotExist:
             msg = _("Email not sent : template %s not found or inactive" % template_code)
             logger.error(msg)
@@ -141,6 +143,7 @@ class ImmersionUser(AbstractUser):
 
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
+            logger.debug("Message body : %s" % message_body)
             send_email(self.email, template.subject, message_body)
         except Exception as e:
             msg = _("Error while sending mail : %s" % e)
@@ -154,13 +157,11 @@ class ImmersionUser(AbstractUser):
         self.destruction_date = None
         self.save()
 
-    def get_destruction_date(self):
-        # TODO
-        return "cette date"
+    def get_localized_destruction_date(self):
+        return _date(self.destruction_date, "l j F Y")
 
-    def validation_link(self):
-        # TODO
-        return reverse('immersion:activate') + "/" + self.validation_string
+    def get_cleaned_username(self):
+        return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def is_valid(self):
         """

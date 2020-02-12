@@ -83,9 +83,10 @@ def parser(user, request, message_body, vars, **kwargs):
         ('${referentlycee.nom}', user.last_name),  # ! doublon
         ('${referentlycee.prenom}', user.first_name), # ! doublon
 
-        ('${identifiant}', user.username),
-        ('${lienValidation}', user.validation_link()),
-        ('${jourDestructionCptMin}', user.destruction_date())
+        ('${identifiant}', user.get_cleaned_username()),
+        ('${lienValidation}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
+            reverse('immersion:activate', kwargs={'hash':user.validation_string})))),
+        ('${jourDestructionCptMin}', user.get_localized_destruction_date())
     ]
 
     if slot_survey:

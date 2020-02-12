@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate
 
 from immersionlyceens.apps.core.models import ImmersionUser
 
@@ -13,6 +14,22 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(),
         required = True
     )
+
+    # TODO : Django's authentication system
+    # (does not work, needs authentication backend attribute
+    """
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_user(self):
+        cleaned_data = super().clean()
+        login = settings.USERNAME_PREFIX + cleaned_data.get('login')
+        password = cleaned_data.get('password')
+
+        user = authenticate(username=login, password=password)
+
+        return user
+    """
 
     def clean(self):
         cleaned_data = super().clean()

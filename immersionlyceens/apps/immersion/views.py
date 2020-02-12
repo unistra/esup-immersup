@@ -1,9 +1,11 @@
 import uuid
+import logging
 from datetime import datetime, timedelta
 
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
@@ -14,7 +16,9 @@ from immersionlyceens.apps.core.models import ImmersionUser
 
 from .forms import LoginForm, RegistrationForm
 
-def login(request):
+logger = logging.getLogger(__name__)
+
+def customLogin(request):
     # Clear all client sessions
     Session.objects.all().delete()
 
@@ -32,6 +36,7 @@ def login(request):
                 if not user.is_valid():
                     messages.error(request, _("Your account hasn't been enabled yet."))
                 else:
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     # If student has filled his record
                     return HttpResponseRedirect("/immersion")
                     # Else
@@ -47,6 +52,14 @@ def login(request):
 
     return render(request, 'immersion/login.html', context)
 
+"""
+# TODO : try Django's authentication system
+
+class CustomLogin(auth_views.LoginView):
+    template_name = "immersion/login.html"
+    redirect_field_name = "/immersion"
+    authentication_form = LoginForm
+"""
 
 def register(request):
     if request.method == 'POST':
@@ -61,7 +74,10 @@ def register(request):
                 datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
 
-            new_user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
+            try:
+                msg = new_user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
+            except Exception as e:
+                logger.exception("Cannot send activation message : %s", e)
 
             messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
             return HttpResponseRedirect("/immersion/login")
@@ -92,7 +108,9 @@ def activate(request, hash=None):
             messages.success(request, _("Your account is now enabled. Thanks !"))
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("Invalid activation data"))
-            return HttpResponseRedirect("/immersion/login")
+        except Exception as e:
+            logger.exception("Activation error : %s", e)
+            messages.error(request, _("Something went wrong"))
 
     context = {}
 
