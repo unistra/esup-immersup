@@ -237,12 +237,12 @@ $(document).ready(function(){
             {data: 'additional_information'},
             {data: 'id', render: function(data, type, row) {
                     let element = '<div>\n' +
-                        '        <a href="#duplicate" class="btn btn-light"\n' +
-                        '           style="background-image: url(\'{% static "img/duplicate.png" %}\');\n' +
-                        '                    background-repeat: no-repeat;\n' +
-                        '                    background-position: center center;\n' +
-                        '                    background-size: 60%;"\n' +
-                        '        >&nbsp;&nbsp;</a>\n' +
+                        '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light" ' +
+                        '           style="background-image: url(\'{% static "img/duplicate.png" %}\'); ' +
+                        '                    background-repeat: no-repeat; ' +
+                        '                    background-position: center center; ' +
+                        '                    background-size: 60%;"' +
+                        '        >&nbsp;&nbsp;</a>' +
                         '        <a href="/core/slot/modify/' + data + '" class="btn btn-light">&#x270E;</a>\n' +
                         '        <button class="btn btn-light" onclick="delete_slot(' + data + ')">&#x1F5D1;</button>\n' +
                         '    </div>';
