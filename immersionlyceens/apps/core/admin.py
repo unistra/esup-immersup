@@ -232,6 +232,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
             permissions_fields = list(lst[2])
             permissions_fields_list = list(permissions_fields[1]['fields'])
             permissions_fields_list.insert(4, 'components')
+            permissions_fields_list.insert(5, 'highschool')
 
             if not request.user.is_superuser:
                 # Remove components widget for non superusers

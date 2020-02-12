@@ -665,11 +665,13 @@ class ImmersionUserChangeForm(UserChangeForm):
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
                 self.fields["components"].disabled = True
+                self.fields["highschool"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data['groups']
         components = cleaned_data['components']
+        highschool = cleaned_data['highschool']
         forbidden_msg = _("Forbidden")
 
         is_own_account = self.request.user.id == self.instance.id
@@ -681,6 +683,11 @@ class ImmersionUserChangeForm(UserChangeForm):
             msg = _("This field is mandatory for a user belonging to 'REF-CMP' group")
             self._errors['components'] = self.error_class([msg])
             del cleaned_data["components"]
+
+        if groups.filter(name='REF-LYC').exists() and not highschool:
+            msg = _("This field is mandatory for a user belong to 'REF-LYC' group")
+            self._errors["highschool"] = self.error_class([msg])
+            del cleaned_data["highschool"]
 
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is

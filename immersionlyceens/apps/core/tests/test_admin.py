@@ -686,7 +686,7 @@ class AdminFormsTestCase(TestCase):
             'year_end_date': now + datetime.timedelta(days=50),
             'year_registration_start_date': now + datetime.timedelta(days=2),
             'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
+            'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
         request.user = self.scuio_user
@@ -719,7 +719,7 @@ class AdminFormsTestCase(TestCase):
             'semester2_end_date': now + datetime.timedelta(days=50),
             'semester2_registration_start_date': now + datetime.timedelta(days=26),
             'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
+            'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
         request.user = self.scuio_user
