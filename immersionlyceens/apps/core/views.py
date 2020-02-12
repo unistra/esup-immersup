@@ -113,7 +113,6 @@ def add_slot(request, slot_id=None):
 
     if slot_id:
         slot = Slot.objects.get(id=slot_id)
-        print(slot)
         slot.id = None
 
     # get components
@@ -260,13 +259,14 @@ def del_slot(request, slot_id):
 @groups_required('SCUIO-IP', 'REF-CMP')
 def courses_list(request):
     can_update_courses = False
-    component_id = None
     allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by(
         "code", "label"
     )
 
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
+    else:
+        component_id = request.session.get("current_component_id", None)
 
     # Check if we can update courses
     try:
@@ -302,7 +302,7 @@ def course(request, course_id=None, duplicate=False):
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
-
+            request.session["current_component_id"] = course.component_id
             teachers_list = [{
                 "username": t.username,
                 "lastname": t.last_name,
@@ -355,6 +355,8 @@ def course(request, course_id=None, duplicate=False):
         else:
             if course_form.is_valid():
                 new_course = course_form.save()
+
+                request.session["current_component_id"] = new_course.component_id
 
                 current_teachers = [
                     u for u in new_course.teachers.all().values_list('username', flat=True) ]
