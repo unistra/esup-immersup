@@ -52,6 +52,66 @@ class Component(models.Model):
             raise ValidationError(_('A component with this code already exists'))
 
 
+class HighSchool(models.Model):
+    """
+    HighSchool class
+    """
+
+    class Meta:
+        verbose_name = _('High school')
+        unique_together = ('label', 'city')
+
+    choices_departments = choices_cities = choices_zipcodes = []
+
+    if settings.USE_GEOAPI:
+        choices_departments = get_departments()
+        choices_cities = get_cities()
+
+    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
+    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
+    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
+    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
+    department = models.CharField(
+        _("Department"), max_length=128, blank=False, null=False, choices=choices_departments
+    )
+    city = UpperCharField(
+        _("City"), max_length=255, blank=False, null=False, choices=choices_cities
+    )
+    zip_code = models.CharField(
+        _("Zip code"), max_length=128, blank=False, null=False, choices=choices_zipcodes
+    )
+    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
+    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
+    email = models.EmailField(_('Email'))
+    head_teacher_name = models.CharField(
+        _("Head teacher name"),
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text=_('civility last name first name'),
+    )
+    referent_name = models.CharField(
+        _('Referent name'),
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text=_('last name first name'),
+    )
+    referent_phone_number = models.CharField(
+        _("Referent phone number"), max_length=20, blank=False, null=False
+    )
+    referent_email = models.EmailField(_('Referent email'))
+    convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
+    convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
+
+    objects = models.Manager()  # default manager
+    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
+
+    def __str__(self):
+        # TODO: Should we display city as well (????)
+        return self.label
+
+
 class ImmersionUser(AbstractUser):
     """
     Main user class
@@ -72,6 +132,14 @@ class ImmersionUser(AbstractUser):
 
     components = models.ManyToManyField(
         Component, verbose_name=_("Components"), blank=True, related_name='referents'
+    )
+    highschool = models.ForeignKey(
+        HighSchool,
+        verbose_name=_('High school'),
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="highschool_referent"
     )
 
     destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
@@ -602,66 +670,6 @@ class Calendar(models.Model):
             return self.year_start_date <= _date and _date <= self.year_end_date
         else:
             return self.semester1_start_date <= _date and _date <= self.semester2_end_date
-
-
-class HighSchool(models.Model):
-    """
-    HighSchool class
-    """
-
-    class Meta:
-        verbose_name = _('High school')
-        unique_together = ('label', 'city')
-
-    choices_departments = choices_cities = choices_zipcodes = []
-
-    if settings.USE_GEOAPI:
-        choices_departments = get_departments()
-        choices_cities = get_cities()
-
-    label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
-    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
-    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
-    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(
-        _("Department"), max_length=128, blank=False, null=False, choices=choices_departments
-    )
-    city = UpperCharField(
-        _("City"), max_length=255, blank=False, null=False, choices=choices_cities
-    )
-    zip_code = models.CharField(
-        _("Zip code"), max_length=128, blank=False, null=False, choices=choices_zipcodes
-    )
-    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
-    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
-    email = models.EmailField(_('Email'))
-    head_teacher_name = models.CharField(
-        _("Head teacher name"),
-        max_length=255,
-        blank=False,
-        null=False,
-        help_text=_('civility last name first name'),
-    )
-    referent_name = models.CharField(
-        _('Referent name'),
-        max_length=255,
-        blank=False,
-        null=False,
-        help_text=_('last name first name'),
-    )
-    referent_phone_number = models.CharField(
-        _("Referent phone number"), max_length=20, blank=False, null=False
-    )
-    referent_email = models.EmailField(_('Referent email'))
-    convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
-    convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
-
-    objects = models.Manager()  # default manager
-    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
-
-    def __str__(self):
-        # TODO: Should we display city as well (????)
-        return self.label
 
 
 class Course(models.Model):
