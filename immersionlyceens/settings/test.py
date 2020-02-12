@@ -84,7 +84,7 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 # Email configuration #
 #######################
 
-FORCE_ACTIVATION_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
+FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
 
