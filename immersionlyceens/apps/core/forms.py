@@ -17,6 +17,9 @@ class CourseForm(forms.ModelForm):
             allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
             self.fields["component"].queryset = allowed_comps.order_by('code', 'label')
 
+            if allowed_comps.count() == 1:
+                self.fields["component"].initial = allowed_comps.first().id
+
             if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
                 for field in self.fields:
                     self.fields[field].disabled = True

@@ -34,7 +34,10 @@
       {% csrf_token %}
         {{ course_form.id }}
         <div class="form-group row">
-          <label for="id_component" class="col-sm-3 col-form-label">{% trans 'Component' %} :</label>
+          <label for="id_component" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>
+            {% trans 'Component' %} :
+          </label>
           <div class="col-sm-3">
             {{ course_form.component }}
           </div>
@@ -43,7 +46,10 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="id_training" class="col-sm-3 col-form-label">{% trans 'Training' %} :</label>
+          <label for="id_training" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>
+            {% trans 'Training' %} :
+          </label>
           <div class="col-sm-3">
             {{ course_form.training }}
           </div>
@@ -52,7 +58,10 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="id_label" class="col-sm-3 col-form-label">{% trans 'Course label' %} :</label>
+          <label for="id_label" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>
+            {% trans 'Course label' %} :
+          </label>
           <div class="col-sm-3">
             {{ course_form.label }}
           </div>
@@ -79,7 +88,10 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="person_search" class="col-sm-3 col-form-label">{% trans 'Teachers' %} :</label>
+          <label for="person_search" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>
+            {% trans 'Teachers' %} :
+          </label>
           <div class="col-sm-9">
             <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
             <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
