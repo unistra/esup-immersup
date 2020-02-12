@@ -553,7 +553,7 @@ class Calendar(models.Model):
     semester2_registration_start_date = models.DateField(
         _("Semester 2 start registration date"), null=True, blank=True
     )
-    registration_start_date_per_semester = models.PositiveIntegerField(
+    nb_authorized_immersion_per_semester = models.PositiveIntegerField(
         _("Number of authorized immersions per semester"), default=2
     )
 

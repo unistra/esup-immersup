@@ -725,7 +725,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
             _('Semester mode'),
             {
                 'fields': (
-                    'registration_start_date_per_semester',
+                    'nb_authorized_immersion_per_semester',
                     'semester1_registration_start_date',
                     'semester2_registration_start_date',
                 )
@@ -750,6 +750,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
             if uy.start_date <= datetime.today().date():
                 fields = [
                     'label',
+                    'calendar_mode',
                     'year_start_date',
                     'year_end_date',
                     'semester1_start_date',
@@ -760,7 +761,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
                     'semester1_registration_start_date',
                     'semester2_registration_start_date',
                     'year_nb_authorized_immersion',
-                    'registration_start_date_per_semester',
+                    'nb_authorized_immersion_per_semester',
                 ]
 
             if uy.end_date <= datetime.today().date():
