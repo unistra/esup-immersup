@@ -791,6 +791,9 @@ class MailTemplateForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        self.fields['description'].widget.attrs['class'] = 'form-control'
+        self.fields['description'].widget.attrs['size'] = 80
+
         if not self.request.user.is_superuser:
             self.fields['available_vars'].widget = forms.MultipleHiddenInput()
             self.fields['description'].disabled = True
