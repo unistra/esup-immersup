@@ -9,6 +9,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.utils.translation import ugettext_lazy as _
+from django.urls import reverse
+from django.template.defaultfilters import date as _date
+
 from mailmerge import MailMerge
 
 from immersionlyceens.fields import UpperCharField
@@ -71,6 +74,11 @@ class ImmersionUser(AbstractUser):
         Component, verbose_name=_("Components"), blank=True, related_name='referents'
     )
 
+    destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
+
+    validation_string = models.TextField(_("Account validation string"),
+        blank=True, null=True, unique=True)
+
     class Meta:
         verbose_name = _('User')
 
@@ -127,6 +135,7 @@ class ImmersionUser(AbstractUser):
 
         try:
             template = MailTemplate.objects.get(code=template_code, active=True)
+            logger.debug("Template found : %s" % template)
         except MailTemplate.DoesNotExist:
             msg = _("Email not sent : template %s not found or inactive" % template_code)
             logger.error(msg)
@@ -134,6 +143,7 @@ class ImmersionUser(AbstractUser):
 
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
+            logger.debug("Message body : %s" % message_body)
             send_email(self.email, template.subject, message_body)
         except Exception as e:
             msg = _("Error while sending mail : %s" % e)
@@ -142,13 +152,22 @@ class ImmersionUser(AbstractUser):
 
         return None
 
-    def destruction_date(self):
-        # TODO
-        return "cette date"
+    def validate_account(self):
+        self.validation_string = None
+        self.destruction_date = None
+        self.save()
 
-    def validation_link(self):
-        # TODO
-        return "this link"
+    def get_localized_destruction_date(self):
+        return _date(self.destruction_date, "l j F Y")
+
+    def get_cleaned_username(self):
+        return self.get_username().replace(settings.USERNAME_PREFIX, '')
+
+    def is_valid(self):
+        """
+        :return: True if account is validated else False
+        """
+        return self.validation_string is None
 
 
 class TrainingDomain(models.Model):

@@ -12,6 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.utils.translation import ugettext_lazy as _
 
+
 from immersionlyceens.decorators import groups_required
 
 from .forms import CourseForm, SlotForm

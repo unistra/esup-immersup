@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block content %}
+<h2>{% trans 'Welcome on Immersion Lycéens' %}</h2>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans 'Home' %}
+    </div>
+    <div class="card-body">
+    </div>
+  </div>
+</div>
+{% endblock %}
