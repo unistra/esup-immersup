@@ -18,10 +18,13 @@
         </div>
         <div class="col">
           <aside>
-            <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">>
+            {% if twitter_url %}
+            <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
             {% trans 'Tweeter feed' %}
             </a>
             <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+            {% endif %}
+
           </aside>
         </div>
       </div>

@@ -5,12 +5,18 @@ import os
 from wsgiref.util import FileWrapper
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, GeneralSettings, InformationText, PublicDocument,
+    AccompanyingDocument,
+    GeneralSettings,
+    InformationText,
+    PublicDocument,
 )
 
 from django.conf import settings
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseNotFound,
     StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
@@ -40,7 +46,7 @@ def home(request):
         accomp_txt = ''
 
     try:
-        twitter_url = InformationText.objects.get(code="TWITTER_ACCOUNT_URL").value
+        twitter_url = GeneralSettings.objects.get(setting="TWITTER_ACCOUNT_URL").value
     except InformationText.DoesNotExist:
         twitter_url = ''
 
