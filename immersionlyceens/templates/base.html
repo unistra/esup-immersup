@@ -27,7 +27,7 @@
     {% hijack_notification %}
     {% include './fragments/main_menu.html'%}
     {% if messages %}
-    <div class="container">
+    <div class="container" style="padding: 10px;">
       {% for message in messages %}
       {% get_bootstrap_alert_msg_css_name message.tags as alert_tag %}
       <div class="messages{% if alert_tag %} alert alert-{{ alert_tag }}{% endif %} alert-dismissible">
@@ -40,9 +40,9 @@
 
     {% block content %}{% endblock %}
 
-    {% include './fragments/main_footer.html' %}
     {% include './modals/modal_credits.html'%}
     {% include './modals/modal_legal.html'%}
+    {% include './fragments/main_footer.html' %}
     {% block foot-javascript %}{% endblock %}
 </body>
 

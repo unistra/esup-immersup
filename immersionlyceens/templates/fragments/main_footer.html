@@ -1,12 +1,11 @@
 {% load i18n %}
 <!-- Footer -->
-<div class="navbar navbar-default bg-light justify-content-center align-items-center">
-    <footer>
-        <div class="container">
-            <p class="credit text-center">&copy; Direction du Num&eacute;rique - Universit&eacute; de Strasbourg - {% now "Y" %}
-               - <a href="#" data-toggle="modal" data-target="#modalLegal">{% trans 'Privacy & terms' %}</a>
-               - <a href="#" data-toggle="modal" data-target="#modalCredits">{% trans 'Credits' %}</a>
-            </p>
-        </div>
-    </footer>
-</div>
+
+<footer class="footer fixed-bottom">
+  <div class="container">
+    <p class="credit text-center">&copy; Direction du Num&eacute;rique - Universit&eacute; de Strasbourg - {% now "Y" %}
+      - <a href="#" data-toggle="modal" data-target="#modalLegal">{% trans 'Privacy & terms' %}</a> - <a href="#"
+        data-toggle="modal" data-target="#modalCredits">{% trans 'Credits' %}</a>
+    </p>
+  </div>
+</footer>
