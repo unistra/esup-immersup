@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% endblock %}
+{% block title %}
+    {{ high_school.label }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px; width:70%;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+        {% trans "My high school" %} - {{ high_school.label }}
+    </div>
+    <div class="card-body">
+      <form class="" role="form" action="/core/high_school/{{ high_school.id }}" method="POST">
+      {% csrf_token %}
+
+        <div>
+          <div class="card-title card-header">
+            {% trans "General information" %}
+          </div>
+          <br>
+
+
+          <div class="form-group row">
+            <label class="col-sm-3">{% trans "Label" %}</label>
+            <div class="col-sm-6 text-secondary">
+              <div class="readonly">{{ high_school.label }}</div>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="address"><strong>{% trans "Address" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.address }}
+            </div>
+            {% if high_school_form.address.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.address.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="address2">{% trans "Address2" %}</label>
+            <div class="col-sm-6">
+              {{ high_school_form.address2 }}
+            </div>
+            {% if high_school_form.address2.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.address2.errors }}
+            </div>
+            {% endif %}
+
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="address3">{% trans "Address3" %}</label>
+            <div class="col-sm-6">
+              {{ high_school_form.address3 }}
+            </div>
+            {% if high_school_form.address.errors3 %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.address.errors3 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="department"><strong>{% trans "Department" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.department }}
+            </div>
+            {% if high_school_form.department.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.department.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="city"><strong>{% trans "City" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.city }}
+            </div>
+            {% if high_school_form.city.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.city.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="zip_code"><strong>{% trans "Zip code" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.zip_code }}
+            </div>
+            {% if high_school_form.zip_code.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.zip_code.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="phone_number"><strong>{% trans "Phone number" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.phone_number }}
+            </div>
+            {% if high_school_form.phone_number.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.phone_number.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="fax">{% trans "Fax" %}</label>
+            <div class="col-sm-6">
+              {{ high_school_form.fax }}
+            </div>
+            {% if high_school_form.fax.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.fax.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="email"><strong>{% trans "Email" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.email }}
+            </div>
+            {% if high_school_form.email.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.email.errors }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <br>
+
+        <div>
+          <div class="card-title card-header">{% trans "Head teacher" %}</div>
+          <br>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="head_teacher_name"><strong>{% trans "Head teacher name" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.head_teacher_name }}
+              <small>{{ high_school_form.head_teacher_name.help_text }}</small>
+            </div>
+            {% if high_school_form.head_teacher_name.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ high_school_form.head_teacher_name.errors }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <br>
+
+        <div>
+          <div class="card-title card-header">{% trans "High school referent" %}</div>
+          <br>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="referent_name"><strong>{% trans "Referent name" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.referent_name }}
+              <small>{{ high_school_form.referent_name.help_text }}</small>
+            </div>
+            {% if high_school_form.referent_name.errors %}
+            <div class="col-sm-3">
+              {{ high_school_form.referent_name.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="referent_phone_number"><strong>{% trans "Referent phone number" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.referent_phone_number }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3" for="referent_email"><strong>{% trans "Referent email" %}*</strong></label>
+            <div class="col-sm-6">
+              {{ high_school_form.referent_email }}
+            </div>
+            {% if high_school_form.referent_email.errors %}
+            <div class="col-sm-3">
+              {{ high_school_form.referent_email.errors }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <br>
+
+        <div>
+          <div class="card-title card-header">{% trans "Convention" %}</div>
+          <br>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="convention_start_date">{% trans "Convention start date" %}</label>
+            <div class="col-sm-6">
+              <div class="readonly">{{ high_school.convention_start_date|default:'-' }}</div>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-3" for="convention_end_date">{% trans "Convention end date" %}</label>
+            <div class="col-sm-6">
+              <div class="readonly">{{ high_school.convention_end_date|default:'-' }}</div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <br>
+        <br>
+        <div class="form-group">
+          <button class="btn btn-primary">{% trans "Modify" %}</button>
+        </div>
+
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block foot-javascript %}
+<script src="{% static 'js/admin_highschool.js' %}"></script>
+{% endblock %}
