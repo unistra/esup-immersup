@@ -60,7 +60,7 @@ def customLogin(request):
                 else:
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     # If student has filled his record
-                    if user.has_student_record():
+                    if user.get_student_record():
                         return HttpResponseRedirect("/immersion")
                     else:
                         return HttpResponseRedirect("/immersion/record")
@@ -158,7 +158,7 @@ def home(request):
     return render(request, 'immersion/home.html', context)
 
 @login_required
-def record(request, student_id=None, record_id=None):
+def student_record(request, student_id=None, record_id=None):
     """
     High school student record
     """
@@ -173,27 +173,29 @@ def record(request, student_id=None, record_id=None):
 
     if request.user.is_highschool_student():
         student = request.user
+        record = student.get_student_record()
 
-        if request.user.has_student_record():
-            record = request.user.student_record
-        else:
-            record = HighSchoolStudentRecord.create(student=request.user)
+        if not record:
+            record = HighSchoolStudentRecord(student=request.user)
     elif record_id:
         try:
             record = HighSchoolStudentRecord.objects.get(pk=id)
         except HighSchoolStudentRecord.DoesNotExist:
             pass
 
+    print("no record yet")
+    """
     if not record:
-        record = HighSchoolStudentRecord.create(student=student)
+        record = HighSchoolStudentRecord(student=student)
     else:
         messages.error(request, _("Something went wrong"))
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    """
 
     if request.method == 'POST':
-        recordform = HighSchoolStudentRecordForm(request.POST)
+        recordform = HighSchoolStudentRecordForm(request.POST, request=request)
     else:
-        recordform = HighSchoolStudentRecordForm(instance=record)
+        recordform = HighSchoolStudentRecordForm(request=request, instance=record)
 
     context = {
         'record_form': recordform,

@@ -5,7 +5,7 @@ from functools import partial
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.utils.translation import ugettext_lazy as _
@@ -237,8 +237,11 @@ class ImmersionUser(AbstractUser):
         """
         return self.validation_string is None
 
-    def has_student_record(self):
-        return self.student_record.exists()
+    def get_student_record(self):
+        try:
+            return self.student_record
+        except ObjectDoesNotExist:
+            return None
 
     def is_highschool_student(self):
         """

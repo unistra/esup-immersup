@@ -92,5 +92,11 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-    class meta:
+    class Meta:
         model = HighSchoolStudentRecord
+        fields = ['civility', 'birth_date', 'phone', 'highschool', 'level', 'class_name',
+                  'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
+                  'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
+                  'current_diploma', 'visible_immersion_registrations', 'visible_email',
+                  'allowed_global_registrations', 'allowed_first_semester_registrations',
+                  'allowed_second_semester_registrations']
