@@ -26,6 +26,9 @@
 <body>
     {% hijack_notification %}
     {% include './fragments/main_menu.html'%}
+
+    {% block section_title %}{% endblock %}
+    
     {% if messages %}
     <div class="container" style="padding: 10px;">
       {% for message in messages %}

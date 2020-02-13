@@ -12,15 +12,35 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.sessions.models import Session
 from django.conf import settings
 
-from immersionlyceens.apps.core.models import ImmersionUser
+from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear
+from immersionlyceens.libs.utils import check_active_year
 
 from .forms import LoginForm, RegistrationForm
+
 
 logger = logging.getLogger(__name__)
 
 def customLogin(request):
     # Clear all client sessions
     Session.objects.all().delete()
+
+    is_reg_possible, is_year_valid, year = check_active_year()
+
+    if not year or not is_year_valid:
+        messages.warning(request, _("Sorry, you can't login right now."))
+        context = {
+            'start_date': year.start_date if year else None,
+            'end_date': year.end_date if year else None,
+            'reg_date': year.registration_start_date if year else None
+        }
+        return render(request, 'immersion/nologin.html', context)
+
+
+    # Is current university year valid ?
+    if not check_active_year():
+        return render(request, 'immersion/nologin.html',
+            { 'msg' : _("Sorry, the university year has not begun (or already over), you can't login yet.") }
+        )
 
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -62,6 +82,18 @@ class CustomLogin(auth_views.LoginView):
 """
 
 def register(request):
+    # Is current university year valid ?
+    is_reg_possible, is_year_valid, year = check_active_year()
+
+    if not year or not is_reg_possible:
+        messages.warning(request, _("Sorry, you can't register right now."))
+        context = {
+            'start_date': year.start_date if year else None,
+            'end_date': year.end_date if year else None,
+            'reg_date': year.registration_start_date if year else None
+        }
+        return render(request, 'immersion/nologin.html', context)
+
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
 
