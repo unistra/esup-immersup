@@ -464,15 +464,21 @@ def myslots(request):
 def my_high_school(request,  high_school_id=None):
     from .models import HighSchool
     hs = HighSchool.objects.get(id=high_school_id)
-    context = {}
-
-    if request.method == 'POST':
-        pass
-
+    high_school_form = None
     context = {
         'high_school': hs,
-        'high_school_form': HighSchoolForm(instance=hs),
+        'modified': False,
     }
+
+    if request.method == 'POST':
+        high_school_form = HighSchoolForm(request.POST, instance=hs)
+        if high_school_form.is_valid():
+            high_school_form.save()
+            context['modified'] = True
+    else:
+        high_school_form = HighSchoolForm(instance=hs)
+
+    context['high_school_form'] = high_school_form
 
     return render(request, 'core/my_high_school.html', context)
 

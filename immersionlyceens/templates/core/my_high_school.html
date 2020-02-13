@@ -17,6 +17,12 @@
     <div class="card-header text-white bg-secondary">
         {% trans "My high school" %} - {{ high_school.label }}
     </div>
+
+
+
+    {% if modified %}
+      <div class="alert alert-success">{% trans "High school modified" %}</div>
+    {% endif %}
     <div class="card-body">
       <form class="" role="form" action="/core/high_school/{{ high_school.id }}" method="POST">
       {% csrf_token %}
