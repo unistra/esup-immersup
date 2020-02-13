@@ -463,6 +463,10 @@ def myslots(request):
 @groups_required('REF-LYC')
 def my_high_school(request,  high_school_id=None):
     from .models import HighSchool
+
+    if request.user.highschool.id != high_school_id:
+        return redirect('home')
+
     hs = HighSchool.objects.get(id=high_school_id)
     high_school_form = None
     context = {
