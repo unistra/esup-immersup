@@ -773,6 +773,16 @@ class HighSchoolForm(forms.ModelForm):
                 label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
             )
 
+        for elem in ['label', 'address', 'address2', 'address3',
+                     'department', 'city', 'zip_code',
+                     'fax', 'email', 'phone_number',
+                     'head_teacher_name',
+                     'referent_name', 'referent_phone_number', 'referent_email',
+                     ]:
+            self.fields[elem].widget.attrs.update({'class': 'form-control'})
+
+
+
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False

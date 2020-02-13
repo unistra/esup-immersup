@@ -14,6 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 from immersionlyceens.decorators import groups_required
+from .admin_forms import HighSchoolForm
 
 from .forms import CourseForm, SlotForm
 from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear
@@ -457,3 +458,31 @@ def mycourses(request):
 @groups_required('ENS-CH',)
 def myslots(request):
     return render(request, 'core/myslots.html')
+
+
+@groups_required('REF-LYC')
+def my_high_school(request,  high_school_id=None):
+    from .models import HighSchool
+
+    if request.user.highschool.id != high_school_id:
+        return redirect('home')
+
+    hs = HighSchool.objects.get(id=high_school_id)
+    high_school_form = None
+    context = {
+        'high_school': hs,
+        'modified': False,
+    }
+
+    if request.method == 'POST':
+        high_school_form = HighSchoolForm(request.POST, instance=hs)
+        if high_school_form.is_valid():
+            high_school_form.save()
+            context['modified'] = True
+    else:
+        high_school_form = HighSchoolForm(instance=hs)
+
+    context['high_school_form'] = high_school_form
+
+    return render(request, 'core/my_high_school.html', context)
+
