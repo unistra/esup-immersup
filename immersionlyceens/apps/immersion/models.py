@@ -59,6 +59,7 @@ class HighSchoolStudentRecord(models.Model):
     civility = models.SmallIntegerField(_("Civility"), default=1, choices=CIVS)
     phone = models.CharField(_("Phone number"), max_length=14)
     level = models.SmallIntegerField(_("Level"), default=1, choices=LEVELS)
+    class_name = models.CharField(_("Class name"), blank=False, null=False, max_length=32)
 
     # For pre-bachelor levels
     bachelor_type = models.SmallIntegerField(_("Bachelor type"), default=1, choices=BACHELOR_TYPES)
