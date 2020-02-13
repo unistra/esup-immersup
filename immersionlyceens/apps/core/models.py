@@ -237,6 +237,15 @@ class ImmersionUser(AbstractUser):
         """
         return self.validation_string is None
 
+    def has_student_record(self):
+        return self.student_record.exists()
+
+    def is_highschool_student(self):
+        """
+        Return True if the user is a high school student
+        """
+        return self.username.startswith(settings.USERNAME_PREFIX)
+
 
 class TrainingDomain(models.Model):
     """

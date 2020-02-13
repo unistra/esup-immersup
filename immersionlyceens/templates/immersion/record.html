@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% endblock %}
+{% block title %}{% trans "Student record" %}{% endblock %}
+
+{% block section_title %}{% trans "Student record" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px; width:70%;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Please fill this form to complete your personal record" %}
+    </div>
+    <div class="card-body">
+      <form class="" role="form" action="/immersion/record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
+          {% csrf_token %}
+          {% record_form.as_p %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

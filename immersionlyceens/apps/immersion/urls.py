@@ -17,4 +17,6 @@ urlpatterns = [
     path('register', views.register, name='register'),
     path('recovery', views.recovery, name='recovery'),
     path('activate/<hash>', views.activate, name='activate'),
+    path('record', views.record, name='record'),
+    path('record/<int:record_id>', views.record, name='modify_record'),
 ]
