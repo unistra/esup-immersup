@@ -37,6 +37,12 @@ class HighSchoolStudentRecord(models.Model):
         (5, _('Other')),
     ]
 
+    VALIDATION_STATUS = [
+        (1, _('To validate')),
+        (2, _('Validated')),
+        (3, _('Rejected'))
+    ]
+
     student = models.OneToOneField(
         core_models.ImmersionUser,
         verbose_name=_('Student'),
@@ -105,7 +111,7 @@ class HighSchoolStudentRecord(models.Model):
     allowed_second_semester_registrations = models.SmallIntegerField(
         _("Number of allowed registrations for first semester"), null=True, blank=True)
 
-
+    validation = models.SmallIntegerField(_("Civility"), default=1, choices=VALIDATION_STATUS)
 
 
 
