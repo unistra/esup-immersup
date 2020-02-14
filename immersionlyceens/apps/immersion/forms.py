@@ -5,6 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate
 
 from immersionlyceens.apps.core.models import ImmersionUser
+from .models import HighSchoolStudentRecord
 
 class LoginForm(forms.Form):
     login = forms.CharField(label=_("Login"), max_length=100, required=True)
@@ -84,3 +85,18 @@ class RegistrationForm(UserCreationForm):
     class Meta:
         model = ImmersionUser
         fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
+
+
+class HighSchoolStudentRecordForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = HighSchoolStudentRecord
+        fields = ['civility', 'birth_date', 'phone', 'highschool', 'level', 'class_name',
+                  'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
+                  'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
+                  'current_diploma', 'visible_immersion_registrations', 'visible_email',
+                  'allowed_global_registrations', 'allowed_first_semester_registrations',
+                  'allowed_second_semester_registrations']

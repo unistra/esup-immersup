@@ -15,7 +15,9 @@ from django.conf import settings
 from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear
 from immersionlyceens.libs.utils import check_active_year
 
-from .forms import LoginForm, RegistrationForm
+from .models import HighSchoolStudentRecord
+
+from .forms import LoginForm, RegistrationForm, HighSchoolStudentRecordForm
 
 
 logger = logging.getLogger(__name__)
@@ -58,9 +60,10 @@ def customLogin(request):
                 else:
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     # If student has filled his record
-                    return HttpResponseRedirect("/immersion")
-                    # Else
-                    # return HttpResponseRedirect("/immersion/record")
+                    if user.get_student_record():
+                        return HttpResponseRedirect("/immersion")
+                    else:
+                        return HttpResponseRedirect("/immersion/record")
             else:
                 messages.error(request, _("Authentication error"))
     else:
@@ -154,3 +157,49 @@ def home(request):
     }
     return render(request, 'immersion/home.html', context)
 
+@login_required
+def student_record(request, student_id=None, record_id=None):
+    """
+    High school student record
+    """
+    record = None
+
+    if student_id:
+        try:
+            student = ImmersionUser.objects.get(pk=student_id)
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("Invalid student id"))
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+    if request.user.is_highschool_student():
+        student = request.user
+        record = student.get_student_record()
+
+        if not record:
+            record = HighSchoolStudentRecord(student=request.user)
+    elif record_id:
+        try:
+            record = HighSchoolStudentRecord.objects.get(pk=id)
+        except HighSchoolStudentRecord.DoesNotExist:
+            pass
+
+    print("no record yet")
+    """
+    if not record:
+        record = HighSchoolStudentRecord(student=student)
+    else:
+        messages.error(request, _("Something went wrong"))
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    """
+
+    if request.method == 'POST':
+        recordform = HighSchoolStudentRecordForm(request.POST, request=request)
+    else:
+        recordform = HighSchoolStudentRecordForm(request=request, instance=record)
+
+    context = {
+        'record_form': recordform,
+        'student': student
+    }
+
+    return render(request, 'immersion/record.html', context)

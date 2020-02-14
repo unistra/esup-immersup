@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block section_title %}
+<h2>{% trans 'Welcome on Immersion Lycéens' %}</h2>
+{% endblock %}
+
+{% block content %}
+{% if start_date and end_date and reg_date %}
+<div class="container">
+    <div class="card">
+        <div class="card-header text-white bg-secondary">
+          {% trans 'University year dates' %}
+        </div>
+        <div class="card-body">
+          <div class="form-group row">
+            <label class="col-sm-3">{% trans 'Start date' %} :</label>
+            <div class="col-sm-3">{{ start_date|date:"l j F Y" }}</div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3">{% trans 'End date' %} :</label>
+            <div class="col-sm-3">{{ end_date|date:"l j F Y" }}</div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-3">{% trans 'Registration start date' %} :</label>
+            <div class="col-sm-3">{{ reg_date|date:"l j F Y" }}</div>
+          </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
