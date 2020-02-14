@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% load static staticfiles i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'immersionlyceens.css' %}">
+{% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 {% endblock %}
 {% block title %}{% trans "Student record" %}{% endblock %}
 
@@ -61,52 +66,62 @@
             <div class="col-sm-3">{{ record_form.class_name }}</div>
             <div class="col-sm-6">{{ record_form.class_name.errors }}</div>
           </div>
-          <div class="form-group row">
-            <label for="id_bachelor_type" class="col-sm-3 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Bachelor type' %} :
-            </label>
-            <div class="col-sm-3">{{ record_form.bachelor_type }}</div>
-            <div class="col-sm-6">{{ record_form.bachelor_type.errors }}</div>
+          <div id="id_bachelor_data">
+            <div class="form-group row">
+              <label for="id_bachelor_type" class="col-sm-3 col-form-label">
+                <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Bachelor type' %} :
+              </label>
+              <div class="col-sm-3">{{ record_form.bachelor_type }}</div>
+              <div class="col-sm-6">{{ record_form.bachelor_type.errors }}</div>
+            </div>
+            <div id="id_general_bachelor_data">
+              <div class="form-group row">
+                <label for="id_general_bachelor_teachings" class="col-sm-3 col-form-label">
+                  <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'General bachelor teachings' %} :
+                </label>
+                <div class="col-sm-3">{{ record_form.general_bachelor_teachings }}</div>
+                <div class="col-sm-6">{{ record_form.general_bachelor_teachings.errors }}</div>
+              </div>
+            </div>
+            <div id="id_technological_bachelor_data" style="display:none">
+              <div class="form-group row">
+                <label for="id_technological_bachelor_mention" class="col-sm-3 col-form-label">
+                  <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Technological bachelor mention' %} :
+                </label>
+                <div class="col-sm-3">{{ record_form.technological_bachelor_mention }}</div>
+                <div class="col-sm-6">{{ record_form.technological_bachelor_mention.errors }}</div>
+              </div>
+            </div>
+            <div id="id_professional_bachelor_data" style="display:none">
+              <div class="form-group row">
+                <label for="id_professional_bachelor_mention" class="col-sm-3 col-form-label">
+                  <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Professional bachelor mention' %} :
+                </label>
+                <div class="col-sm-3">{{ record_form.professional_bachelor_mention }}</div>
+                <div class="col-sm-6">{{ record_form.professional_bachelor_mention.errors }}</div>
+              </div>
+            </div>
           </div>
-          <div class="form-group row">
-            <label for="id_general_bachelor_teachings" class="col-sm-3 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'General bachelor teachings' %} :
-            </label>
-            <div class="col-sm-3">{{ record_form.general_bachelor_teachings }}</div>
-            <div class="col-sm-6">{{ record_form.general_bachelor_teachings.errors }}</div>
-          </div>
-          <div class="form-group row">
-            <label for="id_technological_bachelor_mention" class="col-sm-3 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Technological bachelor mention' %} :
-            </label>
-            <div class="col-sm-3">{{ record_form.technological_bachelor_mention }}</div>
-            <div class="col-sm-6">{{ record_form.technological_bachelor_mention.errors }}</div>
-          </div>
-          <div class="form-group row">
-            <label for="id_professional_bachelor_mention" class="col-sm-3 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Professional bachelor mention' %} :
-            </label>
-            <div class="col-sm-3">{{ record_form.professional_bachelor_mention }}</div>
-            <div class="col-sm-6">{{ record_form.professional_bachelor_mention.errors }}</div>
-          </div>
-          <div class="form-group row">
-            <label for="id_post_bachelor_level" class="col-sm-3 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Post bachelor level' %} :
-            </label>
-            <div class="col-sm-3">{{ record_form.post_bachelor_level }}</div>
-            <div class="col-sm-6">{{ record_form.post_bachelor_level.errors }}</div>
-          </div>
-          <div class="form-group row">
-            <label for="id_origin_bachelor_type" class="col-sm-3 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Origin bachelor type' %} :
-            </label>
-            <div class="col-sm-3">{{ record_form.origin_bachelor_type }}</div>
-            <div class="col-sm-6">{{ record_form.origin_bachelor_type.errors }}</div>
-          </div>
-          <div class="form-group row">
-            <label for="id_current_diploma" class="col-sm-3 col-form-label">{% trans 'Current diploma' %} :</label>
-            <div class="col-sm-3">{{ record_form.current_diploma }}</div>
-            <div class="col-sm-6">{{ record_form.current_diploma.errors }}</div>
+          <div id="id_post_bachelor_data" style="display:none">
+            <div class="form-group row">
+              <label for="id_post_bachelor_level" class="col-sm-3 col-form-label">
+                <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Post bachelor level' %} :
+              </label>
+              <div class="col-sm-3">{{ record_form.post_bachelor_level }}</div>
+              <div class="col-sm-6">{{ record_form.post_bachelor_level.errors }}</div>
+            </div>
+            <div class="form-group row">
+              <label for="id_origin_bachelor_type" class="col-sm-3 col-form-label">
+                <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Origin bachelor type' %} :
+              </label>
+              <div class="col-sm-3">{{ record_form.origin_bachelor_type }}</div>
+              <div class="col-sm-6">{{ record_form.origin_bachelor_type.errors }}</div>
+            </div>
+            <div class="form-group row">
+              <label for="id_current_diploma" class="col-sm-3 col-form-label">{% trans 'Current diploma' %} :</label>
+              <div class="col-sm-3">{{ record_form.current_diploma }}</div>
+              <div class="col-sm-6">{{ record_form.current_diploma.errors }}</div>
+            </div>
           </div>
           <div class="form-group row">
             <label for="id_visible_immersion_registrations" class="col-sm-3 col-form-label">
@@ -145,4 +160,52 @@
     </div>
   </div>
 </div>
+
+<script>
+  $(document).ready(function() {
+    $(function () {
+      $(".datepicker").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        yearRange: "1990:2010",
+      });
+    });
+
+    $('#id_level').change(function() {
+      let level = $('#id_level option:selected').val();
+
+      if(level==1 || level==2) {
+        $('#id_bachelor_data').show("slow");
+        $('#id_post_bachelor_data').hide("slow");
+      }
+      else {
+        $('#id_bachelor_data').hide("slow");
+        $('#id_post_bachelor_data').show("slow");
+      }
+    });
+
+    $('#id_bachelor_type').change(function() {
+      let b_type = $('#id_bachelor_type option:selected').val();
+
+      if(b_type == 1) {
+        $('#id_general_bachelor_data').show("slow");
+        $('#id_technological_bachelor_data').hide("slow");
+        $('#id_professional_bachelor_data').hide("slow");
+      }
+      else if (b_type == 2) {
+        $('#id_general_bachelor_data').hide("slow");
+        $('#id_technological_bachelor_data').show("slow");
+        $('#id_professional_bachelor_data').hide("slow");
+      }
+      else if (b_type == 3) {
+        $('#id_general_bachelor_data').hide("slow");
+        $('#id_technological_bachelor_data').hide("slow");
+        $('#id_professional_bachelor_data').show("slow");
+      }
+    });
+
+    // Init
+
+  });
+</script>
 {% endblock %}

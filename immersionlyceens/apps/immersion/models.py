@@ -25,7 +25,8 @@ class HighSchoolStudentRecord(models.Model):
         (3, _('Professional'))
     ]
 
-    POST_BACHELOR_ORIGIN_TYPES = BACHELOR_TYPES.append(
+    POST_BACHELOR_ORIGIN_TYPES = BACHELOR_TYPES.copy()
+    POST_BACHELOR_ORIGIN_TYPES.append(
         (4, _('DAEU'))
     )
 

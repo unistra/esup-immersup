@@ -92,6 +92,11 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
+        if not self.request or not self.request.user.is_scuio_ip_manager():
+            for field in ('allowed_global_registrations', 'allowed_first_semester_registrations' ,
+                'allowed_second_semester_registrations'):
+                self.fields[field].disabled = True
+
     class Meta:
         model = HighSchoolStudentRecord
         fields = ['civility', 'birth_date', 'phone', 'highschool', 'level', 'class_name',
@@ -100,3 +105,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'current_diploma', 'visible_immersion_registrations', 'visible_email',
                   'allowed_global_registrations', 'allowed_first_semester_registrations',
                   'allowed_second_semester_registrations']
+
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),
+        }

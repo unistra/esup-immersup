@@ -183,7 +183,6 @@ def student_record(request, student_id=None, record_id=None):
         except HighSchoolStudentRecord.DoesNotExist:
             pass
 
-    print("no record yet")
     """
     if not record:
         record = HighSchoolStudentRecord(student=student)
