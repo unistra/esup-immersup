@@ -411,3 +411,52 @@ def ajax_check_date_between_vacation(request):
         response['msg']: gettext('Error: A date is required')
     print(response)
     return JsonResponse(response, safe=False)
+
+
+# @is_ajax_request
+# @groups_required('SCUIO-IP', 'REF-CMP')
+def ajax_get_student_records(request):
+    from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+    # high_school_validation
+    response = {'data': [], 'msg': ''}
+
+    # @@@
+    action = request.GET.get('action')
+    hs_id = request.GET.get('high_school_id')
+    actions = ['TO_VALIDATE', 'VALIDATED', 'REJECTED']
+
+    if action and action.upper() in actions:
+
+        if hs_id:
+            action = action.upper()
+            records = []
+            if action == 'TO_VALIDATE':
+                records = HighSchoolStudentRecord.objects.filter(
+                    highschool_id=hs_id,
+                    validation=1,  # TO VALIDATE
+                )
+            elif action == 'VALIDATED':
+                records = HighSchoolStudentRecord.objects.filter(
+                    highschool_id=hs_id,
+                    validation=2,  # VALIDATED
+                )
+            elif action == 'REJECTED':
+                records = HighSchoolStudentRecord.objects.filter(
+                    highschool_id=hs_id,
+                    validation=3,  # REJECTED
+                )
+
+            response['data'] = [{
+                'id': record.id,
+                'first_name': record.student.first_name,
+                'last_name': record.student.last_name,
+                'birth_date': record.birth_date,
+                'level': record.level,
+                'class_name': record.class_name,
+            } for record in records]
+        else:
+            response['msg'] = gettext("Error: No high school selected")
+    else:
+        response['msg'] = gettext("Error: No action selected for AJAX request")
+
+    return JsonResponse(response, safe=False)
