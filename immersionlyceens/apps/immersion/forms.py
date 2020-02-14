@@ -87,6 +87,20 @@ class RegistrationForm(UserCreationForm):
         fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
 
 
+class HighSchoolStudentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        self.fields["last_name"].required = True
+        self.fields["first_name"].required = True
+        self.fields["email"].required = True
+
+    class Meta:
+        model = ImmersionUser
+        fields = ['last_name', 'first_name', 'email']
+
+
 class HighSchoolStudentRecordForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
