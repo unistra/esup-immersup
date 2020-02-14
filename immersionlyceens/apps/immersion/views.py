@@ -165,6 +165,7 @@ def student_record(request, student_id=None, record_id=None):
     High school student record
     """
     record = None
+    student = None
 
     if student_id:
         try:
@@ -202,6 +203,10 @@ def student_record(request, student_id=None, record_id=None):
             record = recordform.save()
 
             # Look for duplicated records
+            if record.search_duplicates():
+                messages.warning(request,
+                    _("A record already exists with this identity, please contact the SCUIO-IP team."))
+
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
