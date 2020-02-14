@@ -111,7 +111,7 @@ class HighSchoolStudentRecord(models.Model):
     allowed_second_semester_registrations = models.SmallIntegerField(
         _("Number of allowed registrations for first semester"), null=True, blank=True)
 
-    validation = models.SmallIntegerField(_("Civility"), default=1, choices=VALIDATION_STATUS)
+    validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
 
 
 
