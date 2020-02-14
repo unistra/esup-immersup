@@ -111,21 +111,32 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
 
         if level in [1, 2]:
             if bachelor_type == 1:
+                cleaned_data['technological_bachelor_mention'] = None
+                cleaned_data['professional_bachelor_mention'] = ""
                 if not general_bachelor_teachings:
                     raise forms.ValidationError(
                         _("Please choose one or more bachelor teachings"))
             elif bachelor_type == 2:
+                cleaned_data['general_bachelor_teachings'] = []
+                cleaned_data['professional_bachelor_mention'] = ""
                 if not technological_bachelor_mention:
                     raise forms.ValidationError(
                         _("Please choose a mention for your technological bachelor"))
             elif bachelor_type == 3:
+                cleaned_data['general_bachelor_teachings'] = []
+                cleaned_data['technological_bachelor_mention'] = None
                 if not professional_bachelor_mention:
                     raise forms.ValidationError(
                         _("Please enter a mention for your professional bachelor"))
         elif level == 3:
+            cleaned_data['general_bachelor_teachings'] = []
+            cleaned_data['technological_bachelor_mention'] = None
+            cleaned_data['professional_bachelor_mention'] = ""
             if not origin_bachelor_type:
                 raise forms.ValidationError(
                     _("Please choose your origin bachelor type"))
+
+        return cleaned_data
 
     class Meta:
         model = HighSchoolStudentRecord

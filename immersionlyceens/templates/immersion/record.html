@@ -69,7 +69,7 @@
             <div class="col-sm-3">{{ record_form.class_name }}</div>
             <div class="col-sm-6">{{ record_form.class_name.errors }}</div>
           </div>
-          <div id="id_bachelor_data">
+          <div id="id_bachelor_data" style="display:none">
             <div class="form-group row">
               <label for="id_bachelor_type" class="col-sm-3 col-form-label">
                 <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Bachelor type' %} :
@@ -77,7 +77,7 @@
               <div class="col-sm-3">{{ record_form.bachelor_type }}</div>
               <div class="col-sm-6">{{ record_form.bachelor_type.errors }}</div>
             </div>
-            <div id="id_general_bachelor_data">
+            <div id="id_general_bachelor_data" style="display:none">
               <div class="form-group row">
                 <label for="id_general_bachelor_teachings" class="col-sm-3 col-form-label">
                   <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'General bachelor teachings' %} :
@@ -175,9 +175,7 @@
       });
     });
 
-    $('#id_level').change(function() {
-      let level = $('#id_level option:selected').val();
-
+    function switch_bachelor_data(level) {
       if(level==1 || level==2) {
         $('#id_bachelor_data').show("slow");
         $('#id_post_bachelor_data').hide("slow");
@@ -186,11 +184,9 @@
         $('#id_bachelor_data').hide("slow");
         $('#id_post_bachelor_data').show("slow");
       }
-    });
+    }
 
-    $('#id_bachelor_type').change(function() {
-      let b_type = $('#id_bachelor_type option:selected').val();
-
+    function switch_bachelor_type_options(b_type) {
       if(b_type == 1) {
         $('#id_general_bachelor_data').show("slow");
         $('#id_technological_bachelor_data').hide("slow");
@@ -206,10 +202,24 @@
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').show("slow");
       }
+    }
+
+    $('#id_level').change(function() {
+      let level = $('#id_level option:selected').val();
+      switch_bachelor_data(level);
+    });
+
+    $('#id_bachelor_type').change(function() {
+      let b_type = $('#id_bachelor_type option:selected').val();
+      switch_bachelor_type_options(b_type);
     });
 
     // Init
+    let level = $('#id_level option:selected').val();
+    switch_bachelor_data(level);
 
+    let b_type = $('#id_bachelor_type option:selected').val();
+    switch_bachelor_type_options(b_type);
   });
 </script>
 {% endblock %}
