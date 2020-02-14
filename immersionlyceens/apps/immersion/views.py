@@ -179,7 +179,7 @@ def student_record(request, student_id=None, record_id=None):
             record = HighSchoolStudentRecord(student=request.user)
     elif record_id:
         try:
-            record = HighSchoolStudentRecord.objects.get(pk=id)
+            record = HighSchoolStudentRecord.objects.get(pk=record_id)
         except HighSchoolStudentRecord.DoesNotExist:
             pass
 
@@ -192,7 +192,15 @@ def student_record(request, student_id=None, record_id=None):
     """
 
     if request.method == 'POST':
-        recordform = HighSchoolStudentRecordForm(request.POST, request=request)
+        recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
+
+        if recordform.is_valid():
+            record = recordform.save()
+        else:
+            for err_field, err_list in recordform.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))
     else:
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
 

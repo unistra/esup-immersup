@@ -14,7 +14,9 @@
 {% endblock %}
 {% block title %}{% trans "Student record" %}{% endblock %}
 
-{% block section_title %}{% trans "Student record" %}{% endblock %}
+{% block section_title %}
+<h2>{% trans "Student record" %}</h2>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
@@ -25,6 +27,7 @@
     <div class="card-body">
       <form class="" role="form" action="/immersion/record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
           {% csrf_token %}
+          {{ record_form.student }}
           {{ record_form.id }}
           <div class="form-group row">
             <label for="id_civility" class="col-sm-3 col-form-label">
@@ -156,6 +159,7 @@
             <div class="col-sm-3">{{ record_form.allowed_second_semester_registrations }}</div>
             <div class="col-sm-6">{{ record_form.allowed_second_semester_registrations.errors }}</div>
           </div>
+          <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
       </form>
     </div>
   </div>
