@@ -486,3 +486,13 @@ def my_high_school(request,  high_school_id=None):
 
     return render(request, 'core/my_high_school.html', context)
 
+# @@@
+def student_validation(request, high_school_id):
+    from .models import HighSchool
+
+    # student_validation
+    context = {
+        'high_school': HighSchool.objects.get(id=high_school_id),
+    }
+
+    return render(request, 'core/student_validation.html', context)
