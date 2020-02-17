@@ -232,7 +232,7 @@ def ajax_get_buildings(request, campus_id=None):
     if not campus_id:
         response['msg'] = gettext("Error : a valid campus must be selected")
 
-    buildings = Building.objects.filter(campus_id=campus_id)
+    buildings = Building.objects.filter(campus_id=campus_id, active=True)
 
     for building in buildings:
         buildings_data = {

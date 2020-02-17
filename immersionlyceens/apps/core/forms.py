@@ -5,7 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 from django.forms.widgets import DateInput
 
-from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar)
+from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar,
+                     CourseType, Campus, Building)
 
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -75,6 +76,14 @@ class SlotForm(forms.ModelForm):
                   'room', 'date', 'start_time', 'end_time', 'n_places',
                   'additional_information', 'published',]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
+
+        # course type filter
+        self.fields['course_type'].queryset = CourseType.objects.filter(active=True)
+        # campus filter
+        self.fields['campus'].queryset = Campus.objects.filter(active=True)
+        # building filter
+        self.fields['building'].queryset = Building.objects.filter(active=True)
+
 
         if instance:
             self.fields['date'].value = instance.date

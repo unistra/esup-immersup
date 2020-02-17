@@ -334,10 +334,24 @@ $(document).ready(function(){
 
     // Back button + confirm
     $('.back_btn').click(function (event) {
-        if (confirm("{% trans 'Did you really want to cancel this creation?' %}")){
+
+        {% if slot %}
+            {% if slot.id %}
+                let msg = "{% trans 'Did you really want to cancel this modification?' %}";
+            {% else %}
+                let msg = "{% trans 'Did you really want to cancel this duplication?' %}";
+            {% endif %}
+        {% else %}
+            let msg = "{% trans 'Did you really want to cancel this creation?' %}"
+        {% endif %}
+
+        if (confirm(msg) === true){
             c = $('#component').val();
             t = $('#training').val();
-            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
+            console.log('Hello');
+            setTimeout(function() {
+                window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t
+            }, 1000);
         }
     });
 
