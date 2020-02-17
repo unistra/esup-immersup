@@ -59,7 +59,7 @@ class HighSchoolStudentRecord(models.Model):
 
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
     civility = models.SmallIntegerField(_("Civility"), default=1, choices=CIVS)
-    phone = models.CharField(_("Phone number"), max_length=14)
+    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     level = models.SmallIntegerField(_("Level"), default=1, choices=LEVELS)
     class_name = models.CharField(_("Class name"), blank=False, null=False, max_length=32)
 
@@ -131,7 +131,12 @@ class HighSchoolStudentRecord(models.Model):
             for id in ids_list:
                 other_ids_list = [self.id] + [i for i in ids_list if i!=id]
                 json_list = json.dumps(other_ids_list)
-                HighSchoolStudentRecord.objects.get(pk=id).update(duplicates=json_list)
+                try:
+                    record = HighSchoolStudentRecord.objects.get(pk=id)
+                    record.duplicates=json_list
+                    record.save()
+                except HighSchoolStudentRecord.DoesNotExist:
+                    pass
 
             return ids_list
         elif self.duplicates is not None:
