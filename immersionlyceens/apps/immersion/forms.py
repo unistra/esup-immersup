@@ -87,10 +87,70 @@ class RegistrationForm(UserCreationForm):
         fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
 
 
+class HighSchoolStudentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        self.fields["last_name"].required = True
+        self.fields["first_name"].required = True
+        self.fields["email"].required = True
+
+    class Meta:
+        model = ImmersionUser
+        fields = ['last_name', 'first_name', 'email']
+
+
 class HighSchoolStudentRecordForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
+
+        self.fields["student"].widget = forms.HiddenInput()
+
+        if not self.request or not self.request.user.is_scuio_ip_manager():
+            for field in ('allowed_global_registrations', 'allowed_first_semester_registrations' ,
+                'allowed_second_semester_registrations'):
+                self.fields[field].disabled = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        level = cleaned_data['level']
+        bachelor_type = cleaned_data['bachelor_type']
+        general_bachelor_teachings = cleaned_data['general_bachelor_teachings']
+        technological_bachelor_mention = cleaned_data['technological_bachelor_mention']
+        professional_bachelor_mention = cleaned_data['professional_bachelor_mention']
+        origin_bachelor_type = cleaned_data['origin_bachelor_type']
+
+        if level in [1, 2]:
+            if bachelor_type == 1:
+                cleaned_data['technological_bachelor_mention'] = None
+                cleaned_data['professional_bachelor_mention'] = ""
+                if not general_bachelor_teachings:
+                    raise forms.ValidationError(
+                        _("Please choose one or more bachelor teachings"))
+            elif bachelor_type == 2:
+                cleaned_data['general_bachelor_teachings'] = []
+                cleaned_data['professional_bachelor_mention'] = ""
+                if not technological_bachelor_mention:
+                    raise forms.ValidationError(
+                        _("Please choose a mention for your technological bachelor"))
+            elif bachelor_type == 3:
+                cleaned_data['general_bachelor_teachings'] = []
+                cleaned_data['technological_bachelor_mention'] = None
+                if not professional_bachelor_mention:
+                    raise forms.ValidationError(
+                        _("Please enter a mention for your professional bachelor"))
+        elif level == 3:
+            cleaned_data['general_bachelor_teachings'] = []
+            cleaned_data['technological_bachelor_mention'] = None
+            cleaned_data['professional_bachelor_mention'] = ""
+            if not origin_bachelor_type:
+                raise forms.ValidationError(
+                    _("Please choose your origin bachelor type"))
+
+        return cleaned_data
 
     class Meta:
         model = HighSchoolStudentRecord
@@ -99,4 +159,10 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
                   'current_diploma', 'visible_immersion_registrations', 'visible_email',
                   'allowed_global_registrations', 'allowed_first_semester_registrations',
-                  'allowed_second_semester_registrations']
+                  'allowed_second_semester_registrations', 'student']
+
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),
+        }
+
+        localized_fields = ('birth_date',)

@@ -17,7 +17,8 @@ from immersionlyceens.libs.utils import check_active_year
 
 from .models import HighSchoolStudentRecord
 
-from .forms import LoginForm, RegistrationForm, HighSchoolStudentRecordForm
+from .forms import (LoginForm, RegistrationForm, HighSchoolStudentRecordForm,
+    HighSchoolStudentForm)
 
 
 logger = logging.getLogger(__name__)
@@ -157,12 +158,14 @@ def home(request):
     }
     return render(request, 'immersion/home.html', context)
 
+
 @login_required
 def student_record(request, student_id=None, record_id=None):
     """
     High school student record
     """
     record = None
+    student = None
 
     if student_id:
         try:
@@ -179,25 +182,42 @@ def student_record(request, student_id=None, record_id=None):
             record = HighSchoolStudentRecord(student=request.user)
     elif record_id:
         try:
-            record = HighSchoolStudentRecord.objects.get(pk=id)
+            record = HighSchoolStudentRecord.objects.get(pk=record_id)
+            student = HighSchoolStudentRecord.student
         except HighSchoolStudentRecord.DoesNotExist:
             pass
 
-    print("no record yet")
-    """
-    if not record:
-        record = HighSchoolStudentRecord(student=student)
-    else:
-        messages.error(request, _("Something went wrong"))
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    """
-
     if request.method == 'POST':
-        recordform = HighSchoolStudentRecordForm(request.POST, request=request)
+        recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
+        studentform = HighSchoolStudentForm(request.POST, request=request, instance=student)
+
+        if studentform.is_valid():
+            student = studentform.save()
+        else:
+            for err_field, err_list in studentform.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))
+
+        if recordform.is_valid():
+            record = recordform.save()
+
+            # Look for duplicated records
+            if record.search_duplicates():
+                messages.warning(request,
+                    _("A record already exists with this identity, please contact the SCUIO-IP team."))
+
+        else:
+            for err_field, err_list in recordform.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))
     else:
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
+        studentform = HighSchoolStudentForm(request=request, instance=student)
 
     context = {
+        'student_form': studentform,
         'record_form': recordform,
         'student': student
     }
