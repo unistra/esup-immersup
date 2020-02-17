@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-17 12:34+0100\n"
+"POT-Creation-Date: 2020-02-17 14:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1185,19 +1185,19 @@ msgstr "Erreur : un compte est déjà enregistré avec ce courriel"
 msgid "Error : duplicated account detected"
 msgstr "Erreur : un compte avec cet identifiant existe déjà"
 
-#: immersionlyceens/apps/immersion/forms.py:132
+#: immersionlyceens/apps/immersion/forms.py:141
 msgid "Please choose one or more bachelor teachings"
 msgstr "Veuillez choisir un ou plusieurs enseignements de spécialité"
 
-#: immersionlyceens/apps/immersion/forms.py:138
+#: immersionlyceens/apps/immersion/forms.py:147
 msgid "Please choose a mention for your technological bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat technologique"
 
-#: immersionlyceens/apps/immersion/forms.py:144
+#: immersionlyceens/apps/immersion/forms.py:153
 msgid "Please enter a mention for your professional bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat professionnel"
 
-#: immersionlyceens/apps/immersion/forms.py:151
+#: immersionlyceens/apps/immersion/forms.py:160
 msgid "Please choose your origin bachelor type"
 msgstr "Veuillez sélectionner votre yype de baccalauréat d'origine"
 
@@ -1373,15 +1373,26 @@ msgstr "Données d'activation invalides"
 msgid "Something went wrong"
 msgstr "Erreur"
 
-#: immersionlyceens/apps/immersion/views.py:174
+#: immersionlyceens/apps/immersion/views.py:169
+msgid "No account found with this email address"
+msgstr "Aucun compte n'a été trouvé avec cette adresse"
+
+#: immersionlyceens/apps/immersion/views.py:172
+msgid "This account has already been activated, please login."
+msgstr "Ce compte a déjà été activé, veuillez vous connecter."
+
+#: immersionlyceens/apps/immersion/views.py:176
+msgid "The activation message have been resent."
+msgstr "Le courriel d'activation a été renvoyé"
+
+#: immersionlyceens/apps/immersion/views.py:204
 msgid "Invalid student id"
 msgstr "#id invalide"
 
-#: immersionlyceens/apps/immersion/views.py:208
+#: immersionlyceens/apps/immersion/views.py:238
 msgid ""
 "A record already exists with this identity, please contact the SCUIO-IP team."
-msgstr ""
-"Une fiche existe déjà à ce nom, merci de contacter le SCUIO-IP"
+msgstr "Une fiche existe déjà à ce nom, merci de contacter le SCUIO-IP"
 
 #: immersionlyceens/libs/api/views.py:43 immersionlyceens/libs/api/views.py:57
 msgid "Error : can't query LDAP server"
@@ -1758,6 +1769,7 @@ msgstr "Accompagnement"
 #: immersionlyceens/templates/immersion/home.html:6
 #: immersionlyceens/templates/immersion/login.html:6
 #: immersionlyceens/templates/immersion/nologin.html:6
+#: immersionlyceens/templates/immersion/resend_activation.html:6
 msgid "Welcome on Immersion Lycéens"
 msgstr "Bienvenue sur la plateforme Immersion Lycéens"
 
@@ -1780,6 +1792,10 @@ msgstr "Pas encore inscrit ?"
 #: immersionlyceens/templates/immersion/login.html:45
 msgid "Forgot your password ?"
 msgstr "Mot de passe oublié ?"
+
+#: immersionlyceens/templates/immersion/login.html:49
+msgid "I have not received the activation email"
+msgstr "Je n'ai pas reçu le courriel d'activation"
 
 #: immersionlyceens/templates/immersion/nologin.html:14
 msgid "University year dates"
@@ -1886,6 +1902,18 @@ msgstr "Courriel (confirmation)"
 #: immersionlyceens/templates/immersion/registration.html:64
 msgid "Password (confirmation)"
 msgstr "Mot de passe (confirmation)"
+
+#: immersionlyceens/templates/immersion/resend_activation.html:13
+msgid "Resend an activation email"
+msgstr "Renvoyer le mail d'acvivation"
+
+#: immersionlyceens/templates/immersion/resend_activation.html:19
+msgid "My email address"
+msgstr "Mon courriel"
+
+#: immersionlyceens/templates/immersion/resend_activation.html:24
+msgid "Resend"
+msgstr "Renvoyer"
 
 #: immersionlyceens/templates/modals/modal_credits.html:8
 #: immersionlyceens/templates/modals/modal_credits.html:23
