@@ -433,7 +433,7 @@ ADMIN_MODELS_ORDER = {
 }
 
 # Define groups rights on others here ?
-HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP',]}
+HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP','REF-LYC', ]}
 
 ####################
 # Geo Api settings #
