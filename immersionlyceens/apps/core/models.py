@@ -1087,7 +1087,7 @@ class Slot(models.Model):
         on_delete=models.CASCADE,
         related_name="slots",
     )
-    room = models.CharField(_("Room"), max_length=16, blank=True, null=True)
+    room = models.CharField(_("Room"), max_length=50, blank=True, null=True)
 
     date = models.DateField(_('Date'), blank=True, null=True)
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
