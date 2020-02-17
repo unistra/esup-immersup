@@ -110,7 +110,7 @@ class HighSchoolStudentRecord(models.Model):
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
 
     def __str__(self):
-        return gettext("Record for %s %s" % (self.student.first_name, self.student.last_name))
+        return gettext("Record for {0} {1}".format(self.student.first_name, self.student.last_name))
 
     def search_duplicates(self):
         """
