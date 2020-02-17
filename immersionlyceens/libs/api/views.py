@@ -413,8 +413,8 @@ def ajax_check_date_between_vacation(request):
     return JsonResponse(response, safe=False)
 
 
-# @is_ajax_request
-# @groups_required('SCUIO-IP', 'REF-CMP')
+@is_ajax_request
+@groups_required('SCUIO-IP', 'REF-LYC')
 def ajax_get_student_records(request):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
     # high_school_validation

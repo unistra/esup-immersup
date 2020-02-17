@@ -487,12 +487,15 @@ def my_high_school(request,  high_school_id=None):
     return render(request, 'core/my_high_school.html', context)
 
 # @@@
-def student_validation(request, high_school_id):
+def student_validation(request, high_school_id=None):
     from .models import HighSchool
 
     # student_validation
-    context = {
-        'high_school': HighSchool.objects.get(id=high_school_id),
-    }
+    context = {}
+
+    if high_school_id:
+        context['high_school'] = HighSchool.objects.get(id=high_school_id)
+    else:
+        context['high_schools'] = HighSchool.objects.all().order_by('city')
 
     return render(request, 'core/student_validation.html', context)
