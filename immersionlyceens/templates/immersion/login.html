@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="container">
-  <div class="card">
+  <div class="card" style="margin-bottom:20px;">
     <div class="card-header text-white bg-secondary">
       {% trans 'Authentication' %}
     </div>
@@ -37,13 +37,16 @@
       </form>
     </div>
   </div>
-  <div class="row">
+  <div class="row" style="margin-bottom:20px;">
     <div class="col-sm-6 text-right">
       <a href="{% url 'immersion:register' %}">{% trans 'Not registered yet ?' %}</a>
     </div>
     <div class="col-sm-6">
       <a href="{% url 'immersion:recovery' %}">{% trans 'Forgot your password ?' %}</a>
     </div>
+  </div>
+  <div class="row justify-content-md-center">
+    <a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a>
   </div>
 </div>
 {% endblock %}

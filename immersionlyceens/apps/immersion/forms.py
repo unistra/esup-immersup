@@ -96,6 +96,15 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["first_name"].required = True
         self.fields["email"].required = True
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        email = cleaned_data.get('email', '').strip().lower()
+
+        cleaned_data['email'] = email
+
+        return cleaned_data
+
     class Meta:
         model = ImmersionUser
         fields = ['last_name', 'first_name', 'email']

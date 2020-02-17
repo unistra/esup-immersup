@@ -152,6 +152,36 @@ def activate(request, hash=None):
 
     return HttpResponseRedirect("/immersion/login")
 
+
+def resend_activation(request):
+    email = ""
+
+    if request.method == "POST":
+        email = request.POST.get('email', '').strip().lower()
+
+        search_email = settings.USERNAME_PREFIX + email
+
+        print(search_email)
+
+        try:
+            user = ImmersionUser.objects.get(email=email)
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("No account found with this email address"))
+        else:
+            if user.is_valid():
+                messages.error(request, _("This account has already been activated, please login."))
+                return HttpResponseRedirect("/immersion/login")
+            else:
+                msg = user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
+                messages.success(request, _("The activation message have been resent."))
+
+    context = {
+        'email': email
+    }
+
+    return render(request, 'immersion/resend_activation.html', context)
+
+
 @login_required
 def home(request):
     context = {

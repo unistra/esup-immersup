@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block section_title %}
+<h2>{% trans 'Welcome on Immersion Lycéens' %}</h2>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans 'Resend an activation email' %}
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+          <label for="id_email" class="col-sm-2 col-form-label">{% trans 'My email address' %} :</label>
+          <div class="col-sm-3">
+            <input type="email" name="email" maxlength="254" required id="id_email" value="{{ email }}">
+          </div>
+        </div>
+        <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Resend' %}">
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

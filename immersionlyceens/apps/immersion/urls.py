@@ -19,4 +19,5 @@ urlpatterns = [
     path('activate/<hash>', views.activate, name='activate'),
     path('record', views.student_record, name='record'),
     path('record/<int:record_id>', views.student_record, name='modify_record'),
+    path('resend_activation', views.resend_activation, name='resend_activation'),
 ]
