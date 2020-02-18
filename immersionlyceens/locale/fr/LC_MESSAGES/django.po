@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-18 11:46+0100\n"
+"POT-Creation-Date: 2020-02-18 11:57+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1971,7 +1971,7 @@ msgstr ""
 "mêmes immersions que moi)"
 
 #: immersionlyceens/templates/immersion/record.html:170
-#: immersionlyceens/templates/immersion/registration.html:72
+#: immersionlyceens/templates/immersion/registration.html:74
 #: immersionlyceens/templates/immersion/reset_password.html:36
 msgid "Submit"
 msgstr "Valider"
@@ -2002,9 +2002,15 @@ msgstr "Réinitialisation du mot de passe"
 msgid "My email address"
 msgstr "Mon courriel"
 
-#: immersionlyceens/templates/immersion/recovery.html:24
+#: immersionlyceens/templates/immersion/recovery.html:26
 msgid "Send me instructions !"
 msgstr "Envoyer les instructions"
+
+#: immersionlyceens/templates/immersion/recovery.html:29
+#: immersionlyceens/templates/immersion/registration.html:77
+#: immersionlyceens/templates/immersion/resend_activation.html:29
+msgid "Back"
+msgstr "Retour"
 
 #: immersionlyceens/templates/immersion/registration.html:6
 msgid "Immersion Lycéens - New account"
@@ -2027,7 +2033,7 @@ msgstr "Mot de passe (confirmation)"
 msgid "Resend an activation email"
 msgstr "Renvoyer le mail d'activation"
 
-#: immersionlyceens/templates/immersion/resend_activation.html:24
+#: immersionlyceens/templates/immersion/resend_activation.html:26
 msgid "Resend"
 msgstr "Renvoyer"
 
