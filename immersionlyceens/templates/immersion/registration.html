@@ -69,7 +69,14 @@
             {{ form.password2.errors }}
           </div>
         </div>
-        <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
+        <div class="form-group row">
+          <div class="col-sm-6 text-right">
+            <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
+          </div>
+          <div class="col-sm-6">   
+            <a href="{% url 'immersion:login' %}" class="btn btn-secondary btn-sm" style='margin-left:40px;'>{% trans 'Back' %}</a>
+          </div>  
+        </div>  
       </form>
     </div>
   </div>
