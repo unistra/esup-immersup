@@ -131,7 +131,9 @@ class HighSchoolStudentRecord(models.Model):
         ).exclude(id=self.id)
 
         ids_list = [record.id for record in dupes]
-
+        if ids_list:
+            self.duplicates = json.dumps(ids_list)
+            self.save()
 
             for id in ids_list:
                 other_ids_list = [self.id] + [i for i in ids_list if i!=id]
