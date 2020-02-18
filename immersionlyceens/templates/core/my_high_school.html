@@ -21,7 +21,7 @@
 
 
     {% if modified %}
-      <div class="alert alert-success">{% trans "High school modified" %}</div>
+      <div class="alert alert-success" id="ok_modify">{% trans "High school modified" %}</div>
     {% endif %}
     <div class="card-body">
       <form class="" role="form" action="/core/high_school/{{ high_school.id }}" method="POST">
@@ -249,4 +249,5 @@
 
 {% block foot-javascript %}
 <script src="{% static 'js/admin_highschool.js' %}"></script>
+<script src="{% static 'js/core/my_high_school.js' %}"></script>
 {% endblock %}

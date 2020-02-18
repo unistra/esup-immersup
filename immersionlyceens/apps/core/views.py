@@ -481,7 +481,7 @@ def myslots(request):
     return render(request, 'core/myslots.html')
 
 
-@groups_required('REF-LYC')
+@groups_required('REF-LYC', 'SCUIO-IP')
 def my_high_school(request,  high_school_id=None):
     from .models import HighSchool
 
@@ -489,6 +489,9 @@ def my_high_school(request,  high_school_id=None):
         return redirect('home')
 
     hs = HighSchool.objects.get(id=high_school_id)
+    post_values = request.POST.copy()
+    post_values['label'] = hs.label
+
     high_school_form = None
     context = {
         'high_school': hs,
@@ -496,12 +499,12 @@ def my_high_school(request,  high_school_id=None):
     }
 
     if request.method == 'POST':
-        high_school_form = HighSchoolForm(request.POST, instance=hs)
+        high_school_form = HighSchoolForm(post_values, instance=hs, request=request)
         if high_school_form.is_valid():
             high_school_form.save()
             context['modified'] = True
     else:
-        high_school_form = HighSchoolForm(instance=hs)
+        high_school_form = HighSchoolForm(instance=hs, request=request)
 
     context['high_school_form'] = high_school_form
 
