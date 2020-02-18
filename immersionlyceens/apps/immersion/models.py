@@ -39,6 +39,12 @@ class HighSchoolStudentRecord(models.Model):
         (5, _('Other')),
     ]
 
+    VALIDATION_STATUS = [
+        (1, _('To validate')),
+        (2, _('Validated')),
+        (3, _('Rejected'))
+    ]
+
     student = models.OneToOneField(
         core_models.ImmersionUser,
         verbose_name=_('Student'),
@@ -107,6 +113,8 @@ class HighSchoolStudentRecord(models.Model):
     allowed_second_semester_registrations = models.SmallIntegerField(
         _("Number of allowed registrations for first semester"), null=True, blank=True)
 
+    validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
+
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
 
     def __str__(self):
@@ -124,9 +132,6 @@ class HighSchoolStudentRecord(models.Model):
 
         ids_list = [record.id for record in dupes]
 
-        if ids_list:
-            self.duplicates = json.dumps(ids_list)
-            self.save()
 
             for id in ids_list:
                 other_ids_list = [self.id] + [i for i in ids_list if i!=id]

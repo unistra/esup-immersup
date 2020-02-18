@@ -5,7 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 from django.forms.widgets import DateInput
 
-from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar)
+from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar,
+                     CourseType, Campus, Building)
 
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -76,11 +77,20 @@ class SlotForm(forms.ModelForm):
                   'additional_information', 'published',]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
+        # course type filter
+        self.fields['course_type'].queryset = CourseType.objects.filter(active=True)
+        # campus filter
+        self.fields['campus'].queryset = Campus.objects.filter(active=True)
+        # building filter
+        self.fields['building'].queryset = Building.objects.filter(active=True)
+
+
         if instance:
             self.fields['date'].value = instance.date
 
     def clean(self):
         cleaned_data = super().clean()
+        course = cleaned_data.get('course')
 
         cals = Calendar.objects.all()
         cal = None
@@ -111,6 +121,11 @@ class SlotForm(forms.ModelForm):
             raise forms.ValidationError({
                 'start_time': _('Error: Start time must be set before end time')
             })
+
+        if course and not course.published:
+            course.published = True
+            course.save()
+            # TODO: message in template
 
         return cleaned_data
 

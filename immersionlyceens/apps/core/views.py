@@ -111,9 +111,11 @@ def add_slot(request, slot_id=None):
     slot_form = None
     context = {}
     slot = None
+    teachers_idx = None
 
     if slot_id:
         slot = Slot.objects.get(id=slot_id)
+        teachers_idx = [t.id for t in slot.teachers.all()]
         slot.id = None
 
     # get components
@@ -128,12 +130,17 @@ def add_slot(request, slot_id=None):
             request.POST.get('save_add')):
 
         slot_form = SlotForm(request.POST, instance=slot)
-        if slot_form.is_valid():
+        teachers = []
+        teacher_prefix = 'teacher_'
+        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if
+                           teacher_prefix in e]:
+            teachers.append(teacher_id)
+
+        # if not pub --> len teachers must be > 0
+        # else no teacher is needed
+        published = request.POST.get('published') == 'on'
+        if slot_form.is_valid() and (not published or len(teachers) > 0):
             slot_form.save()
-            teachers = []
-            teacher_prefix = 'teacher_'
-            for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-                teachers.append(teacher_id)
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
         else:
@@ -142,6 +149,7 @@ def add_slot(request, slot_id=None):
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
+                "teacher_error": len(teachers) < 1,
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -170,6 +178,9 @@ def add_slot(request, slot_id=None):
     }
     if slot:
         context['slot'] = slot
+        if not teachers_idx:
+            context['teachers_idx'] = teachers_idx
+
     return render(request, 'slots/add_slot.html', context=context)
 
 
@@ -191,13 +202,17 @@ def modify_slot(request, slot_id):
             request.POST.get('save_add')):
 
         slot_form = SlotForm(request.POST, instance=slot)
-        if slot_form.is_valid():
+
+        teachers = []
+        teacher_prefix = 'teacher_'
+        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if
+                           teacher_prefix in e]:
+            teachers.append(teacher_id)
+
+        published = request.POST.get('published') == 'on'
+        if slot_form.is_valid() and (not published or len(teachers) > 0):
             slot_form.save()
             slot_form.instance.teachers.clear()
-            teachers = []
-            teacher_prefix = 'teacher_'
-            for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-                teachers.append(teacher_id)
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
         else:
@@ -208,6 +223,8 @@ def modify_slot(request, slot_id):
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
+                "teacher_error": len(teachers) < 1,
+                "teachers_idx": [t.id for t in slot.teachers.all()],
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -221,6 +238,7 @@ def modify_slot(request, slot_id):
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": False,
+                "teachers_idx": [t.id for t in slot.teachers.all()],
             }
             return render(request, 'slots/add_slot.html', context=context)
         else:
@@ -231,6 +249,7 @@ def modify_slot(request, slot_id):
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
+                "teachers_idx": [t.id for t in slot.teachers.all()],
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -240,6 +259,7 @@ def modify_slot(request, slot_id):
         "trainings": Training.objects.filter(active=True),
         "slot_form": slot_form,
         "ready_load": True,
+        "teachers_idx": [t.id for t in slot.teachers.all()],
     }
     return render(request, 'slots/add_slot.html', context=context)
 
@@ -486,3 +506,16 @@ def my_high_school(request,  high_school_id=None):
 
     return render(request, 'core/my_high_school.html', context)
 
+# @@@
+def student_validation(request, high_school_id=None):
+    from .models import HighSchool
+
+    # student_validation
+    context = {}
+
+    if high_school_id:
+        context['high_school'] = HighSchool.objects.get(id=high_school_id)
+    else:
+        context['high_schools'] = HighSchool.objects.all().order_by('city')
+
+    return render(request, 'core/student_validation.html', context)

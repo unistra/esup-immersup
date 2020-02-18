@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% comment %} Comment following line if using english ! {% endcomment %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+{% endblock %}
+{% block title %}
+{% trans "My slots" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Student validation" %}{% if high_school %} - {{ high_school.label }}{% else %}<span id="card_title"></span>{% endif %}
+    </div>
+    <div class="card-body">
+        {% if not high_school %}
+        <div class="form-group row">
+            <label for="high_school" class="col-form-label col-sm-3">{% trans 'Select an high school' %}:</label>
+            <select name="high_school" id="id_high_school" class="form-control col-sm-3">
+                <option value="" selected>----------</option>
+                {% for hs in high_schools %}
+                <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+        <input type="hidden" name="high_school" id="id_high_school" value="{{ high_school.id }}">
+        {% endif %}
+
+        <!-- TO VALIDATE -->
+        <div class="card mb-4">
+            <div class="card-header text-white bg-secondary">
+                {% trans "Student to validate" %}
+            </div>
+            <div class="card-body">
+                <table id="to_validate" class="table table-sm table-striped table-bordered compact dt-body-nowrap">
+                    <thead>
+                        <th>{% trans "First name" %}</th>
+                        <th>{% trans "Last name" %}</th>
+                        <th>{% trans "Birth date" %}</th>
+                        <th>{% trans "Level" %}</th>
+                        <th>{% trans "Class name" %}</th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VALIDATED -->
+        <div class="card mb-4">
+            <div class="card-header text-white bg-secondary">
+                {% trans "Validated student" %}
+            </div>
+            <div class="card-body">
+                <table id="validated" class="table table-sm table-striped table-bordered compact dt-body-nowrap">
+                    <thead>
+                        <th>{% trans "First name" %}</th>
+                        <th>{% trans "Last name" %}</th>
+                        <th>{% trans "Birth date" %}</th>
+                        <th>{% trans "Level" %}</th>
+                        <th>{% trans "Class name" %}</th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- REJECTED -->
+        <div class="card mb-4">
+            <div class="card-header text-white bg-secondary">
+                {% trans "Rejected student" %}
+            </div>
+            <div class="card-body">
+                <table id="rejected" class="table table-sm table-striped table-bordered compact dt-body-nowrap">
+                    <thead>
+                        <th>{% trans "First name" %}</th>
+                        <th>{% trans "Last name" %}</th>
+                        <th>{% trans "Birth date" %}</th>
+                        <th>{% trans "Level" %}</th>
+                        <th>{% trans "Class name" %}</th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                        <tr></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function () {
+    $('#id_high_school').change(function(event){
+        let value = $(event.target).val();
+        console.log(value);
+        if (value)
+        {
+            load_to_validate(value);
+            load_validate(value);
+            laod_rejected(value);
+        }
+    });
+
+
+    function load_to_validate(hs_id) {
+        $('#to_validate').DataTable({
+            processing: false,
+            order: [[1, 'asc']],
+            pageLength: 25,
+            lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
+            serverSide: false,
+            responsive: true,
+            info: true,
+            ordering: true,
+            search: true,
+            ajax: {
+                url: "/api/get_student_records/",
+                data: function (d) {
+                    d.action = 'TO_VALIDATE';
+                    d.high_school_id = $('#id_high_school').val();
+                },
+                dataSrc: function(json) {
+                    if (json['data'] != undefined) {
+                        return json['data'];
+                    }
+                    // else {
+                    //     return [];
+                    // }
+                },
+            },
+            searching: true,
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
+            columns: [
+                {data: 'first_name',},
+                {data: 'last_name',},
+                {data: 'birth_date',},
+                {data: 'level',},
+                {data: 'class_name',},
+                {data: 'id', render: function(data) {
+                        let element = '';
+                        element += '<button class="btn btn-success mr-2" id="btn_validate_'+data+'">{% trans "Validate" %}</button>';
+                        element += '<button class="btn btn-danger" id="btn_reject_'+data+'">{% trans "Reject" %}</button>';
+                        return element;
+                    }
+                },
+            ],
+            columnDefs: [{
+                defaultContent: '',
+                targets: '_all',
+            }]
+        });
+    }
+
+    function reload_to_validate() {
+        $('#to_validate').dataTable().clear();
+        $('#to_validate').dataTable().ajax.reload();
+
+    }
+
+    function load_validate (hs_id) {
+        $('#validated').DataTable({
+            processing: false,
+            order: [[1, 'asc']],
+            pageLength: 25,
+            lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
+            serverSide: false,
+            responsive: true,
+            info: true,
+            ordering: true,
+            search: true,
+            ajax: {
+                url: "/api/get_student_records/",
+                data: function (d) {
+                    d.action = 'VALIDATED';
+                    d.high_school_id = $('#id_high_school').val();
+                },
+                dataSrc: function(json) {
+                    if (json['data'] != undefined) {
+                        return json['data'];
+                    }
+                },
+            },
+            searching: true,
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
+            columns: [
+                {data: 'first_name',},
+                {data: 'last_name',},
+                {data: 'birth_date',},
+                {data: 'level',},
+                {data: 'class_name',},
+                {data: 'id', render: function(data) {
+                        return '<button class="btn btn-danger" id="btn_reject_'+data+'">{% trans "Reject" %}</button>';
+                    }
+                }
+            ],
+            columnDefs: [{
+                defaultContent: '',
+                targets: '_all',
+            }]
+        });
+    }
+    function reload_validate() {
+        $('#validated').dataTable().clear();
+        $('#validated').dataTable().ajax.reload();
+    }
+
+    function laod_rejected (hs_id) {
+        $('#rejected').DataTable({
+            processing: false,
+            order: [[1, 'asc']],
+            pageLength: 25,
+            lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
+            serverSide: false,
+            responsive: true,
+            info: true,
+            ordering: true,
+            search: true,
+            ajax: {
+                url: "/api/get_student_records/",
+                data: function (d) {
+                    d.action = 'VALIDATED';
+                    d.high_school_id = $('#id_high_school').val();
+                },
+                dataSrc: function(json) {
+                    if (json['data'] !== undefined) {
+                        return json['data'];
+                    }
+                },
+            },
+            searching: true,
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
+            columns: [
+                {data: 'first_name',},
+                {data: 'last_name',},
+                {data: 'birth_date',},
+                {data: 'level',},
+                {data: 'class_name',},
+                {data: 'id', render: function(data) {
+                        return '<button class="btn btn-success" id="btn_validate_'+data+'">{% trans "Validate" %}</button>';
+                    }
+                }
+            ],
+            columnDefs: [{
+                defaultContent: '',
+                targets: '_all',
+            }]
+        });
+    }
+    function relaod_rejected() {
+        $('#rejected').dataTable().clear();
+        $('#rejected').dataTable().ajax.reload();
+    }
+
+    load_to_validate("{{ high_school.id }}");
+    load_validate("{{ high_school.id }}");
+    laod_rejected("{{ high_school.id }}");
+
+});
+
+</script>
+{% endblock %}

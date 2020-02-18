@@ -19,6 +19,8 @@ urlpatterns = [
     path('slot/add/<int:slot_id>', views.add_slot, name='duplicate_slot'),
     path('slot/modify/<int:slot_id>', views.modify_slot, name='modify_slot'),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
+    path('student_validation/', views.student_validation, name='student_validation_global'),
+    path('student_validation/<int:high_school_id>/', views.student_validation, name='student_validation'),
     path('course/<int:course_id>', views.course, name='modify_course'),
     path('course/<int:course_id>/<int:duplicate>', views.course, name='duplicate_course'),
 ]

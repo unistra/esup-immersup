@@ -31,8 +31,15 @@
                 {% include 'slots/add_slot__controls.html' %}
                 <br>
 
-                {% if errors %}
+                {% if errors or teacher_error %}
                 <div class="alert alert-danger">
+                    {% if teacher_error %}
+                    <ul>
+                        <li>{% trans "Teachers" %}
+                            <ul><li>{% trans "You have to select one or more teachers" %}</li></ul>
+                        </li>
+                    </ul>
+                    {% endif %}
                     {{ errors }}
                 </div>
                 {% endif %}
@@ -128,7 +135,7 @@
                             {% if slot %}
                             {% for t in slot.course.teachers.all %}
                             <div class="custom-control custom-checkbox">
-                                {% if t in slot.teachers.all %}
+                                {% if t.id in teachers_idx %}
                                     <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
                                 {% else %}
                                     <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
@@ -226,7 +233,7 @@ $(document).ready(function(){
 
             let not_mandatory = [
                 'course_type', 'campus', 'building', 'room', 'date',
-                'start_date', 'end_date', 'teachers', 'n_places'
+                'start_time', 'end_time', 'teachers', 'n_places'
             ];
             let mandatory = ['training', 'course'];
 
@@ -241,7 +248,7 @@ $(document).ready(function(){
         }
     }
 
-    function load_trainings(value) {
+    function load_trainings(value, select=false) {
         $.post({
             beforeSend: function (request) {
                    request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
@@ -257,7 +264,13 @@ $(document).ready(function(){
                         '<option value="">{% trans 'Choose a value' %}</option>'
                     );
                     data['data'].forEach(function(e){
-                        let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
+                        let selected = '';
+                        {% if slot %}
+                            if ( e['id'] == '{{ slot.course.training.id }}' ) {
+                                selected = 'selected';
+                            }
+                        {% endif %}
+                        let element = '<option '+ selected +' value="' + e['id'] + '">' + e['label'] + '</option>';
                         $('#training').append(element);
                     });
                 }
@@ -334,10 +347,23 @@ $(document).ready(function(){
 
     // Back button + confirm
     $('.back_btn').click(function (event) {
-        if (confirm("{% trans 'Did you really want to cancel this creation?' %}")){
+
+        {% if slot %}
+            {% if slot.id %}
+                let msg = "{% trans 'Did you really want to cancel this modification?' %}";
+            {% else %}
+                let msg = "{% trans 'Did you really want to cancel this duplication?' %}";
+            {% endif %}
+        {% else %}
+            let msg = "{% trans 'Did you really want to cancel this creation?' %}"
+        {% endif %}
+
+        if (confirm(msg) === true){
             c = $('#component').val();
             t = $('#training').val();
-            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
+            setTimeout(function() {
+                window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t
+            }, 1000);
         }
     });
 
@@ -361,6 +387,14 @@ $(document).ready(function(){
     $('#id_published').on('change', function(){ toggle_required_fields(); });
 
     {% if slot %}
+    $('#component option').each(function(i, e) {
+        if ( $(e).val() == '{{ slot.course.component.id }}' )
+        {
+            e.selected = true;
+            load_trainings($(e).val(), true);
+        }
+    });
+
     $('#id_campus option[type="{{ slot.campus.id }}"]').attr('selected', '');
 
     $('#id_course').html('');
@@ -368,13 +402,12 @@ $(document).ready(function(){
         '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
     );
 
-    {% if slot.campus %}
-        $('#id_campus').html('');
-        $('#id_campus').append(
-            '<option selected value="{{ slot.campus.id }}">{{ slot.campus.label }}</option>'
-        );
-    {% endif %}
-
+        {% if slot.campus %}
+            $('#id_campus').html('');
+            $('#id_campus').append(
+                '<option selected value="{{ slot.campus.id }}">{{ slot.campus.label }}</option>'
+            );
+        {% endif %}
 
     {% endif%}
 });
