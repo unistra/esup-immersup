@@ -139,7 +139,7 @@ def recovery(request):
         email = request.POST.get('email', '').strip().lower()
 
         try:
-            user = ImmersionUser.objects.get(email=email)
+            user = ImmersionUser.objects.get(email__iexact=email)
 
             if not user.username.startswith(settings.USERNAME_PREFIX):
                 messages.warning(request, _("Please use your establishment credentials."))
@@ -226,7 +226,7 @@ def resend_activation(request):
         email = request.POST.get('email', '').strip().lower()
 
         try:
-            user = ImmersionUser.objects.get(email=email)
+            user = ImmersionUser.objects.get(email__iexact=email)
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("No account found with this email address"))
         else:
