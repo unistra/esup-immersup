@@ -43,6 +43,11 @@
                     {{ errors }}
                 </div>
                 {% endif %}
+                <div class="alert alert-success" id="ok_modify">
+                    {% trans "Slot success successfully modified" %}
+                </div>
+                {% if modify %}
+                {% endif %}
                 <br>
 
                 {% csrf_token %}
@@ -387,6 +392,14 @@ $(document).ready(function(){
     $('#id_published').on('change', function(){ toggle_required_fields(); });
 
     {% if slot %}
+    setTimeout(function(){
+            $('#ok_modify').fadeOut(1000, function(){
+                $('#ok_modify').hide();
+            });
+        },
+        3000
+    );
+
     $('#component option').each(function(i, e) {
         if ( $(e).val() == '{{ slot.course.component.id }}' )
         {

@@ -239,6 +239,7 @@ def modify_slot(request, slot_id):
                 "slot_form": slot_form,
                 "ready_load": False,
                 "teachers_idx": [t.id for t in slot.teachers.all()],
+                "modify": True,
             }
             return render(request, 'slots/add_slot.html', context=context)
         else:
