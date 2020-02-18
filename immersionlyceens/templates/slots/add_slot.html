@@ -31,8 +31,15 @@
                 {% include 'slots/add_slot__controls.html' %}
                 <br>
 
-                {% if errors %}
+                {% if errors or teacher_error %}
                 <div class="alert alert-danger">
+                    {% if teacher_error %}
+                    <ul>
+                        <li>{% trans "Teachers" %}
+                            <ul><li>{% trans "You have to select one or more teachers" %}</li></ul>
+                        </li>
+                    </ul>
+                    {% endif %}
                     {{ errors }}
                 </div>
                 {% endif %}
@@ -395,13 +402,12 @@ $(document).ready(function(){
         '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
     );
 
-    {% if slot.campus %}
-        $('#id_campus').html('');
-        $('#id_campus').append(
-            '<option selected value="{{ slot.campus.id }}">{{ slot.campus.label }}</option>'
-        );
-    {% endif %}
-
+        {% if slot.campus %}
+            $('#id_campus').html('');
+            $('#id_campus').append(
+                '<option selected value="{{ slot.campus.id }}">{{ slot.campus.label }}</option>'
+            );
+        {% endif %}
 
     {% endif%}
 });

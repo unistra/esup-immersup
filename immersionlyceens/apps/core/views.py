@@ -130,12 +130,17 @@ def add_slot(request, slot_id=None):
             request.POST.get('save_add')):
 
         slot_form = SlotForm(request.POST, instance=slot)
-        if slot_form.is_valid():
+        teachers = []
+        teacher_prefix = 'teacher_'
+        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if
+                           teacher_prefix in e]:
+            teachers.append(teacher_id)
+
+        # if not pub --> len teachers must be > 0
+        # else no teacher is needed
+        published = request.POST.get('published') == 'on'
+        if slot_form.is_valid() and (not published or len(teachers) > 0):
             slot_form.save()
-            teachers = []
-            teacher_prefix = 'teacher_'
-            for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-                teachers.append(teacher_id)
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
         else:
@@ -144,6 +149,7 @@ def add_slot(request, slot_id=None):
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
+                "teacher_error": len(teachers) < 1,
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -196,13 +202,17 @@ def modify_slot(request, slot_id):
             request.POST.get('save_add')):
 
         slot_form = SlotForm(request.POST, instance=slot)
-        if slot_form.is_valid():
+
+        teachers = []
+        teacher_prefix = 'teacher_'
+        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if
+                           teacher_prefix in e]:
+            teachers.append(teacher_id)
+
+        published = request.POST.get('published') == 'on'
+        if slot_form.is_valid() and (not published or len(teachers) > 0):
             slot_form.save()
             slot_form.instance.teachers.clear()
-            teachers = []
-            teacher_prefix = 'teacher_'
-            for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-                teachers.append(teacher_id)
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
         else:
@@ -213,6 +223,7 @@ def modify_slot(request, slot_id):
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
+                "teacher_error": len(teachers) < 1,
                 "teachers_idx": [t.id for t in slot.teachers.all()],
             }
             return render(request, 'slots/add_slot.html', context=context)
