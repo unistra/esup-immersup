@@ -1,7 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import authenticate
 
 from immersionlyceens.apps.core.models import ImmersionUser
@@ -108,6 +108,29 @@ class HighSchoolStudentForm(forms.ModelForm):
     class Meta:
         model = ImmersionUser
         fields = ['last_name', 'first_name', 'email']
+
+
+class HighSchoolStudentPassForm(UserCreationForm):
+    def __init__(self, *args, **kwargs):
+        # self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+    """
+    def clean(self):
+        cleaned_data = super().clean()
+
+        password = cleaned_data.get('password')
+        password2 = cleaned_data.get('password2')
+
+        if not all(password, password2) or password == password2:
+            raise forms.ValidationError(
+                _("Error : passwords don't match"))
+
+        return cleaned_data
+    """
+    class Meta:
+        model = ImmersionUser
+        fields = ('password1', 'password2')
 
 
 class HighSchoolStudentRecordForm(forms.ModelForm):

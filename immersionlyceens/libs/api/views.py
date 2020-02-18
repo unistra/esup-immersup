@@ -408,6 +408,6 @@ def ajax_check_date_between_vacation(request):
                            Holiday.date_is_a_holiday(formated_date.date()))
         }
     else:
-        response['msg']: gettext('Error: A date is required')
-    print(response)
+        response['msg'] = gettext('Error: A date is required')
+
     return JsonResponse(response, safe=False)

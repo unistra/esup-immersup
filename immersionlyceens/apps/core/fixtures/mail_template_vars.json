@@ -254,5 +254,13 @@
         "code": "${urlPlateforme}",
         "description": "Adresse (URL) de la plateforme"
     }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 33,
+    "fields": {
+        "code": "${lienMotDePasse}",
+        "description": "Lien vers la page de réinitialisation du mot de passe"
+    }
 }
 ]

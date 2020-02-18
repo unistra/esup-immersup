@@ -1,6 +1,7 @@
 import enum
 import logging
 import re
+import uuid
 from functools import partial
 
 from django.conf import settings
@@ -147,6 +148,9 @@ class ImmersionUser(AbstractUser):
     validation_string = models.TextField(_("Account validation string"),
         blank=True, null=True, unique=True)
 
+    recovery_string = models.TextField(_("Account password recovery string"),
+        blank=True, null=True, unique=True)
+
     class Meta:
         verbose_name = _('User')
 
@@ -248,6 +252,21 @@ class ImmersionUser(AbstractUser):
         Return True if the user is a high school student
         """
         return self.username.startswith(settings.USERNAME_PREFIX)
+
+    def set_validation_string(self):
+        """
+        Generates and return a new validation string
+        """
+        self.validation_string = uuid.uuid4().hex
+        self.save()
+        return self.validation_string
+
+    def set_recovery_string(self):
+        """
+        Generates and return a new password recovery string
+        """
+        self.recovery_string = uuid.uuid4().hex
+        self.save()
 
 
 class TrainingDomain(models.Model):

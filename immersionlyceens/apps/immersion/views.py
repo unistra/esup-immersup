@@ -18,7 +18,7 @@ from immersionlyceens.libs.utils import check_active_year
 from .models import HighSchoolStudentRecord
 
 from .forms import (LoginForm, RegistrationForm, HighSchoolStudentRecordForm,
-    HighSchoolStudentForm)
+    HighSchoolStudentForm, HighSchoolStudentPassForm)
 
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ def register(request):
             new_user = form.save(commit=False)
             # adjustments here
             new_user.username = form.cleaned_data.get("username")
-            new_user.validation_string = uuid.uuid4().hex
+            new_user.set_validation_string()
             new_user.destruction_date = \
                 datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
@@ -133,7 +133,75 @@ def register(request):
 
 
 def recovery(request):
-    pass
+    email = ""
+
+    if request.method == "POST":
+        email = request.POST.get('email', '').strip().lower()
+
+        try:
+            user = ImmersionUser.objects.get(email=email)
+
+            if not user.username.startswith(settings.USERNAME_PREFIX):
+                messages.warning(request, _("Please use your establishment credentials."))
+            else:
+                user.set_recovery_string()
+                msg = user.send_message(request, 'CPT_MIN_ID_OUBLIE')
+                messages.success(request, _("An email has been sent with the procedure to set a new password."))
+
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("No account found with this email address"))
+        except ImmersionUser.MultipleObjectsReturned:
+            messages.error(request, _("Error : please contact the SCUIO-IP"))
+
+    context = {
+        'email': email,
+    }
+
+    return render(request, 'immersion/recovery.html', context)
+
+
+def reset_password(request, hash=None):
+    if request.method == "POST":
+        user_id = request.session.get("user_id")
+
+        if user_id:
+            try:
+                user = ImmersionUser.objects.get(pk=user_id)
+            except ImmersionUser.DoesNotExist:
+                messages.error(request, _("Password recovery : invalid data"))
+                return HttpResponseRedirect("/immersion/login")
+
+            form = HighSchoolStudentPassForm(request.POST, instance=user)
+
+            if form.is_valid():
+                user = form.save()
+                user.recovery_string = None
+                user.save()
+                messages.success(request, _("Password successfully updated."))
+                return HttpResponseRedirect("/immersion/login")
+
+            return render(request, 'immersion/reset_password.html', {'form':form})
+    elif hash:
+        try:
+            user = ImmersionUser.objects.get(recovery_string=hash)
+            request.session['user_id'] = user.id
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("Password recovery : invalid data"))
+            return HttpResponseRedirect("/immersion/login")
+        except ImmersionUser.MultipleObjectsReturned:
+            messages.error(request, _("Error : please contact the SCUIO-IP"))
+            return HttpResponseRedirect("/immersion/login")
+
+        form = HighSchoolStudentPassForm(instance=user)
+        context = {
+            'form': form,
+        }
+
+        return render(request, 'immersion/reset_password.html', context)
+
+    else:
+        del(request.session['user_id'])
+        return HttpResponseRedirect("/immersion/login")
 
 
 def activate(request, hash=None):
@@ -148,8 +216,6 @@ def activate(request, hash=None):
             logger.exception("Activation error : %s", e)
             messages.error(request, _("Something went wrong"))
 
-    context = {}
-
     return HttpResponseRedirect("/immersion/login")
 
 
@@ -158,10 +224,6 @@ def resend_activation(request):
 
     if request.method == "POST":
         email = request.POST.get('email', '').strip().lower()
-
-        search_email = settings.USERNAME_PREFIX + email
-
-        print(search_email)
 
         try:
             user = ImmersionUser.objects.get(email=email)

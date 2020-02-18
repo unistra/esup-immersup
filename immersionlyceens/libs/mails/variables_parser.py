@@ -86,6 +86,8 @@ def parser(user, request, message_body, vars, **kwargs):
         ('${identifiant}', user.get_cleaned_username()),
         ('${lienValidation}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
             reverse('immersion:activate', kwargs={'hash':user.validation_string})))),
+        ('${lienMotDePasse}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
+            reverse('immersion:reset_password', kwargs={'hash':user.recovery_string})))),
         ('${jourDestructionCptMin}', user.get_localized_destruction_date())
     ]
 
