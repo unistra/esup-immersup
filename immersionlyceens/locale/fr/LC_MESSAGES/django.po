@@ -1951,7 +1951,7 @@ msgstr "Mot de passe (confirmation)"
 
 #: immersionlyceens/templates/immersion/resend_activation.html:13
 msgid "Resend an activation email"
-msgstr "Renvoyer le mail d'acvivation"
+msgstr "Renvoyer le mail d'activation"
 
 #: immersionlyceens/templates/immersion/resend_activation.html:24
 msgid "Resend"
