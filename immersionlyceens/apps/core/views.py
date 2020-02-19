@@ -481,7 +481,7 @@ def myslots(request):
     return render(request, 'core/myslots.html')
 
 
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC',)
 def my_high_school(request,  high_school_id=None):
     from .models import HighSchool
 
@@ -510,9 +510,16 @@ def my_high_school(request,  high_school_id=None):
 
     return render(request, 'core/my_high_school.html', context)
 
-# @@@
+
+@groups_required('REF-LYC', 'SCUIO-IP',)
 def student_validation(request, high_school_id=None):
     from .models import HighSchool
+
+    if not high_school_id and request.user.is_high_school_manager():
+        return redirect(
+            'student_validation',
+            high_school_id=request.user.highschool.id
+        )
 
     # student_validation
     context = {}
