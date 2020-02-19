@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+{% endblock %}
+{% block title %}{% trans "Student record" %}{% endblock %}
+
+{% block section_title %}
+<h2>{% trans "Student record" %}</h2>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px; width:70%;">
+  <form class="" role="form" action="/immersion/student_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
+        {% csrf_token %}
+        {{ record_form.student }}
+        {{ record_form.id }}
+        {{ student_form.id }}
+    <div class="card">
+      <div class="card-header text-white bg-secondary">
+        {% trans "Please fill this form to complete your personal record" %}
+      </div>
+      <div class="card-body">
+        <div class="form-group row">
+          <label for="id_civility" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Civility' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.civility }}</div>
+          <div class="col-sm-6">{{ record_form.civility.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_lastname" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Lastname' %} :
+          </label>
+          <div class="col-sm-3">{{ student_form.last_name }}</div>
+          <div class="col-sm-6">{{ student_form.last_name.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_first_name" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Firstname' %} :
+          </label>
+          <div class="col-sm-3">{{ student_form.first_name }}</div>
+          <div class="col-sm-6">{{ student_form.first_name.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_email" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Email' %} :
+          </label>
+          div class="col-sm-2">{{ student_form.email }} </div>
+          <div class="col-sm-3 warning">{{ student_form.email.help_text }}</div>
+          <div class="col-sm-3">{{ student_form.email.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_birth_date" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Birth date' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.birth_date }}</div>
+          <div class="col-sm-6">{{ record_form.birth_date.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_phone" class="col-sm-3 col-form-label">{% trans 'Phone number' %} :</label>
+          <div class="col-sm-3">{{ record_form.phone }}</div>
+          <div class="col-sm-6">{{ record_form.phone.errors }}</div>
+        </div>
+      </div>
+      <div class="card-header text-white bg-secondary">
+        {% trans "Your level" %}
+      </div>
+      <div class="card-body">
+        <div class="form-group row">
+          <label for="id_home_institution" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Home institution' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.home_institution }}</div>
+          <div class="col-sm-6">{{ record_form.home_institution.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_level" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Level' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.level }}</div>
+          <div class="col-sm-6">{{ record_form.level.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_origin_bachelor_type" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Origin bachelor type' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.origin_bachelor_type }}</div>
+          <div class="col-sm-6">{{ record_form.origin_bachelor_type.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_current_diploma" class="col-sm-3 col-form-label">{% trans 'Current diploma' %} :</label>
+          <div class="col-sm-3">{{ record_form.current_diploma }}</div>
+          <div class="col-sm-6">{{ record_form.current_diploma.errors }}</div>
+        </div>
+      </div>
+    </div>
+    <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}" style="margin-top:20px;"">
+    <div class="card" style="margin-top:20px;">
+      <div class="card-header text-white bg-secondary">
+        {% trans "Reserved fields for SCUIO-IP" %}
+      </div>
+      <div class="card-body">
+        <div class="form-group row">
+          <label for="id_allowed_global_registrations" class="col-sm-4 col-form-label">
+            {% trans 'Annually allowed registrations' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.allowed_global_registrations }}</div>
+          <div class="col-sm-5">{{ record_form.allowed_global_registrations.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_allowed_first_semester_registrations" class="col-sm-4 col-form-label">
+            {% trans 'Allowed registrations for first semester' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.allowed_first_semester_registrations }}</div>
+          <div class="col-sm-5">{{ record_form.allowed_first_semester_registrations.errors }}</div>
+        </div>
+        <div class="form-group row">
+          <label for="id_allowed_second_semester_registrations" class="col-sm-4 col-form-label">
+            {% trans 'Allowed registrations for second semester' %} :
+          </label>
+          <div class="col-sm-3">{{ record_form.allowed_second_semester_registrations }}</div>
+          <div class="col-sm-5">{{ record_form.allowed_second_semester_registrations.errors }}</div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $(function () {
+      $(".datepicker").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        yearRange: "1990:2010",
+        defaultDate: "01/01/1990",
+      });
+    });
+  });
+</script>
+{% endblock %}

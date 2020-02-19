@@ -18,7 +18,9 @@ urlpatterns = [
     path('recovery', views.recovery, name='recovery'),
     path('reset_password/<hash>', views.reset_password, name='reset_password'),
     path('activate/<hash>', views.activate, name='activate'),
-    path('record', views.student_record, name='record'),
-    path('record/<int:record_id>', views.student_record, name='modify_record'),
+    path('hs_record', views.high_school_student_record, name='hs_record'),
+    path('hs_record/<int:record_id>', views.high_school_student_record, name='modify_hs_record'),
+    path('student_record', views.student_record, name='student_record'),
+    path('student_record/<int:record_id>', views.student_record, name='modify_student_record'),
     path('resend_activation', views.resend_activation, name='resend_activation'),
 ]

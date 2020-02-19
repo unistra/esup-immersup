@@ -109,8 +109,7 @@ class HighSchool(models.Model):
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
 
     def __str__(self):
-        # TODO: Should we display city as well (????)
-        return self.label
+        return "%s - %s" % (self.city, self.label)
 
 
 class ImmersionUser(AbstractUser):
@@ -127,6 +126,7 @@ class ImmersionUser(AbstractUser):
         'REF-CMP': 'component_manager',
         'REF-LYC': 'high_school_manager',
         'ETU': 'student',
+        'LYC': 'high_school_student',
         'ENS-CH': 'teacher',
         'SRV-JUR': 'legal_department_staff',
     }
@@ -240,6 +240,12 @@ class ImmersionUser(AbstractUser):
         :return: True if account is validated else False
         """
         return self.validation_string is None
+
+    def get_high_school_student_record(self):
+        try:
+            return self.high_school_student_record
+        except ObjectDoesNotExist:
+            return None
 
     def get_student_record(self):
         try:
