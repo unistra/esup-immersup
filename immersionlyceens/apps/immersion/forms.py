@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import authenticate
 
 from immersionlyceens.apps.core.models import ImmersionUser
-from .models import HighSchoolStudentRecord
+from .models import HighSchoolStudentRecord, StudentRecord
 
 class LoginForm(forms.Form):
     login = forms.CharField(label=_("Login"), max_length=100, required=True)
@@ -87,6 +87,37 @@ class RegistrationForm(UserCreationForm):
         fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
 
 
+class StudentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        self.fields["last_name"].required = True
+        self.fields["first_name"].required = True
+        self.fields["email"].disabled = True
+
+        self.fields["email"].help_text = _(
+            "Warning : changing your email will require an account reactivation")
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        email = cleaned_data.get("email").strip().lower()
+
+        if email != self.instance.email():
+            self.request.user.set_validation_string()
+            try:
+                msg = self.request.user.send_message(self.request, 'CPT_MIN_CHANGE_MAIL')
+            except Exception as e:
+                logger.exception("Cannot send 'change mail' message : %s", e)
+
+        return cleaned_data
+
+    class Meta:
+        model = ImmersionUser
+        fields = ['last_name', 'first_name', 'email']
+
+
 class HighSchoolStudentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
@@ -95,6 +126,9 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
+
+        self.fields["email"].help_text = _(
+            "Warning : changing your email will require an account reactivation")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -115,19 +149,6 @@ class HighSchoolStudentPassForm(UserCreationForm):
         # self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-    """
-    def clean(self):
-        cleaned_data = super().clean()
-
-        password = cleaned_data.get('password')
-        password2 = cleaned_data.get('password2')
-
-        if not all(password, password2) or password == password2:
-            raise forms.ValidationError(
-                _("Error : passwords don't match"))
-
-        return cleaned_data
-    """
     class Meta:
         model = ImmersionUser
         fields = ('password1', 'password2')
@@ -192,6 +213,33 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'current_diploma', 'visible_immersion_registrations', 'visible_email',
                   'allowed_global_registrations', 'allowed_first_semester_registrations',
                   'allowed_second_semester_registrations', 'student']
+
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),
+        }
+
+        localized_fields = ('birth_date',)
+
+
+class StudentRecordForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        self.fields["student"].widget = forms.HiddenInput()
+        self.fields["home_institution"].disabled = True
+
+        if not self.request or not self.request.user.is_scuio_ip_manager():
+            for field in ('allowed_global_registrations', 'allowed_first_semester_registrations' ,
+                'allowed_second_semester_registrations'):
+                self.fields[field].disabled = True
+
+    class Meta:
+        model = StudentRecord
+        fields = ['civility', 'birth_date', 'phone', 'home_institution', 'level',
+                  'origin_bachelor_type', 'current_diploma', 'allowed_global_registrations',
+                  'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
+                  'student']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),

@@ -51,7 +51,7 @@ class HighSchoolStudentRecord(models.Model):
         null=False,
         blank=False,
         on_delete=models.CASCADE,
-        related_name="student_record"
+        related_name="high_school_student_record"
     )
 
     highschool = models.ForeignKey(
@@ -89,9 +89,9 @@ class HighSchoolStudentRecord(models.Model):
         _("Professional bachelor mention"), blank=True, null=True, max_length=128)
 
     # For post-bachelor levels
-    post_bachelor_level = models.SmallIntegerField(_("Level"),
+    post_bachelor_level = models.SmallIntegerField(_("Post bachelor level"),
         default=1, null=True, blank=True, choices=POST_BACHELOR_LEVELS)
-    origin_bachelor_type = models.SmallIntegerField(_("Bachelor type"),
+    origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
         default=1, null=True, blank=True, choices=POST_BACHELOR_ORIGIN_TYPES)
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
@@ -160,3 +160,60 @@ class HighSchoolStudentRecord(models.Model):
             return json.loads(self.duplicates)
         else:
             return []
+
+
+class StudentRecord(models.Model):
+    """
+    Student record class, linked to ImmersionUsers accounts
+    """
+    CIVS = [(1, _('Mr')),
+            (2, _('Mrs'))]
+
+    LEVELS = [
+        (1, _('Licence 1 (1st year above A level)')),
+        (2, _('Licence 2 (2nd year above A level)')),
+        (3, _('Licence 3 (3rd year above A level)')),
+        (4, _('BTEC 1')),
+        (5, _('BTEC 2')),
+        (6, _('Other')),
+    ]
+
+    BACHELOR_TYPES = [
+        (1, _('General')),
+        (2, _('Technological')),
+        (3, _('Professional')),
+        (4, _('DAEU'))
+    ]
+
+    student = models.OneToOneField(
+        core_models.ImmersionUser,
+        verbose_name=_('Student'),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="student_record"
+    )
+
+    home_institution = models.CharField(_("Home institution"), blank=False, null=False, max_length=256)
+
+    civility = models.SmallIntegerField(_("Civility"), null=False, blank=False, default=1, choices=CIVS)
+    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
+    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
+    level = models.SmallIntegerField(_("Level"), default=1, blank=False, null=False, choices=LEVELS)
+
+    origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
+        default=1, null=False, blank=False, choices=BACHELOR_TYPES)
+    current_diploma = models.CharField(
+        _("Current diploma"), blank=True, null=True, max_length=128)
+
+    allowed_global_registrations = models.SmallIntegerField(
+        _("Number of allowed year registrations"), null=True, blank=True)
+
+    allowed_first_semester_registrations = models.SmallIntegerField(
+        _("Number of allowed registrations for second semester"), null=True, blank=True)
+
+    allowed_second_semester_registrations = models.SmallIntegerField(
+        _("Number of allowed registrations for first semester"), null=True, blank=True)
+
+    def __str__(self):
+        return gettext("Record for {0} {1}".format(self.student.first_name, self.student.last_name))

@@ -40,5 +40,12 @@
     "fields": {
       "name": "SRV-JUR"
     }
+  },
+  {
+    "model": "auth.group",
+    "pk": 7,
+    "fields": {
+      "name": "LYC"
+    }
   }
 ]

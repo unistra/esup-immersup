@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import Group
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,10 +16,11 @@ from django.conf import settings
 from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear
 from immersionlyceens.libs.utils import check_active_year
 
-from .models import HighSchoolStudentRecord
+from .models import HighSchoolStudentRecord, StudentRecord
 
 from .forms import (LoginForm, RegistrationForm, HighSchoolStudentRecordForm,
-    HighSchoolStudentForm, HighSchoolStudentPassForm)
+    HighSchoolStudentForm, HighSchoolStudentPassForm, StudentRecordForm,
+    StudentForm)
 
 
 logger = logging.getLogger(__name__)
@@ -61,10 +63,10 @@ def customLogin(request):
                 else:
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     # If student has filled his record
-                    if user.get_student_record():
+                    if user.get_high_school_student_record():
                         return HttpResponseRedirect("/immersion")
                     else:
-                        return HttpResponseRedirect("/immersion/record")
+                        return HttpResponseRedirect("/immersion/hs_record")
             else:
                 messages.error(request, _("Authentication error"))
     else:
@@ -109,6 +111,12 @@ def register(request):
             new_user.destruction_date = \
                 datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
+
+            try:
+                Group.objects.get(name='High-School student').user_set.add(new_user)
+            except Exception:
+                logger.exception("Cannot add 'High-School student' group to user {}".format(new_user))
+                messages.error(request, _("Group error"))
 
             try:
                 msg = new_user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
@@ -252,7 +260,7 @@ def home(request):
 
 
 @login_required
-def student_record(request, student_id=None, record_id=None):
+def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
     """
@@ -266,9 +274,9 @@ def student_record(request, student_id=None, record_id=None):
             messages.error(request, _("Invalid student id"))
             return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-    if request.user.is_highschool_student():
+    if request.user.is_high_school_student():
         student = request.user
-        record = student.get_student_record()
+        record = student.get_high_school_student_record()
 
         if not record:
             record = HighSchoolStudentRecord(student=request.user)
@@ -280,11 +288,22 @@ def student_record(request, student_id=None, record_id=None):
             pass
 
     if request.method == 'POST':
+        current_email = student.email
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, request=request, instance=student)
 
         if studentform.is_valid():
             student = studentform.save()
+
+            if current_email != student.email:
+                student.set_validation_string()
+                try:
+                    msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
+                    messages.warning(request, _(
+                        """You have updated your email."""
+                        """<br>A new activation email has been sent, please check your messages."""))
+                except Exception as e:
+                    logger.exception("Cannot send 'change mail' message : %s", e)
         else:
             for err_field, err_list in studentform.errors.get_json_data().items():
                 for error in err_list:
@@ -314,4 +333,76 @@ def student_record(request, student_id=None, record_id=None):
         'student': student
     }
 
-    return render(request, 'immersion/record.html', context)
+    return render(request, 'immersion/hs_record.html', context)
+
+
+@login_required
+def student_record(request, student_id=None, record_id=None):
+    """
+    Student record
+    """
+    record = None
+    student = None
+
+    if student_id:
+        try:
+            student = ImmersionUser.objects.get(pk=student_id)
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("Invalid student id"))
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+    if request.user.is_student():
+        student = request.user
+        record = student.get_student_record()
+
+        if not record:
+            record = StudentRecord(student=request.user)
+    elif record_id:
+        try:
+            record = StudentRecord.objects.get(pk=record_id)
+            student = StudentRecord.student
+        except StudentRecord.DoesNotExist:
+            pass
+
+    if request.method == 'POST':
+        current_email = student.email
+        recordform = StudentRecordForm(request.POST, instance=record, request=request)
+        studentform = StudentForm(request.POST, request=request, instance=student)
+
+        if studentform.is_valid():
+            student = studentform.save()
+
+            if current_email != student.email:
+                student.set_validation_string()
+                try:
+                    msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
+                    messages.warning(request, _(
+                        """You have updated your email."""
+                        """<br>A new activation email has been sent, please check your messages."""))
+                except Exception as e:
+                    logger.exception("Cannot send 'change mail' message : %s", e)
+
+        else:
+            for err_field, err_list in studentform.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))
+
+        if recordform.is_valid():
+            record = recordform.save()
+        else:
+            for err_field, err_list in recordform.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))
+    else:
+        recordform = StudentRecordForm(request=request, instance=record)
+        studentform = StudentForm(request=request, instance=student)
+
+    context = {
+        'student_form': studentform,
+        'record_form': recordform,
+        'student': student
+    }
+
+    return render(request, 'immersion/student_record.html', context)
