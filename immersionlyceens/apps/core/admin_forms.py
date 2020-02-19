@@ -658,9 +658,12 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
-            self.fields["is_staff"].disabled = True
-            self.fields["is_superuser"].disabled = True
-            self.fields["username"].disabled = True
+            if self.fields.get("is_staff"):
+                self.fields["is_staff"].disabled = True
+            if self.fields.get("is_superuser"):
+                self.fields["is_superuser"].disabled = True
+            if self.fields.get("username"):
+                self.fields["username"].disabled = True
 
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
