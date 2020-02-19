@@ -358,13 +358,27 @@ function validate_student( student_record_id ) {
                     3000
                 );
             } else {
-                console.log('nothing appended');
-                // TODO:
+                $('#fail_message').show();
+                setTimeout(function(){
+                    $('#fail_message').fadeOut(
+                        1000,
+                        function() {
+                            $('#fail_message').hide();
+                        }
+                    )
+                }, 3000);
             }
         },
         error: function() {
-            console.log('AJAX error');
-            // TODO:
+            $('#fail_message').show();
+            setTimeout(function(){
+                $('#fail_message').fadeOut(
+                    1000,
+                    function() {
+                        $('#fail_message').hide();
+                    }
+                )
+            }, 3000);
         }
     });
 }
@@ -402,13 +416,27 @@ function reject_student( student_record_id ) {
                     );
 
                 } else {
-                    console.log('nothing appended');
-                    // TODO:
+                    $('#fail_message').show();
+                    setTimeout(function(){
+                        $('#fail_message').fadeOut(
+                            1000,
+                            function() {
+                                $('#fail_message').hide();
+                            }
+                        )
+                    }, 3000);
                 }
             },
             error: function() {
-                console.log('AJAX error');
-                // TODO:
+                $('#fail_message').show();
+                setTimeout(function(){
+                    $('#fail_message').fadeOut(
+                        1000,
+                        function() {
+                            $('#fail_message').hide();
+                        }
+                    )
+                }, 3000);
             }
         });
     }
