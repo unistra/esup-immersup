@@ -113,9 +113,9 @@ def register(request):
             new_user.save()
 
             try:
-                Group.objects.get(name='High-School student').user_set.add(new_user)
+                Group.objects.get(name='LYC').user_set.add(new_user)
             except Exception:
-                logger.exception("Cannot add 'High-School student' group to user {}".format(new_user))
+                logger.exception("Cannot add 'LYC' group to user {}".format(new_user))
                 messages.error(request, _("Group error"))
 
             try:
