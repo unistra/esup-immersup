@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-20 09:28+0100\n"
+"POT-Creation-Date: 2020-02-20 09:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1152,11 +1152,12 @@ msgid "At least one teacher is required"
 msgstr "Au moins un enseignant obligatoire"
 
 #: immersionlyceens/apps/core/views.py:400
-#, python-format
-msgid "User '%s' created"
-msgstr "Utilisateur '%s' créé"
+#, python-brace-format
+msgid "User '{}' created"
+msgstr "Utilisateur '{}' créé"
 
 #: immersionlyceens/apps/core/views.py:405
+#, python-brace-format
 msgid "A confirmation email has been sent to {}"
 msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 

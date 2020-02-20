@@ -10,7 +10,7 @@ from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext, ugettext_lazy as _
 
 
 from immersionlyceens.decorators import groups_required
@@ -397,12 +397,12 @@ def course(request, course_id=None, duplicate=False):
                                 email=teacher['email'],
                             )
 
-                            messages.success(request, _("User '%s' created" % teacher['username']))
+                            messages.success(request, gettext("User '{}' created".format(teacher['username'])))
                             return_msg = teacher_user.send_message(request, 'CPT_CREATE_ENS')
 
                             if not return_msg:
                                 messages.success(request,
-                                    _("A confirmation email has been sent to {}".format(teacher['email'])))
+                                    gettext("A confirmation email has been sent to {}".format(teacher['email'])))
                             else:
                                 messages.warning(request, return_msg)
 
