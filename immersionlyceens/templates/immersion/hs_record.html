@@ -110,8 +110,8 @@
               <label for="id_general_bachelor_teachings" class="col-sm-3 col-form-label">
                 <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'General bachelor teachings' %} :
               </label>
-              <div class="col-sm-3">{{ record_form.general_bachelor_teachings }}</div>
-              <div class="col-sm-6">{{ record_form.general_bachelor_teachings.errors }}</div>
+              <div class="col-sm-6">{{ record_form.general_bachelor_teachings }}</div>
+              <div class="col-sm-3">{{ record_form.general_bachelor_teachings.errors }}</div>
             </div>
           </div>
           <div id="id_technological_bachelor_data" style="display:none">
@@ -187,7 +187,6 @@
           <div class="col-sm-1 col-form-label">{{ calendar.nb_authorized_immersion_per_semester }}</div>
         </div>
         {% endif %}
-      </div>
       </div>
     </div>
     <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}" style="margin-top:20px;"">
