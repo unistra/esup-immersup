@@ -27,11 +27,20 @@
       {% trans "Student validation" %}{% if high_school %} - {{ high_school.label }}{% else %}<span id="card_title"></span>{% endif %}
     </div>
     <div class="card-body">
+        <div class="alert alert-danger hide" id="fail_message">
+            {% trans "An error occured. The validation or rejection failed." %}
+        </div>
+        <div class="alert alert-success hide" id="validate_message">
+                {% trans "Student validated" %}
+        </div>
+        <div class="alert alert-success hide" id="reject_message">
+                {% trans "Student rejected" %}
+        </div>
+
         {% if not high_school %}
         <div class="form-group row">
             <label for="high_school" class="col-form-label col-sm-3">{% trans 'Select an high school' %}:</label>
             <select name="high_school" id="id_high_school" class="form-control col-sm-3">
-                <option value="" selected>----------</option>
                 {% for hs in high_schools %}
                 <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
                 {% endfor %}
@@ -47,13 +56,13 @@
                 {% trans "Student to validate" %}
             </div>
             <div class="card-body">
-                <table id="to_validate" class="table table-sm table-striped table-bordered compact dt-body-nowrap">
+                <table id="to_validate" class="table table-sm table-striped table-bordered compact dt-body-nowrap dt-nowrap nowrap">
                     <thead>
-                        <th>{% trans "First name" %}</th>
-                        <th>{% trans "Last name" %}</th>
-                        <th>{% trans "Birth date" %}</th>
-                        <th>{% trans "Level" %}</th>
-                        <th>{% trans "Class name" %}</th>
+                        <th id="first_name_filter_to_validate">{% trans "First name" %}</th>
+                        <th id="last_name_filter_to_validate">{% trans "Last name" %}</th>
+                        <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
+                        <th id="level_filter_to_validate">{% trans "Level" %}</th>
+                        <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
                         <th></th>
                     </thead>
                     <tbody>
@@ -74,13 +83,13 @@
                 {% trans "Validated student" %}
             </div>
             <div class="card-body">
-                <table id="validated" class="table table-sm table-striped table-bordered compact dt-body-nowrap">
+                <table id="validated" class="table table-sm table-striped table-bordered compact dt-body-nowrap dt-nowrap nowrap">
                     <thead>
-                        <th>{% trans "First name" %}</th>
-                        <th>{% trans "Last name" %}</th>
-                        <th>{% trans "Birth date" %}</th>
-                        <th>{% trans "Level" %}</th>
-                        <th>{% trans "Class name" %}</th>
+                        <th id="first_name_filter_validated">{% trans "First name" %}</th>
+                        <th id="last_name_filter_validated">{% trans "Last name" %}</th>
+                        <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
+                        <th id="level_filter_validated">{% trans "Level" %}</th>
+                        <th id="class_name_filter_validated">{% trans "Class name" %}</th>
                         <th></th>
                     </thead>
                     <tbody>
@@ -101,13 +110,13 @@
                 {% trans "Rejected student" %}
             </div>
             <div class="card-body">
-                <table id="rejected" class="table table-sm table-striped table-bordered compact dt-body-nowrap">
+                <table id="rejected" class="table table-sm table-striped table-bordered compact dt-body-nowrap dt-nowrap nowrap">
                     <thead>
-                        <th>{% trans "First name" %}</th>
-                        <th>{% trans "Last name" %}</th>
-                        <th>{% trans "Birth date" %}</th>
-                        <th>{% trans "Level" %}</th>
-                        <th>{% trans "Class name" %}</th>
+                        <th id="first_name_filter_rejected">{% trans "First name" %}</th>
+                        <th id="last_name_filter_rejected">{% trans "Last name" %}</th>
+                        <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
+                        <th id="level_filter_rejected">{% trans "Level" %}</th>
+                        <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
                         <th></th>
                     </thead>
                     <tbody>
@@ -126,21 +135,48 @@
   </div>
 </div>
 <script type="text/javascript">
+var t1, t2;
+var dts = {}
+
 $(document).ready(function () {
-    $('#id_high_school').change(function(event){
-        let value = $(event.target).val();
-        console.log(value);
-        if (value)
-        {
-            load_to_validate(value);
-            load_validate(value);
-            laod_rejected(value);
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
         }
     });
 
 
-    function load_to_validate(hs_id) {
-        $('#to_validate').DataTable({
+    $('#id_high_school').change(function(event){
+        let value = $(event.target).val();
+        if (value)
+        {
+            reload_to_validate();
+            reload_validate();
+            relaod_rejected();
+        }
+    });
+
+
+    function load_to_validate() {
+        dts['to_validate'] = $('#to_validate').DataTable({
             processing: false,
             order: [[1, 'asc']],
             pageLength: 25,
@@ -160,9 +196,6 @@ $(document).ready(function () {
                     if (json['data'] != undefined) {
                         return json['data'];
                     }
-                    // else {
-                    //     return [];
-                    // }
                 },
             },
             searching: true,
@@ -175,8 +208,10 @@ $(document).ready(function () {
                 {data: 'class_name',},
                 {data: 'id', render: function(data) {
                         let element = '';
-                        element += '<button class="btn btn-success mr-2" id="btn_validate_'+data+'">{% trans "Validate" %}</button>';
-                        element += '<button class="btn btn-danger" id="btn_reject_'+data+'">{% trans "Reject" %}</button>';
+                        element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
+                            'onclick="validate_student('+data+')">{% trans "Validate" %}</button>';
+                        element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                            'onclick="reject_student('+data+')">{% trans "Reject" %}</button>';
                         return element;
                     }
                 },
@@ -188,14 +223,9 @@ $(document).ready(function () {
         });
     }
 
-    function reload_to_validate() {
-        $('#to_validate').dataTable().clear();
-        $('#to_validate').dataTable().ajax.reload();
 
-    }
-
-    function load_validate (hs_id) {
-        $('#validated').DataTable({
+    function load_validate () {
+        dts['validated'] = $('#validated').DataTable({
             processing: false,
             order: [[1, 'asc']],
             pageLength: 25,
@@ -226,23 +256,20 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'id', render: function(data) {
-                        return '<button class="btn btn-danger" id="btn_reject_'+data+'">{% trans "Reject" %}</button>';
+                        return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                            'onclick="reject_student('+data+')">{% trans "Reject" %}</button>';
                     }
                 }
             ],
             columnDefs: [{
                 defaultContent: '',
                 targets: '_all',
-            }]
+            }],
         });
     }
-    function reload_validate() {
-        $('#validated').dataTable().clear();
-        $('#validated').dataTable().ajax.reload();
-    }
 
-    function laod_rejected (hs_id) {
-        $('#rejected').DataTable({
+    function laod_rejected () {
+        dts['rejected'] = $('#rejected').DataTable({
             processing: false,
             order: [[1, 'asc']],
             pageLength: 25,
@@ -255,7 +282,7 @@ $(document).ready(function () {
             ajax: {
                 url: "/api/get_student_records/",
                 data: function (d) {
-                    d.action = 'VALIDATED';
+                    d.action = 'REJECTED';
                     d.high_school_id = $('#id_high_school').val();
                 },
                 dataSrc: function(json) {
@@ -273,26 +300,190 @@ $(document).ready(function () {
                 {data: 'level',},
                 {data: 'class_name',},
                 {data: 'id', render: function(data) {
-                        return '<button class="btn btn-success" id="btn_validate_'+data+'">{% trans "Validate" %}</button>';
+                        return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
+                            'onclick="validate_student('+data+')">{% trans "Validate" %}</button>';
                     }
                 }
             ],
             columnDefs: [{
                 defaultContent: '',
                 targets: '_all',
-            }]
+            }],
         });
     }
-    function relaod_rejected() {
-        $('#rejected').dataTable().clear();
-        $('#rejected').dataTable().ajax.reload();
+
+
+
+    // First load
+    load_to_validate();
+    load_validate();
+    laod_rejected();
+
+    for (const [name, dt] of Object.entries(dts)) {
+        yadcf.init(dt, [
+            {
+                column_number: 0,
+                filter_default_label: '',
+                filter_type: 'text',
+                filter_container_id: 'first_name_filter_' + name,
+                style_class: 'form-control',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 1,
+                filter_default_label: '',
+                filter_type: 'text',
+                filter_container_id: 'last_name_filter_' + name,
+                style_class: 'form-control',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 2,
+                filter_default_label: '',
+                filter_type: 'text',
+                filter_container_id: 'birthdate_filter_' + name,
+                style_class: 'form-control',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 3,
+                filter_default_label: '',
+                filter_container_id: 'level_filter_' + name,
+                style_class: 'form-control',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 4,
+                filter_default_label: '',
+                filter_container_id: 'class_name_filter_' + name,
+                style_class: 'form-control',
+                filter_reset_button_text: false,
+            },
+        ]);
     }
-
-    load_to_validate("{{ high_school.id }}");
-    load_validate("{{ high_school.id }}");
-    laod_rejected("{{ high_school.id }}");
-
 });
+
+
+function reload_to_validate() {
+    $('#to_validate').DataTable().clear();
+    $('#to_validate').DataTable().ajax.reload();
+}
+function reload_validate() {
+    $('#validated').DataTable().clear();
+    $('#validated').DataTable().ajax.reload();
+}
+function relaod_rejected() {
+    $('#rejected').DataTable().clear();
+    $('#rejected').DataTable().ajax.reload();
+}
+
+
+
+function validate_student( student_record_id ) {
+    $.post({
+        url: "{% url 'validateStudent' %}",
+        data: {
+            student_record_id: student_record_id,
+        },
+        success: function(data) {
+            if (data !== undefined) {
+
+                reload_to_validate();
+                reload_validate();
+                relaod_rejected();
+
+                $('#validate_message').show();
+                if (t1) { clearTimeout(t1); }
+                t1 = setTimeout(function(){
+                        $('#validate_message').fadeOut(1000, function(){
+                            $('#validate_message').hide();
+                        });
+                    },
+                    3000
+                );
+            } else {
+                $('#fail_message').show();
+                setTimeout(function(){
+                    $('#fail_message').fadeOut(
+                        1000,
+                        function() {
+                            $('#fail_message').hide();
+                        }
+                    )
+                }, 3000);
+            }
+        },
+        error: function() {
+            $('#fail_message').show();
+            setTimeout(function(){
+                $('#fail_message').fadeOut(
+                    1000,
+                    function() {
+                        $('#fail_message').hide();
+                    }
+                )
+            }, 3000);
+        }
+    });
+}
+
+function reject_student( student_record_id ) {
+        $.post({
+            url: "{% url 'rejectStudent' %}",
+            data: {
+                student_record_id: student_record_id,
+            },
+            success: function(data) {
+                if (data !== undefined) {
+
+                    reload_to_validate();
+                    reload_validate();
+                    relaod_rejected();
+
+                    $('#reject_message').show();
+                    if (t2) { clearTimeout(t2); }
+                    t2 = setTimeout(function(){
+                            $('#reject_message').fadeOut(1000, function(){
+                                $('#reject_message').hide();
+                            });
+                        },
+                        3000
+                    );
+
+                    let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
+                    elem.fadeOut(
+                        500,
+                        function() {
+                            elem.hide();
+                            reload_validate();
+                        }
+                    );
+
+                } else {
+                    $('#fail_message').show();
+                    setTimeout(function(){
+                        $('#fail_message').fadeOut(
+                            1000,
+                            function() {
+                                $('#fail_message').hide();
+                            }
+                        )
+                    }, 3000);
+                }
+            },
+            error: function() {
+                $('#fail_message').show();
+                setTimeout(function(){
+                    $('#fail_message').fadeOut(
+                        1000,
+                        function() {
+                            $('#fail_message').hide();
+                        }
+                    )
+                }, 3000);
+            }
+        });
+    }
 
 </script>
 {% endblock %}

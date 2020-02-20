@@ -239,6 +239,7 @@ def modify_slot(request, slot_id):
                 "slot_form": slot_form,
                 "ready_load": False,
                 "teachers_idx": [t.id for t in slot.teachers.all()],
+                "modify": True,
             }
             return render(request, 'slots/add_slot.html', context=context)
         else:
@@ -480,7 +481,7 @@ def myslots(request):
     return render(request, 'core/myslots.html')
 
 
-@groups_required('REF-LYC')
+@groups_required('REF-LYC',)
 def my_high_school(request,  high_school_id=None):
     from .models import HighSchool
 
@@ -488,6 +489,9 @@ def my_high_school(request,  high_school_id=None):
         return redirect('home')
 
     hs = HighSchool.objects.get(id=high_school_id)
+    post_values = request.POST.copy()
+    post_values['label'] = hs.label
+
     high_school_form = None
     context = {
         'high_school': hs,
@@ -495,20 +499,27 @@ def my_high_school(request,  high_school_id=None):
     }
 
     if request.method == 'POST':
-        high_school_form = HighSchoolForm(request.POST, instance=hs)
+        high_school_form = HighSchoolForm(post_values, instance=hs, request=request)
         if high_school_form.is_valid():
             high_school_form.save()
             context['modified'] = True
     else:
-        high_school_form = HighSchoolForm(instance=hs)
+        high_school_form = HighSchoolForm(instance=hs, request=request)
 
     context['high_school_form'] = high_school_form
 
     return render(request, 'core/my_high_school.html', context)
 
-# @@@
+
+@groups_required('REF-LYC', 'SCUIO-IP',)
 def student_validation(request, high_school_id=None):
     from .models import HighSchool
+
+    if not high_school_id and request.user.is_high_school_manager():
+        return redirect(
+            'student_validation',
+            high_school_id=request.user.highschool.id
+        )
 
     # student_validation
     context = {}
