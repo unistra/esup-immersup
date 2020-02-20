@@ -402,7 +402,7 @@ def course(request, course_id=None, duplicate=False):
 
                             if not return_msg:
                                 messages.success(request,
-                                    _("A confirmation email has been sent to %s" % teacher['email']))
+                                    _("A confirmation email has been sent to {}".format(teacher['email'])))
                             else:
                                 messages.warning(request, return_msg)
 

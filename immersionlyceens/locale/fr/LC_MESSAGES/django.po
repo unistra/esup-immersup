@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-19 13:35+0100\n"
+"POT-Creation-Date: 2020-02-20 09:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -427,6 +427,14 @@ msgstr "Entrez le nom d'une salle"
 #: immersionlyceens/apps/core/forms.py:143
 msgid "dd/mm/yyyy"
 msgstr "jj/mm/aaaa"
+
+#: immersionlyceens/apps/core/management/commands/delete_unactivated_accounts.py:26
+msgid "{} account(s) deleted"
+msgstr ""
+
+#: immersionlyceens/apps/core/management/commands/delete_unactivated_accounts.py:28
+msgid "No account to delete"
+msgstr ""
 
 #: immersionlyceens/apps/core/models.py:32
 #: immersionlyceens/apps/core/models.py:762
@@ -1149,9 +1157,8 @@ msgid "User '%s' created"
 msgstr "Utilisateur '%s' créé"
 
 #: immersionlyceens/apps/core/views.py:405
-#, python-format
-msgid "A confirmation email has been sent to %s"
-msgstr "Un courriel de confirmation a été envoyé à l'adresse %s"
+msgid "A confirmation email has been sent to {}"
+msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 
 #: immersionlyceens/apps/core/views.py:415
 #, python-format
@@ -1197,7 +1204,9 @@ msgstr "Erreur : un compte avec cet identifiant existe déjà"
 #: immersionlyceens/apps/immersion/forms.py:100
 #: immersionlyceens/apps/immersion/forms.py:131
 msgid "Warning : changing your email will require an account reactivation"
-msgstr "Avertissement : un changement de courriel demandera une nouvelle activation de votre compte"
+msgstr ""
+"Avertissement : un changement de courriel demandera une nouvelle activation "
+"de votre compte"
 
 #: immersionlyceens/apps/immersion/forms.py:185
 msgid "Please choose one or more bachelor teachings"
@@ -1517,8 +1526,8 @@ msgid ""
 "You have updated your email.<br>A new activation email has been sent, please "
 "check your messages."
 msgstr ""
-"Vous avez modifié votre courriel.<br>Une nouvelle procédure d'activation vous a été "
-"envoyée, merci de consulter votre messagerie."
+"Vous avez modifié votre courriel.<br>Une nouvelle procédure d'activation "
+"vous a été envoyée, merci de consulter votre messagerie."
 
 #: immersionlyceens/apps/immersion/views.py:319
 msgid ""
