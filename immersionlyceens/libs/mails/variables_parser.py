@@ -22,15 +22,17 @@ def parser(user, request, message_body, vars, **kwargs):
     slot_survey = None
     global_survey = None
 
-    try:
-        platform_url_setting = GeneralSettings.objects.get(setting='PLATFORM_URL')
-        platform_url = platform_url_setting.value
-    except GeneralSettings.DoesNotExist:
-        logger.warning("Warning : PLATFORM_URL not set in core General Settings")
+    if request:
         # The following won't work in 'commands'
-        if request:
-            platform_url = request.build_absolute_uri(reverse('home'))
-
+        platform_url = request.build_absolute_uri(reverse('home'))
+    else:
+        try:
+            platform_url_setting = GeneralSettings.objects.get(setting='PLATFORM_URL')
+            platform_url = platform_url_setting.value
+        except GeneralSettings.DoesNotExist:
+            logger.warning("Warning : PLATFORM_URL not set in core General Settings")
+            platform_url = "https://<plateforme immersion>"
+            
     try:
         slot_survey = EvaluationFormLink.objects.get(
             evaluation_type__code='EVA_CRENEAU', active=True)
