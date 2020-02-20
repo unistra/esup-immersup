@@ -1,7 +1,8 @@
 import re
 from django.urls import reverse
 from immersionlyceens.apps.core.models import (
-    UniversityYear, EvaluationFormLink, EvaluationType)
+    UniversityYear, EvaluationFormLink, EvaluationType,
+    GeneralSettings)
 
 
 def multisub(subs, subject):
@@ -22,6 +23,15 @@ def parser(user, request, message_body, vars, **kwargs):
     global_survey = None
 
     try:
+        platform_url_setting = GeneralSettings.objects.get(setting='PLATFORM_URL')
+        platform_url = platform_url_setting.value
+    except GeneralSettings.DoesNotExist:
+        logger.warning("Warning : PLATFORM_URL not set in core General Settings")
+        # The following won't work in 'commands'
+        if request:
+            platform_url = request.build_absolute_uri(reverse('home'))
+
+    try:
         slot_survey = EvaluationFormLink.objects.get(
             evaluation_type__code='EVA_CRENEAU', active=True)
     except (EvaluationFormLink.DoesNotExist, EvaluationFormLink.MultipleObjectsReturned):
@@ -40,7 +50,7 @@ def parser(user, request, message_body, vars, **kwargs):
 
     vars = [
         ('${annee}', year.label),
-        ('${urlPlateforme}', request.build_absolute_uri(reverse('home')))
+        ('${urlPlateforme}', platform_url)
     ]
 
     if course:
@@ -84,12 +94,25 @@ def parser(user, request, message_body, vars, **kwargs):
         ('${referentlycee.prenom}', user.first_name), # ! doublon
 
         ('${identifiant}', user.get_cleaned_username()),
-        ('${lienValidation}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
-            reverse('immersion:activate', kwargs={'hash':user.validation_string})))),
-        ('${lienMotDePasse}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
-            reverse('immersion:reset_password', kwargs={'hash':user.recovery_string})))),
         ('${jourDestructionCptMin}', user.get_localized_destruction_date())
     ]
+    
+    if request:
+        vars += [
+            ('${lienValidation}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
+                reverse('immersion:activate', kwargs={'hash':user.validation_string})))),
+            ('${lienMotDePasse}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
+                reverse('immersion:reset_password', kwargs={'hash':user.recovery_string}))))    
+        ]
+    else:
+        vars += [
+            ('${lienValidation}', "<a href='{0}{1}'>{0}{1}</a>".format(
+                platform_url,
+                reverse('immersion:activate', kwargs={'hash':user.validation_string}))),
+            ('${lienMotDePasse}', "<a href='{0}{1}'>{0}{1}</a>".format(
+                platform_url,
+                reverse('immersion:reset_password', kwargs={'hash':user.recovery_string})))
+        ]
 
     if slot_survey:
         vars.append(('${lienCreneau}', slot_survey.url))

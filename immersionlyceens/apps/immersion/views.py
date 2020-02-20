@@ -318,6 +318,10 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 messages.warning(request,
                     _("A record already exists with this identity, please contact the SCUIO-IP team."))
 
+            if record.validation == 1:
+                messages.success(request,
+                    _("Thank you. Your record is awaiting validation from your high-school referent."))
+
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
