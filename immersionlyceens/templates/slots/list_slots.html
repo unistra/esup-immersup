@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
     <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css' %}">
     <link rel="stylesheet" href="{% static 'js/vendor/datatables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -58,16 +59,16 @@
                    cellspacing="0" width="100%">
                 <thead>
                     <tr>
-                        <th>{% trans 'Published' %}</th>
-                        <th>{% trans 'Course label' %}</th>
-                        <th>{% trans 'Course type' %}</th>
-                        <th>{% trans 'Date' %}</th>
-                        <th>{% trans 'Schedule' %}</th>
-                        <th>{% trans 'Campus' %} - {% trans 'Building' %}</th>
-                        <th>{% trans 'Room' %}</th>
-                        <th>{% trans 'Teachers' %}</th>
-                        <th>{% trans '# of registration' %}</th>
-                        <th>{% trans 'Additional information' %}</th>
+                        <th id="published_filter">{% trans 'Published' %}</th>
+                        <th id="course_filter">{% trans 'Course label' %}</th>
+                        <th id="course_type_filter">{% trans 'Course type' %}</th>
+                        <th id="date_filter">{% trans 'Date' %}</th>
+                        <th id="schedule_filter">{% trans 'Schedule' %}</th>
+                        <th id="building_filter">{% trans 'Campus' %} - {% trans 'Building' %}</th>
+                        <th id="room_filter">{% trans 'Room' %}</th>
+                        <th id="teachers_filter">{% trans 'Teachers' %}</th>
+                        <th id="registration_filter">{% trans '# of registration' %}</th>
+                        <th id="add_info_filter">{% trans 'Additional information' %}</th>
                         <th>{% trans 'Control' %}</th>
                     </tr>
                 </thead>
@@ -100,6 +101,7 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script>
 $(document).ready(function(){
 
@@ -178,7 +180,7 @@ $(document).ready(function(){
 
 
     $('#top_indicator').hide();
-    $('#list_of_slots').DataTable({
+    var dt = $('#list_of_slots').DataTable({
         ajax: {
           url: '/api/get_slots',
           data: function(d) {
@@ -255,6 +257,87 @@ $(document).ready(function(){
             targets: '_all'
         }],
     });
+
+    yadcf.init(dt, [
+        {
+            column_number: 0,
+            filter_default_label: "",
+            filter_container_id: "published_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 1,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "course_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 2,
+            filter_default_label: "",
+            filter_container_id: "course_type_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 3,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "date_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 4,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "schedule_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 5,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "building_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 6,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "room_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 7,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "teachers_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 8,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "registration_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 9,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "add_info_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+    ])
 });
 
 
