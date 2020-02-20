@@ -460,3 +460,55 @@ def ajax_get_student_records(request):
         response['msg'] = gettext("Error: No action selected for AJAX request")
 
     return JsonResponse(response, safe=False)
+
+
+# REJECT / VALIDATE STUDENT
+def ajax_validate_reject_student(request, validate):
+    """
+    Validate or reject student
+    """
+    from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+    response = {'data': None, 'msg': ''}
+
+    student_record_id = request.POST.get('student_record_id')
+    if student_record_id:
+        hs = None
+        if request.user.is_scuio_ip_manager():
+            hs = HighSchool.objects.all()
+        else:
+            hs = HighSchool.objects.filter(id=request.user.highschool.id)
+
+        if hs:
+            try:
+                record = HighSchoolStudentRecord.objects.get(
+                    id=student_record_id,
+                    highschool__in=hs
+                )
+                # 2 => VALIDATED
+                # 3 => REJECTED
+                record.validation = 2 if validate else 3
+                record.save()
+                response['data'] = {'ok': True}
+
+            except HighSchoolStudentRecord.DoesNotExist:
+                response['msg'] = "Error: No student record"
+        else:
+            response['msg'] = "Error: No high school"
+    else:
+        response['msg'] = "Error: No student selected"
+
+    return JsonResponse(response, safe=False)
+
+
+# POST
+@groups_required('REF-LYC', 'SCUIO-IP')
+def ajax_validate_student(request):
+    """Validate student"""
+    return ajax_validate_reject_student(request=request, validate=True)
+
+
+# POST
+@groups_required('REF-LYC', 'SCUIO-IP')
+def ajax_reject_student(request):
+    """Validate student"""
+    return ajax_validate_reject_student(request=request, validate=False)

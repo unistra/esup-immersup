@@ -46,15 +46,23 @@
           </div>
         </div>
         {% endif %}
-        {% if authorized_groups|in_groups:"REF-LYC" and not user.is_superuser %}
+
+        {% if not user.is_superuser %}
+        {% if authorized_groups|in_groups:"REF-LYC" or authorized_groups|in_groups:"SCUIO-IP" %}
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             {% trans 'High school' %}
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="{% url 'my_high_school' user.highschool.id %}">{% trans 'My high school' %}</a>
+            {% if authorized_groups|in_groups:"REF-LYC" %}
+              <a class="dropdown-item" href="{% url 'my_high_school' user.highschool.id %}">{% trans 'My high school' %}</a>
+              <a class="dropdown-item" href="{% url 'student_validation' user.highschool.id %}">{% trans 'Validate my students' %}</a>
+            {% else %}
+              <a class="dropdown-item" href="{% url 'student_validation_global' %}">{% trans 'Validate my students' %}</a>
+            {% endif %}
           </div>
         </div>
+        {% endif %}
         {% endif %}
 
         {% if user.is_staff %}

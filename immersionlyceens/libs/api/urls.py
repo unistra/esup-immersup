@@ -38,4 +38,8 @@ urlpatterns = [
     path('get_slots', views.get_ajax_slots, name='get_slots',),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
+
+    # VALIDATE / REJECT ACTION
+    path('validate_student/', views.ajax_validate_student, name='validateStudent'),
+    path('reject_student/', views.ajax_reject_student, name='rejectStudent'),
 ]

@@ -792,8 +792,8 @@ class HighSchoolForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
+            valid_user = user.is_scuio_ip_manager() or user.is_high_school_manager()
+        except AttributeError as exc:
             pass
 
         if not valid_user:
