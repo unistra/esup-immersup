@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import authenticate
 
-from immersionlyceens.apps.core.models import ImmersionUser
+from immersionlyceens.apps.core.models import ImmersionUser, HighSchool
 from .models import HighSchoolStudentRecord, StudentRecord
 
 class LoginForm(forms.Form):
@@ -126,7 +126,7 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
-
+        
         self.fields["email"].help_text = _(
             "Warning : changing your email will require an account reactivation")
 
@@ -160,6 +160,11 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["student"].widget = forms.HiddenInput()
+        self.fields["highschool"].queryset = HighSchool.objects.all().order_by('city','label')
+        self.fields['professional_bachelor_mention'].widget.attrs['class'] = 'form-control'
+        self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
+        self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
+        self.fields['current_diploma'].widget.attrs['size'] = 80
 
         if not self.request or not self.request.user.is_scuio_ip_manager():
             for field in ('allowed_global_registrations', 'allowed_first_semester_registrations' ,
@@ -210,9 +215,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         fields = ['civility', 'birth_date', 'phone', 'highschool', 'level', 'class_name',
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
-                  'current_diploma', 'visible_immersion_registrations', 'visible_email',
-                  'allowed_global_registrations', 'allowed_first_semester_registrations',
-                  'allowed_second_semester_registrations', 'student']
+                  'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),
@@ -228,6 +231,8 @@ class StudentRecordForm(forms.ModelForm):
 
         self.fields["student"].widget = forms.HiddenInput()
         self.fields["home_institution"].disabled = True
+        self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
+        self.fields['current_diploma'].widget.attrs['size'] = 80
 
         if not self.request or not self.request.user.is_scuio_ip_manager():
             for field in ('allowed_global_registrations', 'allowed_first_semester_registrations' ,
@@ -237,9 +242,7 @@ class StudentRecordForm(forms.ModelForm):
     class Meta:
         model = StudentRecord
         fields = ['civility', 'birth_date', 'phone', 'home_institution', 'level',
-                  'origin_bachelor_type', 'current_diploma', 'allowed_global_registrations',
-                  'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
-                  'student']
+                  'origin_bachelor_type', 'current_diploma', 'student']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),

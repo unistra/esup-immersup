@@ -266,7 +266,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
     """
     record = None
     student = None
-
+    calendar = None
+    
+    calendars = Calendar.objects.all()   
+    if calendars:
+        calendar = calendars.first()
+    
     if student_id:
         try:
             student = ImmersionUser.objects.get(pk=student_id)
@@ -332,6 +337,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         studentform = HighSchoolStudentForm(request=request, instance=student)
 
     context = {
+        'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
         'student': student
@@ -347,6 +353,11 @@ def student_record(request, student_id=None, record_id=None):
     """
     record = None
     student = None
+    calendar = None
+    
+    calendars = Calendar.objects.all()   
+    if calendars:
+        calendar = calendars.first()
 
     if student_id:
         try:
@@ -404,6 +415,7 @@ def student_record(request, student_id=None, record_id=None):
         studentform = StudentForm(request=request, instance=student)
 
     context = {
+        'calender': calendar,
         'student_form': studentform,
         'record_form': recordform,
         'student': student
