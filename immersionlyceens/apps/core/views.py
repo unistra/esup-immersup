@@ -398,12 +398,12 @@ def course(request, course_id=None, duplicate=False):
                                 email=teacher['email'],
                             )
 
-                            messages.success(request, gettext("User '{}' created".format(teacher['username'])))
+                            messages.success(request, gettext("User '{}' created").format(teacher['username']))
                             return_msg = teacher_user.send_message(request, 'CPT_CREATE_ENS')
 
                             if not return_msg:
                                 messages.success(request,
-                                    gettext("A confirmation email has been sent to {}".format(teacher['email'])))
+                                    gettext("A confirmation email has been sent to {}").format(teacher['email']))
                             else:
                                 messages.warning(request, return_msg)
 
