@@ -104,15 +104,6 @@ class HighSchoolStudentRecord(models.Model):
     visible_email = models.BooleanField(
         _("Allow students from my school to see my email address"), default=False)
 
-    allowed_global_registrations = models.SmallIntegerField(
-        _("Number of allowed year registrations"), null=True, blank=True)
-
-    allowed_first_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for second semester"), null=True, blank=True)
-
-    allowed_second_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for first semester"), null=True, blank=True)
-
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
 
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
@@ -205,15 +196,6 @@ class StudentRecord(models.Model):
         default=1, null=False, blank=False, choices=BACHELOR_TYPES)
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
-
-    allowed_global_registrations = models.SmallIntegerField(
-        _("Number of allowed year registrations"), null=True, blank=True)
-
-    allowed_first_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for second semester"), null=True, blank=True)
-
-    allowed_second_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for first semester"), null=True, blank=True)
 
     def __str__(self):
         return gettext("Record for {0} {1}".format(self.student.first_name, self.student.last_name))

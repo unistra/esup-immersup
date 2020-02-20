@@ -103,24 +103,24 @@
           <div class="col-sm-6">{{ record_form.current_diploma.errors }}</div>
         </div>
         {% if calendar.calendar_mode == "YEAR" %}        
-        <div class="form-group row">
-          <label class="col-sm-4 col-form-label">
+        <div class="row">
+          <label class="col-sm-5 col-form-label">
             {% trans 'Annually allowed registrations' %} :
           </label>
-          <div class="col-sm-3">{{ year_nb_authorized_immersion }}</div>
+          <div class="col-sm-1 col-form-label">{{ year_nb_authorized_immersion }}</div>
         </div>
         {% else %}
-        <div class="form-group row">
-          <label class="col-sm-4 col-form-label">
+        <div class="row">
+          <label class="col-sm-5 col-form-label">
             {% trans 'Allowed registrations for first semester' %} :
           </label>
-          <div class="col-sm-3">{{ calendar.nb_authorized_immersion_per_semester }}</div>
+          <div class="col-sm-1 col-form-label">{{ calendar.nb_authorized_immersion_per_semester }}</div>
         </div>
-        <div class="form-group row">
-          <label class="col-sm-4 col-form-label">
+        <div class="row">
+          <label class="col-sm-5 col-form-label">
             {% trans 'Allowed registrations for second semester' %} :
           </label>
-          <div class="col-sm-3">{{ calendar.nb_authorized_immersion_per_semester }}</div>
+          <div class="col-sm-1 col-form-label">{{ calendar.nb_authorized_immersion_per_semester }}</div>
         </div>
         {% endif %}
       </div>

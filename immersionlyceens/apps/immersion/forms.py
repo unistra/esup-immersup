@@ -166,11 +166,6 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
 
-        if not self.request or not self.request.user.is_scuio_ip_manager():
-            for field in ('allowed_global_registrations', 'allowed_first_semester_registrations' ,
-                'allowed_second_semester_registrations'):
-                self.fields[field].disabled = True
-
     def clean(self):
         cleaned_data = super().clean()
 
@@ -233,11 +228,6 @@ class StudentRecordForm(forms.ModelForm):
         self.fields["home_institution"].disabled = True
         self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
-
-        if not self.request or not self.request.user.is_scuio_ip_manager():
-            for field in ('allowed_global_registrations', 'allowed_first_semester_registrations' ,
-                'allowed_second_semester_registrations'):
-                self.fields[field].disabled = True
 
     class Meta:
         model = StudentRecord

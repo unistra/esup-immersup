@@ -13,7 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.sessions.models import Session
 from django.conf import settings
 
-from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear
+from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear, Calendar
 from immersionlyceens.libs.utils import check_active_year
 
 from .models import HighSchoolStudentRecord, StudentRecord
