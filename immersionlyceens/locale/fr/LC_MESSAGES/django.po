@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-21 10:40+0100\n"
+"POT-Creation-Date: 2020-02-21 12:25+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -173,14 +173,14 @@ msgstr ""
 #: immersionlyceens/apps/core/admin_forms.py:417
 #: immersionlyceens/apps/core/admin_forms.py:467
 #: immersionlyceens/apps/core/admin_forms.py:539
-#: immersionlyceens/apps/core/admin_forms.py:800
-#: immersionlyceens/apps/core/admin_forms.py:843
-#: immersionlyceens/apps/core/admin_forms.py:935
-#: immersionlyceens/apps/core/admin_forms.py:997
-#: immersionlyceens/apps/core/admin_forms.py:1043
-#: immersionlyceens/apps/core/admin_forms.py:1068
-#: immersionlyceens/apps/core/admin_forms.py:1093
-#: immersionlyceens/apps/core/admin_forms.py:1118
+#: immersionlyceens/apps/core/admin_forms.py:812
+#: immersionlyceens/apps/core/admin_forms.py:855
+#: immersionlyceens/apps/core/admin_forms.py:947
+#: immersionlyceens/apps/core/admin_forms.py:1009
+#: immersionlyceens/apps/core/admin_forms.py:1055
+#: immersionlyceens/apps/core/admin_forms.py:1080
+#: immersionlyceens/apps/core/admin_forms.py:1105
+#: immersionlyceens/apps/core/admin_forms.py:1130
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -344,50 +344,58 @@ msgid "This field is mandatory for a user belonging to 'REF-CMP' group"
 msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-CMP'"
 
 #: immersionlyceens/apps/core/admin_forms.py:691
+msgid "The group 'REF-CMP' is mandatory when you add a component"
+msgstr "Le groupe 'REF-CMP' est obligatoire lorsqu'une composante est sélectionnée"
+
+#: immersionlyceens/apps/core/admin_forms.py:697
 msgid "This field is mandatory for a user belong to 'REF-LYC' group"
 msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-LYC'"
 
-#: immersionlyceens/apps/core/admin_forms.py:705
+#: immersionlyceens/apps/core/admin_forms.py:702
+msgid "The group 'REF-LYC' is mandatory when you add a highschool"
+msgstr "Le groupe 'REF-LYC' est obligatoire lorsque vous sélectionnez un lycée"
+
+#: immersionlyceens/apps/core/admin_forms.py:717
 msgid "You don't have enough privileges to modify this account"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce compte"
 
-#: immersionlyceens/apps/core/admin_forms.py:723
+#: immersionlyceens/apps/core/admin_forms.py:735
 #, python-format
 msgid "You can't modify these groups : %s"
 msgstr "Vous ne pouvez pas modifier ces groupes : %s"
 
-#: immersionlyceens/apps/core/admin_forms.py:731
+#: immersionlyceens/apps/core/admin_forms.py:743
 msgid "You can't modify the superuser status"
 msgstr "Vous ne pouvez pas modifier le statut super-utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:736
+#: immersionlyceens/apps/core/admin_forms.py:748
 msgid "You can't modify the staff status"
 msgstr "Vous ne pouvez pas modifier le statut d'équipe"
 
-#: immersionlyceens/apps/core/admin_forms.py:773
+#: immersionlyceens/apps/core/admin_forms.py:785
 #: immersionlyceens/apps/core/models.py:79
 #: immersionlyceens/templates/core/my_high_school.html:93
 #: immersionlyceens/templates/procedure.html:52
 msgid "City"
 msgstr "Ville"
 
-#: immersionlyceens/apps/core/admin_forms.py:776
+#: immersionlyceens/apps/core/admin_forms.py:788
 #: immersionlyceens/apps/core/models.py:82
 #: immersionlyceens/templates/core/my_high_school.html:105
 msgid "Zip code"
 msgstr "Code postal"
 
-#: immersionlyceens/apps/core/admin_forms.py:859
+#: immersionlyceens/apps/core/admin_forms.py:871
 msgid "The message body contains forbidden variables : "
 msgstr "Le corps du message contient des variables non autorisées : "
 
-#: immersionlyceens/apps/core/admin_forms.py:874
+#: immersionlyceens/apps/core/admin_forms.py:886
 msgid "The message body contains unknown variable(s) : "
 msgstr "Le corps du message contient des variables inconnues : "
 
-#: immersionlyceens/apps/core/admin_forms.py:911
-#: immersionlyceens/apps/core/admin_forms.py:977
-#: immersionlyceens/apps/core/admin_forms.py:1023
+#: immersionlyceens/apps/core/admin_forms.py:923
+#: immersionlyceens/apps/core/admin_forms.py:989
+#: immersionlyceens/apps/core/admin_forms.py:1035
 #, python-format
 msgid ""
 "Please keep filesize under %(maxupload)s. Current filesize %(current_size)s"
@@ -395,9 +403,9 @@ msgstr ""
 "Veuillez téléverser des fichiers dont la taille n'excède pas %(maxupload)s. "
 "Taille actuelle : %(current_size)s"
 
-#: immersionlyceens/apps/core/admin_forms.py:919
-#: immersionlyceens/apps/core/admin_forms.py:983
-#: immersionlyceens/apps/core/admin_forms.py:1029
+#: immersionlyceens/apps/core/admin_forms.py:931
+#: immersionlyceens/apps/core/admin_forms.py:995
+#: immersionlyceens/apps/core/admin_forms.py:1041
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
