@@ -283,9 +283,9 @@ $(document).ready(function(){
         });
     }
 
-    function load_course(value) {
+    function load_course(component, training) {
         $.ajax({
-            url: '/api/get_courses_by_training/' + value,
+            url: '/api/get_courses_by_training/' + component + '/' + training,
             success: function(data){
                 if ( data['data']) {
                     $('#id_course').html('');
@@ -376,7 +376,10 @@ $(document).ready(function(){
     {% if not slot %}
         $('#id_date').get(0).type = 'date';
         load_trainings($('#component').val());
-        load_course($('#training').val());
+        load_course(
+            $('#component').val(),
+            $('#training').val()
+        );
         load_buildings($('#id_campus').val());
         load_teachers($('#id_course').val());
     {% endif %}
@@ -386,7 +389,7 @@ $(document).ready(function(){
 
     // add change handler
     $('#component').change(function(event){ load_trainings(event.target.value); });
-    $('#training').change(function(event){ load_course(event.target.value); });
+    $('#training').change(function(event){ load_course($('#component').val(), event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
     $('#id_published').on('change', function(){ toggle_required_fields(); });
