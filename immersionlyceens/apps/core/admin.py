@@ -147,9 +147,9 @@ class ActivationFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'True':
-            return queryset.filter(validation_string__isnull=True)
+            return queryset.filter(groups__name__in=['LYC','ETU'], validation_string__isnull=True)
         elif self.value() == 'False':
-            return queryset.filter(validation_string__isnull=False)
+            return queryset.filter(groups__name__in=['LYC','ETU'], validation_string__isnull=False)
 
 
 class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
@@ -164,7 +164,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
         'groups')
 
     def get_activated_account(self, obj):
-        if not obj.is_superuser and obj.is_high_school_student():
+        if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student()):
             if obj.is_valid():
                 return _('Yes')
             else:
