@@ -687,10 +687,22 @@ class ImmersionUserChangeForm(UserChangeForm):
             self._errors['components'] = self.error_class([msg])
             del cleaned_data["components"]
 
+        if components.count() and not groups.filter(name='REF-CMP').exists():
+            msg = _("The group 'REF-CMP' is mandatory when you add a component")
+            if not self._errors.get("groups"):
+                self._errors["groups"] = forms.utils.ErrorList()
+            self._errors['groups'].append(self.error_class([msg]))
+
         if groups.filter(name='REF-LYC').exists() and not highschool:
             msg = _("This field is mandatory for a user belong to 'REF-LYC' group")
             self._errors["highschool"] = self.error_class([msg])
             del cleaned_data["highschool"]
+
+        if highschool and not groups.filter(name='REF-LYC').exists():
+            msg = _("The group 'REF-LYC' is mandatory when you add a highschool")
+            if not self._errors.get("groups"):
+                self._errors["groups"] = forms.utils.ErrorList()
+            self._errors['groups'].append(self.error_class([msg]))
 
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
