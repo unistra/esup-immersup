@@ -495,7 +495,7 @@ def ajax_get_slots_by_course(request, course_id=None):
                 reg_end_date = calendar.semester2_end_date
 
         slots = Slot.objects.filter(
-            course__id=course_id, published=True, date__lte=reg_start_date, date__gte=reg_end_date
+            course__id=course_id, published=True, date__gte=reg_start_date, date__lte=reg_end_date
         )
 
     all_data = []
