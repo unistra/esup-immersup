@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.db.models import Q
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
@@ -134,9 +135,48 @@ class AdminWithRequest:
         return AdminFormWithRequest
 
 
+class ActivationFilter(admin.SimpleListFilter):
+    title = _('Activated accounts')
+    parameter_name = 'validation_string'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('True', _('Yes')),
+            ('False', _('No'))
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'True':
+            return queryset.filter(validation_string__isnull=True)
+        elif self.value() == 'False':
+            return queryset.filter(validation_string__isnull=False)
+
+
 class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
     form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
+
+    list_display = ['username', 'email', 'first_name', 'last_name',
+        'is_superuser', 'is_staff', 'get_groups_list', 'get_activated_account',
+        'destruction_date']
+
+    list_filter = ('is_staff', 'is_superuser', ActivationFilter,
+        'groups')
+
+    def get_activated_account(self, obj):
+        if obj.is_high_school_student(negated=False):
+            if obj.is_valid():
+                return _('Yes')
+            else:
+                return _('No')
+        else:
+            return ''
+
+    def get_groups_list(self, obj):
+        return [group.name for group in obj.groups.all().order_by('name')]
+
+    get_activated_account.short_description = _('Activated account')
+    get_groups_list.short_description = _('Groups')
 
     filter_horizontal = ('components', 'groups', 'user_permissions')
 
@@ -214,13 +254,13 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
         return True
 
     def get_list_display(self, request):
-        list_display = ['username', 'email', 'first_name', 'last_name', 'is_superuser', 'is_staff']
-
         # add hijack button for admin users
-        if request.user.is_superuser:
-            list_display.append('hijack_field')
+        if request.user.is_superuser and 'hijack_field' not in self.list_display:
+            self.list_display.append('hijack_field')
 
-        return list_display
+        return self.list_display
+
+
 
     def get_fieldsets(self, request, obj=None):
         # On user change, add Components in permissions fieldset
