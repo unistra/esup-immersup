@@ -4,13 +4,6 @@ import mimetypes
 import os
 from wsgiref.util import FileWrapper
 
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument,
-    GeneralSettings,
-    InformationText,
-    PublicDocument,
-)
-
 from django.conf import settings
 from django.http import (
     HttpResponse,
@@ -20,6 +13,15 @@ from django.http import (
     StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
+
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument,
+    GeneralSettings,
+    InformationText,
+    PublicDocument,
+    Training,
+    TrainingSubdomain,
+)
 
 
 def home(request):
@@ -62,7 +64,12 @@ def home(request):
 
 def offer(request):
     """Offer view"""
-    context = {}
+
+    subdomains = TrainingSubdomain.activated.all().order_by('training_domain', 'label')
+
+    context = {
+        'subdomains': subdomains,
+    }
     return render(request, 'offer.html', context)
 
 
@@ -130,3 +137,17 @@ def serve_public_document(request, public_document_id):
         return HttpResponseNotFound()
 
     return response
+
+
+def offer_subdomain(request, subdomain_id):
+    """Subdomain offer view"""
+
+    trainings = Training.objects.filter(training_subdomains=subdomain_id)
+    subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
+    # subdomain = TrainingSubdomain.activated.all().order_by('training_domain', 'label')
+
+    context = {
+        'trainings': trainings,
+        'subdomain': subdomain,
+    }
+    return render(request, 'offer_subdomains.html', context)

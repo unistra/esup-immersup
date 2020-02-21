@@ -6,7 +6,8 @@ from django.views.i18n import JavaScriptCatalog
 
 from .apps.core import views as core_views
 from .views import (
-    accompanying, home, offer, procedure, serve_accompanying_document, serve_public_document,
+    accompanying, home, offer, offer_subdomain, procedure, serve_accompanying_document,
+    serve_public_document,
 )
 
 admin.autodiscover()
@@ -31,6 +32,7 @@ urlpatterns = [
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('offer', offer, name='offer'),
+    path('offer/<int:subdomain_id>', offer_subdomain, name='offer_subdomain'),
     path('procedure', procedure, name='procedure'),
     path('summernote/', include('django_summernote.urls')),
     path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),

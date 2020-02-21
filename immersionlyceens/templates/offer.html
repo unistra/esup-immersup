@@ -11,9 +11,26 @@
     </div>
     <div class="card-body">
       <div class="row">
-        <div class="col-sm-6">
-          <section id="offer_txt">
-          Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Bibbeleskaas jetz rossbolla sech choucroute un schwanz geburtstàg, Chinette dû, ìch bier deppfele schiesser. Flammekueche de knèkes Seppele gal! a hopla geburtstàg, alles fraü Chulia Roberts oder knäckes dûû blottkopf. Noch bredele schissabibala, yeuh e schmutz. E gewurtztraminer doch Carola schneck, schmutz a riesling de chambon eme rucksack Roger dû hopla geiss, jetz Chorchette de Scharrarbergheim. Kouglopf ech ìch wurscht gueut mitt schneck jetz a schiss mannele, knèkes saucisse de Niederhausbergen of fill mauls schéni fleischwurcht schnaps de eme gal nüdle blottkopf, de Chulien Roger hop pfourtz! bett mer ech schpeck un salami schmutz. Gal!
+        <div class="col">
+          <section id="subdomains_listing">
+          {% if subdomains %}
+          {% regroup subdomains by training_domain.label as subdomains_list %}
+          <ul>
+          {% for subdomain in subdomains_list %}
+
+            <li>{{ subdomain.grouper }}
+            <ul>
+              {% for d in subdomain.list %}
+                <li><a class="unlink" href="{% url 'offer_subdomain' d.id %}">{{ d.label }}</a></li>
+              {% endfor %}
+            </ul>
+            </li>
+          {% endfor %}
+          </ul>
+          {% else %}
+          <p>{% trans 'No offer available' %}</p>
+          {% endif %}
+
           </section>
         </div>
       </div>

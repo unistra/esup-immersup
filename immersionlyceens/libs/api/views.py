@@ -4,33 +4,34 @@ API Views
 import datetime
 import logging
 
-from immersionlyceens.apps.core.models import (
-    Building, Course, ImmersionUser, MailTemplateVars, PublicDocument, Training,
-    Vacation, Holiday)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.http import JsonResponse
+from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
 
 from immersionlyceens.apps.core.models import (
     Building,
+    Calendar,
     Course,
     HighSchool,
+    Holiday,
     ImmersionUser,
     MailTemplateVars,
     PublicDocument,
+    Slot,
     Training,
+    Vacation,
 )
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
 
+@is_ajax_request
 def ajax_get_person(request):
     if settings.ACCOUNTS_CLIENT:
         response = {'msg': '', 'data': []}
@@ -161,8 +162,8 @@ def get_ajax_slots(request, component=None):
 
     # TODO: auth access test
 
-    comp_id = request.GET.get('component_id');
-    train_id = request.GET.get('training_id');
+    comp_id = request.GET.get('component_id')
+    train_id = request.GET.get('training_id')
 
     response = {'msg': '', 'data': []}
     slots = []
@@ -182,18 +183,18 @@ def get_ajax_slots(request, component=None):
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
             'time': '{s} - {e}'.format(
-                s=slot.start_time.strftime('%Hh%M') or '',
-                e=slot.end_time.strftime('%Hh%M') or '',
-            ) if slot.start_time is not None and slot.end_time is not None else '-',
-            'building': '{} - {}'.format(
-                slot.building.label,
-                slot.campus.label
-            ) if slot.building is not None and slot.campus is not None else '-',
+                s=slot.start_time.strftime('%Hh%M') or '', e=slot.end_time.strftime('%Hh%M') or '',
+            )
+            if slot.start_time is not None and slot.end_time is not None
+            else '-',
+            'building': '{} - {}'.format(slot.building.label, slot.campus.label)
+            if slot.building is not None and slot.campus is not None
+            else '-',
             'room': slot.room if slot.room is not None else '-',
-            'teachers': ', '.join([
-                '{} {}'.format(e.first_name, e.last_name.upper())
-                for e in slot.teachers.all()]),
-            'n_register': 10, # todo: registration count
+            'teachers': ', '.join(
+                ['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]
+            ),
+            'n_register': 10,  # todo: registration count
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
         }
@@ -205,7 +206,8 @@ def get_ajax_slots(request, component=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+# Should be public used by public page !!!
+# @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_courses_by_training(request, training_id=None):
     response = {'msg': '', 'data': []}
 
@@ -218,6 +220,8 @@ def ajax_get_courses_by_training(request, training_id=None):
         course_data = {
             'key': course.id,
             'label': course.label,
+            'url': course.url,
+            'slots': Slot.objects.filter(course__training__id=training_id).count(),
         }
         response['data'].append(course_data.copy())
 
@@ -376,7 +380,7 @@ def ajax_get_my_slots(request, user_id=None):
     return JsonResponse(response, safe=False)
 
 
-# @is_ajax_request
+@is_ajax_request
 def ajax_get_agreed_highschools(request):
     response = {'msg': '', 'data': []}
     try:
@@ -388,7 +392,7 @@ def ajax_get_agreed_highschools(request):
     return JsonResponse(response, safe=False)
 
 
-# @is_ajax_request
+@is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_check_date_between_vacation(request):
     response = {'data': [], 'msg': ''}
@@ -402,10 +406,11 @@ def ajax_check_date_between_vacation(request):
         except ValueError:
             formated_date = datetime.datetime.strptime(_date, '%d-%m-%Y')
 
-
         response['data'] = {
-            'is_between': (Vacation.date_is_inside_a_vacation(formated_date.date()) or
-                           Holiday.date_is_a_holiday(formated_date.date()))
+            'is_between': (
+                Vacation.date_is_inside_a_vacation(formated_date.date())
+                or Holiday.date_is_a_holiday(formated_date.date())
+            )
         }
     else:
         response['msg'] = gettext('Error: A date is required')
@@ -417,6 +422,7 @@ def ajax_check_date_between_vacation(request):
 @groups_required('SCUIO-IP', 'REF-LYC')
 def ajax_get_student_records(request):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+
     # high_school_validation
     response = {'data': [], 'msg': ''}
 
@@ -432,42 +438,105 @@ def ajax_get_student_records(request):
             records = []
             if action == 'TO_VALIDATE':
                 records = HighSchoolStudentRecord.objects.filter(
-                    highschool_id=hs_id,
-                    validation=1,  # TO VALIDATE
+                    highschool_id=hs_id, validation=1,  # TO VALIDATE
                 )
             elif action == 'VALIDATED':
                 records = HighSchoolStudentRecord.objects.filter(
-                    highschool_id=hs_id,
-                    validation=2,  # VALIDATED
+                    highschool_id=hs_id, validation=2,  # VALIDATED
                 )
             elif action == 'REJECTED':
                 records = HighSchoolStudentRecord.objects.filter(
-                    highschool_id=hs_id,
-                    validation=3,  # REJECTED
+                    highschool_id=hs_id, validation=3,  # REJECTED
                 )
 
-            response['data'] = [{
-                'id': record.id,
-                'first_name': record.student.first_name,
-                'last_name': record.student.last_name,
-                'birth_date': record.birth_date,
-                'level': record.level,
-                'class_name': record.class_name,
-            } for record in records]
+            response['data'] = [
+                {
+                    'id': record.id,
+                    'first_name': record.student.first_name,
+                    'last_name': record.student.last_name,
+                    'birth_date': record.birth_date,
+                    'level': record.level,
+                    'class_name': record.class_name,
+                }
+                for record in records
+            ]
         else:
             response['msg'] = gettext("Error: No high school selected")
     else:
         response['msg'] = gettext("Error: No action selected for AJAX request")
 
+
+@is_ajax_request
+def ajax_get_slots_by_course(request, course_id=None):
+    """ Public get"""
+    from immersionlyceens.apps.core.models import Slot
+
+    response = {'msg': '', 'data': []}
+    slots = []
+
+    if not course_id:
+        response['msg'] = gettext("Error : a valid course is requested")
+    else:
+        calendar = Calendar.objects.first()
+        # TODO: poc for now maybe refactor dirty code in a model method !!!!
+        today = datetime.datetime.today().date()
+        reg_start_date = reg_end_date = datetime.date(1, 1, 1)
+        if calendar.calendar_mode == 'YEAR':
+            reg_start_date = calendar.year_registration_start_date
+            reg_end_date = calendar.year_end_date
+        else:
+            # Year mode
+            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+                reg_start_date = calendar.semester1_start_date
+                reg_end_date = calendar.semester1_end_date
+            # semester mode
+            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+                reg_start_date = calendar.semester2_start_date
+                reg_end_date = calendar.semester2_end_date
+
+        slots = Slot.objects.filter(
+            course__id=course_id, published=True, date__lte=reg_start_date, date__gte=reg_end_date
+        )
+
+    all_data = []
+    for slot in slots:
+        data = {
+            'id': slot.id,
+            'published': slot.published,
+            'course_label': slot.course.label,
+            'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'date': _date(slot.date, "l j F Y") if slot.date is not None else '-',
+            'time': '{s} - {e}'.format(
+                s=slot.start_time.strftime('%Hh%M') or '', e=slot.end_time.strftime('%Hh%M') or '',
+            )
+            if slot.start_time is not None and slot.end_time is not None
+            else '-',
+            'building': '{} - {}'.format(slot.building.label, slot.campus.label)
+            if slot.building is not None and slot.campus is not None
+            else '-',
+            'room': slot.room if slot.room is not None else '-',
+            'teachers': ', '.join(
+                ['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]
+            ),
+            'n_register': 10,  # todo: registration count
+            'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
+            'additional_information': slot.additional_information,
+        }
+        all_data.append(data)
+
+    response['data'] = all_data
+
     return JsonResponse(response, safe=False)
 
 
 # REJECT / VALIDATE STUDENT
+@is_ajax_request
 def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
     """
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+
     response = {'data': None, 'msg': ''}
 
     student_record_id = request.POST.get('student_record_id')
@@ -481,8 +550,7 @@ def ajax_validate_reject_student(request, validate):
         if hs:
             try:
                 record = HighSchoolStudentRecord.objects.get(
-                    id=student_record_id,
-                    highschool__in=hs
+                    id=student_record_id, highschool__in=hs
                 )
                 # 2 => VALIDATED
                 # 3 => REJECTED
@@ -500,14 +568,16 @@ def ajax_validate_reject_student(request, validate):
     return JsonResponse(response, safe=False)
 
 
-# POST
+@is_ajax_request
+@is_post_request
 @groups_required('REF-LYC', 'SCUIO-IP')
 def ajax_validate_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=True)
 
 
-# POST
+@is_ajax_request
+@is_post_request
 @groups_required('REF-LYC', 'SCUIO-IP')
 def ajax_reject_student(request):
     """Validate student"""

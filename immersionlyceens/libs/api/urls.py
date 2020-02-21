@@ -20,26 +20,30 @@ urlpatterns = [
         name='GetAvailableVars',
     ),
     path('get_buildings/<int:campus_id>', views.ajax_get_buildings, name='get_buildings',),
-    path(
-        'get_course_teachers/<int:course_id>',
-        views.ajax_get_course_teachers,
-        name='get_course_teachers',
-    ),
+    path('get_courses/<int:component_id>/', views.ajax_get_courses, name='GetCourses'),
     path(
         'get_courses_by_training/<int:training_id>',
         views.ajax_get_courses_by_training,
         name='get_courses_training',
     ),
-    path('get_courses/<int:component_id>/', views.ajax_get_courses, name='GetCourses'),
+    path(
+        'get_course_teachers/<int:course_id>',
+        views.ajax_get_course_teachers,
+        name='get_course_teachers',
+    ),
     path('get_my_courses/<int:user_id>/', views.ajax_get_my_courses, name='GetMyCourses'),
     path('get_my_slots/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlots'),
     path('get_my_slots/all/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlotsAll'),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slots', views.get_ajax_slots, name='get_slots',),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
+    path(
+        'get_slots_by_course/<int:course_id>',
+        views.ajax_get_slots_by_course,
+        name='get_slots_by_course',
+    ),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
-
     # VALIDATE / REJECT ACTION
-    path('validate_student/', views.ajax_validate_student, name='validateStudent'),
     path('reject_student/', views.ajax_reject_student, name='rejectStudent'),
+    path('validate_student/', views.ajax_validate_student, name='validateStudent'),
 ]
