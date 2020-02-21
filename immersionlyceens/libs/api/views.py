@@ -161,8 +161,8 @@ def get_ajax_slots(request, component=None):
 
     # TODO: auth access test
 
-    comp_id = request.GET.get('component_id');
-    train_id = request.GET.get('training_id');
+    comp_id = request.GET.get('component_id')
+    train_id = request.GET.get('training_id')
 
     response = {'msg': '', 'data': []}
     slots = []
@@ -170,8 +170,6 @@ def get_ajax_slots(request, component=None):
         slots = Slot.objects.filter(course__training__id=train_id)
     elif comp_id or comp_id is not '':
         slots = Slot.objects.filter(course__training__components__id=comp_id)
-    else:
-        slots = Slot.objects.all()
 
     all_data = []
     for slot in slots:
@@ -206,13 +204,18 @@ def get_ajax_slots(request, component=None):
 
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_courses_by_training(request, training_id=None):
+def ajax_get_courses_by_training(request, component_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
+    if not component_id:
+        response['msg'] = gettext("Error : a valid component must be selected")
     if not training_id:
         response['msg'] = gettext("Error : a valid training must be selected")
 
-    courses = Course.objects.prefetch_related('training').filter(training__id=training_id)
+    courses = Course.objects.prefetch_related('training').filter(
+        training__id=training_id,
+        component__id=component_id,
+    )
 
     for course in courses:
         course_data = {

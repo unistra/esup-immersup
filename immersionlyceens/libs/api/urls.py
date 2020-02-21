@@ -26,7 +26,7 @@ urlpatterns = [
         name='get_course_teachers',
     ),
     path(
-        'get_courses_by_training/<int:training_id>',
+        'get_courses_by_training/<int:component_id>/<int:training_id>',
         views.ajax_get_courses_by_training,
         name='get_courses_training',
     ),
