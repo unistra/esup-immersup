@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+{% endblock %}
+
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}
+{% trans "Offer" %}
+{% endblock %}
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / <a class="unlink" href="{% url 'offer' %}">{% trans 'Offer' %}</a> / {{ subdomain }}
+    </div>
+    <div class="card-body">
+
+      {% if  trainings %}
+
+
+      <div class="form-group row">
+          <label for="select_training"
+                  class="col-form-label col-sm-3"
+          >{% trans "Training choice" %}</label>
+          <div class="col-sm-6">
+              <select name="training" id="select_training" class="form-control">
+                <option value="0">-------------</option>
+                {% for training in trainings %}
+                <option value="{{ training.id }}">{{ training.label }}</option>
+                {% endfor %}
+              </select>
+          </div>
+      </div>
+      <div class="form-group row">
+        <div class="col">
+          <table id="courses_list" class="table table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>{% trans 'Course label' %}</th>
+                    <th></th>
+                    <th>{% trans 'Url' %}</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <p>{% trans 'No training available for the selected domain' %}</p>
+      <p><a class="unlink" href="{% url 'offer' %}">{% trans 'Click here to return to offer selection' %}</a></p>
+
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% include './modals/modal_public_slots.html'%}
+
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js' %}"></script>
+<script>
+
+  $(document).ready(function() {
+
+    $.fn.dataTableExt.errMode = 'console';
+    dt_courses = $('#courses_list').DataTable({
+      'processing': false,
+      'order': [
+        [0, "asc"]
+      ],
+      'pageLength': 15,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_courses_by_training/" + $('#select_training option:selected').val(),
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+      },
+      'columns': [
+          { "data": "label"},
+          { "data": "",
+            "render": function (data, type, row) {
+              var showSlots = "";
+              if(row.slots > 0 ) {
+                showSlots += '<a href="#" onclick="open_modal('+row.key+');return false;" title="{% trans 'Consult slots' %}" class="btn btn-primary btn-sm"><i class="fa fas fa-eye"></i></a>';
+              }
+
+              return showSlots;
+
+            },
+          },
+
+          { "data": "url" },
+
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+        {
+            "orderable": false,
+            "targets": 1
+        },
+      ],
+    });
+
+    dt_slots = $('#slots_list').DataTable({
+      ajax: {
+        url: '',
+        dataSrc: function (json) {
+          if (json['data'] != undefined && json['data'].length != 0) {
+            return json['data'];
+          }
+          return [];
+        }
+      },
+      processing: false,
+      serverSide: false,
+      responsive: false,
+      info: false,
+      search: true,
+      paging: true,
+      ordering: true,
+      language: {url: '{% static "js/vendor/i18n/" %}{{ LANGUAGE_CODE }}.json'},
+      columns: [
+        {data: 'course_type'},
+        {data: 'date'},
+        {data: 'time'},
+        {data: 'building'},
+        {data: 'room'},
+        {data: 'teachers'},
+        {data: 'n_register', render: function(data, type, row) {
+            let current = data;
+            let n = row['n_places'];
+            element = '<span>' + current + '/' + n + '</span>' +
+                '<div class="progress">' +
+                '    <div' +
+                '       class="progress-bar"' +
+                '       role="progressbar"' +
+                '       aria-valuenow="' + current + '"' +
+                '       aria-valuemin="0"' +
+                '       aria-valuemax="' + n + '"' +
+                '       style="width: ' + Math.round(current/n * 100) + '%"' +
+                '></div>' +
+                '</div>';
+            return element;
+          }},
+        {data: 'additional_information'},
+      ],
+      columnDefs: [{
+        defaultContent: '',
+        targets: '_all'
+      }],
+  });
+
+    // Reload courses list when training changes in selectbox
+    $('#select_training').change( function() {
+      dt_courses.ajax.url("/api/get_courses_by_training/" + $('#select_training option:selected').val()).load();
+    });
+
+
+  });
+
+  function open_modal(course_id) {
+    dt_slots.ajax.url("/api/get_slots_by_course/" + course_id).load();
+    $('#modal_public_slots').modal('show');
+
+  }
+</script>
+{% endblock %}

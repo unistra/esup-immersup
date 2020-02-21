@@ -9,10 +9,9 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models
 from django.db.models import Count, Q, Sum
-from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
 from django.template.defaultfilters import date as _date
-
+from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 from mailmerge import MailMerge
 
 from immersionlyceens.fields import UpperCharField
@@ -140,13 +139,14 @@ class ImmersionUser(AbstractUser):
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name="highschool_referent"
+        related_name="highschool_referent",
     )
 
     destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
 
-    validation_string = models.TextField(_("Account validation string"),
-        blank=True, null=True, unique=True)
+    validation_string = models.TextField(
+        _("Account validation string"), blank=True, null=True, unique=True
+    )
 
     recovery_string = models.TextField(_("Account password recovery string"),
         blank=True, null=True, unique=True)
@@ -313,6 +313,8 @@ class TrainingSubdomain(models.Model):
         related_name='Subdomains',
     )
     active = models.BooleanField(_("Active"), default=True)
+    objects = models.Manager()  # default manager
+    activated = ActiveManager()
 
     class Meta:
         verbose_name = _('Training sub domain')
@@ -611,6 +613,7 @@ class Holiday(models.Model):
     def date_is_a_holiday(cls, _date):
         return Holiday.objects.filter(date=_date).exists()
 
+
 class Vacation(models.Model):
     """University year"""
 
@@ -644,6 +647,7 @@ class Vacation(models.Model):
             if v.date_is_between(_date):
                 return True
         return False
+
 
 class Calendar(models.Model):
     """University year"""
@@ -875,9 +879,7 @@ class AccompanyingDocument(models.Model):
     )
     description = models.TextField(_("Description"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
-    activated = ActiveManager.from_queryset(
-        ComponentQuerySet
-    )()  # returns only activated components
+    activated = ActiveManager()
 
     document = models.FileField(
         _("Document"),
