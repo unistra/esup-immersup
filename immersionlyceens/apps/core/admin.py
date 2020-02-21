@@ -164,7 +164,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
         'groups')
 
     def get_activated_account(self, obj):
-        if obj.is_high_school_student(negated=False):
+        if not obj.is_superuser and obj.is_high_school_student():
             if obj.is_valid():
                 return _('Yes')
             else:
