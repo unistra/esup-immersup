@@ -4,7 +4,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import authenticate
 
-from immersionlyceens.apps.core.models import ImmersionUser, HighSchool, GeneralBachelorTeaching
+from immersionlyceens.apps.core.models import \
+    ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention
 from .models import HighSchoolStudentRecord, StudentRecord
 
 class LoginForm(forms.Form):
@@ -160,13 +161,14 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["student"].widget = forms.HiddenInput()
-        self.fields["highschool"].queryset = HighSchool.objects.all().order_by('city','label')
+        self.fields["highschool"].queryset = HighSchool.agreed.order_by('city','label')
         self.fields['professional_bachelor_mention'].widget.attrs['class'] = 'form-control'
         self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
         self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
+        self.fields['technological_bachelor_mention'].queryset = BachelorMention.objects.filter(active=True)
         self.fields['general_bachelor_teachings'] = forms.ModelMultipleChoiceField(
-            queryset=GeneralBachelorTeaching.objects.all().order_by('label'),
+            queryset=GeneralBachelorTeaching.objects.filter(active=True).order_by('label'),
             widget=forms.CheckboxSelectMultiple,            
         )
 
