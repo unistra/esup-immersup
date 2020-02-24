@@ -3,7 +3,7 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
-from django.forms.widgets import DateInput
+from django.forms.widgets import DateInput, TimeInput
 
 from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar,
                      CourseType, Campus, Building)
@@ -141,6 +141,8 @@ class SlotForm(forms.ModelForm):
             'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
             'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
             'date': forms.DateInput(format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy')}),
+            'start_time': TimeInput(format='%H:%M'),
+            'end_time': TimeInput(format='%H:%M'),
         }
 
         fields = ('id', 'course', 'course_type', 'campus', 'building',
