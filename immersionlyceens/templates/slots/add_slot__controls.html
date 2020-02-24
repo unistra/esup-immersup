@@ -4,6 +4,7 @@
 
     <button type="button" name="cancel" class="btn btn-danger back_btn">{% trans 'Cancel' %}</button>
     {% if slot and slot.id %}
+
         <input name="save" class="btn btn-primary" value="{% trans 'Modify' %}" type="submit">
         <input name="duplicate" class="btn btn-secondary duplicate_save_btn"
                value="{% trans 'Modify and duplicate' %}" type="submit">

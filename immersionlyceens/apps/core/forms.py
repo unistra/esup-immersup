@@ -3,7 +3,7 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
-from django.forms.widgets import DateInput
+from django.forms.widgets import DateInput, TimeInput
 
 from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar,
                      CourseType, Campus, Building)
@@ -78,11 +78,11 @@ class SlotForm(forms.ModelForm):
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # course type filter
-        self.fields['course_type'].queryset = CourseType.objects.filter(active=True)
+        self.fields['course_type'].queryset = CourseType.objects.filter(active=True).order_by('label')
         # campus filter
-        self.fields['campus'].queryset = Campus.objects.filter(active=True)
+        self.fields['campus'].queryset = Campus.objects.filter(active=True).order_by('label')
         # building filter
-        self.fields['building'].queryset = Building.objects.filter(active=True)
+        self.fields['building'].queryset = Building.objects.filter(active=True).order_by('label')
 
 
         if instance:
@@ -141,8 +141,12 @@ class SlotForm(forms.ModelForm):
             'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
             'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
             'date': forms.DateInput(format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy')}),
+            'start_time': TimeInput(format='%H:%M'),
+            'end_time': TimeInput(format='%H:%M'),
         }
 
         fields = ('id', 'course', 'course_type', 'campus', 'building',
                   'room', 'date', 'start_time', 'end_time', 'n_places',
                   'additional_information', 'published',)
+
+        localized_fields = ('date',)

@@ -122,7 +122,7 @@ def ajax_get_trainings(request):
 
     trainings = Training.objects.prefetch_related('training_subdomains').filter(
         components=component_id, active=True
-    )
+    ).order_by('label')
 
     for training in trainings:
         training_data = {
@@ -171,8 +171,6 @@ def get_ajax_slots(request, component=None):
         slots = Slot.objects.filter(course__training__id=train_id)
     elif comp_id or comp_id is not '':
         slots = Slot.objects.filter(course__training__components__id=comp_id)
-    else:
-        slots = Slot.objects.all()
 
     all_data = []
     for slot in slots:
@@ -208,13 +206,18 @@ def get_ajax_slots(request, component=None):
 @is_ajax_request
 # Should be public used by public page !!!
 # @groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_courses_by_training(request, training_id=None):
+def ajax_get_courses_by_training(request, component_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
+    if not component_id:
+        response['msg'] = gettext("Error : a valid component must be selected")
     if not training_id:
         response['msg'] = gettext("Error : a valid training must be selected")
 
-    courses = Course.objects.prefetch_related('training').filter(training__id=training_id)
+    courses = Course.objects.prefetch_related('training').filter(
+        training__id=training_id,
+        component__id=component_id,
+    ).order_by('label')
 
     for course in courses:
         course_data = {
@@ -233,10 +236,10 @@ def ajax_get_courses_by_training(request, training_id=None):
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
-    if not campus_id:
+    if not campus_id or campus_id == '':
         response['msg'] = gettext("Error : a valid campus must be selected")
 
-    buildings = Building.objects.filter(campus_id=campus_id, active=True)
+    buildings = Building.objects.filter(campus_id=campus_id, active=True).order_by('label')
 
     for building in buildings:
         buildings_data = {
@@ -256,7 +259,7 @@ def ajax_get_course_teachers(request, course_id=None):
     if not course_id:
         response['msg'] = gettext("Error : a valid course must be selected")
     else:
-        teachers = Course.objects.get(id=course_id).teachers.all()
+        teachers = Course.objects.get(id=course_id).teachers.all().order_by('last_name')
 
         for teacher in teachers:
             teachers_data = {
@@ -582,3 +585,16 @@ def ajax_validate_student(request):
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
+
+
+# POST
+@groups_required('REF-LYC', 'SCUIO-IP')
+@is_post_request
+def ajax_check_course_publication(request, course_id):
+    from immersionlyceens.apps.core.models import Course
+    response = {'data': None, 'msg': ''}
+
+    c = Course.objects.get(id=course_id)
+    response['data'] = {'published': c.published}
+
+    return JsonResponse(response, safe=False)

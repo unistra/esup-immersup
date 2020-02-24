@@ -26,7 +26,7 @@
         </div>
         <div class="card-body">
 
-            <form method="POST" class="form-group" role="form" id="add_slot">
+            <form method="POST" class="form-group" role="form" id="add_slot" action="{% url 'add_slot' %}">
 
                 {% include 'slots/add_slot__controls.html' %}
                 <br>
@@ -56,7 +56,7 @@
                 <div class="form-group row">
                     <label for="training" class="col-form-label col-sm-3">{% trans 'Component' %}</label>
                     <div class="col-sm-6">
-                        <select name="component" id="component" class="form-control">
+                        <select name="component" id="component" class="form-control" required>
                             {% if components|length > 1 %}
                                 <option value="" selected>{% trans 'Choose a value' %}</option>
                                 {% for component in components %}
@@ -73,11 +73,8 @@
                 <div class="form-group row">
                     <label for="training" class="col-form-label col-sm-3">{% trans 'Training' %}</label>
                     <div class="col-sm-6">
-                        <select name="training" id="training" class="form-control">
+                        <select name="training" id="training" class="form-control" required>
                             <option value="" selected>{% trans 'Choose a value' %}</option>
-<!--                            {% for training in trainings %}-->
-<!--                                <option value="{{ training.id }}">{{ training.label }}</option>-->
-<!--                            {% endfor %}-->
                         </select>
                     </div>
                 </div>
@@ -187,7 +184,35 @@
 {% block foot-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script>
+var course_first = true;
 $(document).ready(function(){
+
+    function check_course_publication ( course_id )
+    {
+        $.post({
+            beforeSend: function (request) {
+                   request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            },
+            url: '/api/check_course_publication/' + course_id,
+            success: function(data) {
+                if (data['data'])
+                {
+                    if ( !data['data']['published'] ) {
+                        let msg = "{% trans 'This course is unpublished. By creating this slot the associate course is going to be published. Do you want to continue?' %}";
+                        if ( !confirm(msg) )
+                        {
+                            $('#id_course').val('');
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    $('#id_course').change(function(event){
+        check_course_publication(event.target.value);
+    });
+
     function check_date() {
         $.ajax({
             url: '/api/check_vacations',
@@ -271,21 +296,32 @@ $(document).ready(function(){
                     data['data'].forEach(function(e){
                         let selected = '';
                         {% if slot %}
-                            if ( e['id'] == '{{ slot.course.training.id }}' ) {
-                                selected = 'selected';
-                            }
+                        if ( e['id'] == '{{ slot.course.training.id }}' ) {
+                            selected = 'selected';
+                        }
                         {% endif %}
                         let element = '<option '+ selected +' value="' + e['id'] + '">' + e['label'] + '</option>';
                         $('#training').append(element);
                     });
+                    {% if slot %}
+                        if ( course_first ) {
+                            course_first = false;
+                            load_course(
+                                $('#component').val(),
+                                $('#training').val()
+                            );
+                        }
+                    {% endif %}
                 }
             }
         });
     }
 
-    function load_course(value) {
+    function load_course(component, training) {
+        component = (component == '') ? '0' : component;
+        training = (training == '') ? '0' : training;
         $.ajax({
-            url: '/api/get_courses_by_training/' + value,
+            url: '/api/get_courses_by_training/' + component + '/' + training,
             success: function(data){
                 if ( data['data']) {
                     $('#id_course').html('');
@@ -293,27 +329,46 @@ $(document).ready(function(){
                         '<option value="">{% trans 'Choose a value' %}</option>'
                     );
                     data['data'].forEach(function(e){
+                        // let sel = '';
+                        // if (e['key'] == "{{ slot.course.id }}") {}
                         let element = '<option value="' + e['key'] + '">' + e['label'] + '</option>';
                         $('#id_course').append(element);
                     });
+                    {% if slot %}
+                    $('#id_course option[value="{{ slot.course.id }}"]').attr('selected', '');
+                    {% endif %}
                 }
             }
         });
     }
 
     function load_buildings(value){
+        value = (value === '') ? '0' : value;
         $.ajax({
             url: '/api/get_buildings/' + value,
             success: function(data){
                 if ( data['data']) {
                     $('#id_building').html('');
-                    $('#id_building').append(
-                        '<option value="">{% trans 'Choose a value' %}</option>'
-                    );
+                    if (data['data'].length > 0)
+                    {
+                        $('#id_building').append(
+                            '<option value="">{% trans 'Choose a value' %}</option>'
+                        );
+                    } else {
+                        $('#id_building').append(
+                            '<option value="">--------</option>'
+                        );
+                    }
                     data['data'].forEach(function(e){
                         let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
                         $('#id_building').append(element);
                     });
+                }
+                else {
+                    $('#id_building').html('');
+                    $('#id_building').append(
+                        '<option value="">--------</option>'
+                    );
                 }
             }
         });
@@ -366,9 +421,7 @@ $(document).ready(function(){
         if (confirm(msg) === true){
             c = $('#component').val();
             t = $('#training').val();
-            setTimeout(function() {
-                window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t
-            }, 1000);
+            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
         }
     });
 
@@ -376,17 +429,19 @@ $(document).ready(function(){
     {% if not slot %}
         $('#id_date').get(0).type = 'date';
         load_trainings($('#component').val());
-        load_course($('#training').val());
+        load_course(
+            $('#component').val(),
+            $('#training').val()
+        );
         load_buildings($('#id_campus').val());
         load_teachers($('#id_course').val());
     {% endif %}
-
     // toggle
     toggle_required_fields();
 
     // add change handler
     $('#component').change(function(event){ load_trainings(event.target.value); });
-    $('#training').change(function(event){ load_course(event.target.value); });
+    $('#training').change(function(event){ load_course($('#component').val(), event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
     $('#id_published').on('change', function(){ toggle_required_fields(); });
