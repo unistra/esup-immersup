@@ -31,6 +31,12 @@ urlpatterns = [
         views.ajax_get_course_teachers,
         name='get_course_teachers',
     ),
+    path(
+        'get_courses_by_training/<int:component_id>/<int:training_id>',
+        views.ajax_get_courses_by_training,
+        name='get_courses_training',
+    ),
+    path('get_courses/<int:component_id>/', views.ajax_get_courses, name='GetCourses'),
     path('get_my_courses/<int:user_id>/', views.ajax_get_my_courses, name='GetMyCourses'),
     path('get_my_slots/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlots'),
     path('get_my_slots/all/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlotsAll'),
@@ -46,4 +52,6 @@ urlpatterns = [
     # VALIDATE / REJECT ACTION
     path('reject_student/', views.ajax_reject_student, name='rejectStudent'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
+    path('check_course_publication/<int:course_id>', views.ajax_check_course_publication,
+         name='checkCoursePublication'),
 ]
