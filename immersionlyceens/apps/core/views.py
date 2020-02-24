@@ -95,7 +95,7 @@ def slots_list(request):
         return render(request, 'base.html')
 
     context = {
-        'components': components,
+        'components': components.order_by('label'),
     }
 
     if comp_id:
@@ -121,9 +121,10 @@ def add_slot(request, slot_id=None):
     # get components
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all()
+        components = Component.activated.all().order_by('label')
     elif request.user.is_component_manager:
-        components = request.user.components.all()
+
+        components = request.user.components.all().order_by('label')
 
     if request.method == 'POST' and (request.POST.get('save') or \
             request.POST.get('duplicate') or \
@@ -154,7 +155,12 @@ def add_slot(request, slot_id=None):
             return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
-            return redirect('slots_list')
+            response = redirect('slots_list')
+            response['Location'] += '?c={}&t={}'.format(
+                request.POST.get('component', ''),
+                request.POST.get('training', ''),
+            )
+            return response
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):
@@ -193,9 +199,9 @@ def modify_slot(request, slot_id):
     # get components
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all()
+        components = Component.activated.all().order_by('label')
     elif request.user.is_component_manager:
-        components = request.user.components.all()
+        components = request.user.components.all().order_by('label')
 
     if request.method == 'POST' and (request.POST.get('save') or \
             request.POST.get('duplicate') or \
@@ -229,7 +235,12 @@ def modify_slot(request, slot_id):
             return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
-            return redirect('modify_slot', slot_id=slot_id)
+            response = redirect('modify_slot', slot_id=slot_id)
+            response['Location'] += 'c={}&t={}'.format(
+                request.POST.get('component', ''),
+                request.POST.get('training', ''),
+            )
+            return response
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):

@@ -26,7 +26,7 @@
         </div>
         <div class="card-body">
 
-            <form method="POST" class="form-group" role="form" id="add_slot">
+            <form method="POST" class="form-group" role="form" id="add_slot" action="{% url 'add_slot' %}">
 
                 {% include 'slots/add_slot__controls.html' %}
                 <br>
@@ -188,6 +188,33 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script>
 $(document).ready(function(){
+
+    function check_course_publication ( course_id )
+    {
+        $.post({
+            beforeSend: function (request) {
+                   request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            },
+            url: '/api/check_course_publication/' + course_id,
+            success: function(data) {
+                if (data['data'])
+                {
+                    if ( !data['data']['published'] ) {
+                        let msg = "{% trans 'This course is unpublished. By creating this slot the associate course is going to be published. Do you want to continue?' %}";
+                        if ( !confirm(msg) )
+                        {
+                            $('#id_course').val('');
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    $('#id_course').change(function(event){
+        check_course_publication(event.target.value);
+    });
+
     function check_date() {
         $.ajax({
             url: '/api/check_vacations',
@@ -284,6 +311,8 @@ $(document).ready(function(){
     }
 
     function load_course(component, training) {
+        component = (component == '') ? '0' : component;
+        training = (training == '') ? '0' : training;
         $.ajax({
             url: '/api/get_courses_by_training/' + component + '/' + training,
             success: function(data){
@@ -302,18 +331,32 @@ $(document).ready(function(){
     }
 
     function load_buildings(value){
+        value = (value === '') ? '0' : value;
         $.ajax({
             url: '/api/get_buildings/' + value,
             success: function(data){
                 if ( data['data']) {
                     $('#id_building').html('');
-                    $('#id_building').append(
-                        '<option value="">{% trans 'Choose a value' %}</option>'
-                    );
+                    if (data['data'].length > 0)
+                    {
+                        $('#id_building').append(
+                            '<option value="">{% trans 'Choose a value' %}</option>'
+                        );
+                    } else {
+                        $('#id_building').append(
+                            '<option value="">--------</option>'
+                        );
+                    }
                     data['data'].forEach(function(e){
                         let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
                         $('#id_building').append(element);
                     });
+                }
+                else {
+                    $('#id_building').html('');
+                    $('#id_building').append(
+                        '<option value="">--------</option>'
+                    );
                 }
             }
         });
@@ -366,9 +409,7 @@ $(document).ready(function(){
         if (confirm(msg) === true){
             c = $('#component').val();
             t = $('#training').val();
-            setTimeout(function() {
-                window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t
-            }, 1000);
+            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
         }
     });
 
@@ -383,7 +424,6 @@ $(document).ready(function(){
         load_buildings($('#id_campus').val());
         load_teachers($('#id_course').val());
     {% endif %}
-
     // toggle
     toggle_required_fields();
 

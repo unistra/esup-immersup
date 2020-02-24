@@ -42,4 +42,6 @@ urlpatterns = [
     # VALIDATE / REJECT ACTION
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
     path('reject_student/', views.ajax_reject_student, name='rejectStudent'),
+
+    path('check_course_publication/<int:course_id>', views.ajax_check_course_publication, name='checkCoursePublication'),
 ]

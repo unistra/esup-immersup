@@ -33,6 +33,8 @@
                     >{% trans "Component" %}</label>
                     <div class="col-sm-6">
                         <select name="component" id="component" class="form-control">
+
+                        <option value="" selected>-------------</option>
                         {% for comp in components %}
                             <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
                         {% endfor %}
@@ -104,6 +106,7 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script>
 $(document).ready(function(){
+    var selected_training = false;
 
     {% if component_id %}
         $('#component option[value="{{ component_id }}"]').attr('selected', '');
@@ -128,6 +131,14 @@ $(document).ready(function(){
                         {% endif %}
 
                     }
+                    {% if training_id %}
+                        if ( !selected_training )
+                        {
+                            selected_training = true;
+                            $('#component option[value="{{ component_id }}"]').attr('selected', '');
+                        }
+                    {% endif %}
+
 
 
                 } else {
@@ -253,7 +264,7 @@ $(document).ready(function(){
 
         ],
         columnDefs: [{
-            defaultContent: 'No content',
+            defaultContent: '-',
             targets: '_all'
         }],
     });
@@ -352,8 +363,6 @@ function delete_slot(slot_id) {
         });
         show_top_indicator("{% trans 'A slot is correctly delete' %}");
         reload_data();
-
-        // window.location = '/core/slot/modify/' + slot_id;
     }
 }
 
@@ -373,7 +382,7 @@ function show_top_indicator(text) {
             });
         },
         display
-    )
+    );
 }
 </script>
 {% endblock %}

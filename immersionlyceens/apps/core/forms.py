@@ -78,11 +78,11 @@ class SlotForm(forms.ModelForm):
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         # course type filter
-        self.fields['course_type'].queryset = CourseType.objects.filter(active=True)
+        self.fields['course_type'].queryset = CourseType.objects.filter(active=True).order_by('label')
         # campus filter
-        self.fields['campus'].queryset = Campus.objects.filter(active=True)
+        self.fields['campus'].queryset = Campus.objects.filter(active=True).order_by('label')
         # building filter
-        self.fields['building'].queryset = Building.objects.filter(active=True)
+        self.fields['building'].queryset = Building.objects.filter(active=True).order_by('label')
 
 
         if instance:
@@ -146,3 +146,5 @@ class SlotForm(forms.ModelForm):
         fields = ('id', 'course', 'course_type', 'campus', 'building',
                   'room', 'date', 'start_time', 'end_time', 'n_places',
                   'additional_information', 'published',)
+
+        localized_fields = ('date',)
