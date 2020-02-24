@@ -112,9 +112,11 @@ def add_slot(request, slot_id=None):
     context = {}
     slot = None
     teachers_idx = None
+    slot_teachers = None
 
     if slot_id:
         slot = Slot.objects.get(id=slot_id)
+        slot_teachers = slot.teachers.all()
         teachers_idx = [t.id for t in slot.teachers.all()]
         slot.id = None
 
@@ -179,8 +181,10 @@ def add_slot(request, slot_id=None):
     }
     if slot:
         context['slot'] = slot
+        if slot_teachers:
+            context['teachers'] = slot_teachers
         if not teachers_idx:
-            context['teachers_idx'] = teachers_idx
+            context['teachers_idx'] = teachers_idxs
 
     return render(request, 'slots/add_slot.html', context=context)
 
