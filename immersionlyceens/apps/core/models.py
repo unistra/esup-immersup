@@ -710,7 +710,18 @@ class Calendar(models.Model):
         if self.calendar_mode == 'YEAR':
             return self.year_start_date <= _date and _date <= self.year_end_date
         else:
-            return self.semester1_start_date <= _date and _date <= self.semester2_end_date
+            return ((self.semester1_start_date <= _date <= self.semester1_end_date)
+                    or (self.semester2_start_date <= _date <= self.semester2_end_date)
+                    )
+
+    def which_semester(self, _date):
+        if self.calendar_mode == 'SEMESTER':
+            if self.semester1_start_date <= _date <= self.semester1_end_date:
+                return 1
+            elif self.semester2_start_date <= _date <= self.semester2_end_date:
+                return 2
+        return None
+
 
 
 class Course(models.Model):
