@@ -164,12 +164,7 @@ def add_slot(request, slot_id=None):
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):
-            context = {
-                "components": components,
-                "slot_form": slot_form,
-                "ready_load": False,
-            }
-            return render(request, 'slots/add_slot.html', context=context)
+            return redirect('duplicate_slot', slot_id=slot_form.instance.id)
         else:
             return redirect('/')
     elif slot:

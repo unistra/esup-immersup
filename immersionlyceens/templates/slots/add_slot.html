@@ -75,9 +75,6 @@
                     <div class="col-sm-6">
                         <select name="training" id="training" class="form-control" required>
                             <option value="" selected>{% trans 'Choose a value' %}</option>
-<!--                            {% for training in trainings %}-->
-<!--                                <option value="{{ training.id }}">{{ training.label }}</option>-->
-<!--                            {% endfor %}-->
                         </select>
                     </div>
                 </div>
@@ -187,6 +184,7 @@
 {% block foot-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script>
+var course_first = true;
 $(document).ready(function(){
 
     function check_course_publication ( course_id )
@@ -298,13 +296,22 @@ $(document).ready(function(){
                     data['data'].forEach(function(e){
                         let selected = '';
                         {% if slot %}
-                            if ( e['id'] == '{{ slot.course.training.id }}' ) {
-                                selected = 'selected';
-                            }
+                        if ( e['id'] == '{{ slot.course.training.id }}' ) {
+                            selected = 'selected';
+                        }
                         {% endif %}
                         let element = '<option '+ selected +' value="' + e['id'] + '">' + e['label'] + '</option>';
                         $('#training').append(element);
                     });
+                    {% if slot %}
+                        if ( course_first ) {
+                            course_first = false;
+                            load_course(
+                                $('#component').val(),
+                                $('#training').val()
+                            );
+                        }
+                    {% endif %}
                 }
             }
         });
@@ -322,9 +329,14 @@ $(document).ready(function(){
                         '<option value="">{% trans 'Choose a value' %}</option>'
                     );
                     data['data'].forEach(function(e){
+                        // let sel = '';
+                        // if (e['key'] == "{{ slot.course.id }}") {}
                         let element = '<option value="' + e['key'] + '">' + e['label'] + '</option>';
                         $('#id_course').append(element);
                     });
+                    {% if slot %}
+                    $('#id_course option[value="{{ slot.course.id }}"]').attr('selected', '');
+                    {% endif %}
                 }
             }
         });
