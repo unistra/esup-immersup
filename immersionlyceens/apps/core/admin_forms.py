@@ -748,6 +748,34 @@ class ImmersionUserChangeForm(UserChangeForm):
                 raise forms.ValidationError(_("You can't modify the staff status"))
 
         return cleaned_data
+    
+    def save(self, *args, **kwargs):
+        # If REF-LYC is in new groups, send a mail to choose a password
+        # if no password has been set yet
+        ref_lyc_group = None
+        try:
+            ref_lyc_group = Group.objects.get(name='REF-LYC')
+        except Group.DoesNotExist:
+            pass
+    
+        try:    
+            current_groups = set([str(g.id) for g in self.instance.groups.all()])
+        except Exception:
+            current_groups = set()
+        
+        new_groups = set(self.data.get('groups', []))
+
+        if ref_lyc_group and str(ref_lyc_group.id) in new_groups - current_groups:
+            # REF-LYC group spotted : if the password is not set, send an email to the user
+            user = self.instance
+            if not user.last_login:
+                user.set_recovery_string()
+                user.send_message(self.request, "CPT_CREATE_LYCEE")
+
+        self.instance = super().save(*args, **kwargs)
+        
+        return self.instance
+    
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser

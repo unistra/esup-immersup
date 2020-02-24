@@ -123,7 +123,9 @@ def parser(user, request, message_body, vars, **kwargs):
         vars.append(('${lienGlobal}', global_survey.url))
 
     # TODO avec la fiche lycéen
-    # if user == lyceen:
-    #     vars.append(('${lycee}', ''))
+    if user.is_high_school_student() and user.high_school_student_record:        
+        vars.append(('${lycee}', user.high_school_student_record.highschool.label))
+    elif user.highschool:
+        vars.append(('${lycee}', user.highschool.label))
 
     return multisub(vars, message_body)
