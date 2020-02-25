@@ -81,7 +81,6 @@ class SlotForm(forms.ModelForm):
         self.fields['course_type'].queryset = CourseType.objects.filter(active=True).order_by('label')
         # campus filter
         self.fields['campus'].queryset = Campus.objects.filter(active=True).order_by('label')
-        print(self.fields['campus'].queryset)
         # building filter
         self.fields['building'].queryset = Building.objects.filter(active=True).order_by('label')
 
