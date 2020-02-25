@@ -123,8 +123,11 @@ def parser(user, request, message_body, vars, **kwargs):
         vars.append(('${lienGlobal}', global_survey.url))
 
     # TODO avec la fiche lycéen
-    if user.is_high_school_student() and user.high_school_student_record:        
-        vars.append(('${lycee}', user.high_school_student_record.highschool.label))
+    if user.is_high_school_student():
+        try:
+            vars.append(('${lycee}', user.high_school_student_record.highschool.label))
+        except HighSchoolStudentRecord.DoesNotExist:
+            pass
     elif user.highschool:
         vars.append(('${lycee}', user.highschool.label))
 
