@@ -36,7 +36,11 @@
 
                         <option value="" selected>-------------</option>
                         {% for comp in components %}
+                            {% if components|length == 1 %}
+                            <option value="{{ comp.id }}" selected>{{ comp.code }} - {{ comp.label }}</option>
+                            {% else %}
                             <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
+                            {% endif %}
                         {% endfor %}
                         </select>
                     </div>
@@ -120,6 +124,7 @@ $(document).ready(function(){
               if ( data['data'] ) {
                 $('#training').html('');
                 if ( data['data'].length > 0 ) {
+                    $('#training').append('<option value="">-------------</option>');
                     data['data'].forEach(function(e){
                        let elem  = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
                        $('#training').append(elem);
