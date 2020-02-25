@@ -10,63 +10,20 @@ from django.utils.translation import ugettext_lazy as _
 from django_summernote.admin import SummernoteModelAdmin
 from hijack_admin.admin import HijackUserAdminMixin
 
-from .admin_forms import (
-    AccompanyingDocumentForm,
-    AttendanceCertificateModelForm,
-    BachelorMentionForm,
-    BuildingForm,
-    CalendarForm,
-    CampusForm,
-    CancelTypeForm,
-    ComponentForm,
-    CourseTypeForm,
-    EvaluationFormLinkForm,
-    EvaluationTypeForm,
-    GeneralBachelorTeachingForm,
-    GeneralSettingsForm,
-    HighSchoolForm,
-    HolidayForm,
-    ImmersionUserChangeForm,
-    ImmersionUserCreationForm,
-    InformationTextForm,
-    MailTemplateForm,
-    PublicDocumentForm,
-    PublicTypeForm,
-    TrainingDomainForm,
-    TrainingForm,
-    TrainingSubdomainForm,
-    UniversityYearForm,
-    VacationForm,
-)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+
+from .admin_forms import (AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm,
+    CalendarForm, CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm, 
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm, 
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm)
+    
 from .models import (
-    AccompanyingDocument,
-    AttendanceCertificateModel,
-    BachelorMention,
-    Building,
-    Calendar,
-    Campus,
-    CancelType,
-    Component,
-    Course,
-    CourseType,
-    EvaluationFormLink,
-    EvaluationType,
-    GeneralBachelorTeaching,
-    GeneralSettings,
-    HighSchool,
-    Holiday,
-    ImmersionUser,
-    InformationText,
-    MailTemplate,
-    PublicDocument,
-    PublicType,
-    Slot,
-    Training,
-    TrainingDomain,
-    TrainingSubdomain,
-    UniversityYear,
-    Vacation,
-)
+    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus, CancelType,
+    Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
+    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Slot,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation)
+    
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -437,6 +394,22 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     ordering = ('label',)
     search_fields = ('label',)
+    
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and HighSchoolStudentRecord.objects.filter(general_bachelor_teachings=obj).exists():
+            messages.warning(
+                request,
+                _(
+                    """This teaching can't be deleted """
+                    """because it is used by a high-school student record"""
+                ),
+            )
+            return False
+
+        return True
 
 
 class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
