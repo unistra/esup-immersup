@@ -4,6 +4,7 @@ from immersionlyceens.apps.core.models import (
     UniversityYear, EvaluationFormLink, EvaluationType,
     GeneralSettings)
 
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 def multisub(subs, subject):
     """
