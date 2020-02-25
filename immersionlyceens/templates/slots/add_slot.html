@@ -43,11 +43,6 @@
                     {{ errors }}
                 </div>
                 {% endif %}
-                <div class="alert alert-success" id="ok_modify">
-                    {% trans "Slot success successfully modified" %}
-                </div>
-                {% if modify %}
-                {% endif %}
                 <br>
 
                 {% csrf_token %}
@@ -94,7 +89,17 @@
                 <div class="form-group row">
                     <label for="campus" class="col-form-label col-sm-3">{% trans 'Campus' %}</label>
                     <div class="col-sm-6">
-                        {{ slot_form.campus }}
+
+                        {% if slot %}
+                            <select name="campus" id="id_campus" class="form-control">
+                                <option value="" selected>--------</option>
+                                {% for c in campus %}
+                                    <option value="{{ c.id }}">{{ c.label }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            {{ slot_form.campus }}
+                        {% endif %}
                     </div>
                 </div>
                 <div class="form-group row">
@@ -185,6 +190,7 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script>
 var course_first = true;
+var building_first = true;
 $(document).ready(function(){
 
     function check_course_publication ( course_id )
@@ -363,6 +369,12 @@ $(document).ready(function(){
                         let element = '<option value="' + e['id'] + '">' + e['label'] + '</option>';
                         $('#id_building').append(element);
                     });
+                    {% if slot %}
+                    if (building_first) {
+                        $('#id_building option[value="{{ slot.building.id }}"]').attr('selected', '');
+                        building_first = false;
+                    }
+                    {% endif %}
                 }
                 else {
                     $('#id_building').html('');
@@ -463,20 +475,13 @@ $(document).ready(function(){
         }
     });
 
-    $('#id_campus option[type="{{ slot.campus.id }}"]').attr('selected', '');
+    $('#id_campus option[value="{{ slot.campus.id }}"]').attr('selected', '');
+    load_buildings($('#id_campus').val());
 
     $('#id_course').html('');
     $('#id_course').append(
         '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
     );
-
-        {% if slot.campus %}
-            $('#id_campus').html('');
-            $('#id_campus').append(
-                '<option selected value="{{ slot.campus.id }}">{{ slot.campus.label }}</option>'
-            );
-        {% endif %}
-
     {% endif%}
 });
 </script>

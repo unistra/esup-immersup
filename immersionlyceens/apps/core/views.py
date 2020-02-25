@@ -17,8 +17,7 @@ from immersionlyceens.decorators import groups_required
 from .admin_forms import HighSchoolForm
 
 from .forms import CourseForm, SlotForm
-from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear
-
+from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear, Campus
 
 logger = logging.getLogger(__name__)
 
@@ -148,12 +147,14 @@ def add_slot(request, slot_id=None):
                 slot_form.instance.teachers.add(teacher)
         else:
             context = {
+                "campus": Campus.objects.filter(active=True).order_by('label'),
                 "components": components,
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
                 "teacher_error": len(teachers) < 1,
             }
+            print(context['campus'], 'campus')
             return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
@@ -176,9 +177,11 @@ def add_slot(request, slot_id=None):
 
     context = {
         "components": components,
+        "campus": Campus.objects.filter(active=True).order_by('label'),
         "slot_form": slot_form,
         "ready_load": True,
     }
+    print(context['campus'], 'campus')
     if slot:
         context['slot'] = slot
         if slot_teachers:
@@ -224,6 +227,7 @@ def modify_slot(request, slot_id):
             context = {
                 "slot": slot,
                 "components": components,
+                "campus": Campus.objects.filter(active=True).order_by('label'),
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": True,
@@ -245,6 +249,7 @@ def modify_slot(request, slot_id):
         elif request.POST.get('duplicate'):
             context = {
                 "components": components,
+                "campus": Campus.objects.filter(active=True).order_by('label'),
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": False,
@@ -256,6 +261,7 @@ def modify_slot(request, slot_id):
             context = {
                 "slot": slot,
                 "components": components,
+                "campus": Campus.objects.filter(active=True).order_by('label'),
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": True,
@@ -267,11 +273,13 @@ def modify_slot(request, slot_id):
     context = {
         "slot": slot,
         "components": components,
+        "campus": Campus.objects.filter(active=True).order_by('label'),
         "trainings": Training.objects.filter(active=True),
         "slot_form": slot_form,
         "ready_load": True,
         "teachers_idx": [t.id for t in slot.teachers.all()],
     }
+    print(context['campus'], 'campus')
     return render(request, 'slots/add_slot.html', context=context)
 
 
