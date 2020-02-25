@@ -661,11 +661,11 @@ class ImmersionUserChangeForm(UserChangeForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields["last_name"].required = True
-        self.fields["first_name"].required = True
-        self.fields["email"].required = True
-
         if not self.request.user.is_superuser:
+            for field in ["last_name", "first_name", "email"]:
+                if self.fields.get(field):
+                    self.fields[field].required = True
+        
             for field in ["is_staff", "is_superuser", "username"]:
                 if self.fields.get(field):
                     self.fields[field].disabled = True
