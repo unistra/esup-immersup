@@ -646,6 +646,10 @@ class ImmersionUserCreationForm(UserCreationForm):
 
         self.fields["password1"].required = False
         self.fields["password2"].required = False
+        
+        self.fields["last_name"].required = True
+        self.fields["first_name"].required = True
+        self.fields["email"].required = True
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
@@ -657,14 +661,15 @@ class ImmersionUserChangeForm(UserChangeForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        if not self.request.user.is_superuser:
-            if self.fields.get("is_staff"):
-                self.fields["is_staff"].disabled = True
-            if self.fields.get("is_superuser"):
-                self.fields["is_superuser"].disabled = True
-            if self.fields.get("username"):
-                self.fields["username"].disabled = True
+        self.fields["last_name"].required = True
+        self.fields["first_name"].required = True
+        self.fields["email"].required = True
 
+        if not self.request.user.is_superuser:
+            for field in ["is_staff", "is_superuser", "username"]:
+                if self.fields.get(field):
+                    self.fields[field].disabled = True
+        
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
                 self.fields["components"].disabled = True
