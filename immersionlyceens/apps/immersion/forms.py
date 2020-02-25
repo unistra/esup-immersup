@@ -136,6 +136,10 @@ class HighSchoolStudentForm(forms.ModelForm):
 
         email = cleaned_data.get('email', '').strip().lower()
 
+        if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError(
+                _("Error : an account already exists with this email address"))
+
         cleaned_data['email'] = email
 
         return cleaned_data
@@ -169,17 +173,18 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields['technological_bachelor_mention'].queryset = BachelorMention.objects.filter(active=True)
         self.fields['general_bachelor_teachings'] = forms.ModelMultipleChoiceField(
             queryset=GeneralBachelorTeaching.objects.filter(active=True).order_by('label'),
-            widget=forms.CheckboxSelectMultiple,            
+            widget=forms.CheckboxSelectMultiple           
         )
+        self.fields['general_bachelor_teachings'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
 
         level = cleaned_data['level']
         bachelor_type = cleaned_data['bachelor_type']
-        general_bachelor_teachings = cleaned_data['general_bachelor_teachings']
-        technological_bachelor_mention = cleaned_data['technological_bachelor_mention']
-        professional_bachelor_mention = cleaned_data['professional_bachelor_mention']
+        general_bachelor_teachings = cleaned_data.get('general_bachelor_teachings', '')
+        technological_bachelor_mention = cleaned_data.get('technological_bachelor_mention', '')
+        professional_bachelor_mention = cleaned_data.get('professional_bachelor_mention', '')
         origin_bachelor_type = cleaned_data['origin_bachelor_type']
 
         if level in [1, 2]:

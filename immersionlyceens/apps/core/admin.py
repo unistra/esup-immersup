@@ -386,6 +386,22 @@ class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorMentionForm
     list_display = ('label', 'active')
     ordering = ('label',)
+    
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and HighSchoolStudentRecord.objects.filter(technological_bachelor_mention=obj).exists():
+            messages.warning(
+                request,
+                _(
+                    """This bachelor mention can't be deleted """
+                    """because it is used by a high-school student record"""
+                ),
+            )
+            return False
+
+        return True
 
 
 class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):

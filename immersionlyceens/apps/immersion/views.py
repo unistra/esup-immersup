@@ -301,11 +301,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
             student = studentform.save()
 
             if current_email != student.email:
+                student.username = settings.USERNAME_PREFIX + student.email
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
                     messages.warning(request, _(
                         """You have updated your email."""
+                        """<br>Warning : your new email is also your new login."""
                         """<br>A new activation email has been sent, please check your messages."""))
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
