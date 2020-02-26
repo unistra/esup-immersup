@@ -6,7 +6,7 @@ from functools import partial
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.template.defaultfilters import date as _date
@@ -148,8 +148,9 @@ class ImmersionUser(AbstractUser):
         _("Account validation string"), blank=True, null=True, unique=True
     )
 
-    recovery_string = models.TextField(_("Account password recovery string"),
-        blank=True, null=True, unique=True)
+    recovery_string = models.TextField(
+        _("Account password recovery string"), blank=True, null=True, unique=True
+    )
 
     class Meta:
         verbose_name = _('User')
@@ -710,9 +711,9 @@ class Calendar(models.Model):
         if self.calendar_mode == 'YEAR':
             return self.year_start_date <= _date and _date <= self.year_end_date
         else:
-            return ((self.semester1_start_date <= _date <= self.semester1_end_date)
-                    or (self.semester2_start_date <= _date <= self.semester2_end_date)
-                    )
+            return (self.semester1_start_date <= _date <= self.semester1_end_date) or (
+                self.semester2_start_date <= _date <= self.semester2_end_date
+            )
 
     def which_semester(self, _date):
         if self.calendar_mode == 'SEMESTER':
@@ -721,7 +722,6 @@ class Calendar(models.Model):
             elif self.semester2_start_date <= _date <= self.semester2_end_date:
                 return 2
         return None
-
 
 
 class Course(models.Model):
@@ -766,6 +766,9 @@ class Course(models.Model):
     def free_seats(self):
         # TODO
         return self.slots.annotate(total_seats=Sum('n_places'))
+
+    def slots_count(self):
+        return self.slots.count()
 
     class Meta:
         verbose_name = _('Course')
@@ -1089,7 +1092,7 @@ class EvaluationFormLink(models.Model):
 
 class Slot(models.Model):
     """
-    Course class
+    Slot class
     """
 
     course = models.ForeignKey(

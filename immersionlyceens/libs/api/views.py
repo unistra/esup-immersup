@@ -4,6 +4,12 @@ API Views
 import datetime
 import logging
 
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, Course, HighSchool, Holiday, ImmersionUser, MailTemplateVars,
+    PublicDocument, Slot, Training, Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
@@ -12,21 +18,6 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
-
-from immersionlyceens.apps.core.models import (
-    Building,
-    Calendar,
-    Course,
-    HighSchool,
-    Holiday,
-    ImmersionUser,
-    MailTemplateVars,
-    PublicDocument,
-    Slot,
-    Training,
-    Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -120,9 +111,11 @@ def ajax_get_trainings(request):
         response['msg'] = gettext("Error : a valid component must be selected")
         return JsonResponse(response, safe=False)
 
-    trainings = Training.objects.prefetch_related('training_subdomains').filter(
-        components=component_id, active=True
-    ).order_by('label')
+    trainings = (
+        Training.objects.prefetch_related('training_subdomains')
+        .filter(components=component_id, active=True)
+        .order_by('label')
+    )
 
     for training in trainings:
         training_data = {
@@ -214,10 +207,11 @@ def ajax_get_courses_by_training(request, component_id=None, training_id=None):
     if not training_id:
         response['msg'] = gettext("Error : a valid training must be selected")
 
-    courses = Course.objects.prefetch_related('training').filter(
-        training__id=training_id,
-        component__id=component_id,
-    ).order_by('label')
+    courses = (
+        Course.objects.prefetch_related('training')
+        .filter(training__id=training_id, component__id=component_id,)
+        .order_by('label')
+    )
 
     for course in courses:
         course_data = {
@@ -314,11 +308,11 @@ def ajax_get_my_courses(request, user_id=None):
         course_data = {
             'id': course.id,
             'published': course.published,
-            'component': course.component.label,
+            'component': course.component.code,
             'training_label': course.training.label,
             'label': course.label,
             'teachers': {},
-            'published_slots_count': 0,  # TODO
+            'published_slots_count': course.slots_count(),
             'registered_students_count': 0,  # TODO
             'alerts_count': 0,  # TODO
         }
@@ -587,11 +581,12 @@ def ajax_reject_student(request):
     return ajax_validate_reject_student(request=request, validate=False)
 
 
-# POST
-@groups_required('REF-LYC', 'SCUIO-IP')
+@is_ajax_request
 @is_post_request
+@groups_required('REF-LYC', 'SCUIO-IP')
 def ajax_check_course_publication(request, course_id):
     from immersionlyceens.apps.core.models import Course
+
     response = {'data': None, 'msg': ''}
 
     c = Course.objects.get(id=course_id)

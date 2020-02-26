@@ -39,12 +39,10 @@
             <th id="teacher_filter">{% trans 'Teachers' %}</th>
             <th id="published_slots_filter">{% trans 'Published slots' %}</th>
             <th id="registered_students_filter">{% trans 'Registered students' %}</th>
-            <th id="alerts_count_filter">{% trans 'Alerts' %}</th>
           </tr>
         </thead>
         <tfoot>
           <tr>
-            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -110,7 +108,6 @@
     },
     { "data": "published_slots_count" },
     { "data": "registered_students_count" },
-    { "data": "alerts_count" },
   ],
     "columnDefs": [
     {
@@ -172,11 +169,6 @@
     filter_type: "range_number_slider",
     style_class: "form-control",
     filter_container_id: "registered_students_filter",
-  }, {
-    column_number: 7,
-    filter_type: "range_number_slider",
-    style_class: "form-control",
-    filter_container_id: "alerts_count_filter",
   }
   ]);
   });
