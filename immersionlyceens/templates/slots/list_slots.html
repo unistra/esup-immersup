@@ -67,6 +67,7 @@
                     <tr>
                         <th id="published_filter">{% trans 'Published' %}</th>
                         <th id="course_filter">{% trans 'Course label' %}</th>
+                        <th id="managed_by_filter">{% trans 'Managed by' %}</th>
                         <th id="course_type_filter">{% trans 'Course type' %}</th>
                         <th id="date_filter">{% trans 'Date' %}</th>
                         <th id="schedule_filter">{% trans 'Schedule' %}</th>
@@ -80,6 +81,7 @@
                 </thead>
                 <tbody>
                     <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -226,6 +228,7 @@ $(document).ready(function(){
                 return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
                 }},
             {data: 'course_label'},
+            {data: 'component', render: function(data, type, row) { return data['code']; },},
             {data: 'course_type'},
             {data: 'date'},
             {data: 'time'},
@@ -254,6 +257,8 @@ $(document).ready(function(){
                 }},
             {data: 'additional_information'},
             {data: 'id', render: function(data, type, row) {
+                if ( row['component']['managed_by_me'] )
+                {
                     let element = '<div>\n' +
                         '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light" ' +
                         '           style="background-image: url(\'{% static "img/duplicate.png" %}\'); ' +
@@ -265,7 +270,10 @@ $(document).ready(function(){
                         '        <button class="btn btn-light" onclick="delete_slot(' + data + ')">&#x1F5D1;</button>\n' +
                         '    </div>';
                     return element;
-                }},
+                } else {
+                    return '';
+                }
+            }},
 
         ],
         columnDefs: [{

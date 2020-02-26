@@ -158,7 +158,7 @@ def get_ajax_documents(request):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def get_ajax_slots(request, component=None):
-    from immersionlyceens.apps.core.models import Slot
+    from immersionlyceens.apps.core.models import Slot, Component
 
     # TODO: auth access test
 
@@ -173,11 +173,21 @@ def get_ajax_slots(request, component=None):
         slots = Slot.objects.filter(course__training__components__id=comp_id)
 
     all_data = []
+    my_components = []
+    if request.user.is_scuio_ip_manager():
+        my_components = Component.objects.all()
+    elif request.user.is_component_manager():
+        my_components = request.user.components.all()
+
     for slot in slots:
         data = {
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
+            'component': {
+                'code': slot.course.component.code,
+                'managed_by_me': slot.course.component in my_components,
+            },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
             'time': '{s} - {e}'.format(
