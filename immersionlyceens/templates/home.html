@@ -30,13 +30,13 @@
       </div>
       <div class="row">
         <div class="col-sm-3 text-center">
-          <a href="{% url 'procedure' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" title="{{ procedure_txt.content }}">{% trans 'Procedure' %}</a>
+          <a href="{% url 'procedure' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">{% trans 'Procedure' %}</a>
         </div>
         <div class="col-sm-3 text-center">
-          <a href="{% url 'offer' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" title="{{ offer_txt.content }}">{% trans 'Offer' %}</a>
+          <a href="{% url 'offer' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Offer' %}</a>
         </div>
         <div class="col-sm-3 text-center">
-          <a href="{% url 'accompanying' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" title="{{ accomp_txt.content }}">{% trans 'Accompaniment' %}</a>
+          <a href="{% url 'accompanying' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">{% trans 'Accompaniment' %}</a>
         </div>
       </div>
     </div>
@@ -44,7 +44,7 @@
 </div>
 <script>
 $(document).ready(function() {
-    $("body").tooltip({ selector: '[data-toggle=tooltip]' });
+    $("body").tooltip({ selector: '[data-toggle=tooltip]', container:'body'});
 });
 </script>
 
