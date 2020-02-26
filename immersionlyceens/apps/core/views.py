@@ -116,7 +116,6 @@ def add_slot(request, slot_id=None):
     if slot_id:
         slot = Slot.objects.get(id=slot_id)
         teachers_idx = [t.id for t in slot.teachers.all()]
-        print('teachers_idx', teachers_idx)
         slot.id = None
 
     # get components
@@ -154,7 +153,6 @@ def add_slot(request, slot_id=None):
                 "errors": slot_form.errors,
                 "teacher_error": len(teachers) < 1,
             }
-            print(context['campus'], 'campus')
             return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
@@ -181,7 +179,6 @@ def add_slot(request, slot_id=None):
         "slot_form": slot_form,
         "ready_load": True,
     }
-    print(context['campus'], 'campus')
     if slot:
         context['slot'] = slot
         if slot_teachers:
@@ -192,12 +189,12 @@ def add_slot(request, slot_id=None):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-# TODO: AUTH
+
+groups_required('SCUIO-IP','REF-CMP')
 def modify_slot(request, slot_id):
 
     slot = Slot.objects.get(id=slot_id)
     slot_form = SlotForm(instance=slot)
-
     # get components
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
@@ -210,7 +207,6 @@ def modify_slot(request, slot_id):
             request.POST.get('save_add')):
 
         slot_form = SlotForm(request.POST, instance=slot)
-
         teachers = []
         teacher_prefix = 'teacher_'
         for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if
@@ -238,8 +234,8 @@ def modify_slot(request, slot_id):
             return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
-            response = redirect('modify_slot', slot_id=slot_id)
-            response['Location'] += 'c={}&t={}'.format(
+            response = redirect('slots_list')
+            response['Location'] += '?c={}&t={}'.format(
                 request.POST.get('component', ''),
                 request.POST.get('training', ''),
             )
@@ -279,7 +275,6 @@ def modify_slot(request, slot_id):
         "ready_load": True,
         "teachers_idx": [t.id for t in slot.teachers.all()],
     }
-    print(context['campus'], 'campus')
     return render(request, 'slots/add_slot.html', context=context)
 
 
