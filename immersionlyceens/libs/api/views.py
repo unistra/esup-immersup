@@ -312,7 +312,7 @@ def ajax_get_my_courses(request, user_id=None):
             'training_label': course.training.label,
             'label': course.label,
             'teachers': {},
-            'published_slots_count': course.slots_count(),
+            'published_slots_count': f'{course.published_slots_count()} / {course.slots_count()}',
             'registered_students_count': 0,  # TODO
             'alerts_count': 0,  # TODO
         }

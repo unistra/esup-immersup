@@ -4,11 +4,6 @@ import re
 import uuid
 from functools import partial
 
-from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
-from immersionlyceens.libs.mails.utils import send_email
-from mailmerge import MailMerge
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -17,6 +12,11 @@ from django.db.models import Count, Q, Sum
 from django.template.defaultfilters import date as _date
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from mailmerge import MailMerge
+
+from immersionlyceens.fields import UpperCharField
+from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
+from immersionlyceens.libs.mails.utils import send_email
 
 from .managers import ActiveManager, ComponentQuerySet, HighSchoolAgreedManager
 
@@ -767,8 +767,11 @@ class Course(models.Model):
         # TODO
         return self.slots.annotate(total_seats=Sum('n_places'))
 
-    def slots_count(self):
+    def published_slots_count(self):
         return self.slots.filter(published=True).count()
+
+    def slots_count(self):
+        return self.slots.all().count()
 
     class Meta:
         verbose_name = _('Course')
