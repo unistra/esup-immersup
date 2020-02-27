@@ -4,24 +4,17 @@ import mimetypes
 import os
 from wsgiref.util import FileWrapper
 
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, GeneralSettings, InformationText, PublicDocument, Training,
+    TrainingSubdomain,
+)
+
 from django.conf import settings
 from django.http import (
-    HttpResponse,
-    HttpResponseBadRequest,
-    HttpResponseForbidden,
-    HttpResponseNotFound,
+    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound,
     StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
-
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument,
-    GeneralSettings,
-    InformationText,
-    PublicDocument,
-    Training,
-    TrainingSubdomain,
-)
 
 
 def home(request):
@@ -49,7 +42,7 @@ def home(request):
 
     try:
         twitter_url = GeneralSettings.objects.get(setting="TWITTER_ACCOUNT_URL").value
-    except InformationText.DoesNotExist:
+    except GeneralSettings.DoesNotExist:
         twitter_url = ''
 
     context = {
