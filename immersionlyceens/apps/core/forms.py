@@ -5,8 +5,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 from django.forms.widgets import DateInput, TimeInput
 
+from .admin_forms import HighSchoolForm
 from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar,
-                     CourseType, Campus, Building)
+                     CourseType, Campus, Building, HighSchool)
 
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -150,3 +151,24 @@ class SlotForm(forms.ModelForm):
                   'additional_information', 'published',)
 
         localized_fields = ('date',)
+
+
+class MyHighSchoolForm(HighSchoolForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for elem in ['label', 'address', 'address2', 'address3',
+                     'department', 'city', 'zip_code',
+                     'fax', 'email', 'phone_number',
+                     'head_teacher_name',
+                     ]:
+            self.fields[elem].widget.attrs.update({'class': 'form-control'})
+
+    class Meta:
+        model = HighSchool
+        fields = [
+            'label', 'address', 'address2', 'address3',
+            'department', 'city', 'zip_code',
+            'fax', 'email', 'phone_number',
+            'head_teacher_name',
+        ]
