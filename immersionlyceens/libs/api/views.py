@@ -365,13 +365,17 @@ def ajax_get_my_slots(request, user_id=None):
             else course.slots.filter(date__gte=datetime.datetime.now())
         )
         for s in slots:
+            campus = ""
             try:
+                if s.campus and s.building:
+                    campus = f'{s.campus.label} - {s.building.label}'
+
                 course_data = {
                     'id': course.id,
                     'published': course.published,
                     'component': course.component.code,
                     'training_label': f'{course.training.label} ({s.course_type.label})',
-                    'campus': f'{s.campus.label} - {s.building.label}',
+                    'campus': campus,
                     'room': s.room,
                     'date': _date(s.date, "l d/m/Y"),
                     'time': f'{s.start_time.strftime("%H:%M")} - {s.end_time.strftime("%H:%M")}',
