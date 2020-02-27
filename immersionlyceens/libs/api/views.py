@@ -4,12 +4,6 @@ API Views
 import datetime
 import logging
 
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, Course, HighSchool, Holiday, ImmersionUser, MailTemplateVars,
-    PublicDocument, Slot, Training, Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
@@ -18,6 +12,21 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
+
+from immersionlyceens.apps.core.models import (
+    Building,
+    Calendar,
+    Course,
+    HighSchool,
+    Holiday,
+    ImmersionUser,
+    MailTemplateVars,
+    PublicDocument,
+    Slot,
+    Training,
+    Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -356,23 +365,30 @@ def ajax_get_my_slots(request, user_id=None):
             else course.slots.filter(date__gte=datetime.datetime.now())
         )
         for s in slots:
-            course_data = {
-                'id': course.id,
-                'published': course.published,
-                'component': course.component.code,
-                'training_label': f'{course.training.label} ({s.course_type.label})',
-                'campus': f'{s.campus.label} - {s.building.label}',
-                'room': s.room,
-                'date': _date(s.date, "l d/m/Y"),
-                'time': f'{s.start_time.strftime("%H:%M")} - {s.end_time.strftime("%H:%M")}',
-                'start_time': s.start_time.strftime("%H:%M"),
-                'end_time': s.end_time.strftime("%H:%M"),
-                'label': course.label,
-                'teachers': {},
-                'registered_students_count': {"capacity": s.n_places, "students_count": 4},  # TODO
-                'additional_information': s.additional_information,
-                'emargements': '',  # TODO
-            }
+            try:
+                course_data = {
+                    'id': course.id,
+                    'published': course.published,
+                    'component': course.component.code,
+                    'training_label': f'{course.training.label} ({s.course_type.label})',
+                    'campus': f'{s.campus.label} - {s.building.label}',
+                    'room': s.room,
+                    'date': _date(s.date, "l d/m/Y"),
+                    'time': f'{s.start_time.strftime("%H:%M")} - {s.end_time.strftime("%H:%M")}',
+                    'start_time': s.start_time.strftime("%H:%M"),
+                    'end_time': s.end_time.strftime("%H:%M"),
+                    'label': course.label,
+                    'teachers': {},
+                    'registered_students_count': {
+                        "capacity": s.n_places,
+                        "students_count": 4,
+                    },  # TODO
+                    'additional_information': s.additional_information,
+                    'emargements': '',  # TODO
+                }
+            except AttributeError:
+                # TODO: maybe not usefull
+                pass
 
             for teacher in course.teachers.all().order_by('last_name', 'first_name'):
                 course_data['teachers'].update(
