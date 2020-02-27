@@ -171,49 +171,37 @@
         </div>
         <br>
 
+
+
         <div class="card">
-          <div class="card-title card-header">{% trans "High school referent" %}</div>
+          <div class="card-title card-header">{% trans "Convention" %}</div>
 
           <div class="card-body">
             <div class="form-group row">
-              <label class="col-sm-3" for="referent_name"><strong>{% trans "Referent name" %}*</strong></label>
+              <label class="col-sm-3" for="convention_end_date">{% trans "Convention end date" %}</label>
               <div class="col-sm-6">
-                {{ high_school_form.referent_name }}
-                <small>{{ high_school_form.referent_name.help_text }}</small>
+                <div class="readonly">{{ high_school.convention_end_date|default:'-' }}</div>
               </div>
-              {% if high_school_form.referent_name.errors %}
-              <div class="col-sm-3">
-                {{ high_school_form.referent_name.errors }}
-              </div>
-              {% endif %}
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="referent_phone_number"><strong>{% trans "Referent phone number" %}*</strong></label>
+              <label class="col-sm-3" for="convention_start_date">{% trans "Convention start date" %}</label>
               <div class="col-sm-6">
-                {{ high_school_form.referent_phone_number }}
+                <div class="readonly">{{ high_school.convention_start_date|default:'-' }}</div>
               </div>
-            </div>
-            <div class="form-group row">
-              <label class="col-sm-3" for="referent_email"><strong>{% trans "Referent email" %}*</strong></label>
-              <div class="col-sm-6">
-                {{ high_school_form.referent_email }}
-              </div>
-              {% if high_school_form.referent_email.errors %}
-              <div class="col-sm-3">
-                {{ high_school_form.referent_email.errors }}
-              </div>
-              {% endif %}
             </div>
 
           </div>
-
         </div>
-        <br>
 
+
+
+        <br>
+        <br>
         <div class="form-group">
           <button class="btn btn-primary">{% trans "Modify" %}</button>
         </div>
+
 
       </form>
     </div>
