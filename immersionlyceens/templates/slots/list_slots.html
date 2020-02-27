@@ -23,7 +23,7 @@
         </div>
         <div class="card-body">
             <div>
-                <a href="{% url 'add_slot' %}" class="btn btn-secondary">&#10133; {% trans 'New slot' %}</a>
+                <a href="{% url 'add_slot' %}" class="btn btn-secondary">{% trans 'New slot' %}</a>
             </div>
             <div>
 
@@ -302,15 +302,13 @@ $(document).ready(function(){
         {
             column_number: 2,
             filter_default_label: "",
-            filter_container_id: "course_type_filter",
             style_class: "form-control",
-            filter_reset_button_text: false,
+            filter_container_id: "managed_by_filter",
         },
         {
             column_number: 3,
-            filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "date_filter",
+            filter_container_id: "course_type_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
@@ -318,7 +316,7 @@ $(document).ready(function(){
             column_number: 4,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "schedule_filter",
+            filter_container_id: "date_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
@@ -326,7 +324,7 @@ $(document).ready(function(){
             column_number: 5,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "building_filter",
+            filter_container_id: "schedule_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
@@ -334,7 +332,7 @@ $(document).ready(function(){
             column_number: 6,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "room_filter",
+            filter_container_id: "building_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
@@ -342,7 +340,7 @@ $(document).ready(function(){
             column_number: 7,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "teachers_filter",
+            filter_container_id: "room_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
@@ -350,12 +348,20 @@ $(document).ready(function(){
             column_number: 8,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "registration_filter",
+            filter_container_id: "teachers_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
         {
             column_number: 9,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "registration_filter",
+            style_class: "form-control",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 10,
             filter_type: "text",
             filter_default_label: "",
             filter_container_id: "add_info_filter",
