@@ -43,28 +43,22 @@
       <table id="courses_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
           <tr>
-            <th id="published_filter">{% trans 'Published' %}</th>
-            <th id="component_filter">{% trans 'Comp.' %}</th>
-            <th id="training_filter">{% trans 'Training' %}</th>
-            <th id="label_filter">{% trans 'Label' %}</th>
-            <th id="course_type_filter" width="10%">{% trans 'Type' %}</th>
-            <th id="date_filter">{% trans 'Date' %}</th></th>
-            <th id="start_time_filter">{% trans 'Start' %}</th>
-            <th id="end_time_filter">{% trans 'End' %}</th>
-            <th id="campus_filter">{% trans 'Campus' %}</th>
-            <th id="building_filter">{% trans 'Building' %}</th>
-            <th id="room_filter">{% trans 'Room' %}</th>
-            <th id="teacher_filter">{% trans 'Teachers' %}</th>
+            <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+            <th id="component_filter" class="align-top">{% trans 'Comp.' %}</th>
+            <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
+            <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
+            <th id="date_filter" class="align-top">{% trans 'Date' %}</th></th>
+            <th id="time_filter" class="align-top">{% trans 'Schedules' %}</th>
+            <th id="campus_filter" class="align-top">{% trans 'Campus' %}</th>
+            <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
+            <th id="teacher_filter" class="align-top">{% trans 'Teachers' %}</th>
             <th class="align-top">{% trans 'Registered students' %}</th>
-            <th id="additional_info_filter">{% trans 'Additional info.' %}</th>
-            <th id="emargements_filter">{% trans 'Attendance' %}</th>
+            <th id="emargements_filter" class="align-top">{% trans 'Attendance' %}</th>
+            <th></th>
           </tr>
         </thead>
         <tfoot>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -123,12 +117,9 @@
     { "data": "component" },
     { "data": "training_label" },
     { "data": "label" },
-    { "data": "course_type"},
     { "data": "date"},
-    { "data": "start_time"},
-    { "data": "end_time"},
+    { "data": "time"},
     { "data": "campus"},
-    { "data": "building"},
     { "data": "room"},
     {
       "data": "teachers",
@@ -146,8 +137,17 @@
           return data.students_count + '/' + data.capacity + ' <meter min="0" max="'+ data.capacity +'" value="'+ data.students_count+'"></meter>';
       }
     },
-    { "data": "additional_information" },
     { "data": "emargements"},
+    {
+      "data": "additional_information",
+      "render": function (data) {
+        if(data){
+          return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-eye"></i></span>';
+        } else {
+          return ""
+        }
+      },
+    },
   ],
     "columnDefs": [
     {
@@ -204,69 +204,44 @@
     column_number: 4,
     filter_default_label: "",
     style_class: "form-control form-control-sm",
-    filter_container_id: "course_type_filter",
+    filter_container_id: "date_filter",
     filter_reset_button_text: false,
   }, {
     column_number: 5,
-    filter_type: "range_date",
+    filter_default_label: "",
     style_class: "form-control form-control-sm",
-    //datepicker_type: 'bootstrap-datepicker',
-    filter_container_id: "date_filter",
-    moment_date_format: 'DD/MM/YYYY',
-    date_format:  'dd/mm/yyyy',
+    filter_container_id: "time_filter",
     filter_reset_button_text: false,
-    filter_default_label: ["",""],
   }, {
     column_number: 6,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
-    filter_container_id: "start_time_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 7,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
-    filter_container_id: "end_time_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 8,
     filter_default_label: "",
     style_class: "form-control form-control-sm",
     filter_container_id: "campus_filter",
     filter_reset_button_text: false,
   }, {
-    column_number: 9,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
-    filter_container_id: "building_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 10,
+    column_number: 7,
     filter_default_label: "",
     style_class: "form-control",
     filter_container_id: "room_filter",
     filter_reset_button_text: false,
   }, {
-    column_number: 11,
+    column_number: 8,
     filter_type: "text",
     filter_default_label: "",
     style_class: "form-control",
     filter_container_id: "teacher_filter",
     filter_reset_button_text: false,
   }, {
-    column_number: 13,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
-    filter_container_id: "additional_info_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 14,
+    column_number: 10,
     filter_default_label: "",
     style_class: "form-control form-control-sm",
     filter_container_id: "emargements_filter",
     filter_reset_button_text: false,
   }
   ]);
+  dt.on( 'draw', function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
 });
 </script>
 {% endblock %}

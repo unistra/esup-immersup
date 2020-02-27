@@ -359,22 +359,19 @@ def ajax_get_my_slots(request, user_id=None):
             course_data = {
                 'id': course.id,
                 'published': course.published,
-                'component': course.component.label,
-                'training_label': course.training.label,
-                'course_type': s.course_type.label,
-                'campus': s.campus.label,
-                'building': s.building.label,
+                'component': course.component.code,
+                'training_label': f'{course.training.label} ({s.course_type.label})',
+                'campus': f'{s.campus.label} - {s.building.label}',
                 'room': s.room,
-                'date': s.date.strftime("%d/%m/%Y"),
+                'date': _date(s.date, "l d/m/Y"),
+                'time': f'{s.start_time.strftime("%H:%M")} - {s.end_time.strftime("%H:%M")}',
                 'start_time': s.start_time.strftime("%H:%M"),
                 'end_time': s.end_time.strftime("%H:%M"),
                 'label': course.label,
                 'teachers': {},
-                'published_slots_count': 0,  # TODO
                 'registered_students_count': {"capacity": s.n_places, "students_count": 4},  # TODO
                 'additional_information': s.additional_information,
                 'emargements': '',  # TODO
-                'alert_count': '',  # TODO
             }
 
             for teacher in course.teachers.all().order_by('last_name', 'first_name'):
