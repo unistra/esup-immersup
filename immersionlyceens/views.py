@@ -58,7 +58,9 @@ def home(request):
 def offer(request):
     """Offer view"""
 
-    subdomains = TrainingSubdomain.activated.all().order_by('training_domain', 'label')
+    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by(
+        'training_domain', 'label'
+    )
 
     context = {
         'subdomains': subdomains,
