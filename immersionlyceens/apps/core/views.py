@@ -78,7 +78,8 @@ def import_holidays(request):
     # TODO: dynamic redirect
     return redirect(redirect_url)
 
-# TODO : AUTH
+
+groups_required('SCUIO-IP','REF-CMP')
 def slots_list(request):
     template = 'slots/list_slots.html'
 
