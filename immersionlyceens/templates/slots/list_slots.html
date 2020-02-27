@@ -189,6 +189,7 @@ $(document).ready(function(){
 
     load_trainings($('#component').val(), true);
     $("#component").on('change', function(event){
+        $('#training').val('');
         load_trainings(event.target.value);
         reload_data();
     });
