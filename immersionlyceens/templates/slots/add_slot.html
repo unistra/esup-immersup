@@ -31,20 +31,6 @@
                 {% include 'slots/add_slot__controls.html' %}
                 <br>
 
-                {% if errors or teacher_error %}
-                <div class="alert alert-danger">
-                    {% if teacher_error %}
-                    <ul>
-                        <li>{% trans "Teachers" %}
-                            <ul><li>{% trans "You have to select one or more teachers" %}</li></ul>
-                        </li>
-                    </ul>
-                    {% endif %}
-                    {{ errors }}
-                </div>
-                {% endif %}
-                <br>
-
                 {% csrf_token %}
                 {{ slot_form.id }}
 
@@ -78,12 +64,23 @@
                     <div class="col-sm-6">
                         {{ slot_form.course }}
                     </div>
+                    {% if slot_form.course.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.course.errors }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group row">
                     <label for="course_type" class="col-form-label col-sm-3">{% trans 'Course type' %}</label>
                     <div class="col-sm-6">
                         {{ slot_form.course_type }}
                     </div>
+                    {% if slot_form.course_type.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.course_type.errors }}
+                    </div>
+                    {% endif %}
+
                 </div>
 
                 <div class="form-group row">
@@ -101,58 +98,120 @@
                             {{ slot_form.campus }}
                         {% endif %}
                     </div>
+                    {% if slot_form.campus.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.campus.errors }}
+                    </div>
+                    {% endif %}
+
                 </div>
                 <div class="form-group row">
                     <label for="building" class="col-form-label col-sm-3">{% trans 'Building' %}</label>
                     <div class="col-sm-6">
                         {{ slot_form.building }}
                     </div>
+                    {% if slot_form.building.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.building.errors }}
+                    </div>
+                    {% endif %}
+
                 </div>
                 <div class="form-group row">
                     <label for="room" class="col-form-label col-sm-3">{% trans 'Room' %}</label>
                     <div class="col-sm-6">
                         {{ slot_form.room }}
                     </div>
+                    {% if slot_form.room.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.room.errors }}
+                    </div>
+                    {% endif %}
+
                 </div>
 
 
                 <div class="form-group row">
-                    <label for="building" class="col-form-label col-sm-3">{% trans 'Date' %}</label>
+                    <label for="date" class="col-form-label col-sm-3">{% trans 'Date' %}</label>
                     <div class="col-sm-6">
                         {{ slot_form.date }}
                     </div>
+                    {% if slot_form.date.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.date.errors }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group row">
                     <label for="start_time" class="col-form-label col-sm-3">{% trans 'Start time' %}</label>
                     <div class="col-sm-6">
                         {{ slot_form.start_time }}
                     </div>
+                    {% if slot_form.start_time.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.start_time.errors }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group row">
                     <label for="end_time" class="col-form-label col-sm-3">{% trans 'End time' %}</label>
                     <div class="col-sm-6">
                         {{ slot_form.end_time }}
                     </div>
+                    {% if slot_form.end_time.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.end_time.errors }}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="form-group row">
                     <label class="col-sm-3">{% trans 'Teachers' %}</label>
-                    <div class="form-group col-sm-9 row">
+                    <div class="form-group col-sm-6 row">
                         <div class="form-check" id="id_teachers">
                             {% if slot %}
-                            {% for t in slot.course.teachers.all %}
-                            <div class="custom-control custom-checkbox">
-                                {% if t.id in teachers_idx %}
-                                    <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
-                                {% else %}
-                                    <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
-                                {% endif %}
-                                <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
-                            </div>
-                            {% endfor %}
+                                {% for t in slot.course.teachers.all %}
+                                <div class="custom-control custom-checkbox">
+                                    {% if t.id in teachers_idx %}
+                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                    {% else %}
+                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                    {% endif %}
+                                    <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                                </div>
+                                {% endfor %}
+                            {% elif course %}
+                                {{ teachers_idx }}
+                                {% for t in course.teachers.all %}
+                                <div class="custom-control custom-checkbox">
+                                    {% if t.id in teachers_idx %}
+                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                    {% else %}
+                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                    {% endif %}
+                                    <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                                </div>
+                                {% endfor %}
                             {% endif %}
                         </div>
+
                     </div>
+                    {% if slot_form.teachers.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.teachers.errors }}
+                    </div>
+                    {% elif teacher_error %}
+                        <div class="alert alert-danger">
+                        {% if teacher_error %}
+                        <ul>
+                            <li>{% trans "Teachers" %}
+                                <ul><li>{% trans "You have to select one or more teachers" %}</li></ul>
+                            </li>
+                        </ul>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 </div>
 
                 <div class="form-group row">
@@ -160,6 +219,11 @@
                     <div class="col-sm-6">
                         {{ slot_form.n_places }}
                     </div>
+                    {% if slot_form.n_places.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.n_places.errors }}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="form-group row">
@@ -167,6 +231,11 @@
                     <div class="col-sm-6">
                         {{ slot_form.additional_information }}
                     </div>
+                    {% if slot_form.additional_information.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.additional_information.errors }}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="form-group row">
@@ -174,15 +243,17 @@
                     <div class="col-sm-6">
                         {{ slot_form.published }}
                     </div>
+                    {% if slot_form.published.errors %}
+                    <div class="col-sm-3 alert alert-danger">
+                      {{ slot_form.published.errors }}
+                    </div>
+                    {% endif %}
                 </div>
                 <input type="hidden" name="modify">
                 {% include 'slots/add_slot__controls.html' %}
             </form>
         </div>
     </div>
-    <br>
-    <br>
-    <br>
 </div>
 {% endblock %}
 
@@ -301,15 +372,20 @@ $(document).ready(function(){
                     );
                     data['data'].forEach(function(e){
                         let selected = '';
-                        {% if slot %}
-                        if ( e['id'] == '{{ slot.course.training.id }}' ) {
+                        {% if request.POST.training %}
+                        // if ( e['id'] == '{{ slot.course.training.id }}' ) {
+                        if (e['id'] == '{{ request.POST.training }}') {
+                            selected = 'selected';
+                        }
+                        {% elif slot %}
+                        if (e['id'] == '{{ slot.course.training.id }}') {
                             selected = 'selected';
                         }
                         {% endif %}
                         let element = '<option '+ selected +' value="' + e['id'] + '">' + e['label'] + '</option>';
                         $('#training').append(element);
                     });
-                    {% if slot %}
+                    {% if slot or request.POST.course %}
                         if ( course_first ) {
                             course_first = false;
                             load_course(
@@ -342,8 +418,11 @@ $(document).ready(function(){
                     });
                     {% if slot %}
                     $('#id_course option[value="{{ slot.course.id }}"]').attr('selected', '');
+                    {% elif request.POST.course %}
+                    $('#id_course option[value="{{ request.POST.course }}"]').attr('selected', '');
                     {% endif %}
                 }
+                // load_teachers($('#id_course').val());
             }
         });
     }
@@ -374,6 +453,11 @@ $(document).ready(function(){
                         $('#id_building option[value="{{ slot.building.id }}"]').attr('selected', '');
                         building_first = false;
                     }
+                    {% elif request.POST.building %}
+                    if (building_first) {
+                        $('#id_building option[value="{{ request.POST.building }}"]').attr('selected', '');
+                        building_first = false;
+                    }
                     {% endif %}
                 }
                 else {
@@ -394,8 +478,6 @@ $(document).ready(function(){
                     $('#id_teachers').html('');
                     data['data'].forEach(function(e){
                         let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
-                        let element = '<option value="' + e['id'] + '">' + name + '</option>';
-
                         element = '<div class="custom-checkbox custom-control">';
                         element += '<input type="checkbox" name="teacher_' + e['id'] + '" value="' + e['id'] + '">';
                         element += '<label for="teacher_' + e['id'] + '">' + name +'</label>';
@@ -440,13 +522,23 @@ $(document).ready(function(){
     // if it's a modifitation
     {% if not slot %}
         $('#id_date').get(0).type = 'date';
-        load_trainings($('#component').val());
+        {% if not request.POST.component %}
+            load_trainings($('#component').val());
+        {% endif %}
+        {% if not request.POST.component and not request.POST.training %}
         load_course(
             $('#component').val(),
             $('#training').val()
         );
-        load_buildings($('#id_campus').val());
-        load_teachers($('#id_course').val());
+        {% endif %}
+
+        {% if not slot_form.campus.value %}
+            load_buildings($('#id_campus').val());
+        {% endif %}
+        {% if not slot_form.course.value %}
+            load_teachers($('#id_course').val());
+        {% endif %}
+
     {% endif %}
     // toggle
     toggle_required_fields();
@@ -458,29 +550,37 @@ $(document).ready(function(){
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
     $('#id_published').on('change', function(){ toggle_required_fields(); });
 
-    {% if slot %}
-    setTimeout(function(){
-            $('#ok_modify').fadeOut(1000, function(){
-                $('#ok_modify').hide();
-            });
-        },
-        3000
-    );
+    {% if slot or request.POST.component %}
+        {% if slot %}
+        setTimeout(function(){
+                $('#ok_modify').fadeOut(1000, function(){
+                    $('#ok_modify').hide();
+                });
+            },
+            3000
+        );
+        {% endif %}
 
     $('#component option').each(function(i, e) {
+        {% if request.POST.component %}
+        if ( $(e).val() == '{{ request.POST.component }}' )
+        {% elif slot %}
         if ( $(e).val() == '{{ slot.course.component.id }}' )
+        {% endif %}
         {
             e.selected = true;
             load_trainings($(e).val(), true);
         }
     });
 
-    $('#id_campus option[value="{{ slot.campus.id }}"]').attr('selected', '');
+    // $('#id_campus option[value="{{ slot.campus.id }}"]').attr('selected', '');
+    $('#id_campus option[value="{{ slot_form.campus.value }}"]').attr('selected', '');
     load_buildings($('#id_campus').val());
 
     $('#id_course').html('');
     $('#id_course').append(
-        '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
+        // '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
+        '<option selected value="{{ slot_form.course.value }}">{{ slot.course.label }}</option>'
     );
     {% endif%}
 });

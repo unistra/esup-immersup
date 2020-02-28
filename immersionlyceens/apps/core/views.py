@@ -148,11 +148,13 @@ def add_slot(request, slot_id=None):
         else:
             context = {
                 "campus": Campus.objects.filter(active=True).order_by('label'),
+                "course": Course.objects.get(id=request.POST.get('course', None)),
                 "components": components,
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
                 "teacher_error": len(teachers) < 1,
+                "teachers_idx": [int(t) for t in teachers],
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -182,6 +184,7 @@ def add_slot(request, slot_id=None):
     }
     if slot:
         context['slot'] = slot
+        context['course'] = slot.course
         if slot_teachers:
             teachers_idx = [t.id for t in slot_teachers]
         if not teachers_idx:
@@ -230,7 +233,7 @@ def modify_slot(request, slot_id):
                 "ready_load": True,
                 "errors": slot_form.errors,
                 "teacher_error": len(teachers) < 1,
-                "teachers_idx": [t.id for t in slot.teachers.all()],
+                "teachers_idx": [int(t) for t in teachers],
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -257,12 +260,12 @@ def modify_slot(request, slot_id):
         else:
             context = {
                 "slot": slot,
+                "course": Course.objects.get(id=request.POST.get('course', None)),
                 "components": components,
                 "campus": Campus.objects.filter(active=True).order_by('label'),
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
                 "ready_load": True,
-                "errors": slot_form.errors,
                 "teachers_idx": [t.id for t in slot.teachers.all()],
             }
             return render(request, 'slots/add_slot.html', context=context)
