@@ -74,7 +74,7 @@ class SlotForm(forms.ModelForm):
         # self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
 
         for elem in ['course', 'course_type', 'campus', 'building',
-                  'room', 'date', 'start_time', 'end_time', 'n_places',
+                  'room', 'start_time', 'end_time', 'n_places',
                   'additional_information', 'published',]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
@@ -141,7 +141,10 @@ class SlotForm(forms.ModelForm):
             }),
             'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
             'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
-            'date': forms.DateInput(format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy')}),
+            'date': forms.DateInput(format='%d/%m/%Y', attrs={
+                'placeholder': _('dd/mm/yyyy'),
+                'class': 'datepicker form-control'
+            }),
             'start_time': TimeInput(format='%H:%M'),
             'end_time': TimeInput(format='%H:%M'),
         }

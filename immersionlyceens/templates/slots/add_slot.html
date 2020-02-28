@@ -3,6 +3,8 @@
 {% load i18n %}
 {% load static %}
 {% load staticfiles %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
 
 {% block head-css %}
     <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
@@ -518,9 +520,14 @@ $(document).ready(function(){
         }
     });
 
-    // if it's a modifitation
+    $(".datepicker").datepicker({
+      changeMonth: true,
+      changeYear: true,
+      yearRange: "2020:2100",
+    });
+
     {% if not slot %}
-        $('#id_date').get(0).type = 'date';
+
         {% if not request.POST.component %}
             load_trainings($('#component').val());
         {% endif %}

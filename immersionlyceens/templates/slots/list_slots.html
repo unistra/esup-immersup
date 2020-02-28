@@ -3,6 +3,8 @@
 {% load i18n %}
 {% load static %}
 {% load staticfiles %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
 
 {% block head-css %}
     <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
@@ -223,7 +225,9 @@ $(document).ready(function(){
         search: true,
         paging: true,
         ordering: true,
-        language: {url: '{% static "js/vendor/i18n/" %}{{ LANGUAGE_CODE }}.json'},
+        language: {
+          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+        },
         columns: [
             {data: 'published', render: function(data, type, row){
                 return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
