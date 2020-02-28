@@ -149,10 +149,6 @@ class SlotForm(forms.ModelForm):
             'end_time': TimeInput(format='%H:%M'),
         }
 
-        fields = ('id', 'course', 'course_type', 'campus', 'building',
-                  'room', 'date', 'start_time', 'end_time', 'n_places',
-                  'additional_information', 'published',)
-
         localized_fields = ('date',)
 
 
