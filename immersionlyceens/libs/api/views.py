@@ -442,6 +442,7 @@ def ajax_check_date_between_vacation(request):
     return JsonResponse(response, safe=False)
 
 
+@is_post_request
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-LYC')
 def ajax_get_student_records(request):
@@ -451,8 +452,8 @@ def ajax_get_student_records(request):
     response = {'data': [], 'msg': ''}
 
     # @@@
-    action = request.GET.get('action')
-    hs_id = request.GET.get('high_school_id')
+    action = request.POST.get('action')
+    hs_id = request.POST.get('high_school_id')
     actions = ['TO_VALIDATE', 'VALIDATED', 'REJECTED']
 
     if action and action.upper() in actions:
@@ -488,6 +489,7 @@ def ajax_get_student_records(request):
             response['msg'] = gettext("Error: No high school selected")
     else:
         response['msg'] = gettext("Error: No action selected for AJAX request")
+    return JsonResponse(response, safe=False)
 
 
 @is_ajax_request

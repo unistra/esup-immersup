@@ -187,6 +187,7 @@ $(document).ready(function () {
             ordering: true,
             search: true,
             ajax: {
+                type: "POST",
                 url: "/api/get_student_records/",
                 data: function (d) {
                     d.action = 'TO_VALIDATE';
@@ -236,6 +237,7 @@ $(document).ready(function () {
             ordering: true,
             search: true,
             ajax: {
+                type: "POST",
                 url: "/api/get_student_records/",
                 data: function (d) {
                     d.action = 'VALIDATED';
@@ -280,6 +282,7 @@ $(document).ready(function () {
             ordering: true,
             search: true,
             ajax: {
+                type: "POST",
                 url: "/api/get_student_records/",
                 data: function (d) {
                     d.action = 'REJECTED';

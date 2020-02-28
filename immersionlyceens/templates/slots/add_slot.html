@@ -181,7 +181,6 @@
                                 </div>
                                 {% endfor %}
                             {% elif course %}
-                                {{ teachers_idx }}
                                 {% for t in course.teachers.all %}
                                 <div class="custom-control custom-checkbox">
                                     {% if t.id in teachers_idx %}
