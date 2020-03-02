@@ -2279,8 +2279,8 @@ msgid ""
 "This date is inside a vacation or a haliday. Are you sure that you want a "
 "slot with this date ?"
 msgstr ""
-"Cette date est à l'intéreur d'une période de vacances ou est un jour férier."
-"Êtes-vous sûr de vouloir cette date pour ce créneau ?"
+"Cette date est à l'intéreur d'une période de vacances et/ou est un jour férié."
+"Êtes-vous sûr de vouloir utiliser cette date pour ce créneau ?"
 
 #: immersionlyceens/templates/slots/add_slot.html:413
 msgid "Did you really want to cancel this modification?"
