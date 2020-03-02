@@ -139,7 +139,7 @@ class SlotForm(forms.ModelForm):
             'additional_information': forms.Textarea(attrs={
                 'placeholder': _('Input additional information'),
             }),
-            'n_places': forms.NumberInput(attrs={'min': 0, 'max': 200, 'value': 0}),
+            'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
             'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
             'date': forms.DateInput(format='%d/%m/%Y', attrs={
                 'placeholder': _('dd/mm/yyyy'),
