@@ -112,6 +112,7 @@
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 <script>
 $(document).ready(function(){
     var selected_training = false;
@@ -236,10 +237,20 @@ $(document).ready(function(){
             {data: 'component', render: function(data, type, row) { return data['code']; },},
             {data: 'course_type'},
             {data: 'date'},
-            {data: 'time'},
-            {data: 'building'},
+            {data: 'time', render: function(data){
+                    return data['start'] + '</br>' + data['end']
+                }},
+            {data: 'location', render: function(data){
+                return data['campus'] + '</br>' + data['building'];
+            }},
             {data: 'room'},
-            {data: 'teachers'},
+            {data: 'teachers', render: function(data){
+                let element = '';
+                $.each(data, function(name, email){
+                    element += '<a href="mailto:' + email + '">' + name + '</a></br>'
+                });
+                return element;
+            }},
             {data: 'n_register', render: function(data, type, row) {
                     let current = data;
                     let n = row['n_places'];
@@ -321,14 +332,6 @@ $(document).ready(function(){
             filter_type: "text",
             filter_default_label: "",
             filter_container_id: "date_filter",
-            style_class: "form-control",
-            filter_reset_button_text: false,
-        },
-        {
-            column_number: 5,
-            filter_type: "text",
-            filter_default_label: "",
-            filter_container_id: "schedule_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
