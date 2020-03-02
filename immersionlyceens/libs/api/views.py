@@ -426,9 +426,9 @@ def ajax_check_date_between_vacation(request):
     if _date:
         # two format date
         try:
-            formated_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
+            formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
         except ValueError:
-            formated_date = datetime.datetime.strptime(_date, '%d-%m-%Y')
+            formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
 
         response['data'] = {
             'is_between': (
