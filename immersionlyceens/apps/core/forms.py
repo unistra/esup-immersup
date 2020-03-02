@@ -92,6 +92,7 @@ class SlotForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         course = cleaned_data.get('course')
+        pub = cleaned_data.get('published', None)
 
         cals = Calendar.objects.all()
         cal = None
@@ -123,10 +124,9 @@ class SlotForm(forms.ModelForm):
                 'start_time': _('Error: Start time must be set before end time')
             })
 
-        if course and not course.published:
+        if course and not course.published and pub:
             course.published = True
             course.save()
-            # TODO: message in template
 
         return cleaned_data
 
