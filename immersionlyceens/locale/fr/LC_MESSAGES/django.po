@@ -1164,7 +1164,7 @@ msgstr "Heure de fin"
 #: immersionlyceens/apps/core/models.py:1138
 #: immersionlyceens/templates/slots/add_slot.html:154
 msgid "Number of places"
-msgstr "Nombre de places"
+msgstr "Nombre maximum de places"
 
 #: immersionlyceens/apps/core/models.py:1140
 #: immersionlyceens/templates/slots/add_slot.html:161
