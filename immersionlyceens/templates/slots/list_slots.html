@@ -69,7 +69,7 @@
                     <tr>
                         <th id="published_filter">{% trans 'Published' %}</th>
                         <th id="course_filter">{% trans 'Course label' %}</th>
-                        <th id="managed_by_filter">{% trans 'Managed by' %}</th>
+                        <th id="managed_by_filter">{% trans 'Managed By' %}</th>
                         <th id="course_type_filter">{% trans 'Course type' %}</th>
                         <th id="date_filter">{% trans 'Date' %}</th>
                         <th id="schedule_filter">{% trans 'Schedule' %}</th>
@@ -77,7 +77,7 @@
                         <th id="room_filter">{% trans 'Room' %}</th>
                         <th id="teachers_filter">{% trans 'Teachers' %}</th>
                         <th id="registration_filter">{% trans '# of registration' %}</th>
-                        <th id="add_info_filter">{% trans 'Additional information' %}</th>
+                        <th>{% trans 'Additional information' %}</th>
                         <th>{% trans 'Control' %}</th>
                     </tr>
                 </thead>
@@ -364,14 +364,6 @@ $(document).ready(function(){
             filter_type: "text",
             filter_default_label: "",
             filter_container_id: "registration_filter",
-            style_class: "form-control",
-            filter_reset_button_text: false,
-        },
-        {
-            column_number: 10,
-            filter_type: "text",
-            filter_default_label: "",
-            filter_container_id: "add_info_filter",
             style_class: "form-control",
             filter_reset_button_text: false,
         },
