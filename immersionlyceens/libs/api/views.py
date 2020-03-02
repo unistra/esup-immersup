@@ -191,23 +191,30 @@ def get_ajax_slots(request, component=None):
                 'managed_by_me': slot.course.component in my_components,
             },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
-            'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
-            'time': '{s} - {e}'.format(
-                s=slot.start_time.strftime('%Hh%M') or '', e=slot.end_time.strftime('%Hh%M') or '',
-            )
-            if slot.start_time is not None and slot.end_time is not None
-            else '-',
-            'building': '{} - {}'.format(slot.building.label, slot.campus.label)
-            if slot.building is not None and slot.campus is not None
-            else '-',
+            'date': _date(slot.date, 'l d/m/Y'),
+            # 'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
+            'time': {
+                'start': slot.start_time.strftime('%Hh%M') or '',
+                'end': slot.end_time.strftime('%Hh%M') or '',
+            },
+            'location': {
+                'campus': slot.campus.label if slot.campus else '',
+                'building': slot.building.label if slot.building else '',
+            },
             'room': slot.room if slot.room is not None else '-',
-            'teachers': ', '.join(
-                ['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]
-            ),
+            'teachers': {},
+            # 'teachers': ', '.join(
+            #     ['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]
+            # ),
             'n_register': 10,  # todo: registration count
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
         }
+
+        for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
+            data['teachers'].update([
+                    (f"{teacher.last_name} {teacher.first_name}", teacher.email,)
+            ],)
         all_data.append(data)
 
     response['data'] = all_data
