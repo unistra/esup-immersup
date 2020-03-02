@@ -177,12 +177,7 @@
           <div class="card-title card-header">{% trans "Convention" %}</div>
 
           <div class="card-body">
-            <div class="form-group row">
-              <label class="col-sm-3" for="convention_end_date">{% trans "Convention end date" %}</label>
-              <div class="col-sm-6">
-                <div class="readonly">{{ high_school.convention_end_date|default:'-' }}</div>
-              </div>
-            </div>
+
 
             <div class="form-group row">
               <label class="col-sm-3" for="convention_start_date">{% trans "Convention start date" %}</label>
@@ -191,6 +186,13 @@
               </div>
             </div>
 
+            <div class="form-group row">
+              <label class="col-sm-3" for="convention_end_date">{% trans "Convention end date" %}</label>
+              <div class="col-sm-6">
+                <div class="readonly">{{ high_school.convention_end_date|default:'-' }}</div>
+              </div>
+            </div>
+            g
           </div>
         </div>
 
