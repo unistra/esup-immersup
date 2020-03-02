@@ -441,7 +441,8 @@ def ajax_check_date_between_vacation(request):
             'is_between': (
                 Vacation.date_is_inside_a_vacation(formated_date.date())
                 or Holiday.date_is_a_holiday(formated_date.date())
-            )
+                or formated_date.date().weekday() == 6  # sunday
+            ),
         }
     else:
         response['msg'] = gettext('Error: A date is required')
