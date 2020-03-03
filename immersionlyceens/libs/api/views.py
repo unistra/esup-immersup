@@ -194,8 +194,8 @@ def get_ajax_slots(request, component=None):
             'date': _date(slot.date, 'l d/m/Y'),
             # 'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
             'time': {
-                'start': slot.start_time.strftime('%Hh%M') or '',
-                'end': slot.end_time.strftime('%Hh%M') or '',
+                'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',
+                'end': slot.end_time.strftime('%Hh%M') if slot.end_time else '',
             },
             'location': {
                 'campus': slot.campus.label if slot.campus else '',
