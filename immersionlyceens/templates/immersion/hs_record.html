@@ -154,16 +154,16 @@
             <div class="col-sm-5">{{ record_form.current_diploma.errors }}</div>
           </div>
         </div>
-        <div class="form-group row">
+        <div class="form-group row align-items-center">
           <label for="id_visible_immersion_registrations" class="col-sm-3 col-form-label">
             {% trans 'Make your current immersion registrations visible ?' %}
           </label>
           <div class="col-sm-3">{{ record_form.visible_immersion_registrations }}</div>
-          <div class="col-sm-6">{{ record_form.visible_immersion_registrations.errors }}</div>
-        </div>
-        <div class="form-group row">
           <label for="id_visible_email" class="col-sm-3 col-form-label">{% trans 'Make your email visible ?' %}</label>
           <div class="col-sm-3">{{ record_form.visible_email }}</div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-6">{{ record_form.visible_immersion_registrations.errors }}</div>
           <div class="col-sm-6">{{ record_form.visible_email.errors }}</div>
         </div>
         {% if calendar.calendar_mode == "YEAR" %}
@@ -200,7 +200,7 @@
         changeMonth: true,
         changeYear: true,
         yearRange: "1990:2010",
-        defaultDate: "01/01/1990",
+        defaultDate: "01/01/2003",
       });
     });
 
