@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block content %}
+<div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
     <div class="card">
         <div class="card-header text-white bg-secondary">
@@ -264,6 +265,29 @@
 var course_first = true;
 var building_first = true;
 $(document).ready(function(){
+
+    function initFeedback(obj) {
+      $(document).on("showFeedback", function(event, ...messages) {
+        var $target = $(event.target).empty();
+        messages.forEach(function(element) {
+          $target.append(
+            $("<div/>", {
+              "class": "messages alert alert-dismissible alert-" + element[1],
+              "text": element[0]
+            }).append(
+              $("<a>", {
+                "href": "#",
+                "class": "close",
+                "data-dismiss": "alert",
+                "aria-label": "close",
+                "text": "×"
+              })
+            )
+          )
+        });
+      });
+    }
+    initFeedback();
 
     function check_course_publication ( course_id )
     {
