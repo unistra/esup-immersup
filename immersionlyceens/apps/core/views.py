@@ -144,6 +144,14 @@ def add_slot(request, slot_id=None):
             slot_form.save()
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
+            messages.success(request, _("Slot added successfully"))
+
+            if published:
+                print('publié')
+                course = Course.objects.get(id=request.POST.get('course'))
+                if course and course.published:
+                    print(slot_form.fields['course'])
+                    messages.success(request, _("Course published"))
         else:
             context = {
                 "campus": Campus.objects.filter(active=True).order_by('label'),
