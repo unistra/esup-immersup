@@ -305,7 +305,7 @@ def courses_list(request):
     else:
         component_id = request.session.get("current_component_id", None)
 
-    # Check if we can update courses
+    # Check if we can add/update courses
     try:
         active_year = UniversityYear.objects.get(active=True)
         can_update_courses = active_year.date_is_between(datetime.today().date())
@@ -316,7 +316,8 @@ def courses_list(request):
 
     if not can_update_courses:
         messages.warning(request,
-            _("Courses cannot be updated or deleted because the active university year has not begun yet."))
+            _("""Courses cannot be created, updated or deleted because the """
+              """active university year has not begun yet (or is already over."""))
 
     context = {
         "components": allowed_comps,
@@ -334,7 +335,22 @@ def course(request, course_id=None, duplicate=False):
     course = None
     course_form = None
     update_rights = True
+    can_update_courses = False
     allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
+
+    # Check if we can add/update courses
+    try:
+        active_year = UniversityYear.objects.get(active=True)
+        can_update_courses = active_year.date_is_between(datetime.today().date())
+    except UniversityYear.DoesNotExist:
+        pass
+    except UniversityYear.MultipleObjectsReturned:
+        pass
+
+    if not can_update_courses:
+        messages.warning(request,
+            _("""Courses cannot be created, updated or deleted because the """
+              """active university year has not begun yet (or is already over."""))
 
     if course_id:
         try:
@@ -466,6 +482,7 @@ def course(request, course_id=None, duplicate=False):
         course_form = CourseForm(request=request)
 
     context = {
+        "can_update_courses": can_update_courses,
         "course": course,
         "course_form": course_form,
         "duplicate": True if duplicate else False,

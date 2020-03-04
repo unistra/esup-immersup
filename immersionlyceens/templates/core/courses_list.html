@@ -26,11 +26,13 @@
       {% trans "Courses list" %}
     </div>
     <div class="card-body">
+      {% if can_update_courses %}
       <div class="row">
         <div class="col-md-6">
           <a class="btn btn-secondary btn-sm" href="{% url 'course' %}">{% trans 'New course' %}</a>
         </div>
       </div>
+      {% endif %}
       <div id="cmp_filter" style="padding-bottom:10px; padding-top:20px;">
         <label for="cmps">{% trans 'Select a component' %} :</label>
         <select id="cmps">
