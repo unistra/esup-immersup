@@ -378,7 +378,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
-        'student': student
+        'student': student,
+        'record': record
     }
 
     return render(request, 'immersion/hs_record.html', context)
