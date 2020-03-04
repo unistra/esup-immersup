@@ -9,13 +9,17 @@ from immersionlyceens.apps.core.models import \
 from .models import HighSchoolStudentRecord, StudentRecord
 
 class LoginForm(forms.Form):
-    login = forms.CharField(label=_("Login"), max_length=100, required=True)
+    def __init__(self, *args, **kwargs):
+        self.profile = kwargs.pop("profile", None)
+        super().__init__(*args, **kwargs)
 
-    password = forms.CharField(
-        label=_("Password"), max_length=100,
-        widget=forms.PasswordInput(),
-        required = True
-    )
+        self.fields["login"] = forms.CharField(label=_("Login"), max_length=100, required=True)
+
+        self.fields["password"]  = forms.CharField(
+            label=_("Password"), max_length=100,
+            widget=forms.PasswordInput(),
+            required = True
+        )
 
     # TODO : Django's authentication system
     # (does not work, needs authentication backend attribute
@@ -37,8 +41,9 @@ class LoginForm(forms.Form):
         cleaned_data = super().clean()
 
         # Add prefix to search in database
-        login = settings.USERNAME_PREFIX + cleaned_data.get('login')
-        cleaned_data['login'] = login
+        if not self.profile:
+            login = settings.USERNAME_PREFIX + cleaned_data.get('login')
+            cleaned_data['login'] = login
 
         return cleaned_data
 

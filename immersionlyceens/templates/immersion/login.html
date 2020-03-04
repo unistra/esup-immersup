@@ -37,6 +37,7 @@
       </form>
     </div>
   </div>
+  {% if profile != 'ref-lyc' %}
   <div class="row" style="margin-bottom:20px;">
     <div class="col-sm-6 text-right">
       <a href="{% url 'immersion:register' %}">{% trans 'Not registered yet ?' %}</a>
@@ -48,5 +49,6 @@
   <div class="row justify-content-md-center">
     <a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a>
   </div>
+  {% endif %}
 </div>
 {% endblock %}
