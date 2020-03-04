@@ -95,17 +95,16 @@ class StudentForm(forms.ModelForm):
 
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
-        self.fields["email"].disabled = True
 
         self.fields["email"].help_text = _(
-            "Warning : changing your email will require an account reactivation")
+            "Warning : changing the email will require an account reactivation")
 
     def clean(self):
         cleaned_data = super().clean()
 
         email = cleaned_data.get("email").strip().lower()
 
-        if email != self.instance.email():
+        if email != self.instance.email:
             self.request.user.set_validation_string()
             try:
                 msg = self.request.user.send_message(self.request, 'CPT_MIN_CHANGE_MAIL')
@@ -129,7 +128,7 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["email"].required = True
         
         self.fields["email"].help_text = _(
-            "Warning : changing your email will require an account reactivation")
+            "Warning : changing the email will require an account reactivation")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -139,6 +138,13 @@ class HighSchoolStudentForm(forms.ModelForm):
         if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
             raise forms.ValidationError(
                 _("Error : an account already exists with this email address"))
+
+        if email != self.instance.email:
+            self.request.user.set_validation_string()
+            try:
+                msg = self.request.user.send_message(self.request, 'CPT_MIN_CHANGE_MAIL')
+            except Exception as e:
+                logger.exception("Cannot send 'change mail' message : %s", e)
 
         cleaned_data['email'] = email
 
@@ -176,6 +182,11 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             widget=forms.CheckboxSelectMultiple           
         )
         self.fields['general_bachelor_teachings'].required = False
+
+        if not self.request or not self.request.user.is_scuio_ip_manager():
+            del self.fields['allowed_global_registrations']
+            del self.fields['allowed_first_semester_registrations']
+            del self.fields['allowed_second_semester_registrations']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -221,7 +232,9 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         fields = ['civility', 'birth_date', 'phone', 'highschool', 'level', 'class_name',
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
-                  'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student']
+                  'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student',
+                  'allowed_global_registrations', 'allowed_first_semester_registrations',
+                  'allowed_second_semester_registrations']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),
@@ -240,10 +253,17 @@ class StudentRecordForm(forms.ModelForm):
         self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
 
+        if not self.request or not self.request.user.is_scuio_ip_manager():
+            del self.fields['allowed_global_registrations']
+            del self.fields['allowed_first_semester_registrations']
+            del self.fields['allowed_second_semester_registrations']
+
     class Meta:
         model = StudentRecord
         fields = ['civility', 'birth_date', 'phone', 'home_institution', 'level',
-                  'origin_bachelor_type', 'current_diploma', 'student']
+                  'origin_bachelor_type', 'current_diploma', 'student',
+                  'allowed_global_registrations', 'allowed_first_semester_registrations',
+                  'allowed_second_semester_registrations']
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),

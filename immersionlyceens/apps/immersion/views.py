@@ -267,11 +267,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
     record = None
     student = None
     calendar = None
-    
-    calendars = Calendar.objects.all()   
+
+    calendars = Calendar.objects.all()
+
     if calendars:
         calendar = calendars.first()
-    
+
     if student_id:
         try:
             student = ImmersionUser.objects.get(pk=student_id)
@@ -284,15 +285,29 @@ def high_school_student_record(request, student_id=None, record_id=None):
         record = student.get_high_school_student_record()
 
         if not record:
-            record = HighSchoolStudentRecord(student=request.user)
+            record = HighSchoolStudentRecord(
+                student=request.user,
+                allowed_global_registrations=calendar.year_nb_authorized_immersion,
+                allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
+                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester
+            )
     elif record_id:
         try:
             record = HighSchoolStudentRecord.objects.get(pk=record_id)
-            student = HighSchoolStudentRecord.student
+            student = record.student
         except HighSchoolStudentRecord.DoesNotExist:
             pass
 
     if request.method == 'POST':
+        student_id = request.POST.get('student', None)
+        if not student and student_id:
+            try:
+                student = ImmersionUser.objects.get(id=int(student_id))
+                record = student.get_high_school_student_record()
+            except ImmersionUser.DoesNotExist:
+                messages.error(request, _("Invalid student id"))
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
         current_email = student.email
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, request=request, instance=student)
@@ -306,9 +321,9 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
                     messages.warning(request, _(
-                        """You have updated your email."""
-                        """<br>Warning : your new email is also your new login."""
-                        """<br>A new activation email has been sent, please check your messages."""))
+                        """You have updated the email."""
+                        """<br>Warning : the new email is also the new login."""
+                        """<br>A new activation email has been sent."""))
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
         else:
@@ -322,12 +337,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
             # Look for duplicated records
             if record.search_duplicates():
-                messages.warning(request,
-                    _("A record already exists with this identity, please contact the SCUIO-IP team."))
+                if request.user.is_high_school_student():
+                    messages.warning(request,
+                        _("A record already exists with this identity, please contact the SCUIO-IP team."))
+                else:
+                    messages.warning(request,
+                        _("A record already exists with this identity, look at duplicate records."))
 
             if record.validation == 1:
-                messages.success(request,
-                    _("Thank you. Your record is awaiting validation from your high-school referent."))
+                if request.user.is_high_school_student():
+                    messages.success(request,
+                        _("Thank you. Your record is awaiting validation from your high-school referent."))
+                else:
+                    messages.success(request, _("Record successfully saved."))
 
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
@@ -356,7 +378,7 @@ def student_record(request, student_id=None, record_id=None):
     record = None
     student = None
     calendar = None
-    
+
     calendars = Calendar.objects.all()   
     if calendars:
         calendar = calendars.first()
@@ -373,15 +395,30 @@ def student_record(request, student_id=None, record_id=None):
         record = student.get_student_record()
 
         if not record:
-            record = StudentRecord(student=request.user)
+            record = StudentRecord(
+                student=request.user,
+                home_institution="TEST",
+                allowed_global_registrations=calendar.year_nb_authorized_immersion,
+                allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
+                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester
+            )
     elif record_id:
         try:
             record = StudentRecord.objects.get(pk=record_id)
-            student = StudentRecord.student
+            student = record.student
         except StudentRecord.DoesNotExist:
             pass
 
     if request.method == 'POST':
+        student_id = request.POST.get('student', None)
+        if not student and student_id:
+            try:
+                student = ImmersionUser.objects.get(id=int(student_id))
+                record = student.get_student_record()
+            except ImmersionUser.DoesNotExist:
+                messages.error(request, _("Invalid student id"))
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
         current_email = student.email
         recordform = StudentRecordForm(request.POST, instance=record, request=request)
         studentform = StudentForm(request.POST, request=request, instance=student)
@@ -394,8 +431,8 @@ def student_record(request, student_id=None, record_id=None):
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
                     messages.warning(request, _(
-                        """You have updated your email."""
-                        """<br>A new activation email has been sent, please check your messages."""))
+                        """You have updated the email."""
+                        """<br>A new activation email has been sent."""))
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
 
@@ -407,6 +444,8 @@ def student_record(request, student_id=None, record_id=None):
 
         if recordform.is_valid():
             record = recordform.save()
+
+            messages.success(request, _("Record successfully saved."))
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
@@ -420,6 +459,7 @@ def student_record(request, student_id=None, record_id=None):
         'calender': calendar,
         'student_form': studentform,
         'record_form': recordform,
+        'record': record,
         'student': student
     }
 
