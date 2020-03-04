@@ -15,12 +15,14 @@ from django.conf import settings
 
 from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear, Calendar
 from immersionlyceens.libs.utils import check_active_year
+from immersionlyceens.decorators import groups_required
 
 from .models import HighSchoolStudentRecord, StudentRecord
 
 from .forms import (LoginForm, RegistrationForm, HighSchoolStudentRecordForm,
     HighSchoolStudentForm, HighSchoolStudentPassForm, StudentRecordForm,
     StudentForm)
+
 
 
 logger = logging.getLogger(__name__)
@@ -260,6 +262,7 @@ def home(request):
 
 
 @login_required
+@groups_required('SCUIO-IP','LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
@@ -371,6 +374,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
 
 @login_required
+@groups_required('SCUIO-IP','ETU')
 def student_record(request, student_id=None, record_id=None):
     """
     Student record
