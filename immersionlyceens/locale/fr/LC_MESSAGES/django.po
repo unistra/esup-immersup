@@ -2323,9 +2323,6 @@ msgid "Do you really want to delete this slot ?"
 msgstr "Voulez-vous vraiment supprimer ce créneau ?"
 
 #: immersionlyceens/templates/slots/list_slots.html:409
-msgid "The slot have been successfully deleted"
-msgstr "Le créneau a été supprimé avec succès"
-
 #: immersionlyceens/templates/slots/list_slots.html:413
 msgid "The slot have been successfully deleted"
 msgstr "Le créneau a été supprimé avec succès"
