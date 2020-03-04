@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-04 14:00+0100\n"
+"POT-Creation-Date: 2020-03-04 14:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -580,7 +580,7 @@ msgstr "Une composante d'enseignement avec ce code existe déjà"
 #: immersionlyceens/apps/core/models.py:60
 #: immersionlyceens/apps/core/models.py:137
 #: immersionlyceens/apps/immersion/models.py:59
-#: immersionlyceens/templates/fragments/main_menu.html:54
+#: immersionlyceens/templates/fragments/main_menu.html:71
 msgid "High school"
 msgstr "Lycée"
 
@@ -1583,8 +1583,8 @@ msgstr "Le courriel d'activation a été renvoyé"
 
 #: immersionlyceens/apps/immersion/views.py:294
 #: immersionlyceens/apps/immersion/views.py:322
-#: immersionlyceens/apps/immersion/views.py:405
-#: immersionlyceens/apps/immersion/views.py:434
+#: immersionlyceens/apps/immersion/views.py:406
+#: immersionlyceens/apps/immersion/views.py:435
 msgid "Invalid student id"
 msgstr "#id invalide"
 
@@ -1614,11 +1614,11 @@ msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent du lycée."
 
 #: immersionlyceens/apps/immersion/views.py:366
-#: immersionlyceens/apps/immersion/views.py:463
+#: immersionlyceens/apps/immersion/views.py:464
 msgid "Record successfully saved."
 msgstr "Fiche enregistrée avec succès"
 
-#: immersionlyceens/apps/immersion/views.py:449
+#: immersionlyceens/apps/immersion/views.py:450
 msgid "You have updated the email.<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Une nouvelle procédure d'activation a été "
@@ -1859,7 +1859,7 @@ msgid "All"
 msgstr "Tous"
 
 #: immersionlyceens/templates/core/my_high_school.html:18
-#: immersionlyceens/templates/fragments/main_menu.html:58
+#: immersionlyceens/templates/fragments/main_menu.html:75
 msgid "My high school"
 msgstr "Mon lycée"
 
@@ -1885,7 +1885,7 @@ msgid "Modify"
 msgstr "Modifier"
 
 #: immersionlyceens/templates/core/mycourses.html:18
-#: immersionlyceens/templates/fragments/main_menu.html:44
+#: immersionlyceens/templates/fragments/main_menu.html:45
 msgid "My courses"
 msgstr "Mes cours"
 
@@ -1896,7 +1896,7 @@ msgstr "Réinitialiser les filtres"
 
 #: immersionlyceens/templates/core/myslots.html:21
 #: immersionlyceens/templates/core/student_validation.html:21
-#: immersionlyceens/templates/fragments/main_menu.html:45
+#: immersionlyceens/templates/fragments/main_menu.html:46
 msgid "My slots"
 msgstr "Mes créneaux"
 
@@ -1987,48 +1987,54 @@ msgstr "Crédits"
 msgid "Slots list"
 msgstr "Liste des créneaux"
 
-#: immersionlyceens/templates/fragments/main_menu.html:41
+#: immersionlyceens/templates/fragments/main_menu.html:42
+#: immersionlyceens/templates/fragments/main_menu.html:55
 msgid "Consult"
 msgstr "Consulter"
 
 #: immersionlyceens/templates/fragments/main_menu.html:59
 #: immersionlyceens/templates/fragments/main_menu.html:61
+msgid "My record"
+msgstr "Ma fiche"
+
+#: immersionlyceens/templates/fragments/main_menu.html:76
+#: immersionlyceens/templates/fragments/main_menu.html:78
 msgid "Validate my students"
 msgstr "Valider mes fiches Lycéens"
 
-#: immersionlyceens/templates/fragments/main_menu.html:69
+#: immersionlyceens/templates/fragments/main_menu.html:86
 msgid "Administration"
 msgstr "Administration"
 
-#: immersionlyceens/templates/fragments/main_menu.html:85
+#: immersionlyceens/templates/fragments/main_menu.html:102
 msgid "Profile"
 msgstr "Profil"
 
-#: immersionlyceens/templates/fragments/main_menu.html:86
+#: immersionlyceens/templates/fragments/main_menu.html:103
 msgid "Admin"
 msgstr "Admin"
 
-#: immersionlyceens/templates/fragments/main_menu.html:91
+#: immersionlyceens/templates/fragments/main_menu.html:108
 msgid "Logout"
 msgstr "Déconnexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:96
+#: immersionlyceens/templates/fragments/main_menu.html:113
 msgid "Sign in"
 msgstr "Connexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:100
+#: immersionlyceens/templates/fragments/main_menu.html:117
 msgid "You are"
 msgstr "Vous êtes"
 
-#: immersionlyceens/templates/fragments/main_menu.html:101
+#: immersionlyceens/templates/fragments/main_menu.html:118
 msgid "University member"
 msgstr "Membre de l'université"
 
-#: immersionlyceens/templates/fragments/main_menu.html:102
+#: immersionlyceens/templates/fragments/main_menu.html:119
 msgid "Highschool manager"
 msgstr "Référent Lycée"
 
-#: immersionlyceens/templates/fragments/main_menu.html:103
+#: immersionlyceens/templates/fragments/main_menu.html:120
 msgid "Highschool member"
 msgstr "Lycéen"
 
