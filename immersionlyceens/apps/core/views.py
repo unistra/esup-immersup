@@ -115,7 +115,6 @@ def add_slot(request, slot_id=None):
     if slot_id:
         slot = Slot.objects.get(id=slot_id)
         teachers_idx = [t.id for t in slot.teachers.all()]
-        print(teachers_idx)
         slot.id = None
 
     # get components
@@ -144,6 +143,12 @@ def add_slot(request, slot_id=None):
             slot_form.save()
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
+            messages.success(request, _("Slot added successfully"))
+
+            if published:
+                course = Course.objects.get(id=request.POST.get('course'))
+                if course and course.published:
+                    messages.success(request, _("Course published"))
         else:
             context = {
                 "campus": Campus.objects.filter(active=True).order_by('label'),
@@ -185,8 +190,6 @@ def add_slot(request, slot_id=None):
         context['slot'] = slot
         context['course'] = slot.course
         context['teachers_idx'] = teachers_idx
-
-        print(context)
 
     return render(request, 'slots/add_slot.html', context=context)
 
@@ -533,7 +536,6 @@ def my_high_school(request,  high_school_id=None):
 
     if request.method == 'POST':
         high_school_form = MyHighSchoolForm(post_values, instance=hs, request=request)
-        print(high_school_form)
         if high_school_form.is_valid():
             high_school_form.save()
             context['modified'] = True

@@ -17,6 +17,7 @@
 <div id="top_indicator" class="w-100 bg-success pt-2 pb-1 fixed-top">
     <p id="top_indicator__content" class="text-center text-light"></p>
 </div>
+<div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 98%;">
     <br>
     <div class="card">
@@ -69,7 +70,7 @@
                     <tr>
                         <th id="published_filter">{% trans 'Published' %}</th>
                         <th id="course_filter">{% trans 'Course label' %}</th>
-                        <th id="managed_by_filter">{% trans 'Managed by' %}</th>
+                        <th id="managed_by_filter">{% trans 'Managed By' %}</th>
                         <th id="course_type_filter">{% trans 'Course type' %}</th>
                         <th id="date_filter">{% trans 'Date' %}</th>
                         <th id="schedule_filter">{% trans 'Schedule' %}</th>
@@ -77,7 +78,7 @@
                         <th id="room_filter">{% trans 'Room' %}</th>
                         <th id="teachers_filter">{% trans 'Teachers' %}</th>
                         <th id="registration_filter">{% trans '# of registration' %}</th>
-                        <th id="add_info_filter">{% trans 'Additional information' %}</th>
+                        <th>{% trans 'Additional information' %}</th>
                         <th>{% trans 'Control' %}</th>
                     </tr>
                 </thead>
@@ -120,6 +121,29 @@ $(document).ready(function(){
     {% if component_id %}
         $('#component option[value="{{ component_id }}"]').attr('selected', '');
     {% endif %}
+
+    function initFeedback(obj) {
+      $(document).on("showFeedback", function(event, ...messages) {
+        var $target = $(event.target).empty();
+        messages.forEach(function(element) {
+          $target.append(
+            $("<div/>", {
+              "class": "messages alert alert-dismissible alert-" + element[1],
+              "text": element[0]
+            }).append(
+              $("<a>", {
+                "href": "#",
+                "class": "close",
+                "data-dismiss": "alert",
+                "aria-label": "close",
+                "text": "×"
+              })
+            )
+          )
+        });
+      });
+    }
+    initFeedback();
 
     function load_trainings( comp_id, first=false ) {
         $.post({
@@ -271,7 +295,13 @@ $(document).ready(function(){
                         '</div>';
                     return element;
                 }},
-            {data: 'additional_information'},
+            {data: 'additional_information', render: function(data){
+                if (data) {
+                    return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-eye"></i></span>'
+                } else {
+                    return '';
+                }
+            }},
             {data: 'id', render: function(data, type, row) {
                 if ( row['component']['managed_by_me'] )
                 {
@@ -367,14 +397,6 @@ $(document).ready(function(){
             style_class: "form-control",
             filter_reset_button_text: false,
         },
-        {
-            column_number: 10,
-            filter_type: "text",
-            filter_default_label: "",
-            filter_container_id: "add_info_filter",
-            style_class: "form-control",
-            filter_reset_button_text: false,
-        },
     ])
 });
 
@@ -384,11 +406,11 @@ function delete_slot(slot_id) {
         $.post({
             url: "/core/slot/delete/" + slot_id,
             success: function(data) {
-                show_top_indicator("{% trans 'A slot is correctly deleted' %}");
+                show_top_indicator("{% trans 'The slot have been successfully deleted' %}");
                 reload_data();
             },
         });
-        show_top_indicator("{% trans 'A slot is correctly delete' %}");
+        show_top_indicator("{% trans 'The slot have been successfully deleted' %}");
         reload_data();
     }
 }

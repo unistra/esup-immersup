@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-04 08:26+0100\n"
+"POT-Creation-Date: 2020-03-04 08:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,7 +27,7 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/templates/core/courses_list.html:151
 #: immersionlyceens/templates/core/mycourses.html:87
 #: immersionlyceens/templates/core/myslots.html:109
-#: immersionlyceens/templates/slots/list_slots.html:234
+#: immersionlyceens/templates/slots/list_slots.html:258
 msgid "Yes"
 msgstr "Oui"
 
@@ -36,7 +36,7 @@ msgstr "Oui"
 #: immersionlyceens/templates/core/courses_list.html:154
 #: immersionlyceens/templates/core/mycourses.html:90
 #: immersionlyceens/templates/core/myslots.html:112
-#: immersionlyceens/templates/slots/list_slots.html:234
+#: immersionlyceens/templates/slots/list_slots.html:258
 msgid "No"
 msgstr "Non"
 
@@ -108,7 +108,7 @@ msgstr ""
 #: immersionlyceens/apps/core/admin.py:499
 msgid "This course type can't be deleted because it is used by some slots"
 msgstr ""
-"Ce cours ne peut pas être supprimé car il est utilisée par un ou plusieurs "
+"Ce cours ne peut pas être supprimé car il est utilisé par un ou plusieurs "
 "créneaux"
 
 #: immersionlyceens/apps/core/admin.py:519
@@ -125,7 +125,7 @@ msgid ""
 "started"
 msgstr ""
 "Cette année universitaire ne peut pas être supprimée car elle a déjà "
-"commencée"
+"commencé"
 
 #: immersionlyceens/apps/core/admin.py:571
 msgid "This university year can't be deleted because a purge date is defined"
@@ -137,13 +137,13 @@ msgstr ""
 msgid ""
 "This component can't be deleted because university year has already started"
 msgstr ""
-"Cette année universitaire ne peut pas être supprimée car elle a déja "
-"commencée"
+"Cette composante ne peut pas être supprimée car l'année universitaire a déja "
+"commencé"
 
 #: immersionlyceens/apps/core/admin.py:730
 msgid "This component can't be deleted because a purge date is defined"
 msgstr ""
-"Cette année universitaire ne peut pas être supprimée car une date de purge "
+"Cette composante ne peut pas être supprimée car une date de purge "
 "est déjà définie"
 
 #: immersionlyceens/apps/core/admin.py:744
@@ -451,7 +451,7 @@ msgid "Error : dates of active university year improperly configured"
 msgstr "Erreur : les dates de l'année universitaire active sont incorrectes"
 
 #: immersionlyceens/apps/core/forms.py:59
-#: immersionlyceens/apps/core/views.py:388
+#: immersionlyceens/apps/core/views.py:396
 msgid "You don't have enough privileges to update this course"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce cours"
 
@@ -562,8 +562,8 @@ msgstr "En service"
 #: immersionlyceens/apps/core/models.py:745
 #: immersionlyceens/templates/core/course.html:39
 #: immersionlyceens/templates/core/mycourses.html:36
-#: immersionlyceens/templates/slots/add_slot.html:40
-#: immersionlyceens/templates/slots/list_slots.html:35
+#: immersionlyceens/templates/slots/add_slot.html:41
+#: immersionlyceens/templates/slots/list_slots.html:36
 msgid "Component"
 msgstr "Composante d'enseignement"
 
@@ -723,8 +723,8 @@ msgstr "Sous-domaines de formation"
 #: immersionlyceens/templates/core/courses_list.html:50
 #: immersionlyceens/templates/core/mycourses.html:37
 #: immersionlyceens/templates/core/myslots.html:49
-#: immersionlyceens/templates/slots/add_slot.html:57
-#: immersionlyceens/templates/slots/list_slots.html:56
+#: immersionlyceens/templates/slots/add_slot.html:58
+#: immersionlyceens/templates/slots/list_slots.html:57
 msgid "Training"
 msgstr "Formation"
 
@@ -741,8 +741,8 @@ msgstr "Une formation avec ce nom existe déjà"
 #: immersionlyceens/apps/core/models.py:422
 #: immersionlyceens/apps/core/models.py:1120
 #: immersionlyceens/templates/core/myslots.html:53
-#: immersionlyceens/templates/slots/add_slot.html:89
-#: immersionlyceens/templates/slots/list_slots.html:76
+#: immersionlyceens/templates/slots/add_slot.html:90
+#: immersionlyceens/templates/slots/list_slots.html:77
 msgid "Campus"
 msgstr "Campus"
 
@@ -773,8 +773,8 @@ msgstr "Url"
 #: immersionlyceens/apps/core/models.py:1128
 #: immersionlyceens/templates/core/myslots.html:53
 #: immersionlyceens/templates/modals/modal_public_slots.html:21
-#: immersionlyceens/templates/slots/add_slot.html:111
-#: immersionlyceens/templates/slots/list_slots.html:76
+#: immersionlyceens/templates/slots/add_slot.html:112
+#: immersionlyceens/templates/slots/list_slots.html:77
 msgid "Building"
 msgstr "Bâtiment"
 
@@ -797,8 +797,8 @@ msgstr "Un type d'annulation avec ce nom existe déjà"
 #: immersionlyceens/apps/core/models.py:484
 #: immersionlyceens/apps/core/models.py:485
 #: immersionlyceens/apps/core/models.py:1111
-#: immersionlyceens/templates/slots/add_slot.html:76
-#: immersionlyceens/templates/slots/list_slots.html:73
+#: immersionlyceens/templates/slots/add_slot.html:77
+#: immersionlyceens/templates/slots/list_slots.html:74
 msgid "Course type"
 msgstr "Type de cours"
 
@@ -870,8 +870,8 @@ msgstr "Une année universitaire avec ce nom existe déjà"
 #: immersionlyceens/apps/core/models.py:1136
 #: immersionlyceens/templates/core/myslots.html:51
 #: immersionlyceens/templates/modals/modal_public_slots.html:19
-#: immersionlyceens/templates/slots/add_slot.html:137
-#: immersionlyceens/templates/slots/list_slots.html:74
+#: immersionlyceens/templates/slots/add_slot.html:138
+#: immersionlyceens/templates/slots/list_slots.html:75
 msgid "Date"
 msgstr "Date"
 
@@ -978,8 +978,8 @@ msgstr "Un calendrier avec ce nom existe déjà"
 #: immersionlyceens/templates/core/courses_list.html:49
 #: immersionlyceens/templates/core/mycourses.html:35
 #: immersionlyceens/templates/core/myslots.html:47
-#: immersionlyceens/templates/slots/add_slot.html:243
-#: immersionlyceens/templates/slots/list_slots.html:70
+#: immersionlyceens/templates/slots/add_slot.html:244
+#: immersionlyceens/templates/slots/list_slots.html:71
 msgid "Published"
 msgstr "Publié"
 
@@ -990,15 +990,15 @@ msgstr "Publié"
 #: immersionlyceens/templates/core/mycourses.html:39
 #: immersionlyceens/templates/core/myslots.html:55
 #: immersionlyceens/templates/modals/modal_public_slots.html:23
-#: immersionlyceens/templates/slots/add_slot.html:171
-#: immersionlyceens/templates/slots/add_slot.html:208
-#: immersionlyceens/templates/slots/list_slots.html:78
+#: immersionlyceens/templates/slots/add_slot.html:172
+#: immersionlyceens/templates/slots/add_slot.html:209
+#: immersionlyceens/templates/slots/list_slots.html:79
 msgid "Teachers"
 msgstr "Enseignants"
 
 #: immersionlyceens/apps/core/models.py:777
 #: immersionlyceens/apps/core/models.py:1103
-#: immersionlyceens/templates/slots/add_slot.html:65
+#: immersionlyceens/templates/slots/add_slot.html:66
 msgid "Course"
 msgstr "Cours"
 
@@ -1143,34 +1143,34 @@ msgstr ""
 #: immersionlyceens/apps/core/models.py:1134
 #: immersionlyceens/templates/core/myslots.html:54
 #: immersionlyceens/templates/modals/modal_public_slots.html:22
-#: immersionlyceens/templates/slots/add_slot.html:123
-#: immersionlyceens/templates/slots/list_slots.html:77
+#: immersionlyceens/templates/slots/add_slot.html:124
+#: immersionlyceens/templates/slots/list_slots.html:78
 msgid "Room"
 msgstr "Salle"
 
 #: immersionlyceens/apps/core/models.py:1137
-#: immersionlyceens/templates/slots/add_slot.html:148
+#: immersionlyceens/templates/slots/add_slot.html:149
 msgid "Start time"
 msgstr "Heure de début"
 
 #: immersionlyceens/apps/core/models.py:1138
-#: immersionlyceens/templates/slots/add_slot.html:159
+#: immersionlyceens/templates/slots/add_slot.html:160
 msgid "End time"
 msgstr "Heure de fin"
 
 #: immersionlyceens/apps/core/models.py:1144
-#: immersionlyceens/templates/slots/add_slot.html:219
+#: immersionlyceens/templates/slots/add_slot.html:220
 msgid "Number of places"
 msgstr "Nombre maximum de places"
 
 #: immersionlyceens/apps/core/models.py:1146
-#: immersionlyceens/templates/slots/add_slot.html:231
-#: immersionlyceens/templates/slots/list_slots.html:80
+#: immersionlyceens/templates/slots/add_slot.html:232
+#: immersionlyceens/templates/slots/list_slots.html:81
 msgid "Additional information"
 msgstr "Informations complémentaires"
 
 #: immersionlyceens/apps/core/models.py:1152
-#: immersionlyceens/templates/slots/list_slots.html:24
+#: immersionlyceens/templates/slots/list_slots.html:25
 msgid "Slot"
 msgstr "Créneau"
 
@@ -1197,8 +1197,16 @@ msgstr "Paramètre général"
 msgid "General settings"
 msgstr "Paramètres généraux"
 
-#: immersionlyceens/apps/core/views.py:319
-#: immersionlyceens/apps/core/views.py:352
+#: immersionlyceens/apps/core/views.py:147
+msgid "Slot added successfully"
+msgstr "Créneau ajouté avec succès"
+
+#: immersionlyceens/apps/core/views.py:154
+msgid "Course published"
+msgstr "Cours publié"
+
+#: immersionlyceens/apps/core/views.py:327
+#: immersionlyceens/apps/core/views.py:360
 msgid ""
 "Courses cannot be created, updated or deleted because the active university "
 "year has not begun yet (or is already over."
@@ -1206,28 +1214,28 @@ msgstr ""
 "Les cours ne peuvent être ni créés, ni modifiés, ni supprimés car l'année "
 "universitaire n'a pas encore commencé (ou déjà terminée)."
 
-#: immersionlyceens/apps/core/views.py:407
+#: immersionlyceens/apps/core/views.py:415
 msgid "At least one teacher is required"
 msgstr "Au moins un enseignant obligatoire"
 
-#: immersionlyceens/apps/core/views.py:432
+#: immersionlyceens/apps/core/views.py:440
 msgid "User '{}' created"
 msgstr "Utilisateur '{}' créé"
 
-#: immersionlyceens/apps/core/views.py:437
+#: immersionlyceens/apps/core/views.py:445
 msgid "A confirmation email has been sent to {}"
 msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 
-#: immersionlyceens/apps/core/views.py:447
+#: immersionlyceens/apps/core/views.py:455
 #, python-format
 msgid "Couldn't add group 'ENS-CH' to user '%s'"
 msgstr "Impossible d'ajouter le groupe 'ENS-CH' à l'utilisateur '%s'"
 
-#: immersionlyceens/apps/core/views.py:465
+#: immersionlyceens/apps/core/views.py:473
 msgid "Course successfully updated"
 msgstr "Cours modifié avec succès"
 
-#: immersionlyceens/apps/core/views.py:467
+#: immersionlyceens/apps/core/views.py:475
 msgid "Course successfully saved"
 msgstr "Cours enregistré avec succès"
 
@@ -1742,7 +1750,7 @@ msgstr "Créer un cours"
 
 #: immersionlyceens/templates/core/course.html:63
 #: immersionlyceens/templates/offer_subdomains.html:48
-#: immersionlyceens/templates/slots/list_slots.html:71
+#: immersionlyceens/templates/slots/list_slots.html:72
 msgid "Course label"
 msgstr "Libellé de cours"
 
@@ -1792,7 +1800,6 @@ msgid "Select a component"
 msgstr "Sélectionnez une composante"
 
 #: immersionlyceens/templates/core/courses_list.html:51
-#: immersionlyceens/templates/slots/list_slots.html:72
 msgid "Managed by"
 msgstr "Gérée par"
 
@@ -2223,31 +2230,31 @@ msgstr "Rechercher un lycée"
 msgid "Name"
 msgstr "Nom"
 
-#: immersionlyceens/templates/slots/add_slot.html:21
+#: immersionlyceens/templates/slots/add_slot.html:22
 msgid "modify slot"
 msgstr "Modifier le créneau"
 
-#: immersionlyceens/templates/slots/add_slot.html:23
+#: immersionlyceens/templates/slots/add_slot.html:24
 msgid "duplicate slot"
 msgstr "Dupliquer un créneau"
 
-#: immersionlyceens/templates/slots/add_slot.html:26
+#: immersionlyceens/templates/slots/add_slot.html:27
 msgid "Add a new slot"
 msgstr "Ajouter un nouveau créneau"
 
-#: immersionlyceens/templates/slots/add_slot.html:44
-#: immersionlyceens/templates/slots/add_slot.html:60
-#: immersionlyceens/templates/slots/add_slot.html:372
-#: immersionlyceens/templates/slots/add_slot.html:412
-#: immersionlyceens/templates/slots/add_slot.html:441
+#: immersionlyceens/templates/slots/add_slot.html:45
+#: immersionlyceens/templates/slots/add_slot.html:61
+#: immersionlyceens/templates/slots/add_slot.html:396
+#: immersionlyceens/templates/slots/add_slot.html:436
+#: immersionlyceens/templates/slots/add_slot.html:465
 msgid "Choose a value"
 msgstr "Choisissez une valeur"
 
-#: immersionlyceens/templates/slots/add_slot.html:209
+#: immersionlyceens/templates/slots/add_slot.html:210
 msgid "You have to select one or more teachers"
 msgstr "Vous devez selectionner un ou plusieurs enseignants"
 
-#: immersionlyceens/templates/slots/add_slot.html:279
+#: immersionlyceens/templates/slots/add_slot.html:303
 msgid ""
 "This course is unpublished. By creating this slot the associate course is "
 "going to be published. Do you want to continue?"
@@ -2255,7 +2262,7 @@ msgstr ""
 "Ce cours n'est pas publié. En créant ce créneau, le cours associé sera "
 "publié. Voulez-vous continuer ?"
 
-#: immersionlyceens/templates/slots/add_slot.html:303
+#: immersionlyceens/templates/slots/add_slot.html:327
 msgid ""
 "This date is inside a vacation or a haliday. Are you sure that you want a "
 "slot with this date ?"
@@ -2263,15 +2270,15 @@ msgstr ""
 "Cette date est à l'intéreur d'une période de vacances et/ou est un jour "
 "férié.Êtes-vous sûr de vouloir utiliser cette date pour ce créneau ?"
 
-#: immersionlyceens/templates/slots/add_slot.html:508
+#: immersionlyceens/templates/slots/add_slot.html:532
 msgid "Did you really want to cancel this modification?"
 msgstr "Voulez-vous vraiment annuler la modification ?"
 
-#: immersionlyceens/templates/slots/add_slot.html:510
+#: immersionlyceens/templates/slots/add_slot.html:534
 msgid "Did you really want to cancel this duplication?"
 msgstr "Voulez-vous vraiment annuler la duplication ?"
 
-#: immersionlyceens/templates/slots/add_slot.html:513
+#: immersionlyceens/templates/slots/add_slot.html:537
 msgid "Did you really want to cancel this creation?"
 msgstr "Voulez-vous vraiment annuler la création ?"
 
@@ -2291,63 +2298,34 @@ msgstr "Enregistrer et ajouter un nouveau"
 msgid "My authorized components"
 msgstr "Mes composantes autorisées"
 
-#: immersionlyceens/templates/slots/list_slots.html:28
+#: immersionlyceens/templates/slots/list_slots.html:29
 msgid "New slot"
 msgstr "Nouveau créneau"
 
-#: immersionlyceens/templates/slots/list_slots.html:75
+#: immersionlyceens/templates/slots/list_slots.html:73
+msgid "Managed By"
+msgstr "Gérée par"
+
+#: immersionlyceens/templates/slots/list_slots.html:76
 msgid "Schedule"
 msgstr "Horaire"
 
-#: immersionlyceens/templates/slots/list_slots.html:79
+#: immersionlyceens/templates/slots/list_slots.html:80
 msgid "# of registration"
 msgstr "Nombre d'inscrits"
 
-#: immersionlyceens/templates/slots/list_slots.html:81
+#: immersionlyceens/templates/slots/list_slots.html:82
 msgid "Control"
 msgstr "Contrôle"
 
-#: immersionlyceens/templates/slots/list_slots.html:383
+#: immersionlyceens/templates/slots/list_slots.html:405
 msgid "Do you really want to delete this slot ?"
 msgstr "Voulez-vous vraiment supprimer ce créneau ?"
 
-#: immersionlyceens/templates/slots/list_slots.html:387
-msgid "A slot is correctly deleted"
-msgstr "Un créneau a été correctement supprimé"
+#: immersionlyceens/templates/slots/list_slots.html:409
+msgid "The slot have been successfully deleted"
+msgstr "Le créneau a été supprimé avec succès"
 
-#: immersionlyceens/templates/slots/list_slots.html:391
-msgid "A slot is correctly delete"
-msgstr "Un créneau a été correctement supprimé"
-
-#~ msgid "High school referent"
-#~ msgstr "Référent lycée"
-
-#~ msgid "Start"
-#~ msgstr "Début"
-
-#~ msgid "End"
-#~ msgstr "Fin"
-
-#~ msgid "Slot success successfully modified"
-#~ msgstr "Créneau modifié avec succès"
-
-#~ msgid "Number of allowed year registrations"
-#~ msgstr "Immersions autorisées sur l'année"
-
-#~ msgid "Number of allowed registrations for second semester"
-#~ msgstr "Nb immersions autorisées au semestre 2"
-
-#~ msgid "Number of allowed registrations for first semester"
-#~ msgstr "Nb immersions autorisées au semestre 1"
-
-#~ msgid "Reserved fields for SCUIO-IP"
-#~ msgstr "Champs réservés au SCUIO-IP"
-
-#~ msgid "Error : component id"
-#~ msgstr "Erreur : pas d'identifiant de composante"
-
-#~ msgid "Components list"
-#~ msgstr "Liste des composantes d'enseignement"
-
-#~ msgid "Only files with type (%s)"
-#~ msgstr "Seulement des fichiers de type (%s)"
+#: immersionlyceens/templates/slots/list_slots.html:413
+msgid "The slot have been successfully deleted"
+msgstr "Le créneau a été supprimé avec succès"
