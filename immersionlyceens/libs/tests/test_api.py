@@ -496,3 +496,21 @@ class APITestCase(TestCase):
         self.assertTrue(content['data']['ok'])
         h = HighSchoolStudentRecord.objects.get(id=self.hs_record.id)
         self.assertEqual(h.validation, 3)  # rejected
+
+    def test_API_ajax_get_validate_student__ok(self):
+        self.hs_record.validation = 1  # TO_VALIDATE
+        self.hs_record.save()
+        request.user = self.scuio_user
+        url = "/api/validate_student/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'student_record_id': self.hs_record.id}
+        response = self.client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIn('msg', content)
+        self.assertIn('data', content)
+        self.assertIsInstance(content['msg'], str)
+        self.assertIsInstance(content['data'], dict)
+        self.assertTrue(content['data']['ok'])
+        h = HighSchoolStudentRecord.objects.get(id=self.hs_record.id)
+        self.assertEqual(h.validation, 2)  # validated
