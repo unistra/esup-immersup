@@ -391,7 +391,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs_record['id'], self.hs_record.id)
         self.assertEqual(hs_record['first_name'], self.hs_record.student.first_name)
         self.assertEqual(hs_record['last_name'], self.hs_record.student.last_name)
-        self.assertEqual(hs_record['level'], self.hs_record.level)
+        self.assertEqual(hs_record['level'], HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1])
         self.assertEqual(hs_record['class_name'], self.hs_record.class_name)
 
     def test_API_get_student_records__VALIDATED(self):
