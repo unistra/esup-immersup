@@ -17,7 +17,7 @@
           <div class="card-body">
             <p>{% trans "Please note this action is irreversible and all data will be definitely lost" %}</p>
             <p>
-              {% blocktrans with first_name=student.first_name last_name=student.last_name birth_date=record.birth_date %}
+              {% blocktrans trimmed with first_name=student.first_name last_name=student.last_name birth_date=record.birth_date %}
                 The student ({{ first_name }} {{ last_name }} - {{ birth_date }}) has these current registrations :
               {% endblocktrans %} 
             </p>  

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-04 14:13+0100\n"
+"POT-Creation-Date: 2020-03-05 11:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -603,8 +603,8 @@ msgstr "Département"
 #: immersionlyceens/apps/immersion/models.py:68
 #: immersionlyceens/apps/immersion/models.py:201
 #: immersionlyceens/templates/core/my_high_school.html:117
-#: immersionlyceens/templates/immersion/hs_record.html:70
-#: immersionlyceens/templates/immersion/student_record.html:70
+#: immersionlyceens/templates/immersion/hs_record.html:73
+#: immersionlyceens/templates/immersion/student_record.html:72
 msgid "Phone number"
 msgstr "Téléphone"
 
@@ -616,9 +616,9 @@ msgstr "Fax"
 #: immersionlyceens/apps/core/models.py:84
 #: immersionlyceens/apps/immersion/forms.py:53
 #: immersionlyceens/templates/core/my_high_school.html:141
-#: immersionlyceens/templates/immersion/hs_record.html:56
+#: immersionlyceens/templates/immersion/hs_record.html:59
 #: immersionlyceens/templates/immersion/registration.html:37
-#: immersionlyceens/templates/immersion/student_record.html:56
+#: immersionlyceens/templates/immersion/student_record.html:58
 msgid "Email"
 msgstr "Courriel"
 
@@ -1375,15 +1375,15 @@ msgstr "Etudiant/Lycéen"
 #: immersionlyceens/templates/core/student_validation.html:64
 #: immersionlyceens/templates/core/student_validation.html:91
 #: immersionlyceens/templates/core/student_validation.html:118
-#: immersionlyceens/templates/immersion/hs_record.html:64
-#: immersionlyceens/templates/immersion/student_record.html:64
+#: immersionlyceens/templates/immersion/hs_record.html:67
+#: immersionlyceens/templates/immersion/student_record.html:66
 msgid "Birth date"
 msgstr "Date de naissance"
 
 #: immersionlyceens/apps/immersion/models.py:67
 #: immersionlyceens/apps/immersion/models.py:199
-#: immersionlyceens/templates/immersion/hs_record.html:35
-#: immersionlyceens/templates/immersion/student_record.html:35
+#: immersionlyceens/templates/immersion/hs_record.html:38
+#: immersionlyceens/templates/immersion/student_record.html:37
 msgid "Civility"
 msgstr "Civilité"
 
@@ -1392,8 +1392,8 @@ msgstr "Civilité"
 #: immersionlyceens/templates/core/student_validation.html:65
 #: immersionlyceens/templates/core/student_validation.html:92
 #: immersionlyceens/templates/core/student_validation.html:119
-#: immersionlyceens/templates/immersion/hs_record.html:88
-#: immersionlyceens/templates/immersion/student_record.html:88
+#: immersionlyceens/templates/immersion/hs_record.html:91
+#: immersionlyceens/templates/immersion/student_record.html:90
 msgid "Level"
 msgstr "Niveau"
 
@@ -1405,36 +1405,36 @@ msgid "Class name"
 msgstr "Classe"
 
 #: immersionlyceens/apps/immersion/models.py:73
-#: immersionlyceens/templates/immersion/hs_record.html:103
+#: immersionlyceens/templates/immersion/hs_record.html:106
 msgid "Bachelor type"
 msgstr "Type de baccalauréat"
 
 #: immersionlyceens/apps/immersion/models.py:81
-#: immersionlyceens/templates/immersion/hs_record.html:120
+#: immersionlyceens/templates/immersion/hs_record.html:123
 msgid "Technological bachelor mention"
 msgstr "Mention du baccalauréat technologique"
 
 #: immersionlyceens/apps/immersion/models.py:89
-#: immersionlyceens/templates/immersion/hs_record.html:129
+#: immersionlyceens/templates/immersion/hs_record.html:132
 msgid "Professional bachelor mention"
 msgstr "Mention du baccalauréat professionnel"
 
 #: immersionlyceens/apps/immersion/models.py:92
-#: immersionlyceens/templates/immersion/hs_record.html:139
+#: immersionlyceens/templates/immersion/hs_record.html:142
 msgid "Post bachelor level"
 msgstr "Niveau d'étude post-bac"
 
 #: immersionlyceens/apps/immersion/models.py:94
 #: immersionlyceens/apps/immersion/models.py:204
-#: immersionlyceens/templates/immersion/hs_record.html:146
-#: immersionlyceens/templates/immersion/student_record.html:95
+#: immersionlyceens/templates/immersion/hs_record.html:149
+#: immersionlyceens/templates/immersion/student_record.html:97
 msgid "Origin bachelor type"
 msgstr "Type de baccalauréat d'origine"
 
 #: immersionlyceens/apps/immersion/models.py:97
 #: immersionlyceens/apps/immersion/models.py:207
-#: immersionlyceens/templates/immersion/hs_record.html:152
-#: immersionlyceens/templates/immersion/student_record.html:101
+#: immersionlyceens/templates/immersion/hs_record.html:155
+#: immersionlyceens/templates/immersion/student_record.html:103
 msgid "Current diploma"
 msgstr "Diplôme actuel"
 
@@ -1496,7 +1496,7 @@ msgid "BTEC 2"
 msgstr "DUT 2"
 
 #: immersionlyceens/apps/immersion/models.py:197
-#: immersionlyceens/templates/immersion/student_record.html:81
+#: immersionlyceens/templates/immersion/student_record.html:83
 msgid "Home institution"
 msgstr "Etablissement d'origine"
 
@@ -1682,6 +1682,15 @@ msgstr "Erreur: Aucune action selectionné pour cette requête AJAX"
 #: immersionlyceens/libs/api/views.py:512
 msgid "Error : a valid course is requested"
 msgstr "Erreur : un cours valide est requis"
+
+#: immersionlyceens/libs/api/views.py:648
+msgid "Account deleted"
+msgstr "Compte supprimé"
+
+#: immersionlyceens/libs/api/views.py:651
+#: immersionlyceens/libs/api/views.py:653
+msgid "User not found"
+msgstr "Utilisateur non trouvé"
 
 #: immersionlyceens/settings/base.py:360
 msgid "Immersion"
@@ -2080,72 +2089,77 @@ msgstr "Accueil"
 msgid "Student record"
 msgstr "Fiche Lycéen"
 
-#: immersionlyceens/templates/immersion/hs_record.html:30
-#: immersionlyceens/templates/immersion/student_record.html:30
+#: immersionlyceens/templates/immersion/hs_record.html:33
+#: immersionlyceens/templates/immersion/student_record.html:32
 msgid "Please fill this form to complete the personal record"
 msgstr "Merci de remplir le formulaire suivant pour compléter la fiche"
 
-#: immersionlyceens/templates/immersion/hs_record.html:42
-#: immersionlyceens/templates/immersion/student_record.html:42
+#: immersionlyceens/templates/immersion/hs_record.html:45
+#: immersionlyceens/templates/immersion/student_record.html:44
 msgid "Lastname"
 msgstr "Nom usuel"
 
-#: immersionlyceens/templates/immersion/hs_record.html:49
-#: immersionlyceens/templates/immersion/student_record.html:49
+#: immersionlyceens/templates/immersion/hs_record.html:52
+#: immersionlyceens/templates/immersion/student_record.html:51
 msgid "Firstname"
 msgstr "Prénom"
 
-#: immersionlyceens/templates/immersion/hs_record.html:76
-#: immersionlyceens/templates/immersion/student_record.html:76
+#: immersionlyceens/templates/immersion/hs_record.html:79
+#: immersionlyceens/templates/immersion/student_record.html:78
 msgid "Level of studies"
 msgstr "Niveau d'études"
 
-#: immersionlyceens/templates/immersion/hs_record.html:81
+#: immersionlyceens/templates/immersion/hs_record.html:84
 msgid "High-School"
 msgstr "Lycée"
 
-#: immersionlyceens/templates/immersion/hs_record.html:95
+#: immersionlyceens/templates/immersion/hs_record.html:98
 msgctxt "record"
 msgid "Class name"
 msgstr "Nom / numéro de la classe"
 
-#: immersionlyceens/templates/immersion/hs_record.html:111
+#: immersionlyceens/templates/immersion/hs_record.html:114
 msgid "General bachelor teachings"
 msgstr "Enseignements de spécialité"
 
-#: immersionlyceens/templates/immersion/hs_record.html:159
+#: immersionlyceens/templates/immersion/hs_record.html:162
 msgid "Make the current immersion registrations visible ?"
 msgstr ""
 "Rendre visibles les inscriptions aux immersions aux lycéens du même lycée "
 "(s'ils sont inscrits aux mêmes immersions)"
 
-#: immersionlyceens/templates/immersion/hs_record.html:162
+#: immersionlyceens/templates/immersion/hs_record.html:165
 msgid "Make the email visible ?"
 msgstr ""
 "Rendre visible le courriel aux lycéens du même lycée (s'ils sont inscrits "
 "aux mêmes immersions)"
 
-#: immersionlyceens/templates/immersion/hs_record.html:172
-#: immersionlyceens/templates/immersion/student_record.html:108
+#: immersionlyceens/templates/immersion/hs_record.html:175
+#: immersionlyceens/templates/immersion/student_record.html:110
 msgid "Annually allowed registrations"
 msgstr "Inscriptions autorisées sur l'année"
 
-#: immersionlyceens/templates/immersion/hs_record.html:183
-#: immersionlyceens/templates/immersion/student_record.html:119
+#: immersionlyceens/templates/immersion/hs_record.html:186
+#: immersionlyceens/templates/immersion/student_record.html:121
 msgid "Allowed registrations for first semester"
 msgstr "Inscriptions autorisées au semestre 1"
 
-#: immersionlyceens/templates/immersion/hs_record.html:193
-#: immersionlyceens/templates/immersion/student_record.html:129
+#: immersionlyceens/templates/immersion/hs_record.html:196
+#: immersionlyceens/templates/immersion/student_record.html:131
 msgid "Allowed registrations for second semester"
 msgstr "Inscriptions autorisées au semestre 2"
 
-#: immersionlyceens/templates/immersion/hs_record.html:204
+#: immersionlyceens/templates/immersion/hs_record.html:209
 #: immersionlyceens/templates/immersion/registration.html:74
 #: immersionlyceens/templates/immersion/reset_password.html:36
-#: immersionlyceens/templates/immersion/student_record.html:140
+#: immersionlyceens/templates/immersion/student_record.html:144
 msgid "Submit"
 msgstr "Valider"
+
+#: immersionlyceens/templates/immersion/hs_record.html:213
+#: immersionlyceens/templates/immersion/student_record.html:148
+msgid "Delete this account"
+msgstr "Supprimer ce compte"
 
 #: immersionlyceens/templates/immersion/login.html:13
 msgid "Authentication"
@@ -2225,10 +2239,50 @@ msgstr "Renvoyer"
 #: immersionlyceens/templates/modals/modal_credits.html:23
 #: immersionlyceens/templates/modals/modal_legal.html:8
 #: immersionlyceens/templates/modals/modal_legal.html:23
+#: immersionlyceens/templates/modals/modal_nuke.html:8
 #: immersionlyceens/templates/modals/modal_public_slots.html:8
 #: immersionlyceens/templates/modals/modal_public_slots.html:47
 msgid "Close"
 msgstr "Fermer"
+
+#: immersionlyceens/templates/modals/modal_nuke.html:7
+msgid "Account deletion"
+msgstr "Suppression du compte"
+
+#: immersionlyceens/templates/modals/modal_nuke.html:15
+msgid "Are you sure you want to completely delete this account ?"
+msgstr "Êtes-vous sûr(e) de vouloir supprimer complètement ce compte ?"
+
+#: immersionlyceens/templates/modals/modal_nuke.html:18
+msgid ""
+"Please note this action is irreversible and all data will be definitely lost"
+msgstr ""
+"Attention cette action est irréversible et toutes les données seront perdues."
+
+#: immersionlyceens/templates/modals/modal_nuke.html:20
+#, python-format
+msgid ""
+"The student (%(first_name)s %(last_name)s - %(birth_date)s) has these "
+"current registrations :"
+msgstr ""
+"Ce compte (%(first_name)s %(last_name)s - %(birth_date)s) a des "
+"inscriptions :"
+
+#: immersionlyceens/templates/modals/modal_nuke.html:25
+msgid "Passed registrations"
+msgstr "Nombre d'inscriptions qui ont déjà eu lieu"
+
+#: immersionlyceens/templates/modals/modal_nuke.html:30
+msgid "Future registrations"
+msgstr "Nombre d'inscriptions qui n'ont pas encore eu lieu"
+
+#: immersionlyceens/templates/modals/modal_nuke.html:36
+msgid "Send an email confirmation to the student"
+msgstr "Envoi d'un mail de confirmation"
+
+#: immersionlyceens/templates/modals/modal_nuke.html:43
+msgid "I confirm the deletion"
+msgstr "Je confirme la suppression"
 
 #: immersionlyceens/templates/modals/modal_public_slots.html:18
 msgid "Type"
