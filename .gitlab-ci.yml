@@ -20,3 +20,6 @@ unittest:
   script:
     - pip3 install tox
     - tox
+  artifacts:
+    paths:
+      - coverage
