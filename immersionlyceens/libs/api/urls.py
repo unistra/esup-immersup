@@ -54,4 +54,6 @@ urlpatterns = [
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
     path('check_course_publication/<int:course_id>', views.ajax_check_course_publication,
          name='checkCoursePublication'),
+    
+    path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
 ]

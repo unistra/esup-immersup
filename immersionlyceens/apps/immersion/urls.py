@@ -14,6 +14,7 @@ urlpatterns = [
     #
     # path('login', views.CustomLogin.as_view(), name='login'),
     path('login', views.customLogin, name='login'),
+    path('login/<profile>', views.customLogin, name='login'),
     path('register', views.register, name='register'),
     path('recovery', views.recovery, name='recovery'),
     path('reset_password/<hash>', views.reset_password, name='reset_password'),

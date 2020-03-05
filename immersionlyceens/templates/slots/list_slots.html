@@ -406,11 +406,11 @@ function delete_slot(slot_id) {
         $.post({
             url: "/core/slot/delete/" + slot_id,
             success: function(data) {
-                show_top_indicator("{% trans 'A slot is correctly deleted' %}");
+                show_top_indicator("{% trans 'The slot have been successfully deleted' %}");
                 reload_data();
             },
         });
-        show_top_indicator("{% trans 'A slot is correctly delete' %}");
+        show_top_indicator("{% trans 'The slot have been successfully deleted' %}");
         reload_data();
     }
 }

@@ -115,7 +115,6 @@ def add_slot(request, slot_id=None):
     if slot_id:
         slot = Slot.objects.get(id=slot_id)
         teachers_idx = [t.id for t in slot.teachers.all()]
-        print(teachers_idx)
         slot.id = None
 
     # get components
@@ -147,10 +146,8 @@ def add_slot(request, slot_id=None):
             messages.success(request, _("Slot added successfully"))
 
             if published:
-                print('publié')
                 course = Course.objects.get(id=request.POST.get('course'))
                 if course and course.published:
-                    print(slot_form.fields['course'])
                     messages.success(request, _("Course published"))
         else:
             context = {
@@ -193,8 +190,6 @@ def add_slot(request, slot_id=None):
         context['slot'] = slot
         context['course'] = slot.course
         context['teachers_idx'] = teachers_idx
-
-        print(context)
 
     return render(request, 'slots/add_slot.html', context=context)
 
@@ -313,7 +308,7 @@ def courses_list(request):
     else:
         component_id = request.session.get("current_component_id", None)
 
-    # Check if we can update courses
+    # Check if we can add/update courses
     try:
         active_year = UniversityYear.objects.get(active=True)
         can_update_courses = active_year.date_is_between(datetime.today().date())
@@ -324,7 +319,8 @@ def courses_list(request):
 
     if not can_update_courses:
         messages.warning(request,
-            _("Courses cannot be updated or deleted because the active university year has not begun yet."))
+            _("""Courses cannot be created, updated or deleted because the """
+              """active university year has not begun yet (or is already over."""))
 
     context = {
         "components": allowed_comps,
@@ -342,7 +338,22 @@ def course(request, course_id=None, duplicate=False):
     course = None
     course_form = None
     update_rights = True
+    can_update_courses = False
     allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
+
+    # Check if we can add/update courses
+    try:
+        active_year = UniversityYear.objects.get(active=True)
+        can_update_courses = active_year.date_is_between(datetime.today().date())
+    except UniversityYear.DoesNotExist:
+        pass
+    except UniversityYear.MultipleObjectsReturned:
+        pass
+
+    if not can_update_courses:
+        messages.warning(request,
+            _("""Courses cannot be created, updated or deleted because the """
+              """active university year has not begun yet (or is already over."""))
 
     if course_id:
         try:
@@ -474,6 +485,7 @@ def course(request, course_id=None, duplicate=False):
         course_form = CourseForm(request=request)
 
     context = {
+        "can_update_courses": can_update_courses,
         "course": course,
         "course_form": course_form,
         "duplicate": True if duplicate else False,
@@ -524,7 +536,6 @@ def my_high_school(request,  high_school_id=None):
 
     if request.method == 'POST':
         high_school_form = MyHighSchoolForm(post_values, instance=hs, request=request)
-        print(high_school_form)
         if high_school_form.is_valid():
             high_school_form.save()
             context['modified'] = True

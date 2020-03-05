@@ -90,10 +90,10 @@ class AuthorizedGroupsNode(template.Node):
             context['authorized_groups'] = {g.name for g in user.authorized_groups()}
         else:
             context['authorized_groups'] = set()
-        # context['authorized_groups'] = [g.name for g in user.authorized_groups()]
         return ''
 
 
 @register.filter
 def in_groups(value, args):
+    value = value or set()
     return value & set(args.split(','))

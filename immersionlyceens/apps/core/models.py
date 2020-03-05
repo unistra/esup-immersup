@@ -10,7 +10,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.template.defaultfilters import date as _date
-from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from mailmerge import MailMerge
 
