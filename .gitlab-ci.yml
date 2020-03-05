@@ -22,4 +22,4 @@ unittest:
     - tox
   artifacts:
     paths:
-      - coverage
+      - .coverage
