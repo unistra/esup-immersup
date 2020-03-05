@@ -1,0 +1,77 @@
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+<div class="modal fade" id="modal_nuke_account" tabindex="-1" role="dialog" aria-labelledby="modal_nuke_account_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_nuke_account_title">{% trans 'Account deletion' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="card">
+          <div class="card-header text-danger">
+            {% trans "Are you sure you want to completely delete this account ?" %}
+          </div>
+          <div class="card-body">
+            <p>{% trans "Please note this action is irreversible and all data will be definitely lost" %}</p>
+            <p>
+              {% blocktrans with first_name=student.first_name last_name=student.last_name birth_date=record.birth_date %}
+                The student ({{ first_name }} {{ last_name }} - {{ birth_date }}) has these current registrations :
+              {% endblocktrans %} 
+            </p>  
+            <div class='form-group row align-items-center'>
+              <div class='col-md-6'>{% trans 'Passed registrations' %} :</div>
+              <div class='col-md-1'></div>
+            </div>
+            
+            <div class='form-group row align-items-center'>
+              <div class='col-md-6'>{% trans 'Future registrations' %} :</div>
+              <div class='col-md-1'></div>
+            </div>
+
+            <div class='form-group row align-items-center'>
+              <div class='col-md-6'>
+               {% trans 'Send an email confirmation to the student' %}
+              </div>
+              <div class='col-md-1'>
+                <input type="checkbox" id='id_send_mail' name="send_email">
+              </div>
+            </div>
+            
+            <input type="submit" class="btn btn-secondary btn-sm" name="confirm-nuke" onclick="delete_account({{ student.id }})" value="{% trans 'I confirm the deletion' %}">
+            
+          </div>
+        </div>  
+      </div>
+    </div>  
+  </div>
+</div>
+<script>
+  function delete_account(student_id) {
+    let is_checked = $('#id_send_mail').is(":checked")
+  
+    $.ajax({
+      url: "{% url 'DeleteAccount' %}",
+      type: 'POST',
+      data: {
+        'student_id': student_id,
+        'send_email': is_checked,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        if(json['error']) {
+            alert(json['msg']);
+        }
+        else {
+          window.location = "{% url 'home' %}";
+        }
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+  };
+
+</script>

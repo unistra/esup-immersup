@@ -19,6 +19,9 @@
 {% endblock %}
 
 {% block content %}
+{% authorized_groups request.user %}
+{% include '../modals/modal_nuke.html' %}
+
 <div class="container-fluid" style="padding-top:20px; width:70%;">
   <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
         {% csrf_token %}
@@ -201,11 +204,26 @@
         {% endif %}
       </div>
     </div>
-    <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}" style="margin-top:20px;"">
+    <div class="row mt-4">
+      <div class="col-sm-2">
+        <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
+      </div>
+      {% if authorized_groups|in_groups:"SCUIO-IP" %}
+        <div class="col-sm-10 text-right">
+          <input type="button" class="btn btn-secondary btn-sm" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
+        </div>
+      {% endif %}
+    </div>
+
+
   </form>
 </div>
 
 <script>
+  function open_modal() {
+    $('#modal_nuke_account').modal('show');
+  }
+
   $(document).ready(function() {
     $(function () {
       $(".datepicker").datepicker({

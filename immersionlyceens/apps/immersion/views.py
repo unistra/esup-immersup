@@ -312,7 +312,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         except HighSchoolStudentRecord.DoesNotExist:
             pass
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST.get('submit'):
         student_id = request.POST.get('student', None)
         if not student and student_id:
             try:
