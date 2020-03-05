@@ -630,3 +630,28 @@ def ajax_check_course_publication(request, course_id):
     response['data'] = {'published': c.published}
 
     return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@is_post_request
+@groups_required('SCUIO-IP')
+def ajax_delete_account(request):
+    student_id = request.POST.get('student_id')
+    send_mail = request.POST.get('send_email', False) == "true"
+    
+    if student_id:
+        try:
+            student = ImmersionUser.objects.get(id=student_id, groups__name__in=['LYC','ETU'])
+            
+            if send_mail:
+                student.send_message(request, 'CPT_DELETE')
+                
+            response = { 'error': False, 'msg': gettext("Account deleted") }
+            student.delete()
+        except ImmersionUser.DoesNotExist:
+            response = { 'error': True, 'msg': gettext("User not found") }
+    else:
+        response = { 'error': True, 'msg': gettext("User not found") }
+
+    return JsonResponse(response, safe=False)
+
+
