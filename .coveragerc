@@ -1,3 +1,9 @@
 [run]
 omit =
     .tox/*
+    **/migrations/**
+    **/__init__.py
+    **/settings/**
+    manage.py
+    immersionlyceens/views.py
+    venv/**

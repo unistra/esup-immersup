@@ -110,6 +110,7 @@ def ajax_get_courses(request, component_id=None):
     return JsonResponse(response, safe=False)
 
 
+@is_post_request
 @is_ajax_request
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
@@ -169,9 +170,9 @@ def get_ajax_slots(request, component=None):
 
     response = {'msg': '', 'data': []}
     slots = []
-    if train_id or train_id is not '' and train_id[0] is not '':
+    if train_id:# and train_id[0] is not '':
         slots = Slot.objects.filter(course__training__id=train_id)
-    elif comp_id or comp_id is not '':
+    elif comp_id:
         slots = Slot.objects.filter(course__training__components__id=comp_id)
 
     all_data = []
