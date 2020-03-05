@@ -18,6 +18,7 @@ urlpatterns = [
     path('register', views.register, name='register'),
     path('recovery', views.recovery, name='recovery'),
     path('reset_password/<hash>', views.reset_password, name='reset_password'),
+    path('change_password', views.change_password, name='change_password'),
     path('activate/<hash>', views.activate, name='activate'),
     path('hs_record', views.high_school_student_record, name='hs_record'),
     path('hs_record/<int:record_id>', views.high_school_student_record, name='modify_hs_record'),

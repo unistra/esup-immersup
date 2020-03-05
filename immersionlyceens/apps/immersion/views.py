@@ -6,8 +6,9 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Group
-from django.contrib.auth import views as auth_views
+from django.contrib.auth import views as auth_views, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
@@ -223,6 +224,30 @@ def reset_password(request, hash=None):
     else:
         del(request.session['user_id'])
         return HttpResponseRedirect("/immersion/login")
+
+@login_required
+@groups_required("LYC","REF-LYC")
+def change_password(request):
+    if request.method == "POST":
+        password_form = PasswordChangeForm(data=request.POST, user=request.user)
+        
+        if password_form.is_valid():
+            password_form.save()
+            update_session_auth_hash(request, password_form.user)
+            messages.success(request, _("Password successfully updated"))
+        else:
+            for err_field, err_list in password_form.errors.get_json_data().items():
+                for error in err_list:
+                    if error.get("message"):
+                        messages.error(request, error.get("message"))        
+    else:
+        password_form = PasswordChangeForm(request.user)
+
+    context = {
+        'form': password_form,
+    }
+    
+    return render(request, 'immersion/change_password.html', context)
 
 
 def activate(request, hash=None):
