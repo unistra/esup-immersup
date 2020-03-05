@@ -532,6 +532,7 @@ def my_high_school(request,  high_school_id=None):
     context = {
         'high_school': hs,
         'modified': False,
+        'referents': ImmersionUser.objects.filter(highschool=request.user.highschool),
     }
 
     if request.method == 'POST':

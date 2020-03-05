@@ -172,6 +172,31 @@
         <br>
 
 
+        <div class="card">
+          <div class="card-title card-header">{% trans "Highschool managers" %}</div>
+
+          <div class="card-body">
+            <table class="table table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+              <thead>
+                <th>#</th>
+                <th>{% trans 'First name' %}</th>
+                <th>{% trans 'Last name' %}</th>
+                <th>{% trans 'Email' %}</th>
+              </thead>
+              <tbody>
+                {% for ref in referents %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ ref.first_name }}</td>
+                    <td>{{ ref.last_name }}</td>
+                    <td><a href="mailto:{{ ref.email }}">{{ ref.email }}</a></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <br>
 
         <div class="card">
           <div class="card-title card-header">{% trans "Convention" %}</div>
@@ -192,7 +217,6 @@
                 <div class="readonly">{{ high_school.convention_end_date|default:'-' }}</div>
               </div>
             </div>
-            g
           </div>
         </div>
 
