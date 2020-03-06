@@ -8,6 +8,8 @@ from django.forms.widgets import DateInput, TimeInput
 from .admin_forms import HighSchoolForm
 from .models import (Course, Component, Training, ImmersionUser, UniversityYear, Slot, Calendar,
                      CourseType, Campus, Building, HighSchool)
+from ..immersion.forms import StudentRecordForm
+
 
 class CourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -171,3 +173,26 @@ class MyHighSchoolForm(HighSchoolForm):
             'fax', 'email', 'phone_number',
             'head_teacher_name',
         ]
+
+
+class HighSchoolStudentImmersionUserForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['first_name'].widget.attrs['class'] = 'form-control'
+        self.fields['last_name'].widget.attrs['class'] = 'form-control'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        first_name = cleaned_data.get('first_name')
+        last_name = cleaned_data.get('last_name')
+        if not first_name or first_name.strip() == '':
+            raise forms.ValidationError({'first_name': _('This field must be filled')})
+        if not last_name or last_name.strip() == '':
+            raise forms.ValidationError({'last_name': _('This field must be filled')})
+
+        return cleaned_data
+
+    class Meta:
+        model = ImmersionUser
+        fields = ['first_name', 'last_name']
