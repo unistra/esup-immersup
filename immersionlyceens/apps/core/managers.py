@@ -40,3 +40,9 @@ class HighSchoolAgreedManager(models.Manager):
             #     Q(convention_start_date__lte=date.today(), convention_end_date__isnull=True,)
             # )
         )
+
+
+class CustomDeleteManager(models.Manager):
+    def delete(self):
+        for obj in self.get_queryset():
+            obj.delete()

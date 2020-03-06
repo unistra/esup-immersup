@@ -22,63 +22,63 @@
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
-  <div id="feedback_validated" class="alert alert-success alert-dismissable fade in" style="display:none"></div>
   <div class="card border-0">
     <div class="card-header text-white bg-secondary border-0">
       {% trans "Slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
     </div>
-    <div class="card-body p-0">
-
-      <form class="form-inline pull-right">
-        <div class="form-group">
-          <div class="form-group form-check mx-sm-3 mb-2">
-            <label for="filter_past_slots" class="form-check-label"> {% trans 'Include past slots with attendances' %}
-            <input type="checkbox" id="filter_past_slots" class="form-check-input ml-md-2"></label>
+    <div class="card-body">
+      <div>
+        <div>
+        <form class="form-inline pull-right">
+          <div class="form-group">
+            <div class="form-group form-check mx-sm-3 mb-2">
+              <label for="filter_past_slots" class="form-check-label"> {% trans 'Include past slots with attendances' %}
+              <input type="checkbox" id="filter_past_slots" class="form-check-input ml-md-2"></label>
+            </div>
+            <div class="form-group mb-2">
+              <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
+            </div>
           </div>
-          <div class="form-group mb-2">
-            <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
-          </div>
+        </form>
         </div>
-      </form>
-      <table id="courses_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
-        <thead>
-          <tr>
-            <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
-            <th id="component_filter" class="align-top">{% trans 'Comp.' %}</th>
-            <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
-            <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
-            <th id="date_filter" class="align-top">{% trans 'Date' %}</th></th>
-            <th id="time_filter" class="align-top">{% trans 'Schedules' %}</th>
-            <th id="campus_filter" class="align-top">{% trans 'Campus' %} - {% trans 'Building' %}</th>
-            <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
-            <th id="teacher_filter" class="align-top">{% trans 'Teachers' %}</th>
-            <th class="align-top">{% trans 'Registered students' %}</th>
-            <th id="emargements_filter" class="align-top">{% trans 'Attendance' %}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tfoot>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
+
+        <table id="courses_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+              <th id="component_filter" class="align-top">{% trans 'Comp.' %}</th>
+              <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
+              <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
+              <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
+              <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
+              <th id="teacher_filter" class="align-top">{% trans 'Teachers' %}</th>
+              <th class="align-top">{% trans 'Registered students' %}</th>
+              <th id="emargements_filter" class="align-top">{% trans 'Attendance' %}</th>
+              <th id="additionnals_info"></th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 <script type="text/javascript">
   $(document).ready(function () {
+    $.fn.dataTableExt.errMode = 'console';
     var dt = $('#courses_table').DataTable({
       'processing': false,
       'order': [
@@ -90,16 +90,16 @@
       'responsive': true,
       'ajax': {
         url: "/api/get_my_slots/" + {{ request.user.id }} + "/",
-    dataSrc: function (json) {
-      if (json['data'] != undefined) {
-        return json['data'];
-      }
-    }
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
       },
     'searching': true,
     'language': {
-    url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
-  },
+        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    },
     'columns': [
     {
       "data": "published",
@@ -117,10 +117,18 @@
     { "data": "component" },
     { "data": "training_label" },
     { "data": "label" },
-    { "data": "date"},
-    { "data": "time"},
-    { "data": "campus"},
-    { "data": "room"},
+    {
+      "data": "schedules",
+      "render": function (data) {
+          return "<span>" + data.date + "</span><br><span>" + data.time + "</span>";
+      }
+    },
+    {
+      "data": "location",
+      "render": function (data) {
+        return "<span>" + data.campus + "</span><br><span>" + data.room + "</span>";
+      }
+    },
     {
       "data": "teachers",
       "render": function (data) {
@@ -150,14 +158,17 @@
     },
   ],
     "columnDefs": [
-    {
-      "defaultContent": "",
-      "targets": "_all",
-      "className": "all",
-    },
-  ],
+      {
+        "defaultContent": "",
+        "targets": "_all",
+        "className": "all",
+      },
+      {
+        "orderable": false, "targets": 9
+      },
 
-    });
+    ],
+  });
 
   // All filters reset action
   $('#filters_reset_all').click(function () {
@@ -201,41 +212,11 @@
     filter_container_id: "label_filter",
     filter_reset_button_text: false,
   }, {
-    column_number: 4,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
-    filter_container_id: "date_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 5,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
-    filter_container_id: "time_filter",
-    filter_reset_button_text: false,
-  }, {
     column_number: 6,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
-    filter_container_id: "campus_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 7,
-    filter_default_label: "",
-    style_class: "form-control",
-    filter_container_id: "room_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 8,
     filter_type: "text",
     filter_default_label: "",
-    style_class: "form-control",
-    filter_container_id: "teacher_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 10,
-    filter_default_label: "",
     style_class: "form-control form-control-sm",
-    filter_container_id: "emargements_filter",
+    filter_container_id: "teacher_filter",
     filter_reset_button_text: false,
   }
   ]);
