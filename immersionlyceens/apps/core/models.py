@@ -17,7 +17,12 @@ from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 from immersionlyceens.libs.mails.utils import send_email
 
-from .managers import ActiveManager, ComponentQuerySet, HighSchoolAgreedManager
+from .managers import (
+    ActiveManager,
+    ComponentQuerySet,
+    CustomDeleteManager,
+    HighSchoolAgreedManager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -528,6 +533,8 @@ class PublicType(models.Model):
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
     active = models.BooleanField(_("Active"), default=True)
+    objects = models.Manager()  # default manager
+    activated = ActiveManager()
 
     class Meta:
         """Meta class"""
@@ -878,12 +885,6 @@ class InformationText(models.Model):
         verbose_name_plural = _('Information texts')
 
 
-class CustomDeleteManager(models.Manager):
-    def delete(self):
-        for obj in self.get_queryset():
-            obj.delete()
-
-
 class AccompanyingDocument(models.Model):
     """
     AccompanyingDocument class
@@ -895,6 +896,7 @@ class AccompanyingDocument(models.Model):
     )
     description = models.TextField(_("Description"), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
+    objects = CustomDeleteManager()
     activated = ActiveManager()
 
     document = models.FileField(
@@ -905,8 +907,6 @@ class AccompanyingDocument(models.Model):
         help_text=_('Only files with type (%(authorized_types)s)')
         % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
     )
-
-    objects = CustomDeleteManager()
 
     class Meta:
         """Meta class"""
