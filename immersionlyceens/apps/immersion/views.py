@@ -23,9 +23,7 @@ from immersionlyceens.decorators import groups_required
 from .models import HighSchoolStudentRecord, StudentRecord
 
 from .forms import (LoginForm, RegistrationForm, HighSchoolStudentRecordForm,
-    HighSchoolStudentForm, HighSchoolStudentPassForm, StudentRecordForm,
-    StudentForm)
-
+    HighSchoolStudentForm, NewPassForm, StudentRecordForm, StudentForm)
 
 
 logger = logging.getLogger(__name__)
@@ -164,7 +162,7 @@ def recovery(request):
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
 
-            if not user.username.startswith(settings.USERNAME_PREFIX):
+            if not user.username.startswith(settings.USERNAME_PREFIX) and not user.is_high_school_manager():
                 messages.warning(request, _("Please use your establishment credentials."))
             else:
                 user.set_recovery_string()
@@ -194,14 +192,21 @@ def reset_password(request, hash=None):
                 messages.error(request, _("Password recovery : invalid data"))
                 return HttpResponseRedirect("/immersion/login")
 
-            form = HighSchoolStudentPassForm(request.POST, instance=user)
+            # TODO : add validators
+            # TODO : use Django password form ?
+            form = NewPassForm(request.POST, instance=user)
 
             if form.is_valid():
                 user = form.save()
                 user.recovery_string = None
                 user.save()
                 messages.success(request, _("Password successfully updated."))
-                return HttpResponseRedirect("/immersion/login")
+                
+                # Different login redirection, depending on user group
+                # TODO : create a get_login_url in ImmersionUser ?
+                redirection = "/immersion/login/ref-lyc" if user.is_high_school_manager else "/immersion/login"
+                
+                return HttpResponseRedirect(redirection)
 
             return render(request, 'immersion/reset_password.html', {'form':form})
     elif hash:
@@ -215,7 +220,7 @@ def reset_password(request, hash=None):
             messages.error(request, _("Error : please contact the SCUIO-IP"))
             return HttpResponseRedirect("/immersion/login")
 
-        form = HighSchoolStudentPassForm(instance=user)
+        form = NewPassForm(instance=user)
         context = {
             'form': form,
         }

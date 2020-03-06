@@ -160,7 +160,7 @@ class HighSchoolStudentForm(forms.ModelForm):
         fields = ['last_name', 'first_name', 'email']
 
 
-class HighSchoolStudentPassForm(UserCreationForm):
+class NewPassForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         # self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
