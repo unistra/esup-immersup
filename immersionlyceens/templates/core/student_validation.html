@@ -202,8 +202,8 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, row) {
-                    let elem = '<a href="#' + row['id'] + '">' + data + '</a>';
+                {data: 'first_name', render: function(data, type, row) {
+                    let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
                     return elem;
                 }},
                 {data: 'last_name',},
@@ -255,8 +255,8 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, row) {
-                    let elem = '<a href="#' + row['id'] + '">' + data + '</a>';
+                {data: 'first_name', render: function(data, type, row) {
+                    let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
                     return elem;
                 }},
                 {data: 'last_name',},
@@ -303,8 +303,8 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
             columns: [
-                {data: 'first_name', render: function(data, row) {
-                    let elem = '<a href="#' + row['id'] + '">' + data + '</a>';
+                {data: 'first_name', render: function(data, type, row) {
+                    let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
                     return elem;
                 }},
                 {data: 'last_name',},
