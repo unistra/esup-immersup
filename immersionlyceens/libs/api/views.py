@@ -480,8 +480,8 @@ def ajax_get_student_records(request):
                     'id': record.id,
                     'first_name': record.student.first_name,
                     'last_name': record.student.last_name,
-                    'birth_date': record.birth_date,
-                    'level': record.level,
+                    'birth_date': _date(record.birth_date, "j/m/Y"),
+                    'level': HighSchoolStudentRecord.LEVELS[record.level - 1][1],
                     'class_name': record.class_name,
                 }
                 for record in records
@@ -583,6 +583,10 @@ def ajax_validate_reject_student(request, validate):
                 # 3 => REJECTED
                 record.validation = 2 if validate else 3
                 record.save()
+                if validate:
+                    record.student.send_message(request, 'CPT_MIN_VALIDE_LYCEEN')
+                else:
+                    record.student.send_message(request, 'CPT_MIN_REJET_LYCEEN')
                 response['data'] = {'ok': True}
 
             except HighSchoolStudentRecord.DoesNotExist:

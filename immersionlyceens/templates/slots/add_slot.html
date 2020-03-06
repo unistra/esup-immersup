@@ -31,9 +31,6 @@
 
             <form method="POST" class="form-group" role="form" id="add_slot">
 
-                {% include 'slots/add_slot__controls.html' %}
-                <br>
-
                 {% csrf_token %}
                 {{ slot_form.id }}
 

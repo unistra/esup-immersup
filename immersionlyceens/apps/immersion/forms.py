@@ -275,3 +275,22 @@ class StudentRecordForm(forms.ModelForm):
         }
 
         localized_fields = ('birth_date',)
+
+
+class HighSchoolStudentRecordManagerForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["student"].widget = forms.HiddenInput()
+        self.fields['level'].widget.attrs['class'] = 'form-control'
+        self.fields['class_name'].widget.attrs['class'] = 'form-control'
+
+    class Meta:
+        model = HighSchoolStudentRecord
+        fields = ['birth_date', 'level', 'class_name', 'student']
+
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
+        }
+
+        localized_fields = ('birth_date',)

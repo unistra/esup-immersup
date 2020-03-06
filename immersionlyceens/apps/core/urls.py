@@ -23,4 +23,5 @@ urlpatterns = [
     path('student_validation/<int:high_school_id>/', views.student_validation, name='student_validation'),
     path('course/<int:course_id>', views.course, name='modify_course'),
     path('course/<int:course_id>/<int:duplicate>', views.course, name='duplicate_course'),
+    path('hs_record_manager/<int:hs_record_id>', views.highschool_student_record_form_manager, name='hs_record_manager'),
 ]

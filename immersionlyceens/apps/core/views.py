@@ -532,6 +532,7 @@ def my_high_school(request,  high_school_id=None):
     context = {
         'high_school': hs,
         'modified': False,
+        'referents': ImmersionUser.objects.filter(highschool=request.user.highschool),
     }
 
     if request.method == 'POST':
@@ -566,3 +567,49 @@ def student_validation(request, high_school_id=None):
         context['high_schools'] = HighSchool.objects.all().order_by('city')
 
     return render(request, 'core/student_validation.html', context)
+
+
+@groups_required('REF-LYC',)
+def highschool_student_record_form_manager(request, hs_record_id):
+    from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+    from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
+    from immersionlyceens.apps.core.forms import HighSchoolStudentImmersionUserForm
+
+    hs = HighSchoolStudentRecord.objects.get(id=hs_record_id)
+    form = None
+
+    if request.method == 'POST':
+        print(request.POST)
+        form = HighSchoolStudentRecordManagerForm(request.POST, instance=hs)
+        # record validation
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("High school student record modified"))
+
+            user_date = {
+                'first_name': request.POST.get('first_name'),
+                'last_name': request.POST.get('last_name'),
+            }
+            user_form = HighSchoolStudentImmersionUserForm(user_date, instance=hs.student)
+
+            # user validation
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, _("High school student user modified"))
+                return redirect('student_validation_global')
+            else:
+                messages.error(request, _("High school student user modification failure"))
+        else:
+            messages.error(request, _("High school student record modification failure"))
+
+        # todo: redirect into validation high school student
+        # return redirect('')
+    else:
+        form = HighSchoolStudentRecordManagerForm(instance=hs)
+
+    context = {
+        'form': form,
+        'record': hs,
+    }
+    return render(request, 'core/hs_record_manager.html', context)
+
