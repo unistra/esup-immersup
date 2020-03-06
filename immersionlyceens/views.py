@@ -5,7 +5,7 @@ import os
 from wsgiref.util import FileWrapper
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, GeneralSettings, InformationText, PublicDocument, Training,
+    AccompanyingDocument, Course, GeneralSettings, InformationText, PublicDocument, Slot, Training,
     TrainingSubdomain,
 )
 
@@ -137,12 +137,31 @@ def serve_public_document(request, public_document_id):
 def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
 
-    trainings = Training.objects.filter(training_subdomains=subdomain_id)
+    trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
     subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
-    # subdomain = TrainingSubdomain.activated.all().order_by('training_domain', 'label')
+
+    data = []
+
+    for training in trainings:
+        training_courses = (
+            Course.objects.prefetch_related('training')
+            .filter(training__id=training.id, published=True)
+            .order_by('label')
+        )
+
+        for course in training_courses:
+            slots = Slot.objects.filter(course__id=course.id)
+            training_data = {
+                'training': training,
+                'course': course,
+                'slots': slots,
+                'alert': (slots.filter(n_places=0).count() > 0 or not slots),
+            }
+            data.append(training_data.copy())
 
     context = {
-        'trainings': trainings,
         'subdomain': subdomain,
+        'data': data,
     }
+
     return render(request, 'offer_subdomains.html', context)
