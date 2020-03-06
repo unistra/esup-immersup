@@ -5,7 +5,7 @@ import os
 from wsgiref.util import FileWrapper
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, GeneralSettings, InformationText, PublicDocument, Training,
+    AccompanyingDocument, GeneralSettings, InformationText, PublicDocument, PublicType, Training,
     TrainingSubdomain,
 )
 
@@ -70,9 +70,21 @@ def offer(request):
 
 def accompanying(request):
     """Accompanying view"""
+
+    docs = []
+    types = PublicType.activated.all()
+
+    for type in types:
+        data = {
+            'type': type.label,
+            'docs': AccompanyingDocument.activated.all().filter(public_type__in=[type.pk,]),
+        }
+        if data['docs']:
+            docs.append(data.copy())
+
     context = {
         'accomp_txt': InformationText.objects.get(code="ACCOMPAGNEMENT").content,
-        'accomp_docs': AccompanyingDocument.activated.all(),
+        'accomp_docs': docs,
     }
     return render(request, 'accompanying.html', context)
 

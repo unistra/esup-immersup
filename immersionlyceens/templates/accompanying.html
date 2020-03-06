@@ -17,15 +17,16 @@
           </section>
           <section id="acc_doc_listing">
           {% if accomp_docs %}
-          {% regroup accomp_docs by public_type.all|join:"," as public_type_list %}
           <ul>
-          {% for type in public_type_list %}
-
-            <li>{{ type.grouper }}
+          {% for doc in accomp_docs %}
+            <li>{{ doc.type }}
             <ul>
-              {% for doc in type.list %}
-                <li><a href="{% url 'accompanying_document' doc.pk %}">{{ doc.label }}</a> - {{ doc.description }}</li>
-
+              {% for file in doc.docs %}
+                <li><a href="{% url 'accompanying_document' file.pk %}">{{ file.label }}</a>
+                {% if file.description %}
+                  - {{ file.description }}
+                {% endif %}
+                </li>
               {% endfor %}
             </ul>
             </li>
@@ -34,7 +35,6 @@
           {% else %}
           <p>{% trans 'No documents available' %}</p>
           {% endif %}
-
           </section>
         </div>
       </div>
