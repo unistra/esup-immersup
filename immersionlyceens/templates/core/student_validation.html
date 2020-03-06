@@ -202,7 +202,10 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
             columns: [
-                {data: 'first_name',},
+                {data: 'first_name', render: function(data, row) {
+                    let elem = '<a href="#' + row['id'] + '">' + data + '</a>';
+                    return elem;
+                }},
                 {data: 'last_name',},
                 {data: 'birth_date',},
                 {data: 'level',},
@@ -252,7 +255,10 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
             columns: [
-                {data: 'first_name',},
+                {data: 'first_name', render: function(data, row) {
+                    let elem = '<a href="#' + row['id'] + '">' + data + '</a>';
+                    return elem;
+                }},
                 {data: 'last_name',},
                 {data: 'birth_date',},
                 {data: 'level',},
@@ -297,7 +303,10 @@ $(document).ready(function () {
             searching: true,
             language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
             columns: [
-                {data: 'first_name',},
+                {data: 'first_name', render: function(data, row) {
+                    let elem = '<a href="#' + row['id'] + '">' + data + '</a>';
+                    return elem;
+                }},
                 {data: 'last_name',},
                 {data: 'birth_date',},
                 {data: 'level',},
