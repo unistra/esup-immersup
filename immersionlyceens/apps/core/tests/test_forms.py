@@ -16,7 +16,7 @@ from ..admin_forms import (
     GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
     TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
-from ..forms import SlotForm, MyHighSchoolForm
+from ..forms import SlotForm, MyHighSchoolForm, HighSchoolStudentImmersionUserForm
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
     CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
@@ -36,7 +36,7 @@ request_factory = RequestFactory()
 request = request_factory.get('/admin')
 
 
-class SlotFormTestCase(TestCase):
+class FormTestCase(TestCase):
     """
     Slot forms tests class
     """
@@ -327,4 +327,29 @@ class SlotFormTestCase(TestCase):
             'published': True,
         }
         form = SlotForm(data=data)
+        self.assertFalse(form.is_valid())
+
+    def test_HighSchoolStudentImmersionUserForm__ok(self):
+        request.user = self.scuio_user
+        data = {
+            'first_name': 'hello',
+            'last_name': 'world'
+        }
+        form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
+        self.assertTrue(form.is_valid())
+
+    def test_HighSchoolStudentImmersionUserForm__no_last_name(self):
+        request.user = self.scuio_user
+        data = {
+            'first_name': 'hello',
+        }
+        form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
+        self.assertFalse(form.is_valid())
+
+    def test_HighSchoolStudentImmersionUserForm__no_first_name(self):
+        request.user = self.scuio_user
+        data = {
+            'last_name': 'hello',
+        }
+        form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertFalse(form.is_valid())
