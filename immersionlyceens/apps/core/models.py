@@ -1177,7 +1177,7 @@ class Immersion(models.Model):
         
     class Meta:
         verbose_name = _('Immersion')
-        verbose_name_plural = _('Immersionss')
+        verbose_name_plural = _('Immersions')
 
 
 class GeneralSettings(models.Model):
