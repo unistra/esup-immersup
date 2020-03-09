@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-06 16:19+0100\n"
+"POT-Creation-Date: 2020-03-09 10:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1166,7 +1166,6 @@ msgstr "Nombre maximum de places"
 
 #: immersionlyceens/apps/core/models.py:1145
 #: immersionlyceens/templates/slots/add_slot.html:229
-#: immersionlyceens/templates/slots/list_slots.html:81
 msgid "Additional information"
 msgstr "Informations complémentaires"
 
@@ -1240,7 +1239,6 @@ msgstr "Cours modifié avec succès"
 msgid "Course successfully saved"
 msgstr "Cours enregistré avec succès"
 
-#: immersionlyceens/apps/core/views.py:587
 #: immersionlyceens/apps/core/views.py:587
 msgid "High school student record modified"
 msgstr "Fiche lycéen modifié"
@@ -1523,11 +1521,11 @@ msgstr "DUT 2"
 msgid "Home institution"
 msgstr "Etablissement d'origine"
 
-#: immersionlyceens/apps/immersion/views.py:45
+#: immersionlyceens/apps/immersion/views.py:43
 msgid "Sorry, you can't login right now."
 msgstr "Désolé, vous ne pouvez pas vous connecter maintenant"
 
-#: immersionlyceens/apps/immersion/views.py:57
+#: immersionlyceens/apps/immersion/views.py:55
 msgid ""
 "Sorry, the university year has not begun (or already over), you can't login "
 "yet."
@@ -1535,48 +1533,48 @@ msgstr ""
 "Désolé, l'année universitaire n'a pas encore commencé (ou déjà terminée), "
 "vous ne pouvez pas vous connecter pour le moment."
 
-#: immersionlyceens/apps/immersion/views.py:72
+#: immersionlyceens/apps/immersion/views.py:70
 msgid "Your account hasn't been enabled yet."
 msgstr "Votre compte n'est pas encore activé"
 
-#: immersionlyceens/apps/immersion/views.py:85
+#: immersionlyceens/apps/immersion/views.py:83
 msgid "Authentication error"
 msgstr "Erreur d'identification"
 
-#: immersionlyceens/apps/immersion/views.py:110
+#: immersionlyceens/apps/immersion/views.py:108
 msgid "Sorry, you can't register right now."
 msgstr "Désolé, vous ne pouvez pas vous inscrire maintenant."
 
-#: immersionlyceens/apps/immersion/views.py:134
+#: immersionlyceens/apps/immersion/views.py:132
 msgid "Group error"
 msgstr "Erreur d'attribution de groupe"
 
-#: immersionlyceens/apps/immersion/views.py:141
+#: immersionlyceens/apps/immersion/views.py:139
 msgid ""
 "Account created. Please look at your emails for the activation procedure."
 msgstr ""
 "Compte créé. Veuillez consulter vos courriels pour la procédure d'activation"
 
-#: immersionlyceens/apps/immersion/views.py:168
+#: immersionlyceens/apps/immersion/views.py:166
 msgid "Please use your establishment credentials."
 msgstr "Merci de vous connecter avec vos identifiants Établissement"
 
-#: immersionlyceens/apps/immersion/views.py:172
+#: immersionlyceens/apps/immersion/views.py:170
 msgid "An email has been sent with the procedure to set a new password."
 msgstr "Un courriel contenant la procédure a été envoyé à cette adresse."
 
-#: immersionlyceens/apps/immersion/views.py:175
-#: immersionlyceens/apps/immersion/views.py:288
+#: immersionlyceens/apps/immersion/views.py:173
+#: immersionlyceens/apps/immersion/views.py:293
 msgid "No account found with this email address"
 msgstr "Aucun compte n'a été trouvé avec cette adresse"
 
-#: immersionlyceens/apps/immersion/views.py:177
-#: immersionlyceens/apps/immersion/views.py:215
+#: immersionlyceens/apps/immersion/views.py:175
+#: immersionlyceens/apps/immersion/views.py:220
 msgid "Error : please contact the SCUIO-IP"
 msgstr "Erreur : merci de contacter l'équipe SCUIO-IP"
 
-#: immersionlyceens/apps/immersion/views.py:194
-#: immersionlyceens/apps/immersion/views.py:212
+#: immersionlyceens/apps/immersion/views.py:192
+#: immersionlyceens/apps/immersion/views.py:217
 msgid "Password recovery : invalid data"
 msgstr "Réinitialisation du mot de passe : clé invalide"
 
@@ -1584,38 +1582,38 @@ msgstr "Réinitialisation du mot de passe : clé invalide"
 msgid "Password successfully updated."
 msgstr "Mot de passe mis à jour."
 
-#: immersionlyceens/apps/immersion/views.py:246
+#: immersionlyceens/apps/immersion/views.py:251
 msgid "Password successfully updated"
 msgstr "Mot de passe mis à jour avec succès."
 
-#: immersionlyceens/apps/immersion/views.py:269
+#: immersionlyceens/apps/immersion/views.py:274
 msgid "Your account is now enabled. Thanks !"
 msgstr "Votre compte est désormais activé. Merci !"
 
-#: immersionlyceens/apps/immersion/views.py:271
+#: immersionlyceens/apps/immersion/views.py:276
 msgid "Invalid activation data"
 msgstr "Données d'activation invalides"
 
-#: immersionlyceens/apps/immersion/views.py:274
+#: immersionlyceens/apps/immersion/views.py:279
 msgid "Something went wrong"
 msgstr "Erreur"
 
-#: immersionlyceens/apps/immersion/views.py:291
+#: immersionlyceens/apps/immersion/views.py:296
 msgid "This account has already been activated, please login."
 msgstr "Ce compte a déjà été activé, veuillez vous connecter."
 
-#: immersionlyceens/apps/immersion/views.py:295
+#: immersionlyceens/apps/immersion/views.py:300
 msgid "The activation message have been resent."
 msgstr "Le courriel d'activation a été renvoyé"
 
-#: immersionlyceens/apps/immersion/views.py:330
-#: immersionlyceens/apps/immersion/views.py:358
-#: immersionlyceens/apps/immersion/views.py:442
-#: immersionlyceens/apps/immersion/views.py:471
+#: immersionlyceens/apps/immersion/views.py:335
+#: immersionlyceens/apps/immersion/views.py:363
+#: immersionlyceens/apps/immersion/views.py:447
+#: immersionlyceens/apps/immersion/views.py:476
 msgid "Invalid student id"
 msgstr "#id invalide"
 
-#: immersionlyceens/apps/immersion/views.py:374
+#: immersionlyceens/apps/immersion/views.py:379
 msgid ""
 "You have updated the email.<br>Warning : the new email is also the new login."
 "<br>A new activation email has been sent."
@@ -1624,28 +1622,28 @@ msgstr ""
 "aussi le nouvel identifiant. <br>Une nouvelle procédure d'activation a a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:392
+#: immersionlyceens/apps/immersion/views.py:397
 msgid ""
 "A record already exists with this identity, please contact the SCUIO-IP team."
 msgstr "Une fiche existe déjà à ce nom, merci de contacter le SCUIO-IP"
 
-#: immersionlyceens/apps/immersion/views.py:395
+#: immersionlyceens/apps/immersion/views.py:400
 msgid "A record already exists with this identity, look at duplicate records."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de consulter la liste des doublons."
 
-#: immersionlyceens/apps/immersion/views.py:400
+#: immersionlyceens/apps/immersion/views.py:405
 msgid ""
 "Thank you. Your record is awaiting validation from your high-school referent."
 msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent du lycée."
 
-#: immersionlyceens/apps/immersion/views.py:402
-#: immersionlyceens/apps/immersion/views.py:500
+#: immersionlyceens/apps/immersion/views.py:407
+#: immersionlyceens/apps/immersion/views.py:505
 msgid "Record successfully saved."
 msgstr "Fiche enregistrée avec succès"
 
-#: immersionlyceens/apps/immersion/views.py:486
+#: immersionlyceens/apps/immersion/views.py:491
 msgid "You have updated the email.<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Une nouvelle procédure d'activation a été "
@@ -1754,7 +1752,7 @@ msgstr "Accompagnement"
 msgid "Homepage"
 msgstr "Accueil"
 
-#: immersionlyceens/templates/accompanying.html:35
+#: immersionlyceens/templates/accompanying.html:36
 msgid "No documents available"
 msgstr "Aucun document disponible"
 
@@ -2234,17 +2232,25 @@ msgstr "Identification"
 msgid "Connection"
 msgstr "Se connecter"
 
+#: immersionlyceens/templates/immersion/login.html:37
+#: immersionlyceens/templates/immersion/nologin.html:35
+#: immersionlyceens/templates/immersion/recovery.html:29
+#: immersionlyceens/templates/immersion/registration.html:77
+#: immersionlyceens/templates/immersion/resend_activation.html:29
+msgid "Back"
+msgstr "Retour"
+
 #: immersionlyceens/templates/immersion/login.html:43
 msgid "Not registered yet ?"
 msgstr "Pas encore inscrit ?"
 
-#: immersionlyceens/templates/immersion/login.html:46
-msgid "Forgot your credentials ?"
-msgstr "Mot de passe oublié ?"
-
-#: immersionlyceens/templates/immersion/login.html:50
+#: immersionlyceens/templates/immersion/login.html:44
 msgid "I have not received the activation email"
 msgstr "Je n'ai pas reçu le courriel d'activation"
+
+#: immersionlyceens/templates/immersion/login.html:49
+msgid "Forgot your credentials ?"
+msgstr "Mot de passe oublié ?"
 
 #: immersionlyceens/templates/immersion/nologin.html:14
 msgid "University year dates"
@@ -2253,13 +2259,6 @@ msgstr "Dates clés de l'année universitaire"
 #: immersionlyceens/templates/immersion/nologin.html:28
 msgid "Registration start date"
 msgstr "Date de début des inscriptions à la plateforme"
-
-#: immersionlyceens/templates/immersion/nologin.html:35
-#: immersionlyceens/templates/immersion/recovery.html:29
-#: immersionlyceens/templates/immersion/registration.html:77
-#: immersionlyceens/templates/immersion/resend_activation.html:29
-msgid "Back"
-msgstr "Retour"
 
 #: immersionlyceens/templates/immersion/recovery.html:13
 #: immersionlyceens/templates/immersion/reset_password.html:13
@@ -2409,7 +2408,7 @@ msgid ""
 "This course is unpublished. By creating this slot the associate course is "
 "going to be published. Do you want to continue?"
 msgstr ""
-"Ce cours n'est pas publié. En créant ce créneau, le cours associé sera "
+"Ce cours n'est pas publié. En publiant ce créneau, le cours associé sera "
 "publié. Voulez-vous continuer ?"
 
 #: immersionlyceens/templates/slots/add_slot.html:324
@@ -2454,7 +2453,7 @@ msgstr "Nouveau créneau"
 
 #: immersionlyceens/templates/slots/list_slots.html:73
 msgid "Managed By"
-msgstr "Gérée par"
+msgstr "Géré par"
 
 #: immersionlyceens/templates/slots/list_slots.html:76
 msgid "Schedule"
@@ -2463,6 +2462,10 @@ msgstr "Horaire"
 #: immersionlyceens/templates/slots/list_slots.html:80
 msgid "# of registration"
 msgstr "Nombre d'inscrits"
+
+#: immersionlyceens/templates/slots/list_slots.html:81
+msgid "Info."
+msgstr "Info."
 
 #: immersionlyceens/templates/slots/list_slots.html:82
 msgid "Control"
