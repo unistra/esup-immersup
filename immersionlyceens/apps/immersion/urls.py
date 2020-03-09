@@ -25,4 +25,5 @@ urlpatterns = [
     path('student_record', views.student_record, name='student_record'),
     path('student_record/<int:record_id>', views.student_record, name='modify_student_record'),
     path('resend_activation', views.resend_activation, name='resend_activation'),
+    path('immersions', views.immersions, name='immersions'),
 ]

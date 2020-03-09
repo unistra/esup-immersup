@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.conf import settings
 
-from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear, Calendar
+from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear, Calendar, Immersion
 from immersionlyceens.libs.utils import check_active_year
 from immersionlyceens.decorators import groups_required
 
@@ -403,8 +403,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 if request.user.is_high_school_student():
                     messages.success(request,
                         _("Thank you. Your record is awaiting validation from your high-school referent."))
-                else:
-                    messages.success(request, _("Record successfully saved."))
+
+            messages.success(request, _("Record successfully saved."))
 
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
@@ -521,3 +521,12 @@ def student_record(request, student_id=None, record_id=None):
     }
 
     return render(request, 'immersion/student_record.html', context)
+
+@login_required
+@groups_required('LYC','ETU')
+def immersions(request):
+
+    context = {}
+
+    return render(request, 'immersion/my_immersions.html', context)
+    

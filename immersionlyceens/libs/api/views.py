@@ -6,7 +6,7 @@ import logging
 
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Course, HighSchool, Holiday, ImmersionUser, MailTemplateVars,
-    PublicDocument, Slot, Training, Vacation,
+    PublicDocument, Slot, Training, Vacation, Immersion
 )
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
@@ -18,6 +18,7 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
+from django.utils.formats import date_format
 
 logger = logging.getLogger(__name__)
 
@@ -628,10 +629,14 @@ def ajax_check_course_publication(request, course_id):
 
     return JsonResponse(response, safe=False)
 
+
 @is_ajax_request
 @is_post_request
 @groups_required('SCUIO-IP')
 def ajax_delete_account(request):
+    """
+    Completely destroy a student account and all data
+    """
     student_id = request.POST.get('student_id')
     send_mail = request.POST.get('send_email', False) == "true"
     
@@ -652,3 +657,102 @@ def ajax_delete_account(request):
     return JsonResponse(response, safe=False)
 
 
+@is_ajax_request
+@groups_required('SCUIO-IP', 'LYC', 'ETU')
+def ajax_get_immersions(request, user_id=None, immersion_type=None):
+    """
+    Get (high-school or not) students immersions
+    immersion_type in "future", "past", "cancelled"
+    """
+    response = {'msg': '', 'data': []}
+
+    if not user_id:
+        response['msg'] = gettext("Error : missing user id")
+        
+    if not request.user.is_scuio_ip_manager() and request.user.id != user_id:
+        response['msg'] = gettext("Error : invalid user id")
+        
+    today = datetime.datetime.today().date()
+    time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
+
+    # configure Immersions filters
+    filters = { 'student_id' : user_id }
+
+    if immersion_type == "future":
+        filters['slot__date__gte'] = today
+        #filters['slot__start_time__gt'] = time
+    elif immersion_type == "past":
+        filters['slot__date__lte'] = today
+        #filters['slot__end_time__lte'] = time
+    elif immersion_type == "cancelled":
+        filters['cancellation_type__isnull'] = False
+
+    immersions = Immersion.objects.prefetch_related('slot__course__training', 'slot__course_type',
+        'slot__campus', 'slot__building', 'slot__teachers').filter(**filters)
+
+    for immersion in immersions:
+        immersion_data = {
+            'id': immersion.id,
+            'training': immersion.slot.course.training.label,
+            'course': immersion.slot.course.label,
+            'type': immersion.slot.course_type.label,
+            'campus': immersion.slot.campus.label,
+            'building': immersion.slot.building.label,
+            'room': immersion.slot.room,
+            'datetime': datetime.datetime.strptime("%s:%s:%s %s:%s" % (
+                immersion.slot.date.year, immersion.slot.date.month, immersion.slot.date.day,
+                immersion.slot.start_time.hour, immersion.slot.start_time.minute), 
+                "%Y:%m:%d %H:%M"
+            ),
+            'date': date_format(immersion.slot.date),
+            'start_time': immersion.slot.start_time.strftime("%-Hh%M"),
+            'end_time': immersion.slot.end_time.strftime("%-Hh%M"),
+            'teachers': [],
+            'info': immersion.slot.additional_information,
+            'attendance': immersion.get_attendance_status_display(),
+            'attendance_status': immersion.attendance_status,
+            'cancellation_type': ''
+        }
+
+        if immersion.cancellation_type:
+            immersion_data['cancellation_type'] = immersion.cancellation_type.label
+
+        for teacher in immersion.slot.teachers.all().order_by('last_name', 'first_name'):
+            immersion_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
+
+        response['data'].append(immersion_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@groups_required('LYC', 'ETU')
+def ajax_get_other_registrants(request, immersion_id):
+    immersion = None
+    response = {'msg': '', 'data': []}
+
+    try:
+        immersion = Immersion.objects.get(pk=immersion_id, student=request.user)
+    except Immersion.DoesNotExists:
+        response['msg'] = gettext("Error : invalid user or immersion id")
+
+    if immersion:
+        students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
+            immersions__slot=immersion.slot,
+            high_school_student_record__isnull=False,
+            high_school_student_record__visible_immersion_registrations=True
+        ).exclude(id=request.user.id)
+
+        for student in students:
+            student_data = {
+                'name': "%s %s" % (student.last_name, student.first_name),
+                'email': ""
+            }
+
+            if student.high_school_student_record.visible_email:
+                student_data["email"] = student.email
+
+            response['data'].append(student_data.copy())
+
+    print(response)
+
+    return JsonResponse(response, safe=False)

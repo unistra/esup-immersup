@@ -1152,6 +1152,34 @@ class Slot(models.Model):
         verbose_name_plural = _('Slots')
 
 
+class Immersion(models.Model):
+    """
+    Student registration to a slot
+    """
+    
+    ATT_STATUS = [
+        (0, _('Not entered')),
+        (1, _('Present')),
+        (2, _('Absent')),
+    ]
+    
+    student = models.ForeignKey(ImmersionUser, verbose_name=_("Student"), null=False, blank=False, 
+        on_delete=models.CASCADE, related_name="immersions")
+    
+    slot = models.ForeignKey(Slot,  verbose_name=_("Slot"), null=False, blank=False,
+        on_delete=models.CASCADE, related_name="immersions")
+        
+    cancellation_type = models.ForeignKey(CancelType, verbose_name=_("Cancellation type"), null=True, blank=True,
+        on_delete=models.CASCADE, related_name="immersions")
+        
+    attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
+        
+        
+    class Meta:
+        verbose_name = _('Immersion')
+        verbose_name_plural = _('Immersions')
+
+
 class GeneralSettings(models.Model):
     setting = models.CharField(_("Setting name"), max_length=128, unique=True)
     value = models.CharField(_("Setting value"), max_length=256)

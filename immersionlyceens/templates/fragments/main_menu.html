@@ -60,6 +60,7 @@
               {% elif authorized_groups|in_groups:"ETU" %}
                 <a class="dropdown-item" href="{% url 'immersion:student_record' %}">{% trans 'My record' %}</a>
               {% endif %}
+              <a class="dropdown-item" href="{% url 'immersion:immersions' %}">{% trans 'My immersions' %}</a>
             </div>
           </div>
         {% endif %}
