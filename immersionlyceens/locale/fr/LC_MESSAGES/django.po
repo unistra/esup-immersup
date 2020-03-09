@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-09 10:31+0100\n"
+"POT-Creation-Date: 2020-03-09 10:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -450,7 +450,7 @@ msgid "Error : dates of active university year improperly configured"
 msgstr "Erreur : les dates de l'année universitaire active sont incorrectes"
 
 #: immersionlyceens/apps/core/forms.py:61
-#: immersionlyceens/apps/core/views.py:391
+#: immersionlyceens/apps/core/views.py:382
 msgid "You don't have enough privileges to update this course"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce cours"
 
@@ -1205,8 +1205,12 @@ msgstr "Créneau ajouté avec succès"
 msgid "Course published"
 msgstr "Cours publié"
 
-#: immersionlyceens/apps/core/views.py:322
-#: immersionlyceens/apps/core/views.py:355
+#: immersionlyceens/apps/core/views.py:226
+msgid "Slot modify successfully"
+msgstr "Créneau modifié avec succès"
+
+#: immersionlyceens/apps/core/views.py:313
+#: immersionlyceens/apps/core/views.py:346
 msgid ""
 "Courses cannot be created, updated or deleted because the active university "
 "year has not begun yet (or is already over."
@@ -1214,44 +1218,44 @@ msgstr ""
 "Les cours ne peuvent être ni créés, ni modifiés, ni supprimés car l'année "
 "universitaire n'a pas encore commencé (ou déjà terminée)."
 
-#: immersionlyceens/apps/core/views.py:410
+#: immersionlyceens/apps/core/views.py:401
 msgid "At least one teacher is required"
 msgstr "Au moins un enseignant obligatoire"
 
-#: immersionlyceens/apps/core/views.py:435
+#: immersionlyceens/apps/core/views.py:426
 msgid "User '{}' created"
 msgstr "Utilisateur '{}' créé"
 
-#: immersionlyceens/apps/core/views.py:440
+#: immersionlyceens/apps/core/views.py:431
 msgid "A confirmation email has been sent to {}"
 msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 
-#: immersionlyceens/apps/core/views.py:450
+#: immersionlyceens/apps/core/views.py:441
 #, python-format
 msgid "Couldn't add group 'ENS-CH' to user '%s'"
 msgstr "Impossible d'ajouter le groupe 'ENS-CH' à l'utilisateur '%s'"
 
-#: immersionlyceens/apps/core/views.py:468
+#: immersionlyceens/apps/core/views.py:459
 msgid "Course successfully updated"
 msgstr "Cours modifié avec succès"
 
-#: immersionlyceens/apps/core/views.py:470
+#: immersionlyceens/apps/core/views.py:461
 msgid "Course successfully saved"
 msgstr "Cours enregistré avec succès"
 
-#: immersionlyceens/apps/core/views.py:587
+#: immersionlyceens/apps/core/views.py:578
 msgid "High school student record modified"
 msgstr "Fiche lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:598
+#: immersionlyceens/apps/core/views.py:589
 msgid "High school student user modified"
 msgstr "Compte lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:601
+#: immersionlyceens/apps/core/views.py:592
 msgid "High school student user modification failure"
 msgstr "Erreur de modification de compte lycéen"
 
-#: immersionlyceens/apps/core/views.py:603
+#: immersionlyceens/apps/core/views.py:594
 msgid "High school student record modification failure"
 msgstr "Erreur de modification de fiche lycéen"
 
@@ -2418,7 +2422,6 @@ msgid ""
 msgstr ""
 "Cette date se situe pendant une période de vacances et/ou est un jour férié. "
 "Êtes-vous sûr(e) de vouloir utiliser cette date pour ce créneau ?"
-
 
 #: immersionlyceens/templates/slots/add_slot.html:529
 msgid "Did you really want to cancel this modification?"
