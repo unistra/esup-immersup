@@ -560,7 +560,7 @@ def student_validation(request, high_school_id=None):
     return render(request, 'core/student_validation.html', context)
 
 
-@groups_required('REF-LYC',)
+@groups_required('REF-LYC', 'SCUIO-IP',)
 def highschool_student_record_form_manager(request, hs_record_id):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
     from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
