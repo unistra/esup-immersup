@@ -2095,11 +2095,11 @@ msgstr "Rejeter"
 
 #: immersionlyceens/templates/core/student_validation.html:396
 msgid "Did you really want to validate this high school student?"
-msgstr "Voulez-vous vraiment valider ce&bull;tte lycéen&bull;ne ?"
+msgstr "Voulez-vous vraiment valider ce•tte lycéen•ne ?"
 
 #: immersionlyceens/templates/core/student_validation.html:449
 msgid "Did you really want to reject this high school student?"
-msgstr "Voulez-vous vraiment rejeter ce&bull;tte lycéen&bull;ne ?"
+msgstr "Voulez-vous vraiment rejeter ce•tte lycéen•ne ?"
 
 #: immersionlyceens/templates/fragments/main_footer.html:7
 #: immersionlyceens/templates/modals/modal_legal.html:7
