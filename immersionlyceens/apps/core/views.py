@@ -194,7 +194,6 @@ def add_slot(request, slot_id=None):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-
 groups_required('SCUIO-IP','REF-CMP')
 def modify_slot(request, slot_id):
 
@@ -224,6 +223,7 @@ def modify_slot(request, slot_id):
             slot_form.instance.teachers.clear()
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
+            messages.success(request, _("Slot modify successfully"))
         else:
             context = {
                 "slot": slot,
@@ -248,16 +248,7 @@ def modify_slot(request, slot_id):
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):
-            context = {
-                "components": components,
-                "campus": Campus.objects.filter(active=True).order_by('label'),
-                "trainings": Training.objects.filter(active=True),
-                "slot_form": slot_form,
-                "ready_load": False,
-                "teachers_idx": [t.id for t in slot.teachers.all()],
-                "modify": True,
-            }
-            return render(request, 'slots/add_slot.html', context=context)
+            return redirect('duplicate_slot', slot_id=slot_form.instance.id)
         else:
             context = {
                 "slot": slot,
