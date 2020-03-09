@@ -392,7 +392,10 @@ function relaod_rejected() {
 
 
 function validate_student( student_record_id ) {
-    $.post({
+    let msg = "{% trans 'Did you really want to validate this high school student?' %}";
+    if (confirm(msg))
+    {
+        $.post({
         url: "{% url 'validateStudent' %}",
         data: {
             student_record_id: student_record_id,
@@ -437,9 +440,14 @@ function validate_student( student_record_id ) {
             }, 3000);
         }
     });
+
+    }
 }
 
 function reject_student( student_record_id ) {
+    let msg = "{% trans 'Did you really want to reject this high school student?' %}";
+    if (confirm(msg))
+    {
         $.post({
             url: "{% url 'rejectStudent' %}",
             data: {
@@ -496,6 +504,7 @@ function reject_student( student_record_id ) {
             }
         });
     }
+}
 
 </script>
 {% endblock %}
