@@ -706,6 +706,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'teachers': [],
             'info': immersion.slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
+            'attendance_status': immersion.attendance_status,
             'cancellation_type': ''
         }
 
@@ -716,5 +717,38 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             immersion_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
 
         response['data'].append(immersion_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@groups_required('LYC', 'ETU')
+def ajax_get_other_registrants(request, immersion_id):
+    immersion = None
+    response = {'msg': '', 'data': []}
+
+    try:
+        immersion = Immersion.objects.get(pk=immersion_id, student=request.user)
+    except Immersion.DoesNotExists:
+        response['msg'] = gettext("Error : invalid user or immersion id")
+
+    if immersion:
+        students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
+            immersions__slot=immersion.slot,
+            high_school_student_record__isnull=False,
+            high_school_student_record__visible_immersion_registrations=True
+        ).exclude(id=request.user.id)
+
+        for student in students:
+            student_data = {
+                'name': "%s %s" % (student.last_name, student.first_name),
+                'email': ""
+            }
+
+            if student.high_school_student_record.visible_email:
+                student_data["email"] = student.email
+
+            response['data'].append(student_data.copy())
+
+    print(response)
 
     return JsonResponse(response, safe=False)

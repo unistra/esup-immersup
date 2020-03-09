@@ -1,0 +1,85 @@
+{% load immersionlyceens_tags i18n static staticfiles %}
+<!-- Modal -->
+<div class="modal fade" id="modal_other_registrants" tabindex="-1" role="dialog" aria-labelledby="modal_other_registrants_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_other_registrants_title">{% trans 'Other registrants from the same school' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col">
+            <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Name' %}</th>
+                <th>{% trans 'Email' %}</th>
+              </tr>
+            </thead>
+            <tfoot>
+              <tr>
+                <td></td>
+                <td></td>
+              </tr>
+            </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var dtr;
+$('#modal_other_registrants').on('show.bs.modal', function (e) {
+  $.fn.dataTableExt.errMode = 'console';
+
+  dtr = $('#students_list').DataTable({
+    'processing': false,
+    'order': [
+      [0, "asc"]
+    ],
+    'serverSide': false,
+    'responsive': false,
+    'info': false,
+    'ajax': {
+      url: "/api/get_other_registrants/" + current_immersion_id,
+      dataSrc: function (json) {
+        if (json['data'] != undefined) {
+          return json['data'];
+        }
+      }
+    },
+    'searching': true,
+    'paging': false,
+    'ordering': true,
+    'language': {
+      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    },
+    'columns': [
+      {"data": "name"},
+      {"data": "email",
+       "render": function(data) {
+         if(data=="") {
+             return "<i class='fa fas fa-eye-slash'></i>";
+         }
+       }
+      },
+    ],
+    "columnDefs": [
+      {
+        "defaultContent": "",
+        "targets": "_all"
+      }
+    ],
+  });
+
+});
+
+</script>

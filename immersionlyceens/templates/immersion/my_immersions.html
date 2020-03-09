@@ -23,6 +23,8 @@
 
 {% block content %}
 
+{% include "../modals/other_students.html" %}
+
 <div id="accordion">
   <div class="card">
     <div class="card-header" id="headingOne">
@@ -155,8 +157,13 @@
 </div>
 
 <script>
-  function open_modal() {
-    $('#modal_nuke_account').modal('show');
+  var current_immersion_id;
+  var user_id = {{ request.user.id }};
+
+  function open_modal(immersion_id) {
+    current_immersion_id = immersion_id;
+    console.log(current_immersion_id);
+    $('#modal_other_registrants').modal('show');
   }
   
   $(document).ready(function() {
@@ -171,7 +178,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_immersions/" + {{ request.user.id }} + "/future",
+        url: "/api/get_immersions/" + user_id + "/future",
         dataSrc: function (json) {
           if (json['data'] != undefined) {
             return json['data'];
@@ -209,7 +216,16 @@
           },
         },
         { "data": "info" },
-        { "data" : "" }
+        { "data": "",
+          "render": function(data, type, row) {
+            return "<button class=\"btn btn-secondary btn-sm\" name=\"others\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
+                   "<i class='fa fas fa-users'></i>" +
+                   "</button>" +
+                   "<button class=\"ml-4 btn btn-secondary btn-sm\" name=\"cancel\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'Cancel' %}\">" +
+                   "<i class='fa fas fa-trash'></i>" +
+                   "</button>";
+          }
+        }
       ],
       "columnDefs": [
         {
@@ -233,7 +249,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_immersions/" + {{ request.user.id }} + "/past",
+        url: "/api/get_immersions/" + user_id + "/past",
         dataSrc: function (json) {
           if (json['data'] != undefined) {
             return json['data'];
@@ -270,8 +286,19 @@
             return txt;
           },
         },
-        { "data": "attendance" },
-        { "data" : "" }
+        { "data": "attendance",
+          "render": function(data, type, row) {
+            var msg = data;
+
+            if(row.attendance_status == 1) {
+              msg += "<button class=\"ml-4 btn btn-secondary btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation' %}\">" +
+                  "<i class='fa fas fa-download'></i>" +
+                  "</button>";
+            }
+            return msg;
+          }
+        },
+        { "data": "" }
       ],
       "columnDefs": [
         {
@@ -295,7 +322,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_immersions/" + {{ request.user.id }} + "/cancelled",
+        url: "/api/get_immersions/" + user_id + "/cancelled",
         dataSrc: function (json) {
           if (json['data'] != undefined) {
             return json['data'];
