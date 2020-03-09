@@ -403,8 +403,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 if request.user.is_high_school_student():
                     messages.success(request,
                         _("Thank you. Your record is awaiting validation from your high-school referent."))
-                else:
-                    messages.success(request, _("Record successfully saved."))
+
+            messages.success(request, _("Record successfully saved."))
 
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():

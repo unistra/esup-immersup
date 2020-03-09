@@ -135,6 +135,13 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["email"].help_text = _(
             "Warning : changing the email will require an account reactivation")
 
+        if self.instance:
+            record = self.instance.get_high_school_student_record()
+
+            if record and record.validation == 2:
+                self.fields["last_name"].disabled = True
+                self.fields["first_name"].disabled = True
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -192,6 +199,10 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             del self.fields['allowed_global_registrations']
             del self.fields['allowed_first_semester_registrations']
             del self.fields['allowed_second_semester_registrations']
+
+            if self.instance and self.instance.validation == 2:
+                for field in ["highschool", "civility", "birth_date", "class_name", "level"]:
+                    self.fields[field].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
