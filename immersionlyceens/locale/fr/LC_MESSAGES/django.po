@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-09 11:58+0100\n"
+"POT-Creation-Date: 2020-03-09 14:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1338,7 +1338,7 @@ msgid "Error : passwords don't match"
 msgstr "Erreur : les mots de passe ne correspondent pas"
 
 #: immersionlyceens/apps/immersion/forms.py:78
-#: immersionlyceens/apps/immersion/forms.py:145
+#: immersionlyceens/apps/immersion/forms.py:152
 msgid "Error : an account already exists with this email address"
 msgstr "Erreur : un compte est déjà enregistré avec ce courriel"
 
@@ -1353,19 +1353,19 @@ msgstr ""
 "Avertissement : un changement de courriel demandera une nouvelle activation "
 "du compte"
 
-#: immersionlyceens/apps/immersion/forms.py:212
+#: immersionlyceens/apps/immersion/forms.py:223
 msgid "Please choose one or more bachelor teachings"
 msgstr "Veuillez choisir un ou plusieurs enseignements de spécialité"
 
-#: immersionlyceens/apps/immersion/forms.py:218
+#: immersionlyceens/apps/immersion/forms.py:229
 msgid "Please choose a mention for your technological bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat technologique"
 
-#: immersionlyceens/apps/immersion/forms.py:224
+#: immersionlyceens/apps/immersion/forms.py:235
 msgid "Please enter a mention for your professional bachelor"
 msgstr "Veuillez choisir la mention de votre baccalauréat professionnel"
 
-#: immersionlyceens/apps/immersion/forms.py:231
+#: immersionlyceens/apps/immersion/forms.py:242
 msgid "Please choose your origin bachelor type"
 msgstr "Veuillez sélectionner votre yype de baccalauréat d'origine"
 
@@ -2092,6 +2092,14 @@ msgstr "Valider"
 #: immersionlyceens/templates/core/student_validation.html:269
 msgid "Reject"
 msgstr "Rejeter"
+
+#: immersionlyceens/templates/core/student_validation.html:396
+msgid "Did you really want to validate this high school student?"
+msgstr "Voulez-vous vraiment valider ce&bull;tte lycéen&bull;ne ?"
+
+#: immersionlyceens/templates/core/student_validation.html:449
+msgid "Did you really want to reject this high school student?"
+msgstr "Voulez-vous vraiment rejeter ce&bull;tte lycéen&bull;ne ?"
 
 #: immersionlyceens/templates/fragments/main_footer.html:7
 #: immersionlyceens/templates/modals/modal_legal.html:7
