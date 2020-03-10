@@ -33,8 +33,14 @@
             {{ form.password.errors }}
           </div>
         </div>
-        <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Connection' %}">
-        <a href="/" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
+        <div class="form-group row mt-5">
+          <div class="col-sm-6 text-right">
+            <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Connection' %}">
+          </div>
+          <div class="col-sm-6">
+            <a href="/" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
+          </div>
+        </div>
       </form>
     </div>
   </div>

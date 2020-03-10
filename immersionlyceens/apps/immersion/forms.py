@@ -21,6 +21,9 @@ class LoginForm(forms.Form):
             required = True
         )
 
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
+
     # TODO : Django's authentication system
     # (does not work, needs authentication backend attribute
     """
@@ -56,6 +59,11 @@ class RegistrationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
+
+        # self.email2.widget.attrs['class'] = 'form-control'
 
 
     def clean(self):
@@ -104,6 +112,9 @@ class StudentForm(forms.ModelForm):
         self.fields["email"].help_text = _(
             "Warning : changing the email will require an account reactivation")
 
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -134,6 +145,10 @@ class HighSchoolStudentForm(forms.ModelForm):
         
         self.fields["email"].help_text = _(
             "Warning : changing the email will require an account reactivation")
+
+        # CSS
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
 
         if self.instance:
             record = self.instance.get_high_school_student_record()
@@ -172,6 +187,9 @@ class NewPassForm(UserCreationForm):
         # self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
+
     class Meta:
         model = ImmersionUser
         fields = ('password1', 'password2')
@@ -184,9 +202,9 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
 
         self.fields["student"].widget = forms.HiddenInput()
         self.fields["highschool"].queryset = HighSchool.agreed.order_by('city','label')
-        self.fields['professional_bachelor_mention'].widget.attrs['class'] = 'form-control'
+        # self.fields['professional_bachelor_mention'].widget.attrs['class'] = 'form-control'
         self.fields['professional_bachelor_mention'].widget.attrs['size'] = 80
-        self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
+        # self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
         self.fields['technological_bachelor_mention'].queryset = BachelorMention.objects.filter(active=True)
         self.fields['general_bachelor_teachings'] = forms.ModelMultipleChoiceField(
@@ -194,6 +212,12 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             widget=forms.CheckboxSelectMultiple           
         )
         self.fields['general_bachelor_teachings'].required = False
+
+        # CSS
+        excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings']
+        for field in self.fields:
+            if field not in excludes:
+                self.fields[field].widget.attrs['class'] = 'form-control'
 
         if not self.request or not self.request.user.is_scuio_ip_manager():
             del self.fields['allowed_global_registrations']
@@ -268,6 +292,10 @@ class StudentRecordForm(forms.ModelForm):
         self.fields["home_institution"].disabled = True
         self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
+
+        # CSS
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
 
         if not self.request or not self.request.user.is_scuio_ip_manager():
             del self.fields['allowed_global_registrations']
