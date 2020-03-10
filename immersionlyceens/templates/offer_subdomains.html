@@ -61,9 +61,9 @@
                       <table class="table table-bordered">
                         <tbody>
                           <tr>
-                            <td><i class="fa fas fa-calendar"></i> {{ slot.date | date:"l d F Y"}}</td>
-                            <td><i class="fa fas fa-clock-o"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
-                            <td>{{ slot.course_type }}</td>
+                            <td class="w-10"><i class="fa fas fa-calendar"></i> {{ slot.date | date:"l d F Y"}}</td>
+                            <td class="w-10"><i class="fa fas fa-clock-o"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
+                            <td class="w-10">{{ slot.course_type }}</td>
                             <td rowspan="2">
                               {% trans 'Teacher(s)' %} :
                               <ul>
@@ -80,13 +80,13 @@
                             </td>
                           </tr>
                           <tr>
-                            <td>{% trans 'Campus' %} : {{ slot.campus }}</td>
-                            <td>{% trans 'Building' %} : {{ slot.building }}
+                            <td class="w-10">{% trans 'Campus' %} : {{ slot.campus }}</td>
+                            <td class="w-10">{% trans 'Building' %} : {{ slot.building }}
                             {% if slot.building.url %}
                               <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker"></i></a>
                             {% endif %}
                             </td>
-                            <td>{% trans 'Room' %} : {{ slot.room }}</td>
+                            <td class="w-10">{% trans 'Room' %} : {{ slot.room }}</td>
 
                             <td>{% if slot.additional_information %}{% trans 'Additional information' %} : <p>{{ slot.additional_information }}</p>{% endif %}</td>
                           </tr>
