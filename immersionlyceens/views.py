@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-
+import datetime
 import mimetypes
 import os
 from wsgiref.util import FileWrapper
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Course, GeneralSettings, InformationText, PublicDocument, Slot, Training,
-    TrainingSubdomain,
+    AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText, PublicDocument, Slot,
+    Training, TrainingSubdomain,
 )
 
 from django.conf import settings
@@ -15,6 +15,7 @@ from django.http import (
     StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
+from django.utils.translation import gettext, ugettext_lazy as _
 
 
 def home(request):
@@ -142,6 +143,30 @@ def offer_subdomain(request, subdomain_id):
 
     data = []
 
+    # determine dates range to use
+    calendar = Calendar.objects.first()
+    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    today = datetime.datetime.today().date()
+    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
+    try:
+        # Year mode
+        if calendar.calendar_mode == 'YEAR':
+            cal_start_date = calendar.year_registration_start_date
+            cal_end_date = calendar.year_end_date
+            reg_start_date = calendar.year_registration_start_date
+        # semester mode
+        else:
+            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+                cal_start_date = calendar.semester1_start_date
+                cal_end_date = calendar.semester1_end_date
+                reg_start_date = calendar.semester1_registration_start_date
+            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+                cal_start_date = calendar.semester2_start_date
+                cal_end_date = calendar.semester2_end_date
+                reg_start_date = calendar.semester2_registration_start_date
+    except AttributeError:
+        raise Exception(_('Calendar not initialized'))
+
     for training in trainings:
         training_courses = (
             Course.objects.prefetch_related('training')
@@ -150,7 +175,9 @@ def offer_subdomain(request, subdomain_id):
         )
 
         for course in training_courses:
-            slots = Slot.objects.filter(course__id=course.id)
+            slots = Slot.objects.filter(
+                course__id=course.id, published=True, date__gte=today, date__lte=cal_end_date,
+            ).order_by('date', 'start_time', 'end_time')
             training_data = {
                 'training': training,
                 'course': course,
@@ -162,6 +189,10 @@ def offer_subdomain(request, subdomain_id):
     context = {
         'subdomain': subdomain,
         'data': data,
+        'reg_start_date': reg_start_date,
+        'today': today,
+        'cal_start_date': cal_start_date,
+        'cal_end_date': cal_end_date,
     }
 
     return render(request, 'offer_subdomains.html', context)

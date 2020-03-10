@@ -24,62 +24,74 @@
     </div>
     <div class="card-body">
       {% if data %}
-        <div id="accordion">
+        <div id="accordion" class="accordion">
           {% regroup data by training as data_list %}
           {% for training in data_list %}
           <div class="card">
-            <div class="card-header" id="headingOne">
-              <h5 class="mb-0">
+            <div class="card-header" id="training{{training.pk}}">
+              <h5 class="mb-0 more-less-title">
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="#training{{training.grouper.pk}}">
-                  <i class="fa fas fa-calendar" focusable="false"></i> {{ training.grouper.label }} {% if training.grouper.url %}<a href="{{ training.grouper.url }}">{{ training.grouper.url}}</a>{% endif %}
+                {{ training.grouper.label }} {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank”><i class="fa fas fa-info-circle"></i></a>{% endif %}
                 </button>
               </h5>
             </div>
             <div id="training{{training.grouper.pk}}" class="collapse" aria-labelledby="{{training.grouper.label}}" data-parent="#accordion">
               <div class="card-body">
               {% for d in training.list %}
-                  <p>
-                    <a data-toggle="collapse" href="#course{{d.course.pk}}" role="button" aria-expanded="false" aria-controls="course{{d.course.pk}}">
+                  <div class="card-header">
+                    <h6 class="mb-0 more-less-title">
+                      <button class="btn btn-link" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
                       {{ d.course.label}}
-                    </a> {% if d.course.url %}<a href="{{ course.url }}">{{ d.course.url}}</a>{% endif %}
+                      </button>
                     {% if d.alert %}
                     <a href="#" class="badge badge-info pull-right">{% trans 'Notify me when a place is available' %}</a>
                     {% endif %}
-                  </p>
+                    </h6>
+                  </div>
                   {% if  d.slots %}
                   <div class="collapse" id="course{{d.course.pk}}">
-                    <div class="card card-body">
-                      {% for slot in d.slots  %}
-                      <div class="border primary">
-                        <div class="row">
-                          <div class="col-sm">{{ slot.date | date:"l d F Y"}}</div>
-                          <div class="col-sm">{{ slot.start_time }} - {{ slot.end_time }}</div>
-                          <div class="col-sm">{{ slot.course_type }}</div>
-                          <div class="col-sm">{{ slot.campus }}</div>
-                          <div class="col-sm">
-                          {% if slot.n_places > 0 %}
-                          {% trans 'Available places' %} : {{ slot.n_places }}
-                          {% else %}
-                          <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
-                          {% endif %}
+                    <div class="card">
+                      <div class="card-body">
+                        {% for slot in d.slots  %}
+                        <div class="border primary">
+                          <div class="row">
+                            <div class="col-sm">{{ slot.date | date:"l d F Y"}}</div>
+                            <div class="col-sm">{{ slot.start_time }} - {{ slot.end_time }}</div>
+                            <div class="col-sm">{{ slot.course_type }}</div>
+                            <div class="col-sm">{{ slot.campus }}</div>
+                            <div class="col-sm">
+                            {% if slot.n_places > 0 %}
+                            {% trans 'Available places' %} : {{ slot.n_places }}
+                            {% else %}
+                            <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                            {% endif %}
+                            </div>
                           </div>
+                          <div class="row">
+                            <div class="col-sm">{% trans 'Building' %} : {{ slot.building }}
+                            {% if slot.building.url %}
+                              <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker"></i></a>
+                            {% endif %}
+                            </div>
+                            <div class="col-sm">{% trans 'Room' %} : {{ slot.room }} </div>
+                            <div class="col-sm">{% trans 'Teacher(s)' %} :
+                              <ul>
+                                {% for teacher in slot.teachers.all  %}
+                                <li>{{ teacher.last_name | title }} {{ teacher.first_name | title }}</li>
+                                {% endfor %}
+                              </ul>
+                            </div>
+                            <div class="col-sm"></div>
+                            <div class="col-sm"></div>
+                          </div>
+                          {% if slot.additional_information %}
+                          <div class="row">
+                            <div class="col-sm">{% trans 'Additional information' %} : {{ slot.additional_information }}</div>
+                          </div>
+                          {% endif %}
                         </div>
-                        <div class="row">
-                          <div class="col-sm">{% trans 'Building' %} : {{ slot.building }} </div>
-                          <div class="col-sm">{% trans 'Room' %} : {{ slot.room }} </div>
-                          <div class="col-sm">{% trans 'Teacher(s)' %} : {% for teacher in slot.teachers.all  %}
-                          {{ teacher.last_name | title }}
-                          {% endfor %}</div>
-                          <div class="col-sm"></div>
-                          <div class="col-sm"></div>
-                        </div>
-                        {% if slot.additional_information %}
-                        <div class="row">
-                          <div class="col-sm">{{ slot.additional_information }}</div>
-                        </div>
-                        {% endif %}
+                        {% endfor %}
                       </div>
-                      {% endfor %}
                     </div>
                   </div>
                   {% endif %}

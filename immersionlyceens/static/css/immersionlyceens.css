@@ -225,3 +225,16 @@ body {
     min-height: 99% !important;
     max-height: 99% !important;
 }
+
+.more-less-title>button:after {
+    content: "\f067";
+    /* minus */
+    font-family: 'FontAwesome';
+    position: absolute;
+    right: 0;
+}
+
+.more-less-title>button[aria-expanded="true"]:after {
+    content: "\f068";
+    /* plus */
+}
