@@ -21,6 +21,13 @@
   <div class="card">
     <div class="card-header text-white bg-secondary">
       <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / <a class="unlink" href="{% url 'offer' %}">{% trans 'Offer' %}</a> / {{ subdomain }}
+      <div class="collapse-group pull-right">
+        <div class="controls">
+          <button class="btn btn-primary close-button" type="button">{% trans 'Close all' %}</button>
+        </div>
+      </div>
+  </div>
+
     </div>
     <div class="card-body">
       {% if data %}
@@ -108,4 +115,13 @@
     </div>
   </div>
 </div>
+<script>
+
+
+$(document).ready(function() {
+  $(".close-button").on("click", function() {
+    $("div.collapse").collapse('hide');
+  });
+});
+</script>
 {% endblock %}
