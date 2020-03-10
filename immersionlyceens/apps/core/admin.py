@@ -14,14 +14,14 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm,
     CalendarForm, CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm, 
+    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
     ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm, 
     TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm)
     
 from .models import (
     AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus, CancelType,
     Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Slot,
+    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Slot,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation)
     
 
@@ -483,6 +483,18 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CancelTypeForm
     list_display = ('label', 'active')
     ordering = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_scuio_ip_manager():
+            return False
+
+        if obj and Immersion.objects.filter(cancellation_type=obj).exists():
+            messages.warning(
+                request, _("This cancellation type can't be deleted because it is used by some registrations"),
+            )
+            return False
+
+        return True
 
 
 class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
