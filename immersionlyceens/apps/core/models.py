@@ -766,14 +766,26 @@ class Course(models.Model):
         return self.training.components.all()
 
     def free_seats(self):
-        # TODO
-        return self.slots.annotate(total_seats=Sum('n_places'))
+        """
+        :return: number of seats as the sum of seats of all slots under this course
+        TODO : filter on published slots only ?
+        """
+        d = self.slots.aggregate(total_seats=Sum('n_places'))
+        return d['total_seats']
 
     def published_slots_count(self):
         return self.slots.filter(published=True).count()
 
     def slots_count(self):
         return self.slots.all().count()
+
+    def registrations_count(self):
+        """
+        :return: the number of non-cancelled registered students on all the slots
+        under this course (past and future)
+        """
+        return self.slots.filter(immersions__cancellation_type__isnull=True).count()
+
 
     class Meta:
         verbose_name = _('Course')
