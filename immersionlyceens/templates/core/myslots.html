@@ -22,74 +22,74 @@
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
-  <div class="card border-0">
-    <div class="card-header text-white bg-secondary border-0">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
       {% trans "Slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
     </div>
     <div class="card-body">
+
       <div>
-        <div>
-        <form class="form-inline pull-right">
+        <form class="form-inline ">
           <div class="form-group">
             <div class="form-group form-check mx-sm-3 mb-2">
-              <label for="filter_past_slots" class="form-check-label"> {% trans 'Include past slots with attendances' %}
-              <input type="checkbox" id="filter_past_slots" class="form-check-input ml-md-2"></label>
+              <input type="checkbox" id="filter_past_slots" class="form-check-input"></label>
+              <label for="filter_past_slots" class="form-check-label ml-md-2"> {% trans 'Include past slots with attendances' %}
             </div>
             <div class="form-group mb-2">
               <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
             </div>
           </div>
         </form>
-        </div>
-
-        <table id="courses_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-          <thead>
-            <tr>
-              <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
-              <th id="component_filter" class="align-top">{% trans 'Comp.' %}</th>
-              <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
-              <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
-              <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
-              <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
-              <th id="teacher_filter" class="align-top">{% trans 'Teachers' %}</th>
-              <th class="align-top">{% trans 'Registered students' %}</th>
-              <th id="emargements_filter" class="align-top">{% trans 'Attendance' %}</th>
-              <th id="additionnals_info"></th>
-            </tr>
-          </thead>
-          <tfoot>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
       </div>
+      <table id="courses_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+            <th id="component_filter" class="align-top">{% trans 'Comp.' %}</th>
+            <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
+            <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
+            <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
+            <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
+            <th id="teacher_filter" class="align-top">{% trans 'Teachers' %}</th>
+            <th class="align-top">{% trans 'Registered students' %}</th>
+            <th id="emargements_filter" class="align-top">{% trans 'Attendance' %}</th>
+            <th id="additionnals_info"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 <script type="text/javascript">
+  var user_id = {{ request.user.id }};
+
   $(document).ready(function () {
     $.fn.dataTableExt.errMode = 'console';
     var dt = $('#courses_table').DataTable({
       'processing': false,
       'order': [
-        [1, "asc"]
+        [4, "asc"]
       ],
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_my_slots/" + {{ request.user.id }} + "/",
+        url: "/api/get_my_slots/" + user_id + "/",
         dataSrc: function (json) {
           if (json['data'] != undefined) {
             return json['data'];
@@ -118,9 +118,9 @@
     { "data": "training_label" },
     { "data": "label" },
     {
-      "data": "schedules",
-      "render": function (data) {
-          return "<span>" + data.date + "</span><br><span>" + data.time + "</span>";
+      "data": "datetime",
+      "render": function (data, type, row) {
+          return "<span>" + row.schedules.date + "</span><br><span>" + row.schedules.time + "</span>";
       }
     },
     {
@@ -145,7 +145,24 @@
           return data.students_count + '/' + data.capacity + ' <meter min="0" max="'+ data.capacity +'" value="'+ data.students_count+'"></meter>';
       }
     },
-    { "data": "emargements"},
+    { "data": "attendances_status",
+      "render": function(data, type, row) {
+        var msg = "";
+
+        if(row.attendances_value == 1) {
+          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"\" title=\"{% trans 'Enter attendances' %}\">" +
+              "<i class='fa fas fa-edit'></i>" +
+              "</button>";
+        }
+        else if(row.attendances_value == 2) {
+          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"\" title=\"{% trans 'View attendances' %}\">" +
+                "<i class='fa fas fa-eye'></i>" +
+                "</button>";
+        }
+
+        return msg + data;
+      }
+    },
     {
       "data": "additional_information",
       "render": function (data) {
@@ -177,10 +194,10 @@
 
   $('#filter_past_slots').click(function () {
     if ($('#filter_past_slots').is(':checked')){
-      u = "/api/get_my_slots/all/" + {{ request.user.id }} + "/";
+      u = "/api/get_my_slots/all/" + user_id + "/";
     }
     else {
-      u = "/api/get_my_slots/" + {{ request.user.id }} + "/";
+      u = "/api/get_my_slots/" + user_id + "/";
     }
     dt.ajax.url(u);
     dt.ajax.reload();

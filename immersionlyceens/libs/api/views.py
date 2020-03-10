@@ -357,51 +357,70 @@ def ajax_get_my_slots(request, user_id=None):
     if not user_id:
         response['msg'] = gettext("Error : a valid user must be passed")
 
-    courses = Course.objects.prefetch_related('training').filter(teachers=user_id)
+    filters = {
+        'teachers': user_id,
+        'immersions__attendance_status': 0,
+    }
 
-    for course in courses:
-        slots = (
-            course.slots.all()
-            if past_slots
-            else course.slots.filter(date__gte=datetime.datetime.now())
-        )
-        for s in slots:
-            campus = ""
-            try:
-                if s.campus and s.building:
-                    campus = f'{s.campus.label} - {s.building.label}'
+    if past_slots:
+        del(filters['immersions__attendance_status'])
 
-                course_data = {
-                    'id': course.id,
-                    'published': course.published,
-                    'component': course.component.code,
-                    'training_label': f'{course.training.label} ({s.course_type.label})',
-                    'location': {'campus': campus, 'room': s.room,},
-                    'schedules': {
-                        'date': _date(s.date, "l d/m/Y"),
-                        'time': f'{s.start_time.strftime("%H:%M")} - {s.end_time.strftime("%H:%M")}',
-                    },
-                    'start_time': s.start_time.strftime("%H:%M"),
-                    'end_time': s.end_time.strftime("%H:%M"),
-                    'label': course.label,
-                    'teachers': {},
-                    'registered_students_count': {
-                        "capacity": s.n_places,
-                        "students_count": 4,
-                    },  # TODO
-                    'additional_information': s.additional_information,
-                    'emargements': '',  # TODO
-                }
-            except AttributeError:
-                # TODO: maybe not usefull
-                pass
+    slots = Slot.objects.prefetch_related(
+        'course__training', 'course__component', 'teachers', 'immersions').filter(**filters)
 
-            for teacher in course.teachers.all().order_by('last_name', 'first_name'):
-                course_data['teachers'].update(
-                    [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
-                )
+    for slot in slots:
+        campus = ""
+        try:
+            if slot.campus and slot.building:
+                campus = f'{slot.campus.label} - {slot.building.label}'
 
-            response['data'].append(course_data.copy())
+            slot_data = {
+                'id': slot.id,
+                'published': slot.published,
+                'component': slot.course.component.code,
+                'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
+                'location': {'campus': campus, 'room': slot.room,},
+                'schedules': {
+                    'date': _date(slot.date, "l d/m/Y"),
+                    'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
+                },
+                'datetime': datetime.datetime.strptime("%s:%s:%s %s:%s" % (
+                    slot.date.year, slot.date.month, slot.date.day,
+                    slot.start_time.hour, slot.start_time.minute),
+                    "%Y:%m:%d %H:%M"
+                ),
+                'start_time': slot.start_time.strftime("%H:%M"),
+                'end_time': slot.end_time.strftime("%H:%M"),
+                'label': slot.course.label,
+                'teachers': {},
+                'registered_students_count': {
+                    "capacity": slot.n_places,
+                    "students_count": 4,
+                },  # TODO
+                'additional_information': slot.additional_information,
+                'attendances_status': '',
+                'attendances_value': 0,
+            }
+        except AttributeError:
+            # TODO: maybe not usefull
+            pass
+
+        if slot.date < datetime.datetime.today().date():
+            if slot.immersions.filter(attendance_status=0).exists():
+                slot_data['attendances_status'] = gettext("To enter")
+                slot_data['attendances_value'] = 1
+            else:
+                slot_data['attendances_status'] = gettext("Entered")
+                slot_data['attendances_value'] = 2
+        else:
+            slot_data['attendances_status'] = gettext("Future slot")
+
+        for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
+            slot_data['teachers'].update(
+                [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
+            )
+
+        response['data'].append(slot_data.copy())
 
     return JsonResponse(response, safe=False)
 
