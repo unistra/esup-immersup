@@ -23,172 +23,89 @@
       <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / <a class="unlink" href="{% url 'offer' %}">{% trans 'Offer' %}</a> / {{ subdomain }}
     </div>
     <div class="card-body">
-
-      {% if  trainings %}
-
-
-      <div class="form-group row">
-          <label for="select_training"
-                  class="col-form-label col-sm-3"
-          >{% trans "Training choice" %}</label>
-          <div class="col-sm-6">
-              <select name="training" id="select_training" class="form-control">
-                <option value="0">-------------</option>
-                {% for training in trainings %}
-                <option value="{{ training.id }}">{{ training.label }}</option>
-                {% endfor %}
-              </select>
+      {% if data %}
+        <div id="accordion" class="accordion">
+          {% regroup data by training as data_list %}
+          {% for training in data_list %}
+          <div class="card">
+            <div class="card-header" id="training{{training.pk}}">
+              <h5 class="mb-0 more-less-title">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="#training{{training.grouper.pk}}">
+                {{ training.grouper.label }} {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank”><i class="fa fas fa-info-circle"></i></a>{% endif %}
+                </button>
+              </h5>
+            </div>
+            <div id="training{{training.grouper.pk}}" class="collapse" aria-labelledby="{{training.grouper.label}}" data-parent="#accordion">
+              <div class="card-body">
+              {% for d in training.list %}
+                  <div class="card-header">
+                    <h6 class="mb-0 more-less-title">
+                      <button class="btn btn-link" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
+                      {{ d.course.label}}
+                      </button>
+                    {% if d.alert %}
+                    <a href="#" class="badge badge-info pull-right">{% trans 'Notify me when a place is available' %}</a>
+                    {% endif %}
+                    </h6>
+                  </div>
+                  {% if  d.slots %}
+                  <div class="collapse" id="course{{d.course.pk}}">
+                    <div class="card">
+                      <div class="card-body">
+                        {% for slot in d.slots  %}
+                        <div class="border primary">
+                          <div class="row">
+                            <div class="col-sm">{{ slot.date | date:"l d F Y"}}</div>
+                            <div class="col-sm">{{ slot.start_time }} - {{ slot.end_time }}</div>
+                            <div class="col-sm">{{ slot.course_type }}</div>
+                            <div class="col-sm">{{ slot.campus }}</div>
+                            <div class="col-sm">
+                            {% if slot.n_places > 0 %}
+                            {% trans 'Available places' %} : {{ slot.n_places }}
+                            {% else %}
+                            <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                            {% endif %}
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-sm">{% trans 'Building' %} : {{ slot.building }}
+                            {% if slot.building.url %}
+                              <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker"></i></a>
+                            {% endif %}
+                            </div>
+                            <div class="col-sm">{% trans 'Room' %} : {{ slot.room }} </div>
+                            <div class="col-sm">{% trans 'Teacher(s)' %} :
+                              <ul>
+                                {% for teacher in slot.teachers.all  %}
+                                <li>{{ teacher.last_name | title }} {{ teacher.first_name | title }}</li>
+                                {% endfor %}
+                              </ul>
+                            </div>
+                            <div class="col-sm"></div>
+                            <div class="col-sm"></div>
+                          </div>
+                          {% if slot.additional_information %}
+                          <div class="row">
+                            <div class="col-sm">{% trans 'Additional information' %} : {{ slot.additional_information }}</div>
+                          </div>
+                          {% endif %}
+                        </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
+              {% endfor %}
+              </div>
+            </div>
           </div>
-      </div>
-      <div class="form-group row">
-        <div class="col">
-          <table id="courses_list" class="table table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-            <thead>
-                <tr>
-                    <th>{% trans 'Course label' %}</th>
-                    <th></th>
-                    <th>{% trans 'Url' %}</th>
-                </tr>
-            </thead>
-            <tfoot>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tfoot>
-          </table>
+          {% endfor %}
         </div>
-      </div>
       {% else %}
       <p>{% trans 'No training available for the selected domain' %}</p>
       <p><a class="unlink" href="{% url 'offer' %}">{% trans 'Click here to return to offer selection' %}</a></p>
-
       {% endif %}
     </div>
   </div>
 </div>
-{% include './modals/modal_public_slots.html'%}
-
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
-<script src="{% static 'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js' %}"></script>
-<script>
-
-  $(document).ready(function() {
-
-    $.fn.dataTableExt.errMode = 'console';
-    dt_courses = $('#courses_list').DataTable({
-      'processing': false,
-      'order': [
-        [0, "asc"]
-      ],
-      'pageLength': 15,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
-      'serverSide': false,
-      'responsive': true,
-      'ajax': {
-        url: "/api/get_courses_by_training/" + $('#select_training option:selected').val(),
-        dataSrc: function (json) {
-          if (json['data'] != undefined) {
-            return json['data'];
-          }
-        }
-      },
-      'searching': true,
-      'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
-      },
-      'columns': [
-          { "data": "label"},
-          { "data": "",
-            "render": function (data, type, row) {
-              var showSlots = "";
-              if(row.slots > 0 ) {
-                showSlots += '<a href="#" onclick="open_modal('+row.key+');return false;" title="{% trans 'Consult slots' %}" class="btn btn-primary btn-sm"><i class="fa fas fa-eye"></i></a>';
-              }
-
-              return showSlots;
-
-            },
-          },
-
-          { "data": "url" },
-
-      ],
-      "columnDefs": [
-        {
-          "defaultContent": "",
-          "targets": "_all"
-        },
-        {
-            "orderable": false,
-            "targets": 1
-        },
-      ],
-    });
-
-    dt_slots = $('#slots_list').DataTable({
-      ajax: {
-        url: '',
-        dataSrc: function (json) {
-          if (json['data'] != undefined && json['data'].length != 0) {
-            return json['data'];
-          }
-          return [];
-        }
-      },
-      processing: false,
-      serverSide: false,
-      responsive: false,
-      info: false,
-      search: true,
-      paging: true,
-      ordering: true,
-      language: {url: '{% static "js/vendor/i18n/" %}{{ LANGUAGE_CODE }}.json'},
-      columns: [
-        {data: 'course_type'},
-        {data: 'date'},
-        {data: 'time'},
-        {data: 'building'},
-        {data: 'room'},
-        {data: 'teachers'},
-        {data: 'n_register', render: function(data, type, row) {
-            let current = data;
-            let n = row['n_places'];
-            element = '<span>' + current + '/' + n + '</span>' +
-                '<div class="progress">' +
-                '    <div' +
-                '       class="progress-bar"' +
-                '       role="progressbar"' +
-                '       aria-valuenow="' + current + '"' +
-                '       aria-valuemin="0"' +
-                '       aria-valuemax="' + n + '"' +
-                '       style="width: ' + Math.round(current/n * 100) + '%"' +
-                '></div>' +
-                '</div>';
-            return element;
-          }},
-        {data: 'additional_information'},
-      ],
-      columnDefs: [{
-        defaultContent: '',
-        targets: '_all'
-      }],
-  });
-
-    // Reload courses list when training changes in selectbox
-    $('#select_training').change( function() {
-      dt_courses.ajax.url("/api/get_courses_by_training/" + $('#select_training option:selected').val()).load();
-    });
-
-
-  });
-
-  function open_modal(course_id) {
-    dt_slots.ajax.url("/api/get_slots_by_course/" + course_id).load();
-    $('#modal_public_slots').modal('show');
-
-  }
-</script>
 {% endblock %}

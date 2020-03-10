@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-
+import datetime
 import mimetypes
 import os
 from wsgiref.util import FileWrapper
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, GeneralSettings, InformationText, PublicDocument, PublicType, Training,
-    TrainingSubdomain,
+    AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText, PublicDocument,
+    PublicType, Slot, Training, TrainingSubdomain,
 )
 
 from django.conf import settings
@@ -15,6 +15,7 @@ from django.http import (
     StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
+from django.utils.translation import gettext, ugettext_lazy as _
 
 
 def home(request):
@@ -149,12 +150,61 @@ def serve_public_document(request, public_document_id):
 def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
 
-    trainings = Training.objects.filter(training_subdomains=subdomain_id)
+    trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
     subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
-    # subdomain = TrainingSubdomain.activated.all().order_by('training_domain', 'label')
+
+    data = []
+
+    # determine dates range to use
+    calendar = Calendar.objects.first()
+    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    today = datetime.datetime.today().date()
+    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
+    try:
+        # Year mode
+        if calendar.calendar_mode == 'YEAR':
+            cal_start_date = calendar.year_registration_start_date
+            cal_end_date = calendar.year_end_date
+            reg_start_date = calendar.year_registration_start_date
+        # semester mode
+        else:
+            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+                cal_start_date = calendar.semester1_start_date
+                cal_end_date = calendar.semester1_end_date
+                reg_start_date = calendar.semester1_registration_start_date
+            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+                cal_start_date = calendar.semester2_start_date
+                cal_end_date = calendar.semester2_end_date
+                reg_start_date = calendar.semester2_registration_start_date
+    except AttributeError:
+        raise Exception(_('Calendar not initialized'))
+
+    for training in trainings:
+        training_courses = (
+            Course.objects.prefetch_related('training')
+            .filter(training__id=training.id, published=True)
+            .order_by('label')
+        )
+
+        for course in training_courses:
+            slots = Slot.objects.filter(
+                course__id=course.id, published=True, date__gte=today, date__lte=cal_end_date,
+            ).order_by('date', 'start_time', 'end_time')
+            training_data = {
+                'training': training,
+                'course': course,
+                'slots': slots,
+                'alert': (slots.filter(n_places=0).count() > 0 or not slots),
+            }
+            data.append(training_data.copy())
 
     context = {
-        'trainings': trainings,
         'subdomain': subdomain,
+        'data': data,
+        'reg_start_date': reg_start_date,
+        'today': today,
+        'cal_start_date': cal_start_date,
+        'cal_end_date': cal_end_date,
     }
+
     return render(request, 'offer_subdomains.html', context)
