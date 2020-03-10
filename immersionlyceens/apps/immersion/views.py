@@ -16,7 +16,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.conf import settings
 
-from immersionlyceens.apps.core.models import ImmersionUser, UniversityYear, Calendar, Immersion
+from immersionlyceens.apps.core.models import (
+    ImmersionUser, UniversityYear, Calendar, Immersion, CancelType)
 from immersionlyceens.libs.utils import check_active_year
 from immersionlyceens.decorators import groups_required
 
@@ -526,7 +527,11 @@ def student_record(request, student_id=None, record_id=None):
 @groups_required('LYC','ETU')
 def immersions(request):
 
-    context = {}
+    cancellation_reasons = CancelType.objects.filter(active=True).order_by('label')
+
+    context = {
+        'cancellation_reasons': cancellation_reasons,
+    }
 
     return render(request, 'immersion/my_immersions.html', context)
     

@@ -22,9 +22,7 @@
 {% endblock %}
 
 {% block content %}
-
-{% include "../modals/other_students.html" %}
-
+<div id="feedback" class="container"></div>
 <div id="accordion">
   <div class="card">
     <div class="card-header" id="headingOne">
@@ -52,7 +50,7 @@
               <th></th>
             </tr>
           </thead>
-          <tfoot>
+          <tbody>
             <tr>
               <td></td>
               <td></td>
@@ -65,7 +63,7 @@
               <td></td>
               <td></td>   
             </tr>
-          </tfoot>
+          </tbody>
         </table>
       </div>
     </div>
@@ -95,7 +93,7 @@
               <th></th>
             </tr>
           </thead>
-          <tfoot>
+          <tbody>
             <tr>
               <td></td>
               <td></td>
@@ -108,7 +106,7 @@
               <td></td>
               <td></td>
             </tr>
-          </tfoot>
+          </tbody>
         </table>
       </div>
     </div>
@@ -137,7 +135,7 @@
               <th>{% trans 'Cancellation type' %}</th>
             </tr>
           </thead>
-          <tfoot>
+          <tbody>
             <tr>
               <td></td>
               <td></td>
@@ -149,7 +147,7 @@
               <td></td>
               <td></td>
             </tr>
-          </tfoot>
+          </tbody>
         </table>
       </div>
     </div>
@@ -157,18 +155,29 @@
 </div>
 
 <script>
+  var feedback;
   var current_immersion_id;
   var user_id = {{ request.user.id }};
+  var dt_future;
+  var dt_past;
+  var dt_cancelled;
 
-  function open_modal(immersion_id) {
+  function open_students_modal(immersion_id) {
     current_immersion_id = immersion_id;
-    console.log(current_immersion_id);
     $('#modal_other_registrants').modal('show');
+  }
+
+  function open_cancel_modal(immersion_id) {
+    current_immersion_id = immersion_id;
+    $('#modal_cancel_immersion').modal('show');
   }
   
   $(document).ready(function() {
+    initFeedback();
+    feedback = $("#feedback");
+
     $.fn.dataTableExt.errMode = 'console';
-    var dt_future = $('#immersions_to_come').DataTable({
+    dt_future = $('#immersions_to_come').DataTable({
       'processing': false,
       'order': [
         [6, "asc"]
@@ -218,12 +227,17 @@
         { "data": "info" },
         { "data": "",
           "render": function(data, type, row) {
-            return "<button class=\"btn btn-secondary btn-sm\" name=\"others\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
-                   "<i class='fa fas fa-users'></i>" +
-                   "</button>" +
-                   "<button class=\"ml-4 btn btn-secondary btn-sm\" name=\"cancel\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'Cancel' %}\">" +
-                   "<i class='fa fas fa-trash'></i>" +
-                   "</button>";
+            var msg = "<button class=\"btn btn-secondary btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
+                      "<i class='fa fas fa-users'></i>" +
+                      "</button>";
+
+            if(row.cancellable == true) {
+              msg += "<button class=\"ml-4 btn btn-secondary btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+                     "<i class='fa fas fa-trash'></i>" +
+                     "</button>";
+            }
+
+            return msg;
           }
         }
       ],
@@ -239,7 +253,7 @@
       ],
     });
 
-    var dt_past = $('#past_immersions').DataTable({
+    dt_past = $('#past_immersions').DataTable({
       'processing': false,
       'order': [
         [6, "desc"]
@@ -312,7 +326,7 @@
       ],
     });
 
-    var dt_cancelled = $('#cancelled_immersions').DataTable({
+    dt_cancelled = $('#cancelled_immersions').DataTable({
       'processing': false,
       'order': [
         [6, "asc"]
@@ -374,4 +388,6 @@
 
 
 </script>
+{% include "../modals/modal_other_students.html" %}
+{% include "../modals/modal_cancel_immersion.html" %}
 {% endblock %}

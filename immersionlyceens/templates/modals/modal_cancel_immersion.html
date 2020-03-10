@@ -1,0 +1,77 @@
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+<div class="modal fade" id="modal_cancel_immersion" tabindex="-1" role="dialog" aria-labelledby="modal_cancel_immersion_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_cancel_immersion_title">{% trans 'Cancel an immersion registration' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="card">
+          <div class="card-header">
+            {% trans "Please select a reason for this registration cancellation" %} :
+          </div>
+          <div class="card-body">
+
+            <div class='form-group row align-items-center'>
+              <select id='id_cancel_reason' name="reason" class="form-control">
+                {% for reason in cancellation_reasons %}
+                  <option value='{{ reason.id }}'>{{ reason.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <input type="submit" class="btn btn-secondary btn-sm mt-4" name="confirm-cancel" onclick="cancel_registration()" value="{% trans 'I confirm the cancellation' %}">
+          </div>
+        </div>  
+      </div>
+    </div>  
+  </div>
+</div>
+<script>
+  function cancel_registration() {
+    let reason_id = $('#id_cancel_reason option:selected').val();
+
+    $.ajax({
+      url: "{% url 'CancelRegistration' %}",
+      type: 'POST',
+      data: {
+        'immersion_id': current_immersion_id,
+        'reason_id': reason_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        /*
+        if(json['error']) {
+            alert(json['msg']);
+        }
+        else {
+          window.location = "{% url 'immersion:immersions' %}";
+        }
+        */
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error) {
+          feedback.trigger("showFeedback", [[msg, "danger"]]);
+        }
+        else if(msg != '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+
+        dt_future.ajax.reload();
+        dt_past.ajax.reload();
+        dt_cancelled.ajax.reload();
+
+        $('#modal_cancel_immersion').modal('toggle');
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+  };
+
+</script>

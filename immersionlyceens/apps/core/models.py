@@ -218,13 +218,15 @@ class ImmersionUser(AbstractUser):
             logger.error(msg)
             return msg
 
+        message_body = template.parse_vars(user=self, request=request, **kwargs)
+
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
             logger.debug("Message body : %s" % message_body)
             send_email(self.email, template.subject, message_body)
         except Exception as e:
+            logger.exception(e)
             msg = _("Error while sending mail : %s" % e)
-            logger.exception(msg)
             return msg
 
         return None
@@ -257,12 +259,6 @@ class ImmersionUser(AbstractUser):
             return self.student_record
         except ObjectDoesNotExist:
             return None
-
-    def is_highschool_student(self):
-        """
-        Return True if the user is a high school student
-        """
-        return self.username.startswith(settings.USERNAME_PREFIX)
 
     def set_validation_string(self):
         """

@@ -1,10 +1,17 @@
 import re
+import logging
+
 from django.urls import reverse
+from django.utils.formats import date_format
+from django.utils.translation import ugettext_lazy as _
+
 from immersionlyceens.apps.core.models import (
-    UniversityYear, EvaluationFormLink, EvaluationType,
-    GeneralSettings)
+    EvaluationFormLink, EvaluationType, GeneralSettings, Immersion,
+    UniversityYear)
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+
+logger = logging.getLogger(__name__)
 
 def multisub(subs, subject):
     """
@@ -19,7 +26,7 @@ def multisub(subs, subject):
 def parser(user, request, message_body, vars, **kwargs):
     slot = kwargs.get('slot')
     course = kwargs.get('course')
-    registration = kwargs.get('registration')
+    immersion = kwargs.get('immersion')
     slot_survey = None
     global_survey = None
 
@@ -68,25 +75,40 @@ def parser(user, request, message_body, vars, **kwargs):
             ('${creneau.campus}', slot.campus.label),
             ('${creneau.composante}', slot.course.component.label),
             ('${creneau.cours}', slot.course.label),
-            ('${creneau.date}', slot.date.strftime('%d %B %Y')),
+            ('${creneau.date}', date_format(slot.date)),
             ('${creneau.enseignants}', ','.join([
-                "%s %s" % (t.first_name, t.last_name) for t in slot.teachers]
+                "%s %s" % (t.first_name, t.last_name) for t in slot.teachers.all()]
             )),
-            ('${creneau.formation}', slot.training.label)
-            ('${creneau.heuredebut}', slot.start_time)
-            ('${creneau.heurefin}', slot.end_time)
-            ('${creneau.info}', slot.additional_information)
-            ('${creneau.salle}', slot.room)
-            ('${creneau.type}', slot.course_type.label)
+            ('${creneau.formation}', slot.course.training.label),
+            ('${creneau.heuredebut}', slot.start_time.strftime("%-Hh%M")),
+            ('${creneau.heurefin}', slot.end_time.strftime("%-Hh%M")),
+            ('${creneau.info}', slot.additional_information),
+            ('${creneau.salle}', slot.room),
+            ('${creneau.type}', slot.course_type.label),
         ]
-        # TODO avec les inscriptions aux créneaux
-        # vars += [('${listeInscrits}',
-        #     '\n'.join(["%s %s - %s" % (i.first_name, i.last_name, i.<etablissement>)
-        #     for i in slot.liste_des_inscrits]))]
 
-    # TODO avec les annulations d'inscriptions aux créneaux
-    #if registration:
-    #    vars += [('${motifAnnulation}', registration.cancel_type.label)]
+        # Registered students to a slot
+        registered_students = []
+
+        for registration in Immersion.objects.filter(slot=slot):
+            institution = _("Unknown home institution")
+            if registration.student.is_high_school_student():
+                record = registration.student.get_high_school_student_record()
+                if record:
+                    institution = record.highschool.label
+            elif registration.student.is_student():
+                record = registration.student.get_student_record()
+                if record:
+                    institution = record.home_institution
+
+            registered_students.append("%s %s - %s" %
+                (registration.student.last_name, registration.student.first_name, institution))
+
+        vars += [('${listeInscrits}', '\n'.join(registered_students))]
+
+
+    if immersion:
+        vars += [('${motifAnnulation}', immersion.cancellation_type.label)]
 
     vars += [
         ('${nom}', user.last_name),
@@ -123,7 +145,6 @@ def parser(user, request, message_body, vars, **kwargs):
     if global_survey:
         vars.append(('${lienGlobal}', global_survey.url))
 
-    # TODO avec la fiche lycéen
     if user.is_high_school_student():
         try:
             vars.append(('${lycee}', user.high_school_student_record.highschool.label))

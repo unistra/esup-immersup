@@ -4,12 +4,6 @@ API Views
 import datetime
 import logging
 
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, Course, HighSchool, Holiday, ImmersionUser, MailTemplateVars,
-    PublicDocument, Slot, Training, Vacation, Immersion
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
@@ -19,6 +13,13 @@ from django.urls import resolve, reverse
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
 from django.utils.formats import date_format
+
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Course, HighSchool, Holiday, Immersion, ImmersionUser,
+    MailTemplateVars, PublicDocument, Slot, Training, Vacation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -658,6 +659,36 @@ def ajax_delete_account(request):
 
 
 @is_ajax_request
+@is_post_request
+@groups_required('SCUIO-IP', 'LYC', 'ETU')
+def ajax_cancel_registration(request):
+    """
+    Cancel a registration to an immersion slot
+    """
+    immersion_id = request.POST.get('immersion_id')
+    reason_id = request.POST.get('reason_id')
+
+    if not immersion_id or not reason_id:
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+    else:
+        try:
+            immersion = Immersion.objects.get(pk=immersion_id)
+            cancellation_reason = CancelType.objects.get(pk=reason_id)
+            immersion.cancellation_type = cancellation_reason
+            immersion.save()
+            immersion.student.send_message(
+                request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+            response = {'error': False, 'msg': gettext("Immersion cancelled")}
+        except ImmersionUser.DoesNotExist:
+            response = {'error': True, 'msg': gettext("User not found")}
+        except CancelType.DoesNotExist:
+            response = {'error': True, 'msg': gettext("Invalid cancellation reason #id")}
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
 @groups_required('SCUIO-IP', 'LYC', 'ETU')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
@@ -676,14 +707,15 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
 
     # configure Immersions filters
-    filters = { 'student_id' : user_id }
+    filters = {
+        'student_id' : user_id,
+        'cancellation_type__isnull' : True,
+    }
 
     if immersion_type == "future":
         filters['slot__date__gte'] = today
-        #filters['slot__start_time__gt'] = time
     elif immersion_type == "past":
         filters['slot__date__lte'] = today
-        #filters['slot__end_time__lte'] = time
     elif immersion_type == "cancelled":
         filters['cancellation_type__isnull'] = False
 
@@ -711,7 +743,8 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'info': immersion.slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
-            'cancellation_type': ''
+            'cancellable': datetime.datetime.today().date() < immersion.slot.date,
+            'cancellation_type': '',
         }
 
         if immersion.cancellation_type:
@@ -723,6 +756,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         response['data'].append(immersion_data.copy())
 
     return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @groups_required('LYC', 'ETU')
