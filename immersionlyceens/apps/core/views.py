@@ -570,7 +570,6 @@ def highschool_student_record_form_manager(request, hs_record_id):
     form = None
 
     if request.method == 'POST':
-        print(request.POST)
         form = HighSchoolStudentRecordManagerForm(request.POST, instance=hs)
         # record validation
         if form.is_valid():

@@ -1,0 +1,97 @@
+{% load immersionlyceens_tags i18n static staticfiles %}
+<!-- Modal -->
+<div class="modal fade" id="modal_view_slot_immersions" tabindex="-1" role="dialog" aria-labelledby="modal_view_slot_immersions_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_view_slot_immersions_title">{% trans 'Slot registrations' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col">
+            <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Lastname' %}</th>
+                <th>{% trans 'Firstname' %}</th>
+                <th>{% trans 'Profile' %}</th>
+                <th>{% trans 'High-school / Home institution' %}</th>
+                <th>{% trans 'City' %}</th>
+                <th>{% trans 'Level' %}</th>
+                <th>{% trans 'Attendances' %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var dtr;
+$('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
+  $.fn.dataTableExt.errMode = 'console';
+
+  console.log(current_slot_id);
+
+  dtr = $('#students_list').DataTable({
+    'processing': false,
+    'order': [
+      [0, "asc"],
+      [1, "asc"],
+    ],
+    'serverSide': false,
+    'responsive': false,
+    'info': false,
+    'ajax': {
+      url: "/api/get_slot_registrations/" + current_slot_id,
+      dataSrc: function (json) {
+        if (json['data'] != undefined) {
+          return json['data'];
+        }
+      }
+    },
+    'searching': true,
+    'paging': false,
+    'ordering': true,
+    'language': {
+      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    },
+    'columns': [
+      {"data": "lastname"},
+      {"data": "firstname"},
+      {"data": "profile"},
+      {"data": "school"},
+      {"data": "city"},
+      {"data": "level"},
+      {"data": "attendance"},
+    ],
+    "columnDefs": [
+      {
+        "defaultContent": "",
+        "targets": "_all"
+      }
+    ],
+  });
+
+});
+
+</script>

@@ -21,6 +21,8 @@
 {% endblock %}
 
 {% block content %}
+{% include '../modals/modal_view_slot_immersions.html' %}
+
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -29,7 +31,7 @@
     <div class="card-body">
 
       <div>
-        <form class="form-inline ">
+        <form class="form-inline">
           <div class="form-group">
             <div class="form-group form-check mx-sm-3 mb-2">
               <input type="checkbox" id="filter_past_slots" class="form-check-input"></label>
@@ -52,7 +54,7 @@
             <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
             <th id="teacher_filter" class="align-top">{% trans 'Teachers' %}</th>
             <th class="align-top">{% trans 'Registered students' %}</th>
-            <th id="emargements_filter" class="align-top">{% trans 'Attendance' %}</th>
+            <th id="attendances_filter" class="align-top">{% trans 'Attendance' %}</th>
             <th id="additionnals_info"></th>
           </tr>
         </thead>
@@ -76,6 +78,11 @@
 </div>
 <script type="text/javascript">
   var user_id = {{ request.user.id }};
+
+  function open_modal(slot_id) {
+    current_slot_id = slot_id;
+    $('#modal_view_slot_immersions').modal('show');
+  }
 
   $(document).ready(function () {
     $.fn.dataTableExt.errMode = 'console';
@@ -120,7 +127,12 @@
     {
       "data": "datetime",
       "render": function (data, type, row) {
+        if(type == "display" || type == "filter") {
           return "<span>" + row.schedules.date + "</span><br><span>" + row.schedules.time + "</span>";
+        }
+        else {
+          return data;
+        }
       }
     },
     {
@@ -149,13 +161,15 @@
       "render": function(data, type, row) {
         var msg = "";
 
+        console.log(row.attendances_value);
+
         if(row.attendances_value == 1) {
-          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"\" title=\"{% trans 'Enter attendances' %}\">" +
+          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +")\" title=\"{% trans 'Enter attendances' %}\">" +
               "<i class='fa fas fa-edit'></i>" +
               "</button>";
         }
-        else if(row.attendances_value == 2) {
-          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"\" title=\"{% trans 'View attendances' %}\">" +
+        else if (row.attendances_value != -1) {
+          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +")\" title=\"{% trans 'View registered students' %}\">" +
                 "<i class='fa fas fa-eye'></i>" +
                 "</button>";
         }
@@ -183,7 +197,6 @@
       {
         "orderable": false, "targets": 9
       },
-
     ],
   });
 
@@ -234,6 +247,12 @@
     filter_default_label: "",
     style_class: "form-control form-control-sm",
     filter_container_id: "teacher_filter",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 8,
+    filter_default_label: "",
+    style_class: "form-control form-control-sm",
+    filter_container_id: "attendances_filter",
     filter_reset_button_text: false,
   }
   ]);

@@ -244,7 +244,7 @@ def change_password(request):
         try:
             validate_password(request.POST.get('new_password1'))
         except ValidationError as e:
-            print(e)
+            pass
         
         if password_form.is_valid():
             password_form.save()

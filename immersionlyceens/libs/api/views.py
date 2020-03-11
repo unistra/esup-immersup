@@ -17,8 +17,8 @@ from django.utils.formats import date_format
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Course, HighSchool, Holiday, Immersion, ImmersionUser,
-    MailTemplateVars, PublicDocument, Slot, Training, Vacation,
+    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, Vacation,
 )
 
 logger = logging.getLogger(__name__)
@@ -154,8 +154,6 @@ def get_ajax_documents(request):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def get_ajax_slots(request, component=None):
-    from immersionlyceens.apps.core.models import Slot, Component
-
     # TODO: auth access test
 
     comp_id = request.GET.get('component_id')
@@ -164,9 +162,11 @@ def get_ajax_slots(request, component=None):
     response = {'msg': '', 'data': []}
     slots = []
     if train_id:# and train_id[0] is not '':
-        slots = Slot.objects.filter(course__training__id=train_id)
+        slots = Slot.objects.prefetch_related('course__training', 'teachers', 'immersions')\
+            .filter(course__training__id=train_id)
     elif comp_id:
-        slots = Slot.objects.filter(course__training__components__id=comp_id)
+        slots = Slot.objects.prefetch_related('course__training__components', 'teachers', 'immersions')\
+            .filter(course__training__components__id=comp_id)
 
     all_data = []
     my_components = []
@@ -185,8 +185,12 @@ def get_ajax_slots(request, component=None):
                 'managed_by_me': slot.course.component in my_components,
             },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'datetime': datetime.datetime.strptime("%s:%s:%s %s:%s" % (
+                slot.date.year, slot.date.month, slot.date.day,
+                slot.start_time.hour, slot.start_time.minute),
+                "%Y:%m:%d %H:%M"
+            ),
             'date': _date(slot.date, 'l d/m/Y'),
-            # 'date': slot.date.strftime('%a %d-%m-%Y') if slot.date is not None else '-',
             'time': {
                 'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',
                 'end': slot.end_time.strftime('%Hh%M') if slot.end_time else '',
@@ -195,21 +199,27 @@ def get_ajax_slots(request, component=None):
                 'campus': slot.campus.label if slot.campus else '',
                 'building': slot.building.label if slot.building else '',
             },
-            'room': slot.room if slot.room is not None else '-',
+            'room': slot.room or '-',
             'teachers': {},
-            # 'teachers': ', '.join(
-            #     ['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]
-            # ),
-            'n_register': 10,  # todo: registration count
+            'n_register': slot.immersions.count(),
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
+            'attendances_value': 0,
         }
+
+        if slot.date < datetime.datetime.today().date():
+            if not slot.immersions.all().exists():
+                data['attendances_value'] = -1
+            elif slot.immersions.filter(attendance_status=0).exists():
+                data['attendances_value'] = 1
+            else:
+                data['attendances_value'] = 2
 
         for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
             data['teachers'].update(
                 [(f"{teacher.last_name} {teacher.first_name}", teacher.email,)],
             )
-        all_data.append(data)
+        all_data.append(data.copy())
 
     response['data'] = all_data
 
@@ -395,8 +405,8 @@ def ajax_get_my_slots(request, user_id=None):
                 'teachers': {},
                 'registered_students_count': {
                     "capacity": slot.n_places,
-                    "students_count": 4,
-                },  # TODO
+                    "students_count": slot.immersions.count(),
+                },
                 'additional_information': slot.additional_information,
                 'attendances_status': '',
                 'attendances_value': 0,
@@ -406,7 +416,10 @@ def ajax_get_my_slots(request, user_id=None):
             pass
 
         if slot.date < datetime.datetime.today().date():
-            if slot.immersions.filter(attendance_status=0).exists():
+            if not slot.immersions.all().exists():
+                slot_data['attendances_status'] = ""
+                slot_data['attendances_value'] = -1
+            elif slot.immersions.filter(attendance_status=0).exists():
                 slot_data['attendances_status'] = gettext("To enter")
                 slot_data['attendances_value'] = 1
             else:
@@ -806,6 +819,53 @@ def ajax_get_other_registrants(request, immersion_id):
 
             response['data'].append(student_data.copy())
 
-    print(response)
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+def ajax_get_slot_registrations(request, slot_id):
+    slot = None
+    response = {'msg': '', 'data': []}
+
+    try:
+        slot = Slot.objects.get(pk=slot_id)
+    except Slot.DoesNotExists:
+        response['msg'] = gettext("Error : invalid slot id")
+
+    if slot:
+        immersions = Immersion.objects.prefetch_related('student').filter(slot=slot)
+
+        for immersion in immersions:
+            immersion_data = {
+                'lastname': immersion.student.last_name,
+                'firstname': immersion.student.first_name,
+                'profile': '',
+                'school': '',
+                'level': '',
+                'city': '',
+                'attendance': immersion.get_attendance_status_display(),
+            }
+
+            if immersion.student.is_high_school_student():
+                immersion_data['profile'] = gettext('High-school student')
+
+                record = immersion.student.get_high_school_student_record()
+
+                if record:
+                    immersion_data['school'] = record.highschool.label
+                    immersion_data['city'] = record.highschool.city
+                    immersion_data['level'] = record.get_level_display()
+
+            elif immersion.student.is_student():
+                immersion_data['profile'] = gettext('Student')
+
+                record = immersion.student.get_high_school_student_record()
+
+                if record:
+                    immersion_data['school'] = record.home_institution
+                    immersion_data['level'] = record.get_level_display()
+
+            response['data'].append(immersion_data.copy())
 
     return JsonResponse(response, safe=False)
