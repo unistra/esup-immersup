@@ -1,0 +1,220 @@
+{% load immersionlyceens_tags i18n static staticfiles %}
+<!-- Modal -->
+<div class="modal fade" id="modal_view_slot_immersions" tabindex="-1" role="dialog" aria-labelledby="modal_view_slot_immersions_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_view_slot_immersions_title">{% trans 'Slot registrations' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col">
+            <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Lastname' %}</th>
+                <th>{% trans 'Firstname' %}</th>
+                <th>{% trans 'Profile' %}</th>
+                <th>{% trans 'High-school / Home institution' %}</th>
+                <th>{% trans 'City' %}</th>
+                <th>{% trans 'Level' %}</th>
+                <th>
+                  <div>{% trans 'Attendances' %}</div>
+                  <div id="id_update_attendances" style="display:none">
+                    <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
+                      <i class='fa fas fa-check'></i>
+                     </button>
+                     <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_attendances(2)" title="{% trans 'Set all not Present' %}">
+                       <i class='fa fas fa-times'></i>
+                     </button>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+            </table>
+          </div>
+        </div>
+        <span id="count" class="pull-right mt-4"></span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var dtr;
+
+function set_attendance(immersion_id, value) {
+  $.ajax({
+    url: "{% url 'SetAttendance' %}",
+    type: 'POST',
+    data: {
+      'immersion_id': immersion_id,
+      'attendance_value': value,
+      csrfmiddlewaretoken: '{{ csrf_token }}'
+    },
+    success: function (json) {
+      dtr.ajax.reload();
+      dt.ajax.reload();
+    },
+    error: function(json) {
+      console.log(json);
+    }
+  })
+};
+
+function set_all_attendances(value) {
+  var datas = dtr.rows().data();
+  var id_array = [];
+
+  datas.each(function(item, index) {
+    id_array.push(item.id);
+  });
+
+  $.ajax({
+    url: "{% url 'SetAttendance' %}",
+    type: 'POST',
+    data: {
+      'immersion_ids': JSON.stringify(id_array),
+      'attendance_value': value,
+      csrfmiddlewaretoken: '{{ csrf_token }}'
+    },
+    success: function (json) {
+      reload_table();
+      dt.ajax.reload();
+    },
+    error: function(json) {
+      console.log(json);
+    }
+  });
+}
+
+function reload_table() {
+  dtr.rows().remove().draw();
+  dtr.ajax.url("/api/get_slot_registrations/" + current_slot_id).load();
+}
+
+$.fn.dataTableExt.errMode = 'console';
+
+dtr = $('#students_list').DataTable({
+  'processing': false,
+  'order': [
+    [0, "asc"],
+    [1, "asc"],
+  ],
+  'serverSide': false,
+  'responsive': false,
+  'info': false,
+  'ajax': {
+    url: "",
+    dataSrc: function (json) {
+      if (json['data'] != undefined) {
+        return json['data'];
+      }
+    }
+  },
+  'searching': true,
+  'paging': false,
+  'ordering': true,
+  'language': {
+    url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+  },
+  'columns': [
+    {"data": "lastname",
+     "render": function(data, type, row) {
+       if(type=="display") {
+         if(row.attendance_status == 1) {
+           return "<span class='text-success'>"+data+"</span>";
+         }
+         else if (row.attendance_status == 2) {
+           return "<span class='text-danger'>"+data+"</span>";
+         }
+         else {
+           return data;
+         }
+       }
+     }
+    },
+    {"data": "firstname",
+     "render": function(data, type, row) {
+       if(type=="display") {
+         if(row.attendance_status == 1) {
+           return "<span class='text-success'>"+data+"</span>";
+         }
+         else if (row.attendance_status == 2) {
+           return "<span class='text-danger'>"+data+"</span>";
+         }
+         else {
+           return data;
+         }
+       }
+     }
+    },
+    {"data": "profile"},
+    {"data": "school"},
+    {"data": "city"},
+    {"data": "level"},
+    {"data": "attendance",
+     "render": function(data, type, row) {
+        var present_color="";
+        var absent_color="";
+
+        if(row.attendance_status == 1) {
+          present_color="style='color:green';";
+        }
+        else if (row.attendance_status == 2) {
+          absent_color="style='color:red';";
+        }
+
+        if(can_update_attendances == true) {
+          return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
+                 "<i class='fa fas fa-check' "+present_color+"></i>" +
+                 "</button>" +
+                 "<button class=\"btn btn-light btn-sm mr-4\" name=\"not_present\" onclick=\"set_attendance("+row.id+", 2)\" title=\"{% trans 'NOT Present' %}\">" +
+                 "<i class='fa fas fa-times' "+absent_color+"></i>" +
+                 "</button>" +
+                 "<span "+present_color+" "+absent_color+">"+data+"</span>";
+        }
+        else {
+         return data;
+        }
+     }
+    },
+  ],
+  "columnDefs": [
+    {
+      "defaultContent": "",
+      "targets": "_all"
+    }
+  ],
+});
+
+$('#students_list').on('draw.dt', function () {
+  let presents = dtr.rows(function (idx, data, node) {
+    return data.attendance_status == 1 ? true : false;
+  }).count();
+
+  $('#count').html(presents + " {% trans 'student(s) present on ' %}" + dtr.rows().count() + " {% trans 'registered' %}");
+});
+
+
+$('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
+  reload_table();
+});
+
+</script>

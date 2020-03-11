@@ -7,114 +7,119 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block head-css %}
-    <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
-    <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css' %}">
-    <link rel="stylesheet" href="{% static 'js/vendor/datatables/datatables.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
 {% endblock %}
-
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+{% endblock %}
 {% block content %}
+{% include '../modals/modal_view_slot_immersions.html' %}
 <div id="top_indicator" class="w-100 bg-success pt-2 pb-1 fixed-top">
     <p id="top_indicator__content" class="text-center text-light"></p>
 </div>
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 98%;">
-    <br>
-    <div class="card">
-        <div class="card-header text-white bg-secondary">
-            {% trans "Slot" %}
-        </div>
-        <div class="card-body">
-            <div>
-                <a href="{% url 'add_slot' %}" class="btn btn-secondary">{% trans 'New slot' %}</a>
-            </div>
-            <div>
-
-                <div class="form-group row">
-                    <label for="component"
-                           class="col-form-label col-sm-3"
-                    >{% trans "Component" %}</label>
-                    <div class="col-sm-6">
-                        <select name="component" id="component" class="form-control">
-
-                        <option value="" selected>-------------</option>
-                        {% for comp in components %}
-                            {% if components|length == 1 %}
-                            <option value="{{ comp.id }}" selected>{{ comp.code }} - {{ comp.label }}</option>
-                            {% else %}
-                            <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
-                            {% endif %}
-                        {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-
-
-                <div class="form-group row">
-                    <label for="training"
-                           class="col-form-label col-sm-3"
-                    >{% trans "Training" %}</label>
-                    <div class="col-sm-6">
-                        <select name="training" id="training" class="form-control">
-                                <option value="">-------------</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <table id="list_of_slots"
-                   class="display dataTable table-bordered"
-                   cellspacing="0" width="100%">
-                <thead>
-                    <tr>
-                        <th id="published_filter">{% trans 'Published' %}</th>
-                        <th id="course_filter">{% trans 'Course label' %}</th>
-                        <th id="managed_by_filter">{% trans 'Managed By' %}</th>
-                        <th id="course_type_filter">{% trans 'Course type' %}</th>
-                        <th id="date_filter">{% trans 'Date' %}</th>
-                        <th id="schedule_filter">{% trans 'Schedule' %}</th>
-                        <th id="building_filter">{% trans 'Campus' %} - {% trans 'Building' %}</th>
-                        <th id="room_filter">{% trans 'Room' %}</th>
-                        <th id="teachers_filter">{% trans 'Teachers' %}</th>
-                        <th id="registration_filter">{% trans '# of registration' %}</th>
-                        <th>{% trans 'Info.' %}</th>
-                        <th>{% trans 'Control' %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+<br>
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Slot" %}
     </div>
-    <br>
-    <br>
-    <br>
+    <div class="card-body">
+      <div>
+        <a href="{% url 'add_slot' %}" class="btn btn-secondary">{% trans 'New slot' %}</a>
+      </div>
+        <div>
+          <div class="form-group row">
+            <label for="component" class="col-form-label col-sm-3">{% trans "Component" %}</label>
+            <div class="col-sm-6">
+              <select name="component" id="component" class="form-control">
+                <option value="" selected>-------------</option>
+                {% for comp in components %}
+                    {% if components|length == 1 %}
+                    <option value="{{ comp.id }}" selected>{{ comp.code }} - {{ comp.label }}</option>
+                    {% else %}
+                    <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
+                    {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="training" class="col-form-label col-sm-3">{% trans "Training" %}</label>
+            <div class="col-sm-6">
+              <select name="training" id="training" class="form-control">
+                <option value="">-------------</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <br>
+        <table id="list_of_slots" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th id="published_filter">{% trans 'Published' %}</th>
+            <th id="course_filter">{% trans 'Course label' %}</th>
+            <th id="managed_by_filter">{% trans 'Managed By' %}</th>
+            <th id="course_type_filter">{% trans 'Course type' %}</th>
+            <th id="date_filter">{% trans 'Date' %}</th>
+            <th id="building_filter">{% trans 'Campus' %} - {% trans 'Building' %}</th>
+            <th id="room_filter">{% trans 'Room' %}</th>
+            <th id="teachers_filter">{% trans 'Teachers' %}</th>
+            <th id="registration_filter">{% trans '# of registration' %}</th>
+            <th>{% trans 'Info.' %}</th>
+            <th>{% trans 'Control' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+        </table>
+    </div>
+  </div>
 </div>
-
 {% endblock %}
 
 {% block foot-javascript %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
-<script src="{% static 'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js' %}"></script>
-<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 <script>
+var dt;
+var current_slot_id;
+var can_update_attendances = false;
+
+function open_modal(slot_id, edit_mode) {
+  current_slot_id = slot_id;
+
+  if(edit_mode == 1) {
+    can_update_attendances = true;
+    $('#id_update_attendances').show();
+  }
+  else {
+    can_update_attendances = false;
+    $('#id_update_attendances').hide();
+  }
+
+  $('#modal_view_slot_immersions').modal('show');
+}
+
 $(document).ready(function(){
     var selected_training = false;
 
@@ -172,13 +177,9 @@ $(document).ready(function(){
                             $('#component option[value="{{ component_id }}"]').attr('selected', '');
                         }
                     {% endif %}
-
-
-
                 } else {
                     $('#training').append('<option value="">-------------</option>');
                 }
-
               }
           },
         });
@@ -226,7 +227,7 @@ $(document).ready(function(){
 
 
     $('#top_indicator').hide();
-    var dt = $('#list_of_slots').DataTable({
+    dt = $('#list_of_slots').DataTable({
         ajax: {
           url: '/api/get_slots',
           data: function(d) {
@@ -254,73 +255,107 @@ $(document).ready(function(){
           url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
         },
         columns: [
-            {data: 'published', render: function(data, type, row){
+            { data: 'published',
+              render: function(data, type, row) {
                 return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
-                }},
-            {data: 'course_label'},
-            {data: 'component', render: function(data, type, row) { return data['code']; },},
-            {data: 'course_type'},
-            {data: 'date'},
-            {data: 'time', render: function(data){
-                    return data['start'] + '</br>' + data['end']
-                }},
-            {data: 'location', render: function(data){
+              }
+            },
+            { data: 'course_label' },
+            { data: 'component',
+              render: function(data, type, row) {
+                return data['code'];
+               },
+            },
+            { data: 'course_type' },
+            { data: 'datetime',
+              render: function(data, type, row) {
+                if(type == "display" || type == "filter") {
+                  return "<span>" + row.date + "</span><br><span>" + row.time['start'] + " - " + row.time['end'] + "</span>";
+                }
+                else {
+                  return data;
+                }
+              }
+            },
+            { data: 'location',
+              render: function(data) {
                 return data['campus'] + '</br>' + data['building'];
-            }},
-            {data: 'room'},
-            {data: 'teachers', render: function(data){
+              }
+            },
+            { data: 'room'} ,
+            { data: 'teachers',
+              render: function(data) {
                 let element = '';
-                $.each(data, function(name, email){
+                $.each(data, function(name, email) {
                     element += '<a href="mailto:' + email + '">' + name + '</a></br>'
                 });
                 return element;
-            }},
-            {data: 'n_register', render: function(data, type, row) {
-                    let current = data;
-                    let n = row['n_places'];
+              }
+            },
+            { data: 'n_register',
+              render: function(data, type, row) {
+                let current = data;
+                let n = row['n_places'];
 
-                    // <div class="progress">
-                    //     <div class="progress-bar w-75" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                    // </div>>
-                    element = '<span>' + current + '/' + n + '</span>' +
-                        '<div class="progress">' +
-                        '    <div' +
-                        '       class="progress-bar"' +
-                        '       role="progressbar"' +
-                        '       aria-valuenow="' + current + '"' +
-                        '       aria-valuemin="0"' +
-                        '       aria-valuemax="' + n + '"' +
-                        '       style="width: ' + Math.round(current/n * 100) + '%"' +
-                        '></div>' +
-                        '</div>';
-                    return element;
-                }},
-            {data: 'additional_information', render: function(data){
+                // <div class="progress">
+                //     <div class="progress-bar w-75" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                // </div>>
+                element = '<span>' + current + '/' + n + '</span>' +
+                    '<div class="progress">' +
+                    '    <div' +
+                    '       class="progress-bar"' +
+                    '       role="progressbar"' +
+                    '       aria-valuenow="' + current + '"' +
+                    '       aria-valuemin="0"' +
+                    '       aria-valuemax="' + n + '"' +
+                    '       style="width: ' + Math.round(current/n * 100) + '%"' +
+                    '></div>' +
+                    '</div>';
+                return element;
+              }
+            },
+            { data: 'additional_information',
+              render: function(data) {
                 if (data) {
-                    return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-eye"></i></span>'
+                  return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-eye"></i></span>'
                 } else {
-                    return '';
+                  return '';
                 }
-            }},
-            {data: 'id', render: function(data, type, row) {
-                if ( row['component']['managed_by_me'] )
-                {
-                    let element = '<div>\n' +
-                        '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light" ' +
-                        '           style="background-image: url(\'{% static "img/duplicate.png" %}\'); ' +
-                        '                    background-repeat: no-repeat; ' +
-                        '                    background-position: center center; ' +
-                        '                    background-size: 60%;"' +
-                        '        >&nbsp;&nbsp;</a>' +
-                        '        <a href="/core/slot/modify/' + data + '" class="btn btn-light">&#x270E;</a>\n' +
-                        '        <button class="btn btn-light" onclick="delete_slot(' + data + ')">&#x1F5D1;</button>\n' +
-                        '    </div>';
-                    return element;
-                } else {
-                    return '';
-                }
-            }},
+              }
+            },
+            { data: 'id',
+              render: function(data, type, row) {
+                if ( row['component']['managed_by_me'] ) {
+                  let element =
+                      '<div>\n' +
+                '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light" ' +
+                '           style="background-image: url(\'{% static "img/duplicate.png" %}\'); ' +
+                '                  background-repeat: no-repeat; ' +
+                '                  background-position: center center; ' +
+                '                  background-size: 60%;"' +
+                '        >&nbsp;&nbsp;</a>' +
+                '        <a href="/core/slot/modify/' + data + '" class="btn btn-light">&#x270E;</a>\n' +
+                '        <button class="btn btn-light" onclick="delete_slot(' + data + ')">&#x1F5D1;</button>\n';
 
+                  if(row.attendances_value == 1) {
+                    element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'Enter attendances' %}\">" +
+                               "<i class='fa fas fa-edit'></i>" +
+                               "</button>";
+                  }
+                  else if (row.attendances_value != -1) {
+                    element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'View registered students' %}\">" +
+                               "<i class='fa fas fa-eye'></i>" +
+                               "</button>";
+                  }
+
+                  element += "</div>";
+
+                  return element;
+                } else {
+                  return '';
+                }
+              }
+            },
         ],
         columnDefs: [{
             defaultContent: '-',
@@ -333,7 +368,7 @@ $(document).ready(function(){
             column_number: 0,
             filter_default_label: "",
             filter_container_id: "published_filter",
-            style_class: "form-control",
+            style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },
         {
@@ -341,20 +376,20 @@ $(document).ready(function(){
             filter_type: "text",
             filter_default_label: "",
             filter_container_id: "course_filter",
-            style_class: "form-control",
+            style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },
         {
             column_number: 2,
             filter_default_label: "",
-            style_class: "form-control",
+            style_class: "form-control form-control-sm",
             filter_container_id: "managed_by_filter",
         },
         {
             column_number: 3,
             filter_default_label: "",
             filter_container_id: "course_type_filter",
-            style_class: "form-control",
+            style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },
         {
@@ -362,39 +397,39 @@ $(document).ready(function(){
             filter_type: "text",
             filter_default_label: "",
             filter_container_id: "date_filter",
-            style_class: "form-control",
+            style_class: "form-control form-control-sm",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 5,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "building_filter",
+            style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },
         {
             column_number: 6,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "building_filter",
-            style_class: "form-control",
+            filter_container_id: "room_filter",
+            style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },
         {
             column_number: 7,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "room_filter",
-            style_class: "form-control",
+            filter_container_id: "teachers_filter",
+            style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },
         {
             column_number: 8,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "teachers_filter",
-            style_class: "form-control",
-            filter_reset_button_text: false,
-        },
-        {
-            column_number: 9,
-            filter_type: "text",
-            filter_default_label: "",
             filter_container_id: "registration_filter",
-            style_class: "form-control",
+            style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },
     ])
@@ -406,18 +441,17 @@ function delete_slot(slot_id) {
         $.post({
             url: "/core/slot/delete/" + slot_id,
             success: function(data) {
-                show_top_indicator("{% trans 'The slot have been successfully deleted' %}");
+                show_top_indicator("{% trans 'The slot has been successfully deleted' %}");
                 reload_data();
             },
         });
-        show_top_indicator("{% trans 'The slot have been successfully deleted' %}");
+        show_top_indicator("{% trans 'The slot has been successfully deleted' %}");
         reload_data();
     }
 }
 
 function reload_data() {
-     $('#list_of_slots').DataTable().clear();
-     $('#list_of_slots').DataTable().ajax.reload();
+     $('#list_of_slots').DataTable().clear().ajax.reload();
 }
 
 function show_top_indicator(text) {

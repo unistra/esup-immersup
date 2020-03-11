@@ -200,7 +200,8 @@ class ImmersionUser(AbstractUser):
         return False
 
     def authorized_groups(self):
-        user_filter = {} if self.is_superuser else {'user__id': self.pk}
+        # user_filter = {} if self.is_superuser else {'user__id': self.pk}
+        user_filter = {'user__id': self.pk}
         return Group.objects.filter(**user_filter)
 
     def send_message(self, request, template_code, **kwargs):

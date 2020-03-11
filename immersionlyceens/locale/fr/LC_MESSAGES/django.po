@@ -2673,7 +2673,7 @@ msgstr "Voulez-vous vraiment supprimer ce créneau ?"
 
 #: immersionlyceens/templates/slots/list_slots.html:409
 #: immersionlyceens/templates/slots/list_slots.html:413
-msgid "The slot have been successfully deleted"
+msgid "The slot has been successfully deleted"
 msgstr "Le créneau a été supprimé avec succès"
 
 #: immersionlyceens/views.py:180
