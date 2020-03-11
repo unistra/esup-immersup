@@ -78,15 +78,28 @@
 </div>
 <script type="text/javascript">
   var user_id = {{ request.user.id }};
+  var can_update_attendances = false;
+  var current_slot_id;
+  var dt;
 
-  function open_modal(slot_id) {
+  function open_modal(slot_id, edit_mode) {
     current_slot_id = slot_id;
+
+    if(edit_mode == 1) {
+      can_update_attendances = true;
+    }
+    else {
+      can_update_attendances = false;
+    }
+
+    console.log(current_slot_id);
+
     $('#modal_view_slot_immersions').modal('show');
   }
 
   $(document).ready(function () {
     $.fn.dataTableExt.errMode = 'console';
-    var dt = $('#courses_table').DataTable({
+    dt = $('#courses_table').DataTable({
       'processing': false,
       'order': [
         [4, "asc"]
@@ -161,15 +174,13 @@
       "render": function(data, type, row) {
         var msg = "";
 
-        console.log(row.attendances_value);
-
         if(row.attendances_value == 1) {
-          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +")\" title=\"{% trans 'Enter attendances' %}\">" +
+          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +")\" title=\"{% trans 'Enter attendances' %}\">" +
               "<i class='fa fas fa-edit'></i>" +
               "</button>";
         }
         else if (row.attendances_value != -1) {
-          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +")\" title=\"{% trans 'View registered students' %}\">" +
+          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +")\" title=\"{% trans 'View registered students' %}\">" +
                 "<i class='fa fas fa-eye'></i>" +
                 "</button>";
         }

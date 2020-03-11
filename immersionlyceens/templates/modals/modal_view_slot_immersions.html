@@ -38,6 +38,7 @@
             </table>
           </div>
         </div>
+        <span id="count" class="pull-right mt-4"></span>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
@@ -47,10 +48,27 @@
 </div>
 <script>
 var dtr;
-$('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
-  $.fn.dataTableExt.errMode = 'console';
 
-  console.log(current_slot_id);
+function set_attendance(immersion_id, value) {
+  $.ajax({
+    url: "{% url 'SetAttendance' %}",
+    type: 'POST',
+    data: {
+      'immersion_id': immersion_id,
+      'attendance_value': value,
+      csrfmiddlewaretoken: '{{ csrf_token }}'
+    },
+    success: function (json) {
+      dtr.ajax.reload();
+      dt.ajax.reload();
+    },
+    error: function(json) {
+      console.log(json);
+    }
+  })
+};
+
+  $.fn.dataTableExt.errMode = 'console';
 
   dtr = $('#students_list').DataTable({
     'processing': false,
@@ -62,7 +80,7 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
     'responsive': false,
     'info': false,
     'ajax': {
-      url: "/api/get_slot_registrations/" + current_slot_id,
+      url: "",
       dataSrc: function (json) {
         if (json['data'] != undefined) {
           return json['data'];
@@ -76,13 +94,66 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
       url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
     },
     'columns': [
-      {"data": "lastname"},
-      {"data": "firstname"},
+      {"data": "lastname",
+       "render": function(data, type, row) {
+         if(type=="display") {
+           if(row.attendance_status == 1) {
+             return "<span class='text-success'>"+data+"</span>";
+           }
+           else if (row.attendance_status == 2) {
+             return "<span class='text-danger'>"+data+"</span>";
+           }
+           else {
+             return data;
+           }
+         }
+       }
+      },
+      {"data": "firstname",
+       "render": function(data, type, row) {
+         if(type=="display") {
+           if(row.attendance_status == 1) {
+             return "<span class='text-success'>"+data+"</span>";
+           }
+           else if (row.attendance_status == 2) {
+             return "<span class='text-danger'>"+data+"</span>";
+           }
+           else {
+             return data;
+           }
+         }
+       }
+      },
       {"data": "profile"},
       {"data": "school"},
       {"data": "city"},
       {"data": "level"},
-      {"data": "attendance"},
+      {"data": "attendance",
+       "render": function(data, type, row) {
+          var present_color="";
+          var absent_color="";
+
+          if(row.attendance_status == 1) {
+            present_color="style='color:green';";
+          }
+          else if (row.attendance_status == 2) {
+            absent_color="style='color:red';";
+          }
+
+          if(can_update_attendances == true) {
+            return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
+                   "<i class='fa fas fa-check' "+present_color+"></i>" +
+                   "</button>" +
+                   "<button class=\"btn btn-light btn-sm mr-4\" name=\"not_present\" onclick=\"set_attendance("+row.id+", 2)\" title=\"{% trans 'NOT Present' %}\">" +
+                   "<i class='fa fas fa-times' "+absent_color+"></i>" +
+                   "</button>" +
+                   "<span "+present_color+" "+absent_color+">"+data+"</span>";
+          }
+          else {
+           return data;
+          }
+       }
+      },
     ],
     "columnDefs": [
       {
@@ -92,6 +163,19 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
     ],
   });
 
-});
+  $('#students_list').on('draw.dt', function () {
+    let presents = dtr.rows(function (idx, data, node) {
+      return data.attendance_status == 1 ? true : false;
+    }).count();
+
+    $('#count').html(presents + " {% trans 'student(s) present on ' %}" + dtr.rows().count() + " {% trans 'registered' %}");
+  });
+
+
+  $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
+    dtr.rows().remove().draw();
+    dtr.ajax.url("/api/get_slot_registrations/" + current_slot_id).load();
+  });
+
 
 </script>

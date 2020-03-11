@@ -101,10 +101,20 @@
 
 {% block foot-javascript %}
 <script>
+var dt;
 var current_slot_id;
+var can_update_attendances = false;
 
-function open_modal(slot_id) {
+function open_modal(slot_id, edit_mode) {
   current_slot_id = slot_id;
+
+  if(edit_mode == 1) {
+    can_update_attendances = true;
+  }
+  else {
+    can_update_attendances = false;
+  }
+
   $('#modal_view_slot_immersions').modal('show');
 }
 
@@ -215,7 +225,7 @@ $(document).ready(function(){
 
 
     $('#top_indicator').hide();
-    var dt = $('#list_of_slots').DataTable({
+    dt = $('#list_of_slots').DataTable({
         ajax: {
           url: '/api/get_slots',
           data: function(d) {
@@ -326,12 +336,12 @@ $(document).ready(function(){
                 '        <button class="btn btn-light" onclick="delete_slot(' + data + ')">&#x1F5D1;</button>\n';
 
                   if(row.attendances_value == 1) {
-                    element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +")\" title=\"{% trans 'Enter attendances' %}\">" +
+                    element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'Enter attendances' %}\">" +
                                "<i class='fa fas fa-edit'></i>" +
                                "</button>";
                   }
                   else if (row.attendances_value != -1) {
-                    element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +")\" title=\"{% trans 'View registered students' %}\">" +
+                    element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'View registered students' %}\">" +
                                "<i class='fa fas fa-eye'></i>" +
                                "</button>";
                   }

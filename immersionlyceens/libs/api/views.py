@@ -18,7 +18,7 @@ from immersionlyceens.decorators import groups_required, is_ajax_request, is_pos
 
 from immersionlyceens.apps.core.models import (
     Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, Vacation,
+    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
 )
 
 logger = logging.getLogger(__name__)
@@ -155,6 +155,15 @@ def get_ajax_documents(request):
 @groups_required('SCUIO-IP', 'REF-CMP')
 def get_ajax_slots(request, component=None):
     # TODO: auth access test
+    can_update_attendances = False
+
+    today = datetime.datetime.today().date()
+    try:
+        year = UniversityYear.objects.get(active=True)
+        can_update_attendances = today <= year.end_date
+    except UniversityYear.DoesNotExist:
+        pass
+
 
     comp_id = request.GET.get('component_id')
     train_id = request.GET.get('training_id')
@@ -207,13 +216,13 @@ def get_ajax_slots(request, component=None):
             'attendances_value': 0,
         }
 
-        if slot.date < datetime.datetime.today().date():
+        if data['datetime'] <= datetime.datetime.today():
             if not slot.immersions.all().exists():
-                data['attendances_value'] = -1
-            elif slot.immersions.filter(attendance_status=0).exists():
-                data['attendances_value'] = 1
+                data['attendances_value'] = -1 # nothing
+            elif slot.immersions.filter(attendance_status=0).exists() or can_update_attendances:
+                data['attendances_value'] = 1 # to enter
             else:
-                data['attendances_value'] = 2
+                data['attendances_value'] = 2 # view only
 
         for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
             data['teachers'].update(
@@ -361,6 +370,16 @@ def ajax_get_my_courses(request, user_id=None):
 @groups_required('ENS-CH')
 def ajax_get_my_slots(request, user_id=None):
     response = {'msg': '', 'data': []}
+    can_update_attendances = False
+
+    today = datetime.datetime.today().date()
+    try:
+        year = UniversityYear.objects.get(active=True)
+        can_update_attendances = today <= year.end_date
+    except UniversityYear.DoesNotExist:
+        pass
+
+
     # TODO: filter on emargement which should be set !
     past_slots = resolve(request.path_info).url_name == 'GetMySlotsAll'
 
@@ -415,16 +434,19 @@ def ajax_get_my_slots(request, user_id=None):
             # TODO: maybe not usefull
             pass
 
-        if slot.date < datetime.datetime.today().date():
+        if slot_data['datetime'] <= datetime.datetime.today():
             if not slot.immersions.all().exists():
                 slot_data['attendances_status'] = ""
                 slot_data['attendances_value'] = -1
-            elif slot.immersions.filter(attendance_status=0).exists():
+            elif slot.immersions.filter(attendance_status=0).exists() and can_update_attendances:
                 slot_data['attendances_status'] = gettext("To enter")
                 slot_data['attendances_value'] = 1
             else:
                 slot_data['attendances_status'] = gettext("Entered")
-                slot_data['attendances_value'] = 2
+                if can_update_attendances:
+                    slot_data['attendances_value'] = 1
+                else:
+                    slot_data['attendances_value'] = 2
         else:
             slot_data['attendances_status'] = gettext("Future slot")
 
@@ -838,6 +860,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
         for immersion in immersions:
             immersion_data = {
+                'id': immersion.id,
                 'lastname': immersion.student.last_name,
                 'firstname': immersion.student.first_name,
                 'profile': '',
@@ -845,6 +868,7 @@ def ajax_get_slot_registrations(request, slot_id):
                 'level': '',
                 'city': '',
                 'attendance': immersion.get_attendance_status_display(),
+                'attendance_status': immersion.attendance_status,
             }
 
             if immersion.student.is_high_school_student():
@@ -867,5 +891,32 @@ def ajax_get_slot_registrations(request, slot_id):
                     immersion_data['level'] = record.get_level_display()
 
             response['data'].append(immersion_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@is_post_request
+@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+def ajax_set_attendance(request):
+    """
+    Update immersion attendance status
+    """
+    immersion_id = request.POST.get('immersion_id')
+    attendance_value = request.POST.get('attendance_value')
+
+    immersion = None
+
+    response = {'msg': '', 'data': []}
+
+    try:
+        immersion = Immersion.objects.get(pk=immersion_id)
+    except Immersion.DoesNotExists:
+        response['msg'] = gettext("Error : invalid immersion id")
+
+    if immersion:
+        immersion.attendance_status = attendance_value
+        immersion.save()
+        response['msg'] = gettext("Attendance status updated")
 
     return JsonResponse(response, safe=False)
