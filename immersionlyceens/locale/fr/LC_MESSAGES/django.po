@@ -2585,11 +2585,11 @@ msgstr "Émargements"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:27
 msgid "Set all present"
-msgstr "Marquer tous les incrits 'présents'"
+msgstr "Marquer tous les incsrits 'présents'"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:30
 msgid "Set all not Present"
-msgstr "Marquer tous les incrits 'absents'"
+msgstr "Marquer tous les inscrits 'absents'"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:188
 msgid "NOT Present"
