@@ -87,12 +87,12 @@
 
     if(edit_mode == 1) {
       can_update_attendances = true;
+      $('#id_update_attendances').show();
     }
     else {
       can_update_attendances = false;
+      $('#id_update_attendances').hide();
     }
-
-    console.log(current_slot_id);
 
     $('#modal_view_slot_immersions').modal('show');
   }

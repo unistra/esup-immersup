@@ -3,6 +3,7 @@ API Views
 """
 import datetime
 import logging
+import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -902,21 +903,29 @@ def ajax_set_attendance(request):
     """
     Update immersion attendance status
     """
-    immersion_id = request.POST.get('immersion_id')
+    immersion_id = request.POST.get('immersion_id', None)
+    immersion_ids = request.POST.get('immersion_ids', None)
+
+    if immersion_ids:
+        immersion_ids = json.loads(immersion_ids)
+
     attendance_value = request.POST.get('attendance_value')
 
-    immersion = None
+    response = {'success':'', 'error': '', 'data': []}
 
-    response = {'msg': '', 'data': []}
+    if immersion_id and not immersion_ids:
+        immersion_ids = [immersion_id]
 
-    try:
-        immersion = Immersion.objects.get(pk=immersion_id)
-    except Immersion.DoesNotExists:
-        response['msg'] = gettext("Error : invalid immersion id")
+    for immersion_id in immersion_ids:
+        immersion = None
+        try:
+            immersion = Immersion.objects.get(pk=immersion_id)
+        except Immersion.DoesNotExist:
+            response['error'] = gettext("Error : query contains some invalid immersion ids")
 
-    if immersion:
-        immersion.attendance_status = attendance_value
-        immersion.save()
-        response['msg'] = gettext("Attendance status updated")
+        if immersion:
+            immersion.attendance_status = attendance_value
+            immersion.save()
+            response['msg'] = gettext("Attendance status updated")
 
     return JsonResponse(response, safe=False)

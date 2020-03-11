@@ -110,9 +110,11 @@ function open_modal(slot_id, edit_mode) {
 
   if(edit_mode == 1) {
     can_update_attendances = true;
+    $('#id_update_attendances').show();
   }
   else {
     can_update_attendances = false;
+    $('#id_update_attendances').hide();
   }
 
   $('#modal_view_slot_immersions').modal('show');
