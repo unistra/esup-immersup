@@ -787,7 +787,6 @@ class Course(models.Model):
         """
         return self.slots.filter(immersions__cancellation_type__isnull=True).count()
 
-
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
@@ -1156,6 +1155,16 @@ class Slot(models.Model):
 
     published = models.BooleanField(_("Published"), default=True, null=False)
 
+    def available_seats(self):
+        """
+        :return: number of availabe seats for instance slot
+        """
+        s = (
+            self.n_places
+            - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
+        )
+        return 0 if s < 0 else s
+
     class Meta:
         verbose_name = _('Slot')
         verbose_name_plural = _('Slots')
@@ -1165,25 +1174,44 @@ class Immersion(models.Model):
     """
     Student registration to a slot
     """
-    
+
     ATT_STATUS = [
         (0, _('Not entered')),
         (1, _('Present')),
         (2, _('Absent')),
     ]
-    
-    student = models.ForeignKey(ImmersionUser, verbose_name=_("Student"), null=False, blank=False, 
-        on_delete=models.CASCADE, related_name="immersions")
-    
-    slot = models.ForeignKey(Slot,  verbose_name=_("Slot"), null=False, blank=False,
-        on_delete=models.CASCADE, related_name="immersions")
-        
-    cancellation_type = models.ForeignKey(CancelType, verbose_name=_("Cancellation type"), null=True, blank=True,
-        on_delete=models.CASCADE, related_name="immersions")
-        
-    attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
-        
-        
+
+    student = models.ForeignKey(
+        ImmersionUser,
+        verbose_name=_("Student"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="immersions",
+    )
+
+    slot = models.ForeignKey(
+        Slot,
+        verbose_name=_("Slot"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="immersions",
+    )
+
+    cancellation_type = models.ForeignKey(
+        CancelType,
+        verbose_name=_("Cancellation type"),
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="immersions",
+    )
+
+    attendance_status = models.SmallIntegerField(
+        _("Attendance status"), default=0, choices=ATT_STATUS
+    )
+
     class Meta:
         verbose_name = _('Immersion')
         verbose_name_plural = _('Immersions')

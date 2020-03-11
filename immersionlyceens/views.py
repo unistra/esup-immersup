@@ -190,11 +190,12 @@ def offer_subdomain(request, subdomain_id):
             slots = Slot.objects.filter(
                 course__id=course.id, published=True, date__gte=today, date__lte=cal_end_date,
             ).order_by('date', 'start_time', 'end_time')
+
             training_data = {
                 'training': training,
                 'course': course,
                 'slots': slots,
-                'alert': (slots.filter(n_places=0).count() > 0 or not slots),
+                'alert': ([s.available_seats() == 0 for s in slots] or not slots),
             }
             data.append(training_data.copy())
 

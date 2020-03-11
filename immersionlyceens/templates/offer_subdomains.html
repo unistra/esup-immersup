@@ -48,7 +48,7 @@
                     <button class="btn btn-link" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
                     {{ d.course.label}}
                     </button>
-                  {% if d.alert %}
+                  {% if True in d.alert or d.alert == True %}
                   <a href="#" class="badge badge-info pull-right">{% trans 'Notify me when a place is available' %}</a>
                   {% endif %}
                   </h6>
@@ -67,13 +67,18 @@
                             <td style="width: 20%" rowspan="2">
                               {% trans 'Teacher(s)' %} :
                               <ul>
+                            {% if slot.teachers.all%}
                                 {% for teacher in slot.teachers.all  %}
                                 <li>{{ teacher.last_name | title }} {{ teacher.first_name | title }}</li>
                                 {% endfor %}
+                            {% else %}
+                                <li>{% trans 'Data not available' %}</li>
+                            {% endif %}
                               </ul>
                             </td>
-                            <td style="width: 20%">{% if slot.n_places > 0 %}
-                                  {% trans 'Available places' %} : {{ slot.n_places }}
+                            <td >{% if slot.available_seats > 0 %}
+                                  {% trans 'Available places' %} : {{ slot.available_seats }}<br>
+                                  <a href="TODO" class="badge badge-pill badge-primary">{% trans 'Register' %}</a>
                                 {% else %}
                                   <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                 {% endif %}
