@@ -5,16 +5,13 @@ import datetime
 import json
 import logging
 
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from functools import reduce
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from django.db.models import Q
 from django.http import JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
@@ -189,6 +186,7 @@ def ajax_get_slots(request, component=None):
             'course_label': slot.course.label,
             'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_components,},
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
@@ -376,17 +374,12 @@ def ajax_get_my_slots(request, user_id=None):
     if not user_id:
         response['msg'] = gettext("Error : a valid user must be passed")
 
-    filters = {
-        'teachers': user_id,
-        'immersions__attendance_status': 0,
-    }
-
     if past_slots:
-        del filters['immersions__attendance_status']
-
-    slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions').filter(
-        **filters
-    )
+        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions') \
+            .filter(teachers=user_id).exclude(date__lt=today, immersions__isnull=True)
+    else:
+        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')\
+            .filter(Q(date__gte=today)|Q(immersions__attendance_status=0), teachers=user_id)
 
     for slot in slots:
         campus = ""
@@ -399,6 +392,7 @@ def ajax_get_my_slots(request, user_id=None):
                 'published': slot.published,
                 'component': slot.course.component.code,
                 'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
+                'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
                 'location': {'campus': campus, 'room': slot.room,},
                 'schedules': {
                     'date': _date(slot.date, "l d/m/Y"),
@@ -568,6 +562,7 @@ def ajax_get_slots_by_course(request, course_id=None):
             'published': slot.published,
             'course_label': slot.course.label,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'date': _date(slot.date, "l j F Y") if slot.date is not None else '-',
             'time': '{s} - {e}'.format(
                 s=slot.start_time.strftime('%Hh%M') or '', e=slot.end_time.strftime('%Hh%M') or '',
@@ -758,6 +753,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'training': immersion.slot.course.training.label,
             'course': immersion.slot.course.label,
             'type': immersion.slot.course_type.label,
+            'type_full': immersion.slot.course_type.full_label,
             'campus': immersion.slot.campus.label,
             'building': immersion.slot.building.label,
             'room': immersion.slot.room,
