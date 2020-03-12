@@ -6,6 +6,12 @@ import unittest
 from datetime import datetime, time
 
 from compat.templatetags.compat import url
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.template.defaultfilters import date as _date
+from django.test import Client, RequestFactory, TestCase
+
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument,
     Building,
@@ -21,12 +27,6 @@ from immersionlyceens.apps.core.models import (
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
-
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
-from django.template.defaultfilters import date as _date
-from django.test import Client, RequestFactory, TestCase
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -298,7 +298,7 @@ class APITestCase(TestCase):
         self.assertEqual(slot['location']['campus'], self.slot.campus.label)
         self.assertEqual(slot['location']['building'], self.slot.building.label)
         self.assertEqual(slot['room'], self.slot.room)
-        self.assertEqual(slot['n_register'], self.slot.available_seats())
+        self.assertEqual(slot['n_register'], self.slot.registered_students())
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
     def test_API_get_ajax_slots_ok__no_training_id(self):
@@ -327,7 +327,7 @@ class APITestCase(TestCase):
         self.assertEqual(slot['location']['campus'], self.slot.campus.label)
         self.assertEqual(slot['location']['building'], self.slot.building.label)
         self.assertEqual(slot['room'], self.slot.room)
-        self.assertEqual(slot['n_register'], self.slot.available_seats())
+        self.assertEqual(slot['n_register'], self.slot.registered_students())
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
     def test_API_get_ajax_slots_ref_cmp(self):

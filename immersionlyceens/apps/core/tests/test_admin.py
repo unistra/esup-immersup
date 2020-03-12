@@ -11,15 +11,46 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 
 from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
-    TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm,
+    BachelorMentionForm,
+    BuildingForm,
+    CalendarForm,
+    CampusForm,
+    CancelTypeForm,
+    ComponentForm,
+    CourseTypeForm,
+    EvaluationFormLinkForm,
+    EvaluationTypeForm,
+    GeneralBachelorTeachingForm,
+    HighSchoolForm,
+    HolidayForm,
+    PublicDocumentForm,
+    PublicTypeForm,
+    TrainingDomainForm,
+    TrainingSubdomainForm,
+    UniversityYearForm,
+    VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
-    PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument,
+    BachelorMention,
+    Building,
+    Calendar,
+    Campus,
+    CancelType,
+    Component,
+    CourseType,
+    EvaluationFormLink,
+    EvaluationType,
+    GeneralBachelorTeaching,
+    HighSchool,
+    Holiday,
+    PublicDocument,
+    PublicType,
+    TrainingDomain,
+    TrainingSubdomain,
+    UniversityYear,
+    Vacation,
 )
 
 
@@ -52,11 +83,7 @@ class AdminFormsTestCase(TestCase):
         )
 
         self.scuio_user = get_user_model().objects.create_user(
-            username='cmp',
-            password='pass',
-            email='immersion@no-reply.com',
-            first_name='cmp',
-            last_name='cmp',
+            username='cmp', password='pass', email='immersion@no-reply.com', first_name='cmp', last_name='cmp',
         )
 
         self.ref_cmp_user = get_user_model().objects.create_user(
@@ -260,7 +287,7 @@ class AdminFormsTestCase(TestCase):
         """
         Test course type creation with group rights
         """
-        data = {'label': 'testCourse', 'active': True}
+        data = {'label': 'testCourse', 'full_label': 'testFullCourse', 'active': True}
 
         request.user = self.scuio_user
 
@@ -325,7 +352,7 @@ class AdminFormsTestCase(TestCase):
             'active': True,
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-            'registration_start_date': datetime.datetime.today().date()+ datetime.timedelta(days=3),
+            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
             'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
 
@@ -533,8 +560,7 @@ class AdminFormsTestCase(TestCase):
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
-                days=1),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
         ).save()
         data = {
             'label': 'Vacation',
@@ -550,8 +576,7 @@ class AdminFormsTestCase(TestCase):
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
-                days=1),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
         ).save()
         data = {
             'label': 'Vacation',
@@ -567,8 +592,7 @@ class AdminFormsTestCase(TestCase):
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
-                days=1),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
         ).save()
         Vacation(
             label='Vac 1',
@@ -590,8 +614,7 @@ class AdminFormsTestCase(TestCase):
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
-                days=1),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
         ).save()
         Vacation(
             label='Vac 1',
@@ -613,8 +636,7 @@ class AdminFormsTestCase(TestCase):
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
-                days=1),
+            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
         ).save()
         Vacation(
             label='Vac 1',
@@ -640,12 +662,7 @@ class AdminFormsTestCase(TestCase):
 
         file = {'document': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
 
-        data = {
-            'label': 'testDocument',
-            'description': 'testDescription',
-            'active': True,
-            'public_type': ['1',]
-        }
+        data = {'label': 'testDocument', 'description': 'testDescription', 'active': True, 'public_type': ['1',]}
         # TODO: fix me needed manytomany public type field !!!!
         # request.user = self.scuio_user
 
@@ -963,7 +980,6 @@ class AdminFormsTestCase(TestCase):
         form = CalendarForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
-
     def test_public_document_creation(self):
         """
         Test public document creation with group rights
@@ -971,11 +987,7 @@ class AdminFormsTestCase(TestCase):
 
         file = {'document': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
 
-        data = {
-            'label': 'testPublicDocument',
-            'active': True,
-            'published': False
-        }
+        data = {'label': 'testPublicDocument', 'active': True, 'published': False}
 
         request.user = self.scuio_user
 
@@ -996,14 +1008,13 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(PublicDocument.objects.filter(label='test_fail').exists())
 
-
     def test_evaluation_type_creation(self):
         """
         Test evaluation type creation
         """
 
         # Only superuser can create evaluation type
-        data = { 'code': 'testCode', 'label': 'testLabel'}
+        data = {'code': 'testCode', 'label': 'testLabel'}
 
         request.user = self.superuser
 
@@ -1013,18 +1024,17 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(EvaluationType.objects.filter(label=data['label']).exists())
 
         # Unique code !
-        data = { 'code': 'testCode', 'label': 'testLabel'}
+        data = {'code': 'testCode', 'label': 'testLabel'}
 
         form = EvaluationTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
         # Validation fail (invalid user)
-        data = { 'code': 'testCode', 'label': 'test_failure'}
+        data = {'code': 'testCode', 'label': 'test_failure'}
         request.user = self.scuio_user
         form = EvaluationTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(EvaluationType.objects.filter(label='test_fail').exists())
-
 
     def test_evaluation_form_link_creation(self):
         """
@@ -1035,7 +1045,7 @@ class AdminFormsTestCase(TestCase):
 
         request.user = self.scuio_user
 
-        data = { 'evaluation_type': type.pk, 'url': 'http://youpron.com' }
+        data = {'evaluation_type': type.pk, 'url': 'http://youpron.com'}
         form = EvaluationFormLinkForm(data=data, request=request)
 
         self.assertTrue(form.is_valid())
@@ -1047,7 +1057,7 @@ class AdminFormsTestCase(TestCase):
 
         type = EvaluationType.objects.create(code='testNoobCode', label='testNoobLabel')
 
-        data = { 'evaluation_type': type.pk, 'url': 'http://canihazcookie.com' }
+        data = {'evaluation_type': type.pk, 'url': 'http://canihazcookie.com'}
         form = EvaluationFormLinkForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(EvaluationFormLink.objects.filter(url=data['url']).exists())

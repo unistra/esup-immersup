@@ -7,9 +7,26 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CourseType,
-    EvaluationFormLink, EvaluationType, Holiday, PublicDocument, PublicType, UniversityYear,
-    Vacation, Slot, Training, TrainingDomain, TrainingSubdomain, Component, Course
+    AccompanyingDocument,
+    BachelorMention,
+    Building,
+    Calendar,
+    Campus,
+    CancelType,
+    Component,
+    Course,
+    CourseType,
+    EvaluationFormLink,
+    EvaluationType,
+    Holiday,
+    PublicDocument,
+    PublicType,
+    Slot,
+    Training,
+    TrainingDomain,
+    TrainingSubdomain,
+    UniversityYear,
+    Vacation,
 )
 
 
@@ -53,11 +70,12 @@ class CancelTypeTestCase(TestCase):
 class CourseTypeTestCase(TestCase):
     def test_course_type_str(self):
         label = "course type"
-        o = CourseType.objects.create(label=label)
-        self.assertEqual(str(o), label)
+        full_label = "course full type"
+        o = CourseType.objects.create(full_label=full_label, label=label)
+        self.assertEqual(str(o), f"{full_label} ({label})")
 
     def test_course_type_activated(self):
-        o = CourseType.objects.create(label="course type")
+        o = CourseType.objects.create(label="course type", full_label="course full type")
         self.assertTrue(o.active)
 
 
@@ -136,16 +154,10 @@ class TestHolidayCase(TestCase):
         self.assertEqual(str(o), label)
 
     def test_holiday__date_is_a_holiday(self):
-        o = Holiday.objects.create(label="Holiday", date=datetime.datetime.today().date(), )
+        o = Holiday.objects.create(label="Holiday", date=datetime.datetime.today().date(),)
 
-        self.assertTrue(
-            Holiday.date_is_a_holiday(datetime.datetime.today().date())
-        )
-        self.assertFalse(
-            Holiday.date_is_a_holiday(
-                datetime.datetime.today().date() + datetime.timedelta(days=1)
-            )
-        )
+        self.assertTrue(Holiday.date_is_a_holiday(datetime.datetime.today().date()))
+        self.assertFalse(Holiday.date_is_a_holiday(datetime.datetime.today().date() + datetime.timedelta(days=1)))
 
 
 class TestVacationCase(TestCase):
@@ -161,9 +173,7 @@ class TestVacationCase(TestCase):
     def test_vacation__date_is_between(self):
         now = datetime.datetime.today().date()
         o = Vacation.objects.create(
-            label="Vacation",
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=3),
+            label="Vacation", start_date=now + datetime.timedelta(days=1), end_date=now + datetime.timedelta(days=3),
         )
 
         # inside
@@ -183,17 +193,11 @@ class TestVacationCase(TestCase):
     def test_vacation__date_is_inside_a_vacation(self):
         now = datetime.datetime.today().date()
         o = Vacation.objects.create(
-            label="Vacation",
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=3),
+            label="Vacation", start_date=now + datetime.timedelta(days=1), end_date=now + datetime.timedelta(days=3),
         )
 
-        self.assertTrue(Vacation.date_is_inside_a_vacation(
-            now + datetime.timedelta(days=2))
-        )
-        self.assertFalse(Vacation.date_is_inside_a_vacation(
-            now + datetime.timedelta(days=999))
-        )
+        self.assertTrue(Vacation.date_is_inside_a_vacation(now + datetime.timedelta(days=2)))
+        self.assertFalse(Vacation.date_is_inside_a_vacation(now + datetime.timedelta(days=999)))
 
 
 class TestCalendarCase(TestCase):
@@ -203,8 +207,7 @@ class TestCalendarCase(TestCase):
             label=label,
             year_start_date=datetime.datetime.today().date(),
             year_end_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
-            year_registration_start_date=datetime.datetime.today().date()
-            + datetime.timedelta(days=1),
+            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             year_nb_authorized_immersion=4,
         )
 
@@ -216,9 +219,8 @@ class TestCalendarCase(TestCase):
             label='Calendar',
             year_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             year_end_date=datetime.datetime.today().date() + datetime.timedelta(days=3),
-            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(
-                days=1),
-            year_nb_authorized_immersion=4
+            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            year_nb_authorized_immersion=4,
         )
 
         # inside
@@ -234,6 +236,7 @@ class TestCalendarCase(TestCase):
 
         # start < end < date
         self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
+
 
 # TODO: Fix me with manytomany public_type field
 # class TestAccompanyingDocumentCase(TestCase):
@@ -266,17 +269,16 @@ class TestPublicDocumentCase(TestCase):
         data = {
             'label': label,
             'active': True,
-            'document': SimpleUploadedFile(
-                "testpron.pdf", b"toto", content_type="application/pdf"
-            ),
+            'document': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf"),
             'published': False,
         }
         o = PublicDocument.objects.create(**data)
         self.assertEqual(str(o), label)
 
+
 class TestEvaluationTypeCase(TestCase):
     def test_evaluation_type_str(self):
-        o = EvaluationType.objects.create(code='testCode', label= 'testLabel' )
+        o = EvaluationType.objects.create(code='testCode', label='testLabel')
         self.assertEqual(str(o), 'testCode : testLabel')
 
 
@@ -292,7 +294,7 @@ class TestSlotCase(TestCase):
         tsd = TrainingSubdomain(label='my_sub_domain', training_domain=td)
         tsd.save()
         # Training
-        t = Training(label='training',) #  training_subdomains={tsd}, components=[c, ])
+        t = Training(label='training',)  #  training_subdomains={tsd}, components=[c, ])
         t.save()
         t.training_subdomains.add(tsd)
         t.components.add(c)
