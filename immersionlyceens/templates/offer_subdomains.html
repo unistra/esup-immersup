@@ -51,8 +51,10 @@
                     <span class="badge badge-pill badge-warning">{% trans 'No slots available' %}</span>
                     {% endif %}
                     {% if  d.slots %}</button>{% endif %}
-                  {% if True in d.alert or d.alert == True %}
-                  <a href="#" class="badge badge-info pull-right">{% trans 'Notify me when a place is available' %}</a>
+                  {% if authorized_groups|in_groups:"LYC,ETU" %}
+                    {% if True in d.alert or d.alert == True %}
+                    <a href="#" class="badge badge-info pull-right">{% trans 'Notify me when a place is available' %}</a>
+                    {% endif %}
                   {% endif %}
                   </h6>
                 </div>
@@ -81,7 +83,7 @@
                             </td>
                             <td >{% if slot.available_seats > 0 %}
                                   {% trans 'Available places' %} : {{ slot.available_seats }}<br>
-                                  <a href="TODO" class="badge badge-pill badge-primary">{% trans 'Register' %}</a>
+                                  {% if authorized_groups|in_groups:"LYC,ETU" %}<a href="TODO" class="badge badge-pill badge-primary">{% trans 'Register' %}</a>{% endif %}
                                 {% else %}
                                   <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
                                 {% endif %}
