@@ -2,8 +2,14 @@
 API Views
 """
 import datetime
-import logging
 import json
+import logging
+
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -11,16 +17,9 @@ from django.core import serializers
 from django.http import JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
+from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
-from django.utils.formats import date_format
-
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +153,7 @@ def get_ajax_documents(request):
 
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
-def get_ajax_slots(request, component=None):
+def ajax_get_slots(request, component=None):
     # TODO: auth access test
     can_update_attendances = False
 
@@ -165,18 +164,19 @@ def get_ajax_slots(request, component=None):
     except UniversityYear.DoesNotExist:
         pass
 
-
     comp_id = request.GET.get('component_id')
     train_id = request.GET.get('training_id')
 
     response = {'msg': '', 'data': []}
     slots = []
-    if train_id:# and train_id[0] is not '':
-        slots = Slot.objects.prefetch_related('course__training', 'teachers', 'immersions')\
-            .filter(course__training__id=train_id)
+    if train_id:  # and train_id[0] is not '':
+        slots = Slot.objects.prefetch_related('course__training', 'teachers', 'immersions').filter(
+            course__training__id=train_id
+        )
     elif comp_id:
-        slots = Slot.objects.prefetch_related('course__training__components', 'teachers', 'immersions')\
-            .filter(course__training__components__id=comp_id)
+        slots = Slot.objects.prefetch_related(
+            'course__training__components', 'teachers', 'immersions'
+        ).filter(course__training__components__id=comp_id)
 
     all_data = []
     my_components = []
@@ -195,10 +195,16 @@ def get_ajax_slots(request, component=None):
                 'managed_by_me': slot.course.component in my_components,
             },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
-            'datetime': datetime.datetime.strptime("%s:%s:%s %s:%s" % (
-                slot.date.year, slot.date.month, slot.date.day,
-                slot.start_time.hour, slot.start_time.minute),
-                "%Y:%m:%d %H:%M"
+            'datetime': datetime.datetime.strptime(
+                "%s:%s:%s %s:%s"
+                % (
+                    slot.date.year,
+                    slot.date.month,
+                    slot.date.day,
+                    slot.start_time.hour,
+                    slot.start_time.minute,
+                ),
+                "%Y:%m:%d %H:%M",
             ),
             'date': _date(slot.date, 'l d/m/Y'),
             'time': {
@@ -211,7 +217,7 @@ def get_ajax_slots(request, component=None):
             },
             'room': slot.room or '-',
             'teachers': {},
-            'n_register': slot.immersions.count(),
+            'n_register': slot.available_seats(),
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
             'attendances_value': 0,
@@ -219,11 +225,11 @@ def get_ajax_slots(request, component=None):
 
         if data['datetime'] <= datetime.datetime.today():
             if not slot.immersions.all().exists():
-                data['attendances_value'] = -1 # nothing
+                data['attendances_value'] = -1  # nothing
             elif slot.immersions.filter(attendance_status=0).exists() or can_update_attendances:
-                data['attendances_value'] = 1 # to enter
+                data['attendances_value'] = 1  # to enter
             else:
-                data['attendances_value'] = 2 # view only
+                data['attendances_value'] = 2  # view only
 
         for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
             data['teachers'].update(
@@ -380,7 +386,6 @@ def ajax_get_my_slots(request, user_id=None):
     except UniversityYear.DoesNotExist:
         pass
 
-
     # TODO: filter on emargement which should be set !
     past_slots = resolve(request.path_info).url_name == 'GetMySlotsAll'
 
@@ -393,10 +398,11 @@ def ajax_get_my_slots(request, user_id=None):
     }
 
     if past_slots:
-        del(filters['immersions__attendance_status'])
+        del filters['immersions__attendance_status']
 
     slots = Slot.objects.prefetch_related(
-        'course__training', 'course__component', 'teachers', 'immersions').filter(**filters)
+        'course__training', 'course__component', 'teachers', 'immersions'
+    ).filter(**filters)
 
     for slot in slots:
         campus = ""
@@ -414,10 +420,16 @@ def ajax_get_my_slots(request, user_id=None):
                     'date': _date(slot.date, "l d/m/Y"),
                     'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
                 },
-                'datetime': datetime.datetime.strptime("%s:%s:%s %s:%s" % (
-                    slot.date.year, slot.date.month, slot.date.day,
-                    slot.start_time.hour, slot.start_time.minute),
-                    "%Y:%m:%d %H:%M"
+                'datetime': datetime.datetime.strptime(
+                    "%s:%s:%s %s:%s"
+                    % (
+                        slot.date.year,
+                        slot.date.month,
+                        slot.date.day,
+                        slot.start_time.hour,
+                        slot.start_time.minute,
+                    ),
+                    "%Y:%m:%d %H:%M",
                 ),
                 'start_time': slot.start_time.strftime("%H:%M"),
                 'end_time': slot.end_time.strftime("%H:%M"),
@@ -695,20 +707,20 @@ def ajax_delete_account(request):
     """
     student_id = request.POST.get('student_id')
     send_mail = request.POST.get('send_email', False) == "true"
-    
+
     if student_id:
         try:
-            student = ImmersionUser.objects.get(id=student_id, groups__name__in=['LYC','ETU'])
-            
+            student = ImmersionUser.objects.get(id=student_id, groups__name__in=['LYC', 'ETU'])
+
             if send_mail:
                 student.send_message(request, 'CPT_DELETE')
-                
-            response = { 'error': False, 'msg': gettext("Account deleted") }
+
+            response = {'error': False, 'msg': gettext("Account deleted")}
             student.delete()
         except ImmersionUser.DoesNotExist:
-            response = { 'error': True, 'msg': gettext("User not found") }
+            response = {'error': True, 'msg': gettext("User not found")}
     else:
-        response = { 'error': True, 'msg': gettext("User not found") }
+        response = {'error': True, 'msg': gettext("User not found")}
 
     return JsonResponse(response, safe=False)
 
@@ -732,7 +744,8 @@ def ajax_cancel_registration(request):
             immersion.cancellation_type = cancellation_reason
             immersion.save()
             immersion.student.send_message(
-                request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+                request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot
+            )
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
         except ImmersionUser.DoesNotExist:
@@ -754,17 +767,17 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     if not user_id:
         response['msg'] = gettext("Error : missing user id")
-        
+
     if not request.user.is_scuio_ip_manager() and request.user.id != user_id:
         response['msg'] = gettext("Error : invalid user id")
-        
+
     today = datetime.datetime.today().date()
     time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
 
     # configure Immersions filters
     filters = {
-        'student_id' : user_id,
-        'cancellation_type__isnull' : True,
+        'student_id': user_id,
+        'cancellation_type__isnull': True,
     }
 
     if immersion_type == "future":
@@ -774,8 +787,13 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     elif immersion_type == "cancelled":
         filters['cancellation_type__isnull'] = False
 
-    immersions = Immersion.objects.prefetch_related('slot__course__training', 'slot__course_type',
-        'slot__campus', 'slot__building', 'slot__teachers').filter(**filters)
+    immersions = Immersion.objects.prefetch_related(
+        'slot__course__training',
+        'slot__course_type',
+        'slot__campus',
+        'slot__building',
+        'slot__teachers',
+    ).filter(**filters)
 
     for immersion in immersions:
         immersion_data = {
@@ -786,10 +804,16 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'campus': immersion.slot.campus.label,
             'building': immersion.slot.building.label,
             'room': immersion.slot.room,
-            'datetime': datetime.datetime.strptime("%s:%s:%s %s:%s" % (
-                immersion.slot.date.year, immersion.slot.date.month, immersion.slot.date.day,
-                immersion.slot.start_time.hour, immersion.slot.start_time.minute), 
-                "%Y:%m:%d %H:%M"
+            'datetime': datetime.datetime.strptime(
+                "%s:%s:%s %s:%s"
+                % (
+                    immersion.slot.date.year,
+                    immersion.slot.date.month,
+                    immersion.slot.date.day,
+                    immersion.slot.start_time.hour,
+                    immersion.slot.start_time.minute,
+                ),
+                "%Y:%m:%d %H:%M",
             ),
             'date': date_format(immersion.slot.date),
             'start_time': immersion.slot.start_time.strftime("%-Hh%M"),
@@ -825,17 +849,18 @@ def ajax_get_other_registrants(request, immersion_id):
         response['msg'] = gettext("Error : invalid user or immersion id")
 
     if immersion:
-        students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
-            immersions__slot=immersion.slot,
-            high_school_student_record__isnull=False,
-            high_school_student_record__visible_immersion_registrations=True
-        ).exclude(id=request.user.id)
+        students = (
+            ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions')
+            .filter(
+                immersions__slot=immersion.slot,
+                high_school_student_record__isnull=False,
+                high_school_student_record__visible_immersion_registrations=True,
+            )
+            .exclude(id=request.user.id)
+        )
 
         for student in students:
-            student_data = {
-                'name': "%s %s" % (student.last_name, student.first_name),
-                'email': ""
-            }
+            student_data = {'name': "%s %s" % (student.last_name, student.first_name), 'email': ""}
 
             if student.high_school_student_record.visible_email:
                 student_data["email"] = student.email
@@ -911,7 +936,7 @@ def ajax_set_attendance(request):
 
     attendance_value = request.POST.get('attendance_value')
 
-    response = {'success':'', 'error': '', 'data': []}
+    response = {'success': '', 'error': '', 'data': []}
 
     if immersion_id and not immersion_ids:
         immersion_ids = [immersion_id]

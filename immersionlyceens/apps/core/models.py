@@ -1157,7 +1157,7 @@ class Slot(models.Model):
 
     def available_seats(self):
         """
-        :return: number of availabe seats for instance slot
+        :return: number of available seats for instance slot
         """
         s = (
             self.n_places
