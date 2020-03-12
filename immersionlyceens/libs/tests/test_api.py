@@ -6,27 +6,18 @@ import unittest
 from datetime import datetime, time
 
 from compat.templatetags.compat import url
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot, Training, TrainingDomain,
+    TrainingSubdomain,
+)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from immersionlyceens.libs.api.views import ajax_check_course_publication
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
-
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument,
-    Building,
-    Campus,
-    Component,
-    Course,
-    CourseType,
-    HighSchool,
-    Slot,
-    Training,
-    TrainingDomain,
-    TrainingSubdomain,
-)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
-from immersionlyceens.libs.api.views import ajax_check_course_publication
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')

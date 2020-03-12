@@ -7,26 +7,9 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ..models import (
-    AccompanyingDocument,
-    BachelorMention,
-    Building,
-    Calendar,
-    Campus,
-    CancelType,
-    Component,
-    Course,
-    CourseType,
-    EvaluationFormLink,
-    EvaluationType,
-    Holiday,
-    PublicDocument,
-    PublicType,
-    Slot,
-    Training,
-    TrainingDomain,
-    TrainingSubdomain,
-    UniversityYear,
-    Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component, Course, CourseType,
+    EvaluationFormLink, EvaluationType, Holiday, PublicDocument, PublicType, Slot, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
