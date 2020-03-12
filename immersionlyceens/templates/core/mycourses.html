@@ -38,7 +38,7 @@
             <th id="label_filter">{% trans 'Label' %}</th>
             <th id="teacher_filter">{% trans 'Teachers' %}</th>
             <th id="published_slots_filter" class="align-top">{% trans 'Published slots' %}</th>
-            <th id="registered_students_filter">{% trans 'Registered students' %}</th>
+            <th id="registered_students_filter" class="align-top">{% trans 'Registered students' %}</th>
           </tr>
         </thead>
         <tfoot>
@@ -158,11 +158,6 @@
     style_class: "form-control",
     filter_container_id: "teacher_filter",
     filter_reset_button_text: false,
-  }, {
-    column_number: 6,
-    filter_type: "range_number_slider",
-    style_class: "form-control",
-    filter_container_id: "registered_students_filter",
   }
   ]);
   });
