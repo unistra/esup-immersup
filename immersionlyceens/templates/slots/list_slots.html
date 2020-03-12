@@ -34,7 +34,7 @@
     </div>
     <div class="card-body">
       <div>
-        <a href="{% url 'add_slot' %}" class="btn btn-secondary">{% trans 'New slot' %}</a>
+        <a href="{% url 'add_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
       </div>
         <div>
           <div class="form-group row">
@@ -333,9 +333,9 @@ $(document).ready(function(){
                 '                  background-repeat: no-repeat; ' +
                 '                  background-position: center center; ' +
                 '                  background-size: 60%;"' +
-                '        >&nbsp;&nbsp;</a>' +
-                '        <a href="/core/slot/modify/' + data + '" class="btn btn-light">&#x270E;</a>\n' +
-                '        <button class="btn btn-light" onclick="delete_slot(' + data + ')">&#x1F5D1;</button>\n';
+                '         title="{% trans 'Add' %}">&nbsp;&nbsp;</a>' +
+                '        <a href="/core/slot/modify/' + data + '" class="btn btn-light" title="{% trans 'Modify' %}">&#x270E;</a>\n' +
+                '        <button class="btn btn-light" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}">&#x1F5D1;</button>\n';
 
                   if(row.attendances_value == 1) {
                     element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'Enter attendances' %}\">" +
