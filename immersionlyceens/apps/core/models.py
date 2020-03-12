@@ -9,6 +9,7 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Count, Q, Sum
+from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date
 from django.utils.translation import ugettext_lazy as _
 from mailmerge import MailMerge
@@ -771,7 +772,7 @@ class Course(models.Model):
         :return: number of seats as the sum of seats of all slots under this course
         TODO : filter on published slots only ?
         """
-        d = self.slots.aggregate(total_seats=Sum('n_places'))
+        d = self.slots.aggregate(total_seats=Coalesce(Sum('n_places'), 0))
         return d['total_seats']
 
     def published_slots_count(self):
