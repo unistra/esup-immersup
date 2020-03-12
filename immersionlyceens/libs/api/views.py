@@ -86,8 +86,8 @@ def ajax_get_courses(request, component_id=None):
             'component_code': course.component.code,
             'component_id': course.component.id,
             'teachers': [],
-            'published_slots_count': 0,  # TODO
-            'registered_students_count': 0,  # TODO
+            'published_slots_count': course.published_slots_count(),
+            'registered_students_count': course.registrations_count(),
             'alerts_count': 0,  # TODO
             'can_delete': not course.slots.exists(),
         }
