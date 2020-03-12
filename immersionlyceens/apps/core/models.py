@@ -530,7 +530,8 @@ class CourseType(models.Model):
     Course type
     """
 
-    label = models.CharField(_("Label"), max_length=256, unique=True)
+    label = models.CharField(_("Short label"), max_length=256, unique=True)
+    full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
     active = models.BooleanField(_("Active"), default=True)
 
     class Meta:
@@ -541,7 +542,7 @@ class CourseType(models.Model):
 
     def __str__(self):
         """str"""  # from .utils import get_cities, get_departments
-        return self.label
+        return "%s (%s)" % (self.full_label, self.label)
 
     def validate_unique(self, exclude=None):
         """Validate unique"""

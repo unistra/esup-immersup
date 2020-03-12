@@ -5,16 +5,13 @@ import datetime
 import json
 import logging
 
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from functools import reduce
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from django.db.models import Q
 from django.http import JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
@@ -401,17 +398,12 @@ def ajax_get_my_slots(request, user_id=None):
     if not user_id:
         response['msg'] = gettext("Error : a valid user must be passed")
 
-    filters = {
-        'teachers': user_id,
-        'immersions__attendance_status': 0,
-    }
-
     if past_slots:
-        del filters['immersions__attendance_status']
-
-    slots = Slot.objects.prefetch_related(
-        'course__training', 'course__component', 'teachers', 'immersions'
-    ).filter(**filters)
+        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions') \
+            .filter(teachers=user_id).exclude(date__lt=today, immersions__isnull=True)
+    else:
+        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')\
+            .filter(Q(date__gte=today)|Q(immersions__attendance_status=0), teachers=user_id)
 
     for slot in slots:
         campus = ""

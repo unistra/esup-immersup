@@ -499,7 +499,7 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CourseTypeForm
-    list_display = ('label', 'active')
+    list_display = ('label', 'full_label', 'active')
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
