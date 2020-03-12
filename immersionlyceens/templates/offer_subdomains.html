@@ -45,9 +45,12 @@
               {% for d in training.list %}
                 <div class="card-header">
                   <h6 class="mb-0 more-less-title">
-                    <button class="btn btn-link" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
+                    {% if  d.slots %}<button class="btn btn-link" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">{% endif %}
                     {{ d.course.label}}
-                    </button>
+                    {% if not d.slots %}
+                    <span class="badge badge-pill badge-warning">{% trans 'No slots available' %}</span>
+                    {% endif %}
+                    {% if  d.slots %}</button>{% endif %}
                   {% if True in d.alert or d.alert == True %}
                   <a href="#" class="badge badge-info pull-right">{% trans 'Notify me when a place is available' %}</a>
                   {% endif %}
