@@ -149,6 +149,16 @@ def serve_public_document(request, public_document_id):
 
 def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
+    student = None
+    calendar = None
+    cal_start_date = None
+    cal_end_date = None
+    reg_start_date = None
+    remaining_regs_count = None
+
+    if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
+        student = request.user
+        remaining_regs_count = student.remaining_registrations_count()
 
     trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
     subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
@@ -156,26 +166,33 @@ def offer_subdomain(request, subdomain_id):
     data = []
 
     # determine dates range to use
-    calendar = Calendar.objects.first()
+    try:
+        calendar = Calendar.objects.first()
+    except Exception:
+        pass
+
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     today = datetime.datetime.today().date()
     reg_start_date = reg_end_date = datetime.date(1, 1, 1)
     try:
         # Year mode
-        if calendar.calendar_mode == 'YEAR':
+        if calendar and calendar.calendar_mode == 'YEAR':
             cal_start_date = calendar.year_registration_start_date
             cal_end_date = calendar.year_end_date
             reg_start_date = calendar.year_registration_start_date
         # semester mode
-        else:
+        elif calendar:
             if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+                semester = 1
                 cal_start_date = calendar.semester1_start_date
                 cal_end_date = calendar.semester1_end_date
                 reg_start_date = calendar.semester1_registration_start_date
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+                semester = 2
                 cal_start_date = calendar.semester2_start_date
                 cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester2_registration_start_date
+
     except AttributeError:
         raise Exception(_('Calendar not initialized'))
 
@@ -194,10 +211,52 @@ def offer_subdomain(request, subdomain_id):
             training_data = {
                 'training': training,
                 'course': course,
-                'slots': slots,
+                'slots': None,
                 'alert': ([s.available_seats() == 0 for s in slots] or not slots),
             }
+
+            # If the current user is a student, check whether he can register
+            if student and remaining_regs_count:
+                for slot in slots:
+                    slot.already_registered = False
+                    slot.can_register = False
+                    # Already registered ?
+                    for immersion in student.immersions.all():
+                        if immersion.slot == slot:
+                            slot.already_registered = True
+
+                    # Can register ? not registered + free seats + dates in range
+                    if not slot.already_registered:
+                        if slot.available_seats() > 0:
+                            if calendar.calendar_mode == 'YEAR' and remaining_regs_count['annually'] \
+                                and reg_start_date <= today <= cal_end_date:
+                                slot.can_register = True
+                            elif semester == 1 and remaining_regs_count['semester1'] \
+                                or semester == 2 and remaining_regs_count['semester2']:
+                                slot.can_register = True
+            else:
+                for slot in slots:
+                    slot.can_register = False
+                    slot.already_registered = False
+
+            training_data['slots'] = slots
+
             data.append(training_data.copy())
+
+    # For navigation
+    open_training_id, open_course_id = None, None
+
+    slot_id = request.session.get("last_registration_slot_id", None)
+    if slot_id:
+        try:
+            slot = Slot.objects.prefetch_related("course__training").get(pk=slot_id)
+            open_training_id = slot.course.training.id
+            open_course_id = slot.course.id
+        except Slot.DoesNotExist:
+            pass
+
+    # clean for next reload
+    request.session.pop("last_registration_slot_id", None)
 
     context = {
         'subdomain': subdomain,
@@ -206,6 +265,9 @@ def offer_subdomain(request, subdomain_id):
         'today': today,
         'cal_start_date': cal_start_date,
         'cal_end_date': cal_end_date,
+        'student': student,
+        'open_training_id': open_training_id,
+        'open_course_id': open_course_id,
     }
 
     return render(request, 'offer_subdomains.html', context)

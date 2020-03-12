@@ -12,6 +12,7 @@ from immersionlyceens.apps.core.models import (
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.http import JsonResponse
@@ -19,7 +20,15 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext
+from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.formats import date_format
+
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -952,5 +961,87 @@ def ajax_set_attendance(request):
             immersion.attendance_status = attendance_value
             immersion.save()
             response['msg'] = gettext("Attendance status updated")
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@login_required
+@is_post_request
+@groups_required('SCUIO-IP', 'LYC', 'ETU')
+def ajax_slot_registration(request):
+    """
+    Add a registration to an immersion slot
+    """
+    slot_id = request.POST.get('slot_id', None)
+    student_id = request.POST.get('student_id', None)
+    calendar, slot, student = None, None, None
+    today = datetime.datetime.today().date()
+    semester = 0
+
+    request.session.pop("last_registration_slot", None)
+
+    try:
+        calendar = Calendar.objects.first()
+    except Exception:
+        response = {'error': True, 'msg': gettext("Invalid calendar : cannot register")}
+        return JsonResponse(response, safe=False)
+
+    if student_id:
+        try:
+            student = ImmersionUser.objects.get(pk=student_id)
+        except ImmersionUser.DoesNotExist:
+            pass
+    else:
+        student = request.user
+
+    if slot_id:
+        try:
+            slot = Slot.objects.get(pk=slot_id)
+        except ImmersionUser.DoesNotExist:
+            pass
+
+    if not slot or not student:
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+        return JsonResponse(response, safe=False)
+
+    # Check current student immersions and valid dates
+    if student.immersions.filter(slot=slot).exists():
+        response = {'error': True, 'msg': gettext("Already registered to this slot")}
+    else:
+        remaining_regs_count = student.remaining_registrations_count()
+        can_register = False
+
+        # TODO : this has to be factorized somewhere ...
+        if calendar and calendar.calendar_mode == 'YEAR':
+            if calendar.year_registration_start_date <= today <= calendar.year_end_date:
+                can_register = True
+        # semester mode
+        elif calendar:
+            # Semester 1
+            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+                if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date \
+                    and remaining_regs_count['semester1']:
+                    can_register = True
+            # Semester 2
+            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+                if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date \
+                        and remaining_regs_count['semester2']:
+                    can_register = True
+
+        if can_register:
+            Immersion.objects.create(
+                student = student,
+                slot = slot,
+                cancellation_type = None,
+                attendance_status = 0,
+            )
+
+            msg = gettext("Registration successfully added")
+            response = {'error': False, 'msg': msg}
+            messages.success(request, msg)
+            request.session["last_registration_slot_id"] = slot.id
+        else:
+            response = {'error': True, 'msg': gettext("Registration is not currently allowed")}
 
     return JsonResponse(response, safe=False)

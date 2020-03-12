@@ -72,6 +72,7 @@ urlpatterns = [
         views.ajax_check_course_publication,
         name='checkCoursePublication',
     ),
+    path('register', views.ajax_slot_registration, name='SlotRegistration'),
     path('cancel_registration', views.ajax_cancel_registration, name='CancelRegistration'),
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),

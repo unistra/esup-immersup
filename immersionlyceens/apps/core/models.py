@@ -277,6 +277,59 @@ class ImmersionUser(AbstractUser):
         self.recovery_string = uuid.uuid4().hex
         self.save()
 
+    def remaining_registrations_count(self):
+        """
+        Based on the calendar mode and the current immersions registrations,
+        returns a dictionnary with reminaing registrations count for
+        both semesters and year
+
+        If there's no calendar or the current user is not a student, return 0
+        for each period
+        """
+        current_semester_1_regs = 0
+        current_semester_2_regs = 0
+        current_year_regs = 0
+
+        remaining = {
+            'semester1': 0,
+            'semester2': 0,
+            'annually': 0,
+        }
+
+        calendar = None
+
+        # No calendar : no registration
+        try:
+            calendar = Calendar.objects.first()
+        except Exception:
+            return remaining
+
+        # Not a student : no registration
+        if self.is_high_school_student():
+            record = self.get_high_school_student_record()
+        elif self.is_student():
+            record = self.get_student_record()
+        else:
+            return remaining
+
+        if calendar.calendar_mode == 'SEMESTER':
+            current_semester_1_regs = self.immersions.filter(
+                slot__date__gte=calendar.semester1_start_date, slot__date__lte=calendar.semester1_end_date,
+                cancellation_type__isnull=True).count()
+            current_semester_2_regs = self.immersions.filter(
+                slot__date__gte=calendar.semester2_start_date, slot__date__lte=calendar.semester2_end_date,
+                cancellation_type__isnull=True).count()
+        else:
+            current_year_regs = self.immersions.filter(
+                slot__date__gte=calendar.year_start_date, slot__date__lte=calendar.year_end_date,
+                cancellation_type__isnull = True).count()
+
+        return {
+            'semester1': (record.allowed_first_semester_registrations or 0) - current_semester_1_regs,
+            'semester2': (record.allowed_second_semester_registrations or 0) - current_semester_2_regs,
+            'annually': (record.allowed_global_registrations or 0) - current_year_regs,
+        }
+
 
 class TrainingDomain(models.Model):
     """

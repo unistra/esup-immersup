@@ -11,12 +11,14 @@
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
 {% endblock %}
 
 {% block title %}
 {% trans "Offer" %}
 {% endblock %}
 {% block content %}
+<div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -81,12 +83,19 @@
                             {% endif %}
                               </ul>
                             </td>
-                            <td >{% if slot.available_seats > 0 %}
-                                  {% trans 'Available places' %} : {{ slot.available_seats }}<br>
-                                  {% if authorized_groups|in_groups:"LYC,ETU" %}<a href="TODO" class="badge badge-pill badge-primary">{% trans 'Register' %}</a>{% endif %}
-                                {% else %}
-                                  <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                            <td>
+                              {% if slot.already_registered %}
+                                  <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
+                              {% elif slot.available_seats > 0 %}
+                                {% trans 'Available places' %} : {{ slot.available_seats }}<br>
+                                {% if authorized_groups|in_groups:"LYC,ETU" %}
+                                    {% if slot.can_register %}
+                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
+                                    {% endif %}
                                 {% endif %}
+                              {% else %}
+                                <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                              {% endif %}
                             </td>
                           </tr>
                           <tr>
@@ -97,7 +106,6 @@
                             {% endif %}
                             </td>
                             <td>{% trans 'Room' %} : {{ slot.room }}</td>
-
                             <td>{% if slot.additional_information %}{% trans 'Additional information' %} : <p>{{ slot.additional_information }}</p>{% endif %}</td>
                           </tr>
                         </tbody>
@@ -121,10 +129,50 @@
   </div>
 </div>
 <script>
+var feedback;
+var open_course_id = "{{ open_course_id }}";
+var open_training_id = "{{ open_training_id }}";
+
+function register(slot_id) {
+  $.ajax({
+      url: "{% url 'SlotRegistration' %}",
+      type: 'POST',
+      data: {
+        'slot_id': slot_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error) {
+          feedback.trigger("showFeedback", [[msg, "danger"]]);
+        }
+        else {
+          window.location = "{% url 'offer_subdomain' subdomain_id=subdomain.id %}";
+        }
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+}
 $(document).ready(function() {
+  initFeedback();
+  feedback = $("#feedback");
+
   $(".close-button").on("click", function() {
     $("div.collapse").collapse('hide');
   });
+
+  // Reopen course and training accordeons after registration for easier navigation
+  if(open_training_id) {
+    $('#training'+open_training_id).collapse('show');
+  }
+
+  if(open_course_id) {
+    $('#course'+open_course_id).collapse('show');
+  }
 });
 </script>
 {% endblock %}
