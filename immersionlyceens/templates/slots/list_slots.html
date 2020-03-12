@@ -296,10 +296,6 @@ $(document).ready(function(){
               render: function(data, type, row) {
                 let current = data;
                 let n = row['n_places'];
-
-                // <div class="progress">
-                //     <div class="progress-bar w-75" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                // </div>>
                 element = '<span>' + current + '/' + n + '</span>' +
                     '<div class="progress">' +
                     '    <div' +

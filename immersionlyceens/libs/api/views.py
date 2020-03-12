@@ -21,14 +21,6 @@ from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ugettext_lazy as _
-from django.utils.formats import date_format
-
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +60,7 @@ def ajax_get_available_vars(request, template_id=None):
 
     if template_id:
         template_vars = MailTemplateVars.objects.filter(mail_templates=template_id)
-        response["data"] = [
-            {'id': v.id, 'code': v.code, 'description': v.description} for v in template_vars
-        ]
+        response["data"] = [{'id': v.id, 'code': v.code, 'description': v.description} for v in template_vars]
     else:
         response["msg"] = gettext("Error : no template id")
 
@@ -85,9 +75,7 @@ def ajax_get_courses(request, component_id=None):
     if not component_id:
         response['msg'] = gettext("Error : a valid component must be selected")
 
-    courses = Course.objects.prefetch_related('training', 'component').filter(
-        training__components=component_id
-    )
+    courses = Course.objects.prefetch_related('training', 'component').filter(training__components=component_id)
 
     for course in courses:
         course_data = {
@@ -183,9 +171,9 @@ def ajax_get_slots(request, component=None):
             course__training__id=train_id
         )
     elif comp_id:
-        slots = Slot.objects.prefetch_related(
-            'course__training__components', 'teachers', 'immersions'
-        ).filter(course__training__components__id=comp_id)
+        slots = Slot.objects.prefetch_related('course__training__components', 'teachers', 'immersions').filter(
+            course__training__components__id=comp_id
+        )
 
     all_data = []
     my_components = []
@@ -199,20 +187,11 @@ def ajax_get_slots(request, component=None):
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'component': {
-                'code': slot.course.component.code,
-                'managed_by_me': slot.course.component in my_components,
-            },
+            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_components,},
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
-                % (
-                    slot.date.year,
-                    slot.date.month,
-                    slot.date.day,
-                    slot.start_time.hour,
-                    slot.start_time.minute,
-                ),
+                % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
             ),
             'date': _date(slot.date, 'l d/m/Y'),
@@ -226,7 +205,7 @@ def ajax_get_slots(request, component=None):
             },
             'room': slot.room or '-',
             'teachers': {},
-            'n_register': slot.available_seats(),
+            'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
             'attendances_value': 0,
@@ -241,9 +220,7 @@ def ajax_get_slots(request, component=None):
                 data['attendances_value'] = 2  # view only
 
         for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
-            data['teachers'].update(
-                [(f"{teacher.last_name} {teacher.first_name}", teacher.email,)],
-            )
+            data['teachers'].update([(f"{teacher.last_name} {teacher.first_name}", teacher.email,)],)
         all_data.append(data.copy())
 
     response['data'] = all_data
@@ -373,9 +350,7 @@ def ajax_get_my_courses(request, user_id=None):
         }
 
         for teacher in course.teachers.all().order_by('last_name', 'first_name'):
-            course_data['teachers'].update(
-                [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
-            )
+            course_data['teachers'].update([("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],)
 
         response['data'].append(course_data.copy())
 
@@ -409,9 +384,9 @@ def ajax_get_my_slots(request, user_id=None):
     if past_slots:
         del filters['immersions__attendance_status']
 
-    slots = Slot.objects.prefetch_related(
-        'course__training', 'course__component', 'teachers', 'immersions'
-    ).filter(**filters)
+    slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions').filter(
+        **filters
+    )
 
     for slot in slots:
         campus = ""
@@ -431,23 +406,14 @@ def ajax_get_my_slots(request, user_id=None):
                 },
                 'datetime': datetime.datetime.strptime(
                     "%s:%s:%s %s:%s"
-                    % (
-                        slot.date.year,
-                        slot.date.month,
-                        slot.date.day,
-                        slot.start_time.hour,
-                        slot.start_time.minute,
-                    ),
+                    % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                     "%Y:%m:%d %H:%M",
                 ),
                 'start_time': slot.start_time.strftime("%H:%M"),
                 'end_time': slot.end_time.strftime("%H:%M"),
                 'label': slot.course.label,
                 'teachers': {},
-                'registered_students_count': {
-                    "capacity": slot.n_places,
-                    "students_count": slot.immersions.count(),
-                },
+                'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(),},
                 'additional_information': slot.additional_information,
                 'attendances_status': '',
                 'attendances_value': 0,
@@ -473,9 +439,7 @@ def ajax_get_my_slots(request, user_id=None):
             slot_data['attendances_status'] = gettext("Future slot")
 
         for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
-            slot_data['teachers'].update(
-                [("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],
-            )
+            slot_data['teachers'].update([("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],)
 
         response['data'].append(slot_data.copy())
 
@@ -541,17 +505,11 @@ def ajax_get_student_records(request):
             action = action.upper()
             records = []
             if action == 'TO_VALIDATE':
-                records = HighSchoolStudentRecord.objects.filter(
-                    highschool_id=hs_id, validation=1,  # TO VALIDATE
-                )
+                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=1,)  # TO VALIDATE
             elif action == 'VALIDATED':
-                records = HighSchoolStudentRecord.objects.filter(
-                    highschool_id=hs_id, validation=2,  # VALIDATED
-                )
+                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=2,)  # VALIDATED
             elif action == 'REJECTED':
-                records = HighSchoolStudentRecord.objects.filter(
-                    highschool_id=hs_id, validation=3,  # REJECTED
-                )
+                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=3,)  # REJECTED
 
             response['data'] = [
                 {
@@ -620,9 +578,7 @@ def ajax_get_slots_by_course(request, course_id=None):
             if slot.building is not None and slot.campus is not None
             else '-',
             'room': slot.room if slot.room is not None else '-',
-            'teachers': ', '.join(
-                ['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]
-            ),
+            'teachers': ', '.join(['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]),
             'n_register': 10,  # todo: registration count
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
@@ -654,9 +610,7 @@ def ajax_validate_reject_student(request, validate):
 
         if hs:
             try:
-                record = HighSchoolStudentRecord.objects.get(
-                    id=student_record_id, highschool__in=hs
-                )
+                record = HighSchoolStudentRecord.objects.get(id=student_record_id, highschool__in=hs)
                 # 2 => VALIDATED
                 # 3 => REJECTED
                 record.validation = 2 if validate else 3
@@ -752,9 +706,7 @@ def ajax_cancel_registration(request):
             cancellation_reason = CancelType.objects.get(pk=reason_id)
             immersion.cancellation_type = cancellation_reason
             immersion.save()
-            immersion.student.send_message(
-                request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot
-            )
+            immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
         except ImmersionUser.DoesNotExist:
@@ -797,11 +749,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         filters['cancellation_type__isnull'] = False
 
     immersions = Immersion.objects.prefetch_related(
-        'slot__course__training',
-        'slot__course_type',
-        'slot__campus',
-        'slot__building',
-        'slot__teachers',
+        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
     ).filter(**filters)
 
     for immersion in immersions:
@@ -1020,21 +968,22 @@ def ajax_slot_registration(request):
         elif calendar:
             # Semester 1
             if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
-                if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date \
-                    and remaining_regs_count['semester1']:
+                if (
+                    calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date
+                    and remaining_regs_count['semester1']
+                ):
                     can_register = True
             # Semester 2
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
-                if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date \
-                        and remaining_regs_count['semester2']:
+                if (
+                    calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date
+                    and remaining_regs_count['semester2']
+                ):
                     can_register = True
 
         if can_register:
             Immersion.objects.create(
-                student = student,
-                slot = slot,
-                cancellation_type = None,
-                attendance_status = 0,
+                student=student, slot=slot, cancellation_type=None, attendance_status=0,
             )
 
             msg = gettext("Registration successfully added")

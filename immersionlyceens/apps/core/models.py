@@ -39,9 +39,7 @@ class Component(models.Model):
     active = models.BooleanField(_("Active"), default=True)
 
     objects = models.Manager()  # default manager
-    activated = ActiveManager.from_queryset(
-        ComponentQuerySet
-    )()  # returns only activated components
+    activated = ActiveManager.from_queryset(ComponentQuerySet)()  # returns only activated components
 
     class Meta:
         verbose_name = _('Component')
@@ -76,35 +74,19 @@ class HighSchool(models.Model):
     address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
     address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
     address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(
-        _("Department"), max_length=128, blank=False, null=False, choices=choices_departments
-    )
-    city = UpperCharField(
-        _("City"), max_length=255, blank=False, null=False, choices=choices_cities
-    )
-    zip_code = models.CharField(
-        _("Zip code"), max_length=128, blank=False, null=False, choices=choices_zipcodes
-    )
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False, choices=choices_departments)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False, choices=choices_cities)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False, choices=choices_zipcodes)
     phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
     email = models.EmailField(_('Email'))
     head_teacher_name = models.CharField(
-        _("Head teacher name"),
-        max_length=255,
-        blank=False,
-        null=False,
-        help_text=_('civility last name first name'),
+        _("Head teacher name"), max_length=255, blank=False, null=False, help_text=_('civility last name first name'),
     )
     referent_name = models.CharField(
-        _('Referent name'),
-        max_length=255,
-        blank=False,
-        null=False,
-        help_text=_('last name first name'),
+        _('Referent name'), max_length=255, blank=False, null=False, help_text=_('last name first name'),
     )
-    referent_phone_number = models.CharField(
-        _("Referent phone number"), max_length=20, blank=False, null=False
-    )
+    referent_phone_number = models.CharField(_("Referent phone number"), max_length=20, blank=False, null=False)
     referent_email = models.EmailField(_('Referent email'))
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
@@ -135,9 +117,7 @@ class ImmersionUser(AbstractUser):
         'SRV-JUR': 'legal_department_staff',
     }
 
-    components = models.ManyToManyField(
-        Component, verbose_name=_("Components"), blank=True, related_name='referents'
-    )
+    components = models.ManyToManyField(Component, verbose_name=_("Components"), blank=True, related_name='referents')
     highschool = models.ForeignKey(
         HighSchool,
         verbose_name=_('High school'),
@@ -149,13 +129,9 @@ class ImmersionUser(AbstractUser):
 
     destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
 
-    validation_string = models.TextField(
-        _("Account validation string"), blank=True, null=True, unique=True
-    )
+    validation_string = models.TextField(_("Account validation string"), blank=True, null=True, unique=True)
 
-    recovery_string = models.TextField(
-        _("Account password recovery string"), blank=True, null=True, unique=True
-    )
+    recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
 
     class Meta:
         verbose_name = _('User')
@@ -175,9 +151,7 @@ class ImmersionUser(AbstractUser):
         - if negated is True, return True if User is NOT superuser and belongs
         to one of groups, else False
         """
-        return self._user_filters[negated](
-            self.is_superuser, self.groups.filter(name__in=groups).exists()
-        )
+        return self._user_filters[negated](self.is_superuser, self.groups.filter(name__in=groups).exists())
 
     def has_course_rights(self, course_id):
         """
@@ -314,15 +288,21 @@ class ImmersionUser(AbstractUser):
 
         if calendar.calendar_mode == 'SEMESTER':
             current_semester_1_regs = self.immersions.filter(
-                slot__date__gte=calendar.semester1_start_date, slot__date__lte=calendar.semester1_end_date,
-                cancellation_type__isnull=True).count()
+                slot__date__gte=calendar.semester1_start_date,
+                slot__date__lte=calendar.semester1_end_date,
+                cancellation_type__isnull=True,
+            ).count()
             current_semester_2_regs = self.immersions.filter(
-                slot__date__gte=calendar.semester2_start_date, slot__date__lte=calendar.semester2_end_date,
-                cancellation_type__isnull=True).count()
+                slot__date__gte=calendar.semester2_start_date,
+                slot__date__lte=calendar.semester2_end_date,
+                cancellation_type__isnull=True,
+            ).count()
         else:
             current_year_regs = self.immersions.filter(
-                slot__date__gte=calendar.year_start_date, slot__date__lte=calendar.year_end_date,
-                cancellation_type__isnull = True).count()
+                slot__date__gte=calendar.year_start_date,
+                slot__date__lte=calendar.year_end_date,
+                cancellation_type__isnull=True,
+            ).count()
 
         return {
             'semester1': (record.allowed_first_semester_registrations or 0) - current_semester_1_regs,
@@ -394,14 +374,9 @@ class Training(models.Model):
 
     label = models.CharField(_("Label"), max_length=128, unique=True)
     training_subdomains = models.ManyToManyField(
-        TrainingSubdomain,
-        verbose_name=_("Training subdomains"),
-        blank=False,
-        related_name='Trainings',
+        TrainingSubdomain, verbose_name=_("Training subdomains"), blank=False, related_name='Trainings',
     )
-    components = models.ManyToManyField(
-        Component, verbose_name=_("Components"), blank=False, related_name='Trainings'
-    )
+    components = models.ManyToManyField(Component, verbose_name=_("Components"), blank=False, related_name='Trainings')
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -473,11 +448,7 @@ class Building(models.Model):
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
     campus = models.ForeignKey(
-        Campus,
-        verbose_name=_("Campus"),
-        default=None,
-        on_delete=models.CASCADE,
-        related_name="buildings",
+        Campus, verbose_name=_("Campus"), default=None, on_delete=models.CASCADE, related_name="buildings",
     )
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
@@ -494,9 +465,7 @@ class Building(models.Model):
         try:
             super(Building, self).validate_unique()
         except ValidationError as e:
-            raise ValidationError(
-                _('A building with this label for the same campus already exists')
-            )
+            raise ValidationError(_('A building with this label for the same campus already exists'))
 
 
 class CancelType(models.Model):
@@ -716,36 +685,24 @@ class Calendar(models.Model):
     ]
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    calendar_mode = models.CharField(
-        _("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR"
-    )
+    calendar_mode = models.CharField(_("Calendar mode"), max_length=16, choices=CALENDAR_MODE, default="YEAR")
 
     year_start_date = models.DateField(_("Year start date"), null=True, blank=True)
     year_end_date = models.DateField(_("Year end date"), null=True, blank=True)
-    year_registration_start_date = models.DateField(
-        _("Year start registration date"), null=True, blank=True
-    )
-    year_nb_authorized_immersion = models.PositiveIntegerField(
-        _("Number of authorized immersions per year"), default=4
-    )
+    year_registration_start_date = models.DateField(_("Year start registration date"), null=True, blank=True)
+    year_nb_authorized_immersion = models.PositiveIntegerField(_("Number of authorized immersions per year"), default=4)
 
     semester1_start_date = models.DateField(_("Semester 1 start date"), null=True, blank=True)
     semester1_end_date = models.DateField(_("Semester 1 end date"), null=True, blank=True)
-    semester1_registration_start_date = models.DateField(
-        _("Semester 1 start registration date"), null=True, blank=True
-    )
+    semester1_registration_start_date = models.DateField(_("Semester 1 start registration date"), null=True, blank=True)
     semester2_start_date = models.DateField(_("Semester 2 start date"), null=True, blank=True)
     semester2_end_date = models.DateField(_("Semester 2 end date"), null=True, blank=True)
-    semester2_registration_start_date = models.DateField(
-        _("Semester 2 start registration date"), null=True, blank=True
-    )
+    semester2_registration_start_date = models.DateField(_("Semester 2 start registration date"), null=True, blank=True)
     nb_authorized_immersion_per_semester = models.PositiveIntegerField(
         _("Number of authorized immersions per semester"), default=2
     )
 
-    global_evaluation_date = models.DateField(
-        _("Global evaluation send date"), null=True, blank=True
-    )
+    global_evaluation_date = models.DateField(_("Global evaluation send date"), null=True, blank=True)
 
     class Meta:
         """Meta class"""
@@ -789,12 +746,7 @@ class Course(models.Model):
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
 
     training = models.ForeignKey(
-        Training,
-        verbose_name=_("Training"),
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="courses",
+        Training, verbose_name=_("Training"), null=False, blank=False, on_delete=models.CASCADE, related_name="courses",
     )
 
     component = models.ForeignKey(
@@ -808,9 +760,7 @@ class Course(models.Model):
 
     published = models.BooleanField(_("Published"), default=True)
 
-    teachers = models.ManyToManyField(
-        ImmersionUser, verbose_name=_("Teachers"), related_name='courses'
-    )
+    teachers = models.ManyToManyField(ImmersionUser, verbose_name=_("Teachers"), related_name='courses')
 
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
 
@@ -849,9 +799,7 @@ class Course(models.Model):
 
 class MailTemplateVars(models.Model):
     code = models.CharField(_("Code"), max_length=64, blank=False, null=False, unique=True)
-    description = models.CharField(
-        _("Description"), max_length=128, blank=False, null=False, unique=True
-    )
+    description = models.CharField(_("Description"), max_length=128, blank=False, null=False, unique=True)
 
     def __str__(self):
         return "%s : %s" % (self.code, self.description)
@@ -874,10 +822,7 @@ class MailTemplate(models.Model):
     active = models.BooleanField(_("Active"), default=True)
 
     available_vars = models.ManyToManyField(
-        MailTemplateVars,
-        related_name='mail_templates',
-        verbose_name=_("Available variables"),
-        blank=False,
+        MailTemplateVars, related_name='mail_templates', verbose_name=_("Available variables"), blank=False,
     )
 
     def __str__(self):
@@ -888,11 +833,7 @@ class MailTemplate(models.Model):
         from immersionlyceens.libs.mails.variables_parser import parser
 
         return parser(
-            user=user,
-            request=request,
-            message_body=self.body,
-            vars=[v for v in self.available_vars.all()],
-            **kwargs,
+            user=user, request=request, message_body=self.body, vars=[v for v in self.available_vars.all()], **kwargs,
         )
 
     class Meta:
@@ -905,9 +846,7 @@ class InformationText(models.Model):
     code = models.CharField(_("Code"), max_length=64, blank=False, null=False,)
     # 10K chars => MOA demand
     content = models.TextField(_('Content'), max_length=10000, blank=False, null=False)
-    description = models.TextField(
-        _('Description'), max_length=2000, blank=False, null=False, default=''
-    )
+    description = models.TextField(_('Description'), max_length=2000, blank=False, null=False, default='')
     active = models.BooleanField(_("Active"), default=True)
 
     def get_documents_id(self):
@@ -1149,9 +1088,7 @@ class EvaluationFormLink(models.Model):
         try:
             super().validate_unique()
         except ValidationError as e:
-            raise ValidationError(
-                _('An evaluation form link with this evaluation type already exists')
-            )
+            raise ValidationError(_('An evaluation form link with this evaluation type already exists'))
 
 
 class Slot(models.Model):
@@ -1160,12 +1097,7 @@ class Slot(models.Model):
     """
 
     course = models.ForeignKey(
-        Course,
-        verbose_name=_("Course"),
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="slots",
+        Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="slots",
     )
     course_type = models.ForeignKey(
         CourseType,
@@ -1177,20 +1109,10 @@ class Slot(models.Model):
     )
 
     campus = models.ForeignKey(
-        Campus,
-        verbose_name=_("Campus"),
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="slots",
+        Campus, verbose_name=_("Campus"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
     building = models.ForeignKey(
-        Building,
-        verbose_name=_("Building"),
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="slots",
+        Building, verbose_name=_("Building"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
     room = models.CharField(_("Room"), max_length=50, blank=True, null=True)
 
@@ -1198,14 +1120,10 @@ class Slot(models.Model):
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
     end_time = models.TimeField(_('End time'), blank=True, null=True)
 
-    teachers = models.ManyToManyField(
-        ImmersionUser, verbose_name=_("Teachers"), related_name='slots'
-    )
+    teachers = models.ManyToManyField(ImmersionUser, verbose_name=_("Teachers"), related_name='slots')
 
     n_places = models.PositiveIntegerField(_('Number of places'))
-    additional_information = models.CharField(
-        _('Additional information'), max_length=128, null=True, blank=True
-    )
+    additional_information = models.CharField(_('Additional information'), max_length=128, null=True, blank=True)
 
     published = models.BooleanField(_("Published"), default=True, null=False)
 
@@ -1213,11 +1131,14 @@ class Slot(models.Model):
         """
         :return: number of available seats for instance slot
         """
-        s = (
-            self.n_places
-            - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
-        )
+        s = self.n_places - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
         return 0 if s < 0 else s
+
+    def registered_students(self):
+        """
+        :return: number of registered students for instance slot
+        """
+        return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
     class Meta:
         verbose_name = _('Slot')
@@ -1245,12 +1166,7 @@ class Immersion(models.Model):
     )
 
     slot = models.ForeignKey(
-        Slot,
-        verbose_name=_("Slot"),
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="immersions",
+        Slot, verbose_name=_("Slot"), null=False, blank=False, on_delete=models.CASCADE, related_name="immersions",
     )
 
     cancellation_type = models.ForeignKey(
@@ -1262,9 +1178,7 @@ class Immersion(models.Model):
         related_name="immersions",
     )
 
-    attendance_status = models.SmallIntegerField(
-        _("Attendance status"), default=0, choices=ATT_STATUS
-    )
+    attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
 
     class Meta:
         verbose_name = _('Immersion')
