@@ -4,22 +4,33 @@ Django API tests suite
 import json
 import unittest
 from datetime import datetime, time
-from django.template.defaultfilters import date as _date
 
-from django.conf import settings
 from compat.templatetags.compat import url
-from django.test import TestCase, Client, RequestFactory
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
-
-from immersionlyceens.apps.core.models import (AccompanyingDocument, Component, TrainingDomain,
-                                               TrainingSubdomain, Training, Course, Campus,
-                                               Building, Slot, CourseType, HighSchool)
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument,
+    Building,
+    Campus,
+    Component,
+    Course,
+    CourseType,
+    HighSchool,
+    Slot,
+    Training,
+    TrainingDomain,
+    TrainingSubdomain,
+)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.template.defaultfilters import date as _date
+from django.test import Client, RequestFactory, TestCase
+
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
+
 
 class APITestCase(TestCase):
     """Tests for API"""
@@ -28,18 +39,10 @@ class APITestCase(TestCase):
 
     def setUp(self):
         self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
-            password='pass',
-            email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            username='scuio', password='pass', email='immersion@no-reply.com', first_name='scuio', last_name='scuio',
         )
         self.highschool_user = get_user_model().objects.create_user(
-            username='hs',
-            password='pass',
-            email='hs@no-reply.com',
-            first_name='high',
-            last_name='SCHOOL',
+            username='hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
         )
         self.ref_comp = get_user_model().objects.create_user(
             username='refcomp',
@@ -88,22 +91,43 @@ class APITestCase(TestCase):
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM')
         self.slot = Slot.objects.create(
-            course=self.course, course_type=self.course_type, campus=self.campus,
-            building=self.building, room='room 1', date=self.today,
-            start_time=time(12, 0), end_time=time(14, 0), n_places=20
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 1',
+            date=self.today,
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
         )
         self.slot.teachers.add(self.teacher1),
-        self.high_school = HighSchool.objects.create(label='HS1', address='here',
-                         department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-                         email='a@b.c', head_teacher_name='M. A B', referent_name='my name',
-                         referent_phone_number='0123456789', referent_email='a@b.c')
-        self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
-                        highschool=self.high_school, birth_date=datetime.today(), civility=1,
-                        phone='0123456789', level=1, class_name='1ere S 3',
-                        bachelor_type=3, professional_bachelor_mention='My spe')
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            referent_name='my name',
+            referent_phone_number='0123456789',
+            referent_email='a@b.c',
+        )
+        self.hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=datetime.today(),
+            civility=1,
+            phone='0123456789',
+            level=1,
+            class_name='1ere S 3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe',
+        )
         self.lyc_ref.highschool = self.high_school
         self.lyc_ref.save()
-
 
     def test_API_get_documents__ok(self):
         request.user = self.scuio_user
@@ -122,7 +146,6 @@ class APITestCase(TestCase):
 
         docs = AccompanyingDocument.objects.filter(active=True)
         self.assertEqual(len(json_content['data']), docs.count())
-
 
     def test_API_get_documents__wrong_request(self):
         """No access"""
@@ -230,7 +253,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['id'], self.building.id)
         self.assertEqual(content['data'][0]['label'], self.building.label)
 
-
     def test_API_ajax_get_courses_by_training(self):
         request.user = self.scuio_user
         url = f"/api/get_courses_by_training/{self.component.id}/{self.training.id}"
@@ -276,7 +298,7 @@ class APITestCase(TestCase):
         self.assertEqual(slot['location']['campus'], self.slot.campus.label)
         self.assertEqual(slot['location']['building'], self.slot.building.label)
         self.assertEqual(slot['room'], self.slot.room)
-        self.assertEqual(slot['n_register'], 10)  # TODO:
+        self.assertEqual(slot['n_register'], self.slot.available_seats())
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
     def test_API_get_ajax_slots_ok__no_training_id(self):
@@ -305,9 +327,8 @@ class APITestCase(TestCase):
         self.assertEqual(slot['location']['campus'], self.slot.campus.label)
         self.assertEqual(slot['location']['building'], self.slot.building.label)
         self.assertEqual(slot['room'], self.slot.room)
-        self.assertEqual(slot['n_register'], 10)  # TODO:
+        self.assertEqual(slot['n_register'], self.slot.available_seats())
         self.assertEqual(slot['n_places'], self.slot.n_places)
-
 
     def test_API_get_ajax_slots_ref_cmp(self):
         client = Client()
