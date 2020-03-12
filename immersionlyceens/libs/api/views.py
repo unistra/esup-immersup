@@ -201,6 +201,7 @@ def ajax_get_slots(request, component=None):
                 'managed_by_me': slot.course.component in my_components,
             },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (
@@ -416,6 +417,7 @@ def ajax_get_my_slots(request, user_id=None):
                 'published': slot.published,
                 'component': slot.course.component.code,
                 'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
+                'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
                 'location': {'campus': campus, 'room': slot.room,},
                 'schedules': {
                     'date': _date(slot.date, "l d/m/Y"),
@@ -602,6 +604,7 @@ def ajax_get_slots_by_course(request, course_id=None):
             'published': slot.published,
             'course_label': slot.course.label,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
+            'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'date': _date(slot.date, "l j F Y") if slot.date is not None else '-',
             'time': '{s} - {e}'.format(
                 s=slot.start_time.strftime('%Hh%M') or '', e=slot.end_time.strftime('%Hh%M') or '',
@@ -802,6 +805,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'training': immersion.slot.course.training.label,
             'course': immersion.slot.course.label,
             'type': immersion.slot.course_type.label,
+            'type_full': immersion.slot.course_type.full_label,
             'campus': immersion.slot.campus.label,
             'building': immersion.slot.building.label,
             'room': immersion.slot.room,
