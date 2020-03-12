@@ -19,6 +19,12 @@ from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ugettext_lazy as _
 
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
 logger = logging.getLogger(__name__)
 
 
