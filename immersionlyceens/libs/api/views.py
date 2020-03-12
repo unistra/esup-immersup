@@ -4,8 +4,13 @@ API Views
 import datetime
 import json
 import logging
-
 from functools import reduce
+
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from django.conf import settings
 from django.contrib import messages
@@ -18,12 +23,6 @@ from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ugettext_lazy as _
-
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +133,7 @@ def ajax_get_trainings(request):
 
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
-def get_ajax_documents(request):
+def ajax_get_documents(request):
     response = {'msg': '', 'data': []}
 
     documents = PublicDocument.objects.filter(active=True)
