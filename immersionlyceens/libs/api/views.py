@@ -995,7 +995,7 @@ def ajax_slot_registration(request):
             # Semester 2
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
                 if (
-                    calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date
+                    calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date
                     and remaining_regs_count['semester2']
                 ):
                     can_register = True
@@ -1015,7 +1015,8 @@ def ajax_slot_registration(request):
     return JsonResponse(response, safe=False)
 
 
-# @is_ajax_request
+@login_required
+@is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_students(request):
 

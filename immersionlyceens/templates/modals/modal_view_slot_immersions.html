@@ -53,7 +53,7 @@
       </div>
       <div class="modal-footer">
       {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
+        <button type="button" id="btn_register_student" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
       {% endif %}
         <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
       </div>

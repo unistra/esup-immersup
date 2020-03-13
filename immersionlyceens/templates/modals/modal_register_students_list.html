@@ -10,33 +10,36 @@
         </button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col">
-                        <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
-                            <thead>
-                                <tr>
-                                    <th>{% trans 'First name' %}</th>
-                                    <th>{% trans 'Last name' %}</th>
-                                    <th>{% trans 'Profil' %}</th>
-                                    <th>{% trans 'Class name' %}</th>
-                                    <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
-                                    <th>{% trans 'City' %}</th>
-                                </tr>
-                            </thead>
-                            <tfoot>
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+            <div id="register_feedback"></div>
+            <div class="row">
+                <div class="col">
+                    <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
+                        <thead>
+                            <tr>
+                                <th>{% trans 'First name' %}</th>
+                                <th>{% trans 'Last name' %}</th>
+                                <th>{% trans 'Profil' %}</th>
+                                <th>{% trans 'Class name' %}</th>
+                                <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
+                                <th>{% trans 'City' %}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
 
-                    </div>
                 </div>
+            </div>
 
             </div>
             <div class="modal-footer">
@@ -49,14 +52,14 @@
 
 <script>
 
-function reload_table() {
-  dtr.rows().remove().draw();
-  dtr.ajax.url("/api/get_students").load();
+function reload_register_students() {
+  dtr2.rows().remove().draw();
+  dtr2.ajax.url("/api/get_students").load();
 }
 
 $.fn.dataTableExt.errMode = 'console';
 
-dtr = $('#register_students_list').DataTable({
+dtr2 = $('#register_students_list').DataTable({
   'processing': false,
   'order': [
     [0, "asc"],
@@ -85,7 +88,16 @@ dtr = $('#register_students_list').DataTable({
     {"data": "profile"},
     {"data": "class"},
     {"data": "school"},
-    {"data": "city"}
+    {"data": "city"},
+    {"data": "id",
+     render: function(data, type, row) {
+
+      return "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"register_student(" + data + "," + $('#btn_register_student').data('id') + ");\" title=\"{% trans 'Register student' %}\">" +
+                  "<i class=\"fas fa fa-user-circle-o\" aria-hidden=\"true\"></i>" +
+                  "</button>";
+
+      }
+    }
   ],
   "columnDefs": [
     {
@@ -97,7 +109,27 @@ dtr = $('#register_students_list').DataTable({
 
 
 $('#modal_register_students_list').on('show.bs.modal', function (e) {
-  reload_table();
+  reload_register_students();
 });
+
+function register_student(student_id, slot_id) {
+    $.ajax({
+      url: "{% url 'SlotRegistration' %}",
+      type: 'POST',
+      data: {
+        'student_id': student_id,
+        'slot_id': slot_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        if(json['error']) {
+            $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+        }
+      },
+      error: function(json) {
+        $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+      }
+    })
+  };
 
 </script>
