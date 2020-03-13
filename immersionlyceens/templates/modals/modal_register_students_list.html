@@ -119,17 +119,33 @@ function register_student(student_id, slot_id) {
       data: {
         'student_id': student_id,
         'slot_id': slot_id,
+        'feedback': false,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
         if(json['error']) {
             $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+            setTimeout(function() {
+                        $("#register_feedback").addClass('hide');
+
+                    }, 5000);
+        } else {
+            $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
+            setTimeout(function() {
+                        $("#register_feedback").addClass('hide');
+
+                    }, 5000);
+              dtr.ajax.reload()
+              //dtr.ajax.url("/api/get_slot_registrations/" + current_slot_id).load();
+              dt.ajax.reload()
+
         }
       },
       error: function(json) {
         $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
       }
     })
+    //$('#modal_register_students_list').modal('hide');
   };
 
 </script>

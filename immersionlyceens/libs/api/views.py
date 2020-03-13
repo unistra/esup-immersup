@@ -6,19 +6,6 @@ import json
 import logging
 from functools import reduce
 
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core import serializers
-from django.db.models import Q
-from django.http import JsonResponse
-from django.template.defaultfilters import date as _date
-from django.urls import resolve, reverse
-from django.utils.formats import date_format
-from django.utils.module_loading import import_string
-from django.utils.translation import gettext
-from django.utils.translation import ugettext_lazy as _
-
 from immersionlyceens.apps.core.models import (
     Building,
     Calendar,
@@ -37,6 +24,18 @@ from immersionlyceens.apps.core.models import (
     Vacation,
 )
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core import serializers
+from django.db.models import Q
+from django.http import JsonResponse
+from django.template.defaultfilters import date as _date
+from django.urls import resolve, reverse
+from django.utils.formats import date_format
+from django.utils.module_loading import import_string
+from django.utils.translation import gettext, ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -942,6 +941,7 @@ def ajax_slot_registration(request):
     """
     slot_id = request.POST.get('slot_id', None)
     student_id = request.POST.get('student_id', None)
+    feedback = request.POST.get('feedback', True)
     calendar, slot, student = None, None, None
     today = datetime.datetime.today().date()
     semester = 0
@@ -1007,7 +1007,8 @@ def ajax_slot_registration(request):
 
             msg = gettext("Registration successfully added")
             response = {'error': False, 'msg': msg}
-            messages.success(request, msg)
+            if feedback:
+                messages.success(request, msg)
             request.session["last_registration_slot_id"] = slot.id
         else:
             response = {'error': True, 'msg': gettext("Registration is not currently allowed")}
