@@ -1,13 +1,13 @@
 {% load immersionlyceens_tags i18n static staticfiles %}
-<!-- Modal -->
+<!-- Modal students list for registering -->
 <div class="modal fade" id="modal_register_students_list" tabindex="-1" role="dialog" aria-labelledby="modal_register_students_list_title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modal_register_students_list_title">{% trans 'Students' %}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
-          <span aria-hidden="true">&times;</span>
-        </button>
+                  <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
             <div id="register_feedback"></div>
@@ -37,10 +37,8 @@
                             </tr>
                         </tfoot>
                     </table>
-
                 </div>
             </div>
-
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
@@ -48,18 +46,15 @@
         </div>
     </div>
 </div>
-
-
 <script>
-
 function reload_register_students() {
-  dtr2.rows().remove().draw();
-  dtr2.ajax.url("/api/get_students").load();
+  dtl.rows().remove().draw();
+  dtl.ajax.url("/api/get_students").load();
 }
 
 $.fn.dataTableExt.errMode = 'console';
 
-dtr2 = $('#register_students_list').DataTable({
+dtl = $('#register_students_list').DataTable({
   'processing': false,
   'order': [
     [0, "asc"],
@@ -91,11 +86,12 @@ dtr2 = $('#register_students_list').DataTable({
     {"data": "city"},
     {"data": "id",
      render: function(data, type, row) {
-
-      return "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"register_student(" + data + "," + $('#btn_register_student').data('id') + ");\" title=\"{% trans 'Register student' %}\">" +
-                  "<i class=\"fas fa fa-user-circle-o\" aria-hidden=\"true\"></i>" +
-                  "</button>";
-
+        return '<button class="btn btn-light btn-sm mr-4"' +
+          'name="view"' +
+          'onclick="register_student(' + data + ',' + $('#btn_register_student').data('id') + ');"' +
+          'title="{% trans "Register student" %}">' +
+          '<i class="fas fa fa-user-circle-o" aria-hidden="true">' +
+          '</i></button>';
       }
     }
   ],
@@ -120,29 +116,23 @@ function register_student(student_id, slot_id) {
         'student_id': student_id,
         'slot_id': slot_id,
         'feedback': false,
+        'cmp': true,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
         if(json['error']) {
+            console.log('error');
             $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-            setTimeout(function() {
-                        $("#register_feedback").addClass('hide');
-
-                    }, 5000);
+            setTimeout(function() { $("#register_feedback").html('');}, 3000);
         } else {
             $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
-            setTimeout(function() {
-                        $("#register_feedback").addClass('hide');
-
-                    }, 5000);
-              dtr.ajax.reload()
-              //dtr.ajax.url("/api/get_slot_registrations/" + current_slot_id).load();
-              dt.ajax.reload()
-
+            setTimeout(function() { $("#register_feedback").html('');}, 3000);
+            dtr.ajax.reload()
+            dt.ajax.reload()
         }
       },
       error: function(json) {
-        $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+        console.log(json)
       }
     })
     //$('#modal_register_students_list').modal('hide');

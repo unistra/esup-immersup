@@ -941,7 +941,11 @@ def ajax_slot_registration(request):
     """
     slot_id = request.POST.get('slot_id', None)
     student_id = request.POST.get('student_id', None)
+    # feedback is used to use or not django message
+    # set feedback=False in ajax query when feedback
+    # is used in modal or specific form !
     feedback = request.POST.get('feedback', True)
+    cmp = request.POST.get('cmp', False)
     calendar, slot, student = None, None, None
     today = datetime.datetime.today().date()
     semester = 0
@@ -951,7 +955,7 @@ def ajax_slot_registration(request):
     try:
         calendar = Calendar.objects.first()
     except Exception:
-        response = {'error': True, 'msg': gettext("Invalid calendar : cannot register")}
+        response = {'error': True, 'msg': _("Invalid calendar : cannot register")}
         return JsonResponse(response, safe=False)
 
     if student_id:
@@ -969,12 +973,17 @@ def ajax_slot_registration(request):
             pass
 
     if not slot or not student:
-        response = {'error': True, 'msg': gettext("Invalid parameters")}
+        response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
     # Check current student immersions and valid dates
     if student.immersions.filter(slot=slot).exists():
-        response = {'error': True, 'msg': gettext("Already registered to this slot")}
+        if not cmp:
+            msg = _("Already registered to this slot")
+        else:
+            msg = _("Student already registered for selected slot")
+
+        response = {'error': True, 'msg': msg}
     else:
         remaining_regs_count = student.remaining_registrations_count()
         can_register = False
@@ -1005,13 +1014,14 @@ def ajax_slot_registration(request):
                 student=student, slot=slot, cancellation_type=None, attendance_status=0,
             )
 
-            msg = gettext("Registration successfully added")
+            msg = _("Registration successfully added")
             response = {'error': False, 'msg': msg}
+            # TODO: use django messages for errors as well ?
             if feedback:
                 messages.success(request, msg)
             request.session["last_registration_slot_id"] = slot.id
         else:
-            response = {'error': True, 'msg': gettext("Registration is not currently allowed")}
+            response = {'error': True, 'msg': _("Registration is not currently allowed")}
 
     return JsonResponse(response, safe=False)
 
