@@ -55,6 +55,7 @@
       </div>
       <div class="modal-footer">
       {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
+        <button type="button" id="btn_remove_registration" class="btn btn-primary" disabled>{% trans 'Remove registration' %}</button>
         <button type="button" id="btn_register_student" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
       {% endif %}
         <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
@@ -144,12 +145,12 @@ dtr = $('#students_list').DataTable({
     {"data": "isChecked",
      "class": "checkcell",
      "orderable": false,
-     "title": "<input type='checkbox' />",
+     "title": '<input class="text-xs-center" id="checkall" type="checkbox" >',
      "render": function (dataItem) {
         if (dataItem)
-            return "<input checked type='checkbox'/>";
+            return '<input checked type="checkbox">';
         else
-            return "<input type='checkbox'/>";
+            return '<input type="checkbox">';
       }
     },
     {"data": "lastname",
@@ -234,14 +235,19 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   reload_table();
 });
 
-$("th input[type=checkbox]").on("click", function () {
-    console.log('checked');
-    var isChecked = this.checked;
-    var d = $('#students_list').DataTable().rows().data();
-    $.each(d, function (i, item) {
-        item.isChecked = isChecked;
-    });
-    $(".checkcell input").prop("checked", isChecked);
-});
+$(document).ready(function(){
+  $('#checkall').change(function() {
+      var isChecked = this.checked;
+      var d = $('#students_list').DataTable().rows().data();
+      $.each(d, function (i, item) {
+          item.isChecked = isChecked;
+      });
+      $(".checkcell input").prop("checked", isChecked);
+  });
 
+  var checkboxes = $("td input[type='checkbox']")
+  checkboxes.click(function() {
+      $('#btn_remove_registration').attr("disabled", !checkboxes.is(":checked"));
+  });
+});
 </script>
