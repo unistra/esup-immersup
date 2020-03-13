@@ -192,11 +192,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_cas.middleware.CASMiddleware',
+    'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'django_cas.backends.CASBackend',
+    'shibboleth.backends.ShibbolethRemoteUserBackend',
 )
 
 ######################
@@ -405,6 +407,16 @@ LDAP_API_EMAIL_ATTR = ''
 LDAP_API_EMAIL_USERNAME = ''
 LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
+
+#######################
+# SHIBBOLETH settings #
+#######################
+
+SHIBBOLETH_ATTRIBUTE_MAP = {
+    "givenName": (True, "first_name"),
+    "sn": (True, "last_name"),
+    "mail": (False, "username"),
+}
 
 #######################
 # Email configuration #
