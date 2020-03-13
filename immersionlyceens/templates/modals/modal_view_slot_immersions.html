@@ -16,6 +16,7 @@
             <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
             <thead>
               <tr>
+                <th></th>
                 <th>{% trans 'Lastname' %}</th>
                 <th>{% trans 'Firstname' %}</th>
                 <th>{% trans 'Profile' %}</th>
@@ -37,6 +38,7 @@
             </thead>
             <tbody>
               <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -139,6 +141,17 @@ dtr = $('#students_list').DataTable({
     url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
   },
   'columns': [
+    {"data": "isChecked",
+     "class": "checkcell",
+     "orderable": false,
+     "title": "<input type='checkbox' />",
+     "render": function (dataItem) {
+        if (dataItem)
+            return "<input checked type='checkbox'/>";
+        else
+            return "<input type='checkbox'/>";
+      }
+    },
     {"data": "lastname",
      "render": function(data, type, row) {
        if(type=="display") {
@@ -219,6 +232,16 @@ $('#students_list').on('draw.dt', function () {
 
 $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   reload_table();
+});
+
+$("th input[type=checkbox]").on("click", function () {
+    console.log('checked');
+    var isChecked = this.checked;
+    var d = $('#students_list').DataTable().rows().data();
+    $.each(d, function (i, item) {
+        item.isChecked = isChecked;
+    });
+    $(".checkcell input").prop("checked", isChecked);
 });
 
 </script>

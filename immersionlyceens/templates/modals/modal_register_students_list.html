@@ -16,13 +16,13 @@
                     <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
                         <thead>
                             <tr>
+                                <th></th>
                                 <th>{% trans 'First name' %}</th>
                                 <th>{% trans 'Last name' %}</th>
                                 <th>{% trans 'Profil' %}</th>
                                 <th>{% trans 'Class name' %}</th>
                                 <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
                                 <th>{% trans 'City' %}</th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tfoot>
@@ -135,7 +135,6 @@ function register_student(student_id, slot_id) {
         console.log(json)
       }
     })
-    //$('#modal_register_students_list').modal('hide');
   };
 
 </script>
