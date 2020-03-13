@@ -1,4 +1,5 @@
 {% load immersionlyceens_tags i18n static staticfiles %}
+{% authorized_groups request.user %}
 <!-- Modal -->
 <div class="modal fade" id="modal_view_slot_immersions" tabindex="-1" role="dialog" aria-labelledby="modal_view_slot_immersions_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
@@ -51,6 +52,9 @@
         <span id="count" class="pull-right mt-4"></span>
       </div>
       <div class="modal-footer">
+      {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
+      {% endif %}
         <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
       </div>
     </div>

@@ -6,12 +6,6 @@ import json
 import logging
 from functools import reduce
 
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -22,7 +16,27 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext
+from django.utils.translation import ugettext_lazy as _
+
+from immersionlyceens.apps.core.models import (
+    Building,
+    Calendar,
+    CancelType,
+    Component,
+    Course,
+    HighSchool,
+    Holiday,
+    Immersion,
+    ImmersionUser,
+    MailTemplateVars,
+    PublicDocument,
+    Slot,
+    Training,
+    UniversityYear,
+    Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -380,11 +394,15 @@ def ajax_get_my_slots(request, user_id=None):
         response['msg'] = gettext("Error : a valid user must be passed")
 
     if past_slots:
-        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions') \
-            .filter(teachers=user_id).exclude(date__lt=today, immersions__isnull=True)
+        slots = (
+            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
+            .filter(teachers=user_id)
+            .exclude(date__lt=today, immersions__isnull=True)
+        )
     else:
-        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')\
-            .filter(Q(date__gte=today)|Q(immersions__attendance_status=0), teachers=user_id)
+        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions').filter(
+            Q(date__gte=today) | Q(immersions__attendance_status=0), teachers=user_id
+        )
 
     for slot in slots:
         campus = ""
@@ -868,7 +886,7 @@ def ajax_get_slot_registrations(request, slot_id):
             elif immersion.student.is_student():
                 immersion_data['profile'] = gettext('Student')
 
-                record = immersion.student.get_high_school_student_record()
+                record = immersion.student.get_student_record()
 
                 if record:
                     immersion_data['school'] = record.home_institution
@@ -993,5 +1011,50 @@ def ajax_slot_registration(request):
             request.session["last_registration_slot_id"] = slot.id
         else:
             response = {'error': True, 'msg': gettext("Registration is not currently allowed")}
+
+    return JsonResponse(response, safe=False)
+
+
+# @is_ajax_request
+@groups_required('SCUIO-IP', 'REF-CMP')
+def ajax_get_students(request):
+
+    response = {'data': [], 'msg': ''}
+
+    students = []
+
+    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU'])
+
+    for student in students:
+        student_data = {
+            'id': student.pk,
+            'lastname': student.last_name,
+            'firstname': student.first_name,
+            'profile': '',
+            'school': '',
+            'level': '',
+            'city': '',
+        }
+
+        if student.is_high_school_student():
+            student_data['profile'] = _('High-school student')
+
+            record = student.get_high_school_student_record()
+
+            if record:
+                student_data['school'] = record.highschool.label
+                student_data['city'] = record.highschool.city
+                student_data['class'] = record.class_name
+
+        elif student.is_student():
+            student_data['profile'] = _('Student')
+
+            record = student.get_student_record()
+
+            if record:
+                student_data['school'] = record.home_institution
+                student_data['class'] = ""
+
+        response['data'].append(student_data.copy())
 
     return JsonResponse(response, safe=False)

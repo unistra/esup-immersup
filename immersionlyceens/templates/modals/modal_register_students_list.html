@@ -1,0 +1,103 @@
+{% load immersionlyceens_tags i18n static staticfiles %}
+<!-- Modal -->
+<div class="modal fade" id="modal_register_students_list" tabindex="-1" role="dialog" aria-labelledby="modal_register_students_list_title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_register_students_list_title">{% trans 'Students' %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <table id="register_students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>{% trans 'First name' %}</th>
+                                    <th>{% trans 'Last name' %}</th>
+                                    <th>{% trans 'Profil' %}</th>
+                                    <th>{% trans 'Class name' %}</th>
+                                    <th>{% trans 'Highschool' %} / {% trans 'University' %}</th>
+                                    <th>{% trans 'City' %}</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+function reload_table() {
+  dtr.rows().remove().draw();
+  dtr.ajax.url("/api/get_students").load();
+}
+
+$.fn.dataTableExt.errMode = 'console';
+
+dtr = $('#register_students_list').DataTable({
+  'processing': false,
+  'order': [
+    [0, "asc"],
+    [1, "asc"],
+  ],
+  'serverSide': false,
+  'responsive': false,
+  'info': false,
+  'ajax': {
+    url: "",
+    dataSrc: function (json) {
+      if (json['data'] != undefined) {
+        return json['data'];
+      }
+    }
+  },
+  'searching': true,
+  'paging': false,
+  'ordering': true,
+  'language': {
+    url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+  },
+  'columns': [
+    {"data": "lastname"},
+    {"data": "firstname"},
+    {"data": "profile"},
+    {"data": "class"},
+    {"data": "school"},
+    {"data": "city"}
+  ],
+  "columnDefs": [
+    {
+      "defaultContent": "",
+      "targets": "_all"
+    }
+  ],
+});
+
+
+$('#modal_register_students_list').on('show.bs.modal', function (e) {
+  reload_table();
+});
+
+</script>
