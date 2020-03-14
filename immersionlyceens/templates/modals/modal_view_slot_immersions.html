@@ -145,12 +145,12 @@ dtr = $('#students_list').DataTable({
     {"data": "isChecked",
      "class": "checkcell",
      "orderable": false,
-     "title": '<input class="text-xs-center" id="checkall" type="checkbox" >',
+     "title": '<input id="checkall" type="checkbox" >',
      "render": function (dataItem) {
         if (dataItem)
-            return '<input checked type="checkbox">';
+            return '<input class="chk" checked type="checkbox">';
         else
-            return '<input type="checkbox">';
+            return '<input class="chk" type="checkbox">';
       }
     },
     {"data": "lastname",
@@ -236,18 +236,30 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
 });
 
 $(document).ready(function(){
+  let counterChecked = 0;
   $('#checkall').change(function() {
       var isChecked = this.checked;
       var d = $('#students_list').DataTable().rows().data();
       $.each(d, function (i, item) {
-          item.isChecked = isChecked;
+        // TODO: very dirty enhance me please !!!!
+        if (this.checked) {
+          counterChecked++;
+        } else if (counterChecked > 0) {
+          counterChecked--;
+        }
+        item.isChecked = isChecked;
       });
       $(".checkcell input").prop("checked", isChecked);
+      $('td input[type="checkbox"]').change();
   });
 
-  var checkboxes = $("td input[type='checkbox']")
-  checkboxes.click(function() {
-      $('#btn_remove_registration').attr("disabled", !checkboxes.is(":checked"));
+  $('#students_list').on('change', 'td input[type="checkbox"]', function() {
+      if (this.checked) {
+        counterChecked++;
+      } else if (counterChecked > 0) {
+        counterChecked--;
+      }
+      counterChecked > 0 ? $('#btn_remove_registration').prop("disabled", false): $('#btn_remove_registration').prop("disabled", true);
   });
 });
 </script>
