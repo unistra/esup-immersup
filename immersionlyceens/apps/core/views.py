@@ -12,10 +12,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext, ugettext_lazy as _
 
-
 from immersionlyceens.decorators import groups_required
 
-from .forms import CourseForm, SlotForm
+from .forms import CourseForm, SlotForm, ContactForm
 from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear, Campus
 
 logger = logging.getLogger(__name__)
@@ -93,8 +92,11 @@ def slots_list(request):
     else:
         return render(request, 'base.html')
 
+    contact_form = ContactForm()
+
     context = {
         'components': components.order_by('label'),
+        'contact_form': contact_form,
     }
 
     if comp_id:
@@ -504,7 +506,13 @@ def mycourses(request):
 
 @groups_required('ENS-CH',)
 def myslots(request):
-    return render(request, 'core/myslots.html')
+    contact_form = ContactForm()
+
+    context = {
+        'contact_form': contact_form,
+    }
+
+    return render(request, 'core/myslots.html', context)
 
 
 @groups_required('REF-LYC',)

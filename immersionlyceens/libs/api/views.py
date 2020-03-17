@@ -6,25 +6,6 @@ import json
 import logging
 from functools import reduce
 
-from immersionlyceens.apps.core.models import (
-    Building,
-    Calendar,
-    CancelType,
-    Component,
-    Course,
-    HighSchool,
-    Holiday,
-    Immersion,
-    ImmersionUser,
-    MailTemplateVars,
-    PublicDocument,
-    Slot,
-    Training,
-    UniversityYear,
-    Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -36,6 +17,14 @@ from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ugettext_lazy as _
+
+from immersionlyceens.libs.mails.utils import send_email
+
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser,
+    MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -1068,5 +1057,46 @@ def ajax_get_students(request):
                 student_data['class'] = ""
 
         response['data'].append(student_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@is_post_request
+@groups_required('SCUIO-IP', 'REF-COMP', 'ENS-CH')
+def ajax_send_email(request):
+    """
+    Send an email to all students registered to a specific slot
+    """
+    slot_id = request.POST.get('slot_id', None)
+    send_copy = request.POST.get('send_copy', False) == "true"
+    subject = request.POST.get('subject', "")
+    body = request.POST.get('body', "")
+
+    response = {'error': False, 'msg': '' }
+
+    if not slot_id or not body.strip() or not subject.strip():
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+        return JsonResponse(response, safe=False)
+
+    immersions = Immersion.objects.filter(slot_id=slot_id)
+
+    for immersion in immersions:
+        recipient = immersion.student.email
+        try:
+            send_email(recipient, subject, body)
+        except Exception:
+            response['error'] = True
+            response['msg'] += _("%s : error") % recipient
+
+    # Send a copy to the sender if requested - append "(copy)" to the subject
+    if send_copy:
+        subject = "%s (%s)" % (subject, _("copy"))
+        recipient = request.user.email
+        try:
+            send_email(recipient, subject, body)
+        except Exception:
+            response['error'] = True
+            response['msg'] += _("%s : error") % recipient
 
     return JsonResponse(response, safe=False)

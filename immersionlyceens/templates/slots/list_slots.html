@@ -11,6 +11,9 @@
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css' %}">
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/datatables.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+<link rel="stylesheet" href="{{ STATIC_URL }}/summernote/summernote-bs4.css">
+
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
@@ -19,10 +22,12 @@
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+<script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
 {% endblock %}
 {% block content %}
 {% include '../modals/modal_view_slot_immersions.html' %}
 {% include '../modals/modal_register_students_list.html' %}
+{% include '../modals/modal_contact.html' %}
 <div id="top_indicator" class="w-100 bg-success pt-2 pb-1 fixed-top">
     <p id="top_indicator__content" class="text-center text-light"></p>
 </div>

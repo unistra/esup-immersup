@@ -54,9 +54,12 @@
         <span id="count" class="pull-right mt-4"></span>
       </div>
       <div class="modal-footer">
-      {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
+      {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP,ENS-CH" %}
+        <button type="button" id="btn_contact_students" class="btn btn-primary" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
+        {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
         <button type="button" id="btn_remove_registration" class="btn btn-primary" disabled>{% trans 'Remove registration' %}</button>
         <button type="button" id="btn_register_student" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
+        {% endif %}
       {% endif %}
         <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
       </div>
@@ -223,11 +226,22 @@ dtr = $('#students_list').DataTable({
 });
 
 $('#students_list').on('draw.dt', function () {
+  var students_count = dtr.rows().count();
+
+  if(students_count == 0) {
+    $("#btn_contact_students").prop('disabled', true);
+    $("#btn_contact_students").prop('title', "{% trans 'No registered students' %}");
+  }
+  else {
+    $("#btn_contact_students").prop('disabled', false);
+    $("#btn_contact_students").prop('title', "{% trans 'Send an email to registered students' %}");
+  }
+
   let presents = dtr.rows(function (idx, data, node) {
     return data.attendance_status == 1 ? true : false;
   }).count();
 
-  $('#count').html(presents + " {% trans 'student(s) present on ' %}" + dtr.rows().count() + " {% trans 'registered' %}");
+  $('#count').html(presents + " {% trans 'student(s) present on ' %}" + students_count + " {% trans 'registered' %}");
 });
 
 
