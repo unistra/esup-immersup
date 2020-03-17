@@ -289,7 +289,30 @@ $(document).ready(function(){
 
   $('#btn_cancel_registrations').on('click', function() {
     var selectedImmersions = dtr.rows({ selected: true }).ids().toArray();
-    console.log(selectedImmersions);
+    var selectedCancelType = $('#select_cancel_type').val()
+
+    if ( !selectedCancelType ) {
+      alert('{% trans "Please select a cancel type first" %}');
+    } else {
+      $.ajax({
+          url: "{% url 'BatchCancelRegistration' %}",
+          type: 'POST',
+          data: {
+            'immersion_ids': JSON.stringify(selectedImmersions),
+            'reason_id': selectedCancelType,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+          success: function (json) {
+            dtr.ajax.reload();
+            dt.ajax.reload();
+            $('#checkall').prop('checked', false);
+            $('#select_cancel_type').val('');
+          },
+          error: function(json) {
+            console.log(json);
+          }
+        });
+    }
   });
 });
 </script>

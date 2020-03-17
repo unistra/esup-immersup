@@ -6,19 +6,6 @@ import json
 import logging
 from functools import reduce
 
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core import serializers
-from django.db.models import Q
-from django.http import JsonResponse
-from django.template.defaultfilters import date as _date
-from django.urls import resolve, reverse
-from django.utils.formats import date_format
-from django.utils.module_loading import import_string
-from django.utils.translation import gettext
-from django.utils.translation import ugettext_lazy as _
-
 from immersionlyceens.apps.core.models import (
     Building,
     Calendar,
@@ -37,6 +24,18 @@ from immersionlyceens.apps.core.models import (
     Vacation,
 )
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core import serializers
+from django.db.models import Q
+from django.http import JsonResponse
+from django.template.defaultfilters import date as _date
+from django.urls import resolve, reverse
+from django.utils.formats import date_format
+from django.utils.module_loading import import_string
+from django.utils.translation import gettext, ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -858,7 +857,7 @@ def ajax_get_slot_registrations(request, slot_id):
         response['msg'] = gettext("Error : invalid slot id")
 
     if slot:
-        immersions = Immersion.objects.prefetch_related('student').filter(slot=slot)
+        immersions = Immersion.objects.prefetch_related('student').filter(slot=slot, cancellation_type__isnull=True)
 
         for immersion in immersions:
             immersion_data = {
@@ -1081,7 +1080,7 @@ def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
     """
-    immersion_ids = request.POST.get('immersion_id')
+    immersion_ids = request.POST.get('immersion_ids')
     reason_id = request.POST.get('reason_id')
 
     err_msg = None
@@ -1090,7 +1089,8 @@ def ajax_batch_cancel_registration(request):
     if not immersion_ids or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
     else:
-        for immersion_id in immersion_ids:
+        for immersion_id in json.loads(immersion_ids):
+
             try:
 
                 immersion = Immersion.objects.get(pk=immersion_id)
@@ -1100,12 +1100,14 @@ def ajax_batch_cancel_registration(request):
                 immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
 
             except ImmersionUser.DoesNotExist:
+                # should not happen !
                 err_msg += _("User not found")
             except CancelType.DoesNotExist:
+                # should not happen as well !
                 response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
                 err = True
 
         if not err:
-            response = {'error': False, 'msg': _("Immersion(s) cancelled"), 'err_msg': error_msg}
+            response = {'error': False, 'msg': _("Immersion(s) cancelled"), 'err_msg': err_msg}
 
     return JsonResponse(response, safe=False)
