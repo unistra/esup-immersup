@@ -977,7 +977,7 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Check current student immersions and valid dates
-    if student.immersions.filter(slot=slot).exists():
+    if student.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
         if not cmp:
             msg = _("Already registered to this slot")
         else:
@@ -1010,9 +1010,16 @@ def ajax_slot_registration(request):
                     can_register = True
 
         if can_register:
-            Immersion.objects.create(
-                student=student, slot=slot, cancellation_type=None, attendance_status=0,
-            )
+            # Cancellation exists reregister
+            if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
+                student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
+                    cancellation_type=None, attendance_status=0
+                )
+            # No data exists register
+            else:
+                Immersion.objects.create(
+                    student=student, slot=slot, cancellation_type=None, attendance_status=0,
+                )
             # TODO: test mail sending !
             # student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
             msg = _("Registration successfully added")
