@@ -6,6 +6,19 @@ import json
 import logging
 from functools import reduce
 
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core import serializers
+from django.db.models import Q
+from django.http import JsonResponse
+from django.template.defaultfilters import date as _date
+from django.urls import resolve, reverse
+from django.utils.formats import date_format
+from django.utils.module_loading import import_string
+from django.utils.translation import gettext
+from django.utils.translation import ugettext_lazy as _
+
 from immersionlyceens.apps.core.models import (
     Building,
     Calendar,
@@ -24,18 +37,6 @@ from immersionlyceens.apps.core.models import (
     Vacation,
 )
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core import serializers
-from django.db.models import Q
-from django.http import JsonResponse
-from django.template.defaultfilters import date as _date
-from django.urls import resolve, reverse
-from django.utils.formats import date_format
-from django.utils.module_loading import import_string
-from django.utils.translation import gettext, ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -1013,7 +1014,8 @@ def ajax_slot_registration(request):
             Immersion.objects.create(
                 student=student, slot=slot, cancellation_type=None, attendance_status=0,
             )
-
+            # TODO: test mail sending !
+            # student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
             msg = _("Registration successfully added")
             response = {'error': False, 'msg': msg}
             # TODO: use django messages for errors as well ?
@@ -1068,5 +1070,42 @@ def ajax_get_students(request):
                 student_data['class'] = ""
 
         response['data'].append(student_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@is_post_request
+@groups_required('SCUIO-IP', 'REF-CMP')
+def ajax_batch_cancel_registration(request):
+    """
+    Cancel registrations to immersions slots
+    """
+    immersion_ids = request.POST.get('immersion_id')
+    reason_id = request.POST.get('reason_id')
+
+    err_msg = None
+    err = False
+
+    if not immersion_ids or not reason_id:
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+    else:
+        for immersion_id in immersion_ids:
+            try:
+
+                immersion = Immersion.objects.get(pk=immersion_id)
+                cancellation_reason = CancelType.objects.get(pk=reason_id)
+                immersion.cancellation_type = cancellation_reason
+                immersion.save()
+                immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+            except ImmersionUser.DoesNotExist:
+                err_msg += _("User not found")
+            except CancelType.DoesNotExist:
+                response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
+                err = True
+
+        if not err:
+            response = {'error': False, 'msg': _("Immersion(s) cancelled"), 'err_msg': error_msg}
 
     return JsonResponse(response, safe=False)

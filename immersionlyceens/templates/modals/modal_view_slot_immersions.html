@@ -55,10 +55,21 @@
       </div>
       <div class="modal-footer">
       {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
-        <button type="button" id="btn_remove_registration" class="btn btn-primary" disabled>{% trans 'Remove registration' %}</button>
-        <button type="button" id="btn_register_student" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
+        <div class="form-group form-row">
+          <label for="select_cancel_type" class="col-sm-4 col-form-label col-form-label-sm">{% trans 'Cancel type' %}</label>
+          <div class="col-sm-8">
+            <select class="form-control form-control-sm" name="cancel-type" id="select_cancel_type" disabled>
+            <option value=""></option>
+            {% for type in cancel_types  %}
+            <option value="{{ type.pk }}">{{ type.label }}</option>
+            {% endfor %}
+            </select>
+          </div>
+        </div>
+          <button type="button" id="btn_cancel_registrations" class="btn btn-primary" disabled>{% trans 'Cancel registrations' %}</button>
+          <button type="button" id="btn_register_student" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
       {% endif %}
-        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
       </div>
     </div>
   </div>
@@ -135,9 +146,14 @@ dtr = $('#students_list').DataTable({
       }
     }
   },
+  'rowId': 'id',
   'searching': true,
   'paging': false,
   'ordering': true,
+  'select': {
+						style:    'multi',
+						selector: 'td:first-child'
+	},
   'language': {
     url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
   },
@@ -145,7 +161,7 @@ dtr = $('#students_list').DataTable({
     {"data": "isChecked",
      "class": "checkcell",
      "orderable": false,
-     "title": '<input id="checkall" type="checkbox" >',
+     "title": '<input id="checkall" type="checkbox" style="text-align: center">',
      "render": function (dataItem) {
         if (dataItem)
             return '<input class="chk" checked type="checkbox">';
@@ -237,8 +253,10 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
 
 $(document).ready(function(){
   let counterChecked = 0;
+
   $('#checkall').change(function() {
       var isChecked = this.checked;
+      isChecked ? dtr.rows().select() : dtr.rows().deselect();
       var d = $('#students_list').DataTable().rows().data();
       $.each(d, function (i, item) {
         // TODO: very dirty enhance me please !!!!
@@ -259,7 +277,19 @@ $(document).ready(function(){
       } else if (counterChecked > 0) {
         counterChecked--;
       }
-      counterChecked > 0 ? $('#btn_remove_registration').prop("disabled", false): $('#btn_remove_registration').prop("disabled", true);
+
+      if (counterChecked > 0) {
+        $('#btn_cancel_registrations').prop("disabled", false);
+        $('#select_cancel_type').prop("disabled", false);
+      } else {
+        $('#btn_cancel_registrations').prop("disabled", true);
+        $('#select_cancel_type').prop("disabled", true);
+      }
+  });
+
+  $('#btn_cancel_registrations').on('click', function() {
+    var selectedImmersions = dtr.rows({ selected: true }).ids().toArray();
+    console.log(selectedImmersions);
   });
 });
 </script>
