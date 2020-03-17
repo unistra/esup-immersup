@@ -115,7 +115,7 @@
           console.log("Error : " + obj);
         }
       });
-    }  
+    }
   }
 
 
@@ -187,12 +187,12 @@
             "render": function (data, type, row) {
               var icons = "";
               if(row.component_id == current_component_id) {
-                icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-secondary btn-sm\" title='" + duplicate_text + "'>" +
+                icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                          "<i class=\"fa fas fa-copy\"></i>" +
                          "</a>\n";
-              
+
                 if(row.can_delete) {
-                  icons += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"delete_course('" + row.id + "')\" title='"+ delete_text +"'>" +
+                  icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"delete_course('" + row.id + "')\" title='"+ delete_text +"'>" +
                            "<i class=\"fa fas fa-trash\"</i>" +
                            "</button>";
                 }
