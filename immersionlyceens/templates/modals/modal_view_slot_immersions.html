@@ -11,6 +11,7 @@
         </button>
       </div>
       <div class="modal-body">
+        <div id="cancel_feedback"></div>
         <div class="row">
           <div class="col">
             <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
@@ -307,6 +308,8 @@ $(document).ready(function(){
             dt.ajax.reload();
             $('#checkall').prop('checked', false);
             $('#select_cancel_type').val('');
+            $("#cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
+            setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
           },
           error: function(json) {
             console.log(json);
