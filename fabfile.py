@@ -94,7 +94,7 @@ def test():
         'lb': ['django-test2.u-strasbg.fr'],
     }
     # env.user = 'root'  # user for ssh
-    env.backends = ['127.0.0.1']
+    env.backends = ['0.0.0.0']
     env.server_name = 'immersion-test.u-strasbg.fr'
     env.short_server_name = 'immersion-test'
     env.static_folder = '/site_media/'
