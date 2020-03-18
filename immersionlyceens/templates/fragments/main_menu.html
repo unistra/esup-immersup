@@ -74,6 +74,7 @@
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                   <a class="dropdown-item" href="{% url 'my_high_school' user.highschool.id %}">{% trans 'My high school' %}</a>
+                  <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View my students' %}</a>
                   <a class="dropdown-item" href="{% url 'student_validation' user.highschool.id %}">{% trans 'Validate my students' %}</a>
                 {% else %}
                   <a class="dropdown-item" href="{% url 'student_validation_global' %}">{% trans 'Validate my students' %}</a>

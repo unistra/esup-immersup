@@ -1060,6 +1060,42 @@ def ajax_get_students(request):
 
     return JsonResponse(response, safe=False)
 
+@login_required
+@is_ajax_request
+@groups_required('SCUIO-IP', 'REF-CMP', 'REF-LYC')
+def ajax_get_highschool_students(request, highschool_id=None):
+    response = {'data': [], 'msg': ''}
+
+    if not highschool_id:
+        try:
+            highschool_id = request.user.highschool.id
+        except Exception:
+            response = {'data': [], 'msg': _('Invalid parameters')}
+            return JsonResponse(response, safe=False)
+
+    students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions')\
+        .filter(high_school_student_record__highschool__id=highschool_id)
+
+    for student in students:
+        student_data = {
+            'id': student.pk,
+            'name': "%s %s" % (student.last_name, student.first_name),
+            'birthdate': student.high_school_student_record.birth_date,
+            'level': student.high_school_student_record.get_level_display(),
+            'bachelor': '',
+            'class': student.high_school_student_record.class_name,
+            'registered': student.immersions.exists()
+        }
+
+        if student.high_school_student_record.level == 3:
+            student_data['bachelor'] = student.high_school_student_record.get_post_bachelor_level_display()
+        else:
+            student_data['bachelor'] = student.high_school_student_record.get_bachelor_type_display()
+
+        response['data'].append(student_data.copy())
+
+    return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @is_post_request

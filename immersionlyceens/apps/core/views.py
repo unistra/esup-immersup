@@ -14,8 +14,8 @@ from django.utils.translation import gettext, ugettext_lazy as _
 
 from immersionlyceens.decorators import groups_required
 
-from .forms import CourseForm, SlotForm, ContactForm
-from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear, Campus
+from .forms import CourseForm, SlotForm, ContactForm, MyHighSchoolForm
+from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear, Campus, HighSchool
 
 logger = logging.getLogger(__name__)
 
@@ -517,9 +517,6 @@ def myslots(request):
 
 @groups_required('REF-LYC',)
 def my_high_school(request,  high_school_id=None):
-    from .models import HighSchool
-    from .forms import MyHighSchoolForm
-
     if request.user.highschool.id != high_school_id:
         return redirect('home')
 
@@ -545,6 +542,19 @@ def my_high_school(request,  high_school_id=None):
     context['high_school_form'] = high_school_form
 
     return render(request, 'core/my_high_school.html', context)
+
+@groups_required('REF-LYC',)
+def my_students(request):
+    try:
+        highschool = request.user.highschool
+    except Exception:
+        return redirect('home')
+
+    context = {
+        'highschool': highschool,
+    }
+
+    return render(request, 'core/highschool_students.html', context)
 
 
 @groups_required('REF-LYC', 'SCUIO-IP',)

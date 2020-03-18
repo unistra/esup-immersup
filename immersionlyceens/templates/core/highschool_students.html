@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% comment %} Comment following line if using english ! {% endcomment %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+{% endblock %}
+{% block title %}
+{% trans "My slots" %}
+{% endblock %}
+
+{% block content %}
+{% comment %} include '../modals/modal_student_details.html' {% endcomment %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Students from my high school" %}
+    </div>
+    <div class="card-body">
+      <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th class="align-top">{% trans 'Student' %}</th>
+            <th class="align-top">{% trans 'Birth date' %}</th>
+            <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
+            <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
+            <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
+            <th id="registered_filter" class="align-top">{% trans 'Registered' %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var dt;
+  var highschool_id = "{{ request.user.highschool.id }}";
+
+  $(document).ready(function () {
+    $.fn.dataTableExt.errMode = 'console';
+    dt = $('#students_table').DataTable({
+      'processing': false,
+      'order': [
+        [0, "asc"]
+      ],
+      'pageLength': 15,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_highschool_students/" + highschool_id,
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+    'searching': true,
+    'language': {
+        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    },
+    'columns': [
+    { "data": "name" },
+    { "data": "birthdate" },
+    { "data": "level" },
+    { "data": "class" },
+    { "data": "bachelor" },
+    { "data": "registered",
+      "render": function(data, type, row) {
+        if(data) {
+          return "{% trans 'Yes' %}";
+        }
+        else {
+          return "{% trans 'No' %}";
+        }
+      },
+    },
+    { "data": "" }
+  ],
+    "columnDefs": [
+      {
+        "defaultContent": "",
+        "targets": "_all",
+        "className": "all",
+      },
+    ],
+  });
+
+  // All filters reset action
+  $('#filters_reset_all').click(function () {
+    yadcf.exResetAllFilters(dt);
+  });
+
+  // Filters init
+  yadcf.init(dt, [{
+    column_number: 2,
+    filter_default_label: "",
+    filter_container_id: "level_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 3,
+    filter_default_label: "",
+    filter_container_id: "class_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 4,
+    filter_default_label: "",
+    filter_container_id: "bachelor_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 5,
+    filter_default_label: "",
+    filter_container_id: "registered_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  }
+  ]);
+  dt.on( 'draw', function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+});
+</script>
+{% endblock %}
