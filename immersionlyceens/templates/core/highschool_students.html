@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-{% comment %} include '../modals/modal_student_details.html' {% endcomment %}
+{% include '../modals/modal_student_details.html' %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -58,6 +58,12 @@
 <script type="text/javascript">
   var dt;
   var highschool_id = "{{ request.user.highschool.id }}";
+  var current_student_id;
+
+  function open_modal(student_id) {
+    current_student_id = student_id;
+    $('#modal_student_details').modal('show');
+  }
 
   $(document).ready(function () {
     $.fn.dataTableExt.errMode = 'console';
@@ -91,7 +97,10 @@
     { "data": "registered",
       "render": function(data, type, row) {
         if(data) {
-          return "{% trans 'Yes' %}";
+          return "{% trans 'Yes' %} " +
+                  "<button class=\"btn btn-light btn-sm ml-4\" name=\"view\" onclick=\"open_modal("+row.id+")\" title=\"{% trans 'View student immersions' %}\">" +
+                  "<i class='fa fas fa-eye'></i>" +
+                  "</button>";
         }
         else {
           return "{% trans 'No' %}";

@@ -724,18 +724,19 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU')
+@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-LYC')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
     Get (high-school or not) students immersions
-    immersion_type in "future", "past", "cancelled"
+    immersion_type in "future", "past", "cancelled" or None
     """
     response = {'msg': '', 'data': []}
 
     if not user_id:
         response['msg'] = gettext("Error : missing user id")
 
-    if not request.user.is_scuio_ip_manager() and request.user.id != user_id:
+    if not request.user.is_scuio_ip_manager() and not request.user.is_high_school_manager()\
+        and request.user.id != user_id:
         response['msg'] = gettext("Error : invalid user id")
 
     today = datetime.datetime.today().date()

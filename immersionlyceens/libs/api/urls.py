@@ -35,6 +35,7 @@ urlpatterns = [
     path('get_slots_by_course/<int:course_id>', views.ajax_get_slots_by_course, name='get_slots_by_course',),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
     path('get_immersions/<int:user_id>/<immersion_type>', views.ajax_get_immersions, name='get_immersions',),
+    path('get_immersions/<int:user_id>', views.ajax_get_immersions, name='get_immersions',),
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),
     # VALIDATE / REJECT ACTION
