@@ -790,7 +790,9 @@ class Course(models.Model):
         :return: the number of non-cancelled registered students on all the slots
         under this course (past and future)
         """
-        return self.slots.filter(immersions__cancellation_type__isnull=True).count()
+        return Immersion.objects.prefetch_related('slot')\
+            .filter(slot__course=self, cancellation_type__isnull=True).count()
+
 
     class Meta:
         verbose_name = _('Course')
