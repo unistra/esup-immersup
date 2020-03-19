@@ -42,6 +42,13 @@ LOGGING['handlers']['file']['filename'] = '{{ remote_current_path }}/log/app.log
 SECRET_KEY = '{{ secret_key }}'
 
 
+####################
+#       CAS        #
+####################
+
+CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
+
+
 #################
 # APIs settings #
 #################

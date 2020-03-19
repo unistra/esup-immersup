@@ -412,11 +412,17 @@ LDAP_API_FIRSTNAME_ATTR = ''
 # SHIBBOLETH settings #
 #######################
 
+# Do not use : may not be unique accross institutions
+# "HTTP_UID": (True, "username"), 
+
 SHIBBOLETH_ATTRIBUTE_MAP = {
-    "givenName": (True, "first_name"),
-    "sn": (True, "last_name"),
-    "mail": (False, "username"),
+    "HTTP_GIVENNAME": (True, "first_name"),
+    "HTTP_SN": (True, "last_name"),
+    "HTTP_MAIL": (False, "username"),
 }
+
+SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
+SHIBBOLETH_LOGOUT_REDIRECT_URL = "/"
 
 #######################
 # Email configuration #
