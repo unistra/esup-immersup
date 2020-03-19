@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.conf import settings
+from shibboleth.decorators import login_optional
 
 from immersionlyceens.apps.core.models import (
     ImmersionUser, UniversityYear, Calendar, Immersion, CancelType)
@@ -93,27 +94,20 @@ def customLogin(request, profile=None):
     return render(request, 'immersion/login.html', context)
 
 
+@login_optional
 def shibbolethLogin(request, profile=None):
     """
     """
-    Session.objects.all().delete()
 
-    try:
-        user = ImmersionUser.objects.get(username=request.META['mail'])
-    except ImmersionUser.DoesNotExist:
-        user = ImmersionUser.objects.create(
-            username=request.META['mail'],
-            first_name=request.META['givenName'],
-            last_name=request.META['sn'],
-            email=request.META['mail'])
+    if not request.user.is_anonymous:
+        #user = ImmersionUser.objects.get(pk=request.user.id)
+        #user.email = request.
 
-    try:
-        Group.objects.get(name='ETU').user_set.add(user)
-    except Exception:
-        logger.exception("Cannot add 'ETU' group to user {}".format(user))
-        messages.error(request, _("Group error"))
-
-    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        try:
+            Group.objects.get(name='ETU').user_set.add(request.user)
+        except Exception:
+            logger.exception("Cannot add 'ETU' group to user {}".format(request.user))
+            messages.error(request, _("Group error"))
 
     return HttpResponseRedirect("/immersion")
 

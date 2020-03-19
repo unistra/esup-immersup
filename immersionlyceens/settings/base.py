@@ -419,7 +419,8 @@ LDAP_API_FIRSTNAME_ATTR = ''
 SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_GIVENNAME": (True, "first_name"),
     "HTTP_SN": (True, "last_name"),
-    "HTTP_MAIL": (False, "username"),
+    "HTTP_REMOTE_USER": (True, "username"),
+    "HTTP_MAIL": (True, "email"),
 }
 
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
