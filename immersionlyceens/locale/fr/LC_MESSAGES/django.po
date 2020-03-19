@@ -2353,7 +2353,7 @@ msgstr "Lycéen"
 #: immersionlyceens/templates/fragments/main_menu.html:131
 msgctxt "login"
 msgid "Student"
-msgstr "Etudiant/Lycéen"
+msgstr "Etudiant"
 
 #: immersionlyceens/templates/home.html:23
 msgid "Tweeter feed"
