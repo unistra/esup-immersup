@@ -992,7 +992,6 @@ def ajax_slot_registration(request):
     else:
         remaining_regs_count = student.remaining_registrations_count()
         can_register = False
-        print(can_force_reg, remaining_regs_count)
 
         # TODO : this has to be factorized somewhere ...
         if calendar and calendar.calendar_mode == 'YEAR':
@@ -1046,8 +1045,8 @@ def ajax_slot_registration(request):
                 Immersion.objects.create(
                     student=student, slot=slot, cancellation_type=None, attendance_status=0,
                 )
-            # TODO: test mail sending !
-            # student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+            student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
             msg = _("Registration successfully added")
             response = {'error': False, 'msg': msg}
             # TODO: use django messages for errors as well ?
