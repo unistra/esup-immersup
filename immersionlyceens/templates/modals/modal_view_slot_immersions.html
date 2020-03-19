@@ -11,6 +11,7 @@
         </button>
       </div>
       <div class="modal-body">
+        <div id="cancel_feedback"></div>
         <div class="row">
           <div class="col">
             <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
@@ -54,14 +55,31 @@
         <span id="count" class="pull-right mt-4"></span>
       </div>
       <div class="modal-footer">
-      {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP,ENS-CH" %}
-        <button type="button" id="btn_contact_students" class="btn btn-primary" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
+        <div class="form-group form-row">
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
-        <button type="button" id="btn_remove_registration" class="btn btn-primary" disabled>{% trans 'Remove registration' %}</button>
-        <button type="button" id="btn_register_student" class="btn btn-primary" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
+            <label for="select_cancel_type" class="col-sm-2 col-form-label col-form-label-sm">{% trans 'Cancel type' %}</label>
+            <div class="col-sm-2">
+              <select class="form-control form-control-sm mr-2" name="cancel-type" id="select_cancel_type" disabled>
+              <option value=""></option>
+              {% for type in cancel_types  %}
+              <option value="{{ type.pk }}">{{ type.label }}</option>
+              {% endfor %}
+              </select>
+            </div>
+
+              <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2" disabled>{% trans 'Cancel registrations' %}</button>
+              <button type="button" id="btn_register_student" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
+
         {% endif %}
-      {% endif %}
-        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+        {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP,ENS-CH" %}
+
+              <button type="button" id="btn_contact_students" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
+
+        {% endif %}
+
+              <button type="button" class="btn btn-primary mr-2" data-dismiss="modal">{% trans 'Close' %}</button>
+
+        </div>
       </div>
     </div>
   </div>
@@ -138,9 +156,14 @@ dtr = $('#students_list').DataTable({
       }
     }
   },
+  'rowId': 'id',
   'searching': true,
   'paging': false,
   'ordering': true,
+  'select': {
+						style:    'multi',
+						selector: 'td:first-child'
+	},
   'language': {
     url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
   },
@@ -148,7 +171,7 @@ dtr = $('#students_list').DataTable({
     {"data": "isChecked",
      "class": "checkcell",
      "orderable": false,
-     "title": '<input id="checkall" type="checkbox" >',
+     "title": '<input id="checkall" type="checkbox" style="text-align: center">',
      "render": function (dataItem) {
         if (dataItem)
             return '<input class="chk" checked type="checkbox">';
@@ -251,8 +274,10 @@ $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
 
 $(document).ready(function(){
   let counterChecked = 0;
+
   $('#checkall').change(function() {
       var isChecked = this.checked;
+      isChecked ? dtr.rows().select() : dtr.rows().deselect();
       var d = $('#students_list').DataTable().rows().data();
       $.each(d, function (i, item) {
         // TODO: very dirty enhance me please !!!!
@@ -273,7 +298,44 @@ $(document).ready(function(){
       } else if (counterChecked > 0) {
         counterChecked--;
       }
-      counterChecked > 0 ? $('#btn_remove_registration').prop("disabled", false): $('#btn_remove_registration').prop("disabled", true);
+
+      if (counterChecked > 0) {
+        $('#btn_cancel_registrations').prop("disabled", false);
+        $('#select_cancel_type').prop("disabled", false);
+      } else {
+        $('#btn_cancel_registrations').prop("disabled", true);
+        $('#select_cancel_type').prop("disabled", true);
+      }
+  });
+
+  $('#btn_cancel_registrations').on('click', function() {
+    var selectedImmersions = dtr.rows({ selected: true }).ids().toArray();
+    var selectedCancelType = $('#select_cancel_type').val()
+
+    if ( !selectedCancelType ) {
+      alert('{% trans "Please select a cancel type first" %}');
+    } else {
+      $.ajax({
+          url: "{% url 'BatchCancelRegistration' %}",
+          type: 'POST',
+          data: {
+            'immersion_ids': JSON.stringify(selectedImmersions),
+            'reason_id': selectedCancelType,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+          success: function (json) {
+            dtr.ajax.reload();
+            dt.ajax.reload();
+            $('#checkall').prop('checked', false);
+            $('#select_cancel_type').val('');
+            $("#cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
+            setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+          },
+          error: function(json) {
+            console.log(json);
+          }
+        });
+    }
   });
 });
 </script>

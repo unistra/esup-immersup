@@ -6,6 +6,26 @@ import json
 import logging
 from functools import reduce
 
+from immersionlyceens.apps.core.models import (
+    Building,
+    Calendar,
+    CancelType,
+    Component,
+    Course,
+    HighSchool,
+    Holiday,
+    Immersion,
+    ImmersionUser,
+    MailTemplateVars,
+    PublicDocument,
+    Slot,
+    Training,
+    UniversityYear,
+    Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from immersionlyceens.libs.mails.utils import send_email
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -17,14 +37,6 @@ from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ugettext_lazy as _
-
-from immersionlyceens.libs.mails.utils import send_email
-
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser,
-    MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 logger = logging.getLogger(__name__)
 
@@ -735,8 +747,11 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     if not user_id:
         response['msg'] = gettext("Error : missing user id")
 
-    if not request.user.is_scuio_ip_manager() and not request.user.is_high_school_manager()\
-        and request.user.id != user_id:
+    if (
+        not request.user.is_scuio_ip_manager()
+        and not request.user.is_high_school_manager()
+        and request.user.id != user_id
+    ):
         response['msg'] = gettext("Error : invalid user id")
 
     today = datetime.datetime.today().date()
@@ -847,7 +862,7 @@ def ajax_get_slot_registrations(request, slot_id):
         response['msg'] = gettext("Error : invalid slot id")
 
     if slot:
-        immersions = Immersion.objects.prefetch_related('student').filter(slot=slot)
+        immersions = Immersion.objects.prefetch_related('student').filter(slot=slot, cancellation_type__isnull=True)
 
         for immersion in immersions:
             immersion_data = {
@@ -924,7 +939,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU')
+@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-CMP')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -932,13 +947,17 @@ def ajax_slot_registration(request):
     slot_id = request.POST.get('slot_id', None)
     student_id = request.POST.get('student_id', None)
     # feedback is used to use or not django message
-    # set feedback=False in ajax query when feedback
+    # set feedback=false in ajax query when feedback
     # is used in modal or specific form !
+    # warning js boolean not python one
     feedback = request.POST.get('feedback', True)
+    # Should we force registering ?
+    # warning js boolean not python one
+    force = request.POST.get('force', False)
     cmp = request.POST.get('cmp', False)
     calendar, slot, student = None, None, None
+    can_force_reg = request.user.is_scuio_ip_manager()
     today = datetime.datetime.today().date()
-    semester = 0
 
     request.session.pop("last_registration_slot", None)
 
@@ -967,7 +986,7 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Check current student immersions and valid dates
-    if student.immersions.filter(slot=slot).exists():
+    if student.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
         if not cmp:
             msg = _("Already registered to this slot")
         else:
@@ -981,33 +1000,62 @@ def ajax_slot_registration(request):
         # TODO : this has to be factorized somewhere ...
         if calendar and calendar.calendar_mode == 'YEAR':
             if calendar.year_registration_start_date <= today <= calendar.year_end_date:
-                can_register = True
+                # remaining regs ok
+                if remaining_regs_count['annually'] > 0:
+                    can_register = True
+                # alert user he can force registering
+                elif can_force_reg and not force == 'true':
+                    return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                # force registering
+                elif force == 'true':
+                    can_register = True
+
         # semester mode
         elif calendar:
             # Semester 1
             if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
-                if (
-                    calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date
-                    and remaining_regs_count['semester1']
-                ):
-                    can_register = True
+                if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date:
+                    # remaining regs ok
+                    if remaining_regs_count['semester1'] > 0:
+                        can_register = True
+                    # alert user he can force registering (js boolean)
+                    elif can_force_reg and not force == 'true':
+                        return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                    # force registering (js boolean)
+                    elif force == 'true':
+                        can_register = True
+
             # Semester 2
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
-                if (
-                    calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date
-                    and remaining_regs_count['semester2']
-                ):
-                    can_register = True
+                if calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date:
+                    # remaining regs ok
+                    if remaining_regs_count['semester2'] > 0:
+                        can_register = True
+                    # alert user he can force registering (js boolean)
+                    elif can_force_reg and not force == 'true':
+                        return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                    # force registering (js boolean)
+                    elif force == 'true':
+                        can_register = True
 
         if can_register:
-            Immersion.objects.create(
-                student=student, slot=slot, cancellation_type=None, attendance_status=0,
-            )
+            # Cancellation exists re-register
+            if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
+                student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
+                    cancellation_type=None, attendance_status=0
+                )
+            # No data exists register
+            else:
+                Immersion.objects.create(
+                    student=student, slot=slot, cancellation_type=None, attendance_status=0,
+                )
 
+            student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
             msg = _("Registration successfully added")
             response = {'error': False, 'msg': msg}
             # TODO: use django messages for errors as well ?
-            if feedback:
+            # this is a js boolean !!!!
+            if feedback == True:
                 messages.success(request, msg)
             request.session["last_registration_slot_id"] = slot.id
         else:
@@ -1061,6 +1109,7 @@ def ajax_get_students(request):
 
     return JsonResponse(response, safe=False)
 
+
 @login_required
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP', 'REF-LYC')
@@ -1074,8 +1123,9 @@ def ajax_get_highschool_students(request, highschool_id=None):
             response = {'data': [], 'msg': _('Invalid parameters')}
             return JsonResponse(response, safe=False)
 
-    students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions')\
-        .filter(high_school_student_record__highschool__id=highschool_id)
+    students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
+        high_school_student_record__highschool__id=highschool_id
+    )
 
     for student in students:
         student_data = {
@@ -1085,7 +1135,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
             'level': student.high_school_student_record.get_level_display(),
             'bachelor': '',
             'class': student.high_school_student_record.class_name,
-            'registered': student.immersions.exists()
+            'registered': student.immersions.exists(),
         }
 
         if student.high_school_student_record.level == 3:
@@ -1110,7 +1160,7 @@ def ajax_send_email(request):
     subject = request.POST.get('subject', "")
     body = request.POST.get('body', "")
 
-    response = {'error': False, 'msg': '' }
+    response = {'error': False, 'msg': ''}
 
     if not slot_id or not body.strip() or not subject.strip():
         response = {'error': True, 'msg': gettext("Invalid parameters")}
@@ -1135,5 +1185,43 @@ def ajax_send_email(request):
         except Exception:
             response['error'] = True
             response['msg'] += _("%s : error") % recipient
+
+
+@is_ajax_request
+@is_post_request
+@groups_required('SCUIO-IP', 'REF-CMP')
+def ajax_batch_cancel_registration(request):
+    """
+    Cancel registrations to immersions slots
+    """
+    immersion_ids = request.POST.get('immersion_ids')
+    reason_id = request.POST.get('reason_id')
+
+    err_msg = None
+    err = False
+
+    if not immersion_ids or not reason_id:
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+    else:
+        for immersion_id in json.loads(immersion_ids):
+
+            try:
+
+                immersion = Immersion.objects.get(pk=immersion_id)
+                cancellation_reason = CancelType.objects.get(pk=reason_id)
+                immersion.cancellation_type = cancellation_reason
+                immersion.save()
+                immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+
+            except ImmersionUser.DoesNotExist:
+                # should not happen !
+                err_msg += _("User not found")
+            except CancelType.DoesNotExist:
+                # should not happen as well !
+                response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
+                err = True
+
+        if not err:
+            response = {'error': False, 'msg': _("Immersion(s) cancelled"), 'err_msg': err_msg}
 
     return JsonResponse(response, safe=False)

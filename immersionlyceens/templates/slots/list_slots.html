@@ -28,7 +28,7 @@
 {% include '../modals/modal_view_slot_immersions.html' %}
 {% include '../modals/modal_register_students_list.html' %}
 {% include '../modals/modal_contact.html' %}
-<div id="top_indicator" class="w-100 bg-success pt-2 pb-1 fixed-top">
+<div id="top_indicator" class="hide w-100 bg-success pt-2 pb-1 fixed-top">
     <p id="top_indicator__content" class="text-center text-light"></p>
 </div>
 <div id="feedback" class="container"></div>
@@ -122,8 +122,8 @@ function open_modal(slot_id, edit_mode) {
     can_update_attendances = false;
     $('#id_update_attendances').hide();
   }
-
-  $('#btn_register_student').attr('data-id',slot_id);
+  // put slot id in register button in modal
+  $('#btn_register_student').data('id', slot_id);
   $('#modal_view_slot_immersions').modal('show');
 }
 
@@ -462,6 +462,7 @@ function show_top_indicator(text) {
     let fade = 1000;
     let display = 3000;
     $('#top_indicator__content').html(text);
+    $('#top_indicator').removeClass('hide');
     $('#top_indicator').show();
     setTimeout(function(){
             $('#top_indicator').fadeOut(fade, function(){

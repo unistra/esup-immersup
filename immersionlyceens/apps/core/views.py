@@ -3,6 +3,8 @@ import logging
 from datetime import datetime
 
 import requests
+from immersionlyceens.decorators import groups_required
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
@@ -12,10 +14,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext, ugettext_lazy as _
 
-from immersionlyceens.decorators import groups_required
-
-from .forms import CourseForm, SlotForm, ContactForm, MyHighSchoolForm
-from .models import Component, Course, ImmersionUser, Slot, Training, UniversityYear, Campus, HighSchool
+from .forms import ContactForm, CourseForm, MyHighSchoolForm, SlotForm
+from .models import Campus, CancelType, Component, Course, HighSchool, ImmersionUser, Slot, Training, UniversityYear
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def import_holidays(request):
     return redirect(redirect_url)
 
 
-groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def slots_list(request):
     template = 'slots/list_slots.html'
 
@@ -97,6 +97,7 @@ def slots_list(request):
     context = {
         'components': components.order_by('label'),
         'contact_form': contact_form,
+        'cancel_types': CancelType.objects.filter(active=True),
     }
 
     if comp_id:
@@ -107,7 +108,7 @@ def slots_list(request):
     return render(request, template, context=context)
 
 
-groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def add_slot(request, slot_id=None):
     slot_form = None
     context = {}
@@ -127,15 +128,14 @@ def add_slot(request, slot_id=None):
 
         components = request.user.components.all().order_by('label')
 
-    if request.method == 'POST' and (request.POST.get('save') or \
-            request.POST.get('duplicate') or \
-            request.POST.get('save_add')):
+    if request.method == 'POST' and (
+        request.POST.get('save') or request.POST.get('duplicate') or request.POST.get('save_add')
+    ):
 
         slot_form = SlotForm(request.POST, instance=slot)
         teachers = []
         teacher_prefix = 'teacher_'
-        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if
-                           teacher_prefix in e]:
+        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
             teachers.append(teacher_id)
 
         # if not pub --> len teachers must be > 0
@@ -167,8 +167,7 @@ def add_slot(request, slot_id=None):
         if request.POST.get('save'):
             response = redirect('slots_list')
             response['Location'] += '?c={}&t={}'.format(
-                request.POST.get('component', ''),
-                request.POST.get('training', ''),
+                request.POST.get('component', ''), request.POST.get('training', ''),
             )
             return response
         elif request.POST.get('save_add'):
@@ -196,7 +195,7 @@ def add_slot(request, slot_id=None):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def modify_slot(request, slot_id):
 
     slot = Slot.objects.get(id=slot_id)
@@ -208,15 +207,14 @@ def modify_slot(request, slot_id):
     elif request.user.is_component_manager:
         components = request.user.components.all().order_by('label')
 
-    if request.method == 'POST' and (request.POST.get('save') or \
-            request.POST.get('duplicate') or \
-            request.POST.get('save_add')):
+    if request.method == 'POST' and (
+        request.POST.get('save') or request.POST.get('duplicate') or request.POST.get('save_add')
+    ):
 
         slot_form = SlotForm(request.POST, instance=slot)
         teachers = []
         teacher_prefix = 'teacher_'
-        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if
-                           teacher_prefix in e]:
+        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
             teachers.append(teacher_id)
 
         published = request.POST.get('published') == 'on'
@@ -243,8 +241,7 @@ def modify_slot(request, slot_id):
         if request.POST.get('save'):
             response = redirect('slots_list')
             response['Location'] += '?c={}&t={}'.format(
-                request.POST.get('component', ''),
-                request.POST.get('training', ''),
+                request.POST.get('component', ''), request.POST.get('training', ''),
             )
             return response
         elif request.POST.get('save_add'):
@@ -276,11 +273,11 @@ def modify_slot(request, slot_id):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-
 # TODO: AUTH
 # @groups_required('SCUIO-IP','REF-CMP')
 def del_slot(request, slot_id):
     from immersionlyceens.apps.core.models import Slot
+
     # todo: check if user can delete this slot
     slot = Slot.objects.get(id=slot_id)
     slot.delete()
@@ -292,9 +289,7 @@ def del_slot(request, slot_id):
 @groups_required('SCUIO-IP', 'REF-CMP')
 def courses_list(request):
     can_update_courses = False
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by(
-        "code", "label"
-    )
+    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
 
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
@@ -311,20 +306,20 @@ def courses_list(request):
         pass
 
     if not can_update_courses:
-        messages.warning(request,
-            _("""Courses cannot be created, updated or deleted because the """
-              """active university year has not begun yet (or is already over."""))
+        messages.warning(
+            request,
+            _(
+                """Courses cannot be created, updated or deleted because the """
+                """active university year has not begun yet (or is already over."""
+            ),
+        )
 
-    context = {
-        "components": allowed_comps,
-        "component_id": component_id,
-        "can_update_courses": can_update_courses
-    }
+    context = {"components": allowed_comps, "component_id": component_id, "can_update_courses": can_update_courses}
 
     return render(request, 'core/courses_list.html', context)
 
 
-groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def course(request, course_id=None, duplicate=False):
     teachers_list = []
     save_method = None
@@ -344,30 +339,37 @@ def course(request, course_id=None, duplicate=False):
         pass
 
     if not can_update_courses:
-        messages.warning(request,
-            _("""Courses cannot be created, updated or deleted because the """
-              """active university year has not begun yet (or is already over."""))
+        messages.warning(
+            request,
+            _(
+                """Courses cannot be created, updated or deleted because the """
+                """active university year has not begun yet (or is already over."""
+            ),
+        )
 
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
             request.session["current_component_id"] = course.component_id
-            teachers_list = [{
-                "username": t.username,
-                "lastname": t.last_name,
-                "firstname": t.first_name,
-                "email": t.email,
-                "display_name": "%s %s" % (t.last_name, t.first_name),
-                "is_removable": not t.slots.filter(course=course_id).exists(),
-            } for t in course.teachers.all()]
+            teachers_list = [
+                {
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": "%s %s" % (t.last_name, t.first_name),
+                    "is_removable": not t.slots.filter(course=course_id).exists(),
+                }
+                for t in course.teachers.all()
+            ]
 
             if duplicate:
                 data = {
-                    'component':course.component,
-                    'training':course.training,
-                    'published':course.published,
-                    'label':course.label,
-                    'url':course.url,
+                    'component': course.component,
+                    'training': course.training,
+                    'published': course.published,
+                    'label': course.label,
+                    'url': course.url,
                 }
                 course = Course(**data)
                 # course_form = CourseForm(initial=data, request=request)
@@ -380,8 +382,7 @@ def course(request, course_id=None, duplicate=False):
         # check user rights
         if course and not (course.get_components_queryset() & allowed_comps).exists():
             update_rights = False
-            messages.error(request,
-                _("You don't have enough privileges to update this course"))
+            messages.error(request, _("You don't have enough privileges to update this course"))
 
     if request.POST.get('save'):
         save_method = 'save'
@@ -398,7 +399,7 @@ def course(request, course_id=None, duplicate=False):
 
         try:
             teachers_list = json.loads(teachers_list)
-            assert(len(teachers_list) > 0)
+            assert len(teachers_list) > 0
         except Exception:
             messages.error(request, _("At least one teacher is required"))
         else:
@@ -407,9 +408,8 @@ def course(request, course_id=None, duplicate=False):
 
                 request.session["current_component_id"] = new_course.component_id
 
-                current_teachers = [
-                    u for u in new_course.teachers.all().values_list('username', flat=True) ]
-                new_teachers = [ teacher.get('username') for teacher in teachers_list ]
+                current_teachers = [u for u in new_course.teachers.all().values_list('username', flat=True)]
+                new_teachers = [teacher.get('username') for teacher in teachers_list]
 
                 # Teachers to add
                 for teacher in teachers_list:
@@ -429,8 +429,10 @@ def course(request, course_id=None, duplicate=False):
                             return_msg = teacher_user.send_message(request, 'CPT_CREATE_ENS')
 
                             if not return_msg:
-                                messages.success(request,
-                                    gettext("A confirmation email has been sent to {}").format(teacher['email']))
+                                messages.success(
+                                    request,
+                                    gettext("A confirmation email has been sent to {}").format(teacher['email']),
+                                )
                             else:
                                 messages.warning(request, return_msg)
 
@@ -438,11 +440,7 @@ def course(request, course_id=None, duplicate=False):
                             Group.objects.get(name='ENS-CH').user_set.add(teacher_user)
                         except Exception:
                             messages.error(
-                                request,
-                                _(
-                                    "Couldn't add group 'ENS-CH' to user '%s'"
-                                    % teacher['username']
-                                ),
+                                request, _("Couldn't add group 'ENS-CH' to user '%s'" % teacher['username']),
                             )
 
                         if teacher_user:
@@ -503,7 +501,6 @@ def mycourses(request):
     return render(request, 'core/mycourses.html', context)
 
 
-
 @groups_required('ENS-CH',)
 def myslots(request):
     contact_form = ContactForm()
@@ -516,7 +513,7 @@ def myslots(request):
 
 
 @groups_required('REF-LYC',)
-def my_high_school(request,  high_school_id=None):
+def my_high_school(request, high_school_id=None):
     if request.user.highschool.id != high_school_id:
         return redirect('home')
 
@@ -543,6 +540,7 @@ def my_high_school(request,  high_school_id=None):
 
     return render(request, 'core/my_high_school.html', context)
 
+
 @groups_required('REF-LYC',)
 def my_students(request):
     try:
@@ -557,15 +555,14 @@ def my_students(request):
     return render(request, 'core/highschool_students.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP',)
+@groups_required(
+    'REF-LYC', 'SCUIO-IP',
+)
 def student_validation(request, high_school_id=None):
     from .models import HighSchool
 
     if not high_school_id and request.user.is_high_school_manager():
-        return redirect(
-            'student_validation',
-            high_school_id=request.user.highschool.id
-        )
+        return redirect('student_validation', high_school_id=request.user.highschool.id)
 
     # student_validation
     context = {}
@@ -578,7 +575,9 @@ def student_validation(request, high_school_id=None):
     return render(request, 'core/student_validation.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP',)
+@groups_required(
+    'REF-LYC', 'SCUIO-IP',
+)
 def highschool_student_record_form_manager(request, hs_record_id):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
     from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
@@ -620,4 +619,3 @@ def highschool_student_record_form_manager(request, hs_record_id):
         'record': hs,
     }
     return render(request, 'core/hs_record_manager.html', context)
-
