@@ -177,12 +177,12 @@
         var msg = "";
 
         if(row.attendances_value == 1) {
-          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +")\" title=\"{% trans 'Enter attendances' %}\">" +
+          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +")\" title=\"{% trans 'Enter attendances' %}\">" +
               "<i class='fa fas fa-edit'></i>" +
               "</button>";
         }
         else if (row.attendances_value != -1) {
-          msg = "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +")\" title=\"{% trans 'View registered students' %}\">" +
+          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +")\" title=\"{% trans 'View registered students' %}\">" +
                 "<i class='fa fas fa-eye'></i>" +
                 "</button>";
         }
@@ -194,7 +194,7 @@
       "data": "additional_information",
       "render": function (data) {
         if(data){
-          return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-eye"></i></span>';
+          return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info"></i></span>';
         } else {
           return ""
         }
