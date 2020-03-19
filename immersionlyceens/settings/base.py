@@ -260,6 +260,7 @@ THIRD_PARTY_APPS = [
     'compat',
     'hijack_admin',
     'django_summernote',
+    'shibboleth',
 ]
 
 LOCAL_APPS = [

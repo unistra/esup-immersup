@@ -18,7 +18,8 @@ admin.autodiscover()
 urlpatterns = [
     # Examples:
     path('', home, name='home'),
-    path('secure', shibbolethLogin, name='shibboleth_login'),
+    path('shib/', shibbolethLogin, name='shibboleth_login'),
+    path('secure', include('shibboleth.urls', namespace='shibboleth')), 
     path('accompanying', accompanying, name='accompanying'),
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('admin/', admin.site.urls),
