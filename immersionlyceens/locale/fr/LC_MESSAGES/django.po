@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-19 14:44+0100\n"
+"POT-Creation-Date: 2020-03-19 15:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2313,6 +2313,7 @@ msgid "Administration"
 msgstr "Administration"
 
 #: immersionlyceens/templates/fragments/main_menu.html:105
+#: immersionlyceens/templates/modals/modal_register_students_list.html:22
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:23
 msgid "Profile"
 msgstr "Profil"
@@ -2702,10 +2703,6 @@ msgstr "Infos complémentaires"
 msgid "Students"
 msgstr "Etudiant/Lycéen"
 
-#: immersionlyceens/templates/modals/modal_register_students_list.html:22
-msgid "Profil"
-msgstr "Profil"
-
 #: immersionlyceens/templates/modals/modal_register_students_list.html:24
 msgid "Highschool"
 msgstr "Lycée"
@@ -2722,7 +2719,9 @@ msgstr "Inscrire l'étudiant(e)"
 msgid ""
 "Selected student as no remaining registration available would you like to "
 "register anyway"
-msgstr "L'étudiant selectionné a atteint le nombre maximal d'inscription autorisé voulez vous l'inscrire malgré tout ?"
+msgstr ""
+"L'étudiant selectionné a atteint le nombre maximal d'inscription autorisé "
+"voulez vous l'inscrire malgré tout ?"
 
 #: immersionlyceens/templates/modals/modal_register_students_list.html:133
 msgid "Registration successful"
@@ -2952,15 +2951,3 @@ msgstr "Le créneau a été supprimé avec succès"
 #: immersionlyceens/views.py:197
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
-
-#~ msgid "View attendances"
-#~ msgstr "Voir les emargements"
-
-#~ msgid "Schedule"
-#~ msgstr "Horaire"
-
-#~ msgid "Training choice"
-#~ msgstr "Choix de la formation"
-
-#~ msgid "Consult slots"
-#~ msgstr "Consulter les créneaux"
