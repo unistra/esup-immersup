@@ -935,7 +935,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU')
+@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-CMP')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -947,10 +947,13 @@ def ajax_slot_registration(request):
     # is used in modal or specific form !
     # warning js boolean not python one
     feedback = request.POST.get('feedback', True)
+    # Should we force registering ?
+    # warning js boolean not python one
+    force = request.POST.get('force', False)
     cmp = request.POST.get('cmp', False)
     calendar, slot, student = None, None, None
+    can_force_reg = request.user.is_scuio_ip_manager()
     today = datetime.datetime.today().date()
-    semester = 0
 
     request.session.pop("last_registration_slot", None)
 
@@ -989,30 +992,51 @@ def ajax_slot_registration(request):
     else:
         remaining_regs_count = student.remaining_registrations_count()
         can_register = False
+        print(can_force_reg, remaining_regs_count)
 
         # TODO : this has to be factorized somewhere ...
         if calendar and calendar.calendar_mode == 'YEAR':
             if calendar.year_registration_start_date <= today <= calendar.year_end_date:
-                can_register = True
+                # remaining regs ok
+                if remaining_regs_count['annually'] > 0:
+                    can_register = True
+                # alert user he can force registering
+                elif can_force_reg and not force == 'true':
+                    return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                # force registering
+                elif force == 'true':
+                    can_register = True
+
         # semester mode
         elif calendar:
             # Semester 1
             if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
-                if (
-                    calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date
-                    and remaining_regs_count['semester1']
-                ):
-                    can_register = True
+                if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date:
+                    # remaining regs ok
+                    if remaining_regs_count['semester1'] > 0:
+                        can_register = True
+                    # alert user he can force registering (js boolean)
+                    elif can_force_reg and not force == 'true':
+                        return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                    # force registering (js boolean)
+                    elif force == 'true':
+                        can_register = True
+
             # Semester 2
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
-                if (
-                    calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date
-                    and remaining_regs_count['semester2']
-                ):
-                    can_register = True
+                if calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date:
+                    # remaining regs ok
+                    if remaining_regs_count['semester2'] > 0:
+                        can_register = True
+                    # alert user he can force registering (js boolean)
+                    elif can_force_reg and not force == 'true':
+                        return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                    # force registering (js boolean)
+                    elif force == 'true':
+                        can_register = True
 
         if can_register:
-            # Cancellation exists reregister
+            # Cancellation exists re-register
             if student.immersions.filter(slot=slot, cancellation_type__isnull=False).exists():
                 student.immersions.filter(slot=slot, cancellation_type__isnull=False).update(
                     cancellation_type=None, attendance_status=0

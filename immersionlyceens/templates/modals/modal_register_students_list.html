@@ -108,7 +108,7 @@ $('#modal_register_students_list').on('show.bs.modal', function (e) {
   reload_register_students();
 });
 
-function register_student(student_id, slot_id) {
+function register_student(student_id, slot_id, force=false) {
     $.ajax({
       url: "{% url 'SlotRegistration' %}",
       type: 'POST',
@@ -117,14 +117,18 @@ function register_student(student_id, slot_id) {
         'slot_id': slot_id,
         'feedback': false,
         'cmp': true,
+        'force': force,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
         if(json['error']) {
-            console.log('error');
+            if (json['msg'] == 'force_update') {
+              if (confirm('{% trans "Selected student as no remaining registration available would you like to register anyway"%}')) { register_student(student_id, slot_id, force=true); }
+            } else {
+              $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+              setTimeout(function() { $("#register_feedback").html('');}, 3000);
+            }
 
-            $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-            setTimeout(function() { $("#register_feedback").html('');}, 3000);
         } else {
             $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
             setTimeout(function() { $("#register_feedback").html('');}, 3000);
