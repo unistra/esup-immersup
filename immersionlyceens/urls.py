@@ -10,12 +10,16 @@ from .views import (
     serve_public_document,
 )
 
+from immersionlyceens.apps.immersion.views import shibbolethLogin
+
 admin.autodiscover()
 
 
 urlpatterns = [
     # Examples:
     path('', home, name='home'),
+    path('shib/', shibbolethLogin, name='shibboleth_login'),
+    path('secure', include('shibboleth.urls', namespace='shibboleth')), 
     path('accompanying', accompanying, name='accompanying'),
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('admin/', admin.site.urls),

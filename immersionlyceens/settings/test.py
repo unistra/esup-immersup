@@ -42,6 +42,13 @@ for logger in LOGGING['loggers']:
     LOGGING['loggers'][logger]['level'] = 'DEBUG'
 
 
+####################
+#       CAS        #
+####################
+
+CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
+
+
 #################
 # APIs settings #
 #################

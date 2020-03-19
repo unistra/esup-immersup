@@ -92,6 +92,31 @@ def customLogin(request, profile=None):
 
     return render(request, 'immersion/login.html', context)
 
+
+def shibbolethLogin(request, profile=None):
+    """
+    """
+    Session.objects.all().delete()
+
+    try:
+        user = ImmersionUser.objects.get(username=request.META['mail'])
+    except ImmersionUser.DoesNotExist:
+        user = ImmersionUser.objects.create(
+            username=request.META['mail'],
+            first_name=request.META['givenName'],
+            last_name=request.META['sn'],
+            email=request.META['mail'])
+
+    try:
+        Group.objects.get(name='ETU').user_set.add(user)
+    except Exception:
+        logger.exception("Cannot add 'ETU' group to user {}".format(user))
+        messages.error(request, _("Group error"))
+
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+    return HttpResponseRedirect("/immersion")
+
 """
 # TODO : try Django's authentication system
 

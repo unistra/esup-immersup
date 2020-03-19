@@ -192,11 +192,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_cas.middleware.CASMiddleware',
+    'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'django_cas.backends.CASBackend',
+    'shibboleth.backends.ShibbolethRemoteUserBackend',
 )
 
 ######################
@@ -258,6 +260,7 @@ THIRD_PARTY_APPS = [
     'compat',
     'hijack_admin',
     'django_summernote',
+    'shibboleth',
 ]
 
 LOCAL_APPS = [
@@ -405,6 +408,22 @@ LDAP_API_EMAIL_ATTR = ''
 LDAP_API_EMAIL_USERNAME = ''
 LDAP_API_LASTNAME_ATTR = ''
 LDAP_API_FIRSTNAME_ATTR = ''
+
+#######################
+# SHIBBOLETH settings #
+#######################
+
+# Do not use : may not be unique accross institutions
+# "HTTP_UID": (True, "username"), 
+
+SHIBBOLETH_ATTRIBUTE_MAP = {
+    "HTTP_GIVENNAME": (True, "first_name"),
+    "HTTP_SN": (True, "last_name"),
+    "HTTP_MAIL": (False, "username"),
+}
+
+SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
+SHIBBOLETH_LOGOUT_REDIRECT_URL = "/"
 
 #######################
 # Email configuration #
