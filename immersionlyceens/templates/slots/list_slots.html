@@ -117,8 +117,8 @@ function open_modal(slot_id, edit_mode) {
     can_update_attendances = false;
     $('#id_update_attendances').hide();
   }
-
-  $('#btn_register_student').attr('data-id',slot_id);
+  // put slot id in register button in modal
+  $('#btn_register_student').data('id', slot_id);
   $('#modal_view_slot_immersions').modal('show');
 }
 
