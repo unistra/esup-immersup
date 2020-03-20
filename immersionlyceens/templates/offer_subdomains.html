@@ -18,6 +18,7 @@
 {% trans "Offer" %}
 {% endblock %}
 {% block content %}
+{% authorized_groups request.user %}
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
