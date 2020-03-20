@@ -384,6 +384,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
         current_email = student.email
+        current_highschool = record.highschool.id if record.highschool else None
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, request=request, instance=student)
 
@@ -410,6 +411,11 @@ def high_school_student_record(request, student_id=None, record_id=None):
         if recordform.is_valid():
             record = recordform.save()
 
+            if current_highschool != record.highschool.id:
+                record.validation = 1
+                record.save()
+                messages.info(request, _("You have changed the high school, your record needs a new validation"))
+
             # Look for duplicated records
             if record.search_duplicates():
                 if request.user.is_high_school_student():
@@ -434,6 +440,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
     else:
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
+
+        messages.info(request, _("Current record status : %s") % record.get_validation_display())
 
     context = {
         'calendar': calendar,
