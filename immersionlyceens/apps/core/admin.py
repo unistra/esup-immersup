@@ -833,12 +833,21 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'city',
         'email',
         'head_teacher_name',
+        'referents_list',
         'convention_start_date',
         'convention_end_date',
     )
     list_filter = ('city',)
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name')
+
+    def referents_list(self, obj):
+        return [
+            "%s %s" % (user.last_name, user.first_name)
+            for user in obj.highschool_referent.all().order_by('last_name', 'first_name')
+        ]
+
+    referents_list.short_description = _('Referents')
 
     def get_actions(self, request):
         # Disable delete
