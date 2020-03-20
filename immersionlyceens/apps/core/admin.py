@@ -833,13 +833,12 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'city',
         'email',
         'head_teacher_name',
-        'referent_name',
         'convention_start_date',
         'convention_end_date',
     )
     list_filter = ('city',)
     ordering = ('label',)
-    search_fields = ('label', 'city', 'head_teacher_name', 'referent_name')
+    search_fields = ('label', 'city', 'head_teacher_name')
 
     def get_actions(self, request):
         # Disable delete

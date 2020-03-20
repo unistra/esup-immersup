@@ -106,8 +106,7 @@ class FormTestCase(TestCase):
         self.slot.teachers.add(self.teacher1),
         self.high_school = HighSchool.objects.create(label='HS1', address='here',
                          department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-                         email='a@b.c', head_teacher_name='M. A B', referent_name='my name',
-                         referent_phone_number='0123456789', referent_email='a@b.c')
+                         email='a@b.c', head_teacher_name='M. A B')
         self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
                         highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
                         phone='0123456789', level=1, class_name='1ere S 3',

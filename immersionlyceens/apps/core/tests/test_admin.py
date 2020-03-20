@@ -414,9 +414,6 @@ class AdminFormsTestCase(TestCase):
             'fax': '+3397654321',
             'email': 'santodomingo@santodomingo.edu',
             'head_teacher_name': 'Madame Musso Grace',
-            'referent_name': 'Franck Lemmer',
-            'referent_phone_number': '+30102030',
-            'referent_email': 'franck.lemmer@caramail.com',
             'convention_start_date': datetime.datetime.today().date(),
             'convention_end_date': '',
         }
@@ -444,9 +441,6 @@ class AdminFormsTestCase(TestCase):
             'fax': '+3397654321',
             'email': 'degrassi@degrassi.edu',
             'head_teacher_name': 'M. Daniel Raditch',
-            'referent_name': 'Spike Nelson',
-            'referent_phone_number': '+30102030',
-            'referent_email': 'spike@caramail.com',
             'convention_start_date': datetime.datetime.today().date(),
             'convention_end_date': '',
         }

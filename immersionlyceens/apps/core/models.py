@@ -83,11 +83,6 @@ class HighSchool(models.Model):
     head_teacher_name = models.CharField(
         _("Head teacher name"), max_length=255, blank=False, null=False, help_text=_('civility last name first name'),
     )
-    referent_name = models.CharField(
-        _('Referent name'), max_length=255, blank=False, null=False, help_text=_('last name first name'),
-    )
-    referent_phone_number = models.CharField(_("Referent phone number"), max_length=20, blank=False, null=False)
-    referent_email = models.EmailField(_('Referent email'))
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
 

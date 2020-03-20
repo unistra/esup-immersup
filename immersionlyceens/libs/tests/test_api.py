@@ -102,9 +102,6 @@ class APITestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            referent_name='my name',
-            referent_phone_number='0123456789',
-            referent_email='a@b.c',
         )
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
