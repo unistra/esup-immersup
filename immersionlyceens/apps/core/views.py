@@ -593,11 +593,11 @@ def highschool_student_record_form_manager(request, hs_record_id):
             form.save()
             messages.success(request, _("High school student record modified"))
 
-            user_date = {
+            user_data = {
                 'first_name': request.POST.get('first_name'),
                 'last_name': request.POST.get('last_name'),
             }
-            user_form = HighSchoolStudentImmersionUserForm(user_date, instance=hs.student)
+            user_form = HighSchoolStudentImmersionUserForm(user_data, instance=hs.student)
 
             # user validation
             if user_form.is_valid():

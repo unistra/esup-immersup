@@ -75,7 +75,7 @@ class UserNode(template.Node):
 
 @register.tag
 def authorized_groups(parser, token):
-    tag_name, user, = token.split_contents()
+    tag_name, user = token.split_contents()
     return AuthorizedGroupsNode(user)
 
 
@@ -85,11 +85,13 @@ class AuthorizedGroupsNode(template.Node):
 
     def render(self, context):
         user = self.user.resolve(context)
-        # User shoud be not an anonymous one !!!
+
+        # User should not be an anonymous one !!!
         if user.id is not None:
             context['authorized_groups'] = {g.name for g in user.authorized_groups()}
         else:
             context['authorized_groups'] = set()
+
         return ''
 
 

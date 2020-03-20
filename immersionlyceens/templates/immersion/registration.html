@@ -51,6 +51,7 @@
             {{ form.email2.errors }}
           </div>
         </div>
+        {% if form.password1 %}
         <div class="form-group row align-items-center">
           <label for="id_password1" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
           <div class="col-sm-3">
@@ -60,6 +61,8 @@
             {{ form.password1.errors }}
           </div>
         </div>
+        {% endif %}
+        {% if form.password2 %}
         <div class="form-group row align-items-center">
           <label for="id_password2" class="col-sm-2 col-form-label">{% trans 'Password (confirmation)' %} :</label>
           <div class="col-sm-3">
@@ -69,6 +72,7 @@
             {{ form.password2.errors }}
           </div>
         </div>
+        {% endif %}
         <div class="form-group row align-items-center">
           <div class="col-sm-6 text-right">
             <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">

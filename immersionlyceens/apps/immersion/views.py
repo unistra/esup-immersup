@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.conf import settings
 from shibboleth.decorators import login_optional
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
     ImmersionUser, UniversityYear, Calendar, Immersion, CancelType)
@@ -99,26 +100,62 @@ def shibbolethLogin(request, profile=None):
     """
     """
 
-    if not request.user.is_anonymous:
-        #user = ImmersionUser.objects.get(pk=request.user.id)
-        #user.email = request.
+    if request.POST.get('submit'):
+        shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
+        if not error:
+            new_user = ImmersionUser.objects.create(**shib_attrs)
+            new_user.set_validation_string()
+            new_user.destruction_date = \
+                datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+            new_user.save()
+
+            try:
+                Group.objects.get(name='ETU').user_set.add(new_user)
+            except Exception:
+                logger.exception("Cannot add 'ETU' group to user {}".format(new_user))
+                messages.error(request, _("Group error"))
+
+            try:
+                msg = new_user.send_message(request, 'CPT_MIN_CREATE_ETU')
+            except Exception as e:
+                logger.exception("Cannot send activation message : %s", e)
+
+            messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
+            return HttpResponseRedirect("/")
+
+    """
+    if not request.user.is_anonymous:
         try:
             Group.objects.get(name='ETU').user_set.add(request.user)
         except Exception:
             logger.exception("Cannot add 'ETU' group to user {}".format(request.user))
             messages.error(request, _("Group error"))
+    """
+    if request.user.is_anonymous:
+        shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
-    return HttpResponseRedirect("/immersion")
+        if not error:
+            context = shib_attrs
+            return render(request, "immersion/confirm_creation.html", context)
+        else:
+            messages.error(request, _("Incomplete data for account creation"))
+    else:
+        # Activated account ?
+        if not request.user.is_valid():
+            messages.error(request, _("Your account hasn't been enabled yet."))
+        else:
+            # login(request, request.user, backend='django.contrib.auth.backends.ModelBackend')
 
-"""
-# TODO : try Django's authentication system
+            if request.user.is_student():
+                # If student has filled his record
+                if request.user.get_student_record():
+                    return HttpResponseRedirect("/immersion")
+                else:
+                    return HttpResponseRedirect("/immersion/student_record")
 
-class CustomLogin(auth_views.LoginView):
-    template_name = "immersion/login.html"
-    redirect_field_name = "/immersion"
-    authentication_form = LoginForm
-"""
+    return HttpResponseRedirect("/")
+
 
 def register(request):
     # Is current university year valid ?
@@ -292,6 +329,10 @@ def activate(request, hash=None):
             user = ImmersionUser.objects.get(validation_string=hash)
             user.validate_account()
             messages.success(request, _("Your account is now enabled. Thanks !"))
+
+            if user.is_student():
+                return HttpResponseRedirect("/shib")
+
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("Invalid activation data"))
         except Exception as e:

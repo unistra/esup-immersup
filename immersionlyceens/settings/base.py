@@ -426,6 +426,8 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
 SHIBBOLETH_LOGOUT_REDIRECT_URL = "/"
 
+CREATE_UNKNOWN_USER = False
+
 #######################
 # Email configuration #
 #######################
