@@ -26,8 +26,8 @@
             <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Send me instructions !' %}">
           </div>
           <div class="col-sm-6">   
-            <a href="{% url 'immersion:login' %}" class="btn btn-secondary btn-sm" style='margin-left:40px;'>{% trans 'Back' %}</a>
-          </div>  
+            <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary btn-sm" style='margin-left:40px;'>{% trans 'Back' %}</a>
+          </div>
         </div> 
       </form>
     </div>
