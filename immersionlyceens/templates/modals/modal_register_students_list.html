@@ -86,12 +86,12 @@ dtl = $('#register_students_list').DataTable({
     {"data": "city"},
     {"data": "id",
      render: function(data, type, row) {
-        return '<button class="btn btn-light btn-sm mr-4"' +
-          'name="view"' +
-          'onclick="register_student(' + data + ',' + $('#btn_register_student').data('id') + ');"' +
-          'title="{% trans "Register student" %}">' +
-          '<i class="fas fa fa-user-circle-o" aria-hidden="true">' +
-          '</i></button>';
+        return "<button class=\"btn btn-light btn-sm mr-4\"" +
+          "name=\"view\"" +
+          "onclick=\"register_student(" + data + "," + $('#btn_register_student').data('id') + ");\"" +
+          "title=\"{% trans "Register student" %}\">" +
+          "<i class=\"fas fa fa-user-circle-o\" aria-hidden=\"true\">" +
+          "</i></button>";
       }
     }
   ],
@@ -123,7 +123,7 @@ function register_student(student_id, slot_id, force=false) {
       success: function (json) {
         if(json['error']) {
             if (json['msg'] == 'force_update') {
-              if (confirm('{% trans "Selected student as no remaining registration available would you like to register anyway"%}')) { register_student(student_id, slot_id, force=true); }
+              if (confirm("{% trans 'Selected student as no remaining registration available would you like to register anyway'%}")) { register_student(student_id, slot_id, force=true); }
             } else {
               $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
               setTimeout(function() { $("#register_feedback").html('');}, 3000);
