@@ -313,7 +313,7 @@ $(document).ready(function(){
     var selectedCancelType = $('#select_cancel_type').val()
 
     if ( !selectedCancelType ) {
-      alert('{% trans "Please select a cancel type first" %}');
+      alert("{% trans 'Please select a cancel type first' %}");
     } else {
       $.ajax({
           url: "{% url 'BatchCancelRegistration' %}",

@@ -762,17 +762,24 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         'student_id': user_id,
         'cancellation_type__isnull': True,
     }
-
-    if immersion_type == "future":
-        filters['slot__date__gte'] = today
-    elif immersion_type == "past":
-        filters['slot__date__lte'] = today
-    elif immersion_type == "cancelled":
-        filters['cancellation_type__isnull'] = False
-
+    
     immersions = Immersion.objects.prefetch_related(
         'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
     ).filter(**filters)
+
+    if immersion_type == "future":
+        immersions = immersions.filter(Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time))
+    elif immersion_type == "past":
+        immersions = immersions.filter(Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time))
+    elif immersion_type == "cancelled":
+        immersions = immersions.filter(cancellation_type__isnull=False)
+
+
+    """
+    immersions = Immersion.objects.prefetch_related(
+        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
+    ).filter(**filters)
+    """
 
     for immersion in immersions:
         immersion_data = {
