@@ -214,7 +214,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields['general_bachelor_teachings'].required = False
 
         # CSS
-        excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings']
+        excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings', 'birth_date']
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
@@ -277,7 +277,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                   'allowed_second_semester_registrations']
 
         widgets = {
-            'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
         }
 
         localized_fields = ('birth_date',)
@@ -294,8 +294,10 @@ class StudentRecordForm(forms.ModelForm):
         self.fields['current_diploma'].widget.attrs['size'] = 80
 
         # CSS
+        excludes = ['birth_date']
         for field in self.fields:
-            self.fields[field].widget.attrs['class'] = 'form-control'
+            if field not in excludes:
+                self.fields[field].widget.attrs['class'] = 'form-control'
 
         if not self.request or not self.request.user.is_scuio_ip_manager():
             del self.fields['allowed_global_registrations']
@@ -310,7 +312,7 @@ class StudentRecordForm(forms.ModelForm):
                   'allowed_second_semester_registrations']
 
         widgets = {
-            'birth_date': forms.DateInput(attrs={'class': 'datepicker'}),
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
         }
 
         localized_fields = ('birth_date',)
