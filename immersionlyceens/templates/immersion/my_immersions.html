@@ -171,7 +171,35 @@
     current_immersion_id = immersion_id;
     $('#modal_cancel_immersion').modal('show');
   }
-  
+
+  function register(slot_id) {
+    $.ajax({
+        url: "{% url 'SlotRegistration' %}",
+        type: 'POST',
+        data: {
+          'slot_id': slot_id,
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function (json) {
+          let msg = json['msg'];
+          let error = json['error'];
+
+          if(error) {
+            feedback.trigger("showFeedback", [[msg, "danger"]]);
+          }
+          else {
+            feedback.trigger("showFeedback", [[msg, "success"]]);
+            dt_future.ajax.reload();
+            dt_past.ajax.reload();
+            dt_cancelled.ajax.reload();
+          }
+        },
+        error: function(json) {
+          console.log(json);
+        }
+      })
+  }
+
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
@@ -373,7 +401,17 @@
             return txt;
           },
         },
-        { "data": "cancellation_type" },
+        { "data": "cancellation_type",
+          "render": function(data, type, row) {
+            var msg = data;
+
+            if(row.can_register) {
+              msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+            }
+
+            return msg;
+          }
+        },
       ],
       "columnDefs": [
         {

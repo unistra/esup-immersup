@@ -85,7 +85,9 @@
                               </ul>
                             </td>
                             <td>
-                              {% if slot.already_registered %}
+                              {% if slot.cancelled %}
+                                  <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                              {% elif slot.already_registered %}
                                   <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
                               {% elif slot.available_seats > 0 %}
                                 {% trans 'Available places' %} : {{ slot.available_seats }}<br>

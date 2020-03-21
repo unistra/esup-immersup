@@ -220,12 +220,14 @@ def offer_subdomain(request, subdomain_id):
                 for slot in slots:
                     slot.already_registered = False
                     slot.can_register = False
-                    # Already registered ?
+                    slot.cancelled = False
+                    # Already registered / cancelled ?
                     for immersion in student.immersions.all():
                         if immersion.slot == slot:
                             slot.already_registered = True
+                            slot.cancelled = immersion.cancellation_type is not None
 
-                    # Can register ? not registered + free seats + dates in range
+                            # Can register ? not registered + free seats + dates in range
                     if not slot.already_registered:
                         if slot.available_seats() > 0:
                             if calendar.calendar_mode == 'YEAR' and remaining_regs_count['annually'] \

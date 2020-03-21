@@ -44,14 +44,6 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        /*
-        if(json['error']) {
-            alert(json['msg']);
-        }
-        else {
-          window.location = "{% url 'immersion:immersions' %}";
-        }
-        */
         let msg = json['msg'];
         let error = json['error'];
 

@@ -742,10 +742,14 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     Get (high-school or not) students immersions
     immersion_type in "future", "past", "cancelled" or None
     """
+    calendar = None
+    slot_semester = None
+    remainings = {}
     response = {'msg': '', 'data': []}
 
     if not user_id:
         response['msg'] = gettext("Error : missing user id")
+        return JsonResponse(response, safe=False)
 
     if (
         not request.user.is_scuio_ip_manager()
@@ -753,8 +757,23 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         and request.user.id != user_id
     ):
         response['msg'] = gettext("Error : invalid user id")
+        return JsonResponse(response, safe=False)
 
+    try:
+        calendar = Calendar.objects.first()
+    except Exception:
+        pass
+
+    # TODO: poc for now maybe refactor dirty code in a model method !!!!
     today = datetime.datetime.today().date()
+
+    try:
+        student = ImmersionUser.objects.get(pk=user_id)
+        remainings['1'], remainings['2'], remaining_annually = student.remaining_registrations_count()
+    except ImmersionUser.DoesNotExist:
+        response['msg'] = gettext("Error : no such user")
+        return JsonResponse(response, safe=False)
+
     time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
 
     immersions = Immersion.objects.prefetch_related(
@@ -771,6 +790,21 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         immersions = immersions.filter(cancellation_type__isnull=False)
 
     for immersion in immersions:
+        if calendar.calendar_mode == 'SEMESTER':
+            slot_semester = calendar.which_semester(immersion.slot.date)
+
+        slot_datetime = datetime.datetime.strptime(
+            "%s:%s:%s %s:%s"
+            % (
+                immersion.slot.date.year,
+                immersion.slot.date.month,
+                immersion.slot.date.day,
+                immersion.slot.start_time.hour,
+                immersion.slot.start_time.minute,
+            ),
+            "%Y:%m:%d %H:%M",
+        )
+
         immersion_data = {
             'id': immersion.id,
             'training': immersion.slot.course.training.label,
@@ -780,17 +814,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'campus': immersion.slot.campus.label,
             'building': immersion.slot.building.label,
             'room': immersion.slot.room,
-            'datetime': datetime.datetime.strptime(
-                "%s:%s:%s %s:%s"
-                % (
-                    immersion.slot.date.year,
-                    immersion.slot.date.month,
-                    immersion.slot.date.day,
-                    immersion.slot.start_time.hour,
-                    immersion.slot.start_time.minute,
-                ),
-                "%Y:%m:%d %H:%M",
-            ),
+            'datetime': slot_datetime,
             'date': date_format(immersion.slot.date),
             'start_time': immersion.slot.start_time.strftime("%-Hh%M"),
             'end_time': immersion.slot.end_time.strftime("%-Hh%M"),
@@ -800,10 +824,16 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'attendance_status': immersion.attendance_status,
             'cancellable': datetime.datetime.today().date() < immersion.slot.date,
             'cancellation_type': '',
+            'slot_id': immersion.slot.id,
+            'can_register': False,
         }
 
         if immersion.cancellation_type:
             immersion_data['cancellation_type'] = immersion.cancellation_type.label
+
+            if slot_datetime > datetime.datetime.today() and immersion.slot.available_seats() > 0:
+                if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
+                    immersion_data['can_register'] = True
 
         for teacher in immersion.slot.teachers.all().order_by('last_name', 'first_name'):
             immersion_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
