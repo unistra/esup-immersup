@@ -337,8 +337,11 @@ $(document).ready(function(){
                 '                  background-position: center center; ' +
                 '                  background-size: 60%;"' +
                 '         title="{% trans 'Add' %}">&nbsp;&nbsp;</a>' +
-                '        <a href="/core/slot/modify/' + data + '" class="btn btn-light" title="{% trans 'Modify' %}">&#x270E;</a>\n' +
-                '        <button class="btn btn-light" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}">&#x1F5D1;</button>\n';
+                '        <a href="/core/slot/modify/' + data + '" class="btn btn-light" title="{% trans 'Modify' %}">&#x270E;</a>\n';
+
+                  if(row.n_register == 0) {
+                    element += '<button class="btn btn-light" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}">&#x1F5D1;</button>\n';
+                  }
 
                   if(row.attendances_value == 1) {
                     element += "<button class=\"btn btn-secondary btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'Enter attendances' %}\">" +
