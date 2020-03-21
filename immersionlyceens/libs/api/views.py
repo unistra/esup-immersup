@@ -398,11 +398,11 @@ def ajax_get_my_slots(request, user_id=None):
             Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
             .filter(teachers=user_id)
             .exclude(date__lt=today, immersions__isnull=True)
-        )
+        ).distinct()
     else:
         slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions').filter(
             Q(date__gte=today) | Q(immersions__attendance_status=0), teachers=user_id
-        )
+        ).distinct()
 
     for slot in slots:
         campus = ""
