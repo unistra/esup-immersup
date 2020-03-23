@@ -33,9 +33,15 @@
           <tr>
             <th class="align-top">{% trans 'Student' %}</th>
             <th class="align-top">{% trans 'Birth date' %}</th>
+            {% if request.user.is_scuio_ip_manager %}
+            <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
+            {% endif %}
             <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
             <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
             <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
+            {% if request.user.is_scuio_ip_manager %}
+            <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
+            {% endif %}
             <th id="registered_filter" class="align-top">{% trans 'Registered' %}</th>
             <th></th>
           </tr>
@@ -44,6 +50,9 @@
           <tr>
             <td></td>
             <td></td>
+            {% if request.user.is_scuio_ip_manager %}
+            <td></td>
+            {% endif %}
             <td></td>
             <td></td>
             <td></td>
@@ -60,6 +69,13 @@
   var highschool_id = "{{ request.user.highschool.id }}";
   var current_student_id;
 
+  if("{{ is_scuio_ip_manager }}" == "True") {
+    var is_scuio_ip = true;
+  }
+  else {
+    var is_scuio_ip = false;
+  };
+
   function open_modal(student_id) {
     current_student_id = student_id;
     $('#modal_student_details').modal('show');
@@ -70,7 +86,7 @@
     dt = $('#students_table').DataTable({
       'processing': false,
       'order': [
-        [0, "asc"]
+        [0, "asc"],
       ],
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -91,9 +107,15 @@
     'columns': [
     { "data": "name" },
     { "data": "birthdate" },
+    {% if request.user.is_scuio_ip_manager %}
+    { "data": "institution" },
+    {% endif %}
     { "data": "level" },
     { "data": "class" },
     { "data": "bachelor" },
+    {% if request.user.is_scuio_ip_manager %}
+    { "data": "post_bachelor_level" },
+    {% endif %}
     { "data": "registered",
       "render": function(data, type, row) {
         if(data) {
@@ -124,34 +146,90 @@
   });
 
   // Filters init
-  yadcf.init(dt, [{
-    column_number: 2,
-    filter_default_label: "",
-    filter_container_id: "level_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 3,
-    filter_default_label: "",
-    filter_container_id: "class_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 4,
-    filter_default_label: "",
-    filter_container_id: "bachelor_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 5,
-    filter_default_label: "",
-    filter_container_id: "registered_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
+  if (is_scuio_ip) {
+    yadcf.init(dt, [
+      {
+        column_number: 2,
+        filter_default_label: "",
+        filter_container_id: "etab_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 3,
+        filter_default_label: "",
+        filter_container_id: "level_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      }, {
+        column_number: 4,
+        filter_default_label: "",
+        filter_container_id: "class_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      }, {
+        column_number: 5,
+        filter_default_label: "",
+        filter_container_id: "bachelor_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 6,
+        filter_default_label: "",
+        filter_container_id: "post_bachelor_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 7,
+        filter_default_label: "",
+        filter_container_id: "registered_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      }
+    ]);
   }
-  ]);
+  else {
+    yadcf.init(dt, [
+      {
+        column_number: 2,
+        filter_default_label: "",
+        filter_container_id: "level_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      }, {
+        column_number: 3,
+        filter_default_label: "",
+        filter_container_id: "class_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      }, {
+        column_number: 4,
+        filter_default_label: "",
+        filter_container_id: "bachelor_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 5,
+        filter_default_label: "",
+        filter_container_id: "registered_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      }
+    ]);
+  }
+
   dt.on( 'draw', function () {
     $('[data-toggle="tooltip"]').tooltip();
+
+    if ( is_scuio_ip ) {
+      dt.order([[2, "asc"], [0, "asc"], ]);
+    }
+    else {
+      dt.order([[0, "asc"], ]);
+    }
   });
 });
 </script>

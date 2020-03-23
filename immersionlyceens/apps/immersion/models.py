@@ -194,6 +194,8 @@ class StudentRecord(models.Model):
         related_name="student_record"
     )
 
+    # Todo : is this the right place to put this attribute ?
+    # It comes from shibboleth headers, should we put it in ImmersionUser ?
     home_institution = models.CharField(_("Home institution"), blank=False, null=False, max_length=256)
 
     civility = models.SmallIntegerField(_("Civility"), null=False, blank=False, default=1, choices=CIVS)

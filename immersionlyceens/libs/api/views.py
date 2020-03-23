@@ -1140,36 +1140,69 @@ def ajax_get_students(request):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP', 'REF-LYC')
 def ajax_get_highschool_students(request, highschool_id=None):
+    """
+    Retrieve students from a highschool or all students if user is scuio-ip manager
+    and no highschool id is specified
+    """
     response = {'data': [], 'msg': ''}
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            response = {'data': [], 'msg': _('Invalid parameters')}
-            return JsonResponse(response, safe=False)
+            if not request.user.is_scuio_ip_manager():
+                response = {'data': [], 'msg': _('Invalid parameters')}
+                return JsonResponse(response, safe=False)
 
-    students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
-        high_school_student_record__highschool__id=highschool_id
-    )
+    if highschool_id:
+        students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
+            high_school_student_record__highschool__id=highschool_id
+        )
+    else:
+        students = ImmersionUser.objects.prefetch_related(
+            'high_school_student_record', 'student_record', 'immersions').filter(
+            groups__name__in=['ETU', 'LYC']
+        )
 
     for student in students:
-        student_data = {
-            'id': student.pk,
-            'name': "%s %s" % (student.last_name, student.first_name),
-            'birthdate': student.high_school_student_record.birth_date,
-            'level': student.high_school_student_record.get_level_display(),
-            'bachelor': '',
-            'class': student.high_school_student_record.class_name,
-            'registered': student.immersions.exists(),
-        }
+        record = None
+        try:
+            if student.is_high_school_student():
+                record = student.high_school_student_record
+            else:
+                record = student.student_record
+        except Exception:
+            pass
 
-        if student.high_school_student_record.level == 3:
-            student_data['bachelor'] = student.high_school_student_record.get_post_bachelor_level_display()
-        else:
-            student_data['bachelor'] = student.high_school_student_record.get_bachelor_type_display()
+        if record:
+            student_data = {
+                'id': student.pk,
+                'name': "%s %s" % (student.last_name, student.first_name),
+                'birthdate': record.birth_date,
+                'institution': '',
+                'level': record.get_level_display(),
+                'bachelor': '',
+                'post_bachelor_level': '',
+                'class': '',
+                'registered': student.immersions.exists(),
+            }
 
-        response['data'].append(student_data.copy())
+            if student.is_high_school_student():
+                student_data['class'] = record.class_name
+                student_data['institution'] = record.highschool.label
+
+                if record.level == 3 :
+                    student_data['bachelor'] = record.get_origin_bachelor_type_display()
+                    student_data['post_bachelor_level'] = record.get_post_bachelor_level_display()
+                else:
+                    student_data['bachelor'] =  record.get_bachelor_type_display()
+
+            elif student.is_student():
+                student_data['bachelor'] = record.get_origin_bachelor_type_display()
+                student_data['institution'] = record.home_institution
+                student_data['post_bachelor_level'] = record.current_diploma
+
+            response['data'].append(student_data.copy())
 
     return JsonResponse(response, safe=False)
 

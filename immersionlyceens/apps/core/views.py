@@ -541,15 +541,18 @@ def my_high_school(request, high_school_id=None):
     return render(request, 'core/my_high_school.html', context)
 
 
-@groups_required('REF-LYC',)
+@groups_required('REF-LYC','SCUIO-IP')
 def my_students(request):
+    highschool = None
+
     try:
         highschool = request.user.highschool
     except Exception:
-        return redirect('home')
+        pass
 
     context = {
         'highschool': highschool,
+        'is_scuio_ip_manager': request.user.is_scuio_ip_manager(),
     }
 
     return render(request, 'core/highschool_students.html', context)
