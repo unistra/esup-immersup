@@ -425,7 +425,11 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
         current_email = student.email
-        current_highschool = record.highschool.id if record.highschool else None
+        try:
+            current_highschool = record.highschool.id
+        except Exception:
+            current_highschool = None
+
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
         studentform = HighSchoolStudentForm(request.POST, request=request, instance=student)
 
@@ -452,7 +456,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         if recordform.is_valid():
             record = recordform.save()
 
-            if current_highschool != record.highschool.id:
+            if current_highschool and current_highschool != record.highschool.id:
                 record.validation = 1
                 record.save()
                 messages.info(request, _("You have changed the high school, your record needs a new validation"))
