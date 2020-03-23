@@ -25,4 +25,6 @@ urlpatterns = [
     path('course/<int:course_id>', views.course, name='modify_course'),
     path('course/<int:course_id>/<int:duplicate>', views.course, name='duplicate_course'),
     path('hs_record_manager/<int:hs_record_id>', views.highschool_student_record_form_manager, name='hs_record_manager'),
+    path('component', views.component, name='component'),
+    path('component/<component_code>', views.component, name='update_component'),
 ]

@@ -430,7 +430,7 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ComponentForm
-    list_display = ('code', 'label', 'active')
+    list_display = ('code', 'label', 'active', 'url', 'mailing_list')
     list_filter = ('active',)
     ordering = ('label',)
     search_fields = ('label',)
