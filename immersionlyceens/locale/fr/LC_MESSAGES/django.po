@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-23 16:46+0100\n"
+"POT-Creation-Date: 2020-03-23 17:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1239,7 +1239,7 @@ msgstr "Absent(e)"
 #: immersionlyceens/apps/immersion/models.py:50
 #: immersionlyceens/apps/immersion/models.py:190
 #: immersionlyceens/libs/api/views.py:908
-#: immersionlyceens/libs/api/views.py:1122
+#: immersionlyceens/libs/api/views.py:1155
 #: immersionlyceens/templates/core/highschool_students.html:35
 msgid "Student"
 msgstr "Etudiant/Lycéen"
@@ -1839,15 +1839,15 @@ msgstr "Compte supprimé"
 #: immersionlyceens/libs/api/views.py:691
 #: immersionlyceens/libs/api/views.py:693
 #: immersionlyceens/libs/api/views.py:720
-#: immersionlyceens/libs/api/views.py:1272
+#: immersionlyceens/libs/api/views.py:1305
 msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
 #: immersionlyceens/libs/api/views.py:709
 #: immersionlyceens/libs/api/views.py:1002
-#: immersionlyceens/libs/api/views.py:1150
-#: immersionlyceens/libs/api/views.py:1220
-#: immersionlyceens/libs/api/views.py:1258
+#: immersionlyceens/libs/api/views.py:1183
+#: immersionlyceens/libs/api/views.py:1253
+#: immersionlyceens/libs/api/views.py:1291
 msgid "Invalid parameters"
 msgstr "Paramêtres invalides"
 
@@ -1856,7 +1856,7 @@ msgid "Immersion cancelled"
 msgstr "Immersion annulée"
 
 #: immersionlyceens/libs/api/views.py:722
-#: immersionlyceens/libs/api/views.py:1275
+#: immersionlyceens/libs/api/views.py:1308
 msgid "Invalid cancellation reason #id"
 msgstr "#Id de motif d'annulation invalide"
 
@@ -1881,7 +1881,7 @@ msgid "Error : invalid slot id"
 msgstr "Erreur : id de créneau invalide"
 
 #: immersionlyceens/libs/api/views.py:898
-#: immersionlyceens/libs/api/views.py:1112
+#: immersionlyceens/libs/api/views.py:1145
 msgid "High-school student"
 msgstr "Lycéen"
 
@@ -1909,25 +1909,33 @@ msgstr "Vous êtes déjà inscrit(e) à ce créneau"
 msgid "Student already registered for selected slot"
 msgstr "Etudiant(e) déjà inscrit(e) à ce créneau"
 
-#: immersionlyceens/libs/api/views.py:1076
+#: immersionlyceens/libs/api/views.py:1041
+#: immersionlyceens/libs/api/views.py:1067
+#: immersionlyceens/libs/api/views.py:1091
+msgid ""
+"You have no more remaining registration available, you should cancel an "
+"immersion or contact immersion service"
+msgstr "Vous avez dépassé votre quota d'inscription vous devez soit annulé l'une de vos immersions soit contacter le service immersion"
+
+#: immersionlyceens/libs/api/views.py:1109
 msgid "Registration successfully added"
 msgstr "Inscription au créneau validée"
 
-#: immersionlyceens/libs/api/views.py:1084
+#: immersionlyceens/libs/api/views.py:1117
 msgid "Registration is not currently allowed"
 msgstr "Les inscriptions ne sont pas encore autorisées"
 
-#: immersionlyceens/libs/api/views.py:1231
-#: immersionlyceens/libs/api/views.py:1241
+#: immersionlyceens/libs/api/views.py:1264
+#: immersionlyceens/libs/api/views.py:1274
 #, python-format
 msgid "%s : error"
 msgstr "%s : erreur"
 
-#: immersionlyceens/libs/api/views.py:1235
+#: immersionlyceens/libs/api/views.py:1268
 msgid "copy"
 msgstr "copie"
 
-#: immersionlyceens/libs/api/views.py:1279
+#: immersionlyceens/libs/api/views.py:1312
 msgid "Immersion(s) cancelled"
 msgstr "Immersion(s) annulée(s)"
 
