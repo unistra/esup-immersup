@@ -39,8 +39,9 @@
             <div class="card-header" id="training{{training.pk}}">
               <h5 class="mb-0 more-less-title">
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="#training{{training.grouper.pk}}">
-                {{ training.grouper.label }} {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank”><i class="fa fas fa-info-circle"></i></a>{% endif %}
+                {{ training.grouper.label }}
                 </button>
+                {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle"></i></a>{% endif %}
               </h5>
             </div>
             <div id="training{{training.grouper.pk}}" class="collapse" aria-labelledby="{{training.grouper.label}}" data-parent="#accordion">
@@ -50,6 +51,7 @@
                   <h6 class="mb-0 more-less-title">
                     {% if  d.slots %}<button class="btn btn-link" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">{% endif %}
                     {{ d.course.label}}
+                    {% if d.course.url %} <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle"></i></a> {% endif %}
                     {% if not d.slots %}
                     <span class="badge badge-pill badge-warning">{% trans 'No slots available' %}</span>
                     {% endif %}
