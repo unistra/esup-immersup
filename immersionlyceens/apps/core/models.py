@@ -36,6 +36,7 @@ class Component(models.Model):
     code = models.CharField(_("Code"), max_length=16, unique=True)
     label = models.CharField(_("Label"), max_length=128)
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
+    mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     objects = models.Manager()  # default manager

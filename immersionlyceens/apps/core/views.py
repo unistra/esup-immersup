@@ -14,7 +14,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext, ugettext_lazy as _
 
-from .forms import ContactForm, CourseForm, MyHighSchoolForm, SlotForm
+from .forms import ContactForm, CourseForm, ComponentForm, MyHighSchoolForm, SlotForm
 from .models import Campus, CancelType, Component, Course, HighSchool, ImmersionUser, Slot, Training, UniversityYear
 
 logger = logging.getLogger(__name__)
@@ -622,3 +622,50 @@ def highschool_student_record_form_manager(request, hs_record_id):
         'record': hs,
     }
     return render(request, 'core/hs_record_manager.html', context)
+
+
+@groups_required('REF-CMP')
+def component(request, component_code=None):
+    """
+    Update component url and mailing list
+    """
+    form = None
+    component = None
+    components = None
+
+    if request.method == "POST":
+        try:
+            component = Component.objects.get(code=request.POST.get('code'))
+        except Exception:
+            messages.error(request, _("Invalid parameter"))
+            return redirect('component')
+
+        form = ComponentForm(request.POST, instance=component)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Component settings successfully saved"))
+            return redirect('component')
+    elif component_code:
+        try:
+            component = Component.objects.get(code=component_code)
+            form = ComponentForm(instance=component)
+        except Component.DoesNotExist:
+            messages.error(request, _("Invalid parameter"))
+            return redirect('component')
+    else:
+        my_components = Component.objects.filter(referents=request.user).order_by('label')
+
+        if my_components.count() == 1:
+            component = my_components.first()
+            form = ComponentForm(instance=component)
+        else:
+            components = [c for c in my_components]
+
+    context = {
+        'form': form,
+        'component': component,
+        'components': components,
+    }
+
+    return render(request, 'core/component.html', context)

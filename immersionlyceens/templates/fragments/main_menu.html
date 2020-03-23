@@ -34,7 +34,17 @@
             </div>
           </div>
         {% endif %}
-
+        {% if authorized_groups|in_groups:"REF-CMP" %}
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false">
+              {% trans 'Components' %}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="{% url 'component' %}">{% trans 'Update components settings' %}</a>
+            </div>
+          </div>
+        {% endif %}
         {# Teacher #}
         {% if authorized_groups|in_groups:"ENS-CH" %}
           <div class="nav-item dropdown">
