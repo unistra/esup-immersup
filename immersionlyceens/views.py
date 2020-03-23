@@ -214,8 +214,9 @@ def offer_subdomain(request, subdomain_id):
                             slot.already_registered = True
                             slot.cancelled = immersion.cancellation_type is not None
 
-                    # Can register ? not registered + free seats + dates in range
-                    if not slot.already_registered:
+                    # Can register ?
+                    # not registered + free seats + dates in range + cancelled to register again
+                    if not slot.already_registered or slot.cancelled:
                         if slot.available_seats() > 0:
                             # TODO: should be rewritten used before with remaining_seats annual or by semester!
                             if calendar.calendar_mode == 'YEAR' and reg_start_date <= today <= cal_end_date:

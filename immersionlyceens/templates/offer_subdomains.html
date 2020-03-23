@@ -89,6 +89,9 @@
                             <td>
                               {% if slot.cancelled %}
                                   <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                                  {% if slot.can_register %}
+                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                  {% endif %}
                               {% elif slot.already_registered %}
                                   <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
                               {% elif slot.available_seats > 0 %}
