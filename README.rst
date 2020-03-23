@@ -87,11 +87,11 @@ To be continued !
 Application parameters:
 -----------------------
 
-### Required:
+**Required:**
 
 * PLATFORM_URL
 
-### Optional:
+**Optional:**
 
 * TWITTER_ACCOUNT_URL
 * CONTACT_FORM_URL (for external contact form use)
