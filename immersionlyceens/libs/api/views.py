@@ -7,21 +7,8 @@ import logging
 from functools import reduce
 
 from immersionlyceens.apps.core.models import (
-    Building,
-    Calendar,
-    CancelType,
-    Component,
-    Course,
-    HighSchool,
-    Holiday,
-    Immersion,
-    ImmersionUser,
-    MailTemplateVars,
-    PublicDocument,
-    Slot,
-    Training,
-    UniversityYear,
-    Vacation,
+    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser, MailTemplateVars,
+    PublicDocument, Slot, Training, UniversityYear, Vacation,
 )
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
@@ -400,9 +387,11 @@ def ajax_get_my_slots(request, user_id=None):
             .exclude(date__lt=today, immersions__isnull=True)
         ).distinct()
     else:
-        slots = Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions').filter(
-            Q(date__gte=today) | Q(immersions__attendance_status=0), teachers=user_id
-        ).distinct()
+        slots = (
+            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
+            .filter(Q(date__gte=today) | Q(immersions__attendance_status=0), teachers=user_id)
+            .distinct()
+        )
 
     for slot in slots:
         campus = ""
@@ -781,11 +770,13 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     ).filter(student_id=user_id)
 
     if immersion_type == "future":
-        immersions = immersions.filter(Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time),
-                                       cancellation_type__isnull=True)
+        immersions = immersions.filter(
+            Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time), cancellation_type__isnull=True
+        )
     elif immersion_type == "past":
-        immersions = immersions.filter(Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time),
-                                       cancellation_type__isnull=True)
+        immersions = immersions.filter(
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time), cancellation_type__isnull=True
+        )
     elif immersion_type == "cancelled":
         immersions = immersions.filter(cancellation_type__isnull=False)
 
@@ -1011,6 +1002,11 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
+    # Check free seat in slot
+    if slot.available_seats() == 0:
+        response = {'error': True, 'msg': _("No seat available for selected slot")}
+        return JsonResponse(response, safe=False)
+
     # Check current student immersions and valid dates
     if student.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
         if not cmp:
@@ -1160,9 +1156,8 @@ def ajax_get_highschool_students(request, highschool_id=None):
         )
     else:
         students = ImmersionUser.objects.prefetch_related(
-            'high_school_student_record', 'student_record', 'immersions').filter(
-            groups__name__in=['ETU', 'LYC']
-        )
+            'high_school_student_record', 'student_record', 'immersions'
+        ).filter(groups__name__in=['ETU', 'LYC'])
 
     for student in students:
         record = None
@@ -1191,11 +1186,11 @@ def ajax_get_highschool_students(request, highschool_id=None):
                 student_data['class'] = record.class_name
                 student_data['institution'] = record.highschool.label
 
-                if record.level == 3 :
+                if record.level == 3:
                     student_data['bachelor'] = record.get_origin_bachelor_type_display()
                     student_data['post_bachelor_level'] = record.get_post_bachelor_level_display()
                 else:
-                    student_data['bachelor'] =  record.get_bachelor_type_display()
+                    student_data['bachelor'] = record.get_bachelor_type_display()
 
             elif student.is_student():
                 student_data['bachelor'] = record.get_origin_bachelor_type_display()
