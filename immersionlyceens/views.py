@@ -5,14 +5,13 @@ import os
 from wsgiref.util import FileWrapper
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText, PublicDocument,
-    PublicType, Slot, Training, TrainingSubdomain,
+    AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText, PublicDocument, PublicType, Slot,
+    Training, TrainingSubdomain,
 )
 
 from django.conf import settings
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound,
-    StreamingHttpResponse,
+    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound, StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext, ugettext_lazy as _
@@ -59,9 +58,7 @@ def home(request):
 def offer(request):
     """Offer view"""
 
-    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by(
-        'training_domain', 'label'
-    )
+    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
 
     context = {
         'subdomains': subdomains,
@@ -94,9 +91,7 @@ def procedure(request):
     """Procedure view"""
     context = {
         'procedure_txt': InformationText.objects.get(code="PROCEDURE_LYCEE").content,
-        'procedure_group_txt': InformationText.objects.get(
-            code="PROCEDURE_IMMERSION_GROUPE"
-        ).content,
+        'procedure_group_txt': InformationText.objects.get(code="PROCEDURE_IMMERSION_GROUPE").content,
     }
     return render(request, 'procedure.html', context)
 
@@ -110,13 +105,9 @@ def serve_accompanying_document(request, accompanying_document_id):
         _file_type = mimetypes.guess_type(_file)[0]
 
         chunk_size = 8192
-        response = StreamingHttpResponse(
-            FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type
-        )
+        response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
         response['Content-Length'] = os.path.getsize(_file)
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(
-            os.path.basename(_file)
-        )
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(os.path.basename(_file))
 
     except Exception as e:
         return HttpResponseNotFound()
@@ -133,13 +124,9 @@ def serve_public_document(request, public_document_id):
         _file_type = mimetypes.guess_type(_file)[0]
 
         chunk_size = 8192
-        response = StreamingHttpResponse(
-            FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type
-        )
+        response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
         response['Content-Length'] = os.path.getsize(_file)
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(
-            os.path.basename(_file)
-        )
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(os.path.basename(_file))
 
     except Exception as e:
         return HttpResponseNotFound()
@@ -227,14 +214,13 @@ def offer_subdomain(request, subdomain_id):
                             slot.already_registered = True
                             slot.cancelled = immersion.cancellation_type is not None
 
-                            # Can register ? not registered + free seats + dates in range
+                    # Can register ? not registered + free seats + dates in range
                     if not slot.already_registered:
                         if slot.available_seats() > 0:
-                            if calendar.calendar_mode == 'YEAR' and remaining_regs_count['annually'] \
-                                and reg_start_date <= today <= cal_end_date:
+                            # TODO: should be rewritten used before with remaining_seats annual or by semester!
+                            if calendar.calendar_mode == 'YEAR' and reg_start_date <= today <= cal_end_date:
                                 slot.can_register = True
-                            elif semester == 1 and remaining_regs_count['semester1'] \
-                                or semester == 2 and remaining_regs_count['semester2']:
+                            elif semester == 1 or semester == 2:
                                 slot.can_register = True
             else:
                 for slot in slots:
