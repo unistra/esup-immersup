@@ -40,7 +40,7 @@ Pour créer l'environnement virtuel, se placer dans le répertoire du projet::
 
     $ mkvirtualenv immersionlyceens
 
-Ou en spécifiant la version de python:: 
+Ou en spécifiant la version de python::
 
     $ mkvirtualenv immersionlyceens -p /usr/bin/python3.6
 
@@ -82,3 +82,16 @@ Todo:
 -----
 
 To be continued !
+
+
+Application parameters:
+-----------------------
+
+### Required:
+* PLATFORM_URL
+
+### Optional:
+* TWITTER_ACCOUNT_URL
+* CONTACT_FORM_URL (for external contact form use)
+
+
