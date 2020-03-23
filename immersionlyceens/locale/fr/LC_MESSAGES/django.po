@@ -2726,7 +2726,7 @@ msgstr "Inscription réussie"
 
 #: immersionlyceens/templates/modals/modal_student_details.html:8
 msgid "Student immersions"
-msgstr "Etudiant inscriptions"
+msgstr "Immersions de l'étudiant"
 
 #: immersionlyceens/templates/modals/modal_student_details.html:22
 msgid "Place"
