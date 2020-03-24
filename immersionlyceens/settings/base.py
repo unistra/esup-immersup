@@ -513,3 +513,6 @@ MAX_UPLOAD_SIZE = "20971520"
 # Highschool students settings
 USERNAME_PREFIX = "@EXTERNAL@_"
 DESTRUCTION_DELAY = 5 # in days
+
+# Some general settings default values
+DEFAULT_NB_DAYS_SLOT_REMINDER = 4

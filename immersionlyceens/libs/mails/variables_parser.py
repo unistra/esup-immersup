@@ -107,7 +107,7 @@ def parser(user, request, message_body, vars, **kwargs):
         vars += [('${listeInscrits}', '\n'.join(registered_students))]
 
 
-    if immersion:
+    if immersion and immersion.cancellation_type:
         vars += [('${motifAnnulation}', immersion.cancellation_type.label)]
 
     vars += [
