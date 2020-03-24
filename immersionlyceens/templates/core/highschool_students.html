@@ -105,7 +105,16 @@
         url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
     },
     'columns': [
-    { "data": "name" },
+    { "data": "name",
+      "render": function(data, type, row) {
+        if(is_scuio_ip) {
+          return "<a href='"+row.record_link+"'>"+data+"</a>";
+        }
+        else {
+          return data;
+        }
+      }
+    },
     { "data": "birthdate" },
     {% if request.user.is_scuio_ip_manager %}
     { "data": "institution" },

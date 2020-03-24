@@ -1204,11 +1204,14 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
     for student in students:
         record = None
+        link = None
         try:
             if student.is_high_school_student():
                 record = student.high_school_student_record
+                link = reverse('immersion:modify_hs_record', kwargs={'record_id':record.id})
             else:
                 record = student.student_record
+                link = reverse('immersion:modify_student_record', kwargs={'record_id':record.id})
         except Exception:
             pass
 
@@ -1223,6 +1226,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
                 'post_bachelor_level': '',
                 'class': '',
                 'registered': student.immersions.exists(),
+                'record_link': link,
             }
 
             if student.is_high_school_student():

@@ -483,6 +483,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     if error.get("message"):
                         messages.error(request, error.get("message"))
     else:
+        request.session['back'] = request.META.get('HTTP_REFERER')
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
 
@@ -493,7 +494,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'student_form': studentform,
         'record_form': recordform,
         'student': student,
-        'record': record
+        'record': record,
+        'back_url': request.session.get('back'),
     }
 
     return render(request, 'immersion/hs_record.html', context)
@@ -582,6 +584,7 @@ def student_record(request, student_id=None, record_id=None):
                     if error.get("message"):
                         messages.error(request, error.get("message"))
     else:
+        request.session['back'] = request.META.get('HTTP_REFERER')
         recordform = StudentRecordForm(request=request, instance=record)
         studentform = StudentForm(request=request, instance=student)
 
@@ -590,7 +593,8 @@ def student_record(request, student_id=None, record_id=None):
         'student_form': studentform,
         'record_form': recordform,
         'record': record,
-        'student': student
+        'student': student,
+        'back_url': request.session.get('back'),
     }
 
     return render(request, 'immersion/student_record.html', context)
