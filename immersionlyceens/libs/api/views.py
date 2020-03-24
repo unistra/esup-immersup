@@ -1,6 +1,7 @@
 """
 API Views
 """
+import csv
 import datetime
 import json
 import logging
@@ -18,7 +19,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
@@ -1312,3 +1313,41 @@ def ajax_batch_cancel_registration(request):
             response = {'error': False, 'msg': _("Immersion(s) cancelled"), 'err_msg': err_msg}
 
     return JsonResponse(response, safe=False)
+
+
+@groups_required('SCUIO-IP', 'REF-CMP')
+def get_csv_components(request, component_id):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="component_extraction.csv"'
+    slots = Slot.objects.filter(course__component_id=component_id, published=True)
+
+    header = [_('domain'), _('subdomain'), _('training'), _('course type'),
+              _('date'), _('start_time'), _('end_time'), _('campus'), _('building'),
+              _('room'), _('teachers'), _('registration number'), _('number number'),
+              _('additional information')]
+    content = []
+    for slot in slots:
+        line = [
+            '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+            '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+            slot.course.training.label,
+            slot.course_type.label,
+            _date(slot.date, 'l d/m/Y'),
+            slot.start_time.strftime('%H:%M'),
+            slot.end_time.strftime('%H:%M'),
+            slot.campus.label,
+            slot.building.label,
+            slot.room,
+            '|'.join([f'{t.first_name} {t.last_name}' for t in slot.teachers.all()]),
+            slot.registered_students(),
+            slot.n_places,
+            slot.additional_information,
+        ]
+        content.append(line.copy())
+
+    writer = csv.writer(response)
+    writer.writerow(header)
+    for row in content:
+        writer.writerow(row)
+
+    return response
