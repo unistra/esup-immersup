@@ -4,17 +4,30 @@ import mimetypes
 import os
 from wsgiref.util import FileWrapper
 
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText, PublicDocument, PublicType, Slot,
-    Training, TrainingSubdomain,
-)
-
 from django.conf import settings
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound, StreamingHttpResponse,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseNotFound,
+    StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext
+from django.utils.translation import ugettext_lazy as _
+
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument,
+    Calendar,
+    Course,
+    GeneralSettings,
+    InformationText,
+    PublicDocument,
+    PublicType,
+    Slot,
+    Training,
+    TrainingSubdomain,
+)
 
 
 def home(request):
@@ -145,6 +158,11 @@ def offer_subdomain(request, subdomain_id):
 
     if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
         student = request.user
+        # Get student record yet
+        if student.is_high_school_student():
+            record = student.get_high_school_student_record()
+        elif student.is_student():
+            record = student.get_student_record()
         remaining_regs_count = student.remaining_registrations_count()
 
     trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
@@ -203,7 +221,7 @@ def offer_subdomain(request, subdomain_id):
             }
 
             # If the current user is a student, check whether he can register
-            if student and remaining_regs_count:
+            if student and record.is_valid() and remaining_regs_count:
                 for slot in slots:
                     slot.already_registered = False
                     slot.can_register = False
