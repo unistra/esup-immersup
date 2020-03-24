@@ -824,8 +824,9 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         }
         if immersion.slot.date < today:
             immersion_data['time_type'] = "past"
-        elif immersion.slot.date > today \
-            or (immersion.slot.date == today and immersion.slot.begin_time > datetime.datetime.today().time()):
+        elif immersion.slot.date > today or (
+            immersion.slot.date == today and immersion.slot.begin_time > datetime.datetime.today().time()
+        ):
             immersion_data['time_type'] = "future"
 
         if immersion.slot.n_places:
@@ -1210,10 +1211,10 @@ def ajax_get_highschool_students(request, highschool_id=None):
         try:
             if student.is_high_school_student():
                 record = student.high_school_student_record
-                link = reverse('immersion:modify_hs_record', kwargs={'record_id':record.id})
+                link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
             else:
                 record = student.student_record
-                link = reverse('immersion:modify_student_record', kwargs={'record_id':record.id})
+                link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
         except Exception:
             pass
 
@@ -1311,8 +1312,10 @@ def ajax_batch_cancel_registration(request):
         for immersion_id in json.loads(immersion_ids):
 
             try:
-
                 immersion = Immersion.objects.get(pk=immersion_id)
+                if immersion.slot.date <= datetime.datetime.today().date():
+                    response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
+                    return JsonResponse(response, safe=False)
                 cancellation_reason = CancelType.objects.get(pk=reason_id)
                 immersion.cancellation_type = cancellation_reason
                 immersion.save()
