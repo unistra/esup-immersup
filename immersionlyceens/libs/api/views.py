@@ -1278,6 +1278,8 @@ def ajax_send_email(request):
             response['error'] = True
             response['msg'] += _("%s : error") % recipient
 
+    return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @is_post_request
