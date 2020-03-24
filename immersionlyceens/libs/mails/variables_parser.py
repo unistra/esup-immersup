@@ -90,7 +90,7 @@ def parser(user, request, message_body, vars, **kwargs):
         # Registered students to a slot
         registered_students = []
 
-        for registration in Immersion.objects.filter(slot=slot):
+        for registration in Immersion.objects.filter(slot=slot, cancellation_type__isnull=True):
             institution = _("Unknown home institution")
             if registration.student.is_high_school_student():
                 record = registration.student.get_high_school_student_record()

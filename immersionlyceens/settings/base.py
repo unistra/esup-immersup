@@ -516,3 +516,4 @@ DESTRUCTION_DELAY = 5 # in days
 
 # Some general settings default values
 DEFAULT_NB_DAYS_SLOT_REMINDER = 4
+DEFAULT_NB_DAYS_TEACHER_SLOT_REMINDER = 4
