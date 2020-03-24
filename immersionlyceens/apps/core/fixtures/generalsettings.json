@@ -38,5 +38,13 @@
       "setting": "NB_DAYS_SLOT_REMINDER",
       "value": "4"
     }
+  },
+  {
+    "model": "core.generalsettings",
+    "pk": 6,
+    "fields": {
+      "setting": "NB_DAYS_TEACHER_SLOT_REMINDER",
+      "value": "4"
+    }
   }
 ]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Send a reminder to all students registered to slots planned in X days
+Send a reminder to teachers for upcoming slots
 """
 import logging
 
@@ -15,20 +15,19 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     """
     """
-
     def handle(self, *args, **options):
         today = datetime.datetime.today().date()
         default_value = 4
 
         # settings / default value
         try:
-            days = settings.DEFAULT_NB_DAYS_SLOT_REMINDER
+            days = settings.DEFAULT_NB_DAYS_TEACHER_SLOT_REMINDER
         except AttributeError:
             days = default_value
 
         # Configured value
         try:
-            days = int(GeneralSettings.objects.get(setting='NB_DAYS_SLOT_REMINDER').value)
+            days = int(GeneralSettings.objects.get(setting='NB_DAYS_TEACHER_SLOT_REMINDER').value)
         except (GeneralSettings.DoesNotExist, ValueError):
             pass
 
@@ -36,10 +35,14 @@ class Command(BaseCommand):
         if days <= 0:
             days = default_value
 
+        # ================
         slot_date = today + datetime.timedelta(days=days)
+        slots = Slot.objects.filter(date=slot_date)
 
-        immersions = Immersion.objects.filter(slot__date=slot_date, cancellation_type__isnull=True)
+        for slot in slots:
+            print(slot)
+            print(slot.teachers.all())
+            for teacher in slot.teachers.all():
+                teacher.send_message(None, 'IMMERSION_RAPPEL_ENS', slot=slot)
 
-        for immersion in immersions:
-            immersion.student.send_message(None, 'IMMERSION_RAPPEL', slot=immersion.slot, immersion=immersion)
-            # Todo : gestion des erreurs d'envoi ?
+
