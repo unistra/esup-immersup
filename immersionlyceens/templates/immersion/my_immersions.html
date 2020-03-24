@@ -409,6 +409,10 @@
               msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
+            if(row.free_seats == 0) {
+              msg += "<br /><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+            }
+
             return msg;
           }
         },

@@ -817,8 +817,12 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'cancellable': datetime.datetime.today().date() < immersion.slot.date,
             'cancellation_type': '',
             'slot_id': immersion.slot.id,
+            'free_seats': 0,
             'can_register': False,
         }
+
+        if immersion.slot.n_places:
+            immersion_data['free_seats'] = immersion.slot.n_places - immersion.slot.registered_students()
 
         if immersion.cancellation_type:
             immersion_data['cancellation_type'] = immersion.cancellation_type.label
