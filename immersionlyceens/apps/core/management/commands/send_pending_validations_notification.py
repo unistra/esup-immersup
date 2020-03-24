@@ -12,7 +12,7 @@ from ...models import HighSchool
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    """ Import components from Abyla
+    """
     """
 
     def handle(self, *args, **options):
