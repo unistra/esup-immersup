@@ -84,7 +84,7 @@ def parser(user, request, message_body, vars, **kwargs):
             ('${creneau.heurefin}', slot.end_time.strftime("%-Hh%M")),
             ('${creneau.info}', slot.additional_information),
             ('${creneau.salle}', slot.room),
-            ('${creneau.type}', slot.course_type.label),
+            ('${creneau.type}', slot.course_type.full_label),
         ]
 
         # Registered students to a slot
@@ -140,10 +140,14 @@ def parser(user, request, message_body, vars, **kwargs):
         ]
 
     if slot_survey:
-        vars.append(('${lienCreneau}', slot_survey.url))
+        vars.append(('${lienCreneau}', "<a href='{0}'>{0}</a>".format(slot_survey.url)))
+    else:
+        vars.append(('${lienCreneau}', _("Link improperly configured")))
 
     if global_survey:
-        vars.append(('${lienGlobal}', global_survey.url))
+        vars.append(('${lienGlobal}', "<a href='{0}'>{0}</a>".format(global_survey.url)))
+    else:
+        vars.append(('${lienGlobal}', _("Link improperly configured")))
 
     if user.is_high_school_student():
         try:

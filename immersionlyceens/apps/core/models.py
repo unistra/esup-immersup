@@ -1178,6 +1178,7 @@ class Immersion(models.Model):
     )
 
     attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
+    survey_email_sent = models.BooleanField(_("Survey notification status"), default=False)
 
     class Meta:
         verbose_name = _('Immersion')
