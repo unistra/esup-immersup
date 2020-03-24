@@ -259,6 +259,7 @@ class ImmersionUser(AbstractUser):
         current_semester_1_regs = 0
         current_semester_2_regs = 0
         current_year_regs = 0
+        record = None
 
         remaining = {
             'semester1': 0,
@@ -274,12 +275,13 @@ class ImmersionUser(AbstractUser):
         except Exception:
             return remaining
 
-        # Not a student : no registration
+        # Not a student or no record yet : no registration
         if self.is_high_school_student():
             record = self.get_high_school_student_record()
         elif self.is_student():
             record = self.get_student_record()
-        else:
+            
+        if not record or not record.is_valid(): 
             return remaining
 
         if calendar.calendar_mode == 'SEMESTER':

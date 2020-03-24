@@ -161,6 +161,9 @@ class HighSchoolStudentRecord(models.Model):
         else:
             return []
 
+    def is_valid(self):
+        return self.validation == 2
+
 
 class StudentRecord(models.Model):
     """
@@ -219,3 +222,7 @@ class StudentRecord(models.Model):
 
     def __str__(self):
         return gettext("Record for {0} {1}".format(self.student.first_name, self.student.last_name))
+
+    def is_valid(self):
+        return True
+    
