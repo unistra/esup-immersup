@@ -14,5 +14,21 @@
       "setting": "PLATFORM_URL", 
       "value": "https://immersionlyceens.unistra.fr"
     }
+  },
+  {
+    "model": "core.generalsettings",
+    "pk": 3,
+    "fields": {
+      "setting": "MAIL_FROM",
+      "value": "noreply@mon-domaine.fr"
+    }
+  },
+  {
+    "model": "core.generalsettings",
+    "pk": 4,
+    "fields": {
+      "setting": "GLOBAL_MAILING_LIST",
+      "value": "liste-immersion@mon-domaine.fr"
+    }
   }
 ]
