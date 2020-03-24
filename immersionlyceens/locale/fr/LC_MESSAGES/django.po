@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-23 17:26+0100\n"
+"POT-Creation-Date: 2020-03-24 15:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -405,7 +405,7 @@ msgstr "Vous ne pouvez pas modifier le statut d'équipe"
 #: immersionlyceens/apps/core/admin_forms.py:818
 #: immersionlyceens/apps/core/models.py:79
 #: immersionlyceens/templates/core/my_high_school.html:93
-#: immersionlyceens/templates/modals/modal_register_students_list.html:25
+#: immersionlyceens/templates/modals/modal_register_students_list.html:24
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:25
 #: immersionlyceens/templates/procedure.html:51
 msgid "City"
@@ -1255,28 +1255,32 @@ msgstr "Type d'annulation"
 msgid "Attendance status"
 msgstr "Émargement"
 
-#: immersionlyceens/apps/core/models.py:1183
+#: immersionlyceens/apps/core/models.py:1181
+msgid "Survey notification status"
+msgstr "Lien enquête envoyée ?"
+
+#: immersionlyceens/apps/core/models.py:1184
 #: immersionlyceens/settings/base.py:380
 msgid "Immersion"
 msgstr "Immersion"
 
-#: immersionlyceens/apps/core/models.py:1184
+#: immersionlyceens/apps/core/models.py:1185
 msgid "Immersions"
 msgstr "Immersions"
 
-#: immersionlyceens/apps/core/models.py:1188
+#: immersionlyceens/apps/core/models.py:1189
 msgid "Setting name"
 msgstr "Nom du paramètre"
 
-#: immersionlyceens/apps/core/models.py:1189
+#: immersionlyceens/apps/core/models.py:1190
 msgid "Setting value"
 msgstr "Valeur du paramètre"
 
-#: immersionlyceens/apps/core/models.py:1192
+#: immersionlyceens/apps/core/models.py:1193
 msgid "General setting"
 msgstr "Paramètre général"
 
-#: immersionlyceens/apps/core/models.py:1193
+#: immersionlyceens/apps/core/models.py:1194
 msgid "General settings"
 msgstr "Paramètres généraux"
 
@@ -1516,7 +1520,7 @@ msgstr "Niveau"
 #: immersionlyceens/templates/core/student_validation.html:66
 #: immersionlyceens/templates/core/student_validation.html:93
 #: immersionlyceens/templates/core/student_validation.html:120
-#: immersionlyceens/templates/modals/modal_register_students_list.html:23
+#: immersionlyceens/templates/modals/modal_register_students_list.html:22
 msgid "Class name"
 msgstr "Classe"
 
@@ -1711,12 +1715,12 @@ msgstr "Le courriel d'activation a été renvoyé"
 
 #: immersionlyceens/apps/immersion/views.py:396
 #: immersionlyceens/apps/immersion/views.py:424
-#: immersionlyceens/apps/immersion/views.py:516
-#: immersionlyceens/apps/immersion/views.py:545
+#: immersionlyceens/apps/immersion/views.py:520
+#: immersionlyceens/apps/immersion/views.py:549
 msgid "Invalid student id"
 msgstr "#id invalide"
 
-#: immersionlyceens/apps/immersion/views.py:441
+#: immersionlyceens/apps/immersion/views.py:445
 msgid ""
 "You have updated the email.<br>Warning : the new email is also the new login."
 "<br>A new activation email has been sent."
@@ -1725,37 +1729,37 @@ msgstr ""
 "aussi le nouvel identifiant. <br>Une nouvelle procédure d'activation a a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:458
+#: immersionlyceens/apps/immersion/views.py:462
 msgid "You have changed the high school, your record needs a new validation"
 msgstr "Vous avez modifié le lycée, votre fiche doit être à nouveau validée"
 
-#: immersionlyceens/apps/immersion/views.py:464
+#: immersionlyceens/apps/immersion/views.py:468
 msgid ""
 "A record already exists with this identity, please contact the SCUIO-IP team."
 msgstr "Une fiche existe déjà à ce nom, merci de contacter le SCUIO-IP"
 
-#: immersionlyceens/apps/immersion/views.py:467
+#: immersionlyceens/apps/immersion/views.py:471
 msgid "A record already exists with this identity, look at duplicate records."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de consulter la liste des doublons."
 
-#: immersionlyceens/apps/immersion/views.py:472
+#: immersionlyceens/apps/immersion/views.py:476
 msgid ""
 "Thank you. Your record is awaiting validation from your high-school referent."
 msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent du lycée."
 
-#: immersionlyceens/apps/immersion/views.py:474
-#: immersionlyceens/apps/immersion/views.py:574
+#: immersionlyceens/apps/immersion/views.py:478
+#: immersionlyceens/apps/immersion/views.py:578
 msgid "Record successfully saved."
 msgstr "Fiche enregistrée avec succès"
 
-#: immersionlyceens/apps/immersion/views.py:485
+#: immersionlyceens/apps/immersion/views.py:489
 #, python-format
 msgid "Current record status : %s"
 msgstr "Statut de votre fiche : %s"
 
-#: immersionlyceens/apps/immersion/views.py:560
+#: immersionlyceens/apps/immersion/views.py:564
 msgid "You have updated the email.<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Une nouvelle procédure d'activation a été "
@@ -1915,7 +1919,9 @@ msgstr "Etudiant(e) déjà inscrit(e) à ce créneau"
 msgid ""
 "You have no more remaining registration available, you should cancel an "
 "immersion or contact immersion service"
-msgstr "Vous avez dépassé votre quota d'inscription vous devez soit annulé l'une de vos immersions soit contacter le service immersion"
+msgstr ""
+"Vous avez dépassé votre quota d'inscription vous devez soit annulé l'une de "
+"vos immersions soit contacter le service immersion"
 
 #: immersionlyceens/libs/api/views.py:1109
 msgid "Registration successfully added"
@@ -1942,6 +1948,11 @@ msgstr "Immersion(s) annulée(s)"
 #: immersionlyceens/libs/mails/variables_parser.py:94
 msgid "Unknown home institution"
 msgstr "Etablissement d'origine inconnu"
+
+#: immersionlyceens/libs/mails/variables_parser.py:145
+#: immersionlyceens/libs/mails/variables_parser.py:150
+msgid "Link improperly configured"
+msgstr "Lien non renseigné"
 
 #: immersionlyceens/settings/base.py:381
 msgid "Immersion Admin Page"
@@ -2227,7 +2238,7 @@ msgstr "Prénom"
 #: immersionlyceens/templates/core/student_validation.html:117
 #: immersionlyceens/templates/immersion/confirm_creation.html:19
 #: immersionlyceens/templates/immersion/registration.html:19
-#: immersionlyceens/templates/modals/modal_register_students_list.html:21
+#: immersionlyceens/templates/modals/modal_register_students_list.html:19
 msgid "Last name"
 msgstr "Nom"
 
@@ -2414,7 +2425,7 @@ msgid "Administration"
 msgstr "Administration"
 
 #: immersionlyceens/templates/fragments/main_menu.html:120
-#: immersionlyceens/templates/modals/modal_register_students_list.html:22
+#: immersionlyceens/templates/modals/modal_register_students_list.html:21
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:23
 msgid "Profile"
 msgstr "Profil"
@@ -2802,11 +2813,11 @@ msgstr "Infos complémentaires"
 msgid "Students"
 msgstr "Etudiant/Lycéen"
 
-#: immersionlyceens/templates/modals/modal_register_students_list.html:24
+#: immersionlyceens/templates/modals/modal_register_students_list.html:23
 msgid "Highschool"
 msgstr "Lycée"
 
-#: immersionlyceens/templates/modals/modal_register_students_list.html:24
+#: immersionlyceens/templates/modals/modal_register_students_list.html:23
 msgid "University"
 msgstr "Université"
 
