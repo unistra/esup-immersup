@@ -2732,7 +2732,7 @@ msgstr "Je confirme l'annulation"
 #: immersionlyceens/templates/modals/modal_contact.html:6
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:260
 msgid "Send an email to registered students"
-msgstr "Envoi d'un mail de confirmation pour les étudiant(e)s isncrit(e)s"
+msgstr "Envoi d'un mail de confirmation pour les étudiant(e)s inscrit(e)s"
 
 #: immersionlyceens/templates/modals/modal_contact.html:26
 msgid "Receive a copy of this email ?"
