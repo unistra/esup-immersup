@@ -213,9 +213,11 @@ def ajax_get_slots(request, component=None):
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
             'attendances_value': 0,
+            'is_past': False,
         }
 
         if data['datetime'] <= datetime.datetime.today():
+            data['is_past'] = True
             if not slot.immersions.all().exists():
                 data['attendances_value'] = -1  # nothing
             elif slot.immersions.filter(attendance_status=0).exists() or can_update_attendances:
