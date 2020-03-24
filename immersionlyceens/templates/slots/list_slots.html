@@ -110,9 +110,11 @@
 var dt;
 var current_slot_id;
 var can_update_attendances = false;
+var slot_places = 0;
 
-function open_modal(slot_id, edit_mode) {
+function open_modal(slot_id, edit_mode, n_places) {
   current_slot_id = slot_id;
+  slot_places = n_places;
 
   if(edit_mode == 1) {
     can_update_attendances = true;
@@ -344,12 +346,12 @@ $(document).ready(function(){
                   }
 
                   if(row.attendances_value == 1) {
-                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'Enter attendances' %}\">" +
+                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+")\" title=\"{% trans 'Enter attendances' %}\">" +
                                "<i class='fa fas fa-edit'></i>" +
                                "</button>";
                   }
                   else if (row.attendances_value != -1) {
-                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+")\" title=\"{% trans 'View registered students' %}\">" +
+                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+")\" title=\"{% trans 'View registered students' %}\">" +
                                "<i class='fa fas fa-eye'></i>" +
                                "</button>";
                   }

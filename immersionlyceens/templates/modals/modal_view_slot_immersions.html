@@ -57,27 +57,23 @@
       <div class="modal-footer">
         <div class="form-group form-row">
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
-            <label for="select_cancel_type" class="col-sm-2 col-form-label col-form-label-sm">{% trans 'Cancel type' %}</label>
-            <div class="col-sm-2">
-              <select class="form-control form-control-sm mr-2" name="cancel-type" id="select_cancel_type" disabled>
+          <label for="select_cancel_type" class="col-sm-2 col-form-label col-form-label-sm">{% trans 'Cancel type' %}</label>
+          <div class="col-sm-2">
+            <select class="form-control form-control-sm mr-2" name="cancel-type" id="select_cancel_type" disabled>
               <option value=""></option>
               {% for type in cancel_types  %}
-              <option value="{{ type.pk }}">{{ type.label }}</option>
+                <option value="{{ type.pk }}">{{ type.label }}</option>
               {% endfor %}
-              </select>
-            </div>
+            </select>
+          </div>
 
-              <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2" disabled>{% trans 'Cancel registrations' %}</button>
-              <button type="button" id="btn_register_student" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
-
+          <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2" disabled>{% trans 'Cancel registrations' %}</button>
+          <button type="button" id="btn_register_student" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
         {% endif %}
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP,ENS-CH" %}
-
-              <button type="button" id="btn_contact_students" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
-
+          <button type="button" id="btn_contact_students" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
         {% endif %}
-
-              <button type="button" class="btn btn-primary mr-2" data-dismiss="modal">{% trans 'Close' %}</button>
+          <button type="button" class="btn btn-primary mr-2" data-dismiss="modal">{% trans 'Close' %}</button>
 
         </div>
       </div>
@@ -250,6 +246,7 @@ dtr = $('#students_list').DataTable({
 
 $('#students_list').on('draw.dt', function () {
   var students_count = dtr.rows().count();
+  var free_places = slot_places - students_count;
 
   if(students_count == 0) {
     $("#btn_contact_students").prop('disabled', true);
@@ -264,7 +261,12 @@ $('#students_list').on('draw.dt', function () {
     return data.attendance_status == 1 ? true : false;
   }).count();
 
-  $('#count').html(presents + " {% trans 'student(s) present on ' %}" + students_count + " {% trans 'registered' %}");
+  if (can_update_attendances == true) {
+    $('#count').html(presents + " {% trans 'student(s) present on ' %}" + students_count + " {% trans 'registered' %}");
+  }
+  else {
+    $('#count').html(free_places + " {% trans 'free places out of' %} " + slot_places);
+  }
 });
 
 
