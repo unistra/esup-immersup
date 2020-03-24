@@ -238,3 +238,15 @@ body {
     content: "\f068";
     /* plus */
 }
+
+.light-bg-secondary {
+    background-color: #E1E1E1;
+}
+
+.light-bg-primary {
+    background-color: #C5E1FF;
+}
+
+.light-bg-success {
+    background-color: #DCFFCC;
+}

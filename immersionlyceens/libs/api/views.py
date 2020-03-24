@@ -820,6 +820,11 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'free_seats': 0,
             'can_register': False,
         }
+        if immersion.slot.date < today:
+            immersion_data['time_type'] = "past"
+        elif immersion.slot.date > today \
+            or (immersion.slot.date == today and immersion.slot.begin_time > datetime.datetime.today().time()):
+            immersion_data['time_type'] = "future"
 
         if immersion.slot.n_places:
             immersion_data['free_seats'] = immersion.slot.n_places - immersion.slot.registered_students()

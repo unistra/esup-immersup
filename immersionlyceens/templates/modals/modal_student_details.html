@@ -13,7 +13,7 @@
       <div class="modal-body">
         <div class="row">
           <div class="col">
-            <table id="immersions_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
+            <table id="immersions_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
             <thead>
               <tr>
                 <th>{% trans 'Training' %}</th>
@@ -129,6 +129,21 @@ dtr = $('#immersions_table').DataTable({
       "className": "all",
     },
   ],
+  "createdRow": function( row, data, dataIndex ) {
+    console.log(data);
+    console.log("cancellation type : "+data.cancellation_type);
+    console.log("time type : "+data.time_type);
+
+    if ( data.cancellation_type != '' ) {
+      $(row).addClass('light-bg-secondary');
+    }
+    else if ( data.time_type == "future") {
+      $(row).addClass('light-bg-primary');
+    }
+    else if ( data.time_type == "past") {
+      $(row).addClass('light-bg-success');
+    }
+  }
 });
 
 $('#modal_student_details').on('show.bs.modal', function (e) {
