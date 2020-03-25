@@ -37,11 +37,9 @@ class Command(BaseCommand):
 
         # ================
         slot_date = today + datetime.timedelta(days=days)
-        slots = Slot.objects.filter(date=slot_date)
+        slots = Slot.objects.filter(date=slot_date, published=True)
 
         for slot in slots:
-            print(slot)
-            print(slot.teachers.all())
             for teacher in slot.teachers.all():
                 teacher.send_message(None, 'IMMERSION_RAPPEL_ENS', slot=slot)
 

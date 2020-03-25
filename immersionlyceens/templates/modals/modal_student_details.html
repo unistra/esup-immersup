@@ -130,10 +130,6 @@ dtr = $('#immersions_table').DataTable({
     },
   ],
   "createdRow": function( row, data, dataIndex ) {
-    console.log(data);
-    console.log("cancellation type : "+data.cancellation_type);
-    console.log("time type : "+data.time_type);
-
     if ( data.cancellation_type != '' ) {
       $(row).addClass('light-bg-secondary');
     }

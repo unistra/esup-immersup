@@ -2,6 +2,8 @@ import enum
 import logging
 import re
 import uuid
+import datetime
+
 from functools import partial
 
 from django.conf import settings
@@ -669,10 +671,36 @@ class Vacation(models.Model):
 
     @classmethod
     def date_is_inside_a_vacation(cls, _date):
+        """
+        Returns True if _date is within a Vacation period
+        """
+        if not isinstance(_date, datetime.date):
+            logger.error("'%s' is not an object of type 'datetime.date'", _date)
+            return False
+
+        return Vacation.objects.filter(start_date__lte=_date, end_date__gte=_date).exists()
+        """
         for v in Vacation.objects.all():
             if v.date_is_between(_date):
                 return True
         return False
+        """
+
+    @classmethod
+    def get_vacation_period(cls, _date):
+        """
+        Return the Vacation object _date is within, else None
+        """
+        if not isinstance(_date, datetime.date):
+            logger.error("'%s' is not an object of type 'datetime.date'", _date)
+            return None
+
+        qs = Vacation.objects.filter(start_date__lte=_date, end_date__gte=_date)
+
+        if qs.exists():
+            return qs.first()
+        else:
+            return None
 
 
 class Calendar(models.Model):
