@@ -197,7 +197,7 @@ def ajax_get_slots(request, component=None):
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
-            ),
+            ) if slot.date else None,
             'date': _date(slot.date, 'l d/m/Y'),
             'time': {
                 'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',
@@ -216,7 +216,7 @@ def ajax_get_slots(request, component=None):
             'is_past': False,
         }
 
-        if data['datetime'] <= datetime.datetime.today():
+        if data['datetime'] and data['datetime'] <= datetime.datetime.today():
             data['is_past'] = True
             if not slot.immersions.all().exists():
                 data['attendances_value'] = -1  # nothing
@@ -416,7 +416,7 @@ def ajax_get_my_slots(request, user_id=None):
                     "%s:%s:%s %s:%s"
                     % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                     "%Y:%m:%d %H:%M",
-                ),
+                ) if slot.date else None,
                 'start_time': slot.start_time.strftime("%H:%M"),
                 'end_time': slot.end_time.strftime("%H:%M"),
                 'label': slot.course.label,
@@ -431,7 +431,7 @@ def ajax_get_my_slots(request, user_id=None):
             # TODO: maybe not usefull
             pass
 
-        if slot_data['datetime'] <= datetime.datetime.today():
+        if slot_data['datetime'] and slot_data['datetime'] <= datetime.datetime.today():
             if not slot.immersions.all().exists():
                 slot_data['attendances_status'] = ""
                 slot_data['attendances_value'] = -1
