@@ -4,6 +4,7 @@
 {% load i18n %}
 {% load hijack_tags %}
 {% load immersionlyceens_tags %}
+{% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
 <html>
 
 <head>
@@ -28,7 +29,7 @@
     {% include './fragments/main_menu.html'%}
 
     {% block section_title %}{% endblock %}
-    
+
     {% if messages %}
     <div class="container" style="padding: 10px;">
       {% for message in messages %}
@@ -45,6 +46,9 @@
 
     {% include './modals/modal_credits.html'%}
     {% include './modals/modal_legal.html'%}
+    {% if not external_contact_form_url %}
+    {% include './modals/modal_contact_us.html'%}
+    {% endif %}
     {% include './fragments/main_footer.html' %}
     {% block foot-javascript %}{% endblock %}
 </body>

@@ -6,8 +6,9 @@
 <footer class="footer fixed-bottom">
   <div class="container">
     <p class="credit text-center">&copy; Direction du Num&eacute;rique - Universit&eacute; de Strasbourg - {% now "Y" %}
-      - <a href="#" data-toggle="modal" data-target="#modalLegal">{% trans 'Privacy & terms' %}</a> - <a href="#"
-        data-toggle="modal" data-target="#modalCredits">{% trans 'Credits' %}</a> - {% if external_contact_form_url %} {{ external_contact_form_url }} {% endif %}
+       - <a {% if external_contact_form_url %} href="{{ external_contact_form_url }}" target="_blank"{% else%}href="#" data-toggle="modal" data-target="#modal_contact_us"  {% endif %}>{% trans 'Contact us' %}</a>
+       - <a href="#" data-toggle="modal" data-target="#modalLegal">{% trans 'Privacy & terms' %}</a> - <a href="#"
+        data-toggle="modal" data-target="#modalCredits">{% trans 'Credits' %}</a>
     </p>
   </div>
 </footer>

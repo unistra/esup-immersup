@@ -1,0 +1,67 @@
+{% load static staticfiles i18n immersionlyceens_tags %}
+<div class="modal fade" id="modal_contact_us" tabindex="-1" role="dialog" aria-labelledby="modal_contact_us_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_contact_us_title">{% trans 'Contact us' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <div id="contact_us_feedback"></div>
+          <div class='form-group row align-items-center'>
+            <div class='col-md-2'>{{ contact_form.subject.label }} :</div>
+            <div class='col-md-10'>
+              {{ contact_form.subject }}
+            </div>
+          </div>
+          <div class="form-group row align-items-center">
+            <div class='col-md-12' style="height:300px;">
+              {{ contact_form.body|safe }}
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+          <input type="submit" class="btn btn-primary" name="send_email" onclick="send_email()" value="{% trans 'Send' %}">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $('#modal_contact_us').on('show.bs.modal', function() {
+    $('#id_body_iframe').css('height', '300px');
+  });
+
+  function send_email() {
+    let is_checked = $('#id_send_copy').is(":checked");
+
+    $.ajax({
+      url: "{% url 'SendEmail' %}",
+      type: 'POST',
+      data: {
+        'body': $("#id_body").val(),
+        'subject': $("#id_subject").val(),
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        if(json['error']) {
+            console.log('error');
+            $("#contact_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+            setTimeout(function() { $("#contact_us_feedback").html('');}, 3000);
+        } else {
+            $("#contact_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
+            setTimeout(function() { $("#contact_us_feedback").html('');}, 3000);
+
+            $("#id_body").summernote('code', '<p><br></p>');
+            $("#id_subject").val("");
+
+        }
+      },
+      error: function (json) {
+        console.log(json);
+      }
+    });
+  }
+</script>
