@@ -173,6 +173,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
+                'immersionlyceens.processor.context_contact_us_form',
             ],
         },
     },
@@ -284,15 +285,9 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 ########################
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    }
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 
@@ -305,26 +300,15 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'default': {'format': '%(levelname)s %(asctime)s %(name)s:%(lineno)s %(message)s'},
-        'django.server': {
-            '()': 'django.utils.log.ServerFormatter',
-            'format': '[%(server_time)s] %(message)s',
-        },
+        'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s',},
     },
     'filters': {
         'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse',},
         'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue',},
     },
     'handlers': {
-        'console': {
-            'level': 'INFO',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-        },
-        'django.server': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'django.server',
-        },
+        'console': {'level': 'INFO', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler',},
+        'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server',},
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -342,11 +326,7 @@ LOGGING = {
     'loggers': {
         'django': {'handlers': ['console', 'mail_admins'], 'level': 'INFO',},
         'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False,},
-        'immersionlyceens': {
-            'handlers': ['mail_admins', 'file'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
+        'immersionlyceens': {'handlers': ['mail_admins', 'file'], 'level': 'ERROR', 'propagate': True,},
     },
 }
 
@@ -414,7 +394,7 @@ LDAP_API_FIRSTNAME_ATTR = ''
 #######################
 
 # Do not use : may not be unique accross institutions
-# "HTTP_UID": (True, "username"), 
+# "HTTP_UID": (True, "username"),
 
 SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_GIVENNAME": (True, "first_name"),
@@ -472,7 +452,7 @@ ADMIN_MODELS_ORDER = {
 }
 
 # Define groups rights on others here ?
-HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP','REF-LYC', ]}
+HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP', 'REF-LYC',]}
 
 ####################
 # Geo Api settings #
@@ -512,7 +492,7 @@ MAX_UPLOAD_SIZE = "20971520"
 
 # Highschool students settings
 USERNAME_PREFIX = "@EXTERNAL@_"
-DESTRUCTION_DELAY = 5 # in days
+DESTRUCTION_DELAY = 5  # in days
 
 # Some general settings default values
 DEFAULT_NB_DAYS_SLOT_REMINDER = 4
