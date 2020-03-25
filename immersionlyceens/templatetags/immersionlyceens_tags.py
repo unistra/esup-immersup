@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 # TODO: uncomment later
-from ..apps.core.models import ImmersionUser
+from ..apps.core.models import GeneralSettings, ImmersionUser
 
 register = template.Library()
 
@@ -36,6 +36,14 @@ def get_bootstrap_alert_msg_css_name(tags):
 def settings_get(name):
     try:
         return str(settings.__getattr__(name))
+    except Exception:
+        return ""
+
+
+@register.simple_tag
+def general_settings_get(name):
+    try:
+        return GeneralSettings.objects.get(setting=name).value
     except Exception:
         return ""
 
