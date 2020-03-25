@@ -280,8 +280,8 @@ class ImmersionUser(AbstractUser):
             record = self.get_high_school_student_record()
         elif self.is_student():
             record = self.get_student_record()
-            
-        if not record or not record.is_valid(): 
+
+        if not record or not record.is_valid():
             return remaining
 
         if calendar.calendar_mode == 'SEMESTER':
@@ -788,9 +788,9 @@ class Course(models.Model):
         :return: the number of non-cancelled registered students on all the slots
         under this course (past and future)
         """
-        return Immersion.objects.prefetch_related('slot')\
-            .filter(slot__course=self, cancellation_type__isnull=True).count()
-
+        return (
+            Immersion.objects.prefetch_related('slot').filter(slot__course=self, cancellation_type__isnull=True).count()
+        )
 
     class Meta:
         verbose_name = _('Course')
@@ -1194,3 +1194,7 @@ class GeneralSettings(models.Model):
     class Meta:
         verbose_name = _('General setting')
         verbose_name_plural = _('General settings')
+
+    def __str__(self):
+        """str"""
+        return self.setting
