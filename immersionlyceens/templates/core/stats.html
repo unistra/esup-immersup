@@ -57,6 +57,18 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
+  if ($('#component').val() === ''){
+      $('#extract_component').prop('disabled', true);
+  }
+  $('#component').change(function(){
+    if ($('#component').val() === ''){
+        $('#extract_component').prop('disabled', true);
+    } else {
+        $('#extract_component').prop('disabled', false);
+    }
+  });
+
+
   $('#extract_component').click(function(event){
     let component = $('#component').val();
     let url = '/api/get_csv_components/' + component;

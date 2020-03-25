@@ -1353,9 +1353,10 @@ def get_csv_components(request, component_id):
     for row in content:
         writer.writerow(row)
 
-    return response@groups_required('SCUIO-IP', 'REF-CMP')
+    return response\
 
 
+@groups_required('SCUIO-IP', 'REF-CMP')
 def get_csv_highschool(request, high_school_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
