@@ -262,5 +262,13 @@
         "code": "${lienMotDePasse}",
         "description": "Lien vers la page de réinitialisation du mot de passe"
     }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 34,
+    "fields": {
+        "code": "${creneaux.liste}",
+        "description": "Affichage de créneaux sous forme de liste"
+    }
 }
 ]

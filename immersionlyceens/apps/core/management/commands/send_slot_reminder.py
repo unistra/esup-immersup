@@ -38,7 +38,8 @@ class Command(BaseCommand):
 
         slot_date = today + datetime.timedelta(days=days)
 
-        immersions = Immersion.objects.filter(slot__date=slot_date, cancellation_type__isnull=True)
+        immersions = Immersion.objects.filter(
+            cancellation_type__isnull=True, slot__date=slot_date, slot__published=True)
 
         for immersion in immersions:
             immersion.student.send_message(None, 'IMMERSION_RAPPEL', slot=immersion.slot, immersion=immersion)

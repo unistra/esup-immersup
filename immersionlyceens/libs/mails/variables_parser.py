@@ -25,6 +25,7 @@ def multisub(subs, subject):
 
 def parser(user, request, message_body, vars, **kwargs):
     slot = kwargs.get('slot')
+    slot_list = kwargs.get('slot_list')
     course = kwargs.get('course')
     immersion = kwargs.get('immersion')
     slot_survey = None
@@ -138,6 +139,17 @@ def parser(user, request, message_body, vars, **kwargs):
                 platform_url,
                 reverse('immersion:reset_password', kwargs={'hash':user.recovery_string})))
         ]
+
+    if slot_list:
+        slot_txt = [
+            "* %s (%s - %s) : %s (%s)\n  -> %s"
+            % (date_format(s.date), s.start_time.strftime("%-Hh%M"), s.end_time.strftime("%-Hh%M"),
+               s.course.label, s.course_type.label, ','.join([
+                "%s %s" % (t.first_name, t.last_name) for t in s.teachers.all()])
+            )
+            for s in slot_list
+        ]
+        vars += [('${creneaux.liste}', '\n\n'.join(slot_txt))]
 
     if slot_survey:
         vars.append(('${lienCreneau}', "<a href='{0}'>{0}</a>".format(slot_survey.url)))
