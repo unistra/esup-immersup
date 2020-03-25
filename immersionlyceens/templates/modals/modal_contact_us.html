@@ -52,6 +52,14 @@
                       </div>
                   </div>
               </div>
+              <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="are_u_human" id="human_check"></label>
+                      <input id="are_u_human" type="text" class="form-control" />
+                    </div>
+                </div>
+              </div>
           </div>
 
         </form>
@@ -64,6 +72,78 @@
   </div>
 </div>
 <script>
+
+  var numbers = [
+    "{% trans 'zero' %}",
+    "{% trans 'one' %}",
+    "{% trans 'two' %}",
+    "{% trans 'three' %}",
+    "{% trans 'four' %}",
+    "{% trans 'five' %}",
+    "{% trans 'six' %}",
+    "{% trans 'seven' %}",
+    "{% trans 'height' %}",
+    "{% trans 'nine' %}",
+    "{% trans 'ten' %}"
+  ];
+  var num1 = Math.floor(Math.random() * 10);
+  var num2 = Math.floor(Math.random() * 10);
+  $('#human_check').html("{% trans 'What is the result of' %} " + numbers[num1] + " {% trans 'plus' %} " + numbers[num2] + " ?");
+
+
+  $(document).ready(function () {
+
+    $('#contact_us_form').submit(function(e) {
+      e.preventDefault()
+      var $form = $(this)
+      var sum = $('#are_u_human').val();
+
+      if(Number.parseInt(sum) != num1 + num2) {
+        return false;
+      }
+    })
+    $('.modal').on('shown.bs.modal', function(){
+      $('input:first').focus()
+    })
+  })
+
+
+/*
+    $('#contact_us_form').onsubmit = function(e){
+      e.preventDefault()
+      var sum = $('#are_u_human').val();
+      if(Number.parseInt(sum) != num1 + num2) {
+       return false;
+      }
+      $.ajax({
+        {% comment %} url: "{% url 'SendEmailContactUs' %}", {% endcomment %}
+        type: 'POST',
+        data: {
+          'body': $("#message").val(),
+          'subject': $("#subject").val(),
+          'lastname': $("#lastname").val(),
+          'firstname': $("#firstname").val(),
+          'email': $("#email").val(),
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function (json) {
+          if(json['error']) {
+              $("#contactus_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+              setTimeout(function() { $("#contactus_feedback").html('');}, 3000);
+          } else {
+              $("#contactus_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
+              setTimeout(function() { $("#contactus_feedback").html('');}, 3000);
+
+          }
+        },
+        error: function (json) {
+          console.log(json);
+        }
+      });
+      return false;
+    }
+  });
+  /*
   function send_email() {
     $.ajax({
       {% comment %} url: "{% url 'SendEmailContactUs' %}", {% endcomment %}
@@ -91,4 +171,5 @@
       }
     });
   }
+  */
 </script>
