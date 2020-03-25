@@ -19,9 +19,7 @@ env.root_package_name = 'immersionlyceens'  # name of app in webapp
 env.remote_home = '/home/django'  # remote home root
 env.remote_python_version = '3.6'  # python version
 env.remote_virtualenv_root = join(env.remote_home, '.virtualenvs')  # venv root
-env.remote_virtualenv_dir = join(
-    env.remote_virtualenv_root, env.application_name
-)  # venv for webapp dir
+env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)  # venv for webapp dir
 # git repository url
 env.remote_repo_url = 'git@git.unistra.fr:di/immersionlyceens.git'
 env.local_tmp_dir = '/tmp'  # tmp dir
@@ -57,7 +55,9 @@ env.extra_pkg_to_install = ['python3.6-dev']  # extra debian/ubuntu package(s) t
 # env.no_circus_web = True
 # env.circus_backend = 'gevent' # name of circus backend to use
 
-env.chaussette_backend = 'waitress'  # name of chaussette backend to use. You need to add this backend in the app requirement file.
+env.chaussette_backend = (
+    'waitress'  # name of chaussette backend to use. You need to add this backend in the app requirement file.
+)
 
 
 # env.nginx_location_extra_directives = ['proxy_read_timeout 120'] # add directive(s) to nginx config file in location part
@@ -134,7 +134,7 @@ def preprod():
     """Define preprod stage"""
     env.roledefs = {
         'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
-        'lb': ['django-rp-pprd.di.unistra.fr'],
+        'lb': ['rp-dip-pprd-public.di.unistra.fr'],
     }
 
     # env.user = 'root'  # user for ssh
@@ -143,7 +143,7 @@ def preprod():
     env.server_name = 'immersion-pprd.unistra.fr'
     env.short_server_name = 'immersion-pprd'
     env.static_folder = '/site_media/'
-    env.server_ip = '130.79.254.50'
+    env.server_ip = '130.79.245.213'
     env.no_shared_sessions = False
     env.server_ssl_on = True
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
@@ -176,13 +176,16 @@ def preprod():
 @task
 def prod():
     """Define prod stage"""
-    env.roledefs = {'web': ['immersionlyceens.net'], 'lb': ['lb.immersionlyceens.net']}
+    env.roledefs = {
+        'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
+        'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
+    }
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
     env.server_name = 'immersionlyceens.net'
     env.short_server_name = 'immersionlyceens'
     env.static_folder = '/site_media/'
-    env.server_ip = ''
+    env.server_ip = '130.79.245.214'
     env.no_shared_sessions = False
     env.server_ssl_on = True
     env.path_to_cert = '/etc/ssl/certs/immersionlyceens.net.pem'
