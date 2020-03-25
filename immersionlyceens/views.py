@@ -221,7 +221,7 @@ def offer_subdomain(request, subdomain_id):
             }
 
             # If the current user is a student, check whether he can register
-            if student and record.is_valid() and remaining_regs_count:
+            if student and record and record.is_valid() and remaining_regs_count:
                 for slot in slots:
                     slot.already_registered = False
                     slot.can_register = False
@@ -243,6 +243,7 @@ def offer_subdomain(request, subdomain_id):
                                 slot.can_register = True
             else:
                 for slot in slots:
+                    slot.cancelled = False
                     slot.can_register = False
                     slot.already_registered = False
 
