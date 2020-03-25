@@ -9,53 +9,80 @@
         </button>
       </div>
       <div class="modal-body">
-          <div id="contact_us_feedback"></div>
-          <div class='form-group row align-items-center'>
-            <div class='col-md-2'>{{ contact_us_form.subject.label }} :</div>
-            <div class='col-md-10'>
-              {{ contact_us_form.subject }}
-            </div>
+        <form id="contact_us_form">
+          <div class="contactus_feedback"></div>
+          <div class="controls">
+              <div class="row">
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="firstname">{% trans 'Firstname' %} *</label>
+                          <input id="firstname" type="text" name="firstname" class="form-control" required="required" data-error="Firstname is required.">
+                          <div class="help-block with-errors"></div>
+                      </div>
+                  </div>
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="lastname">{% trans 'Lastname' %} *</label>
+                          <input id="lastname" type="text" name="lastname" class="form-control" required="required" data-error="Lastname is required.">
+                          <div class="help-block with-errors"></div>
+                      </div>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="email">{% trans 'Email' %} *</label>
+                          <input id="email" type="email" name="email" class="form-control" required="required" data-error="Valid email is required.">
+                          <div class="help-block with-errors"></div>
+                      </div>
+                  </div>
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="subject">{% trans 'Subject' %} *</label>
+                          <input id="subject" type="text" name="subject" class="form-control" required="required">
+                          <div class="help-block with-errors"></div>
+                      </div>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-12">
+                      <div class="form-group">
+                          <label for="message">{% trans 'My request' %} *</label>
+                          <textarea id="message" name="message" class="form-control" rows="6" required="required"></textarea>
+                      </div>
+                  </div>
+              </div>
           </div>
-          <div class="form-group row align-items-center">
-            <div class='col-md-12' style="height:300px;">
-              {{ contact_us_form.body|safe }}
-            </div>
-          </div>
+
+        </form>
       </div>
       <div class="modal-footer">
-          <input type="submit" class="btn btn-primary" name="send_email" onclick="send_email()" value="{% trans 'Send' %}">
+          <input type="submit" class="btn btn-primary" name="send_email" form="contact_us_form" value="{% trans 'Send' %}">
         <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-  $('#modal_contact_us').on('show.bs.modal', function() {
-    $('#id_body_iframe').css('height', '300px');
-  });
-
   function send_email() {
-    let is_checked = $('#id_send_copy').is(":checked");
-
     $.ajax({
-      url: "{% url 'SendEmail' %}",
+      {% comment %} url: "{% url 'SendEmailContactUs' %}", {% endcomment %}
       type: 'POST',
       data: {
-        'body': $("#id_body").val(),
-        'subject': $("#id_subject").val(),
+        'body': $("#message").val(),
+        'subject': $("#subject").val(),
+        'lastname': $("#lastname").val(),
+        'firstname': $("#firstname").val(),
+        'email': $("#email").val(),
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
         if(json['error']) {
-            console.log('error');
-            $("#contact_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-            setTimeout(function() { $("#contact_us_feedback").html('');}, 3000);
+            $("#contactus_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+            setTimeout(function() { $("#contactus_feedback").html('');}, 3000);
         } else {
-            $("#contact_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
-            setTimeout(function() { $("#contact_us_feedback").html('');}, 3000);
-
-            $("#id_body").summernote('code', '<p><br></p>');
-            $("#id_subject").val("");
+            $("#contactus_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
+            setTimeout(function() { $("#contactus_feedback").html('');}, 3000);
 
         }
       },
