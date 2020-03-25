@@ -685,5 +685,8 @@ def stats(request):
         'components': components,
     }
 
+    if request.user.is_high_school_manager():
+        context['high_school_id'] = request.user.highschool.id
+
     return render(request, template, context)
 

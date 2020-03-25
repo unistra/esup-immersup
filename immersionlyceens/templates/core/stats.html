@@ -27,14 +27,27 @@
     <div class="card-body">
 
       <div class="row">
-          <label class="col-form-label col-sm-3" for="component">{% trans 'Components data' %}</label>
-          <select name="component" id="component" class="form-control col-sm-3">
-            <option value="" selected>----------</option>
-            {% for component in components %}
-              <option value="{{ component.id }}">{{ component.label }}</option>
-            {% endfor %}
-          </select>
-          <button type="button" class="btn btn-primary" id="extract_component">{% trans 'Extract' %}</button>
+        <label class="col-form-label col-sm-3" for="component">{% trans 'Components data' %}</label>
+        <select name="component" id="component" class="form-control col-sm-3">
+          <option value="" selected>{% trans 'Choose a component' %}</option>
+          {% for component in components %}
+            <option value="{{ component.id }}">{{ component.label }}</option>
+          {% endfor %}
+        </select>
+        <button type="button" class="btn btn-primary ml-1" id="extract_component">{% trans 'Extract data' %}</button>
+      </div>
+
+      <br>
+
+      <div class="row">
+        <label class="col-form-label col-sm-3" >{% trans 'High school data' %}</label>
+        <button type="button" class="btn btn-primary" id="extract_highschool">{% trans 'Extract data' %}</button>
+      </div>
+
+      <br>
+      <div class="row">
+        <label class="col-form-label col-sm-3" >{% trans 'Anonymous immersion data' %}</label>
+        <button type="button" class="btn btn-primary" id="extract_anonymous">{% trans 'Extract data' %}</button>
       </div>
 
     </div>
@@ -49,9 +62,14 @@ $(document).ready(function(){
     let url = '/api/get_csv_components/' + component;
     window.open(url, '_blank');
   });
+  $('#extract_highschool').click(function(event){
+    let url = '/api/get_csv_highschool/{{ high_school_id }}';
+    window.open(url, '_blank');
+  });
+  $('#extract_anonymous').click(function(event){
+    window.open('/api/get_csv_anonymous_immersion/', '_blank');
+  });
 });
-
-
 
 </script>
 {% endblock %}

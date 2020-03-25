@@ -11,6 +11,7 @@ from immersionlyceens.apps.core.models import (
     Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser, MailTemplateVars,
     PublicDocument, Slot, Training, UniversityYear, Vacation,
 )
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
 
@@ -1317,8 +1318,10 @@ def ajax_batch_cancel_registration(request):
 
 @groups_required('SCUIO-IP', 'REF-CMP')
 def get_csv_components(request, component_id):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="component_extraction.csv"'
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    today = _date(datetime.datetime.today(), 'Ymd')
+    component = Component.objects.get(id=component_id)
+    response['Content-Disposition'] = f'attachment; filename="{component.label}_{today}.csv"'
     slots = Slot.objects.filter(course__component_id=component_id, published=True)
 
     header = [_('domain'), _('subdomain'), _('training'), _('course type'),
@@ -1344,6 +1347,132 @@ def get_csv_components(request, component_id):
             slot.additional_information,
         ]
         content.append(line.copy())
+
+    writer = csv.writer(response)
+    writer.writerow(header)
+    for row in content:
+        writer.writerow(row)
+
+    return response@groups_required('SCUIO-IP', 'REF-CMP')
+
+
+def get_csv_highschool(request, high_school_id):
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    today = _date(datetime.datetime.today(), 'Ymd')
+    h_name = HighSchool.objects.get(id=high_school_id).label.replace(" ", "_")
+    response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
+
+    header = [_('last name'), _('first name'), _('birthdate'),
+              _('level'),_('class name'), _('bachelor type'),
+              _('training domain'), _('training subdomain'),
+              _('training'), _('course')]
+
+    content = []
+    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)
+    for hs in hs_records:
+        immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
+        if immersions.count() > 0:
+            for imm in immersions:
+                content.append([
+                    hs.student.last_name,
+                    hs.student.first_name,
+                    _date(hs.birth_date, 'd/m/Y'),
+                    HighSchoolStudentRecord.LEVELS[hs.level][1],
+                    hs.class_name,
+                    HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1],
+                    '|'.join([s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]),
+                    '|'.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
+                    imm.slot.course.training.label,
+                    imm.slot.course.label
+                ])
+        else:
+            content.append([
+                hs.student.last_name,
+                hs.student.first_name,
+                _date(hs.birth_date, 'd/m/Y'),
+                HighSchoolStudentRecord.LEVELS[hs.level][1],
+                hs.class_name,
+                HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1]
+            ])
+
+    writer = csv.writer(response)
+    writer.writerow(header)
+    for row in content:
+        writer.writerow(row)
+
+    return response
+
+
+
+def get_csv_anonymous_immersion(request):
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    today = _date(datetime.datetime.today(), 'Ymd')
+    trad = _('anonymous_immersion')
+    response['Content-Disposition'] = f'attachment; filename="{trad}_{today}.csv"'
+
+    header = [_('component'), _('training domain'), _('training subdomain'),
+              _('training'), _('course'), _('course_type'), _('date'),
+              _('start_time'), _('end_time'), _('campus'), _('building'), _('room'),
+              _('registration number'), _('number number'), _('additional information'),
+              _('origin institution'), _('student level')
+            ]
+
+    content = []
+
+    slots = Slot.objects.filter(published=True)
+    for slot in slots:
+        immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
+        if immersions.count() > 0:
+            for imm in immersions:
+                institution = ''
+                level = ''
+                if imm.student.is_student():
+                    record = StudentRecord.objects.get(student=imm.student)
+                    institution = record.home_institution
+                    level = StudentRecord.LEVELS[record.level][1]
+                elif imm.student.is_high_school_student():
+                    record = HighSchoolStudentRecord.objects.get(student=imm.student)
+                    institution = record.highschool.label
+                    level = HighSchoolStudentRecord.LEVELS[record.level][1]
+
+                content.append([
+                    slot.course.component.label,
+                    '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+                    '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                    slot.course.training.label,
+                    slot.course.label,
+                    slot.course_type.label,
+                    _date(slot.date, 'd/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    slot.campus.label,
+                    slot.building.label,
+                    slot.room,
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                    institution,
+                    level
+                ])
+        else:
+            content.append([
+                slot.course.component.label,
+                '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+                '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                slot.course.training.label,
+                slot.course.label,
+                slot.course_type.label,
+                _date(slot.date, 'd/m/Y'),
+                slot.start_time.strftime('%H:%M'),
+                slot.end_time.strftime('%H:%M'),
+                slot.campus.label,
+                slot.building.label,
+                slot.room,
+                slot.registered_students(),
+                slot.n_places,
+                slot.additional_information
+            ])
+
 
     writer = csv.writer(response)
     writer.writerow(header)
