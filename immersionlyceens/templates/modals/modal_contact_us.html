@@ -9,22 +9,24 @@
         </button>
       </div>
       <div class="modal-body">
-        <form id="contact_us_form">
+        <form id="contact_us_form" class="needs-validation">
           <div class="contactus_feedback"></div>
           <div class="controls">
               <div class="row">
                   <div class="col-md-6">
                       <div class="form-group">
                           <label for="firstname">{% trans 'Firstname' %} *</label>
-                          <input id="firstname" type="text" name="firstname" class="form-control" required="required" data-error="Firstname is required.">
-                          <div class="help-block with-errors"></div>
+                          <input id="firstname" type="text" name="firstname" class="form-control" required="required">
+                          <div class="valid-feedback"></div>
+                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
                   <div class="col-md-6">
                       <div class="form-group">
                           <label for="lastname">{% trans 'Lastname' %} *</label>
-                          <input id="lastname" type="text" name="lastname" class="form-control" required="required" data-error="Lastname is required.">
-                          <div class="help-block with-errors"></div>
+                          <input id="lastname" type="text" name="lastname" class="form-control" required="required">
+                          <div class="valid-feedback"></div>
+                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
               </div>
@@ -32,15 +34,17 @@
                   <div class="col-md-6">
                       <div class="form-group">
                           <label for="email">{% trans 'Email' %} *</label>
-                          <input id="email" type="email" name="email" class="form-control" required="required" data-error="Valid email is required.">
-                          <div class="help-block with-errors"></div>
+                          <input id="email" type="email" name="email" class="form-control" required="required">
+                          <div class="valid-feedback"></div>
+                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
                   <div class="col-md-6">
                       <div class="form-group">
                           <label for="subject">{% trans 'Subject' %} *</label>
                           <input id="subject" type="text" name="subject" class="form-control" required="required">
-                          <div class="help-block with-errors"></div>
+                          <div class="valid-feedback"></div>
+                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
               </div>
@@ -49,14 +53,17 @@
                       <div class="form-group">
                           <label for="message">{% trans 'My request' %} *</label>
                           <textarea id="message" name="message" class="form-control" rows="6" required="required"></textarea>
+                          <div class="valid-feedback"></div>
+                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
               </div>
               <div class="row">
                 <div class="col-md-6">
-                    <div class="form-group">
+                    <div id="are_u_human_group" class="form-group">
                       <label for="are_u_human" id="human_check"></label>
-                      <input id="are_u_human" type="text" class="form-control" />
+                      <input id="are_u_human" type="text" class="form-control" required>
+                      <div class="invalid-feedback">{% trans 'Invalid result'%}</div>
                     </div>
                 </div>
               </div>
@@ -95,11 +102,17 @@
 
     $('#contact_us_form').submit(function(e) {
       e.preventDefault()
-      var $form = $(this)
       var sum = $('#are_u_human').val();
-
+      //$(this).addClass('was-validated')
       if(Number.parseInt(sum) != num1 + num2) {
+        $("#are_u_human_group").removeClass('is-valid');
+        $("#are_u_human").removeClass('is-valid');
+        $("#are_u_human_group").addClass('is-invalid');
+        $("#are_u_human").addClass('is-invalid');
         return false;
+      } else {
+        $("#are_u_human_group").removeClass('is-invalid');
+        $("#are_u_human").removeClass('is-invalid');
       }
     })
     $('.modal').on('shown.bs.modal', function(){
