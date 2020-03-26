@@ -1316,12 +1316,12 @@ def ajax_batch_cancel_registration(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-CMP')
 def get_csv_components(request, component_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    component = Component.objects.get(id=component_id)
-    response['Content-Disposition'] = f'attachment; filename="{component.label}_{today}.csv"'
+    component = Component.objects.get(id=component_id).label.replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="{component}_{today}.csv"'
     slots = Slot.objects.filter(course__component_id=component_id, published=True)
 
     header = [_('domain'), _('subdomain'), _('training'), _('course type'),
@@ -1356,7 +1356,7 @@ def get_csv_components(request, component_id):
     return response\
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-LYC',)
 def get_csv_highschool(request, high_school_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -1404,7 +1404,7 @@ def get_csv_highschool(request, high_school_id):
     return response
 
 
-
+@groups_required('SCUIO-IP',)
 def get_csv_anonymous_immersion(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -1473,7 +1473,6 @@ def get_csv_anonymous_immersion(request):
                 slot.n_places,
                 slot.additional_information
             ])
-
 
     writer = csv.writer(response)
     writer.writerow(header)
