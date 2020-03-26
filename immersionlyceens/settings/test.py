@@ -181,5 +181,5 @@ SUMMERNOTE_CONFIG = {
 }
 
 # Mailing list subscriber files directory
-BASE_FILES_DIR = "{{ base_file_dir }}"
+BASE_FILES_DIR = '{{ base_files_dir }}'
 MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
