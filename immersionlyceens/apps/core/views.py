@@ -679,7 +679,7 @@ def stats(request):
     if request.user.is_scuio_ip_manager():
         components = Component.activated.all()
     elif request.user.is_component_manager():
-        components = request.user.components
+        components = request.user.components.all()
 
     context = {
         'components': components,
@@ -689,4 +689,3 @@ def stats(request):
         context['high_school_id'] = request.user.highschool.id
 
     return render(request, template, context)
-
