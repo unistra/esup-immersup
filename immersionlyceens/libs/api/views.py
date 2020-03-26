@@ -352,8 +352,12 @@ def ajax_get_my_courses(request, user_id=None):
             'training_label': course.training.label,
             'label': course.label,
             'teachers': {},
-            'published_slots_count': f'{course.published_slots_count()} / {course.slots_count()}',
-            'registered_students_count': f'{course.registrations_count()} / {course.free_seats()}',
+            'slots_count': course.slots_count(teacher_id=user_id),
+            'n_places': course.free_seats(teacher_id=user_id),
+            'published_slots_count': course.published_slots_count(teacher_id=user_id),
+                # f'{course.published_slots_count(teacher_id=user_id)} / {course.slots_count(teacher_id=user_id)}',
+            'registered_students_count': course.registrations_count(teacher_id=user_id),
+                # f'{course.registrations_count(teacher_id=user_id)} / {course.free_seats(teacher_id=user_id)}',
             'alerts_count': 0,  # TODO
         }
 

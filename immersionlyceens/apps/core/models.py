@@ -797,34 +797,58 @@ class Course(models.Model):
     def get_components_queryset(self):
         return self.training.components.all()
 
-    def free_seats(self):
+    def free_seats(self, teacher_id=None):
         """
+        :teacher_id: optional : only consider slots attached to 'teacher'
         :return: number of seats as the sum of seats of all slots under this course
-        TODO : filter on published slots only ?
         """
-        d = self.slots.filter(published=True).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
+        filters = { 'published':True }
+
+        if teacher_id:
+            filters['teachers'] = teacher_id
+
+        d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
+
         return d['total_seats']
 
-    def published_slots_count(self):
+    def published_slots_count(self, teacher_id=None):
         """
+        :teacher_id: optional : only consider slots attached to 'teacher'
         Return number of published slots under this course
         """
-        return self.slots.filter(published=True).count()
+        filters = {'published': True}
 
-    def slots_count(self):
+        if teacher_id:
+            filters['teachers'] = teacher_id
+
+        return self.slots.filter(**filters).count()
+
+    def slots_count(self, teacher_id=None):
         """
+        :teacher_id: optional : only consider slots attached to 'teacher'
         Return number of slots under this course, published or not
         """
-        return self.slots.all().count()
+        if teacher_id:
+            return self.slots.filter(teachers=teacher_id).count()
+        else:
+            return self.slots.all().count()
 
-    def registrations_count(self):
+    def registrations_count(self, teacher_id=None):
         """
+        :teacher_id: optional : only consider slots attached to 'teacher'
         :return: the number of non-cancelled registered students on all the slots
         under this course (past and future)
         """
-        return Immersion.objects.prefetch_related('slot')\
-            .filter(slot__course=self, cancellation_type__isnull=True).count()
+        filters = {
+            'slot__course': self,
+            'cancellation_type__isnull': True
+        }
 
+        if teacher_id:
+            filters['slot__teachers'] = teacher_id
+
+        return Immersion.objects.prefetch_related('slot')\
+            .filter(**filters).count()
 
     class Meta:
         verbose_name = _('Course')
