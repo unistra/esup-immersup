@@ -6,6 +6,14 @@ import json
 import logging
 from functools import reduce
 
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
+    MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
+)
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from immersionlyceens.libs.mails.utils import send_email
+from immersionlyceens.libs.mails.variables_parser import multisub
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -16,15 +24,7 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext
-from django.utils.translation import ugettext_lazy as _
-
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
-    MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-from immersionlyceens.libs.mails.utils import send_email
+from django.utils.translation import gettext, ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -1354,6 +1354,7 @@ def ajax_send_email_contact_us(request):
         # TODO: Maybe use an util getter method for General settings
         recipient = GeneralSettings.objects.get(setting='MAIL_CONTACT_SCUIO_IP').value
     except Exception:
+        logger.error('MAIL_CONTACT_SCUIO_IP missing parameter')
         response = {'error': True, 'msg': gettext("Config parameter not found")}
         return JsonResponse(response, safe=False)
 
@@ -1363,10 +1364,31 @@ def ajax_send_email_contact_us(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
+    # Scuio-ip mail sending
     try:
         send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
     except Exception:
         response['error'] = True
         response['msg'] += _("%s : error") % recipient
+
+    try:
+        template = MailTemplate.objects.get(code='CONTACTUS_NOTIFICATION', active=True)
+        logger.debug("Template found : %s" % template)
+    except MailTemplate.DoesNotExist:
+        msg = _("Email not sent : template %s not found or inactive" % template_code)
+        logger.error(msg)
+
+    # Contacting user mail notification
+    try:
+        vars = [
+            ('${nom}', lastname),
+            ('${prenom}', firstname),
+        ]
+
+        message_body = multisub(vars, template.body)
+        send_email(email, template.subject, message_body)
+    except Exception as e:
+        logger.exception(e)
+        msg = _("Error while sending mail : %s" % e)
 
     return JsonResponse(response, safe=False)
