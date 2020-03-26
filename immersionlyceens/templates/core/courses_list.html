@@ -180,8 +180,30 @@
               return txt;
             },
           },
-          { "data": "published_slots_count" },
-          { "data": "registered_students_count" },
+          { "data": "published_slots_count",
+            "render": function(data, type, row) {
+              return data + "/" + row.slots_count;
+            }
+          },
+          { "data": "registered_students_count",
+            "render": function(data, type, row) {
+              let current = data;
+              let n = row.n_places;
+
+              element = '<span>' + current + '/' + n + '</span>' +
+                    '<div class="progress">' +
+                    '  <div' +
+                    '    class="progress-bar"' +
+                    '    role="progressbar"' +
+                    '    aria-valuenow="' + current + '"' +
+                    '    aria-valuemin="0"' +
+                    '    aria-valuemax="' + n + '"' +
+                    '    style="width: ' + Math.round(current/n * 100) + '%">' +
+                    '  </div>' +
+                    '</div>';
+              return element;
+            }
+          },
           { "data": "alerts_count" },
           { "data": "",
             "render": function (data, type, row) {

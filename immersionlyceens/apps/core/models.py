@@ -802,13 +802,19 @@ class Course(models.Model):
         :return: number of seats as the sum of seats of all slots under this course
         TODO : filter on published slots only ?
         """
-        d = self.slots.aggregate(total_seats=Coalesce(Sum('n_places'), 0))
+        d = self.slots.filter(published=True).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
         return d['total_seats']
 
     def published_slots_count(self):
+        """
+        Return number of published slots under this course
+        """
         return self.slots.filter(published=True).count()
 
     def slots_count(self):
+        """
+        Return number of slots under this course, published or not
+        """
         return self.slots.all().count()
 
     def registrations_count(self):

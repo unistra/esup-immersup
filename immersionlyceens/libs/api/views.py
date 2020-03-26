@@ -89,6 +89,8 @@ def ajax_get_courses(request, component_id=None):
             'component_code': course.component.code,
             'component_id': course.component.id,
             'teachers': [],
+            'slots_count': course.slots_count(),
+            'n_places': course.free_seats(),
             'published_slots_count': course.published_slots_count(),
             'registered_students_count': course.registrations_count(),
             'alerts_count': 0,  # TODO
