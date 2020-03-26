@@ -103,7 +103,7 @@
         $("#are_u_human_group").removeClass('is-invalid');
         $("#are_u_human").removeClass('is-invalid');
         $.ajax({
-          {% comment %} url: "{% url 'SendEmailContactUs' %}", {% endcomment %}
+          url: "{% url 'SendEmailContactUs' %}",
           type: 'POST',
           data: {
             'body': $("#message").val(),
@@ -126,8 +126,10 @@
           error: function (json) {
             console.log(json);
           }
-        }
-    })
+        });
+      }
+    });
+
     $('.modal').on('shown.bs.modal', function(){
       $('input:first').focus()
     });

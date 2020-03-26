@@ -7,8 +7,8 @@ import logging
 from functools import reduce
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser, MailTemplateVars,
-    PublicDocument, Slot, Training, UniversityYear, Vacation,
+    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
+    MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
 )
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
@@ -1331,5 +1331,41 @@ def ajax_batch_cancel_registration(request):
 
         if not err:
             response = {'error': False, 'msg': _("Immersion(s) cancelled"), 'err_msg': err_msg}
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@is_post_request
+def ajax_send_email_contact_us(request):
+    """
+    Send an email to SCUO-IP mail address
+    email address is set in general settings
+    """
+
+    subject = request.POST.get('subject', "")
+    body = request.POST.get('body', "")
+    lastname = request.POST.get('lastname', "")
+    firstname = request.POST.get('firstname', "")
+    email = request.POST.get('email', "")
+
+    try:
+        # TODO: Maybe use an util getter method for General settings
+        recipient = GeneralSettings.objects.get(setting='MAIL_CONTACT_SCUIO_IP').value
+    except Exception:
+        response = {'error': True, 'msg': gettext("Config parameter not found")}
+        return JsonResponse(response, safe=False)
+
+    response = {'error': False, 'msg': ''}
+
+    if not subject.strip or not body.strip() or not lastname.strip() or not firstname.strip() or not email.strip():
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+        return JsonResponse(response, safe=False)
+
+    try:
+        send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
+    except Exception:
+        response['error'] = True
+        response['msg'] += _("%s : error") % recipient
 
     return JsonResponse(response, safe=False)

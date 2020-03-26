@@ -55,5 +55,5 @@ urlpatterns = [
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
     path('send_email', views.ajax_send_email, name='SendEmail'),
-    path('send_email', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
+    path('send_email_contact_us', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
 ]

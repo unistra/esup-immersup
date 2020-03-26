@@ -23,12 +23,12 @@
                 {% endfor %}
               </select>
             </div>
-            
+
             <input type="submit" class="btn btn-secondary btn-sm mt-4" name="confirm-cancel" onclick="cancel_registration()" value="{% trans 'I confirm the cancellation' %}">
           </div>
-        </div>  
+        </div>
       </div>
-    </div>  
+    </div>
   </div>
 </div>
 <script>
@@ -63,7 +63,7 @@
       error: function(json) {
         console.log(json);
       }
-    })
-  };
+    });
+  }
 
 </script>
