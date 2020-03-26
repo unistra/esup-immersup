@@ -17,16 +17,12 @@
                       <div class="form-group">
                           <label for="firstname">{% trans 'Firstname' %} *</label>
                           <input id="firstname" type="text" name="firstname" class="form-control" required="required">
-                          <div class="valid-feedback"></div>
-                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
                   <div class="col-md-6">
                       <div class="form-group">
                           <label for="lastname">{% trans 'Lastname' %} *</label>
                           <input id="lastname" type="text" name="lastname" class="form-control" required="required">
-                          <div class="valid-feedback"></div>
-                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
               </div>
@@ -35,16 +31,12 @@
                       <div class="form-group">
                           <label for="email">{% trans 'Email' %} *</label>
                           <input id="email" type="email" name="email" class="form-control" required="required">
-                          <div class="valid-feedback"></div>
-                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
                   <div class="col-md-6">
                       <div class="form-group">
                           <label for="subject">{% trans 'Subject' %} *</label>
                           <input id="subject" type="text" name="subject" class="form-control" required="required">
-                          <div class="valid-feedback"></div>
-                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
               </div>
@@ -53,8 +45,6 @@
                       <div class="form-group">
                           <label for="message">{% trans 'My request' %} *</label>
                           <textarea id="message" name="message" class="form-control" rows="6" required="required"></textarea>
-                          <div class="valid-feedback"></div>
-                          <div class="invalid-feedback"></div>
                       </div>
                   </div>
               </div>
@@ -62,13 +52,12 @@
                 <div class="col-md-6">
                     <div id="are_u_human_group" class="form-group">
                       <label for="are_u_human" id="human_check"></label>
-                      <input id="are_u_human" type="text" class="form-control" required>
+                      <input id="are_u_human" type="number" class="form-control" required>
                       <div class="invalid-feedback">{% trans 'Invalid result'%}</div>
                     </div>
                 </div>
               </div>
           </div>
-
         </form>
       </div>
       <div class="modal-footer">
@@ -113,12 +102,36 @@
       } else {
         $("#are_u_human_group").removeClass('is-invalid');
         $("#are_u_human").removeClass('is-invalid');
-      }
+        $.ajax({
+          {% comment %} url: "{% url 'SendEmailContactUs' %}", {% endcomment %}
+          type: 'POST',
+          data: {
+            'body': $("#message").val(),
+            'subject': $("#subject").val(),
+            'lastname': $("#lastname").val(),
+            'firstname': $("#firstname").val(),
+            'email': $("#email").val(),
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+          success: function (json) {
+            if(json['error']) {
+                $("#contactus_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+                setTimeout(function() { $("#contactus_feedback").html('');}, 3000);
+            } else {
+                $("#contactus_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
+                setTimeout(function() { $("#contactus_feedback").html('');}, 3000);
+
+            }
+          },
+          error: function (json) {
+            console.log(json);
+          }
+        }
     })
     $('.modal').on('shown.bs.modal', function(){
       $('input:first').focus()
-    })
-  })
+    });
+  });
 
 
 /*

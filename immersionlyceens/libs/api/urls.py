@@ -30,7 +30,11 @@ urlpatterns = [
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slots', views.ajax_get_slots, name='get_slots',),
     path('get_students', views.ajax_get_students, name='getStudents'),
-    path('get_highschool_students/<int:highschool_id>/', views.ajax_get_highschool_students, name='get_highschool_students'),
+    path(
+        'get_highschool_students/<int:highschool_id>/',
+        views.ajax_get_highschool_students,
+        name='get_highschool_students',
+    ),
     path('get_highschool_students/', views.ajax_get_highschool_students, name='get_all_students'),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),
     path('get_slots_by_course/<int:course_id>', views.ajax_get_slots_by_course, name='get_slots_by_course',),
@@ -51,4 +55,5 @@ urlpatterns = [
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
     path('send_email', views.ajax_send_email, name='SendEmail'),
+    path('send_email', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
 ]
