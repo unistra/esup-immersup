@@ -281,9 +281,8 @@ $(document).ready(function(){
                 if(type == "display" || type == "filter") {
                   return "<span>" + row.date + "</span><br><span>" + row.time['start'] + " - " + row.time['end'] + "</span>";
                 }
-                else {
-                  return data;
-                }
+
+                return data;
               }
             },
             { data: 'location',

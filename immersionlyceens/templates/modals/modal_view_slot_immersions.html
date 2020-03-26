@@ -138,8 +138,8 @@ $.fn.dataTableExt.errMode = 'console';
 dtr = $('#students_list').DataTable({
   'processing': false,
   'order': [
-    [0, "asc"],
     [1, "asc"],
+    [2, "asc"],
   ],
   'serverSide': false,
   'responsive': false,
@@ -157,9 +157,9 @@ dtr = $('#students_list').DataTable({
   'paging': false,
   'ordering': true,
   'select': {
-						style:    'multi',
-						selector: 'td:first-child'
-	},
+    style: 'multi',
+    selector: 'td:first-child'
+  },
   'language': {
     url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
   },
@@ -184,10 +184,9 @@ dtr = $('#students_list').DataTable({
          else if (row.attendance_status == 2) {
            return "<span class='text-danger'>"+data+"</span>";
          }
-         else {
-           return data;
-         }
        }
+
+       return data;
      }
     },
     {"data": "firstname",
@@ -199,10 +198,9 @@ dtr = $('#students_list').DataTable({
          else if (row.attendance_status == 2) {
            return "<span class='text-danger'>"+data+"</span>";
          }
-         else {
-           return data;
-         }
        }
+
+       return data;
      }
     },
     {"data": "profile"},
