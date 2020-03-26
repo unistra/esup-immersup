@@ -25,9 +25,23 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans "Students from my high school" %}
+      {% if request.user.is_scuio_ip_manager %}
+        {% trans "All registered students" %}
+      {% else %}
+        {% trans "Students from my high school" %}
+      {% endif %}
     </div>
     <div class="card-body">
+      {% if request.user.is_scuio_ip_manager %}
+      <form class="form-inline">
+        <div class="form-group">
+          <div class="form-group form-check mx-sm-3 mb-2">
+            <input type="checkbox" id="filter_no_record" class="form-check-input"></label>
+            <label for="filter_no_record" class="form-check-label ml-md-2"> {% trans 'Display only students with no record' %}
+          </div>
+        </div>
+      </form>
+      {% endif %}
       <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
         <thead>
           <tr>
@@ -107,7 +121,7 @@
     'columns': [
     { "data": "name",
       "render": function(data, type, row) {
-        if(is_scuio_ip) {
+        if(is_scuio_ip && row.record_link != '') {
           return "<a href='"+row.record_link+"'>"+data+"</a>";
         }
         else {
@@ -239,6 +253,17 @@
     else {
       dt.order([[0, "asc"], ]);
     }
+  });
+
+  $('#filter_no_record').click(function () {
+    if ($('#filter_no_record').is(':checked')){
+      u = "/api/get_highschool_students/no_record";
+    }
+    else {
+      u = "/api/get_highschool_students/";
+    }
+    dt.ajax.url(u);
+    dt.ajax.reload();
   });
 });
 </script>

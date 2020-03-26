@@ -30,6 +30,7 @@ urlpatterns = [
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slots', views.ajax_get_slots, name='get_slots',),
     path('get_students', views.ajax_get_students, name='getStudents'),
+    path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
     path('get_highschool_students/<int:highschool_id>/', views.ajax_get_highschool_students, name='get_highschool_students'),
     path('get_highschool_students/', views.ajax_get_highschool_students, name='get_all_students'),
     path('get_student_records/', views.ajax_get_student_records, name='GetStudentRecords'),

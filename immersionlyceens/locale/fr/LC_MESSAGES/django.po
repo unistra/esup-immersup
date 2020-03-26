@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-26 11:32+0100\n"
+"POT-Creation-Date: 2020-03-26 14:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/apps/core/admin.py:101
 #: immersionlyceens/apps/core/admin.py:126
 #: immersionlyceens/templates/core/courses_list.html:153
-#: immersionlyceens/templates/core/highschool_students.html:132
+#: immersionlyceens/templates/core/highschool_students.html:146
 #: immersionlyceens/templates/core/mycourses.html:91
 #: immersionlyceens/templates/core/myslots.html:133
 #: immersionlyceens/templates/slots/list_slots.html:269
@@ -35,7 +35,7 @@ msgstr "Oui"
 #: immersionlyceens/apps/core/admin.py:102
 #: immersionlyceens/apps/core/admin.py:128
 #: immersionlyceens/templates/core/courses_list.html:156
-#: immersionlyceens/templates/core/highschool_students.html:138
+#: immersionlyceens/templates/core/highschool_students.html:152
 #: immersionlyceens/templates/core/mycourses.html:94
 #: immersionlyceens/templates/core/myslots.html:136
 #: immersionlyceens/templates/slots/list_slots.html:269
@@ -1240,7 +1240,7 @@ msgstr "Absent(e)"
 #: immersionlyceens/apps/immersion/models.py:193
 #: immersionlyceens/libs/api/views.py:927
 #: immersionlyceens/libs/api/views.py:1174
-#: immersionlyceens/templates/core/highschool_students.html:35
+#: immersionlyceens/templates/core/highschool_students.html:49
 msgid "Student"
 msgstr "Etudiant/Lycéen"
 
@@ -1485,7 +1485,7 @@ msgstr "rejeté"
 
 #: immersionlyceens/apps/immersion/models.py:66
 #: immersionlyceens/apps/immersion/models.py:205
-#: immersionlyceens/templates/core/highschool_students.html:36
+#: immersionlyceens/templates/core/highschool_students.html:50
 #: immersionlyceens/templates/core/hs_record_manager.html:49
 #: immersionlyceens/templates/core/student_validation.html:64
 #: immersionlyceens/templates/core/student_validation.html:91
@@ -1504,7 +1504,7 @@ msgstr "Civilité"
 
 #: immersionlyceens/apps/immersion/models.py:69
 #: immersionlyceens/apps/immersion/models.py:207
-#: immersionlyceens/templates/core/highschool_students.html:40
+#: immersionlyceens/templates/core/highschool_students.html:54
 #: immersionlyceens/templates/core/hs_record_manager.html:54
 #: immersionlyceens/templates/core/student_validation.html:65
 #: immersionlyceens/templates/core/student_validation.html:92
@@ -1540,7 +1540,7 @@ msgid "Professional bachelor mention"
 msgstr "Mention du baccalauréat professionnel"
 
 #: immersionlyceens/apps/immersion/models.py:92
-#: immersionlyceens/templates/core/highschool_students.html:44
+#: immersionlyceens/templates/core/highschool_students.html:58
 #: immersionlyceens/templates/immersion/hs_record.html:142
 msgid "Post bachelor level"
 msgstr "Niveau d'étude post-bac"
@@ -1843,15 +1843,15 @@ msgstr "Compte supprimé"
 #: immersionlyceens/libs/api/views.py:700
 #: immersionlyceens/libs/api/views.py:702
 #: immersionlyceens/libs/api/views.py:729
-#: immersionlyceens/libs/api/views.py:1332
+#: immersionlyceens/libs/api/views.py:1341
 msgid "User not found"
 msgstr "Utilisateur non trouvé"
 
 #: immersionlyceens/libs/api/views.py:718
 #: immersionlyceens/libs/api/views.py:1021
-#: immersionlyceens/libs/api/views.py:1202
-#: immersionlyceens/libs/api/views.py:1276
-#: immersionlyceens/libs/api/views.py:1316
+#: immersionlyceens/libs/api/views.py:1206
+#: immersionlyceens/libs/api/views.py:1285
+#: immersionlyceens/libs/api/views.py:1325
 msgid "Invalid parameters"
 msgstr "Paramêtres invalides"
 
@@ -1860,7 +1860,7 @@ msgid "Immersion cancelled"
 msgstr "Immersion annulée"
 
 #: immersionlyceens/libs/api/views.py:731
-#: immersionlyceens/libs/api/views.py:1335
+#: immersionlyceens/libs/api/views.py:1344
 msgid "Invalid cancellation reason #id"
 msgstr "#Id de motif d'annulation invalide"
 
@@ -1931,21 +1931,21 @@ msgstr "Inscription au créneau validée"
 msgid "Registration is not currently allowed"
 msgstr "Les inscriptions ne sont pas encore autorisées"
 
-#: immersionlyceens/libs/api/views.py:1287
-#: immersionlyceens/libs/api/views.py:1297
+#: immersionlyceens/libs/api/views.py:1296
+#: immersionlyceens/libs/api/views.py:1306
 #, python-format
 msgid "%s : error"
 msgstr "%s : erreur"
 
-#: immersionlyceens/libs/api/views.py:1291
+#: immersionlyceens/libs/api/views.py:1300
 msgid "copy"
 msgstr "copie"
 
-#: immersionlyceens/libs/api/views.py:1323
+#: immersionlyceens/libs/api/views.py:1332
 msgid "Past immersion cannot be cancelled"
 msgstr "Une immersion passée ne peut être annulée"
 
-#: immersionlyceens/libs/api/views.py:1339
+#: immersionlyceens/libs/api/views.py:1348
 msgid "Immersion(s) cancelled"
 msgstr "Immersion(s) annulée(s)"
 
@@ -2174,7 +2174,7 @@ msgid "Do you really want to delete this course ?"
 msgstr "Voulez-vous vraiment supprimer ce cours ?"
 
 #: immersionlyceens/templates/core/courses_list.html:134
-#: immersionlyceens/templates/core/highschool_students.html:93
+#: immersionlyceens/templates/core/highschool_students.html:107
 #: immersionlyceens/templates/core/mycourses.html:71
 #: immersionlyceens/templates/core/myslots.html:113
 #: immersionlyceens/templates/core/student_validation.html:184
@@ -2196,27 +2196,35 @@ msgstr "Tous"
 msgid "My slots"
 msgstr "Mes créneaux"
 
-#: immersionlyceens/templates/core/highschool_students.html:29
+#: immersionlyceens/templates/core/highschool_students.html:30
+msgid "All registered students"
+msgstr "Tous les inscrits"
+
+#: immersionlyceens/templates/core/highschool_students.html:32
 msgid "Students from my high school"
 msgstr "Etudiant(e)s de mon lycée"
 
-#: immersionlyceens/templates/core/highschool_students.html:38
+#: immersionlyceens/templates/core/highschool_students.html:41
+msgid "Display only students with no record"
+msgstr "Voir uniquement les étudiants/lycéens sans fiche"
+
+#: immersionlyceens/templates/core/highschool_students.html:52
 msgid "Institution"
 msgstr "Etablissement"
 
-#: immersionlyceens/templates/core/highschool_students.html:41
+#: immersionlyceens/templates/core/highschool_students.html:55
 msgid "Class"
 msgstr "Classe"
 
-#: immersionlyceens/templates/core/highschool_students.html:42
+#: immersionlyceens/templates/core/highschool_students.html:56
 msgid "Bachelor/diploma"
 msgstr "Baccalauréat/Diplôme"
 
-#: immersionlyceens/templates/core/highschool_students.html:46
+#: immersionlyceens/templates/core/highschool_students.html:60
 msgid "Registrations >= 1"
 msgstr "Inscriptions >= 1"
 
-#: immersionlyceens/templates/core/highschool_students.html:133
+#: immersionlyceens/templates/core/highschool_students.html:147
 msgid "View student immersions"
 msgstr "Voir les inscriptions"
 
