@@ -124,7 +124,7 @@ def test():
         'ldap_api_lastname_attr': "LDAP_API_LASTNAME_ATTR",
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_file_dir': "BASE_FILE_DIR",
+        'base_files_dir': "BASE_FILE_DIR",
     }
     env.extra_symlink_dirs = ['media']
     execute(build_env)
@@ -170,7 +170,7 @@ def preprod():
         'ldap_api_lastname_attr': "LDAP_API_LASTNAME_ATTR",
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
-        'base_file_dir': "BASE_FILE_DIR",
+        'base_files_dir': "BASE_FILE_DIR",
     }
     execute(build_env)
 
