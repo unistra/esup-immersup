@@ -137,3 +137,7 @@ SUMMERNOTE_CONFIG = {
 
 # url for logos upload
 MEDIA_ROOT = '/nfs/immersion'
+
+# Mailing list subscriber files directory
+BASE_FILES_DIR = "{{ base_file_dir }}"
+MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
