@@ -26,6 +26,13 @@
     </div>
     <div class="card-body">
 
+
+      {% if request.user.is_scuio_ip_manager %}
+      <div class="row">
+        <label class="col-form-label col-sm-3" >{% trans 'Anonymous immersion data' %}</label>
+        <button type="button" class="btn btn-primary" id="extract_anonymous">{% trans 'Extract data' %}</button>
+      </div>
+      {% elif request.user.is_component_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="component">{% trans 'Components data' %}</label>
         <select name="component" id="component" class="form-control col-sm-3">
@@ -36,20 +43,14 @@
         </select>
         <button type="button" class="btn btn-primary ml-1" id="extract_component">{% trans 'Extract data' %}</button>
       </div>
-
-      <br>
-
+      {% elif request.user.is_high_school_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'High school data' %}</label>
         <button type="button" class="btn btn-primary" id="extract_highschool">{% trans 'Extract data' %}</button>
       </div>
-
-      <br>
-      <div class="row">
-        <label class="col-form-label col-sm-3" >{% trans 'Anonymous immersion data' %}</label>
-        <button type="button" class="btn btn-primary" id="extract_anonymous">{% trans 'Extract data' %}</button>
-      </div>
-
+      {% else %}
+      <div class="alert-info">{% trans "No data extractions available for your user right." %}</div>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -57,17 +58,16 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-  if ($('#component').val() === ''){
-      $('#extract_component').prop('disabled', true);
-  }
-  $('#component').change(function(){
+  function toggle_component_btn() {
     if ($('#component').val() === ''){
         $('#extract_component').prop('disabled', true);
     } else {
         $('#extract_component').prop('disabled', false);
     }
-  });
+  }
 
+  toggle_component_btn();
+  $('#component').change(function(){ toggle_component_btn(); });
 
   $('#extract_component').click(function(event){
     let component = $('#component').val();
