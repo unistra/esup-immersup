@@ -669,3 +669,23 @@ def component(request, component_code=None):
     }
 
     return render(request, 'core/component.html', context)
+
+
+@groups_required('REF-CMP', 'SCUIO-IP', 'REF-LYC',)
+def stats(request):
+    template = 'core/stats.html'
+    components = None
+
+    if request.user.is_scuio_ip_manager():
+        components = Component.activated.all()
+    elif request.user.is_component_manager():
+        components = request.user.components.all()
+
+    context = {
+        'components': components,
+    }
+
+    if request.user.is_high_school_manager():
+        context['high_school_id'] = request.user.highschool.id
+
+    return render(request, template, context)

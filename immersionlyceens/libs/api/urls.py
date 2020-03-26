@@ -52,4 +52,9 @@ urlpatterns = [
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
     path('send_email', views.ajax_send_email, name='SendEmail'),
+
+    path('get_csv_components/<int:component_id>', views.get_csv_components, name='get_csv_components'),
+    path('get_csv_highschool/<int:high_school_id>', views.get_csv_highschool, name='get_csv_highschool'),
+    path('get_csv_anonymous_immersion/', views.get_csv_anonymous_immersion, name='get_csv_anonymous_immersion'),
+
 ]

@@ -99,6 +99,11 @@
           {% endif %}
         {% endif %}
 
+        {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP,REF-CMP" %}
+          <a class="nav-item nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
+        {% endif %}
+
+
         {% if user.is_staff %}
           <a class="nav-item nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
           {% if user.is_superuser %}
