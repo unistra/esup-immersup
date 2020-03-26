@@ -18,12 +18,7 @@ from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 from immersionlyceens.libs.mails.utils import send_email
 
-from .managers import (
-    ActiveManager,
-    ComponentQuerySet,
-    CustomDeleteManager,
-    HighSchoolAgreedManager,
-)
+from .managers import ActiveManager, ComponentQuerySet, CustomDeleteManager, HighSchoolAgreedManager
 
 logger = logging.getLogger(__name__)
 
@@ -189,8 +184,6 @@ class ImmersionUser(AbstractUser):
             msg = _("Email not sent : template %s not found or inactive" % template_code)
             logger.error(msg)
             return msg
-
-        message_body = template.parse_vars(user=self, request=request, **kwargs)
 
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
