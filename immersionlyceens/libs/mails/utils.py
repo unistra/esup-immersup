@@ -1,9 +1,10 @@
-from django.conf import settings
+import logging
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from importlib import import_module
-import logging
-import sys
+
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ def import_mail_backend():
 mail_backend = import_mail_backend()
 
 
-def send_email(address, subject, body):
+def send_email(address, subject, body, from_=settings.DEFAULT_FROM_EMAIL):
     """
     """
 
@@ -30,7 +31,7 @@ def send_email(address, subject, body):
     # Email data
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
-    msg['From'] = settings.DEFAULT_FROM_EMAIL
+    msg['From'] = from_
     msg['To'] = recipient
     html = body
 
@@ -41,8 +42,9 @@ def send_email(address, subject, body):
     try:
         mail_backend().send_message(msg)
     except Exception as e:
-        logger.error("Cannot send message to {} : unexpected error: {} - {}"
-                     .format(recipient, e, sys.exc_info()[0]),
-                     extra={'locals': locals()})
+        logger.error(
+            "Cannot send message to {} : unexpected error: {} - {}".format(recipient, e, sys.exc_info()[0]),
+            extra={'locals': locals()},
+        )
     else:
         logger.info("Mail sent to %s", recipient)
