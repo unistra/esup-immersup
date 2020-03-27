@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% comment %} Comment following line if using english ! {% endcomment %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+{% endblock %}
+{% block title %}
+{% trans "My slots" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Students presence by dates" %}
+    </div>
+    <div class="card-body">
+      <div class="form-group row align-items-center ml-1">
+        <label for="id_from" class="col-form-label"> {% trans 'From' %} : </label>
+        <input type="text" id='id_from' name="{% trans 'from' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
+        <label for="id_until" class="col-form-label ml-2"> {% trans 'To' %} : </label>
+        <input type="text" id='id_until' name="{% trans 'until' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
+        <button id="id_dates_apply" name="dates_apply" class="ml-4 btn btn-secondary btn-sm">{% trans 'Apply' %}</button>
+      </div>
+      <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th id="datetime_filter" class="align-top" class="align-top">{% trans 'Presence' %}</th>
+            <th id="student_filter" class="align-top">{% trans 'Student' %}</th>
+            <th id="institution_filter" class="align-top" class="align-top">{% trans 'Institution' %}</th>
+            <th id="contact_filter" class="align-top">{% trans 'Phone / Email' %}</th>
+            <th id="campus_filter" class="align-top">{% trans 'Campus' %}</th>
+            <th id="building_filter" class="align-top">{% trans 'Building' %}</th>
+            <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var dt;
+  var min_date = "{{ min_date }}";
+  var max_date = "{{ max_date }}";
+  var current_student_id;
+
+  $(document).ready(function () {
+    $(function () {
+      $(".datepicker").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        minDate: new Date(min_date),
+        maxDate: new Date(max_date),
+      });
+    });
+
+    $.fn.dataTableExt.errMode = 'console';
+    dt = $('#students_table').DataTable({
+      'processing': false,
+      'order': [
+        [0, "asc"],
+      ],
+      'pageLength': 15,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_students_presence",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+    'searching': true,
+    'language': {
+        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    },
+    'columns': [
+      { "data": "datetime",
+        "render": function(data, type, row) {
+          if(type == "display" || type == "filter") {
+            return row.date + " <br />" + row.time['start'] + " - " + row.time['end'];
+          }
+
+          return data;
+        }
+      },
+      { "data": "name" },
+      { "data": "institution" },
+      { "data": "",
+        "render": function(data, type, row) {
+          var txt = "<ul>";
+          if(row.phone != "") { txt += "<li>" + row.phone + "</li>"; }
+          if(row.email != "") { txt += "<li>" + row.email + "</li>"; }
+          txt += "</ul>";
+          return txt;
+        }
+      },
+    { "data": "campus" },
+    { "data": "building" },
+    { "data": "room" }
+  ],
+    "columnDefs": [
+      {
+        "defaultContent": "",
+        "targets": "_all",
+        "className": "all",
+      },
+    ],
+  });
+
+  // All filters reset action
+  $('#filters_reset_all').click(function () {
+    yadcf.exResetAllFilters(dt);
+  });
+
+  // Filters init
+  yadcf.init(dt, [
+    {
+      column_number: 0,
+      filter_default_label: "",
+      filter_container_id: "datetime_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 1,
+      filter_type: "text",
+      filter_default_label: "",
+      filter_container_id: "student_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    }, {
+      column_number: 2,
+      filter_default_label: "",
+      filter_container_id: "institution_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    }, {
+      column_number: 3,
+      filter_type: "text",
+      filter_default_label: "",
+      filter_container_id: "contact_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },{
+      column_number: 4,
+      filter_default_label: "",
+      filter_container_id: "campus_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 5,
+      filter_default_label: "",
+      filter_container_id: "building_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 6,
+      filter_default_label: "",
+      filter_container_id: "room_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    }
+  ]);
+
+  $('#id_dates_apply').click(function () {
+    var from_date_val = $('#id_from').val();
+    var until_date_val = $('#id_until').val();
+
+    if(from_date_val != "") {
+      var f = from_date_val.split("/");
+      var from_date = f[2]+"-"+f[1]+"-"+f[0];
+    }
+    else {
+      var from_date = "None"
+    }
+
+    if(until_date_val != "") {
+      var u = until_date_val.split("/");
+      var until_date = u[2]+"-"+u[1]+"-"+u[0];
+    }
+    else {
+      var until_date = "None"
+    }
+
+    dt.ajax.url('/api/get_students_presence/'+from_date+'/'+until_date);
+    dt.ajax.reload();
+  });
+
+  // Dates checks
+  $('#id_from').change(function() {
+    var from_date_val = $(this).val();
+    var until_date_val = $('#id_until').val();
+    var from_date = "";
+    var until_date = "";
+
+    if(from_date_val != "") {
+      var f = from_date_val.split("/");
+      from_date = f[2]+"-"+f[1]+"-"+f[0];
+    }
+
+    if(until_date_val != "") {
+      var u = until_date_val.split("/");
+      until_date = u[2]+"-"+u[1]+"-"+u[0];
+    }
+
+    if(from_date != "" && until_date != "" && from_date > until_date) {
+      alert("{% trans '\'From\' date must be before \'Until\' date' %}");
+      $('#id_from').val("");
+    }
+  });
+
+  $('#id_until').change(function() {
+    var until_date_val = $(this).val();
+    var from_date_val = $('#id_from').val();
+    var from_date = "";
+    var until_date = "";
+
+    if(from_date_val != "") {
+      var f = from_date_val.split("/");
+      from_date = f[2]+"-"+f[1]+"-"+f[0];
+    }
+
+    if(until_date_val != "") {
+      var u = until_date_val.split("/");
+      until_date = u[2]+"-"+u[1]+"-"+u[0];
+    }
+
+    if(from_date != "" && until_date != "" && from_date > until_date) {
+      alert("{% trans '\'Until\' date must be after \'From\' date' %}");
+      $('#id_until').val("");
+    }
+  });
+
+});
+</script>
+{% endblock %}

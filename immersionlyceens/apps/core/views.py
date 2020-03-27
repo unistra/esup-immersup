@@ -689,3 +689,27 @@ def stats(request):
         context['high_school_id'] = request.user.highschool.id
 
     return render(request, template, context)
+
+
+@groups_required('SRV-JUR', 'SCUIO-IP')
+def students_presence(request):
+    """
+    Displays a list of students registered to slots between min_date and max_date
+    """
+    min_date = None
+    max_date = None
+
+    slots = Slot.objects.filter(published=True).order_by('date', 'start_time')
+
+    first_slot = slots.first()
+    min_date = first_slot.date if first_slot else None
+
+    last_slot = slots.last()
+    max_date = last_slot.date if last_slot else None
+
+    context = {
+        'min_date': min_date.strftime("%Y-%m-%d"),
+        'max_date': max_date.strftime("%Y-%m-%d"),
+    }
+
+    return render(request, 'core/students_presence.html', context)
