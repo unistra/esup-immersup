@@ -1626,3 +1626,58 @@ def ajax_send_email_contact_us(request):
         msg = _("Error while sending mail : %s" % e)
 
     return JsonResponse(response, safe=False)
+
+
+@login_required
+@is_ajax_request
+@groups_required('SCUIO-IP', 'SRV-JUR')
+def ajax_get_student_presence(request, date_from=None, date_until=None):
+    response = {'data': [], 'msg': ''}
+
+    filters = {}
+
+    if date_from and date_from != "None":
+        filters["slot__date__gte"] = date_from
+
+    if date_until and date_until != "None":
+        filters["slot__date__lte"] = date_until
+
+    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(**filters)
+
+    for immersion in immersions:
+        institution = ''
+
+        if immersion.student.is_high_school_student():
+            record = immersion.student.get_high_school_student_record()
+            institution = record.highschool.label if record else ''
+        elif immersion.student.get_student_record():
+            record = immersion.student.get_student_record()
+            institution = record.home_institution if record else ''
+
+        immersion_data = {
+            'id': immersion.pk,
+            'date': _date(immersion.slot.date, 'l d/m/Y'),
+            'time': {
+                'start': immersion.slot.start_time.strftime('%Hh%M') if immersion.slot.start_time else '',
+                'end': immersion.slot.end_time.strftime('%Hh%M') if immersion.slot.end_time else '',
+            },
+            'datetime': datetime.datetime.strptime(
+                "%s:%s:%s %s:%s"
+                % (immersion.slot.date.year, immersion.slot.date.month, immersion.slot.date.day,
+                   immersion.slot.start_time.hour, immersion.slot.start_time.minute,),
+                "%Y:%m:%d %H:%M",
+            )
+            if immersion.slot.date
+            else None,
+            'name': "%s %s" % (immersion.student.last_name, immersion.student.first_name),
+            'institution': institution,
+            'phone': record.phone if record and record.phone else '',
+            'email': immersion.student.email,
+            'campus': immersion.slot.campus.label,
+            'building': immersion.slot.building.label,
+            'room': immersion.slot.room,
+        }
+
+        response['data'].append(immersion_data.copy())
+
+    return JsonResponse(response, safe=False)
