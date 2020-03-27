@@ -1444,9 +1444,9 @@ def get_csv_highschool(request, high_school_id):
                         hs.student.last_name,
                         hs.student.first_name,
                         _date(hs.birth_date, 'd/m/Y'),
-                        HighSchoolStudentRecord.LEVELS[hs.level][1],
+                        HighSchoolStudentRecord.LEVELS[hs.level - 1][1],
                         hs.class_name,
-                        HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1],
+                        HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1],
                         infield_separator.join([s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]),
                         infield_separator.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
                         imm.slot.course.training.label,
@@ -1459,9 +1459,9 @@ def get_csv_highschool(request, high_school_id):
                     hs.student.last_name,
                     hs.student.first_name,
                     _date(hs.birth_date, 'd/m/Y'),
-                    HighSchoolStudentRecord.LEVELS[hs.level][1],
+                    HighSchoolStudentRecord.LEVELS[hs.level - 1][1] if hs.level else '',
                     hs.class_name,
-                    HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1],
+                    HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1] if hs.bachelor_type else '',
                 ]
             )
 
@@ -1514,11 +1514,11 @@ def get_csv_anonymous_immersion(request):
                 if imm.student.is_student():
                     record = StudentRecord.objects.get(student=imm.student)
                     institution = record.home_institution
-                    level = StudentRecord.LEVELS[record.level][1]
+                    level = StudentRecord.LEVELS[record.level - 1][1]
                 elif imm.student.is_high_school_student():
                     record = HighSchoolStudentRecord.objects.get(student=imm.student)
                     institution = record.highschool.label
-                    level = HighSchoolStudentRecord.LEVELS[record.level][1]
+                    level = HighSchoolStudentRecord.LEVELS[record.level - 1][1]
 
                 content.append(
                     [
@@ -1542,8 +1542,7 @@ def get_csv_anonymous_immersion(request):
                     ]
                 )
         else:
-            content.append(
-                [
+            content.append([
                     slot.course.component.label,
                     infield_separator.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
                     infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
@@ -1559,8 +1558,7 @@ def get_csv_anonymous_immersion(request):
                     slot.registered_students(),
                     slot.n_places,
                     slot.additional_information,
-                ]
-            )
+                ])
 
     writer = csv.writer(response)
     writer.writerow(header)
