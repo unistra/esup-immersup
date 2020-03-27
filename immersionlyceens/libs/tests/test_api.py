@@ -1,16 +1,20 @@
 """
 Django API tests suite
 """
+import csv
 import json
 import unittest
 from datetime import datetime, time
 
+from django.utils.translation import ugettext_lazy as _
+from django.template.defaultfilters import date as _date
 from compat.templatetags.compat import url
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot, Training, TrainingDomain,
+    AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
+    Training, TrainingDomain,
     TrainingSubdomain,
-)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+    Immersion)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
 from django.conf import settings
@@ -35,6 +39,9 @@ class APITestCase(TestCase):
         self.highschool_user = get_user_model().objects.create_user(
             username='hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
         )
+        self.highschool_user2 = get_user_model().objects.create_user(
+            username='hs2', password='pass', email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2',
+        )
         self.ref_comp = get_user_model().objects.create_user(
             username='refcomp',
             password='pass',
@@ -56,6 +63,13 @@ class APITestCase(TestCase):
             first_name='lyc',
             last_name='REF',
         )
+        self.student = get_user_model().objects.create_user(
+            username='student',
+            password='pass',
+            email='student@no-reply.com',
+            first_name='student',
+            last_name='STUDENT',
+        )
 
         self.client = Client()
         self.client.login(username='scuio', password='pass')
@@ -64,6 +78,7 @@ class APITestCase(TestCase):
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
         Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
+        Group.objects.get(name='ETU').user_set.add(self.student)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
         self.today = datetime.today()
@@ -91,8 +106,22 @@ class APITestCase(TestCase):
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
+            additional_information="Hello there!"
+        )
+        self.slot2 = Slot.objects.create(
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            date=self.today,
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
         )
         self.slot.teachers.add(self.teacher1),
+        self.slot2.teachers.add(self.teacher1),
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -114,8 +143,35 @@ class APITestCase(TestCase):
             bachelor_type=3,
             professional_bachelor_mention='My spe',
         )
+        self.hs_record2 = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user2,
+            highschool=self.high_school,
+            birth_date=datetime.today(),
+            civility=2,
+            phone='0123456789',
+            level=2,
+            class_name='TS 3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe',
+        )
+        self.student_record = StudentRecord.objects.create(
+            student=self.student,
+            home_institution='Université de Strasbourg',
+            civility=StudentRecord.CIVS[0][0],
+            birth_date=datetime.today(),
+            level=StudentRecord.LEVELS[0][0],
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
+        )
         self.lyc_ref.highschool = self.high_school
         self.lyc_ref.save()
+        self.immersion = Immersion.objects.create(
+            student=self.highschool_user,
+            slot=self.slot
+        )
+        self.immersion2 = Immersion.objects.create(
+            student=self.student,
+            slot=self.slot
+        )
 
     def test_API_get_documents__ok(self):
         request.user = self.scuio_user
@@ -271,7 +327,7 @@ class APITestCase(TestCase):
         self.assertIn('data', content)
         self.assertIsInstance(content['data'], list)
         self.assertIsInstance(content['msg'], str)
-        self.assertEqual(len(content['data']), 1)
+        self.assertEqual(len(content['data']), 2)
         self.assertIsInstance(content['data'][0], dict)
         slot = content['data'][0]
         self.assertEqual(slot['id'], self.slot.id)
@@ -300,7 +356,7 @@ class APITestCase(TestCase):
         self.assertIn('data', content)
         self.assertIsInstance(content['data'], list)
         self.assertIsInstance(content['msg'], str)
-        self.assertEqual(len(content['data']), 1)
+        self.assertEqual(len(content['data']), 2)
         self.assertIsInstance(content['data'][0], dict)
         slot = content['data'][0]
         self.assertEqual(slot['id'], self.slot.id)
@@ -395,7 +451,7 @@ class APITestCase(TestCase):
         self.assertIn('data', content)
         self.assertIsInstance(content['data'], list)
         self.assertIsInstance(content['msg'], str)
-        self.assertEqual(len(content['data']), 1)
+        self.assertEqual(len(content['data']), 2)
         hs_record = content['data'][0]
         self.assertEqual(hs_record['id'], self.hs_record.id)
         self.assertEqual(hs_record['first_name'], self.hs_record.student.first_name)
@@ -523,3 +579,155 @@ class APITestCase(TestCase):
         self.assertTrue(content['data']['ok'])
         h = HighSchoolStudentRecord.objects.get(id=self.hs_record.id)
         self.assertEqual(h.validation, 2)  # validated
+
+    def test_API_get_csv_anonymous_immersion(self):
+        url = f'/api/get_csv_anonymous_immersion/'
+        response = self.client.get(url, request)
+
+        content = csv.reader(response.content.decode().split('\n'))
+
+        headers = [
+            _('component'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('room'),
+            _('registration number'),
+            _('number number'),
+            _('additional information'),
+            _('origin institution'),
+            _('student level'),
+        ]
+        n = 0
+        for row in content:
+            # header check
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(self.component.label, row[0])
+                self.assertIn(self.t_domain.label, row[1].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[2].split('|'))
+                self.assertEqual(self.training.label, row[3])
+                self.assertEqual(self.course.label, row[4])
+                self.assertEqual(self.course_type.label, row[5])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[6])
+                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[8])
+                self.assertEqual(self.campus.label, row[9])
+                self.assertEqual(self.building.label, row[10])
+                self.assertEqual(self.slot.room, row[11])
+                self.assertEqual(str(self.slot.registered_students()), row[12])
+                self.assertEqual(str(self.slot.n_places), row[13])
+                self.assertEqual(self.slot.additional_information, row[14])
+                self.assertEqual(self.high_school.label, row[15])
+                self.assertEqual(HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1], row[16])
+            elif n == 2:
+                self.assertEqual(self.student_record.home_institution, row[15])
+                self.assertEqual(StudentRecord.LEVELS[self.student_record.level - 1][1], row[16])
+            n += 1
+
+    def test_API_get_csv_highschool(self):
+        url = f'/api/get_csv_highschool/{self.high_school.id}'
+        client = Client()
+        client.login(username='lycref', password='pass')
+
+        request.user = self.lyc_ref
+        response = client.get(url, request)
+
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('last name'),
+            _('first name'),
+            _('birthdate'),
+            _('level'),
+            _('class name'),
+            _('bachelor type'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+        ]
+
+        n = 0
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(self.hs_record.student.last_name, row[0])
+                self.assertEqual(self.hs_record.student.first_name, row[1])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
+                self.assertEqual(HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1], row[3])
+                self.assertEqual(self.hs_record.class_name, row[4])
+                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
+                self.assertIn(self.t_domain.label, row[6].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[7].split('|'))
+                self.assertIn(self.training.label, row[8])
+                self.assertIn(self.course.label, row[9])
+
+            n += 1
+
+
+
+    def test_API_get_csv_components(self):
+        url = f'/api/get_csv_components/{self.high_school.id}'
+        client = Client()
+        client.login(username='refcomp', password='pass')
+
+        request.user = self.ref_comp
+        response = client.get(url, request)
+
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+                _('domain'),
+                _('subdomain'),
+                _('training'),
+                _('course'),
+                _('course type'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('campus'),
+                _('building'),
+                _('room'),
+                _('teachers'),
+                _('registration number'),
+                _('number number'),
+                _('additional information'),
+            ]
+
+        n = 0
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertIn(self.t_domain.label, row[0].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[1].split('|'))
+                self.assertIn(self.training.label, row[2])
+                self.assertIn(self.course.label, row[3])
+                self.assertIn(self.course_type.label, row[4])
+                self.assertIn(_date(self.today, 'd/m/Y'), row[5])
+                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[6])
+                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.slot.campus.label, row[8])
+                self.assertIn(self.slot.building.label, row[9])
+                self.assertEqual(self.slot.room, row[10])
+                self.assertIn(
+                    f'{self.teacher1.first_name} {self.teacher1.last_name}',
+                    row[11].split('|')
+                ),
+                self.assertEqual(str(self.slot.registered_students()), row[12])
+                self.assertEqual(str(self.slot.n_places), row[13])
+                self.assertEqual(self.slot.additional_information, row[14])
+
+            n += 1
+
