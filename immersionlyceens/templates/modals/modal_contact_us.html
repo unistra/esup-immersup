@@ -1,0 +1,138 @@
+{% load static staticfiles i18n immersionlyceens_tags %}
+<div class="modal fade" id="modal_contact_us" tabindex="-1" role="dialog" aria-labelledby="modal_contact_us_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_contact_us_title">{% trans 'Contact us' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="contact_us_form" class="needs-validation">
+          <div id="contactus_feedback"></div>
+          <div class="controls">
+              <div class="row">
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="firstname">{% trans 'Firstname' %} *</label>
+                          <input id="firstname" type="text" name="firstname" class="form-control" required="required">
+                      </div>
+                  </div>
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="lastname">{% trans 'Lastname' %} *</label>
+                          <input id="lastname" type="text" name="lastname" class="form-control" required="required">
+                      </div>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="email">{% trans 'Email' %} *</label>
+                          <input id="email" type="email" name="email" class="form-control" required="required">
+                      </div>
+                  </div>
+                  <div class="col-md-6">
+                      <div class="form-group">
+                          <label for="subject">{% trans 'Subject' %} *</label>
+                          <input id="subject" type="text" name="subject" class="form-control" required="required">
+                      </div>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-12">
+                      <div class="form-group">
+                          <label for="message">{% trans 'My request' %} *</label>
+                          <textarea id="message" name="message" class="form-control" rows="6" required="required"></textarea>
+                      </div>
+                  </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                    <div id="are_u_human_group" class="form-group">
+                      <label for="are_u_human" id="human_check"></label>
+                      <input id="are_u_human" type="number" class="form-control" placeholder="{% trans 'Result in digits' %}" required>
+                      <div class="invalid-feedback">{% trans 'Invalid result'%}</div>
+                    </div>
+                </div>
+              </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+          <input type="submit" class="btn btn-primary" name="send_email" form="contact_us_form" value="{% trans 'Send' %}">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{% trans 'Close' %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  var numbers = [
+    "{% trans 'zero' %}",
+    "{% trans 'one' %}",
+    "{% trans 'two' %}",
+    "{% trans 'three' %}",
+    "{% trans 'four' %}",
+    "{% trans 'five' %}",
+    "{% trans 'six' %}",
+    "{% trans 'seven' %}",
+    "{% trans 'height' %}",
+    "{% trans 'nine' %}",
+    "{% trans 'ten' %}"
+  ];
+  var num1 = Math.floor(Math.random() * 10);
+  var num2 = Math.floor(Math.random() * 10);
+  $('#human_check').html("{% trans 'What is the result of' %} " + numbers[num1] + " {% trans 'plus' %} " + numbers[num2] + " ?");
+  $(document).ready(function () {
+    $('#contact_us_form').submit(function(e) {
+      e.preventDefault()
+      var sum = $('#are_u_human').val();
+      //$(this).addClass('was-validated')
+      if(Number.parseInt(sum) != num1 + num2) {
+        $("#are_u_human_group").removeClass('is-valid');
+        $("#are_u_human").removeClass('is-valid');
+        $("#are_u_human_group").addClass('is-invalid');
+        $("#are_u_human").addClass('is-invalid');
+        return false;
+      } else {
+        $("#are_u_human_group").removeClass('is-invalid');
+        $("#are_u_human").removeClass('is-invalid');
+        $.ajax({
+          url: "{% url 'SendEmailContactUs' %}",
+          type: 'POST',
+          data: {
+            'body': $("#message").val(),
+            'subject': $("#subject").val(),
+            'lastname': $("#lastname").val(),
+            'firstname': $("#firstname").val(),
+            'email': $("#email").val(),
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+          success: function (json) {
+            if(json['error']) {
+                $("#contactus_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+                setTimeout(function() {
+                  $("#contactus_feedback").html('');
+                }, 1500);
+            } else {
+                $("#contactus_feedback").html('<div class="alert alert-success">{% trans 'Message successfully sent' %}</div>');
+                setTimeout(function() {
+                  $("#contactus_feedback").html('');
+                  $("#modal_contact_us").modal('hide');
+                  $("#contact_us_form")[0].reset();
+                }, 1500);
+            }
+          },
+          error: function (json) {
+            console.log(json);
+          }
+        });
+      }
+    });
+
+    $('.modal').on('shown.bs.modal', function(){
+      $('input:first').focus()
+    });
+  });
+</script>

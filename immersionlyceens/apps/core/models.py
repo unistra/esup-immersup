@@ -1,9 +1,8 @@
+import datetime
 import enum
 import logging
 import re
 import uuid
-import datetime
-
 from functools import partial
 
 from django.conf import settings
@@ -20,12 +19,7 @@ from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 from immersionlyceens.libs.mails.utils import send_email
 
-from .managers import (
-    ActiveManager,
-    ComponentQuerySet,
-    CustomDeleteManager,
-    HighSchoolAgreedManager,
-)
+from .managers import ActiveManager, ComponentQuerySet, CustomDeleteManager, HighSchoolAgreedManager
 
 logger = logging.getLogger(__name__)
 
@@ -282,8 +276,8 @@ class ImmersionUser(AbstractUser):
             record = self.get_high_school_student_record()
         elif self.is_student():
             record = self.get_student_record()
-            
-        if not record or not record.is_valid(): 
+
+        if not record or not record.is_valid():
             return remaining
 
         if calendar.calendar_mode == 'SEMESTER':
@@ -802,7 +796,7 @@ class Course(models.Model):
         :teacher_id: optional : only consider slots attached to 'teacher'
         :return: number of seats as the sum of seats of all slots under this course
         """
-        filters = { 'published':True }
+        filters = {'published': True}
 
         if teacher_id:
             filters['teachers'] = teacher_id
@@ -839,16 +833,12 @@ class Course(models.Model):
         :return: the number of non-cancelled registered students on all the slots
         under this course (past and future)
         """
-        filters = {
-            'slot__course': self,
-            'cancellation_type__isnull': True
-        }
+        filters = {'slot__course': self, 'cancellation_type__isnull': True}
 
         if teacher_id:
             filters['slot__teachers'] = teacher_id
 
-        return Immersion.objects.prefetch_related('slot')\
-            .filter(**filters).count()
+        return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
     class Meta:
         verbose_name = _('Course')

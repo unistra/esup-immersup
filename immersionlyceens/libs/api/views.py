@@ -8,19 +8,20 @@ import logging
 from functools import reduce
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser, MailTemplateVars,
-    PublicDocument, Slot, Training, UniversityYear, Vacation,
+    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
+    MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
+from immersionlyceens.libs.mails.variables_parser import multisub
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
@@ -201,7 +202,9 @@ def ajax_get_slots(request, component=None):
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
-            ) if slot.date else None,
+            )
+            if slot.date
+            else None,
             'date': _date(slot.date, 'l d/m/Y'),
             'time': {
                 'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',
@@ -357,9 +360,9 @@ def ajax_get_my_courses(request, user_id=None):
             'slots_count': course.slots_count(teacher_id=user_id),
             'n_places': course.free_seats(teacher_id=user_id),
             'published_slots_count': course.published_slots_count(teacher_id=user_id),
-                # f'{course.published_slots_count(teacher_id=user_id)} / {course.slots_count(teacher_id=user_id)}',
+            # f'{course.published_slots_count(teacher_id=user_id)} / {course.slots_count(teacher_id=user_id)}',
             'registered_students_count': course.registrations_count(teacher_id=user_id),
-                # f'{course.registrations_count(teacher_id=user_id)} / {course.free_seats(teacher_id=user_id)}',
+            # f'{course.registrations_count(teacher_id=user_id)} / {course.free_seats(teacher_id=user_id)}',
             'alerts_count': 0,  # TODO
         }
 
@@ -424,7 +427,9 @@ def ajax_get_my_slots(request, user_id=None):
                     "%s:%s:%s %s:%s"
                     % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                     "%Y:%m:%d %H:%M",
-                ) if slot.date else None,
+                )
+                if slot.date
+                else None,
                 'start_time': slot.start_time.strftime("%H:%M"),
                 'end_time': slot.end_time.strftime("%H:%M"),
                 'label': slot.course.label,
@@ -1220,7 +1225,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
     if no_record_filter:
         students = students.filter(high_school_student_record__isnull=True, student_record__isnull=True)
     else:
-        students = students.filter(Q(high_school_student_record__isnull=False)|Q(student_record__isnull=False))
+        students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False))
 
     for student in students:
         record = None
@@ -1360,10 +1365,22 @@ def get_csv_components(request, component_id):
     response['Content-Disposition'] = f'attachment; filename="{component}_{today}.csv"'
     slots = Slot.objects.filter(course__component_id=component_id, published=True)
 
-    header = [_('domain'), _('subdomain'), _('training'), _('course type'),
-              _('date'), _('start_time'), _('end_time'), _('campus'), _('building'),
-              _('room'), _('teachers'), _('registration number'), _('number number'),
-              _('additional information')]
+    header = [
+        _('domain'),
+        _('subdomain'),
+        _('training'),
+        _('course type'),
+        _('date'),
+        _('start_time'),
+        _('end_time'),
+        _('campus'),
+        _('building'),
+        _('room'),
+        _('teachers'),
+        _('registration number'),
+        _('number number'),
+        _('additional information'),
+    ]
     content = []
     for slot in slots:
         line = [
@@ -1389,7 +1406,7 @@ def get_csv_components(request, component_id):
     for row in content:
         writer.writerow(row)
 
-    return response\
+    return response
 
 
 @groups_required('REF-LYC',)
@@ -1399,10 +1416,18 @@ def get_csv_highschool(request, high_school_id):
     h_name = HighSchool.objects.get(id=high_school_id).label.replace(" ", "_")
     response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
 
-    header = [_('last name'), _('first name'), _('birthdate'),
-              _('level'),_('class name'), _('bachelor type'),
-              _('training domain'), _('training subdomain'),
-              _('training'), _('course')]
+    header = [
+        _('last name'),
+        _('first name'),
+        _('birthdate'),
+        _('level'),
+        _('class name'),
+        _('bachelor type'),
+        _('training domain'),
+        _('training subdomain'),
+        _('training'),
+        _('course'),
+    ]
 
     content = []
     hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)
@@ -1410,27 +1435,31 @@ def get_csv_highschool(request, high_school_id):
         immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
         if immersions.count() > 0:
             for imm in immersions:
-                content.append([
+                content.append(
+                    [
+                        hs.student.last_name,
+                        hs.student.first_name,
+                        _date(hs.birth_date, 'd/m/Y'),
+                        HighSchoolStudentRecord.LEVELS[hs.level][1],
+                        hs.class_name,
+                        HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1],
+                        '|'.join([s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]),
+                        '|'.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
+                        imm.slot.course.training.label,
+                        imm.slot.course.label,
+                    ]
+                )
+        else:
+            content.append(
+                [
                     hs.student.last_name,
                     hs.student.first_name,
                     _date(hs.birth_date, 'd/m/Y'),
                     HighSchoolStudentRecord.LEVELS[hs.level][1],
                     hs.class_name,
                     HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1],
-                    '|'.join([s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]),
-                    '|'.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
-                    imm.slot.course.training.label,
-                    imm.slot.course.label
-                ])
-        else:
-            content.append([
-                hs.student.last_name,
-                hs.student.first_name,
-                _date(hs.birth_date, 'd/m/Y'),
-                HighSchoolStudentRecord.LEVELS[hs.level][1],
-                hs.class_name,
-                HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1]
-            ])
+                ]
+            )
 
     writer = csv.writer(response)
     writer.writerow(header)
@@ -1447,12 +1476,25 @@ def get_csv_anonymous_immersion(request):
     trad = _('anonymous_immersion')
     response['Content-Disposition'] = f'attachment; filename="{trad}_{today}.csv"'
 
-    header = [_('component'), _('training domain'), _('training subdomain'),
-              _('training'), _('course'), _('course_type'), _('date'),
-              _('start_time'), _('end_time'), _('campus'), _('building'), _('room'),
-              _('registration number'), _('number number'), _('additional information'),
-              _('origin institution'), _('student level')
-            ]
+    header = [
+        _('component'),
+        _('training domain'),
+        _('training subdomain'),
+        _('training'),
+        _('course'),
+        _('course_type'),
+        _('date'),
+        _('start_time'),
+        _('end_time'),
+        _('campus'),
+        _('building'),
+        _('room'),
+        _('registration number'),
+        _('number number'),
+        _('additional information'),
+        _('origin institution'),
+        _('student level'),
+    ]
 
     content = []
 
@@ -1472,7 +1514,30 @@ def get_csv_anonymous_immersion(request):
                     institution = record.highschool.label
                     level = HighSchoolStudentRecord.LEVELS[record.level][1]
 
-                content.append([
+                content.append(
+                    [
+                        slot.course.component.label,
+                        '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+                        '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                        slot.course.training.label,
+                        slot.course.label,
+                        slot.course_type.label,
+                        _date(slot.date, 'd/m/Y'),
+                        slot.start_time.strftime('%H:%M'),
+                        slot.end_time.strftime('%H:%M'),
+                        slot.campus.label,
+                        slot.building.label,
+                        slot.room,
+                        slot.registered_students(),
+                        slot.n_places,
+                        slot.additional_information,
+                        institution,
+                        level,
+                    ]
+                )
+        else:
+            content.append(
+                [
                     slot.course.component.label,
                     '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
                     '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
@@ -1488,27 +1553,8 @@ def get_csv_anonymous_immersion(request):
                     slot.registered_students(),
                     slot.n_places,
                     slot.additional_information,
-                    institution,
-                    level
-                ])
-        else:
-            content.append([
-                slot.course.component.label,
-                '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
-                '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                slot.course.training.label,
-                slot.course.label,
-                slot.course_type.label,
-                _date(slot.date, 'd/m/Y'),
-                slot.start_time.strftime('%H:%M'),
-                slot.end_time.strftime('%H:%M'),
-                slot.campus.label,
-                slot.building.label,
-                slot.room,
-                slot.registered_students(),
-                slot.n_places,
-                slot.additional_information
-            ])
+                ]
+            )
 
     writer = csv.writer(response)
     writer.writerow(header)
@@ -1516,3 +1562,61 @@ def get_csv_anonymous_immersion(request):
         writer.writerow(row)
 
     return response
+
+
+@is_ajax_request
+@is_post_request
+def ajax_send_email_contact_us(request):
+    """
+    Send an email to SCUO-IP mail address
+    email address is set in general settings
+    """
+
+    subject = request.POST.get('subject', "")
+    body = request.POST.get('body', "")
+    lastname = request.POST.get('lastname', "").capitalize()
+    firstname = request.POST.get('firstname', "").capitalize()
+    email = request.POST.get('email', "")
+
+    try:
+        # TODO: Maybe use an util getter method for General settings
+        recipient = GeneralSettings.objects.get(setting='MAIL_CONTACT_SCUIO_IP').value
+    except Exception:
+        logger.error('MAIL_CONTACT_SCUIO_IP missing parameter')
+        response = {'error': True, 'msg': gettext("Config parameter not found")}
+        return JsonResponse(response, safe=False)
+
+    response = {'error': False, 'msg': ''}
+
+    if not subject.strip or not body.strip() or not lastname.strip() or not firstname.strip() or not email.strip():
+        response = {'error': True, 'msg': gettext("Invalid parameters")}
+        return JsonResponse(response, safe=False)
+
+    # Scuio-ip mail sending
+    try:
+        send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
+    except Exception:
+        response['error'] = True
+        response['msg'] += _("%s : error") % recipient
+
+    try:
+        template = MailTemplate.objects.get(code='CONTACTUS_NOTIFICATION', active=True)
+        logger.debug("Template found : %s" % template)
+    except MailTemplate.DoesNotExist:
+        msg = _("Email not sent : template %s not found or inactive" % template_code)
+        logger.error(msg)
+
+    # Contacting user mail notification
+    try:
+        vars = [
+            ('${nom}', lastname),
+            ('${prenom}', firstname),
+        ]
+
+        message_body = multisub(vars, template.body)
+        send_email(email, template.subject, message_body)
+    except Exception as e:
+        logger.exception(e)
+        msg = _("Error while sending mail : %s" % e)
+
+    return JsonResponse(response, safe=False)

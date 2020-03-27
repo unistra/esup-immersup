@@ -90,6 +90,7 @@ Application parameters:
 **Required:**
 
 * PLATFORM_URL
+* MAIL_CONTACT_SCUIO_IP
 
 **Optional:**
 
