@@ -23,7 +23,7 @@ def multisub(subs, subject):
     return re.sub(pattern, replace, subject)
 
 
-def parser(user, request, message_body, vars, **kwargs):
+def parser(message_body, available_vars=None, user=None, request=None, **kwargs):
     slot = kwargs.get('slot')
     slot_list = kwargs.get('slot_list')
     course = kwargs.get('course')
@@ -111,34 +111,43 @@ def parser(user, request, message_body, vars, **kwargs):
     if immersion and immersion.cancellation_type:
         vars += [('${motifAnnulation}', immersion.cancellation_type.label)]
 
-    vars += [
-        ('${nom}', user.last_name),
-        ('${prenom}', user.first_name),
-        ('${ens.nom}', user.last_name), # ! doublon
-        ('${ens.prenom}', user.first_name), # ! doublon
-        ('${referentlycee.nom}', user.last_name),  # ! doublon
-        ('${referentlycee.prenom}', user.first_name), # ! doublon
+    if user:
+        vars += [
+            ('${nom}', user.last_name),
+            ('${prenom}', user.first_name),
+            ('${ens.nom}', user.last_name), # ! doublon
+            ('${ens.prenom}', user.first_name), # ! doublon
+            ('${referentlycee.nom}', user.last_name),  # ! doublon
+            ('${referentlycee.prenom}', user.first_name), # ! doublon
 
-        ('${identifiant}', user.get_cleaned_username()),
-        ('${jourDestructionCptMin}', user.get_localized_destruction_date())
-    ]
+            ('${identifiant}', user.get_cleaned_username()),
+            ('${jourDestructionCptMin}', user.get_localized_destruction_date())
+        ]
     
-    if request:
-        vars += [
-            ('${lienValidation}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
-                reverse('immersion:activate', kwargs={'hash':user.validation_string})))),
-            ('${lienMotDePasse}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
-                reverse('immersion:reset_password', kwargs={'hash':user.recovery_string}))))    
-        ]
-    else:
-        vars += [
-            ('${lienValidation}', "<a href='{0}{1}'>{0}{1}</a>".format(
-                platform_url,
-                reverse('immersion:activate', kwargs={'hash':user.validation_string}))),
-            ('${lienMotDePasse}', "<a href='{0}{1}'>{0}{1}</a>".format(
-                platform_url,
-                reverse('immersion:reset_password', kwargs={'hash':user.recovery_string})))
-        ]
+        if request:
+            vars += [
+                ('${lienValidation}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
+                    reverse('immersion:activate', kwargs={'hash':user.validation_string})))),
+                ('${lienMotDePasse}', "<a href='{0}'>{0}</a>".format(request.build_absolute_uri(
+                    reverse('immersion:reset_password', kwargs={'hash':user.recovery_string}))))
+            ]
+        else:
+            vars += [
+                ('${lienValidation}', "<a href='{0}{1}'>{0}{1}</a>".format(
+                    platform_url,
+                    reverse('immersion:activate', kwargs={'hash':user.validation_string}))),
+                ('${lienMotDePasse}', "<a href='{0}{1}'>{0}{1}</a>".format(
+                    platform_url,
+                    reverse('immersion:reset_password', kwargs={'hash':user.recovery_string})))
+            ]
+
+        if user.is_high_school_student():
+            try:
+                vars.append(('${lycee}', user.high_school_student_record.highschool.label))
+            except HighSchoolStudentRecord.DoesNotExist:
+                pass
+        elif user.highschool:
+            vars.append(('${lycee}', user.highschool.label))
 
     if slot_list:
         slot_txt = [
@@ -161,12 +170,6 @@ def parser(user, request, message_body, vars, **kwargs):
     else:
         vars.append(('${lienGlobal}', _("Link improperly configured")))
 
-    if user.is_high_school_student():
-        try:
-            vars.append(('${lycee}', user.high_school_student_record.highschool.label))
-        except HighSchoolStudentRecord.DoesNotExist:
-            pass
-    elif user.highschool:
-        vars.append(('${lycee}', user.highschool.label))
+
 
     return multisub(vars, message_body)
