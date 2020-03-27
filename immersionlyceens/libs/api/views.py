@@ -1365,6 +1365,8 @@ def get_csv_components(request, component_id):
     response['Content-Disposition'] = f'attachment; filename="{component}_{today}.csv"'
     slots = Slot.objects.filter(course__component_id=component_id, published=True)
 
+    infield_separator = '|'
+
     header = [
         _('domain'),
         _('subdomain'),
@@ -1384,8 +1386,8 @@ def get_csv_components(request, component_id):
     content = []
     for slot in slots:
         line = [
-            '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
-            '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+            infield_separator.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+            infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
             slot.course.training.label,
             slot.course_type.label,
             _date(slot.date, 'l d/m/Y'),
@@ -1416,6 +1418,8 @@ def get_csv_highschool(request, high_school_id):
     h_name = HighSchool.objects.get(id=high_school_id).label.replace(" ", "_")
     response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
 
+    infield_separator = '|'
+
     header = [
         _('last name'),
         _('first name'),
@@ -1443,8 +1447,8 @@ def get_csv_highschool(request, high_school_id):
                         HighSchoolStudentRecord.LEVELS[hs.level][1],
                         hs.class_name,
                         HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type][1],
-                        '|'.join([s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]),
-                        '|'.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
+                        infield_separator.join([s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]),
+                        infield_separator.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
                         imm.slot.course.training.label,
                         imm.slot.course.label,
                     ]
@@ -1475,6 +1479,8 @@ def get_csv_anonymous_immersion(request):
     today = _date(datetime.datetime.today(), 'Ymd')
     trad = _('anonymous_immersion')
     response['Content-Disposition'] = f'attachment; filename="{trad}_{today}.csv"'
+
+    infield_separator = '|'
 
     header = [
         _('component'),
@@ -1517,8 +1523,8 @@ def get_csv_anonymous_immersion(request):
                 content.append(
                     [
                         slot.course.component.label,
-                        '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
-                        '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                        infield_separator.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+                        infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
                         slot.course.training.label,
                         slot.course.label,
                         slot.course_type.label,
@@ -1539,8 +1545,8 @@ def get_csv_anonymous_immersion(request):
             content.append(
                 [
                     slot.course.component.label,
-                    '|'.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
-                    '|'.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                    infield_separator.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
                     slot.course.training.label,
                     slot.course.label,
                     slot.course_type.label,
