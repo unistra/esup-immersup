@@ -37,7 +37,7 @@
       <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
         <thead>
           <tr>
-            <th id="datetime_filter" class="align-top" class="align-top">{% trans 'Presence' %}</th>
+            <th id="datetime_filter" class="align-top" class="align-top">{% trans 'Date' %}</th>
             <th id="student_filter" class="align-top">{% trans 'Student' %}</th>
             <th id="institution_filter" class="align-top" class="align-top">{% trans 'Institution' %}</th>
             <th id="contact_filter" class="align-top">{% trans 'Phone / Email' %}</th>
@@ -66,6 +66,9 @@
   var min_date = "{{ min_date }}";
   var max_date = "{{ max_date }}";
   var current_student_id;
+
+  var alert1 = "{% blocktrans %}'From' date must be before 'Until' date'{% endblocktrans %}";
+  var alert2 = "{% blocktrans %}'Until' date must be after 'From' date'{% endblocktrans %}";
 
   $(document).ready(function () {
     $(function () {
@@ -232,7 +235,7 @@
     }
 
     if(from_date != "" && until_date != "" && from_date > until_date) {
-      alert("{% trans '\'From\' date must be before \'Until\' date' %}");
+      alert(alert1);
       $('#id_from').val("");
     }
   });
@@ -254,7 +257,7 @@
     }
 
     if(from_date != "" && until_date != "" && from_date > until_date) {
-      alert("{% trans '\'Until\' date must be after \'From\' date' %}");
+      alert(alert2);
       $('#id_until').val("");
     }
   });
