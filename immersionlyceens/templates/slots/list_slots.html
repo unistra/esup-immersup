@@ -337,9 +337,11 @@ $(document).ready(function(){
                 '                  background-repeat: no-repeat; ' +
                 '                  background-position: center center; ' +
                 '                  background-size: 60%;"' +
-                '         title="{% trans 'Add' %}">&nbsp;&nbsp;</a>' +
-                '        <a href="/core/slot/modify/' + data + '" class="btn btn-light" title="{% trans 'Modify' %}">&#x270E;</a>\n';
+                '         title="{% trans 'Add' %}">&nbsp;&nbsp;</a>';
 
+                  if(row.is_past == false) {
+                    element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light" title="{% trans 'Modify' %}">&#x270E;</a>\n';
+                  }
                   if(row.n_register == 0 && row.is_past == false) {
                     element += '<button class="btn btn-light" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}">&#x1F5D1;</button>\n';
                   }
