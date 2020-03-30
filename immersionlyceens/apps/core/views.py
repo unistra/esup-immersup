@@ -15,7 +15,8 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext, ugettext_lazy as _
 
 from .forms import ContactForm, CourseForm, ComponentForm, MyHighSchoolForm, SlotForm
-from .models import Campus, CancelType, Component, Course, HighSchool, ImmersionUser, Slot, Training, UniversityYear
+from .models import (Campus, CancelType, Component, Course, HighSchool, ImmersionUser, Slot,
+                     Training, UniversityYear, Immersion)
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +219,7 @@ def modify_slot(request, slot_id):
             teachers.append(teacher_id)
 
         published = request.POST.get('published') == 'on'
+        notify_student = request.POST.get('notify_student') == 'on'
         if slot_form.is_valid() and (not published or len(teachers) > 0):
             slot_form.save()
             slot_form.instance.teachers.clear()
@@ -242,6 +244,13 @@ def modify_slot(request, slot_id):
             course = Course.objects.get(id=request.POST.get('course'))
             if course and course.published:
                 messages.success(request, _("Course published"))
+
+        if notify_student:
+            immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
+            for immersion in immersions:
+                immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF')
+                print(f'message envoyé à {immersion.student.first_name} {immersion.student.last_name}')
+
 
         if request.POST.get('save'):
             response = redirect('slots_list')
