@@ -1,29 +1,29 @@
 from datetime import datetime
 
-from django.db.models import Q
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.db.models import Q
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.admin import SummernoteModelAdmin
 from hijack_admin.admin import HijackUserAdminMixin
-
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
-from .admin_forms import (AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm,
-    CalendarForm, CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+from .admin_forms import (
+    AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
     GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm, 
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm)
-    
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+)
 from .models import (
     AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus, CancelType,
     Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
     HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Slot,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation)
-    
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+)
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -43,8 +43,7 @@ class CustomAdminSite(admin.AdminSite):
         """
         app_dict = self._build_app_dict(request)
         app_list = sorted(
-            app_dict.values(),
-            key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
+            app_dict.values(), key=lambda x: self.find_in_list(settings.ADMIN_APPS_ORDER, x['app_label'].lower()),
         )
 
         for app in app_list:
@@ -66,9 +65,7 @@ class CustomAdminSite(admin.AdminSite):
         if settings.ADMIN_MODELS_ORDER.get(app_label):
             app_dict = self._build_app_dict(request, app_label)
             app_dict['models'].sort(
-                key=lambda x: self.find_in_list(
-                    settings.ADMIN_MODELS_ORDER[app_label], x.get('object_name')
-                )
+                key=lambda x: self.find_in_list(settings.ADMIN_MODELS_ORDER[app_label], x.get('object_name'))
             )
 
             extra_context = {'app_list': [app_dict]}
@@ -97,28 +94,32 @@ class ActivationFilter(admin.SimpleListFilter):
     parameter_name = 'validation_string'
 
     def lookups(self, request, model_admin):
-        return [
-            ('True', _('Yes')),
-            ('False', _('No'))
-        ]
+        return [('True', _('Yes')), ('False', _('No'))]
 
     def queryset(self, request, queryset):
         if self.value() == 'True':
-            return queryset.filter(groups__name__in=['LYC','ETU'], validation_string__isnull=True)
+            return queryset.filter(groups__name__in=['LYC', 'ETU'], validation_string__isnull=True)
         elif self.value() == 'False':
-            return queryset.filter(groups__name__in=['LYC','ETU'], validation_string__isnull=False)
+            return queryset.filter(groups__name__in=['LYC', 'ETU'], validation_string__isnull=False)
 
 
 class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
     form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
 
-    list_display = ['username', 'email', 'first_name', 'last_name',
-        'is_superuser', 'is_staff', 'get_groups_list', 'get_activated_account',
-        'destruction_date']
+    list_display = [
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'is_superuser',
+        'is_staff',
+        'get_groups_list',
+        'get_activated_account',
+        'destruction_date',
+    ]
 
-    list_filter = ('is_staff', 'is_superuser', ActivationFilter,
-        'groups')
+    list_filter = ('is_staff', 'is_superuser', ActivationFilter, 'groups')
 
     def get_activated_account(self, obj):
         if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student()):
@@ -142,14 +143,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
             None,
             {
                 'classes': ('wide',),
-                'fields': (
-                    'username',
-                    'password1',
-                    'password2',
-                    'email',
-                    'first_name',
-                    'last_name',
-                ),
+                'fields': ('username', 'password1', 'password2', 'email', 'first_name', 'last_name',),
             },
         ),
     )
@@ -217,8 +211,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
 
         return self.list_display
 
-
-
     def get_fieldsets(self, request, obj=None):
         # On user change, add Components in permissions fieldset
         # after Group selection
@@ -272,10 +264,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj and TrainingSubdomain.objects.filter(training_domain=obj).exists():
             messages.warning(
                 request,
-                _(
-                    """This training domain can't be deleted """
-                    """because it is used by training subdomains"""
-                ),
+                _("""This training domain can't be deleted """ """because it is used by training subdomains"""),
             )
             return False
 
@@ -308,11 +297,7 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():
             messages.warning(
-                request,
-                _(
-                    """This training subdomain can't be deleted """
-                    """because it is used by a training"""
-                ),
+                request, _("""This training subdomain can't be deleted """ """because it is used by a training"""),
             )
             return False
 
@@ -341,9 +326,7 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Building.objects.filter(campus=obj).exists():
-            messages.warning(
-                request, _("This campus can't be deleted because it is used by a building")
-            )
+            messages.warning(request, _("This campus can't be deleted because it is used by a building"))
             return False
 
         return True
@@ -374,9 +357,7 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
-            messages.warning(
-                request, _("This building can't be deleted because it is used by a slot")
-            )
+            messages.warning(request, _("This building can't be deleted because it is used by a slot"))
             return False
 
         return True
@@ -386,7 +367,7 @@ class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorMentionForm
     list_display = ('label', 'active')
     ordering = ('label',)
-    
+
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_scuio_ip_manager():
             return False
@@ -410,7 +391,7 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = ('active',)
     ordering = ('label',)
     search_fields = ('label',)
-    
+
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_scuio_ip_manager():
             return False
@@ -418,10 +399,7 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj and HighSchoolStudentRecord.objects.filter(general_bachelor_teachings=obj).exists():
             messages.warning(
                 request,
-                _(
-                    """This teaching can't be deleted """
-                    """because it is used by a high-school student record"""
-                ),
+                _("""This teaching can't be deleted """ """because it is used by a high-school student record"""),
             )
             return False
 
@@ -450,9 +428,7 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(components=obj).exists():
-            messages.warning(
-                request, _("This component can't be deleted because it is used by a training")
-            )
+            messages.warning(request, _("This component can't be deleted because it is used by a training"))
             return False
 
         return True
@@ -527,10 +503,7 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj and AccompanyingDocument.objects.filter(public_type=obj).exists():
             messages.warning(
                 request,
-                _(
-                    """This public type can't be deleted """
-                    """because it is used by accompanying document(s)"""
-                ),
+                _("""This public type can't be deleted """ """because it is used by accompanying document(s)"""),
             )
             return False
 
@@ -570,19 +543,12 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             if obj.start_date <= datetime.today().date():
                 messages.warning(
                     request,
-                    _(
-                        """This university year can't be deleted """
-                        """because university year has already started"""
-                    ),
+                    _("""This university year can't be deleted """ """because university year has already started"""),
                 )
                 return False
             elif obj.purge_date is not None:
                 messages.warning(
-                    request,
-                    _(
-                        """This university year can't be deleted """
-                        """because a purge date is defined"""
-                    ),
+                    request, _("""This university year can't be deleted """ """because a purge date is defined"""),
                 )
                 return False
 
@@ -731,16 +697,11 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             if obj.start_date <= datetime.today().date():
                 messages.warning(
                     request,
-                    _(
-                        """This component can't be deleted """
-                        """because university year has already started"""
-                    ),
+                    _("""This component can't be deleted """ """because university year has already started"""),
                 )
                 return False
             elif obj.purge_date is not None:
-                messages.warning(
-                    request, _("This component can't be deleted because a purge date is defined")
-                )
+                messages.warning(request, _("This component can't be deleted because a purge date is defined"))
                 return False
 
         return True
@@ -942,9 +903,29 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
             url = request.build_absolute_uri(reverse('public_document', args=(obj.pk,)))
             return format_html(f'<a href="{url}">{url}</a>')
 
-        file_url.short_description = _('Address')
+        def doc_used_in(obj):
 
-        return ('label', file_url, 'active', 'published')
+            used_docs = []
+
+            texts_docs_id = obj.get_all_texts_id()
+            docs = InformationText.objects.filter(id__in=texts_docs_id)
+
+            return format_html_join(
+                '',
+                '<a href="{}">{}</a><br>',
+                (
+                    (
+                        reverse('admin:{}_{}_change'.format(doc._meta.app_label, doc._meta.model_name), args=(doc.pk,)),
+                        doc.label,
+                    )
+                    for doc in docs
+                ),
+            )
+
+        file_url.short_description = _('Address')
+        doc_used_in.short_description = _('Used in')
+
+        return ('label', file_url, doc_used_in, 'active', 'published')
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_scuio_ip_manager():
@@ -953,8 +934,7 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         if obj:
             if obj.published:
                 messages.warning(
-                    request,
-                    _("This document is used in public interface : deletion not allowed "),
+                    request, _("This document is used in public interface : deletion not allowed "),
                 )
                 return False
 
