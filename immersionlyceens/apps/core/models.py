@@ -1252,3 +1252,20 @@ class GeneralSettings(models.Model):
     class Meta:
         verbose_name = _('General setting')
         verbose_name_plural = _('General settings')
+
+
+class UserCourseAlert(models.Model):
+    """
+    Store alerts on free slots added by users
+    """
+    email = models.EmailField(_('Recipient'), blank=False, null=False)
+    email_sent = models.BooleanField(_("Alert sent status"), default=False, blank=False, null=False)
+    alert_date = models.DateField(_("Date"), auto_now_add=True)
+    course = course = models.ForeignKey(
+        Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="alerts",
+    )
+
+    class Meta:
+        unique_together = ('email', 'course')
+        verbose_name = _('Immersion alert')
+        verbose_name_plural = _('Immersion alerts')

@@ -19,8 +19,9 @@
 {% endblock %}
 {% block content %}
 {% authorized_groups request.user %}
-<div id="feedback" class="container"></div>
-<div class="container-fluid" style="padding-top:20px;">
+{% include 'modals/modal_course_alert.html' %}
+<div id="feedback" class="container mt-4"></div>
+<div class="container-fluid" class="mt-4">
   <div class="card">
     <div class="card-header text-white bg-secondary">
       <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / <a class="unlink" href="{% url 'offer' %}">{% trans 'Offer' %}</a> / {{ subdomain }}
@@ -49,25 +50,38 @@
               {% for d in training.list %}
                 <div class="card-header">
                   <h6 class="mb-0 more-less-title">
-                    {% if  d.slots %}<button class="btn btn-link" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">{% endif %}
-                    {{ d.course.label}}
-                    {% if d.course.url %} <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle"></i></a> {% endif %}
+                    {% if d.slots %}
+                      <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
+                    {% endif %}
+                    {{ d.course.label }}
+                    {% if d.course.url %}
+                      <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle"></i></a>
+                    {% endif %}
                     {% if not d.slots %}
-                    <span class="badge badge-pill badge-warning">{% trans 'No slots available' %}</span>
+                      <span class="badge badge-pill badge-warning pull-right ml-2">{% trans 'No slots available' %}</span>
                     {% endif %}
-                    {% if  d.slots %}</button>{% endif %}
-                  {% if authorized_groups|in_groups:"LYC,ETU" %}
+                    {% if d.slots %}
+                      </button>
+                    {% endif %}
                     {% if True in d.alert or d.alert == True %}
-                    <a href="#" class="badge badge-info pull-right">{% trans 'Notify me when a place is available' %}</a>
+                      {% if not d.slots %}
+                        {% if request.user.is_anonymous or request.user.email and d.course.id not in course_alerts and authorized_groups|in_groups:"LYC,ETU" %}
+                          <a href="#" class="badge badge-info pull-right" id='id_alert_{{ d.course.id }}' onclick="open_alert_modal({{ d.course.id }})">{% trans 'Notify me when a place is available' %}</a>
+                        {% endif %}
+                      {% endif %}
+                      {% if authorized_groups|in_groups:"LYC,ETU" %}
+                        <a href="#" class="badge badge-success pull-right" id='id_alert_set_{{ d.course.id }}' {% if request.user.is_anonymous or d.course.id not in course_alerts %}style='display:none;'{% endif %}>
+                          {% trans 'Availability alert set' %}
+                        </a>
+                      {% endif %}
                     {% endif %}
-                  {% endif %}
                   </h6>
                 </div>
                 {% if  d.slots %}
                 <div class="collapse" id="course{{d.course.pk}}">
                   <div class="card">
                     <div class="card-body">
-                      {% for slot in d.slots  %}
+                      {% for slot in d.slots %}
                       <table class="table table-bordered" cellspacing="0" width="100%">
                         <tbody>
                           <tr>
@@ -140,6 +154,8 @@
 var feedback;
 var open_course_id = "{{ open_course_id }}";
 var open_training_id = "{{ open_training_id }}";
+var current_course_id = "";
+var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
 
 function register(slot_id) {
   $.ajax({
@@ -165,6 +181,12 @@ function register(slot_id) {
       }
     })
 }
+
+function open_alert_modal(course_id) {
+  current_course_id = course_id;
+  $('#modal_course_alert').modal('show');
+}
+
 $(document).ready(function() {
   initFeedback();
   feedback = $("#feedback");

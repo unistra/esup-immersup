@@ -61,4 +61,5 @@ urlpatterns = [
     path('get_csv_highschool/<int:high_school_id>', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_csv_anonymous_immersion/', views.get_csv_anonymous_immersion, name='get_csv_anonymous_immersion'),
     path('send_email_contact_us', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
+    path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
 ]
