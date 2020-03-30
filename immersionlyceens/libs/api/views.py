@@ -1381,7 +1381,7 @@ def get_csv_components(request, component_id):
         _('room'),
         _('teachers'),
         _('registration number'),
-        _('number number'),
+        _('place number'),
         _('additional information'),
     ]
     content = []
@@ -1498,7 +1498,7 @@ def get_csv_anonymous_immersion(request):
         _('building'),
         _('room'),
         _('registration number'),
-        _('number number'),
+        _('place number'),
         _('additional information'),
         _('origin institution'),
         _('student level'),

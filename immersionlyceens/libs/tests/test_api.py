@@ -600,7 +600,7 @@ class APITestCase(TestCase):
             _('building'),
             _('room'),
             _('registration number'),
-            _('number number'),
+            _('place number'),
             _('additional information'),
             _('origin institution'),
             _('student level'),
@@ -700,7 +700,7 @@ class APITestCase(TestCase):
                 _('room'),
                 _('teachers'),
                 _('registration number'),
-                _('number number'),
+                _('place number'),
                 _('additional information'),
             ]
 
