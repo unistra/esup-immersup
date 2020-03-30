@@ -7,19 +7,11 @@ import json
 import logging
 from functools import reduce
 
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
-    MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-from immersionlyceens.libs.mails.utils import send_email
-from immersionlyceens.libs.mails.variables_parser import multisub
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from django.core.validators import validate_email
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
@@ -28,6 +20,15 @@ from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ugettext_lazy as _
 
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from immersionlyceens.libs.mails.utils import send_email
+from immersionlyceens.libs.mails.variables_parser import multisub
+
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
+    MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, UserCourseAlert, Vacation,
+)
 logger = logging.getLogger(__name__)
 
 
@@ -1680,4 +1681,42 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
 
         response['data'].append(immersion_data.copy())
 
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@is_post_request
+def ajax_set_course_alert(request):
+    """
+    Add on alert on a course availability
+    """
+    email = request.POST.get('email', '').lower()
+    course_id = request.POST.get('course_id')
+    response = {'data': [], 'msg': '', 'error': False}
+
+    # Check parameters:
+    try:
+        course = Course.objects.get(pk=course_id)
+    except Course.DoesNotExist:
+        response['error'] = True
+        response['msg'] = gettext('Invalid parameter : course not found')
+        return JsonResponse(response, safe=False)
+
+    try:
+        validate_email(email)
+    except:
+        response['error'] = True
+        response['msg'] = gettext('Invalid email format')
+        return JsonResponse(response, safe=False)
+
+    # Check unicity:
+    if UserCourseAlert.objects.filter(email=email, course=course).exists():
+        response['error'] = True
+        response['msg'] = gettext('You have already set an alert on this course')
+        return JsonResponse(response, safe=False)
+
+    # Set alert:
+    UserCourseAlert.objects.create(email=email, course=course)
+
+    response['msg'] = gettext('Alert successfully set')
     return JsonResponse(response, safe=False)

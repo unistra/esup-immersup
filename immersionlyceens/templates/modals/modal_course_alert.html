@@ -1,0 +1,63 @@
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+<div class="modal fade" id="modal_course_alert" tabindex="-1" role="dialog" aria-labelledby="modal_nuke_account_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_course_alert_title">{% trans 'Set an alert on a course' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="alert_feedback"></div>
+        <div class="card">
+          <div class="card-header text-info">
+            {% trans "Set an alert on a course" %}
+          </div>
+          <div class="card-body">
+            <p>{% trans "Please enter your email address to receive an email when a slot is available :" %}</p>
+
+            <label class="col-form-label" for="id_email">{% trans 'Your email address' %} :</label>
+            <input id ="id_email"  type="email" name="email" class="form-control col-sm-8"
+              value="{% if request.user %}{{ request.user.email }}{% endif %}"
+              {% if request.user.email %}readonly{% endif %}>
+            <input type="submit" class="btn btn-secondary btn-sm mt-4" name="set_alert" onclick="set_alert()" value="{% trans 'Set alert' %}">
+          </div>
+        </div>  
+      </div>
+    </div>  
+  </div>
+</div>
+<script>
+  function set_alert(student_id) {
+    let course_id = current_course_id;
+    let email = $('#id_email').val();
+  
+    $.ajax({
+      url: "{% url 'set_course_alert' %}",
+      type: 'POST',
+      data: {
+        'course_id': course_id,
+        'email': email,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        console.log(json);
+        if(json['error']) {
+            console.log(json['msg']);
+            $("#alert_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+            setTimeout(function() { $("#alert_feedback").html('');}, 3000);
+        } else {
+            $("#feedback").html('<div class="alert alert-success">'+json['msg']+'</div>');
+            setTimeout(function() { $("#feedback").html('');}, 3000);
+            $("#modal_course_alert").modal('hide');
+        }
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+  };
+
+</script>

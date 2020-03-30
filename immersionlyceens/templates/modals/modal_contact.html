@@ -57,7 +57,7 @@
       },
       success: function (json) {
         if(json['error']) {
-            console.log('error');
+            console.log(json['msg']);
             $("#contact_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
             setTimeout(function() { $("#contact_feedback").html('');}, 3000);
         } else {
