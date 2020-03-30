@@ -21,7 +21,6 @@
         <ul>
         {% for component in components %}
           <li class="mb-3"><a href="{% url 'update_component' component_code=component.code %}">{{ component.label }}</a><br />
-            {% trans 'URL' %} : {{ component.url|default_if_none:"-" }}<br />
             {% trans 'Mailing list' %} : {{ component.mailing_list|default_if_none:"-" }}</li>
         {% endfor %}
         </ul>
@@ -29,15 +28,6 @@
       <form method="post">
         {% csrf_token %}
         <input type="hidden" name="code" value="{{ component.code }}">
-        <div class="form-group row">
-          <label for="id_url" class="col-sm-3 col-form-label">{% trans 'Component URL' %} :</label>
-          <div class="col-sm-4">
-            {{ form.url }}
-          </div>
-          <div class="col-sm-4">
-            {{ form.url.errors }}
-          </div>
-        </div>
         <div class="form-group row">
           <label for="id_mailing_list" class="col-sm-3 col-form-label">{% trans 'Mailing list email address' %} :</label>
           <div class="col-sm-4">

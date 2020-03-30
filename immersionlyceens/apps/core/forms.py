@@ -217,9 +217,8 @@ class ComponentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['url'].widget.attrs['class'] = 'form-control'
         self.fields['mailing_list'].widget.attrs['class'] = 'form-control'
 
     class Meta:
         model = Component
-        fields = ['url', 'mailing_list']
+        fields = ['mailing_list', ]
