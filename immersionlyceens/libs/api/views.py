@@ -381,10 +381,10 @@ def ajax_get_my_slots(request, user_id=None):
     response = {'msg': '', 'data': []}
     can_update_attendances = False
 
-    today = datetime.datetime.today().date()
+    today = datetime.datetime.today()
     try:
         year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today <= year.end_date
+        can_update_attendances = today.date() <= year.end_date
     except UniversityYear.DoesNotExist:
         pass
 
@@ -398,12 +398,14 @@ def ajax_get_my_slots(request, user_id=None):
         slots = (
             Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
             .filter(teachers=user_id)
-            .exclude(date__lt=today, immersions__isnull=True)
+            .exclude(date__lt=today.date(), immersions__isnull=True)
         ).distinct()
     else:
         slots = (
             Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
-            .filter(Q(date__gte=today) | Q(immersions__attendance_status=0), teachers=user_id)
+            .filter(Q(date__gte=today.date() | 
+                    Q(date=today.date(), end_time__gte=today.time()) | 
+                    Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True), teachers=user_id)
             .distinct()
         )
 
@@ -445,8 +447,8 @@ def ajax_get_my_slots(request, user_id=None):
             # TODO: maybe not usefull
             pass
 
-        if slot_data['datetime'] and slot_data['datetime'] <= datetime.datetime.today():
-            if not slot.immersions.all().exists():
+        if slot_data['datetime'] and slot_data['datetime'] <= today:
+            if not slot.immersions.filter(cancellation_type__isnull=True).exists():
                 slot_data['attendances_status'] = ""
                 slot_data['attendances_value'] = -1
             elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()\
