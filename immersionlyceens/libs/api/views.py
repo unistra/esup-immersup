@@ -403,8 +403,8 @@ def ajax_get_my_slots(request, user_id=None):
     else:
         slots = (
             Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
-            .filter(Q(date__gte=today.date()) | 
-                    Q(date=today.date(), end_time__gte=today.time()) | 
+            .filter(Q(date__gte=today.date()) | \
+                    Q(date=today.date(), end_time__gte=today.time()) | \
                     Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True), teachers=user_id)
             .distinct()
         )
