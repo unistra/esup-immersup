@@ -238,6 +238,11 @@ def modify_slot(request, slot_id):
             }
             return render(request, 'slots/add_slot.html', context=context)
 
+        if published:
+            course = Course.objects.get(id=request.POST.get('course'))
+            if course and course.published:
+                messages.success(request, _("Course published"))
+
         if request.POST.get('save'):
             response = redirect('slots_list')
             response['Location'] += '?c={}&t={}'.format(
