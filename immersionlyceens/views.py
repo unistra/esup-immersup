@@ -27,6 +27,7 @@ from immersionlyceens.apps.core.models import (
     Slot,
     Training,
     TrainingSubdomain,
+    UserCourseAlert,
 )
 
 
@@ -155,6 +156,7 @@ def offer_subdomain(request, subdomain_id):
     cal_end_date = None
     reg_start_date = None
     remaining_regs_count = None
+    course_alerts = None
 
     if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
         student = request.user
@@ -164,6 +166,9 @@ def offer_subdomain(request, subdomain_id):
         elif student.is_student():
             record = student.get_student_record()
         remaining_regs_count = student.remaining_registrations_count()
+
+        course_alerts = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False)\
+            .values_list("course_id", flat=True)
 
     trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
     subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
@@ -276,6 +281,8 @@ def offer_subdomain(request, subdomain_id):
         'student': student,
         'open_training_id': open_training_id,
         'open_course_id': open_course_id,
+        'course_alerts': course_alerts,
+        'is_anonymous': request.user.is_anonymous,
     }
 
     return render(request, 'offer_subdomains.html', context)

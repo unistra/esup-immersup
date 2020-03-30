@@ -43,7 +43,6 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        console.log(json);
         if(json['error']) {
             console.log(json['msg']);
             $("#alert_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
@@ -52,6 +51,13 @@
             $("#feedback").html('<div class="alert alert-success">'+json['msg']+'</div>');
             setTimeout(function() { $("#feedback").html('');}, 3000);
             $("#modal_course_alert").modal('hide');
+
+            // Hide the badge without refreshing the whole page
+            $("#id_alert_"+current_course_id).hide();
+
+            if(is_anonymous!=true) {
+              $("#id_alert_set_"+current_course_id).show();
+            }
         }
       },
       error: function(json) {

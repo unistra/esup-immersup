@@ -1710,13 +1710,19 @@ def ajax_set_course_alert(request):
         return JsonResponse(response, safe=False)
 
     # Check unicity:
-    if UserCourseAlert.objects.filter(email=email, course=course).exists():
-        response['error'] = True
-        response['msg'] = gettext('You have already set an alert on this course')
-        return JsonResponse(response, safe=False)
+    try:
+        alert = UserCourseAlert.objects.get(email=email, course=course)
 
-    # Set alert:
-    UserCourseAlert.objects.create(email=email, course=course)
+        if not alert.email_sent:
+            response['error'] = True
+            response['msg'] = gettext('You have already set an alert on this course')
+            return JsonResponse(response, safe=False)
+        else:
+            alert.email_sent=False
+            alert.save()
+    except UserCourseAlert.DoesNotExist:
+        # Set alert:
+        UserCourseAlert.objects.create(email=email, course=course)
 
     response['msg'] = gettext('Alert successfully set')
     return JsonResponse(response, safe=False)

@@ -58,7 +58,12 @@
                     {% endif %}
                     {% if  d.slots %}</button>{% endif %}
                     {% if True in d.alert or d.alert == True %}
-                      <a href="#" class="badge badge-info pull-right" onclick="open_alert_modal({{ d.course.id }})">{% trans 'Notify me when a place is available' %}</a>
+                      {% if request.user.is_anonymous or request.user.email and d.course.id not in course_alerts %}
+                      <a href="#" class="badge badge-info pull-right" id='id_alert_{{ d.course.id }}' onclick="open_alert_modal({{ d.course.id }})">{% trans 'Notify me when a place is available' %}</a>
+                      {% endif %}
+                      <a href="#" class="badge badge-success pull-right" id='id_alert_set_{{ d.course.id }}' {% if request.user.is_anonymous or d.course.id not in course_alerts %}style='display:none;'{% endif %}>
+                        {% trans 'Availability alert set' %}
+                      </a>
                     {% endif %}
                   </h6>
                 </div>
@@ -140,6 +145,7 @@ var feedback;
 var open_course_id = "{{ open_course_id }}";
 var open_training_id = "{{ open_training_id }}";
 var current_course_id = "";
+var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
 
 function register(slot_id) {
   $.ajax({
