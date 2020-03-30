@@ -249,6 +249,15 @@
                     {% endif %}
                 </div>
                 <input type="hidden" name="modify">
+                {% if slot and slot.id %}
+                    <div class="form-group row">
+                        <label for="notify_student" class="col-form-label col-sm-3">{% trans "Notify registrants of these changes?" %}</label>
+                        <div class="col-sm-1">
+                            <input type="checkbox" name="notify_student" class="form-control" checked>
+                        </div>
+                    </div>
+                {% endif %}
+                <br>
                 {% include 'slots/add_slot__controls.html' %}
             </form>
         </div>
