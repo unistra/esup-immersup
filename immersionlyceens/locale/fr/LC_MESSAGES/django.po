@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-27 22:06+0100\n"
+"POT-Creation-Date: 2020-03-30 09:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2051,8 +2051,10 @@ msgstr "nombre d'inscrits"
 #: immersionlyceens/libs/api/views.py:1501
 #: immersionlyceens/libs/tests/test_api.py:603
 #: immersionlyceens/libs/tests/test_api.py:703
-msgid "number number"
-msgstr "téléphone"
+#, fuzzy
+#| msgid "Phone number"
+msgid "place number"
+msgstr "nombre de places"
 
 #: immersionlyceens/libs/api/views.py:1385
 #: immersionlyceens/libs/api/views.py:1502
@@ -3425,6 +3427,9 @@ msgstr "Le créneau a été supprimé avec succès"
 #: immersionlyceens/views.py:202
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
+
+#~ msgid "number number"
+#~ msgstr "téléphone"
 
 #~ msgid "Registered"
 #~ msgstr "inscrit(s)"
