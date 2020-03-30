@@ -13,11 +13,13 @@
         <div id="alert_feedback"></div>
         <div class="card">
           <div class="card-header text-info">
-            {% trans "Set an alert on a course" %}
+            {% if request.user.is_anonymous %}
+              {% trans "Please enter your email address to receive an email when a slot is available :" %}
+            {% else %}
+              {% trans "Please confirm to receive an email when a slot is available :" %}
+            {% endif %}
           </div>
           <div class="card-body">
-            <p>{% trans "Please enter your email address to receive an email when a slot is available :" %}</p>
-
             <label class="col-form-label" for="id_email">{% trans 'Your email address' %} :</label>
             <input id ="id_email"  type="email" name="email" class="form-control col-sm-8"
               value="{% if request.user %}{{ request.user.email }}{% endif %}"

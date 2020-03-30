@@ -1267,5 +1267,5 @@ class UserCourseAlert(models.Model):
 
     class Meta:
         unique_together = ('email', 'course')
-        verbose_name = _('Immersion alert')
-        verbose_name_plural = _('Immersion alerts')
+        verbose_name = _('Course free slot alert')
+        verbose_name_plural = _('Course free slot alerts')
