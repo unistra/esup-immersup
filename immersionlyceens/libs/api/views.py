@@ -7,15 +7,6 @@ import json
 import logging
 from functools import reduce
 
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
-    MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-from immersionlyceens.libs.mails.utils import send_email
-from immersionlyceens.libs.mails.variables_parser import multisub
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -26,7 +17,17 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext
+from django.utils.translation import ugettext_lazy as _
+
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
+)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from immersionlyceens.libs.mails.utils import send_email
+from immersionlyceens.libs.mails.variables_parser import multisub
 
 logger = logging.getLogger(__name__)
 
@@ -227,8 +228,10 @@ def ajax_get_slots(request, component=None):
             data['is_past'] = True
             if not slot.immersions.all().exists():
                 data['attendances_value'] = -1  # nothing
-            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()\
-                or can_update_attendances:
+            elif (
+                slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()
+                or can_update_attendances
+            ):
                 data['attendances_value'] = 1  # to enter
             else:
                 data['attendances_value'] = 2  # view only
@@ -403,9 +406,12 @@ def ajax_get_my_slots(request, user_id=None):
     else:
         slots = (
             Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
-            .filter(Q(date__gte=today.date()) | \
-                    Q(date=today.date(), end_time__gte=today.time()) | \
-                    Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True), teachers=user_id)
+            .filter(
+                Q(date__gte=today.date())
+                | Q(date=today.date(), end_time__gte=today.time())
+                | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
+                teachers=user_id,
+            )
             .distinct()
         )
 
@@ -451,8 +457,10 @@ def ajax_get_my_slots(request, user_id=None):
             if not slot.immersions.filter(cancellation_type__isnull=True).exists():
                 slot_data['attendances_status'] = ""
                 slot_data['attendances_value'] = -1
-            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()\
-                and can_update_attendances:
+            elif (
+                slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()
+                and can_update_attendances
+            ):
                 slot_data['attendances_status'] = gettext("To enter")
                 slot_data['attendances_value'] = 1
             else:
@@ -1391,7 +1399,9 @@ def get_csv_components(request, component_id):
     content = []
     for slot in slots:
         line = [
-            infield_separator.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+            infield_separator.join(
+                [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+            ),
             infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
             slot.course.training.label,
             slot.course.label,
@@ -1453,7 +1463,9 @@ def get_csv_highschool(request, high_school_id):
                         HighSchoolStudentRecord.LEVELS[hs.level - 1][1],
                         hs.class_name,
                         HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1],
-                        infield_separator.join([s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]),
+                        infield_separator.join(
+                            [s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]
+                        ),
                         infield_separator.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
                         imm.slot.course.training.label,
                         imm.slot.course.label,
@@ -1529,7 +1541,9 @@ def get_csv_anonymous_immersion(request):
                 content.append(
                     [
                         slot.course.component.label,
-                        infield_separator.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+                        infield_separator.join(
+                            [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                        ),
                         infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
                         slot.course.training.label,
                         slot.course.label,
@@ -1548,9 +1562,12 @@ def get_csv_anonymous_immersion(request):
                     ]
                 )
         else:
-            content.append([
+            content.append(
+                [
                     slot.course.component.label,
-                    infield_separator.join([sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]),
+                    infield_separator.join(
+                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                    ),
                     infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
                     slot.course.training.label,
                     slot.course.label,
@@ -1564,7 +1581,8 @@ def get_csv_anonymous_immersion(request):
                     slot.registered_students(),
                     slot.n_places,
                     slot.additional_information,
-                ])
+                ]
+            )
 
     writer = csv.writer(response)
     writer.writerow(header)
@@ -1587,6 +1605,7 @@ def ajax_send_email_contact_us(request):
     lastname = request.POST.get('lastname', "").capitalize()
     firstname = request.POST.get('firstname', "").capitalize()
     email = request.POST.get('email', "")
+    notify_user = False
 
     try:
         # TODO: Maybe use an util getter method for General settings
@@ -1611,23 +1630,23 @@ def ajax_send_email_contact_us(request):
 
     try:
         template = MailTemplate.objects.get(code='CONTACTUS_NOTIFICATION', active=True)
-        logger.debug("Template found : %s" % template)
+        notify_user = True
     except MailTemplate.DoesNotExist:
-        msg = _("Email not sent : template %s not found or inactive" % template_code)
-        logger.error(msg)
+        pass
 
     # Contacting user mail notification
-    try:
-        vars = [
-            ('${nom}', lastname),
-            ('${prenom}', firstname),
-        ]
+    if notify_user:
+        try:
+            vars = [
+                ('${nom}', lastname),
+                ('${prenom}', firstname),
+            ]
 
-        message_body = multisub(vars, template.body)
-        send_email(email, template.subject, message_body)
-    except Exception as e:
-        logger.exception(e)
-        msg = _("Error while sending mail : %s" % e)
+            message_body = multisub(vars, template.body)
+            send_email(email, template.subject, message_body)
+        except Exception as e:
+            logger.exception(e)
+            msg = _("Error while sending mail : %s" % e)
 
     return JsonResponse(response, safe=False)
 
@@ -1667,8 +1686,13 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             },
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
-                % (immersion.slot.date.year, immersion.slot.date.month, immersion.slot.date.day,
-                   immersion.slot.start_time.hour, immersion.slot.start_time.minute,),
+                % (
+                    immersion.slot.date.year,
+                    immersion.slot.date.month,
+                    immersion.slot.date.day,
+                    immersion.slot.start_time.hour,
+                    immersion.slot.start_time.minute,
+                ),
                 "%Y:%m:%d %H:%M",
             )
             if immersion.slot.date
