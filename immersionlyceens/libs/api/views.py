@@ -227,7 +227,8 @@ def ajax_get_slots(request, component=None):
             data['is_past'] = True
             if not slot.immersions.all().exists():
                 data['attendances_value'] = -1  # nothing
-            elif slot.immersions.filter(attendance_status=0).exists() or can_update_attendances:
+            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()\
+                and can_update_attendances:
                 data['attendances_value'] = 1  # to enter
             else:
                 data['attendances_value'] = 2  # view only
@@ -448,7 +449,8 @@ def ajax_get_my_slots(request, user_id=None):
             if not slot.immersions.all().exists():
                 slot_data['attendances_status'] = ""
                 slot_data['attendances_value'] = -1
-            elif slot.immersions.filter(attendance_status=0).exists() and can_update_attendances:
+            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()\
+                and can_update_attendances:
                 slot_data['attendances_status'] = gettext("To enter")
                 slot_data['attendances_value'] = 1
             else:
