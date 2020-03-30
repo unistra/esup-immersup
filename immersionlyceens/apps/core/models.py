@@ -1028,6 +1028,16 @@ class PublicDocument(models.Model):
         self.document.storage.delete(self.document.name)
         super().delete()
 
+    def get_all_texts_id(cls):
+        texts = InformationText.objects.all()
+        l = []
+        for text in texts:
+            for _id in text.get_documents_id():
+                if int(_id) == cls.pk:
+                    l.append(text.id)
+
+        return list(set(l))
+
 
 class AttendanceCertificateModel(models.Model):
     """
