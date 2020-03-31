@@ -19,7 +19,7 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
-    ImmersionUser, UniversityYear, Calendar, Immersion, CancelType)
+    ImmersionUser, UniversityYear, Calendar, Immersion, CancelType, UserCourseAlert)
 from immersionlyceens.libs.utils import check_active_year
 from immersionlyceens.decorators import groups_required
 
@@ -602,11 +602,17 @@ def student_record(request, student_id=None, record_id=None):
 @login_required
 @groups_required('LYC','ETU')
 def immersions(request):
-
+    """
+    Students : display to come, past and cancelled immersions
+    Also display the number of active alerts
+    """
     cancellation_reasons = CancelType.objects.filter(active=True).order_by('label')
+
+    alerts_cnt = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).count()
 
     context = {
         'cancellation_reasons': cancellation_reasons,
+        'alerts_cnt': alerts_cnt,
     }
 
     return render(request, 'immersion/my_immersions.html', context)
