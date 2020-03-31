@@ -842,3 +842,94 @@ class APITestCase(TestCase):
         self.assertEqual(c['alerts_count'], 0)  # TODO:
         self.assertEqual(c['can_delete'], not self.course.slots.exists())
 
+    def test_API_ajax_delete_course__no_data(self):
+        request.user = self.scuio_user
+
+        url = f"/api/delete_course"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        response = self.client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('error', content)
+        self.assertIn('msg', content)
+        self.assertGreater(len(content['error']), 0)
+        self.assertEqual(content['msg'], '')
+
+    def test_API_ajax_delete_course__not_exists(self):
+        request.user = self.scuio_user
+
+        url = f"/api/delete_course"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': 0}
+        response = self.client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('error', content)
+        self.assertIn('msg', content)
+        self.assertEqual(len(content['error']), 0)
+        self.assertEqual(content['msg'], '')
+
+    def test_API_ajax_delete_course__no_slot_attach(self):
+        request.user = self.scuio_user
+        course_id = self.course.id
+
+        self.slot.delete()
+        self.slot2.delete()
+
+        url = f"/api/delete_course"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': self.course.id}
+        response = self.client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('error', content)
+        self.assertIn('msg', content)
+        self.assertEqual(len(content['error']), 0)
+        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(Slot.objects.filter(course=self.course).count(), 0)
+
+        with self.assertRaises(Course.DoesNotExist):
+            Course.objects.get(id=self.course.id)
+
+    def test_API_ajax_delete_course__slot_attach(self):
+        request.user = self.scuio_user
+        course_id = self.course.id
+
+        url = f"/api/delete_course"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': self.course.id}
+        response = self.client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('error', content)
+        self.assertIn('msg', content)
+        self.assertGreater(len(content['error']), 0)
+        self.assertEqual(content['msg'], '')
+        self.assertGreater(Slot.objects.filter(course=self.course).count(), 0)
+
+        not_raised = True
+        try:
+            Course.objects.get(id=self.course.id)
+        except Course.DoesNotExist:
+            not_raised = False
+        self.assertTrue(not_raised)
+
+    # def test_API_ajax_delete_course__slot_not_attach(self):
+    #     request.user = self.scuio_user
+    #
+    #     url = f"/api/delete_course"
+    #     header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+    #     data = {'course_id': self.course.id}
+    #     response = self.client.post(url, data, **header)
+    #     content = json.loads(response.content.decode())
+    #
+    #     self.assertIsInstance(content, dict)
+    #     self.assertIn('error', content)
+    #     self.assertIn('msg', content)
+    #     self.assertGreater(len(content['error']), 0)
+    #     self.assertEqual(content['msg'], '')
