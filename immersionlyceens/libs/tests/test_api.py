@@ -919,17 +919,33 @@ class APITestCase(TestCase):
             not_raised = False
         self.assertTrue(not_raised)
 
-    # def test_API_ajax_delete_course__slot_not_attach(self):
-    #     request.user = self.scuio_user
-    #
-    #     url = f"/api/delete_course"
-    #     header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-    #     data = {'course_id': self.course.id}
-    #     response = self.client.post(url, data, **header)
-    #     content = json.loads(response.content.decode())
-    #
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn('error', content)
-    #     self.assertIn('msg', content)
-    #     self.assertGreater(len(content['error']), 0)
-    #     self.assertEqual(content['msg'], '')
+    def test_API_ajax_get_my_courses(self):
+        request.user = self.teacher1
+        client = Client()
+        client.login(username='teacher1', password='pass')
+
+        url = f"/api/get_my_courses/{self.teacher1.id}/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('msg', content)
+        self.assertIn('data', content)
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        c = content['data'][0]
+        self.assertEqual(self.course.id, c['id'])
+        self.assertEqual(self.course.published, c['published'])
+        self.assertEqual(self.course.component.code, c['component'])
+        self.assertEqual(self.course.training.label, c['training_label'])
+        self.assertEqual(self.course.label, c['label'])
+        # teachers
+        self.assertEqual(self.course.slots_count(teacher_id=self.teacher1.id), c['slots_count'])
+        self.assertEqual(self.course.free_seats(teacher_id=self.teacher1.id), c['n_places'])
+        self.assertEqual(
+            self.course.published_slots_count(teacher_id=self.teacher1.id),
+            c['published_slots_count']
+        )
+        self.assertEqual(0, c['alerts_count'])
