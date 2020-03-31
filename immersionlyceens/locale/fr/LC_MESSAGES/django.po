@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-31 13:35+0200\n"
+"POT-Creation-Date: 2020-03-31 13:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2942,9 +2942,8 @@ msgid "Forgot your credentials ?"
 msgstr "Mot de passe oublié ?"
 
 #: immersionlyceens/templates/immersion/my_immersions.html:27
-#, python-format
-msgid "Click here to see your course(s) alert(s) (%(alerts_cnt))"
-msgstr "Cliquez ici pour voir vos alertes (%(alerts_cnt))"
+msgid "Click here to see your course(s) alert(s) (%(alerts_cnt)s)"
+msgstr "Cliquez ici pour voir vos alertes (%(alerts_cnt)s)"
 
 #: immersionlyceens/templates/immersion/my_immersions.html:29
 msgid "You have no course alert"
