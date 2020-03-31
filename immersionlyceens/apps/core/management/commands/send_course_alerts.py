@@ -58,4 +58,4 @@ class Command(BaseCommand):
                 logger.exception(e)
                 logger.error("Cannot send email to %s : '%s'", alert.email, e)
 
-            return
+        return
