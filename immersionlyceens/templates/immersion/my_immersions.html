@@ -24,9 +24,9 @@
   </div>
   <div class="col-md-6 text-right">
     {% if alerts_cnt %}
-      <h4 onclick="open_alerts_modal()">{% blocktrans %}You have {{ alerts_cnt }} pending alert(s){% endblocktrans %}</h4>
+      <p class="mr-2" onclick="open_alerts_modal()">{% blocktrans %}Click here to see your course(s) alert(s) ({{ alerts_cnt }}){% endblocktrans %}</p>
     {% else %}
-      <h4>{% trans 'You have no pending alert' %}</h4>
+      <h4>{% trans 'You have no course alert' %}</h4>
     {% endif %}
   </div>
 </div>
