@@ -249,7 +249,6 @@ def modify_slot(request, slot_id):
             immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
             for immersion in immersions:
                 immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF')
-                print(f'message envoyé à {immersion.student.first_name} {immersion.student.last_name}')
 
 
         if request.POST.get('save'):
