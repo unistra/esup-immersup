@@ -739,6 +739,10 @@ def ajax_cancel_registration(request):
     else:
         try:
             immersion = Immersion.objects.get(pk=immersion_id)
+            if immersion.slot.date <= datetime.datetime.today().date():
+                response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
+                return JsonResponse(response, safe=False)
+
             cancellation_reason = CancelType.objects.get(pk=reason_id)
             immersion.cancellation_type = cancellation_reason
             immersion.save()
