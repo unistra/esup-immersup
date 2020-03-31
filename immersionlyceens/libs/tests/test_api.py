@@ -13,7 +13,7 @@ from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
     Training, TrainingDomain,
     TrainingSubdomain,
-    Immersion)
+    Immersion, MailTemplateVars, MailTemplate)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -172,6 +172,19 @@ class APITestCase(TestCase):
             student=self.student,
             slot=self.slot
         )
+        self.mail_t = MailTemplate.objects.create(
+            code="code",
+            label="label",
+            description="description",
+            subject="subject",
+            body="body",
+        )
+        self.var = MailTemplateVars.objects.create(
+            code='code',
+            description='description'
+        )
+        self.mail_t.available_vars.add(self.var)
+
 
     def test_API_get_documents__ok(self):
         request.user = self.scuio_user
@@ -407,6 +420,19 @@ class APITestCase(TestCase):
         self.assertEqual(t2['label'], self.training2.label)
         self.assertEqual(t2['subdomain'], [s.label for s in self.training2.training_subdomains.filter(active=True)])
 
+    def test_API_get_trainings__empty(self):
+        request.user = self.scuio_user
+        url = f"/api/get_trainings"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        response = self.client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+        self.assertIn('msg', content)
+        self.assertIn('data', content)
+        self.assertIsInstance(content['data'], list)
+        self.assertIsInstance(content['msg'], str)
+        self.assertEqual(len(content['data']), 0)
+
     def test_API_get_student_records__no_action(self):
         request.user = self.scuio_user
         url = "/api/get_student_records/"
@@ -459,7 +485,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs_record['level'], HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1])
         self.assertEqual(hs_record['class_name'], self.hs_record.class_name)
 
-    def test_API_get_student_records__VALIDATED(self):
+    def test_API_get_student_records__VALIDget_available_documentsATED(self):
         request.user = self.scuio_user
         self.hs_record.validation = 2  # validate
         self.hs_record.save()
@@ -730,4 +756,89 @@ class APITestCase(TestCase):
                 self.assertEqual(self.slot.additional_information, row[14])
 
             n += 1
+
+    def test_API_ajax_get_available_vars(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_available_vars/{self.mail_t.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('data', content)
+        self.assertIn('msg', content)
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(len(content['data']), 1)
+        var = content['data'][0]
+        self.assertIsInstance(var, dict)
+        self.assertEqual(var['id'], self.var.id)
+        self.assertEqual(var['code'], self.var.code)
+        self.assertEqual(var['description'], self.var.description)
+
+    def test_API_ajax_get_available_vars__empty(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_available_vars/0"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('data', content)
+        self.assertIn('msg', content)
+        self.assertGreater(len(content['msg']), 0)
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(len(content['data']), 0)
+
+    def test_API_get_person__no_data(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_person"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        response = self.client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('data', content)
+        self.assertIn('msg', content)
+        self.assertGreater(len(content['msg']), 0)
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(content['data'], [])
+
+    def test_API_get_courses__no_data(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_courses/{self.component.id}/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('data', content)
+        self.assertIn('msg', content)
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(len(content['data']), 1)
+        c = content['data'][0]
+        self.assertIsInstance(c, dict)
+        self.assertEqual(c['id'], self.course.id)
+        self.assertEqual(c['published'], self.course.published)
+        self.assertEqual(c['training_label'], self.course.training.label)
+        self.assertEqual(c['label'], self.course.label)
+        self.assertEqual(c['component_code'], self.course.component.code)
+        self.assertEqual(c['component_id'], self.course.component.id)
+
+        teachers_naming = [f'{t.last_name} {t.first_name}' for t in self.course.teachers.all()]
+        for t in c['teachers']:
+            self.assertIn(t, teachers_naming)
+
+        self.assertEqual(c['slots_count'], self.course.slots_count())
+        self.assertEqual(c['n_places'], self.course.free_seats())
+        self.assertEqual(c['published_slots_count'], self.course.published_slots_count())
+        self.assertEqual(c['registered_students_count'], self.course.registrations_count())
+        self.assertEqual(c['alerts_count'], 0)  # TODO:
+        self.assertEqual(c['can_delete'], not self.course.slots.exists())
 
