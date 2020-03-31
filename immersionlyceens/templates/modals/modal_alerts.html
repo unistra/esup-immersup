@@ -1,0 +1,170 @@
+{% load immersionlyceens_tags i18n static staticfiles %}
+{% authorized_groups request.user %}
+<!-- Modal -->
+<div class="modal fade" id="modal_alerts" tabindex="-1" role="dialog" aria-labelledby="modal_alerts_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_alerts_title">{% trans 'My courses alerts' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="cancel_feedback"></div>
+        <div class="row">
+          <div class="col">
+            <table id="alerts_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Course' %}</th>
+                <th>{% trans 'Training' %}</th>
+                <th>{% trans 'Domain(s)' %}</th>
+                <th>{% trans 'Subdomain(s)' %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var dtr;
+let cancel_text = "{% trans 'Cancel alert' %}";
+
+function cancel_alert(alert_id) {
+    var csrftoken = getCookie('csrftoken');
+
+    if (confirm('{% trans "Do you really want to cancel this alert ?" %}')) {
+      $.ajax({
+        beforeSend: function (request) {
+          request.setRequestHeader("X-CSRFToken", csrftoken);
+        },
+
+        url: "/api/cancel_alert",
+        type: "POST",
+        data: {
+          alert_id: alert_id,
+        },
+
+        success: function (json) {
+          let msg = json['msg'];
+          let error = json['error'];
+
+          if(error != '') {
+            $("#cancel_feedback").html('<div class="alert alert-danger">'+json["error"]+'</div>');
+            setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+          }
+          else if(msg != '') {
+            $("#cancel_feedback").html('<div class="alert alert-success">'+json["msg"]+'</div>');
+            setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+          }
+
+          reload_table();
+        },
+        error: function (e) {
+          obj = JSON.stringify(e);
+          console.log("Error : " + obj);
+        }
+      });
+    }
+  }
+
+function reload_table() {
+  dtr.rows().remove().draw();
+  // dtr.ajax.url("/api/get_alerts/" + current_student_id).load();
+  dtr.ajax.reload();
+}
+
+$.fn.dataTableExt.errMode = 'console';
+
+dtr = $('#alerts_table').DataTable({
+  'processing': false,
+  'order': [
+    [1, "asc"],
+    [2, "asc"],
+    [3, "asc"],
+  ],
+  'pageLength': 5,
+  'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+  'serverSide': false,
+  'responsive': true,
+  'ajax': {
+    url: "/api/get_alerts",
+    dataSrc: function (json) {
+      if (json['data'] != undefined) {
+        return json['data'];
+      }
+    }
+  },
+  'searching': true,
+  'language': {
+      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+  },
+  'columns': [
+    { "data": "course" },
+    { "data": "training" },
+    { "data": "domains",
+      "render": function(data, type, row) {
+        var txt = "";
+
+        $.each(data, function(i, item) {
+          if(i>0) {
+            txt += "<br />";
+          }
+
+          txt += item;
+        });
+
+        return txt;
+      }
+    },
+    { "data": "subdomains",
+      "render": function(data, type, row) {
+        var txt = "";
+
+        $.each(data, function(i, item) {
+          if(i>0) {
+            txt += "<br />";
+          }
+
+          txt += item;
+        });
+
+        return txt;
+      }
+    },
+    { "data": "",
+      "render": function(data, type, row) {
+        let icons = "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"cancel_alert('" + row.id + "')\" title='"+ cancel_text +"'>" +
+                       "<i class=\"fa fas fa-trash\"</i>" +
+                    "</button>";
+        return icons;
+      }
+    },
+  ],
+  "columnDefs": [
+    {
+      "defaultContent": "",
+      "targets": "_all",
+      "className": "all",
+    },
+    {
+      "orderable": false, "targets": 4
+    },
+  ],
+});
+
+</script>

@@ -62,4 +62,6 @@ urlpatterns = [
     path('get_csv_anonymous_immersion/', views.get_csv_anonymous_immersion, name='get_csv_anonymous_immersion'),
     path('send_email_contact_us', views.ajax_send_email_contact_us, name='SendEmailContactUs'),
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
+    path('get_alerts', views.ajax_get_alerts, name='get_alerts'),
+    path('cancel_alert', views.ajax_cancel_alert, name='cancel_alert'),
 ]

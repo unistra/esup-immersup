@@ -18,10 +18,22 @@
 {% block title %}{% trans "My immersions" %}{% endblock %}
 
 {% block section_title %}
-<h2>{% trans "My immersions" %}</h2>
+<div class="row">
+  <div class="col-md-6">
+    <h2>{% trans "My immersions" %}</h2>
+  </div>
+  <div class="col-md-6 text-right">
+    {% if alerts_cnt %}
+      <h4 onclick="open_alerts_modal()">{% blocktrans %}You have {{ alerts_cnt }} pending alert(s){% endblocktrans %}</h4>
+    {% else %}
+      <h4>{% trans 'You have no pending alert' %}</h4>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
 
 {% block content %}
+{% include '../modals/modal_alerts.html' %}
 <div id="feedback" class="container"></div>
 <div id="accordion">
   <div class="card">
@@ -170,6 +182,10 @@
   function open_cancel_modal(immersion_id) {
     current_immersion_id = immersion_id;
     $('#modal_cancel_immersion').modal('show');
+  }
+
+  function open_alerts_modal() {
+    $('#modal_alerts').modal('show');
   }
 
   function register(slot_id) {
