@@ -22,23 +22,14 @@ from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, Vacation,
-)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-from immersionlyceens.libs.mails.utils import send_email
-from immersionlyceens.libs.mails.variables_parser import multisub
-
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
-from immersionlyceens.libs.mails.utils import send_email
-from immersionlyceens.libs.mails.variables_parser import multisub
-
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.apps.core.models import (
     Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser,
     MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, UniversityYear, UserCourseAlert, Vacation,
 )
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from immersionlyceens.libs.mails.utils import send_email
+from immersionlyceens.libs.mails.variables_parser import multisub
+
 logger = logging.getLogger(__name__)
 
 
@@ -1050,6 +1041,11 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
+    # Check if slot is not past
+    if slot.date <= today:
+        response = {'error': True, 'msg': _("Register to past slot is not available")}
+        return JsonResponse(response, safe=False)
+
     # Check free seat in slot
     if slot.available_seats() == 0:
         response = {'error': True, 'msg': _("No seat available for selected slot")}
@@ -1755,7 +1751,7 @@ def ajax_set_course_alert(request):
             response['msg'] = gettext('You have already set an alert on this course')
             return JsonResponse(response, safe=False)
         else:
-            alert.email_sent=False
+            alert.email_sent = False
             alert.save()
     except UserCourseAlert.DoesNotExist:
         # Set alert:

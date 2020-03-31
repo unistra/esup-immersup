@@ -324,12 +324,17 @@ $(document).ready(function(){
             csrfmiddlewaretoken: '{{ csrf_token }}'
           },
           success: function (json) {
-            dtr.ajax.reload();
-            dt.ajax.reload();
-            $('#checkall').prop('checked', false);
-            $('#select_cancel_type').val('');
-            $("#cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
-            setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+            if(json['error']) {
+              $("#cancel_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
+              setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+            } else {
+              dtr.ajax.reload();
+              dt.ajax.reload();
+              $('#checkall').prop('checked', false);
+              $('#select_cancel_type').val('');
+              $("#cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
+              setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+            }
           },
           error: function(json) {
             console.log(json);
