@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, HttpResponseRedirect
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate, login, update_session_auth_hash, views as auth_views
 from django.contrib.auth.models import Group
@@ -489,6 +490,18 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
         messages.info(request, _("Current record status : %s") % record.get_validation_display())
 
+    # Stats for user deletion
+    today = datetime.today().date()
+    now = datetime.today().time()
+
+    past_immersions = student.immersions.filter(
+        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
+        cancellation_type__isnull=True).count()
+
+    future_immersions = student.immersions.filter(
+        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now),
+        cancellation_type__isnull=True).count()
+
     context = {
         'calendar': calendar,
         'student_form': studentform,
@@ -496,6 +509,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'student': student,
         'record': record,
         'back_url': request.session.get('back'),
+        'past_immersions': past_immersions,
+        'future_immersions': future_immersions,
     }
 
     return render(request, 'immersion/hs_record.html', context)
@@ -588,6 +603,18 @@ def student_record(request, student_id=None, record_id=None):
         recordform = StudentRecordForm(request=request, instance=record)
         studentform = StudentForm(request=request, instance=student)
 
+    # Stats for user deletion
+    today = datetime.today().date()
+    now = datetime.today().time()
+
+    past_immersions = student.immersions.filter(
+        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
+        cancellation_type__isnull=True).count()
+
+    future_immersions = student.immersions.filter(
+        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now),
+        cancellation_type__isnull=True).count()
+
     context = {
         'calender': calendar,
         'student_form': studentform,
@@ -595,6 +622,8 @@ def student_record(request, student_id=None, record_id=None):
         'record': record,
         'student': student,
         'back_url': request.session.get('back'),
+        'past_immersions': past_immersions,
+        'future_immersions': future_immersions,
     }
 
     return render(request, 'immersion/student_record.html', context)

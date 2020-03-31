@@ -718,6 +718,7 @@ def ajax_delete_account(request):
 
             response = {'error': False, 'msg': gettext("Account deleted")}
             student.delete()
+            messages.success(request, _("User deleted successfully"))
         except ImmersionUser.DoesNotExist:
             response = {'error': True, 'msg': gettext("User not found")}
     else:

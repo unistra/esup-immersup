@@ -22,13 +22,13 @@
               {% endblocktrans %} 
             </p>  
             <div class='form-group row align-items-center'>
-              <div class='col-md-6'>{% trans 'Passed registrations' %} :</div>
-              <div class='col-md-1'></div>
+              <div class='col-md-6'>{% trans 'Past registrations' %} :</div>
+              <div class='col-md-1'>{{ past_immersions }}</div>
             </div>
             
             <div class='form-group row align-items-center'>
               <div class='col-md-6'>{% trans 'Future registrations' %} :</div>
-              <div class='col-md-1'></div>
+              <div class='col-md-1'>{{ future_immersions }}</div>
             </div>
 
             <div class='form-group row align-items-center'>
