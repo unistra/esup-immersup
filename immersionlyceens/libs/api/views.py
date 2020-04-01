@@ -6,6 +6,7 @@ import datetime
 import json
 import logging
 from functools import reduce
+from itertools import permutations
 
 from django.conf import settings
 from django.contrib import messages
@@ -717,7 +718,14 @@ def ajax_delete_account(request):
                 student.send_message(request, 'CPT_DELETE')
 
             response = {'error': False, 'msg': gettext("Account deleted")}
+
+            if student.is_high_school_student():
+                record = student.get_high_school_student_record()
+                if record:
+                    HighSchoolStudentRecord.clear_duplicate(record.id)
+
             student.delete()
+
             messages.success(request, _("User deleted successfully"))
         except ImmersionUser.DoesNotExist:
             response = {'error': True, 'msg': gettext("User not found")}
@@ -1814,3 +1822,76 @@ def ajax_cancel_alert(request):
         response['error'] = gettext("Invalid parameter")
 
     return JsonResponse(response, safe=False)
+
+@is_ajax_request
+def ajax_get_duplicates(request):
+    """
+    Get duplicates lists
+    """
+    response = {'data': [], 'msg': ''}
+    id = 0
+    for t in HighSchoolStudentRecord.get_duplicate_tuples():
+        records = []
+
+        for record_id in t:
+            try:
+                record = HighSchoolStudentRecord.objects.get(pk=record_id)
+                records.append(record)
+            except HighSchoolStudentRecord.DoesNotExist:
+                continue
+
+        if len(records) > 1:
+            dupes_data = {
+                "id": id,
+                "record_ids" : [r.id for r in records],
+                'names' : [str(r.student) for r in records],
+                'birthdates' : [_date(r.birth_date) for r in records],
+                "highschools" : [ "%s, %s" % (r.highschool.label, r.class_name) for r in records ],
+                "emails" : [r.student.email for r in records],
+                "record_links" : [
+                    reverse('immersion:modify_hs_record', kwargs={'record_id': r.id}) for r in records
+                ]
+            }
+
+            id += 1
+
+            response['data'].append(dupes_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@is_post_request
+@groups_required('SCUIO-IP')
+def ajax_keep_entries(request):
+    """
+    Remove duplicates ids from high school student records
+    """
+    response = {'data': [], 'msg': '', 'error': ''}
+    entries = request.POST.getlist('entries[]', [])
+
+    try:
+        l = list(permutations(entries))
+    except Exception:
+        response['error'] = gettext("Invalid parameter")
+        return JsonResponse(response, safe=False)
+
+    for couple in l:
+        logger.debug("Duplicates : remove %s from %s", couple[0], couple[1])
+        try:
+            record = HighSchoolStudentRecord.objects.get(pk=int(couple[0]))
+            record.remove_duplicate(id=couple[1])
+        except (HighSchoolStudentRecord.DoesNotExist, ValueError):
+            response['error'] = gettext("An error occurred while clearing duplicates data")
+
+        try:
+            record = HighSchoolStudentRecord.objects.get(pk=int(couple[1]))
+            record.remove_duplicate(id=couple[0])
+        except (HighSchoolStudentRecord.DoesNotExist, ValueError):
+            response['error'] = gettext("An error occurred while clearing duplicates data")
+
+    response['msg'] = gettext("Duplicates data cleared")
+
+    return JsonResponse(response, safe=False)
+
+
+

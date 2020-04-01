@@ -8,6 +8,7 @@ from immersionlyceens.decorators import groups_required
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
+from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -704,14 +705,12 @@ def stats(request):
     return render(request, template, context)
 
 
+@login_required
 @groups_required('SRV-JUR', 'SCUIO-IP')
 def students_presence(request):
     """
     Displays a list of students registered to slots between min_date and max_date
     """
-    min_date = None
-    max_date = None
-
     slots = Slot.objects.filter(published=True).order_by('date', 'start_time')
 
     first_slot = slots.first()
@@ -726,3 +725,16 @@ def students_presence(request):
     }
 
     return render(request, 'core/students_presence.html', context)
+
+
+@login_required
+@groups_required('SCUIO-IP')
+def duplicated_accounts(request):
+    """
+    Manage duplicated accounts
+    """
+
+    context = {
+    }
+
+    return render(request, 'core/duplicated_accounts.html', context)

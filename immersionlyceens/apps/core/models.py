@@ -109,6 +109,11 @@ class ImmersionUser(AbstractUser):
         'SRV-JUR': 'legal_department_staff',
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for code, name in self._groups.items():
+            setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
+
     components = models.ManyToManyField(Component, verbose_name=_("Components"), blank=True, related_name='referents')
     highschool = models.ForeignKey(
         HighSchool,
@@ -125,13 +130,9 @@ class ImmersionUser(AbstractUser):
 
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
 
-    class Meta:
-        verbose_name = _('User')
+    def __str__(self):
+        return "%s %s" % (self.last_name or _('(no last name)'), self.first_name or _('(no first name'))
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for code, name in self._groups.items():
-            setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
 
     def has_groups(self, *groups, negated=False):
         """
@@ -304,6 +305,8 @@ class ImmersionUser(AbstractUser):
             'annually': (record.allowed_global_registrations or 0) - current_year_regs,
         }
 
+    class Meta:
+        verbose_name = _('User')
 
 class TrainingDomain(models.Model):
     """

@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% comment %} Comment following line if using english ! {% endcomment %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+{% endblock %}
+{% block section_title %}
+<h2>{% trans "Duplicated accounts" %}</h2>
+{% endblock %}
+
+{% block content %}
+<div id="feedback" class="container"></div>
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Accounts detected as duplicates" %}
+    </div>
+    <div class="card-body">
+      <table id="duplicates_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th id="student_filter" class="align-top">{% trans 'Students' %}</th>
+            <th id="birth_date_filter" class="align-top">{% trans 'Birth date' %}</th>
+            <th id="highschool_filter" class="align-top">{% trans 'High School' %}</th>
+            <th id="email_filter" class="align-top">{% trans 'Email' %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var dt;
+  var feedback;
+  var keep_all = "{% trans 'Keep all entries' %}";
+
+  function keep_entries(rowId) {
+    var data = dt.row(rowId).data();
+
+    $.ajax({
+      url: "{% url 'keep_entries' %}",
+      type: 'POST',
+      data: {
+        'entries': data.record_ids,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error != '') {
+          feedback.trigger("showFeedback", [[error, "danger"]]);
+        }
+        else if(msg != '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+
+        dt.ajax.reload();
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+  }
+
+  $(document).ready(function () {
+    initFeedback();
+    feedback = $("#feedback");
+
+    $.fn.dataTableExt.errMode = 'console';
+    dt = $('#duplicates_table').DataTable({
+      'processing': false,
+      'order': [
+        [0, "asc"],
+      ],
+      'pageLength': 15,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_duplicates",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+    'searching': true,
+    'language': {
+        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    },
+    'columns': [
+      { "data": "names",
+        "render": function(data, type, row) {
+          var txt = "";
+          $.each(data, function(i, item) {
+            if (txt != "") {
+              txt += "<br />";
+            }
+            txt +=  "<a href='"+row.record_links[i]+"'>"+item+"</a>";
+          });
+
+          return txt;
+        }
+      },
+      { "data": "birthdates",
+        "render": function(data, type, row) {
+          var txt = "";
+          $.each(data, function(i, item) {
+            if (txt != "") {
+              txt += "<br />";
+            }
+            txt += item;
+          });
+
+          return txt;
+        }
+      },
+      { "data": "highschools",
+        "render": function(data, type, row) {
+          var txt = "";
+          $.each(data, function(i, item) {
+            if (txt != "") {
+              txt += "<br />";
+            }
+            txt += item;
+          });
+
+          return txt;
+        }
+      },
+      { "data": "emails",
+        "render": function(data, type, row) {
+          var txt = "";
+          $.each(data, function(i, item) {
+            if (txt != "") {
+              txt += "<br />";
+            }
+            txt += item;
+          });
+
+          return txt;
+        }
+      },
+      { "data": "record_ids",
+        "render": function(data, type, row) {
+          return "<button class='btn btn-secondary btn-sm' onclick='keep_entries("+row.id+")'>"+keep_all+"</button>";
+        }
+      },
+  ],
+    "columnDefs": [
+      {
+        "defaultContent": "",
+        "targets": "_all",
+        "className": "all",
+      },
+      {
+        "orderable": false,
+        "targets": [4]
+      },
+    ],
+  });
+
+
+  // Filters init
+  yadcf.init(dt, [
+    {
+      column_number: 0,
+      filter_default_label: "",
+      filter_type: "text",
+      filter_container_id: "student_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+    {
+      column_number: 1,
+      filter_type: "text",
+      filter_default_label: "",
+      filter_container_id: "birth_date_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    }, {
+      column_number: 2,
+      filter_type: "text",
+      filter_default_label: "",
+      filter_container_id: "highschool_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    }, {
+      column_number: 3,
+      filter_type: "text",
+      filter_default_label: "",
+      filter_container_id: "email_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+  ]);
+});
+</script>
+{% endblock %}

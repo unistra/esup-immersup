@@ -29,4 +29,5 @@ urlpatterns = [
     path('component/<component_code>', views.component, name='update_component'),
     path('stats/', views.stats, name="stats"),
     path('students_presence', views.students_presence, name="students_presence"),
+    path('duplicates', views.duplicated_accounts, name="duplicates"),
 ]

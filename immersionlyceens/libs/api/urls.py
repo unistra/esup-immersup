@@ -64,4 +64,6 @@ urlpatterns = [
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('get_alerts', views.ajax_get_alerts, name='get_alerts'),
     path('cancel_alert', views.ajax_cancel_alert, name='cancel_alert'),
+    path('get_duplicates', views.ajax_get_duplicates, name='get_duplicates'),
+    path('keep_entries', views.ajax_keep_entries, name='keep_entries')
 ]
