@@ -246,7 +246,10 @@ dtr = $('#students_list').DataTable({
 });
 
 $('#students_list').on('draw.dt', function () {
+  // TODO: maybe try to comment theses two lines
   if (typeof slot_places == 'undefined') slot_places = 0;
+  if (typeof can_update_attendances == 'undefined') can_update_attendances = false;
+
   var students_count = dtr.rows().count()
   var free_places = slot_places - students_count;
 
