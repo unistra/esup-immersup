@@ -24,8 +24,11 @@
                 <th>{% trans 'High-school / Home institution' %}</th>
                 <th>{% trans 'City' %}</th>
                 <th>{% trans 'Level' %}</th>
+                <th>{% trans 'Attendances' %}</th>
+              </tr>
+              <tr>
+                <th colspan='7'></th>
                 <th>
-                  <div>{% trans 'Attendances' %}</div>
                   <div id="id_update_attendances" style="display:none">
                     <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
                       <i class='fa fas fa-check'></i>
@@ -129,7 +132,7 @@ function set_all_attendances(value) {
 }
 
 function reload_table() {
-  dtr.rows().remove().draw();
+  /* dtr.rows().remove().draw(); */
   dtr.ajax.url("/api/get_slot_registrations/" + current_slot_id).load();
 }
 
@@ -144,6 +147,7 @@ dtr = $('#students_list').DataTable({
   'serverSide': false,
   'responsive': false,
   'info': false,
+  'orderCellsTop': true,
   'ajax': {
     url: "",
     dataSrc: function (json) {
