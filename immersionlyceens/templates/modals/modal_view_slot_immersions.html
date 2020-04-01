@@ -60,7 +60,7 @@
       <div class="modal-footer">
         <div class="form-group form-row">
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
-          <label for="select_cancel_type" class="col-sm-2 col-form-label col-form-label-sm">{% trans 'Cancel type' %}</label>
+          <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-sm-2 col-form-label col-form-label-sm">{% trans 'Cancel type' %}</label>
           <div class="col-sm-2">
             <select class="form-control form-control-sm mr-2" name="cancel-type" id="select_cancel_type" disabled>
               <option value=""></option>
@@ -69,7 +69,6 @@
               {% endfor %}
             </select>
           </div>
-
           <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2" disabled>{% trans 'Cancel registrations' %}</button>
           <button type="button" id="btn_register_student" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
         {% endif %}
@@ -274,11 +273,22 @@ $('#students_list').on('draw.dt', function () {
 
 $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   reload_table();
+  // show or hide register & cancel btn when slot != past
+  if ($('#modal_view_slot_immersions').data('ispast')) {
+    $('#btn_cancel_registrations').hide();
+    $('#btn_register_student').hide();
+    $('#lbl_select_cancel_type').hide();
+    $('#select_cancel_type').hide();
+  } else {
+    $('#btn_cancel_registrations').show();
+    $('#btn_register_student').show();
+    $('#lbl_select_cancel_type').show();
+    $('#select_cancel_type').show();
+  }
 });
 
 $(document).ready(function(){
   let counterChecked = 0;
-
   $('#checkall').change(function() {
       var isChecked = this.checked;
       isChecked ? dtr.rows().select() : dtr.rows().deselect();

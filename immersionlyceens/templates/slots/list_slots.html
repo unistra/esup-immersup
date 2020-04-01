@@ -112,7 +112,7 @@ var current_slot_id;
 var can_update_attendances = false;
 var slot_places = 0;
 
-function open_modal(slot_id, edit_mode, n_places) {
+function open_modal(slot_id, edit_mode, n_places, is_past=false) {
   current_slot_id = slot_id;
   slot_places = n_places;
 
@@ -126,6 +126,7 @@ function open_modal(slot_id, edit_mode, n_places) {
   }
   // put slot id in register button in modal
   $('#btn_register_student').data('id', slot_id);
+  $('#modal_view_slot_immersions').data('ispast', is_past)
   $('#modal_view_slot_immersions').modal('show');
 }
 
@@ -352,7 +353,7 @@ $(document).ready(function(){
                                "</button>";
                   }
                   else if (row.attendances_value != -1) {
-                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+")\" title=\"{% trans 'View registered students' %}\">" +
+                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'View registered students' %}\">" +
                                "<i class='fa fas fa-eye'></i>" +
                                "</button>";
                   }
