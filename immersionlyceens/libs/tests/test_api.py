@@ -4,7 +4,7 @@ Django API tests suite
 import csv
 import json
 import unittest
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import date as _date
@@ -949,3 +949,110 @@ class APITestCase(TestCase):
             c['published_slots_count']
         )
         self.assertEqual(0, c['alerts_count'])
+
+    def test_API_ajax_get_my_slots(self):
+        request.user = self.teacher1
+        client = Client()
+        client.login(username='teacher1', password='pass')
+
+        url = f"/api/get_my_slots/{self.teacher1.id}/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('msg', content)
+        self.assertIn('data', content)
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        s = content['data'][0]
+        self.assertEqual(self.slot.id, s['id'])
+        self.assertEqual(self.slot.published, s['published'])
+        self.assertEqual(self.slot.course.component.code, s['component'])
+        self.assertEqual(
+            f'{self.slot.course.training.label} ({self.slot.course_type.label})',
+            s['training_label']
+        )
+        self.assertEqual(
+            f'{self.slot.course.training.label} ({self.slot.course_type.full_label})',
+            s['training_label_full']
+        )
+        self.assertIsInstance(s['location'], dict)
+        self.assertEqual(
+            f'{self.slot.campus.label} - {self.slot.building.label}',
+            s['location']['campus']
+        )
+        self.assertEqual(self.slot.room, s['location']['room'])
+
+        sch = s['schedules']
+        self.assertIsInstance(sch, dict)
+        self.assertEqual(
+            _date(self.slot.date, 'l d/m/Y'),
+            sch['date']
+        )
+        self.assertEqual(
+            f'{self.slot.start_time.strftime("%H:%M")} - {self.slot.end_time.strftime("%H:%M")}',
+            sch['time']
+        )
+        # self.assertEqual(
+        #     datetime.strptime(
+        #         "%s:%s:%s %s:%s"
+        #         % (self.slot.date.year, self.slot.date.month, self.slot.date.day, self.slot.start_time.hour, self.slot.start_time.minute,),
+        #         "%Y:%m:%d %H:%M",
+        #     ),
+        #     s['datetime']
+        # )
+        # TODO: fix
+        self.assertEqual(self.slot.start_time.strftime("%H:%M"), s['start_time'])
+        self.assertEqual(self.slot.end_time.strftime("%H:%M"), s['end_time'])
+        self.assertEqual(self.slot.course.label, s['label'])
+        # TODO: teachers
+        self.assertEqual(self.slot.n_places, s['n_places'])
+        capa = s['registered_students_count']
+        self.assertIsInstance(capa, dict)
+        self.assertEqual(self.slot.n_places, capa['capacity'])
+        self.assertEqual(self.slot.registered_students(), capa['students_count'])
+        self.assertEqual(self.slot.additional_information, s['additional_information'])
+
+    def test_API_ajax_get_my_slots_all__past(self):
+        self.slot.date = self.today - timedelta(days=10)
+        self.slot.save()
+        request.user = self.teacher1
+        client = Client()
+        client.login(username='teacher1', password='pass')
+
+        url = f"/api/get_my_slots/all/{self.teacher1.id}/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('msg', content)
+        self.assertIn('data', content)
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        s = content['data'][0]
+        self.assertEqual(self.slot.id, s['id'])
+
+    def test_API_ajax_get_my_slots_all__no_immersions(self):
+        self.slot.date = self.today - timedelta(days=10)
+        self.slot.save()
+        self.immersion.delete()
+        self.immersion2.delete()
+        request.user = self.teacher1
+        client = Client()
+        client.login(username='teacher1', password='pass')
+
+        url = f"/api/get_my_slots/all/{self.teacher1.id}/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content, dict)
+        self.assertIn('msg', content)
+        self.assertIn('data', content)
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
