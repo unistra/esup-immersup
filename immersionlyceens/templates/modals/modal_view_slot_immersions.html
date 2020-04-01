@@ -246,7 +246,8 @@ dtr = $('#students_list').DataTable({
 });
 
 $('#students_list').on('draw.dt', function () {
-  var students_count = dtr.rows().count();
+  if (typeof slot_places == 'undefined') slot_places = 0;
+  var students_count = dtr.rows().count()
   var free_places = slot_places - students_count;
 
   if(students_count == 0) {
