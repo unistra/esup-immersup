@@ -13,7 +13,7 @@ from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
     Training, TrainingDomain,
     TrainingSubdomain,
-    Immersion, MailTemplateVars, MailTemplate)
+    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -70,7 +70,7 @@ class APITestCase(TestCase):
             first_name='student',
             last_name='STUDENT',
         )
-
+        self.cancel_type = CancelType.objects.create(label='Hello world')
         self.client = Client()
         self.client.login(username='scuio', password='pass')
 
@@ -82,6 +82,13 @@ class APITestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
         self.today = datetime.today()
+        self.calendar = Calendar.objects.create(
+            calendar_mode=Calendar.CALENDAR_MODE[0][0],
+            year_start_date=self.today - timedelta(days=10),
+            year_end_date=self.today + timedelta(days=10),
+            year_nb_authorized_immersion=4,
+            year_registration_start_date=self.today - timedelta(days=9)
+        )
         self.component = Component.objects.create(label="test component")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
@@ -131,6 +138,8 @@ class APITestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
+            convention_start_date=self.today - timedelta(days=10),
+            convention_end_date=self.today + timedelta(days=10),
         )
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
@@ -713,22 +722,22 @@ class APITestCase(TestCase):
 
         content = csv.reader(response.content.decode().split('\n'))
         headers = [
-                _('domain'),
-                _('subdomain'),
-                _('training'),
-                _('course'),
-                _('course type'),
-                _('date'),
-                _('start_time'),
-                _('end_time'),
-                _('campus'),
-                _('building'),
-                _('room'),
-                _('teachers'),
-                _('registration number'),
-                _('place number'),
-                _('additional information'),
-            ]
+            _('domain'),
+            _('subdomain'),
+            _('training'),
+            _('course'),
+            _('course type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('room'),
+            _('teachers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+        ]
 
         n = 0
         for row in content:
@@ -1056,3 +1065,171 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
         self.assertGreater(len(content['data']), 0)
+
+    def test_API_ajax_get_agreed_highschools(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_agreed_highschools"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        self.assertIsInstance(content['data'][0], list)
+        self.assertIsInstance(content['data'][0][0], dict)
+        hs = content['data'][0][0]
+        self.assertEqual(self.high_school.id, hs['id'])
+        self.assertEqual(self.high_school.label, hs['label'])
+        self.assertEqual(self.high_school.address, hs['address'])
+        self.assertEqual(self.high_school.address2, hs['address2'])
+        self.assertEqual(self.high_school.address3, hs['address3'])
+        self.assertEqual(str(self.high_school.department), hs['department'])
+        self.assertEqual(self.high_school.city, hs['city'])
+        self.assertEqual(str(self.high_school.zip_code), hs['zip_code'])
+        self.assertEqual(self.high_school.phone_number, hs['phone_number'])
+        self.assertEqual(self.high_school.fax, hs['fax'])
+        self.assertEqual(self.high_school.email, hs['email'])
+        self.assertEqual(self.high_school.head_teacher_name, hs['head_teacher_name'])
+        self.assertEqual(_date(self.high_school.convention_start_date, 'Y-m-d'), hs['convention_start_date'])
+        self.assertEqual(_date(self.high_school.convention_end_date, 'Y-m-d'), hs['convention_end_date'])
+
+
+    def test_API_ajax_get_immersions__no_user(self):
+        request.user = self.scuio_user
+        self.immersion.delete()
+        self.immersion2.delete()
+        url = f"/api/get_immersions/0"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertGreater(len(content['msg']), 0)
+        self.assertIsInstance(content['data'], list)
+
+    def test_API_ajax_get_immersions__wrong_user(self):
+        request.user = self.student
+        client = Client()
+        client.login(username='student', password='pass')
+
+        url = f"/api/get_immersions/{self.teacher1.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+        self.assertGreater(len(content['msg']), 0)
+        self.assertIsInstance(content['data'], list)
+
+    def test_API_ajax_get_immersions__user_not_found(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_immersions/999"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertIsInstance(content['msg'], str)
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_get_immersions__future(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today + timedelta(days=2)
+        self.slot.save()
+        url = f"/api/get_immersions/{self.highschool_user.id}/future"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(content['msg'], '')
+        self.assertGreater(len(content['data']), 0)
+        i = content['data'][0]
+        self.assertIsInstance(i, dict)
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(self.immersion.slot.course.training.label, i['training'])
+        self.assertEqual(self.immersion.slot.course.label, i['course'])
+        self.assertEqual(self.immersion.slot.course_type.label, i['type'])
+        self.assertEqual(self.immersion.slot.course_type.full_label, i['type_full'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['room'])
+
+        self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
+        self.assertEqual(self.immersion.slot.end_time.strftime("%-Hh%M"), i['end_time'])
+        self.assertEqual(self.immersion.slot.additional_information, i['info'])
+        self.assertEqual(self.immersion.get_attendance_status_display(), i['attendance'])
+        self.assertEqual(self.immersion.attendance_status, i['attendance_status'])
+        self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
+        self.assertEqual(self.immersion.slot.id, i['slot_id'])
+
+
+    def test_API_ajax_get_immersions__past(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today - timedelta(days=2)
+        self.slot.save()
+        url = f"/api/get_immersions/{self.highschool_user.id}/past"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(content['msg'], '')
+        self.assertGreater(len(content['data']), 0)
+        i = content['data'][0]
+        self.assertIsInstance(i, dict)
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(self.immersion.slot.course.training.label, i['training'])
+        self.assertEqual(self.immersion.slot.course.label, i['course'])
+        self.assertEqual(self.immersion.slot.course_type.label, i['type'])
+        self.assertEqual(self.immersion.slot.course_type.full_label, i['type_full'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['room'])
+
+        self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
+        self.assertEqual(self.immersion.slot.end_time.strftime("%-Hh%M"), i['end_time'])
+        self.assertEqual(self.immersion.slot.additional_information, i['info'])
+        self.assertEqual(self.immersion.get_attendance_status_display(), i['attendance'])
+        self.assertEqual(self.immersion.attendance_status, i['attendance_status'])
+        self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
+        self.assertEqual(self.immersion.slot.id, i['slot_id'])
+
+    def test_API_ajax_get_immersions__cancelled(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today - timedelta(days=2)
+        self.slot.save()
+        self.immersion.cancellation_type=self.cancel_type
+        self.immersion.save()
+        url = f"/api/get_immersions/{self.highschool_user.id}/cancelled"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+
+        content = json.loads(response.content.decode())
+
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(content['msg'], '')
+        self.assertGreater(len(content['data']), 0)
+        i = content['data'][0]
+        self.assertIsInstance(i, dict)
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(self.immersion.slot.course.training.label, i['training'])
+        self.assertEqual(self.immersion.slot.course.label, i['course'])
+        self.assertEqual(self.immersion.slot.course_type.label, i['type'])
+        self.assertEqual(self.immersion.slot.course_type.full_label, i['type_full'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['room'])
+
+        self.assertEqual(self.immersion.slot.start_time.strftime("%-Hh%M"), i['start_time'])
+        self.assertEqual(self.immersion.slot.end_time.strftime("%-Hh%M"), i['end_time'])
+        self.assertEqual(self.immersion.slot.additional_information, i['info'])
+        self.assertEqual(self.immersion.get_attendance_status_display(), i['attendance'])
+        self.assertEqual(self.immersion.attendance_status, i['attendance_status'])
+        self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
+        self.assertEqual(self.immersion.slot.id, i['slot_id'])
+
+
