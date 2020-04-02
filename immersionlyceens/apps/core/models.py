@@ -131,7 +131,7 @@ class ImmersionUser(AbstractUser):
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
 
     def __str__(self):
-        return "%s %s" % (self.last_name or _('(no last name)'), self.first_name or _('(no first name'))
+        return "%s %s" % (self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
 
 
     def has_groups(self, *groups, negated=False):
