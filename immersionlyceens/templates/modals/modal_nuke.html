@@ -65,7 +65,7 @@
             alert(json['msg']);
         }
         else {
-          window.location = "{% url 'home' %}";
+          window.location = "{{ back_url }}";
         }
       },
       error: function(json) {

@@ -126,17 +126,18 @@ class HighSchoolStudentRecord(models.Model):
         :return:
         """
         dupes = HighSchoolStudentRecord.objects.filter(
-            student__last_name=self.student.last_name, student__first_name=self.student.first_name,
+            student__last_name__iexact=self.student.last_name, student__first_name__iexact=self.student.first_name,
             birth_date=self.birth_date, highschool=self.highschool
         ).exclude(id=self.id)
 
         ids_list = [record.id for record in dupes]
+
         if ids_list:
             self.duplicates = json.dumps(ids_list)
             self.save()
 
             for id in ids_list:
-                other_ids_list = [self.id] + [i for i in ids_list if i!=id]
+                other_ids_list = sorted([self.id] + [i for i in ids_list if i!=id])
                 json_list = json.dumps(other_ids_list)
                 try:
                     record = HighSchoolStudentRecord.objects.get(pk=id)
@@ -157,12 +158,56 @@ class HighSchoolStudentRecord(models.Model):
 
     def get_duplicates(self):
         if self.has_duplicates():
-            return json.loads(self.duplicates)
+            return sorted(json.loads(self.duplicates))
         else:
             return []
 
+    def remove_duplicate(self, id=None):
+        try:
+            id = int(id)
+        except ValueError:
+            return
+
+        if self.duplicates:
+            dupes = json.loads(self.duplicates)
+            try:
+                dupes.remove(id)
+                self.duplicates = json.dumps(dupes) if dupes else None
+                self.save()
+            except ValueError:
+                pass
+
     def is_valid(self):
         return self.validation == 2
+
+    @classmethod
+    def get_duplicate_tuples(cls):
+        dupes_list = []
+
+        records = cls.objects.filter(duplicates__isnull=False)
+
+        for record in records:
+            dupes_list.append(tuple(d for d in sorted(json.loads(record.duplicates) + [record.id])))
+
+        return set(dupes_list)
+
+    @classmethod
+    def clear_duplicate(cls, record_id):
+        """
+        Aggressive method to clear a record id from all records duplicates lists
+        """
+        for record in cls.objects.filter(duplicates__isnull=False):
+            try:
+                dupes = json.loads(record.duplicates)
+                dupes.remove(record_id) # will raise a Value error if record_id not in dupes
+                record.duplicates = json.dumps(dupes) if dupes else None
+                record.save()
+            except Exception:
+                pass
+
+    class Meta:
+        verbose_name = _('High school student record')
+        verbose_name_plural = _('High school student records')
 
 
 class StudentRecord(models.Model):
@@ -225,4 +270,8 @@ class StudentRecord(models.Model):
 
     def is_valid(self):
         return True
-    
+
+    class Meta:
+        verbose_name = _('Student record')
+        verbose_name_plural = _('Student records')
+
