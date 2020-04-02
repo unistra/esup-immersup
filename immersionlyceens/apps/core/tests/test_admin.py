@@ -164,7 +164,7 @@ class AdminFormsTestCase(TestCase):
         """
         Test admin Component creation with group rights
         """
-        data = {'code': 'AB123', 'label': 'test', 'url': 'http://url.fr', 'active': True}
+        data = {'code': 'AB123', 'label': 'test', 'active': True}
 
         request.user = self.scuio_user
 
@@ -190,7 +190,7 @@ class AdminFormsTestCase(TestCase):
         """
         training_domain_data = {'label': 'domain', 'active': True}
         training_subdomain_data = {'label': 'subdomain', 'active': True}
-        component_data = {'code': 'AB123', 'label': 'test', 'url': 'http://url.fr', 'active': True}
+        component_data = {'code': 'AB123', 'label': 'test', 'active': True}
 
         training_domain = TrainingDomain.objects.create(**training_domain_data)
         training_subdomain = TrainingSubdomain.objects.create(
@@ -204,7 +204,6 @@ class AdminFormsTestCase(TestCase):
 
         data = {
             'label': 'test',
-            'url': 'http://url.fr',
             'components': [component.pk,],
             'training_subdomains': [training_subdomain.pk,],
         }
@@ -1008,7 +1007,7 @@ class AdminFormsTestCase(TestCase):
 
         request.user = self.scuio_user
 
-        data = {'evaluation_type': type.pk, 'url': 'http://youpron.com'}
+        data = {'evaluation_type': type.pk, 'url': 'http://google.fr'}
         form = EvaluationFormLinkForm(data=data, request=request)
 
         self.assertTrue(form.is_valid())

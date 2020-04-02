@@ -268,7 +268,7 @@ class TestEvaluationTypeCase(TestCase):
 class TestSlotCase(TestCase):
     def test_slot__creation(self):
         # Component
-        c = Component(label='my component', code='R2D2', url='https://google.fr')
+        c = Component(label='my component', code='R2D2')
         c.save()
         # Training domain
         td = TrainingDomain(label='my_domain')
