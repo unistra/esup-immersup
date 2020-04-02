@@ -1317,7 +1317,7 @@ def ajax_send_email(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    immersions = Immersion.objects.filter(slot_id=slot_id)
+    immersions = Immersion.objects.filter(slot_id=slot_id, cancellation_type__isnull=True)
 
     for immersion in immersions:
         recipient = immersion.student.email
