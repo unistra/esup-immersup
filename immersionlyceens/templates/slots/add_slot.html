@@ -267,6 +267,14 @@
 
 {% block foot-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+{% comment "" %}
+TODO: add here other languages for jquery-ui !!
+{% endcomment %}
+{% if LANGUAGE_CODE == 'fr-FR' %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
+
+
 <script>
 var course_first = true;
 var building_first = true;

@@ -5,7 +5,7 @@
 {% load hijack_tags %}
 {% load immersionlyceens_tags %}
 {% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
-<html>
+<html lang="{{ LANGUAGE_CODE }}">
 
 <head>
     <title>{% block title %}immersionlyceens{% endblock %}</title>
