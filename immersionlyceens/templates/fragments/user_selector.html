@@ -4,7 +4,7 @@
         <select id="selectUser" class="form-control selectpicker" name="select-hijack-user">
       <option value=""></option>
       {% for u in immersion_users  %}
-      <option value="{{ u.id }}">{{ u }}</option>
+      <option value="{{ u.id }}">{{ u.username }}</option>
       {% endfor %}
     </select>
     </li>

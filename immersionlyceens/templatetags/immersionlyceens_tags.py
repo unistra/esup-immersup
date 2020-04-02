@@ -77,7 +77,7 @@ def immersion_users(parser, token):
 class UserNode(template.Node):
     def render(self, context):
         # TODO: uncomment
-        context['immersion_users'] = ImmersionUser.objects.all().order_by('-username')
+        context['immersion_users'] = ImmersionUser.objects.all().order_by('username')
         return ''
 
 
