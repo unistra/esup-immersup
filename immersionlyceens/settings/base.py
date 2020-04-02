@@ -267,6 +267,7 @@ LOCAL_APPS = [
     'immersionlyceens',
     'immersionlyceens.apps.core',
     'immersionlyceens.apps.immersion',
+    'immersionlyceens.apps.charts',
 ]
 
 

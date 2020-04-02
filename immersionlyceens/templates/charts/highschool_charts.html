@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Highschool charts" %}
+{% endblock %}
+
+{% block content %}
+<div id="feedback" class="container"></div>
+<div class="container-fluid mt-4">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% if highschools|length > 1 %}
+        <label for="id_highschools">{% trans 'Select a high school' %} :</label>
+          <select id="id_highschools">
+            <option value=""></option>
+            {% for highschool in highschools %}
+              <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
+                {{ highschool.label }}
+              </option>
+            {% endfor %}
+          </select>
+      {% else %}
+        {% with hs=highschools|first %}
+          {{ hs.label }}
+        {% endwith %}
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <canvas id="myChart" style="width:100%; height:500px;"></canvas>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var highschool_id = "{{ highschool_id }}";
+
+  function init_graph(hs_id) {
+    $.get("/charts/get_highschool_charts/"+hs_id, function(response) {
+      console.log(response);
+      var ctx = $("#myChart").get(0).getContext("2d");
+      new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: response.labels,
+            datasets: [{
+              label: response.providers[0],
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              data: response.level_1,
+              barPercentage: 0.5,
+              borderWidth: 1,
+            },{
+              label: response.providers[1],
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              data: response.level_2,
+                barPercentage: 0.5,
+              borderWidth: 1,
+            },{
+              label: response.providers[2],
+              backgroundColor: 'rgba(255, 206, 86, 0.2)',
+              data: response.level_3,
+              barPercentage: 0.5,
+              borderWidth: 1,
+            }]
+          },
+          options: response.options,
+      });
+  });
+  }
+
+  if (highschool_id) {
+    init_graph(highschool_id);
+  }
+
+  $('#id_highschools').change(function() {
+    let highschool_id = $('#id_highschools option:selected').val();
+
+    if (highschool_id != "") {
+      init_graph(highschool_id);
+    }
+  });
+
+
+</script>
+{% endblock %}

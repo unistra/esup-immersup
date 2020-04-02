@@ -104,6 +104,17 @@
           {% endif %}
         {% endif %}
 
+        {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP" %}
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {% trans 'Charts' %}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="{% url 'charts:highschool_charts' %}">{% trans 'Highschool registrations' %}</a>
+            </div>
+          </div>
+        {% endif %}
+
         {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP,REF-CMP" %}
           <a class="nav-item nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
         {% endif %}
