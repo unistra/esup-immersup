@@ -23,7 +23,8 @@ def highschool_charts(request):
         filter['pk'] = request.user.highschool.id
 
     highschools = [
-        {'id': h.id, 'label':h.label} for h in HighSchool.objects.filter(**filter).order_by('label')
+        {'id': h.id, 'label':h.label, 'city': h.city }
+        for h in HighSchool.objects.filter(**filter).order_by('city','label')
     ]
 
     context = {

@@ -31,13 +31,13 @@
             <option value=""></option>
             {% for highschool in highschools %}
               <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
-                {{ highschool.label }}
+                {{ highschool.city }} - {{ highschool.label }}
               </option>
             {% endfor %}
           </select>
       {% else %}
         {% with hs=highschools|first %}
-          {{ hs.label }}
+          {{ hs.city }} - {{ hs.label }}
         {% endwith %}
       {% endif %}
     </div>
