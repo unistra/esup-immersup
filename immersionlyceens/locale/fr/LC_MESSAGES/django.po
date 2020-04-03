@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-03 21:53+0200\n"
+"POT-Creation-Date: 2020-04-03 22:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,40 +18,56 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: immersionlyceens/apps/charts/api.py:14
-#: immersionlyceens/apps/charts/api.py:28
-msgid "Registered users count"
-msgstr "Inscrits sur la plateforme"
-
-#: immersionlyceens/apps/charts/api.py:15
-#: immersionlyceens/apps/charts/api.py:31
-msgid "Registered to at least one immersion"
-msgstr "Inscrits à au moins une immersion"
-
-#: immersionlyceens/apps/charts/api.py:16
-#: immersionlyceens/apps/charts/api.py:34
-msgid "Attended to at least one immersion"
-msgstr "Participation à au moins une immersion"
-
-#: immersionlyceens/apps/charts/api.py:20
+#: immersionlyceens/apps/charts/api.py:18
 #: immersionlyceens/apps/immersion/models.py:18
 msgid "Pupil in year 12 / 11th grade student"
 msgstr "Première"
 
-#: immersionlyceens/apps/charts/api.py:21
+#: immersionlyceens/apps/charts/api.py:19
 #: immersionlyceens/apps/immersion/models.py:19
 msgid "Pupil in year 13 / 12th grade student"
 msgstr "Terminale"
 
-#: immersionlyceens/apps/charts/api.py:22
+#: immersionlyceens/apps/charts/api.py:20
 #: immersionlyceens/apps/immersion/models.py:20
 msgid "Above A Level / High-School Degree"
 msgstr "Post-bac"
+
+#: immersionlyceens/apps/charts/api.py:26
+msgid "Registered users count"
+msgstr "Inscrits sur la plateforme"
+
+#: immersionlyceens/apps/charts/api.py:29
+msgid "Registered to at least one immersion"
+msgstr "Inscrits à au moins une immersion"
+
+#: immersionlyceens/apps/charts/api.py:32
+msgid "Attended to at least one immersion"
+msgstr "Participation à au moins une immersion"
 
 #: immersionlyceens/apps/charts/apps.py:6
 #: immersionlyceens/templates/fragments/main_menu.html:110
 msgid "Charts"
 msgstr "Statistiques"
+
+#: immersionlyceens/apps/charts/views.py:54
+#: immersionlyceens/templates/core/courses_list.html:134
+#: immersionlyceens/templates/core/duplicated_accounts.html:101
+#: immersionlyceens/templates/core/highschool_students.html:107
+#: immersionlyceens/templates/core/mycourses.html:69
+#: immersionlyceens/templates/core/myslots.html:113
+#: immersionlyceens/templates/core/student_validation.html:194
+#: immersionlyceens/templates/core/student_validation.html:247
+#: immersionlyceens/templates/core/student_validation.html:295
+#: immersionlyceens/templates/core/students_presence.html:91
+#: immersionlyceens/templates/immersion/my_immersions.html:230
+#: immersionlyceens/templates/immersion/my_immersions.html:305
+#: immersionlyceens/templates/immersion/my_immersions.html:377
+#: immersionlyceens/templates/modals/modal_alerts.html:101
+#: immersionlyceens/templates/modals/modal_student_details.html:66
+#: immersionlyceens/templates/procedure.html:79
+msgid "All"
+msgstr "Tous"
 
 #: immersionlyceens/apps/core/admin.py:93
 msgid "Activated accounts"
@@ -2344,9 +2360,18 @@ msgid "Highschool charts - students by levels"
 msgstr "Statistiques - lycéens par niveau"
 
 #: immersionlyceens/templates/charts/highschool_charts.html:29
+#: immersionlyceens/templates/charts/highschool_domains_charts.html:29
 #: immersionlyceens/templates/core/student_validation.html:43
 msgid "Select a high school"
 msgstr "Sélectionnez un lycée"
+
+#: immersionlyceens/templates/charts/highschool_domains_charts.html:20
+msgid "Highschool charts - students by domains"
+msgstr "Statistiques - inscriptions lycéens par domaines"
+
+#: immersionlyceens/templates/charts/highschool_domains_charts.html:44
+msgid "Select a student level"
+msgstr "Sélectionnez un niveau"
 
 #: immersionlyceens/templates/core/component.html:6
 #: immersionlyceens/templates/immersion/change_password.html:10
@@ -2489,24 +2514,6 @@ msgstr "Supprimer"
 #: immersionlyceens/templates/core/courses_list.html:88
 msgid "Do you really want to delete this course ?"
 msgstr "Voulez-vous vraiment supprimer ce cours ?"
-
-#: immersionlyceens/templates/core/courses_list.html:134
-#: immersionlyceens/templates/core/duplicated_accounts.html:101
-#: immersionlyceens/templates/core/highschool_students.html:107
-#: immersionlyceens/templates/core/mycourses.html:69
-#: immersionlyceens/templates/core/myslots.html:113
-#: immersionlyceens/templates/core/student_validation.html:194
-#: immersionlyceens/templates/core/student_validation.html:247
-#: immersionlyceens/templates/core/student_validation.html:295
-#: immersionlyceens/templates/core/students_presence.html:91
-#: immersionlyceens/templates/immersion/my_immersions.html:230
-#: immersionlyceens/templates/immersion/my_immersions.html:305
-#: immersionlyceens/templates/immersion/my_immersions.html:377
-#: immersionlyceens/templates/modals/modal_alerts.html:101
-#: immersionlyceens/templates/modals/modal_student_details.html:66
-#: immersionlyceens/templates/procedure.html:79
-msgid "All"
-msgstr "Tous"
 
 #: immersionlyceens/templates/core/duplicated_accounts.html:22
 msgid "Duplicated accounts"
@@ -2856,53 +2863,57 @@ msgstr "Voir les inscrits par date"
 msgid "Highschool registrations"
 msgstr "Lycées - inscriptions"
 
-#: immersionlyceens/templates/fragments/main_menu.html:119
+#: immersionlyceens/templates/fragments/main_menu.html:114
+msgid "By domains registrations"
+msgstr "Lycées - par domaines"
+
+#: immersionlyceens/templates/fragments/main_menu.html:120
 msgid "Extractions"
 msgstr "Extractions"
 
-#: immersionlyceens/templates/fragments/main_menu.html:123
+#: immersionlyceens/templates/fragments/main_menu.html:124
 msgid "Administration"
 msgstr "Administration"
 
-#: immersionlyceens/templates/fragments/main_menu.html:140
+#: immersionlyceens/templates/fragments/main_menu.html:141
 #: immersionlyceens/templates/modals/modal_register_students_list.html:21
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:23
 msgid "Profile"
 msgstr "Profil"
 
-#: immersionlyceens/templates/fragments/main_menu.html:141
+#: immersionlyceens/templates/fragments/main_menu.html:142
 msgid "Admin"
 msgstr "Admin"
 
-#: immersionlyceens/templates/fragments/main_menu.html:147
+#: immersionlyceens/templates/fragments/main_menu.html:148
 msgid "Change password"
 msgstr "Changer le mot de passe"
 
-#: immersionlyceens/templates/fragments/main_menu.html:153
+#: immersionlyceens/templates/fragments/main_menu.html:154
 msgid "Logout"
 msgstr "Déconnexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:158
+#: immersionlyceens/templates/fragments/main_menu.html:159
 msgid "Sign in"
 msgstr "Connexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:161
+#: immersionlyceens/templates/fragments/main_menu.html:162
 msgid "You are"
 msgstr "Vous êtes"
 
-#: immersionlyceens/templates/fragments/main_menu.html:162
+#: immersionlyceens/templates/fragments/main_menu.html:163
 msgid "University member"
 msgstr "Membre de l'université"
 
-#: immersionlyceens/templates/fragments/main_menu.html:163
+#: immersionlyceens/templates/fragments/main_menu.html:164
 msgid "Highschool manager"
 msgstr "Référent Lycée"
 
-#: immersionlyceens/templates/fragments/main_menu.html:164
+#: immersionlyceens/templates/fragments/main_menu.html:165
 msgid "Highschool member"
 msgstr "Lycéen"
 
-#: immersionlyceens/templates/fragments/main_menu.html:165
+#: immersionlyceens/templates/fragments/main_menu.html:166
 msgctxt "login"
 msgid "Student"
 msgstr "Etudiant"
