@@ -25,68 +25,89 @@ def highschool_charts(request, highschool_id):
     # Each dataset represents a student level
     datasets = [
         {
-             'label': categories[0],
-             'backgroundColor': '#F38644',
-             'data': [],
-             'barPercentage': 0.3,
-             'borderWidth': 1,
+            'name': gettext("Registered users count"),
         },
         {
-            'label': categories[1],
-            'backgroundColor': '#FFC726',
-            'data': [],
-            'barPercentage': 0.3,
-            'borderWidth': 1,
+            'name':  gettext("Registered to at least one immersion"),
         },
         {
-            'label': categories[2],
-            'backgroundColor': '#73B348',
-            'data': [],
-            'barPercentage': 0.3,
-            'borderWidth': 1,
+            'name':  gettext("Attended to at least one immersion"),
         },
     ]
 
-    options = {
-        'plugins': {
-            'datalabels': {
-                'color': '#555555',
-                'labels': { 'value': { 'font': { 'weight' : 'bold'}}},
-            },
-        },
-        'scales': {
-            'xAxes' : [{ 'stacked': True, }],
-            'yAxes': [
-                {
-                    'stacked': True,
-                    'ticks': {
-                        'beginAtZero': True,
-                        'stepSize': 1,
-                    },
-                }
-            ]
-        }
+    axes = {
+        'x': [{
+            "type": "CategoryAxis",
+            "dataFields": {
+                "category": "name",
+            }
+        }],
+        'y': [{
+            "type": "ValueAxis",
+        }],
     }
 
-    response = {
-        'label': _("Registered students by level"),
-        'labels': labels,
-        'title': _("High school students by level"),
-        'options': options,
-        'datasets': datasets,
-    }
+    series = [
+        {
+            "name": categories[0],
+            "type": "ColumnSeries",
+            "stacked": True,
+
+            "dataFields": {
+                "valueY": categories[0],
+                "categoryX": "name",
+            },
+            "columns": {
+                "template": {
+                    "width": "30%",
+                    "tooltipText": categories[0] + "\n{valueY}",
+                },
+            }
+        },
+        {
+            "name": categories[1],
+            "type": "ColumnSeries",
+            "stacked": True,
+            "dataFields": {
+                "valueY": categories[1],
+                "categoryX": "name",
+            },
+            "columns": {
+                "template": {
+                    "width": "30%",
+                    "tooltipText": categories[1] + "\n{valueY}",
+                },
+            }
+        },
+        {
+            "name": categories[2],
+            "type": "ColumnSeries",
+            "stacked": True,
+            "dataFields": {
+                "valueY": categories[2],
+                "categoryX": "name",
+            },
+            "columns": {
+                "template": {
+                    "width": "30%",
+                    "tooltipText": categories[2] + "\n{valueY}",
+                },
+            }
+        },
+    ]
 
     qs = ImmersionUser.objects.filter(high_school_student_record__highschool__id=highschool_id)
 
     for level in [1, 2, 3]:
         users = qs.filter(high_school_student_record__level=level)
-        platform = users.count()
-        registered = users.filter(immersions__isnull=False).distinct().count()
-        att = users.filter(immersions__attendance_status=1).distinct().count()
+        datasets[0][categories[level-1]] = users.count() # plaform
+        datasets[1][categories[level-1]] = users.filter(immersions__isnull=False).distinct().count() # registered
+        datasets[2][categories[level-1]] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
 
-        response['datasets'][level-1]['data'] = [platform, registered, att]
-
-
-    response['options']['scales']['yAxes'][0]['ticks']['suggestedMax'] = round(qs.count() * 1.1)
+    response = {
+        'axes': axes,
+        'datasets': datasets,
+        'series': series,
+    }
 
     return JsonResponse(response, safe=False)
