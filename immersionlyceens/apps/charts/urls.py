@@ -15,5 +15,5 @@ urlpatterns = [
 
     # API part
     path('get_highschool_charts/<highschool_id>', api.highschool_charts, name='get_highschool_charts'),
-    path('get_highschool_domains_charts/<highschool_id>/<level>', api.highschool_domains_charts, name='get_highschool_domains_charts'),
+    path('get_highschool_domains_charts/<highschool_id>/<int:level>', api.highschool_domains_charts, name='get_highschool_domains_charts'),
 ]
