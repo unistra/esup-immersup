@@ -6,28 +6,15 @@ from wsgiref.util import FileWrapper
 
 from django.conf import settings
 from django.http import (
-    HttpResponse,
-    HttpResponseBadRequest,
-    HttpResponseForbidden,
-    HttpResponseNotFound,
-    StreamingHttpResponse,
+    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound, StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument,
-    Calendar,
-    Course,
-    GeneralSettings,
-    InformationText,
-    PublicDocument,
-    PublicType,
-    Slot,
-    Training,
-    TrainingSubdomain,
-    UserCourseAlert,
+    AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText,
+    PublicDocument, PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
 )
 
 
@@ -167,8 +154,9 @@ def offer_subdomain(request, subdomain_id):
             record = student.get_student_record()
         remaining_regs_count = student.remaining_registrations_count()
 
-        course_alerts = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False)\
-            .values_list("course_id", flat=True)
+        course_alerts = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).values_list(
+            "course_id", flat=True
+        )
 
     trainings = Training.objects.filter(training_subdomains=subdomain_id, active=True)
     subdomain = get_object_or_404(TrainingSubdomain, pk=subdomain_id, active=True)
@@ -244,8 +232,12 @@ def offer_subdomain(request, subdomain_id):
                             # TODO: should be rewritten used before with remaining_seats annual or by semester!
                             if calendar.calendar_mode == 'YEAR' and reg_start_date <= today <= cal_end_date:
                                 slot.can_register = True
+                            # Check if we could register with reg_date
                             elif semester == 1 or semester == 2:
-                                slot.can_register = True
+                                if reg_start_date <= today:
+                                    slot.can_register = True
+                                else:
+                                    slot.opening_soon = True
             else:
                 for slot in slots:
                     slot.cancelled = False

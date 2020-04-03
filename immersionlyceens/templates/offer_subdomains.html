@@ -108,6 +108,8 @@
                                   {% endif %}
                               {% elif slot.already_registered %}
                                   <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
+                              {% elif slot.opening_soon %}
+                                  <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
                               {% elif slot.available_seats > 0 %}
                                 {% trans 'Available places' %} : {{ slot.available_seats }}<br>
                                 {% if authorized_groups|in_groups:"LYC,ETU" %}
