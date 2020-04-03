@@ -57,3 +57,6 @@ venv
 deploy.sh
 media
 immersionlyceens/media
+
+# isort personal config
+.isort.cfg
