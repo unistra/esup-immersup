@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-03 21:28+0200\n"
+"POT-Creation-Date: 2020-04-03 21:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -812,7 +812,7 @@ msgstr "Une formation avec ce nom existe déjà"
 #: immersionlyceens/templates/immersion/my_immersions.html:56
 #: immersionlyceens/templates/immersion/my_immersions.html:99
 #: immersionlyceens/templates/immersion/my_immersions.html:142
-#: immersionlyceens/templates/offer_subdomains.html:124
+#: immersionlyceens/templates/offer_subdomains.html:126
 #: immersionlyceens/templates/slots/add_slot.html:87
 #: immersionlyceens/templates/slots/list_slots.html:78
 msgid "Campus"
@@ -846,7 +846,7 @@ msgstr "Url"
 #: immersionlyceens/templates/immersion/my_immersions.html:100
 #: immersionlyceens/templates/immersion/my_immersions.html:143
 #: immersionlyceens/templates/modals/modal_public_slots.html:21
-#: immersionlyceens/templates/offer_subdomains.html:125
+#: immersionlyceens/templates/offer_subdomains.html:127
 #: immersionlyceens/templates/slots/add_slot.html:109
 #: immersionlyceens/templates/slots/list_slots.html:78
 msgid "Building"
@@ -1236,7 +1236,7 @@ msgstr ""
 #: immersionlyceens/templates/immersion/my_immersions.html:101
 #: immersionlyceens/templates/immersion/my_immersions.html:144
 #: immersionlyceens/templates/modals/modal_public_slots.html:22
-#: immersionlyceens/templates/offer_subdomains.html:130
+#: immersionlyceens/templates/offer_subdomains.html:132
 #: immersionlyceens/templates/slots/add_slot.html:121
 #: immersionlyceens/templates/slots/list_slots.html:79
 msgid "Room"
@@ -1258,7 +1258,7 @@ msgid "Number of places"
 msgstr "Nombre maximum de places"
 
 #: immersionlyceens/apps/core/models.py:1215
-#: immersionlyceens/templates/offer_subdomains.html:131
+#: immersionlyceens/templates/offer_subdomains.html:133
 #: immersionlyceens/templates/slots/add_slot.html:229
 msgid "Additional information"
 msgstr "Informations complémentaires"
@@ -3111,7 +3111,7 @@ msgid "Register again"
 msgstr "Se réinscrire"
 
 #: immersionlyceens/templates/immersion/my_immersions.html:426
-#: immersionlyceens/templates/offer_subdomains.html:119
+#: immersionlyceens/templates/offer_subdomains.html:121
 msgid "Full"
 msgstr "Complet"
 
@@ -3508,22 +3508,26 @@ msgid "Already registered"
 msgstr "Déjà inscrit(e)"
 
 #: immersionlyceens/templates/offer_subdomains.html:112
+msgid "Opening soon"
+msgstr "Ouverture prochaine"
+
+#: immersionlyceens/templates/offer_subdomains.html:114
 msgid "Available places"
 msgstr "Places restantes"
 
-#: immersionlyceens/templates/offer_subdomains.html:115
+#: immersionlyceens/templates/offer_subdomains.html:117
 msgid "Register"
 msgstr "S'inscrire"
 
-#: immersionlyceens/templates/offer_subdomains.html:127
+#: immersionlyceens/templates/offer_subdomains.html:129
 msgid "Show map url"
 msgstr "Voir l'adresse de la carte"
 
-#: immersionlyceens/templates/offer_subdomains.html:147
+#: immersionlyceens/templates/offer_subdomains.html:149
 msgid "No training available for the selected domain"
 msgstr "Pas de formation pour le domaine selectionné"
 
-#: immersionlyceens/templates/offer_subdomains.html:148
+#: immersionlyceens/templates/offer_subdomains.html:150
 msgid "Click here to return to offer selection"
 msgstr "Cliquez ici pour revenir sur la selection de l'offre"
 
@@ -3632,6 +3636,6 @@ msgstr "Voulez-vous vraiment supprimer ce créneau ?"
 msgid "The slot has been successfully deleted"
 msgstr "Le créneau a été supprimé avec succès"
 
-#: immersionlyceens/views.py:207
+#: immersionlyceens/views.py:195
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
