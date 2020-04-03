@@ -151,6 +151,8 @@ class APITestCase(TestCase):
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
+            visible_immersion_registrations=True,
+            visible_email=True
         )
         self.hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
@@ -162,6 +164,8 @@ class APITestCase(TestCase):
             class_name='TS 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
+            visible_immersion_registrations=True,
+            visible_email=True
         )
         self.student_record = StudentRecord.objects.create(
             student=self.student,
@@ -175,7 +179,7 @@ class APITestCase(TestCase):
         self.lyc_ref.save()
         self.immersion = Immersion.objects.create(
             student=self.highschool_user,
-            slot=self.slot
+            slot=self.slot,
         )
         self.immersion2 = Immersion.objects.create(
             student=self.student,
@@ -1232,4 +1236,53 @@ class APITestCase(TestCase):
         self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
         self.assertEqual(self.immersion.slot.id, i['slot_id'])
 
+    def test_API_get_other_registrants(self):
+        client = Client()
+        client.login(username='student', password='pass')
+        request.user = self.student
 
+        url = f"/api/get_other_registrants/{self.immersion2.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        i = content['data'][0]
+        self.assertIsInstance(i, dict)
+        self.assertEqual(
+            i['name'],
+            f'{self.highschool_user.last_name} {self.highschool_user.first_name}'
+        )
+        self.assertEqual(i['email'], self.highschool_user.email)
+
+    def test_API_ajax_get_slot_registrations(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_slot_registrations/{self.slot.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        print(content)
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(len(content['data']), 2)
+        hs = content['data'][0]
+        self.assertIsInstance(hs, dict)
+        self.assertEqual(hs['id'], self.immersion.id)
+        self.assertEqual(hs['lastname'], self.highschool_user.last_name)
+        self.assertEqual(hs['firstname'], self.highschool_user.first_name)
+        self.assertEqual(hs['profile'], _('High-school student'))
+        self.assertEqual(hs['school'], self.hs_record.highschool.label)
+        self.assertEqual(hs['level'], self.hs_record.get_level_display())
+        self.assertEqual(hs['city'], self.hs_record.highschool.city)
+        self.assertEqual(hs['attendance'], self.immersion.get_attendance_status_display())
+        self.assertEqual(hs['attendance_status'], self.immersion.attendance_status)
+
+        stu = content['data'][1]
+        self.assertEqual(stu['profile'], _('Student'))
+        self.assertEqual(stu['level'], self.student_record.get_level_display())
+        self.assertEqual(stu['school'], self.student_record.home_institution)
+        self.assertEqual(stu['city'], '')
