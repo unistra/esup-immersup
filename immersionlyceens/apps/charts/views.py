@@ -22,7 +22,9 @@ def highschool_charts(request):
     if request.user.is_high_school_manager():
         filter['pk'] = request.user.highschool.id
 
-    highschools = [{'id': h.id, 'label':h.label} for h in HighSchool.objects.filter(**filter).order_by('label')]
+    highschools = [
+        {'id': h.id, 'label':h.label} for h in HighSchool.objects.filter(**filter).order_by('label')
+    ]
 
     context = {
         'highschools': highschools,

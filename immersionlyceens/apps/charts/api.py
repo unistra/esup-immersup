@@ -44,6 +44,8 @@ def highschool_charts(request, highschool_id):
         }],
         'y': [{
             "type": "ValueAxis",
+            "min": 0,
+            "maxPrecision": 0,
         }],
     }
 
