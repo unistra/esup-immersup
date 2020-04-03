@@ -40,6 +40,7 @@ urlpatterns = [
     path('procedure', procedure, name='procedure'),
     path('summernote/', include('django_summernote.urls')),
     path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),
+    path('charts/', include('immersionlyceens.apps.charts.urls', namespace='charts')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # debug toolbar for dev
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
