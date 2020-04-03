@@ -1126,6 +1126,13 @@ def ajax_slot_registration(request):
                         ),
                     }
                     return JsonResponse(response, safe=False)
+                # ref cmp request & no more remaining restistration count for student
+                elif request.user.is_component_manager and remaining_regs_count['annually'] <= 0:
+                    response = {
+                        'error': True,
+                        'msg': _("This student has no more remaining slots to register to"),
+                    }
+                    return JsonResponse(response, safe=False)
 
         # semester mode
         elif calendar:
@@ -1153,6 +1160,13 @@ def ajax_slot_registration(request):
                             ),
                         }
                         return JsonResponse(response, safe=False)
+                    # ref cmp request & no more remaining registration count for student
+                    elif request.user.is_component_manager and remaining_regs_count['semester1'] <= 0:
+                        response = {
+                            'error': True,
+                            'msg': _("This student has no more remaining slots to register to"),
+                        }
+                        return JsonResponse(response, safe=False)
 
             # Semester 2
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
@@ -1176,6 +1190,13 @@ def ajax_slot_registration(request):
                             'msg': _(
                                 "You have no more remaining registration available, you should cancel an immersion or contact immersion service"
                             ),
+                        }
+                        return JsonResponse(response, safe=False)
+                    # ref cmp request & no more remaining registration count for student
+                    elif request.user.is_component_manager and remaining_regs_count['semester2'] <= 0:
+                        response = {
+                            'error': True,
+                            'msg': _("This student has no more remaining slots to register to"),
                         }
                         return JsonResponse(response, safe=False)
 
