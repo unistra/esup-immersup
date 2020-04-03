@@ -16,17 +16,46 @@ def highschool_charts(request, highschool_id):
         gettext("Attended to at least one immersion"),
     ]
 
-    providers = [
+    categories = [
         gettext('Pupil in year 12 / 11th grade student'), # level = 1
         gettext('Pupil in year 13 / 12th grade student'), # level = 2
         gettext('Above A Level / High-School Degree') # level = 3
     ]
 
+    # Each dataset represents a student level
+    datasets = [
+        {
+             'label': categories[0],
+             'backgroundColor': '#F38644',
+             'data': [],
+             'barPercentage': 0.3,
+             'borderWidth': 1,
+        },
+        {
+            'label': categories[1],
+            'backgroundColor': '#FFC726',
+            'data': [],
+            'barPercentage': 0.3,
+            'borderWidth': 1,
+        },
+        {
+            'label': categories[2],
+            'backgroundColor': '#73B348',
+            'data': [],
+            'barPercentage': 0.3,
+            'borderWidth': 1,
+        },
+    ]
+
     options = {
+        'plugins': {
+            'datalabels': {
+                'color': '#555555',
+                'labels': { 'value': { 'font': { 'weight' : 'bold'}}},
+            },
+        },
         'scales': {
-            'xAxes' : [{
-                'stacked': True,
-            }],
+            'xAxes' : [{ 'stacked': True, }],
             'yAxes': [
                 {
                     'stacked': True,
@@ -42,15 +71,11 @@ def highschool_charts(request, highschool_id):
     response = {
         'label': _("Registered students by level"),
         'labels': labels,
-        'providers': providers,
         'title': _("High school students by level"),
         'options': options,
-        'level_1': [],
-        'level_2': [],
-        'level_3': [],
+        'datasets': datasets,
     }
 
-    # level 1
     qs = ImmersionUser.objects.filter(high_school_student_record__highschool__id=highschool_id)
 
     for level in [1, 2, 3]:
@@ -59,6 +84,9 @@ def highschool_charts(request, highschool_id):
         registered = users.filter(immersions__isnull=False).distinct().count()
         att = users.filter(immersions__attendance_status=1).distinct().count()
 
-        response['level_%s' % level] = [platform, registered, att]
+        response['datasets'][level-1]['data'] = [platform, registered, att]
+
+
+    response['options']['scales']['yAxes'][0]['ticks']['suggestedMax'] = round(qs.count() * 1.1)
 
     return JsonResponse(response, safe=False)
