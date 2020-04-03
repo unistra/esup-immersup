@@ -13,7 +13,7 @@ from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
     Training, TrainingDomain,
     TrainingSubdomain,
-    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType)
+    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -41,6 +41,9 @@ class APITestCase(TestCase):
         )
         self.highschool_user2 = get_user_model().objects.create_user(
             username='hs2', password='pass', email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2',
+        )
+        self.highschool_user3 = get_user_model().objects.create_user(
+            username='hs3', password='pass', email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3',
         )
         self.ref_comp = get_user_model().objects.create_user(
             username='refcomp',
@@ -78,6 +81,8 @@ class APITestCase(TestCase):
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
         Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
+        Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
+        Group.objects.get(name='LYC').user_set.add(self.highschool_user3)
         Group.objects.get(name='ETU').user_set.add(self.student)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
@@ -1286,3 +1291,92 @@ class APITestCase(TestCase):
         self.assertEqual(stu['level'], self.student_record.get_level_display())
         self.assertEqual(stu['school'], self.student_record.home_institution)
         self.assertEqual(stu['city'], '')
+
+    def test_API_ajax_get_students(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_students"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(len(content['data']), 4)
+        stu = content['data'][0]
+        hs = content['data'][1]
+
+        self.assertEqual(self.student.id, stu['id'])
+        self.assertEqual(self.student.first_name, stu['firstname'])
+        self.assertEqual(self.student.last_name, stu['lastname'])
+        self.assertEqual(_('Student'), stu['profile'])
+        self.assertEqual(self.student_record.home_institution, stu['school'])
+        self.assertEqual('', stu['level'])
+        self.assertEqual('', stu['city'])
+        self.assertEqual('', stu['class'])
+
+        self.assertEqual(self.highschool_user.id, hs['id'])
+        self.assertEqual(self.highschool_user.first_name, hs['firstname'])
+        self.assertEqual(self.highschool_user.last_name, hs['lastname'])
+        self.assertEqual(_('High-school student'), hs['profile'])
+        self.assertEqual(self.hs_record.highschool.label, hs['school'])
+        self.assertEqual('', hs['level'])
+        self.assertEqual(self.hs_record.highschool.city, hs['city'])
+        self.assertEqual(self.hs_record.class_name, hs['class'])
+
+    def test_API_ajax_get_highschool_students__no_record(self):
+        request.user = self.scuio_user
+
+        url = f"/api/get_highschool_students/no_record"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        print(response)
+        print(json.dumps(content, indent=2))
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(len(content['data']), 1)
+        h = content['data'][0]
+        self.assertEqual(self.highschool_user3.id, h['id'])
+        self.assertEqual(
+            f'{self.highschool_user3.last_name} {self.highschool_user3.first_name}',
+            h['name']
+        )
+        fields = ('birthdate', 'level')
+        empty_fields = ('institution', 'bachelor', 'post_bachelor_level', 'class')
+        for field in fields:
+            self.assertEqual('-', h[field])
+        for field in empty_fields:
+            self.assertEqual('', h[field])
+
+    def test_API_ajax_get_highschool_students__no_highschool(self):
+        self.lyc_ref.highschool = None
+        self.lyc_ref.save()
+        request.user = self.lyc_ref
+        client = Client()
+        client.login(username='lycref', password='pass')
+
+        url = f"/api/get_highschool_students/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['data'], [])
+
+    def test_API_ajax_get_highschool_students(self):
+        request.user = self.lyc_ref
+        client = Client()
+        client.login(username='lycref', password='pass')
+
+        url = f"/api/get_highschool_students/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        print(json.dumps(content, indent=2))
