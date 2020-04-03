@@ -1270,7 +1270,7 @@ class APITestCase(TestCase):
         response = self.client.get(url, request, **header)
         content = json.loads(response.content.decode())
 
-        print(content)
+        self.assertEqual(content['msg'], '')
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
         self.assertEqual(len(content['data']), 2)
@@ -1332,9 +1332,6 @@ class APITestCase(TestCase):
         response = self.client.get(url, request, **header)
         content = json.loads(response.content.decode())
 
-        print(response)
-        print(json.dumps(content, indent=2))
-
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
         self.assertEqual(len(content['data']), 1)
@@ -1378,5 +1375,31 @@ class APITestCase(TestCase):
 
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
-        self.assertGreater(len(content['data']), 0)
-        print(json.dumps(content, indent=2))
+        self.assertEqual(len(content['data']), 2)
+
+    def test_API_ajax_get_highschool_students__student(self):
+        self.hs_record.level = 3
+        self.hs_record.origin_bachelor_type = 1
+        self.hs_record.post_bachelor_level = 1
+        self.hs_record.save()
+        request.user = self.lyc_ref
+        client = Client()
+        client.login(username='lycref', password='pass')
+
+        url = f"/api/get_highschool_students/"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertEqual(len(content['data']), 2)
+
+        one = False
+        for h in content['data']:
+            if h['level'] == HighSchoolStudentRecord.LEVELS[2][1]:
+                self.assertEqual(self.hs_record.get_post_bachelor_level_display(), h['post_bachelor_level'])
+                self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
+                one = True
+                break
+        self.assertTrue(one)
