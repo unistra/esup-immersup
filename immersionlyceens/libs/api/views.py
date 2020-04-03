@@ -1071,6 +1071,11 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
+    # Check slot is published for no scuio-ip user
+    if not request.user.is_scuio_ip_manager() and not slot.published:
+        response = {'error': True, 'msg': _("Registering an unpublished slot is forbidden")}
+        return JsonResponse(response, safe=False)
+
     # Only valid Highschool students
     if (
         student.is_high_school_student
