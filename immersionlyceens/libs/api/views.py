@@ -23,9 +23,25 @@ from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool,
-    Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument,
-    Slot, Training, TrainingDomain, UniversityYear, UserCourseAlert, Vacation,
+    Building,
+    Calendar,
+    CancelType,
+    Component,
+    Course,
+    GeneralSettings,
+    HighSchool,
+    Holiday,
+    Immersion,
+    ImmersionUser,
+    MailTemplate,
+    MailTemplateVars,
+    PublicDocument,
+    Slot,
+    Training,
+    TrainingDomain,
+    UniversityYear,
+    UserCourseAlert,
+    Vacation,
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
@@ -1053,6 +1069,15 @@ def ajax_slot_registration(request):
 
     if not slot or not student:
         response = {'error': True, 'msg': _("Invalid parameters")}
+        return JsonResponse(response, safe=False)
+
+    # Only valid Highschool students
+    if (
+        student.is_high_school_student
+        and not student.is_valid()
+        and not student.get_high_school_student_record().is_valid()
+    ):
+        response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
         return JsonResponse(response, safe=False)
 
     # Check if slot is not past
