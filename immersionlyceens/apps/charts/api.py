@@ -113,7 +113,7 @@ def highschool_charts(request, highschool_id):
     return JsonResponse(response, safe=False)
 
 
-def highschool_domains_charts(request, highschool_id, level=None):
+def highschool_domains_charts(request, highschool_id, level=0):
     """
     Data for amcharts 4
     Pie chart format
