@@ -13,6 +13,7 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date
 from django.utils.translation import ugettext_lazy as _
+
 from mailmerge import MailMerge
 
 from immersionlyceens.fields import UpperCharField
@@ -132,7 +133,6 @@ class ImmersionUser(AbstractUser):
     def __str__(self):
         return "%s %s" % (self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
 
-
     def has_groups(self, *groups, negated=False):
         """
         :param groups: group names to check
@@ -246,7 +246,7 @@ class ImmersionUser(AbstractUser):
     def remaining_registrations_count(self):
         """
         Based on the calendar mode and the current immersions registrations,
-        returns a dictionnary with reminaing registrations count for
+        returns a dictionnary with remaining registrations count for
         both semesters and year
 
         If there's no calendar or the current user is not a student, return 0
@@ -304,8 +304,36 @@ class ImmersionUser(AbstractUser):
             'annually': (record.allowed_global_registrations or 0) - current_year_regs,
         }
 
+    def set_increment_registrations_(self, type):
+        """
+        Updates student registrations remaining based on type parameter
+        type values are annual/semester1/semester2
+        """
+
+        if self.is_high_school_student():
+            record = self.get_high_school_student_record()
+        elif self.is_student():
+            record = self.get_student_record()
+
+        if not record or not record.is_valid():
+            return
+
+        if type == 'annual':
+            record.allowed_global_registrations += 1
+
+        elif type == 'semester1':
+            record.allowed_first_semester_registrations += 1
+
+        elif type == 'semester2':
+            record.allowed_second_semester_registrations += 1
+        else:
+            return
+
+        record.save()
+
     class Meta:
         verbose_name = _('User')
+
 
 class TrainingDomain(models.Model):
     """
@@ -1260,6 +1288,7 @@ class UserCourseAlert(models.Model):
     """
     Store alerts on free slots added by users
     """
+
     email = models.EmailField(_('Recipient'), blank=False, null=False)
     email_sent = models.BooleanField(_("Alert sent status"), default=False, blank=False, null=False)
     alert_date = models.DateField(_("Date"), auto_now_add=True)

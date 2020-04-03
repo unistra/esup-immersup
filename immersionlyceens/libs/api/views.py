@@ -22,16 +22,15 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
 
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool,
+    Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument,
+    Slot, Training, TrainingDomain, UniversityYear, UserCourseAlert, Vacation,
+)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.mails.variables_parser import multisub
-
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, TrainingDomain,
-    UniversityYear, UserCourseAlert, Vacation,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -1090,6 +1089,7 @@ def ajax_slot_registration(request):
                 # force registering
                 elif force == 'true':
                     can_register = True
+                    student.set_increment_registrations_(type='annual')
                 # student request & no more remaining registration count
                 elif (request.user.is_high_school_student() or request.user.is_student()) and remaining_regs_count[
                     'annually'
@@ -1116,6 +1116,7 @@ def ajax_slot_registration(request):
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
+                        student.set_increment_registrations_(type='semester1')
                     # student request & no more remaining registration count
                     elif (request.user.is_high_school_student() or request.user.is_student()) and remaining_regs_count[
                         'semester1'
@@ -1140,6 +1141,7 @@ def ajax_slot_registration(request):
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
+                        student.set_increment_registrations_(type='semester2')
                     # student request & no more remaining registration count
                     elif (request.user.is_high_school_student() or request.user.is_student()) and remaining_regs_count[
                         'semester2'
@@ -1775,6 +1777,7 @@ def ajax_set_course_alert(request):
     response['msg'] = gettext('Alert successfully set')
     return JsonResponse(response, safe=False)
 
+
 @is_ajax_request
 @groups_required('ETU', 'LYC')
 def ajax_get_alerts(request):
@@ -1783,8 +1786,9 @@ def ajax_get_alerts(request):
     """
     response = {'data': [], 'msg': ''}
 
-    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain')\
-        .filter(email=request.user.email, email_sent=False)
+    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain').filter(
+        email=request.user.email, email_sent=False
+    )
 
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
@@ -1796,7 +1800,7 @@ def ajax_get_alerts(request):
             'course': alert.course.label,
             'training': alert.course.training.label,
             'subdomains': [subdomain.label for subdomain in subdomains],
-            'domains': [domain.label for domain in domains]
+            'domains': [domain.label for domain in domains],
         }
 
         response['data'].append(alert_data.copy())
@@ -1823,6 +1827,7 @@ def ajax_cancel_alert(request):
 
     return JsonResponse(response, safe=False)
 
+
 @is_ajax_request
 def ajax_get_duplicates(request):
     """
@@ -1843,14 +1848,12 @@ def ajax_get_duplicates(request):
         if len(records) > 1:
             dupes_data = {
                 "id": id,
-                "record_ids" : [r.id for r in records],
-                'names' : [str(r.student) for r in records],
-                'birthdates' : [_date(r.birth_date) for r in records],
-                "highschools" : [ "%s, %s" % (r.highschool.label, r.class_name) for r in records ],
-                "emails" : [r.student.email for r in records],
-                "record_links" : [
-                    reverse('immersion:modify_hs_record', kwargs={'record_id': r.id}) for r in records
-                ]
+                "record_ids": [r.id for r in records],
+                'names': [str(r.student) for r in records],
+                'birthdates': [_date(r.birth_date) for r in records],
+                "highschools": ["%s, %s" % (r.highschool.label, r.class_name) for r in records],
+                "emails": [r.student.email for r in records],
+                "record_links": [reverse('immersion:modify_hs_record', kwargs={'record_id': r.id}) for r in records],
             }
 
             id += 1
@@ -1858,6 +1861,7 @@ def ajax_get_duplicates(request):
             response['data'].append(dupes_data.copy())
 
     return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @is_post_request
@@ -1892,6 +1896,3 @@ def ajax_keep_entries(request):
     response['msg'] = gettext("Duplicates data cleared")
 
     return JsonResponse(response, safe=False)
-
-
-
