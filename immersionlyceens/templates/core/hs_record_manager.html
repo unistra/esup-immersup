@@ -31,6 +31,7 @@
       <form class="form" method="POST">
         {% csrf_token %}
         {{ form.student }}
+        <input type="hidden" name="high_school_id" value="{{ record.highschool.id }}">
         <div class="form-group row">
           <label for="first_name" class="label col-sm-3">{% trans "First name" %}</label>
           <div class="form-group  col-sm-6">

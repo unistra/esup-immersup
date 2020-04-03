@@ -41,9 +41,19 @@
         <div class="form-group row">
             <label for="high_school" class="col-form-label col-sm-3">{% trans 'Select a high school' %}:</label>
             <select name="high_school" id="id_high_school" class="form-control col-sm-3">
-                {% for hs in high_schools %}
-                <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
-                {% endfor %}
+                {% if hs_id %}
+                    {% for hs in high_schools %}
+                        {% if hs.id == hs_id %}
+                            <option value="{{ hs.id }}" selected>{{ hs.city }}: {{ hs.label }}</option>
+                        {% else %}
+                            <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {% for hs in high_schools %}
+                        <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
+                    {% endfor %}
+                {% endif %}
             </select>
         </div>
         {% else %}

@@ -589,6 +589,13 @@ def student_validation(request, high_school_id=None):
     else:
         context['high_schools'] = HighSchool.objects.all().order_by('city')
 
+    if request.GET.get('hs_id'):
+        try:
+            context['hs_id'] = int(request.GET.get('hs_id'))
+        except ValueError:
+            pass
+
+
     return render(request, 'core/student_validation.html', context)
 
 
@@ -620,7 +627,9 @@ def highschool_student_record_form_manager(request, hs_record_id):
             if user_form.is_valid():
                 user_form.save()
                 messages.success(request, _("High school student user modified"))
-                return redirect('student_validation_global')
+                response = redirect('student_validation_global')
+                response['location'] += f'?hs_id={request.POST.get("high_school_id")}'
+                return response
             else:
                 messages.error(request, _("High school student user modification failure"))
         else:
