@@ -270,12 +270,12 @@
         { "data": "info" },
         { "data": "",
           "render": function(data, type, row) {
-            var msg = "<button class=\"btn btn-secondary btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
+            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
                       "<i class='fa fas fa-users'></i>" +
                       "</button>";
 
             if(row.cancellable == true) {
-              msg += "<button class=\"ml-4 btn btn-secondary btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash'></i>" +
                      "</button>";
             }
@@ -347,7 +347,7 @@
             var msg = data;
 
             if(row.attendance_status == 1) {
-              msg += "<button class=\"ml-4 btn btn-secondary btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download'></i>" +
                   "</button>";
             }
