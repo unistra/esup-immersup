@@ -9,8 +9,10 @@
 <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/vendor/Chart/Chart.bundle.min.js' %}"></script>
-<script src="{% static 'js/vendor/Chart/plugins/datalabels/chartjs-plugin-datalabels.min.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/core.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/charts.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/themes/animated.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/themes/material.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.js' %}"></script>
 {% endblock %}
 
@@ -40,7 +42,7 @@
       {% endif %}
     </div>
     <div class="card-body">
-      <canvas id="myChart" style="width:80%; height:500px;"></canvas>
+      <div id="chartdiv" style="width:100%; height:400px;"></div>
     </div>
   </div>
 </div>
@@ -49,18 +51,18 @@
 
   function init_graph(hs_id) {
     $.get("/charts/get_highschool_charts/"+hs_id, function(response) {
-      console.log(response);
-      var ctx = $("#myChart").get(0).getContext("2d");
-      new Chart(ctx, {
-          plugins: [ChartDataLabels],
-          type: 'bar',
-          data: {
-            labels: response.labels,
-            datasets: response.datasets,
-          },
-          options: response.options,
-      });
-  });
+      am4core.useTheme(am4themes_animated);
+      // am4core.useTheme(am4themes_material);
+
+      let chart = am4core.createFromConfig({
+        "xAxes": response.axes.x,
+        "yAxes": response.axes.y,
+        "data": response.datasets,
+        "series": response.series,
+        "legend": {},
+      }, "chartdiv", am4charts.XYChart);
+
+    });
   }
 
   if (highschool_id) {
