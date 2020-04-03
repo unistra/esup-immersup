@@ -39,7 +39,7 @@
 
         {% if not high_school %}
         <div class="form-group row">
-            <label for="high_school" class="col-form-label col-sm-3">{% trans 'Select an high school' %}:</label>
+            <label for="high_school" class="col-form-label col-sm-3">{% trans 'Select a high school' %}:</label>
             <select name="high_school" id="id_high_school" class="form-control col-sm-3">
                 {% for hs in high_schools %}
                 <option value="{{ hs.id }}">{{ hs.city }}: {{ hs.label }}</option>
