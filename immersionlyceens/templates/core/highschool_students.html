@@ -45,6 +45,9 @@
       <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
         <thead>
           <tr>
+            {% if request.user.is_scuio_ip_manager %}
+            <th id="type_filter" class="align-top">{% trans 'Type' %}</th>
+            {% endif %}
             <th class="align-top">{% trans 'Student' %}</th>
             <th class="align-top">{% trans 'Birth date' %}</th>
             {% if request.user.is_scuio_ip_manager %}
@@ -62,11 +65,13 @@
         </thead>
         <tbody>
           <tr>
-            <td></td>
-            <td></td>
             {% if request.user.is_scuio_ip_manager %}
             <td></td>
+            <td></td>
+            <td></td>
             {% endif %}
+            <td></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -99,9 +104,11 @@
     $.fn.dataTableExt.errMode = 'console';
     dt = $('#students_table').DataTable({
       'processing': false,
-      'order': [
-        [0, "asc"],
-      ],
+      {% if request.user.is_scuio_ip_manager %}
+      'order': [[3, "asc"], [1, "asc"], ],
+      {% else %}
+      'order': [[0, "asc"],],
+      {% endif %}
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
@@ -119,6 +126,9 @@
         url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
     },
     'columns': [
+    {% if request.user.is_scuio_ip_manager %}
+    { "data": "student_type" },
+    {% endif %}
     { "data": "name",
       "render": function(data, type, row) {
         if(is_scuio_ip && row.record_link != '') {
@@ -172,40 +182,48 @@
   if (is_scuio_ip) {
     yadcf.init(dt, [
       {
-        column_number: 2,
+        column_number: 0,
+        filter_match_mode: "exact",
         filter_default_label: "",
-        filter_container_id: "etab_filter",
+        filter_container_id: "type_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
         column_number: 3,
         filter_default_label: "",
+        filter_container_id: "etab_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 4,
+        filter_default_label: "",
         filter_container_id: "level_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       }, {
-        column_number: 4,
+        column_number: 5,
         filter_default_label: "",
         filter_container_id: "class_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       }, {
-        column_number: 5,
+        column_number: 6,
         filter_default_label: "",
         filter_container_id: "bachelor_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
-        column_number: 6,
+        column_number: 7,
         filter_default_label: "",
         filter_container_id: "post_bachelor_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
-        column_number: 7,
+        column_number: 8,
         filter_default_label: "",
         filter_container_id: "registered_filter",
         style_class: "form-control form-control-sm",
@@ -246,13 +264,6 @@
 
   dt.on( 'draw', function () {
     $('[data-toggle="tooltip"]').tooltip();
-
-    if ( is_scuio_ip ) {
-      dt.order([[2, "asc"], [0, "asc"], ]);
-    }
-    else {
-      dt.order([[0, "asc"], ]);
-    }
   });
 
   $('#filter_no_record').click(function () {

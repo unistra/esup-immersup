@@ -19,8 +19,7 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext, pgettext, ugettext_lazy as _
 
 from immersionlyceens.apps.core.models import (
     Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool,
@@ -1297,14 +1296,19 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
     for student in students:
         record = None
+        student_type = _('Unknown')
         link = ''
         try:
             if student.is_high_school_student():
-                record = student.high_school_student_record
-                link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
+                record = student.get_high_school_student_record()
+                if record:
+                    link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
+                student_type = pgettext("person type", "High school student")
             else:
-                record = student.student_record
-                link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
+                record = student.get_student_record()
+                if record:
+                    link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
+                student_type = pgettext("person type", "Student")
         except Exception:
             pass
 
@@ -1319,6 +1323,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
             'class': '',
             'registered': student.immersions.exists(),
             'record_link': link,
+            'student_type': student_type
         }
 
         if record:
