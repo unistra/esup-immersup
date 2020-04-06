@@ -347,7 +347,7 @@ $(document).ready(function(){
                   }
 
                   if(row.attendances_value == 1) {
-                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+")\" title=\"{% trans 'Enter attendances' %}\">" +
+                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'Enter attendances' %}\">" +
                                "<i class='fa fas fa-edit'></i>" +
                                "</button>";
                   }
