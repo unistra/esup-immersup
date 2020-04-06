@@ -13,7 +13,7 @@ from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
     Training, TrainingDomain,
     TrainingSubdomain,
-    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser)
+    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -93,6 +93,11 @@ class APITestCase(TestCase):
             year_end_date=self.today + timedelta(days=10),
             year_nb_authorized_immersion=4,
             year_registration_start_date=self.today - timedelta(days=9)
+        )
+        self.vac = Vacation.objects.create(
+            label="vac",
+            start_date=self.today - timedelta(days=2),
+            end_date=self.today + timedelta(days=2)
         )
         self.component = Component.objects.create(label="test component")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
@@ -1403,3 +1408,121 @@ class APITestCase(TestCase):
                 one = True
                 break
         self.assertTrue(one)
+
+    def test_API_ajax_check_date_between_vacation__no_date(self):
+        request.user = self.scuio_user
+
+        url = f"/api/check_vacations"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['data'], {})
+
+    def test_API_ajax_check_date_between_vacation__date_format_failure(self):
+        request.user = self.scuio_user
+
+        url = f"/api/check_vacations?date=failure"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['data'], {})
+
+    def test_API_ajax_check_date_between_vacation__dmY_format(self):
+        request.user = self.scuio_user
+
+        url = f"/api/check_vacations?date=01/01/2010"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], dict)
+        self.assertIn('is_between', content['data'])
+        self.assertIsInstance(content['data']['is_between'], bool)
+        self.assertEqual(content['data']['is_between'], False)
+
+    def test_API_ajax_check_date_between_vacation__Ymd_format(self):
+        request.user = self.scuio_user
+        d = self.today
+        if d.weekday() == 6:
+            d = self.today + timedelta(days=1)
+        dd = _date(d, 'Y/m/d')
+        url = f"/api/check_vacations?date={dd}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], dict)
+        self.assertIn('is_between', content['data'])
+        self.assertIsInstance(content['data']['is_between'], bool)
+        self.assertEqual(content['data']['is_between'], True)
+
+
+
+    def test_API_ajax_get_slots_by_course(self):
+        request.user = self.scuio_user
+        url = f"/api/get_slots_by_course/{self.slot.course.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        s = content['data'][0]
+        self.assertEqual(self.slot.id, s['id'])
+        self.assertEqual(self.slot.published, s['published'])
+        self.assertEqual(self.slot.course.label, s['course_label'])
+        self.assertEqual(self.slot.course_type.label, s['course_type'])
+        self.assertEqual(self.slot.course_type.full_label, s['course_type_full'])
+        self.assertEqual(_date(self.slot.date, 'l j F Y'), s['date'])
+        self.assertEqual(
+            f'{self.slot.start_time.strftime("%Hh%M")} - {self.slot.end_time.strftime("%Hh%M")}',
+            s['time']
+        )
+        self.assertEqual(f'{self.slot.building.label} - {self.slot.campus.label}', s['building'])
+        self.assertEqual(self.slot.room, s['room'])
+        self.assertEqual(
+            ', '.join([f'{t.first_name} {t.last_name.upper()}' for t in self.slot.teachers.all()]),
+            s['teachers']
+        )
+        self.assertEqual(self.slot.registered_students(), s['n_register'])
+        self.assertEqual(self.slot.n_places, s['n_places'])
+        self.assertEqual(self.slot.additional_information, s['additional_information'])
+
+
+    def test_API_ajax_get_slots_by_course__semester(self):
+        self.calendar.calendar_mode = "SEMESTER"
+        self.calendar.semester1_start_date = self.today - timedelta(days=10)
+        self.calendar.semester1_end_date = self.today + timedelta(days=10)
+        self.calendar.save()
+
+        request.user = self.scuio_user
+        url = f"/api/get_slots_by_course/{self.slot.course.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+
+    def test_API_ajax_get_slots_by_course__semester_2(self):
+        self.calendar.calendar_mode = "SEMESTER"
+        self.calendar.semester1_start_date = self.today - timedelta(days=10)
+        self.calendar.semester1_end_date = self.today - timedelta(days=9)
+        self.calendar.semester2_start_date = self.today - timedelta(days=8)
+        self.calendar.semester2_end_date = self.today + timedelta(days=10)
+        self.calendar.save()
+
+        request.user = self.scuio_user
+        url = f"/api/get_slots_by_course/{self.slot.course.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+
