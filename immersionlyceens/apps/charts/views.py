@@ -60,3 +60,26 @@ def highschool_domains_charts(request):
     }
 
     return render(request, 'charts/highschool_domains_charts.html', context=context)
+
+
+@groups_required('SCUIO-IP')
+def global_domains_charts(request):
+    """
+    All institutions charts by domains, with filters on institutions
+    """
+    filter = {}
+
+    highschools = [
+        {'id': h.id, 'label':h.label, 'city': h.city }
+        for h in HighSchool.objects.filter(**filter).order_by('city','label')
+    ]
+
+    levels = [(0, _("All"))] + HighSchoolStudentRecord.LEVELS
+
+    context = {
+        'highschools': highschools,
+        'highschool_id': filter.get('pk', ''),
+        'levels': levels,
+    }
+
+    return render(request, 'charts/global_domains_charts.html', context=context)
