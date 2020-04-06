@@ -1080,10 +1080,12 @@ def ajax_slot_registration(request):
     if (
         student.is_high_school_student
         and not student.is_valid()
-        and not student.get_high_school_student_record().is_valid()
+        # and not student.get_high_school_student_record().is_valid()
     ):
-        response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
-        return JsonResponse(response, safe=False)
+        record = student.get_high_school_student_record()
+        if not record or (record and not record.is_valid()):
+            response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
+            return JsonResponse(response, safe=False)
 
     # Check if slot is not past
     if slot.date <= today:
@@ -1604,7 +1606,7 @@ def get_csv_anonymous_immersion(request):
                 institution = ''
                 level = ''
                 record = None
-                
+
                 if imm.student.is_student():
                     try:
                         record = StudentRecord.objects.get(student=imm.student)
@@ -1627,7 +1629,9 @@ def get_csv_anonymous_immersion(request):
                             infield_separator.join(
                                 [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                             ),
-                            infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                            infield_separator.join(
+                                [sub.label for sub in slot.course.training.training_subdomains.all()]
+                            ),
                             slot.course.training.label,
                             slot.course.label,
                             slot.course_type.label,
