@@ -1526,3 +1526,36 @@ class APITestCase(TestCase):
 
         self.assertEqual(content['msg'], '')
 
+
+    def test_API_ajax_delete_account__not_student_id(self):
+        request.user = self.scuio_user
+        url = "/api/delete_account"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_delete_account__wrong_user_group(self):
+        request.user = self.scuio_user
+        url = "/api/delete_account"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'student_id': self.ref_comp.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_delete_account(self):
+        request.user = self.scuio_user
+        url = "/api/delete_account"
+        uid = self.highschool_user.id
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'student_id': self.highschool_user.id, 'send_email': True}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertFalse(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+        with self.assertRaises(ImmersionUser.DoesNotExist):
+            ImmersionUser.objects.get(pk=uid)
