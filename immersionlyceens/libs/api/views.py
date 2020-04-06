@@ -1598,43 +1598,52 @@ def get_csv_anonymous_immersion(request):
 
     slots = Slot.objects.filter(published=True)
     for slot in slots:
-        immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
+        immersions = Immersion.objects.prefetch_related('slot').filter(slot=slot, cancellation_type__isnull=True)
         if immersions.count() > 0:
             for imm in immersions:
                 institution = ''
                 level = ''
+                record = None
+                
                 if imm.student.is_student():
-                    record = StudentRecord.objects.get(student=imm.student)
-                    institution = record.home_institution
-                    level = StudentRecord.LEVELS[record.level - 1][1]
+                    try:
+                        record = StudentRecord.objects.get(student=imm.student)
+                        institution = record.home_institution
+                        level = StudentRecord.LEVELS[record.level - 1][1]
+                    except StudentRecord.DoesNotExist:
+                        pass
                 elif imm.student.is_high_school_student():
-                    record = HighSchoolStudentRecord.objects.get(student=imm.student)
-                    institution = record.highschool.label
-                    level = HighSchoolStudentRecord.LEVELS[record.level - 1][1]
+                    try:
+                        record = HighSchoolStudentRecord.objects.get(student=imm.student)
+                        institution = record.highschool.label
+                        level = HighSchoolStudentRecord.LEVELS[record.level - 1][1]
+                    except HighSchoolStudentRecord.DoesNotExist:
+                        pass
 
-                content.append(
-                    [
-                        slot.course.component.label,
-                        infield_separator.join(
-                            [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                        ),
-                        infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                        slot.course.training.label,
-                        slot.course.label,
-                        slot.course_type.label,
-                        _date(slot.date, 'd/m/Y'),
-                        slot.start_time.strftime('%H:%M'),
-                        slot.end_time.strftime('%H:%M'),
-                        slot.campus.label,
-                        slot.building.label,
-                        slot.room,
-                        slot.registered_students(),
-                        slot.n_places,
-                        slot.additional_information,
-                        institution,
-                        level,
-                    ]
-                )
+                if record:
+                    content.append(
+                        [
+                            slot.course.component.label,
+                            infield_separator.join(
+                                [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                            ),
+                            infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                            slot.course.training.label,
+                            slot.course.label,
+                            slot.course_type.label,
+                            _date(slot.date, 'd/m/Y'),
+                            slot.start_time.strftime('%H:%M'),
+                            slot.end_time.strftime('%H:%M'),
+                            slot.campus.label,
+                            slot.building.label,
+                            slot.room,
+                            slot.registered_students(),
+                            slot.n_places,
+                            slot.additional_information,
+                            institution,
+                            level,
+                        ]
+                    )
         else:
             content.append(
                 [
