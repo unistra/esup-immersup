@@ -122,7 +122,6 @@ function register_student(student_id, slot_id, force=false) {
       },
       success: function (json) {
         if(json['error']) {
-            console.log('la');
             if (json['msg'] == 'force_update') {
               if (confirm("{% trans 'Selected student as no remaining registration available would you like to register anyway'%}")) { register_student(student_id, slot_id, force=true); }
             } else {
