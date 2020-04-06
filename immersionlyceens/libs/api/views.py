@@ -514,16 +514,25 @@ def ajax_get_agreed_highschools(request):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_check_date_between_vacation(request):
-    response = {'data': [], 'msg': ''}
+    response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
 
     if _date:
         # two format date
+        error = False
         try:
             formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
         except ValueError:
-            formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
+            error = True
+        if error:
+            try:
+                formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
+            except ValueError:
+                response['msg'] = gettext('Error: Wrong format date')
+                return JsonResponse(response, safe=False)
+
+
 
         response['data'] = {
             'is_between': (
