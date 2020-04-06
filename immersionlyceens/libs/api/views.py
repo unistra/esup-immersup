@@ -633,7 +633,7 @@ def ajax_get_slots_by_course(request, course_id=None):
             else '-',
             'room': slot.room if slot.room is not None else '-',
             'teachers': ', '.join(['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]),
-            'n_register': 10,  # todo: registration count
+            'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
         }
