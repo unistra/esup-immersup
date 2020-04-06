@@ -544,9 +544,10 @@ def student_record(request, student_id=None, record_id=None):
 
         uai_code = None
         institution = None
+
         try:
-            shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
-            uai_code = shib_attrs.get("supannEtablissement")
+            shib_attrs = request.session.get("shib", {})
+            uai_code = shib_attrs.get("home_institution")
         except Exception:
             logger.error("Cannot retrieve uai code from shibboleth data")
 
