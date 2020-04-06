@@ -11,7 +11,6 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
-
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
@@ -210,7 +209,7 @@ def offer_subdomain(request, subdomain_id):
                 'training': training,
                 'course': course,
                 'slots': None,
-                'alert': ([s.available_seats() == 0 for s in slots] or not slots),
+                'alert': (not slots or all([s.available_seats() == 0 for s in slots])),
             }
 
             # If the current user is a student, check whether he can register
