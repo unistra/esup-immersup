@@ -1613,3 +1613,70 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
         i = Immersion.objects.get(pk=self.immersion.id)
         self.assertEqual(i.cancellation_type.id, self.cancel_type.id)
+
+    def test_API_ajax_set_attendance(self):
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertGreater(len(content['error']), 0)
+
+    def test_API_ajax_set_attendance__no_attendance_status(self):
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.immersion.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertGreater(len(content['error']), 0)
+
+    def test_API_ajax_set_attendance__immersion_id(self):
+        self.assertEqual(self.immersion.attendance_status, 0)
+
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.immersion.id, 'attendance_value': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertEqual(content['error'], '')
+        self.assertGreater(len(content['msg']), 0)
+
+        i = Immersion.objects.get(pk=self.immersion.id)
+        self.assertEqual(i.attendance_status, 1)
+
+    def test_API_ajax_set_attendance__immersion_idx(self):
+        self.assertEqual(self.immersion.attendance_status, 0)
+        self.assertEqual(self.immersion2.attendance_status, 0)
+
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data_immersion = json.dumps([self.immersion.id, self.immersion2.id])
+        data = {'immersion_ids': data_immersion, 'attendance_value': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertEqual(content['error'], '')
+        self.assertGreater(len(content['msg']), 0)
+
+        i = Immersion.objects.get(pk=self.immersion.id)
+        self.assertEqual(i.attendance_status, 1)
+        i = Immersion.objects.get(pk=self.immersion2.id)
+        self.assertEqual(i.attendance_status, 1)
+
+    def test_API_ajax_set_attendance__wrong_immersion_id(self):
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_ids': 0, 'attendance_value': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+
+        self.assertEqual(content['success'], '')
+        self.assertGreater(len(content['error']), 0)
