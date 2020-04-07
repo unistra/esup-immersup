@@ -13,7 +13,7 @@ from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
     Training, TrainingDomain,
     TrainingSubdomain,
-    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser)
+    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -101,6 +101,11 @@ class APITestCase(TestCase):
             year_end_date=self.today + timedelta(days=10),
             year_nb_authorized_immersion=4,
             year_registration_start_date=self.today - timedelta(days=9)
+        )
+        self.vac = Vacation.objects.create(
+            label="vac",
+            start_date=self.today - timedelta(days=2),
+            end_date=self.today + timedelta(days=2)
         )
         self.component = Component.objects.create(label="test component")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
@@ -1424,3 +1429,275 @@ class APITestCase(TestCase):
                 one = True
                 break
         self.assertTrue(one)
+
+    def test_API_ajax_check_date_between_vacation__no_date(self):
+        request.user = self.scuio_user
+
+        url = f"/api/check_vacations"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['data'], {})
+
+    def test_API_ajax_check_date_between_vacation__date_format_failure(self):
+        request.user = self.scuio_user
+
+        url = f"/api/check_vacations?date=failure"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['data'], {})
+
+    def test_API_ajax_check_date_between_vacation__dmY_format(self):
+        request.user = self.scuio_user
+
+        url = f"/api/check_vacations?date=01/01/2010"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], dict)
+        self.assertIn('is_between', content['data'])
+        self.assertIsInstance(content['data']['is_between'], bool)
+        self.assertEqual(content['data']['is_between'], False)
+
+    def test_API_ajax_check_date_between_vacation__Ymd_format(self):
+        request.user = self.scuio_user
+        d = self.today
+        if d.weekday() == 6:
+            d = self.today + timedelta(days=1)
+        dd = _date(d, 'Y/m/d')
+        url = f"/api/check_vacations?date={dd}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], dict)
+        self.assertIn('is_between', content['data'])
+        self.assertIsInstance(content['data']['is_between'], bool)
+        self.assertEqual(content['data']['is_between'], True)
+
+
+
+    def test_API_ajax_get_slots_by_course(self):
+        request.user = self.scuio_user
+        url = f"/api/get_slots_by_course/{self.slot.course.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        s = content['data'][0]
+        self.assertEqual(self.slot.id, s['id'])
+        self.assertEqual(self.slot.published, s['published'])
+        self.assertEqual(self.slot.course.label, s['course_label'])
+        self.assertEqual(self.slot.course_type.label, s['course_type'])
+        self.assertEqual(self.slot.course_type.full_label, s['course_type_full'])
+        self.assertEqual(_date(self.slot.date, 'l j F Y'), s['date'])
+        self.assertEqual(
+            f'{self.slot.start_time.strftime("%Hh%M")} - {self.slot.end_time.strftime("%Hh%M")}',
+            s['time']
+        )
+        self.assertEqual(f'{self.slot.building.label} - {self.slot.campus.label}', s['building'])
+        self.assertEqual(self.slot.room, s['room'])
+        self.assertEqual(
+            ', '.join([f'{t.first_name} {t.last_name.upper()}' for t in self.slot.teachers.all()]),
+            s['teachers']
+        )
+        self.assertEqual(self.slot.registered_students(), s['n_register'])
+        self.assertEqual(self.slot.n_places, s['n_places'])
+        self.assertEqual(self.slot.additional_information, s['additional_information'])
+
+
+    def test_API_ajax_get_slots_by_course__semester(self):
+        self.calendar.calendar_mode = "SEMESTER"
+        self.calendar.semester1_start_date = self.today - timedelta(days=10)
+        self.calendar.semester1_end_date = self.today + timedelta(days=10)
+        self.calendar.save()
+
+        request.user = self.scuio_user
+        url = f"/api/get_slots_by_course/{self.slot.course.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+
+    def test_API_ajax_get_slots_by_course__semester_2(self):
+        self.calendar.calendar_mode = "SEMESTER"
+        self.calendar.semester1_start_date = self.today - timedelta(days=10)
+        self.calendar.semester1_end_date = self.today - timedelta(days=9)
+        self.calendar.semester2_start_date = self.today - timedelta(days=8)
+        self.calendar.semester2_end_date = self.today + timedelta(days=10)
+        self.calendar.save()
+
+        request.user = self.scuio_user
+        url = f"/api/get_slots_by_course/{self.slot.course.id}"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = self.client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+
+
+    def test_API_ajax_delete_account__not_student_id(self):
+        request.user = self.scuio_user
+        url = "/api/delete_account"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_delete_account__wrong_user_group(self):
+        request.user = self.scuio_user
+        url = "/api/delete_account"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'student_id': self.ref_comp.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_delete_account(self):
+        request.user = self.scuio_user
+        url = "/api/delete_account"
+        uid = self.highschool_user.id
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'student_id': self.highschool_user.id, 'send_email': 'true'}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertFalse(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+        with self.assertRaises(ImmersionUser.DoesNotExist):
+            ImmersionUser.objects.get(pk=uid)
+
+    def test_API_ajax_cancel_registration__no_post_param(self):
+        request.user = self.scuio_user
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration__bad_user_id(self):
+        request.user = self.scuio_user
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': 0, 'reason_id': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration__bad_reason_id(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.highschool_user.id, 'reason_id': 0}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration__past_immersion(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today - timedelta(days=1)
+        self.slot.save()
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.highschool_user.id, 'reason_id': 0}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        self.assertIsNone(self.immersion.cancellation_type)
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.immersion.id, 'reason_id': self.cancel_type.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertFalse(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+        i = Immersion.objects.get(pk=self.immersion.id)
+        self.assertEqual(i.cancellation_type.id, self.cancel_type.id)
+
+    def test_API_ajax_set_attendance(self):
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertGreater(len(content['error']), 0)
+
+    def test_API_ajax_set_attendance__no_attendance_status(self):
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.immersion.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertGreater(len(content['error']), 0)
+
+    def test_API_ajax_set_attendance__immersion_id(self):
+        self.assertEqual(self.immersion.attendance_status, 0)
+
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.immersion.id, 'attendance_value': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertEqual(content['error'], '')
+        self.assertGreater(len(content['msg']), 0)
+
+        i = Immersion.objects.get(pk=self.immersion.id)
+        self.assertEqual(i.attendance_status, 1)
+
+    def test_API_ajax_set_attendance__immersion_idx(self):
+        self.assertEqual(self.immersion.attendance_status, 0)
+        self.assertEqual(self.immersion2.attendance_status, 0)
+
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data_immersion = json.dumps([self.immersion.id, self.immersion2.id])
+        data = {'immersion_ids': data_immersion, 'attendance_value': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['success'], '')
+        self.assertEqual(content['error'], '')
+        self.assertGreater(len(content['msg']), 0)
+
+        i = Immersion.objects.get(pk=self.immersion.id)
+        self.assertEqual(i.attendance_status, 1)
+        i = Immersion.objects.get(pk=self.immersion2.id)
+        self.assertEqual(i.attendance_status, 1)
+
+    def test_API_ajax_set_attendance__wrong_immersion_id(self):
+        request.user = self.scuio_user
+        url = "/api/set_attendance"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_ids': 0, 'attendance_value': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+
+        self.assertEqual(content['success'], '')
+        self.assertGreater(len(content['error']), 0)

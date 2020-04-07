@@ -497,16 +497,25 @@ def ajax_get_agreed_highschools(request):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_check_date_between_vacation(request):
-    response = {'data': [], 'msg': ''}
+    response = {'data': {}, 'msg': ''}
 
     _date = request.GET.get('date')
 
     if _date:
         # two format date
+        error = False
         try:
             formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
         except ValueError:
-            formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
+            error = True
+        if error:
+            try:
+                formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
+            except ValueError:
+                response['msg'] = gettext('Error: Wrong format date')
+                return JsonResponse(response, safe=False)
+
+
 
         response['data'] = {
             'is_between': (
@@ -758,7 +767,7 @@ def ajax_cancel_registration(request):
             immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
-        except ImmersionUser.DoesNotExist:
+        except Immersion.DoesNotExist:
             response = {'error': True, 'msg': gettext("User not found")}
         except CancelType.DoesNotExist:
             response = {'error': True, 'msg': gettext("Invalid cancellation reason #id")}
@@ -980,12 +989,19 @@ def ajax_set_attendance(request):
     immersion_id = request.POST.get('immersion_id', None)
     immersion_ids = request.POST.get('immersion_ids', None)
 
+    response = {'success': '', 'error': '', 'data': []}
+
     if immersion_ids:
         immersion_ids = json.loads(immersion_ids)
 
     attendance_value = request.POST.get('attendance_value')
+    if not attendance_value:
+        response['error'] = gettext("Error: no attendance status set in parameter")
+        return JsonResponse(response, safe=False)
 
-    response = {'success': '', 'error': '', 'data': []}
+    if not immersion_id and not immersion_ids:
+        response['error'] = gettext("Error: no immersion id found")
+        return JsonResponse(response, safe=False)
 
     if immersion_id and not immersion_ids:
         immersion_ids = [immersion_id]
