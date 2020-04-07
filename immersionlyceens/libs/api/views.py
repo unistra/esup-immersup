@@ -1006,15 +1006,18 @@ def ajax_set_attendance(request):
     immersion_id = request.POST.get('immersion_id', None)
     immersion_ids = request.POST.get('immersion_ids', None)
 
+    response = {'success': '', 'error': '', 'data': []}
+
     if immersion_ids:
         immersion_ids = json.loads(immersion_ids)
 
     attendance_value = request.POST.get('attendance_value')
-
-    response = {'success': '', 'error': '', 'data': []}
+    if not attendance_value:
+        response['error'] = gettext("Error: no attendance status set in parameter")
+        return JsonResponse(response, safe=False)
 
     if not immersion_id and not immersion_ids:
-        response['error'] = gettext("Error: no valid parameter")
+        response['error'] = gettext("Error: no immersion id found")
         return JsonResponse(response, safe=False)
 
     if immersion_id and not immersion_ids:
