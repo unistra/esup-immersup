@@ -1552,10 +1552,64 @@ class APITestCase(TestCase):
         url = "/api/delete_account"
         uid = self.highschool_user.id
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'student_id': self.highschool_user.id, 'send_email': True}
+        data = {'student_id': self.highschool_user.id, 'send_email': 'true'}
         content = json.loads(self.client.post(url, data, **header).content.decode())
 
         self.assertFalse(content['error'])
         self.assertGreater(len(content['msg']), 0)
         with self.assertRaises(ImmersionUser.DoesNotExist):
             ImmersionUser.objects.get(pk=uid)
+
+    def test_API_ajax_cancel_registration__no_post_param(self):
+        request.user = self.scuio_user
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration__bad_user_id(self):
+        request.user = self.scuio_user
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': 0, 'reason_id': 1}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration__bad_reason_id(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.highschool_user.id, 'reason_id': 0}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration__past_immersion(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today - timedelta(days=1)
+        self.slot.save()
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.highschool_user.id, 'reason_id': 0}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_registration(self):
+        request.user = self.scuio_user
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        self.assertIsNone(self.immersion.cancellation_type)
+        url = "/api/cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_id': self.immersion.id, 'reason_id': self.cancel_type.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertFalse(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+        i = Immersion.objects.get(pk=self.immersion.id)
+        self.assertEqual(i.cancellation_type.id, self.cancel_type.id)
