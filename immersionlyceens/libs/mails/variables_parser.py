@@ -105,7 +105,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
             registered_students.append("%s %s - %s" %
                 (registration.student.last_name, registration.student.first_name, institution))
 
-        vars += [('${listeInscrits}', '\n'.join(registered_students))]
+        vars += [('${listeInscrits}', '<br />'.join(sorted(registered_students)))]
 
 
     if immersion and immersion.cancellation_type:
@@ -151,10 +151,10 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
 
     if slot_list:
         slot_txt = [
-            "* %s (%s - %s) : %s (%s)<br /> -> %s"
+            "* %s (%s - %s) : %s (%s)<br />Bâtiment %s, salle %s<br /> -> %s"
             % (date_format(s.date), s.start_time.strftime("%-Hh%M"), s.end_time.strftime("%-Hh%M"),
-               s.course.label, s.course_type.label, ','.join([
-                "%s %s" % (t.first_name, t.last_name) for t in s.teachers.all()])
+               s.course.label, s.course_type.label, s.building, s.room,
+               ','.join(["%s %s" % (t.first_name, t.last_name) for t in s.teachers.all()])
             )
             for s in slot_list
         ]

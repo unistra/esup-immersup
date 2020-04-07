@@ -1300,3 +1300,20 @@ class UserCourseAlert(models.Model):
         unique_together = ('email', 'course')
         verbose_name = _('Course free slot alert')
         verbose_name_plural = _('Course free slot alerts')
+
+
+class HigherEducationInstitution(models.Model):
+    """
+    Database of french higher education schools (based on UAI codes)
+    """
+
+    uai_code = models.CharField(_("UAI Code"), max_length=20, primary_key=True, null=False)
+    label = models.CharField(_("Label"), max_length=512, null=True, blank=True)
+    city = models.CharField(_("City"), max_length=64, null=True, blank=True)
+    department = models.CharField(_("Department"), max_length=64, null=True, blank=True)
+    zip_code = models.CharField(_("Zip code"), max_length=10, null=True, blank=True)
+    country = models.CharField(_("Country"), max_length=50, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Higher education institution')
+        verbose_name_plural = _('Higher education institutions')

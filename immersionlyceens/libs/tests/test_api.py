@@ -6,7 +6,7 @@ import json
 import unittest
 from datetime import datetime, time, timedelta
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext, ugettext_lazy as _
 from django.template.defaultfilters import date as _date
 from compat.templatetags.compat import url
 from immersionlyceens.apps.core.models import (
@@ -73,6 +73,13 @@ class APITestCase(TestCase):
             first_name='student',
             last_name='STUDENT',
         )
+        self.student2 = get_user_model().objects.create_user(
+            username='student2',
+            password='pass',
+            email='student2@no-reply.com',
+            first_name='student2',
+            last_name='STUDENT2',
+        )
         self.cancel_type = CancelType.objects.create(label='Hello world')
         self.client = Client()
         self.client.login(username='scuio', password='pass')
@@ -84,6 +91,7 @@ class APITestCase(TestCase):
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user3)
         Group.objects.get(name='ETU').user_set.add(self.student)
+        Group.objects.get(name='ETU').user_set.add(self.student2)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
         self.today = datetime.today()
@@ -157,7 +165,7 @@ class APITestCase(TestCase):
             bachelor_type=3,
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
-            visible_email=True
+            visible_email=True,
         )
         self.hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
@@ -170,11 +178,19 @@ class APITestCase(TestCase):
             bachelor_type=3,
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
-            visible_email=True
+            visible_email=True,
         )
         self.student_record = StudentRecord.objects.create(
             student=self.student,
             home_institution='Université de Strasbourg',
+            civility=StudentRecord.CIVS[0][0],
+            birth_date=datetime.today(),
+            level=StudentRecord.LEVELS[0][0],
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
+        )
+        self.student_record2 = StudentRecord.objects.create(
+            student=self.student2,
+            home_institution='Université de Lille',
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
@@ -1292,37 +1308,42 @@ class APITestCase(TestCase):
         self.assertEqual(stu['school'], self.student_record.home_institution)
         self.assertEqual(stu['city'], '')
 
-    def test_API_ajax_get_students(self):
+    def test_API_ajax_get_available_students(self):
         request.user = self.scuio_user
 
-        url = f"/api/get_students"
+        self.hs_record.validation = 2
+        self.hs_record.save()
+        self.hs_record2.validation = 2
+        self.hs_record2.save()
+
+        url = f"/api/get_available_students/%s" % self.slot.id
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.get(url, request, **header)
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
-        self.assertEqual(len(content['data']), 4)
+        self.assertEqual(len(content['data']), 2)
         stu = content['data'][0]
         hs = content['data'][1]
 
-        self.assertEqual(self.student.id, stu['id'])
-        self.assertEqual(self.student.first_name, stu['firstname'])
-        self.assertEqual(self.student.last_name, stu['lastname'])
-        self.assertEqual(_('Student'), stu['profile'])
-        self.assertEqual(self.student_record.home_institution, stu['school'])
+        self.assertEqual(self.student2.id, stu['id'])
+        self.assertEqual(self.student2.first_name, stu['firstname'])
+        self.assertEqual(self.student2.last_name, stu['lastname'])
+        self.assertEqual(pgettext('person type', 'Student'), stu['profile'])
+        self.assertEqual(self.student_record2.home_institution, stu['school'])
         self.assertEqual('', stu['level'])
         self.assertEqual('', stu['city'])
         self.assertEqual('', stu['class'])
 
-        self.assertEqual(self.highschool_user.id, hs['id'])
-        self.assertEqual(self.highschool_user.first_name, hs['firstname'])
-        self.assertEqual(self.highschool_user.last_name, hs['lastname'])
+        self.assertEqual(self.highschool_user2.id, hs['id'])
+        self.assertEqual(self.highschool_user2.first_name, hs['firstname'])
+        self.assertEqual(self.highschool_user2.last_name, hs['lastname'])
         self.assertEqual(_('High-school student'), hs['profile'])
-        self.assertEqual(self.hs_record.highschool.label, hs['school'])
+        self.assertEqual(self.hs_record2.highschool.label, hs['school'])
         self.assertEqual('', hs['level'])
-        self.assertEqual(self.hs_record.highschool.city, hs['city'])
-        self.assertEqual(self.hs_record.class_name, hs['class'])
+        self.assertEqual(self.hs_record2.highschool.city, hs['city'])
+        self.assertEqual(self.hs_record2.class_name, hs['class'])
 
     def test_API_ajax_get_highschool_students__no_record(self):
         request.user = self.scuio_user

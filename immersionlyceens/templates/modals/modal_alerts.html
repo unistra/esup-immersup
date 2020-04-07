@@ -21,11 +21,13 @@
                 <th>{% trans 'Training' %}</th>
                 <th>{% trans 'Domain(s)' %}</th>
                 <th>{% trans 'Subdomain(s)' %}</th>
+                <th>{% trans 'Notification sent' %}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -144,6 +146,15 @@ dtr = $('#alerts_table').DataTable({
         });
 
         return txt;
+      }
+    },
+    { "data": "email_sent",
+      "render": function (data, type, row) {
+        if (data == true) {
+          return "{% trans 'Yes' %}";
+        } else {
+          return "{% trans 'No' %}";
+        }
       }
     },
     { "data": "",

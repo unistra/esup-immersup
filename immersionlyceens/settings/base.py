@@ -401,6 +401,7 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_SN": (True, "last_name"),
     "HTTP_REMOTE_USER": (True, "username"),
     "HTTP_MAIL": (True, "email"),
+    "HTTP_SUPANNETABLISSEMENT": (True, "home_institution"),
 }
 
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
@@ -502,3 +503,12 @@ DEFAULT_NB_WEEKS_COMPONENTS_SLOT_REMINDER = 1
 # Mailing list subscriber files directory
 BASE_FILES_DIR = ""
 MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
+
+# Opendata
+# This should be a stable URL according to this site :
+# https://www.data.gouv.fr/fr/datasets/etablissements-denseignement-superieur-2
+# INSTITUTES_URL = "https://api.opendata.onisep.fr/downloads/57da952417293/57da952417293.json"
+INSTITUTES_URL = "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?"+\
+    "dataset=fr-esr-principaux-etablissements-enseignement-superieur&facet=uai&facet=type_d_etablissement"+\
+    "&facet=com_nom&facet=dep_nom&facet=aca_nom&facet=reg_nom&facet=pays_etranger_acheminement"+\
+    "&rows=%s&start=%s" # don't forget to add rows and start values in requests for pagination

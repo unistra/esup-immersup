@@ -183,8 +183,9 @@ def offer_subdomain(request, subdomain_id):
             if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
                 semester = 1
                 cal_start_date = calendar.semester1_start_date
-                cal_end_date = calendar.semester1_end_date
+                cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester1_registration_start_date
+                reg_semester2_start_date = calendar.semester2_registration_start_date
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
                 semester = 2
                 cal_start_date = calendar.semester2_start_date
@@ -210,7 +211,7 @@ def offer_subdomain(request, subdomain_id):
                 'training': training,
                 'course': course,
                 'slots': None,
-                'alert': ([s.available_seats() == 0 for s in slots] or not slots),
+                'alert': (not slots or all([s.available_seats() == 0 for s in slots])),
             }
 
             # If the current user is a student, check whether he can register
@@ -219,6 +220,7 @@ def offer_subdomain(request, subdomain_id):
                     slot.already_registered = False
                     slot.can_register = False
                     slot.cancelled = False
+                    slot.opening_soon = False
                     # Already registered / cancelled ?
                     for immersion in student.immersions.all():
                         if immersion.slot == slot:
@@ -230,14 +232,23 @@ def offer_subdomain(request, subdomain_id):
                     if not slot.already_registered or slot.cancelled:
                         if slot.available_seats() > 0:
                             # TODO: should be rewritten used before with remaining_seats annual or by semester!
-                            if calendar.calendar_mode == 'YEAR' and reg_start_date <= today <= cal_end_date:
-                                slot.can_register = True
-                            # Check if we could register with reg_date
-                            elif semester == 1 or semester == 2:
-                                if reg_start_date <= today:
+                            if calendar.calendar_mode == 'YEAR':
+                                if reg_start_date <= today <= cal_end_date:
                                     slot.can_register = True
-                                else:
+                                elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
                                     slot.opening_soon = True
+                            # Check if we could register with reg_date
+                            elif semester == 1:
+                                if reg_start_date <= today and slot.date < reg_semester2_start_date:
+                                    slot.can_register = True
+                                elif slot.date > reg_semester2_start_date or today < reg_start_date:
+                                    slot.opening_soon = True
+                            elif semester == 2:
+                                if today >= reg_start_date:
+                                    slot.can_register = True
+                                elif today < reg_start_date:
+                                    slot.opening_soon = True
+
             else:
                 for slot in slots:
                     slot.cancelled = False

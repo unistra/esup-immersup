@@ -20,7 +20,8 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
-    ImmersionUser, UniversityYear, Calendar, Immersion, CancelType, UserCourseAlert)
+    ImmersionUser, UniversityYear, Calendar, Immersion, CancelType, UserCourseAlert,
+    HigherEducationInstitution)
 from immersionlyceens.libs.utils import check_active_year
 from immersionlyceens.decorators import groups_required
 
@@ -541,14 +542,32 @@ def student_record(request, student_id=None, record_id=None):
         student = request.user
         record = student.get_student_record()
 
+        uai_code = None
+        institution = None
+
+        try:
+            shib_attrs = request.session.get("shib", {})
+            uai_code = shib_attrs.get("home_institution")
+        except Exception:
+            logger.error("Cannot retrieve uai code from shibboleth data")
+
+        if uai_code and uai_code.startswith('{UAI}'):
+            try:
+                institution = HigherEducationInstitution.objects.get(pk=uai_code.replace('{UAI}', ''))
+            except HigherEducationInstitution.DoesNotExist:
+                pass
+
         if not record:
             record = StudentRecord(
                 student=request.user,
-                home_institution="TEST",
+                home_institution=institution.label if institution else uai_code or '-',
                 allowed_global_registrations=calendar.year_nb_authorized_immersion,
                 allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
                 allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester
             )
+        elif institution and record.home_institution != institution.label:
+            record.home_institution = institution.label
+            record.save()
     elif record_id:
         try:
             record = StudentRecord.objects.get(pk=record_id)
@@ -639,9 +658,15 @@ def immersions(request):
 
     alerts_cnt = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).count()
 
+    alerts = UserCourseAlert.objects.filter(email=request.user.email)
+    not_sent_alerts_cnt = alerts.filter(email_sent=False).count()
+    sent_alerts_cnt = alerts.filter(email_sent=True).count()
+
     context = {
         'cancellation_reasons': cancellation_reasons,
-        'alerts_cnt': alerts_cnt,
+        'alerts_cnt': alerts.count(),
+        'not_sent_alerts_cnt': not_sent_alerts_cnt,
+        'sent_alerts_cnt': sent_alerts_cnt,
     }
 
     return render(request, 'immersion/my_immersions.html', context)

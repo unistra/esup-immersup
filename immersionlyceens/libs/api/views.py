@@ -19,29 +19,12 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext, pgettext, ugettext_lazy as _
 
 from immersionlyceens.apps.core.models import (
-    Building,
-    Calendar,
-    CancelType,
-    Component,
-    Course,
-    GeneralSettings,
-    HighSchool,
-    Holiday,
-    Immersion,
-    ImmersionUser,
-    MailTemplate,
-    MailTemplateVars,
-    PublicDocument,
-    Slot,
-    Training,
-    TrainingDomain,
-    UniversityYear,
-    UserCourseAlert,
-    Vacation,
+    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool,
+    Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument,
+    Slot, Training, TrainingDomain, UniversityYear, UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
@@ -633,7 +616,7 @@ def ajax_get_slots_by_course(request, course_id=None):
             else '-',
             'room': slot.room if slot.room is not None else '-',
             'teachers': ', '.join(['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]),
-            'n_register': 10,  # todo: registration count
+            'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
             'additional_information': slot.additional_information,
         }
@@ -1077,13 +1060,11 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Only valid Highschool students
-    if (
-        student.is_high_school_student
-        and not student.is_valid()
-        and not student.get_high_school_student_record().is_valid()
-    ):
-        response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
-        return JsonResponse(response, safe=False)
+    if student.is_high_school_student and not student.is_valid():
+        record = student.get_high_school_student_record()
+        if not record or (record and not record.is_valid()):
+            response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
+            return JsonResponse(response, safe=False)
 
     # Check if slot is not past
     if slot.date <= today:
@@ -1234,45 +1215,44 @@ def ajax_slot_registration(request):
 @login_required
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_students(request):
-
+def ajax_get_available_students(request, slot_id):
+    """
+    Get students list for manual slot registration
+    Students must have a valid record and not already registered to the slot
+    """
     response = {'data': [], 'msg': ''}
-
-    students = []
-
-    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU'])
+    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU'])\
+        .exclude(immersions__slot__id=slot_id)
 
     for student in students:
-        student_data = {
-            'id': student.pk,
-            'lastname': student.last_name,
-            'firstname': student.first_name,
-            'profile': '',
-            'school': '',
-            'level': '',
-            'city': '',
-        }
+        record = None
 
         if student.is_high_school_student():
-            student_data['profile'] = _('High-school student')
-
             record = student.get_high_school_student_record()
+        elif student.is_student():
+            record = student.get_student_record()
 
-            if record:
+        if record and record.is_valid():
+            student_data = {
+                'id': student.pk,
+                'lastname': student.last_name,
+                'firstname': student.first_name,
+                'school': '',
+                'class': '',
+                'level': '',
+                'city': '',
+            }
+
+            if student.is_high_school_student():
+                student_data['profile'] = pgettext("person type", "High school student")
                 student_data['school'] = record.highschool.label
                 student_data['city'] = record.highschool.city
                 student_data['class'] = record.class_name
-
-        elif student.is_student():
-            student_data['profile'] = _('Student')
-
-            record = student.get_student_record()
-
-            if record:
+            elif student.is_student():
+                student_data['profile'] = pgettext("person type", "Student")
                 student_data['school'] = record.home_institution
-                student_data['class'] = ""
 
-        response['data'].append(student_data.copy())
+            response['data'].append(student_data.copy())
 
     return JsonResponse(response, safe=False)
 
@@ -1315,14 +1295,19 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
     for student in students:
         record = None
+        student_type = _('Unknown')
         link = ''
         try:
             if student.is_high_school_student():
-                record = student.high_school_student_record
-                link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
+                record = student.get_high_school_student_record()
+                if record:
+                    link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
+                student_type = pgettext("person type", "High school student")
             else:
-                record = student.student_record
-                link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
+                record = student.get_student_record()
+                if record:
+                    link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
+                student_type = pgettext("person type", "Student")
         except Exception:
             pass
 
@@ -1337,6 +1322,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
             'class': '',
             'registered': student.immersions.exists(),
             'record_link': link,
+            'student_type': student_type
         }
 
         if record:
@@ -1598,43 +1584,54 @@ def get_csv_anonymous_immersion(request):
 
     slots = Slot.objects.filter(published=True)
     for slot in slots:
-        immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
+        immersions = Immersion.objects.prefetch_related('slot').filter(slot=slot, cancellation_type__isnull=True)
         if immersions.count() > 0:
             for imm in immersions:
                 institution = ''
                 level = ''
-                if imm.student.is_student():
-                    record = StudentRecord.objects.get(student=imm.student)
-                    institution = record.home_institution
-                    level = StudentRecord.LEVELS[record.level - 1][1]
-                elif imm.student.is_high_school_student():
-                    record = HighSchoolStudentRecord.objects.get(student=imm.student)
-                    institution = record.highschool.label
-                    level = HighSchoolStudentRecord.LEVELS[record.level - 1][1]
+                record = None
 
-                content.append(
-                    [
-                        slot.course.component.label,
-                        infield_separator.join(
-                            [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                        ),
-                        infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                        slot.course.training.label,
-                        slot.course.label,
-                        slot.course_type.label,
-                        _date(slot.date, 'd/m/Y'),
-                        slot.start_time.strftime('%H:%M'),
-                        slot.end_time.strftime('%H:%M'),
-                        slot.campus.label,
-                        slot.building.label,
-                        slot.room,
-                        slot.registered_students(),
-                        slot.n_places,
-                        slot.additional_information,
-                        institution,
-                        level,
-                    ]
-                )
+                if imm.student.is_student():
+                    try:
+                        record = StudentRecord.objects.get(student=imm.student)
+                        institution = record.home_institution
+                        level = StudentRecord.LEVELS[record.level - 1][1]
+                    except StudentRecord.DoesNotExist:
+                        pass
+                elif imm.student.is_high_school_student():
+                    try:
+                        record = HighSchoolStudentRecord.objects.get(student=imm.student)
+                        institution = record.highschool.label
+                        level = HighSchoolStudentRecord.LEVELS[record.level - 1][1]
+                    except HighSchoolStudentRecord.DoesNotExist:
+                        pass
+
+                if record:
+                    content.append(
+                        [
+                            slot.course.component.label,
+                            infield_separator.join(
+                                [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                            ),
+                            infield_separator.join(
+                                [sub.label for sub in slot.course.training.training_subdomains.all()]
+                            ),
+                            slot.course.training.label,
+                            slot.course.label,
+                            slot.course_type.label,
+                            _date(slot.date, 'd/m/Y'),
+                            slot.start_time.strftime('%H:%M'),
+                            slot.end_time.strftime('%H:%M'),
+                            slot.campus.label,
+                            slot.building.label,
+                            slot.room,
+                            slot.registered_students(),
+                            slot.n_places,
+                            slot.additional_information,
+                            institution,
+                            level,
+                        ]
+                    )
         else:
             content.append(
                 [
@@ -1837,14 +1834,12 @@ def ajax_get_alerts(request):
     """
     response = {'data': [], 'msg': ''}
 
-    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain').filter(
-        email=request.user.email, email_sent=False
-    )
+    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain')\
+        .filter(email=request.user.email)
 
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
         domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
-        # domains = set([subdomain.training_domain.label for subdomain in subdomains])
 
         alert_data = {
             'id': alert.id,
@@ -1852,6 +1847,7 @@ def ajax_get_alerts(request):
             'training': alert.course.training.label,
             'subdomains': [subdomain.label for subdomain in subdomains],
             'domains': [domain.label for domain in domains],
+            'email_sent': alert.email_sent
         }
 
         response['data'].append(alert_data.copy())
