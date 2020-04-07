@@ -1835,14 +1835,12 @@ def ajax_get_alerts(request):
     """
     response = {'data': [], 'msg': ''}
 
-    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain').filter(
-        email=request.user.email, email_sent=False
-    )
+    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain')\
+        .filter(email=request.user.email)
 
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
         domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
-        # domains = set([subdomain.training_domain.label for subdomain in subdomains])
 
         alert_data = {
             'id': alert.id,
@@ -1850,6 +1848,7 @@ def ajax_get_alerts(request):
             'training': alert.course.training.label,
             'subdomains': [subdomain.label for subdomain in subdomains],
             'domains': [domain.label for domain in domains],
+            'email_sent': alert.email_sent
         }
 
         response['data'].append(alert_data.copy())

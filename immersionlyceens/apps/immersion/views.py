@@ -658,9 +658,15 @@ def immersions(request):
 
     alerts_cnt = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).count()
 
+    alerts = UserCourseAlert.objects.filter(email=request.user.email)
+    not_sent_alerts_cnt = alerts.filter(email_sent=False).count()
+    sent_alerts_cnt = alerts.filter(email_sent=True).count()
+
     context = {
         'cancellation_reasons': cancellation_reasons,
-        'alerts_cnt': alerts_cnt,
+        'alerts_cnt': alerts.count(),
+        'not_sent_alerts_cnt': not_sent_alerts_cnt,
+        'sent_alerts_cnt': sent_alerts_cnt,
     }
 
     return render(request, 'immersion/my_immersions.html', context)
