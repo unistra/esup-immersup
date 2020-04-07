@@ -3115,7 +3115,7 @@ msgstr "Cliquez ici pour voir vos alertes (%(alerts_cnt)s)"
 
 #: immersionlyceens/templates/immersion/my_immersions.html:29
 msgid "You have no course alert"
-msgstr "Vous n'avez paramétré aucune alerte"
+msgstr "Vous n'avez enregistré aucune alerte"
 
 #: immersionlyceens/templates/immersion/my_immersions.html:43
 msgid "Immersions to come"
@@ -3534,7 +3534,7 @@ msgstr "M'avertir quand une place est disponible"
 
 #: immersionlyceens/templates/offer_subdomains.html:72
 msgid "Availability alert set"
-msgstr "Alerte paramétrée"
+msgstr "Alerte enregistrée"
 
 #: immersionlyceens/templates/offer_subdomains.html:90
 msgid "Teacher(s)"
