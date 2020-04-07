@@ -1215,45 +1215,44 @@ def ajax_slot_registration(request):
 @login_required
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_students(request):
-
+def ajax_get_available_students(request, slot_id):
+    """
+    Get students list for manual slot registration
+    Students must have a valid record and not already registered to the slot
+    """
     response = {'data': [], 'msg': ''}
-
-    students = []
-
-    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU'])
+    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU'])\
+        .exclude(immersions__slot__id=slot_id)
 
     for student in students:
-        student_data = {
-            'id': student.pk,
-            'lastname': student.last_name,
-            'firstname': student.first_name,
-            'profile': '',
-            'school': '',
-            'level': '',
-            'city': '',
-        }
+        record = None
 
         if student.is_high_school_student():
-            student_data['profile'] = _('High-school student')
-
             record = student.get_high_school_student_record()
+        elif student.is_student():
+            record = student.get_student_record()
 
-            if record:
+        if record and record.is_valid():
+            student_data = {
+                'id': student.pk,
+                'lastname': student.last_name,
+                'firstname': student.first_name,
+                'school': '',
+                'class': '',
+                'level': '',
+                'city': '',
+            }
+
+            if student.is_high_school_student():
+                student_data['profile'] = pgettext("person type", "High school student")
                 student_data['school'] = record.highschool.label
                 student_data['city'] = record.highschool.city
                 student_data['class'] = record.class_name
-
-        elif student.is_student():
-            student_data['profile'] = _('Student')
-
-            record = student.get_student_record()
-
-            if record:
+            elif student.is_student():
+                student_data['profile'] = pgettext("person type", "Student")
                 student_data['school'] = record.home_institution
-                student_data['class'] = ""
 
-        response['data'].append(student_data.copy())
+            response['data'].append(student_data.copy())
 
     return JsonResponse(response, safe=False)
 
