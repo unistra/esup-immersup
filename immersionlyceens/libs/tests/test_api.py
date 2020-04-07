@@ -1344,7 +1344,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.highschool_user2.id, hs['id'])
         self.assertEqual(self.highschool_user2.first_name, hs['firstname'])
         self.assertEqual(self.highschool_user2.last_name, hs['lastname'])
-        self.assertEqual(_('High-school student'), hs['profile'])
+        self.assertEqual(pgettext('person type', 'High school student'), hs['profile'])
         self.assertEqual(self.hs_record2.highschool.label, hs['school'])
         self.assertEqual('', hs['level'])
         self.assertEqual(self.hs_record2.highschool.city, hs['city'])
