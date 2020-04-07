@@ -1013,6 +1013,10 @@ def ajax_set_attendance(request):
 
     response = {'success': '', 'error': '', 'data': []}
 
+    if not immersion_id and not immersion_ids:
+        response['error'] = gettext("Error: no valid parameter")
+        return JsonResponse(response, safe=False)
+
     if immersion_id and not immersion_ids:
         immersion_ids = [immersion_id]
 
