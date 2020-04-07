@@ -105,7 +105,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
             registered_students.append("%s %s - %s" %
                 (registration.student.last_name, registration.student.first_name, institution))
 
-        vars += [('${listeInscrits}', '\n'.join(registered_students))]
+        vars += [('${listeInscrits}', '<br />'.join(sorted(registered_students)))]
 
 
     if immersion and immersion.cancellation_type:
