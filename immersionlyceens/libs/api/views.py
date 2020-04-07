@@ -19,8 +19,8 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext, pgettext, ugettext_lazy as _
-
+from django.utils.translation import gettext, pgettext
+from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.apps.core.models import (
     Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool,
     Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument,
@@ -864,7 +864,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         if immersion.slot.date < today:
             immersion_data['time_type'] = "past"
         elif immersion.slot.date > today or (
-            immersion.slot.date == today and immersion.slot.begin_time > datetime.datetime.today().time()
+            immersion.slot.date == today and immersion.slot.start_time > datetime.datetime.today().time()
         ):
             immersion_data['time_type'] = "future"
 
@@ -1221,8 +1221,7 @@ def ajax_get_available_students(request, slot_id):
     Students must have a valid record and not already registered to the slot
     """
     response = {'data': [], 'msg': ''}
-    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU'])\
-        .exclude(immersions__slot__id=slot_id)
+    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU']).exclude(immersions__slot__id=slot_id)
 
     for student in students:
         record = None
@@ -1322,7 +1321,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
             'class': '',
             'registered': student.immersions.exists(),
             'record_link': link,
-            'student_type': student_type
+            'student_type': student_type,
         }
 
         if record:
@@ -1834,8 +1833,9 @@ def ajax_get_alerts(request):
     """
     response = {'data': [], 'msg': ''}
 
-    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain')\
-        .filter(email=request.user.email)
+    alerts = UserCourseAlert.objects.prefetch_related('course__training__training_subdomains__training_domain').filter(
+        email=request.user.email
+    )
 
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
@@ -1847,7 +1847,7 @@ def ajax_get_alerts(request):
             'training': alert.course.training.label,
             'subdomains': [subdomain.label for subdomain in subdomains],
             'domains': [domain.label for domain in domains],
-            'email_sent': alert.email_sent
+            'email_sent': alert.email_sent,
         }
 
         response['data'].append(alert_data.copy())
