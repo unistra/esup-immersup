@@ -784,7 +784,7 @@ def ajax_cancel_registration(request):
             immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
 
             response = {'error': False, 'msg': gettext("Immersion cancelled")}
-        except ImmersionUser.DoesNotExist:
+        except Immersion.DoesNotExist:
             response = {'error': True, 'msg': gettext("User not found")}
         except CancelType.DoesNotExist:
             response = {'error': True, 'msg': gettext("Invalid cancellation reason #id")}
