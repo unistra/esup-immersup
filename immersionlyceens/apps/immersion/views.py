@@ -1,37 +1,40 @@
-import uuid
 import logging
+import uuid
 from datetime import datetime, timedelta
 
-from django.shortcuts import redirect, render
-from django.http import HttpResponse, HttpResponseRedirect
-from django.db.models import Q
-from django.core.exceptions import ValidationError
-from django.contrib.auth import authenticate, login, update_session_auth_hash, views as auth_views
-from django.contrib.auth.models import Group
-from django.contrib.auth.password_validation import validate_password, password_validators_help_text_html
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, update_session_auth_hash
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import Group
+from django.contrib.auth.password_validation import password_validators_help_text_html, validate_password
 from django.contrib.sessions.models import Session
-from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
+from immersionlyceens.apps.core.models import (
+    AttendanceCertificateModel, Calendar, CancelType, HigherEducationInstitution,
+    Immersion, ImmersionUser, UniversityYear, UserCourseAlert,
+)
+from immersionlyceens.decorators import groups_required
+from immersionlyceens.libs.utils import check_active_year
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
-from immersionlyceens.apps.core.models import (
-    ImmersionUser, UniversityYear, Calendar, Immersion, CancelType, UserCourseAlert,
-    HigherEducationInstitution)
-from immersionlyceens.libs.utils import check_active_year
-from immersionlyceens.decorators import groups_required
-
+from .forms import (
+    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
+    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
+)
 from .models import HighSchoolStudentRecord, StudentRecord
-
-from .forms import (LoginForm, RegistrationForm, HighSchoolStudentRecordForm,
-    HighSchoolStudentForm, NewPassForm, StudentRecordForm, StudentForm)
-
+from .utils import GenerateDocx
 
 logger = logging.getLogger(__name__)
+
 
 def customLogin(request, profile=None):
     """
@@ -49,15 +52,16 @@ def customLogin(request, profile=None):
         context = {
             'start_date': year.start_date if year else None,
             'end_date': year.end_date if year else None,
-            'reg_date': year.registration_start_date if year else None
+            'reg_date': year.registration_start_date if year else None,
         }
         return render(request, 'immersion/nologin.html', context)
 
-
     # Is current university year valid ?
     if not profile and not check_active_year():
-        return render(request, 'immersion/nologin.html',
-            { 'msg' : _("Sorry, the university year has not begun (or already over), you can't login yet.") }
+        return render(
+            request,
+            'immersion/nologin.html',
+            {'msg': _("Sorry, the university year has not begun (or already over), you can't login yet.")},
         )
 
     if request.method == 'POST':
@@ -89,10 +93,7 @@ def customLogin(request, profile=None):
     else:
         form = LoginForm()
 
-    context = {
-        'form': form,
-        'profile': profile
-    }
+    context = {'form': form, 'profile': profile}
 
     return render(request, 'immersion/login.html', context)
 
@@ -108,8 +109,7 @@ def shibbolethLogin(request, profile=None):
         if not error:
             new_user = ImmersionUser.objects.create(**shib_attrs)
             new_user.set_validation_string()
-            new_user.destruction_date = \
-                datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+            new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
 
             try:
@@ -168,7 +168,7 @@ def register(request):
         context = {
             'start_date': year.start_date if year else None,
             'end_date': year.end_date if year else None,
-            'reg_date': year.registration_start_date if year else None
+            'reg_date': year.registration_start_date if year else None,
         }
         return render(request, 'immersion/nologin.html', context)
 
@@ -180,8 +180,7 @@ def register(request):
             # adjustments here
             new_user.username = form.cleaned_data.get("username")
             new_user.set_validation_string()
-            new_user.destruction_date = \
-                datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+            new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
 
             try:
@@ -205,9 +204,7 @@ def register(request):
     else:
         form = RegistrationForm()
 
-    context = {
-        'form': form
-    }
+    context = {'form': form}
 
     return render(request, 'immersion/registration.html', context)
 
@@ -260,14 +257,14 @@ def reset_password(request, hash=None):
                 user.recovery_string = None
                 user.save()
                 messages.success(request, _("Password successfully updated."))
-                
+
                 # Different login redirection, depending on user group
                 # TODO : create a get_login_url in ImmersionUser ?
                 redirection = "/immersion/login/ref-lyc" if user.is_high_school_manager else "/immersion/login"
-                
+
                 return HttpResponseRedirect(redirection)
 
-            return render(request, 'immersion/reset_password.html', {'form':form})
+            return render(request, 'immersion/reset_password.html', {'form': form})
     elif hash:
         try:
             user = ImmersionUser.objects.get(recovery_string=hash)
@@ -287,23 +284,24 @@ def reset_password(request, hash=None):
         return render(request, 'immersion/reset_password.html', context)
 
     else:
-        del(request.session['user_id'])
+        del request.session['user_id']
         return HttpResponseRedirect("/immersion/login")
 
+
 @login_required
-@groups_required("LYC","REF-LYC")
+@groups_required("LYC", "REF-LYC")
 def change_password(request):
     """
     Change password view for high-school students and high-school managers
     """
     if request.method == "POST":
         password_form = PasswordChangeForm(data=request.POST, user=request.user)
-        
+
         try:
             validate_password(request.POST.get('new_password1'))
         except ValidationError as e:
             pass
-        
+
         if password_form.is_valid():
             password_form.save()
             update_session_auth_hash(request, password_form.user)
@@ -313,7 +311,7 @@ def change_password(request):
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
-        
+
     else:
         password_form = PasswordChangeForm(request.user)
         messages.info(request, password_validators_help_text_html())
@@ -321,7 +319,7 @@ def change_password(request):
     context = {
         'form': password_form,
     }
-    
+
     return render(request, 'immersion/change_password.html', context)
 
 
@@ -362,22 +360,19 @@ def resend_activation(request):
                 msg = user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
                 messages.success(request, _("The activation message have been resent."))
 
-    context = {
-        'email': email
-    }
+    context = {'email': email}
 
     return render(request, 'immersion/resend_activation.html', context)
 
 
 @login_required
 def home(request):
-    context = {
-    }
+    context = {}
     return render(request, 'immersion/home.html', context)
 
 
 @login_required
-@groups_required('SCUIO-IP','LYC')
+@groups_required('SCUIO-IP', 'LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
@@ -407,7 +402,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 student=request.user,
                 allowed_global_registrations=calendar.year_nb_authorized_immersion,
                 allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester
+                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester,
             )
     elif record_id:
         try:
@@ -443,10 +438,14 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
-                    messages.warning(request, _(
-                        """You have updated the email."""
-                        """<br>Warning : the new email is also the new login."""
-                        """<br>A new activation email has been sent."""))
+                    messages.warning(
+                        request,
+                        _(
+                            """You have updated the email."""
+                            """<br>Warning : the new email is also the new login."""
+                            """<br>A new activation email has been sent."""
+                        ),
+                    )
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
         else:
@@ -466,16 +465,19 @@ def high_school_student_record(request, student_id=None, record_id=None):
             # Look for duplicated records
             if record.search_duplicates():
                 if request.user.is_high_school_student():
-                    messages.warning(request,
-                        _("A record already exists with this identity, please contact the SCUIO-IP team."))
+                    messages.warning(
+                        request, _("A record already exists with this identity, please contact the SCUIO-IP team.")
+                    )
                 else:
-                    messages.warning(request,
-                        _("A record already exists with this identity, look at duplicate records."))
+                    messages.warning(
+                        request, _("A record already exists with this identity, look at duplicate records.")
+                    )
 
             if record.validation == 1:
                 if request.user.is_high_school_student():
-                    messages.success(request,
-                        _("Thank you. Your record is awaiting validation from your high-school referent."))
+                    messages.success(
+                        request, _("Thank you. Your record is awaiting validation from your high-school referent.")
+                    )
 
             messages.success(request, _("Record successfully saved."))
 
@@ -496,12 +498,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
     now = datetime.today().time()
 
     past_immersions = student.immersions.filter(
-        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
-        cancellation_type__isnull=True).count()
+        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
+    ).count()
 
     future_immersions = student.immersions.filter(
-        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now),
-        cancellation_type__isnull=True).count()
+        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
+    ).count()
 
     context = {
         'calendar': calendar,
@@ -518,7 +520,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
 
 @login_required
-@groups_required('SCUIO-IP','ETU')
+@groups_required('SCUIO-IP', 'ETU')
 def student_record(request, student_id=None, record_id=None):
     """
     Student record
@@ -527,7 +529,7 @@ def student_record(request, student_id=None, record_id=None):
     student = None
     calendar = None
 
-    calendars = Calendar.objects.all()   
+    calendars = Calendar.objects.all()
     if calendars:
         calendar = calendars.first()
 
@@ -563,7 +565,7 @@ def student_record(request, student_id=None, record_id=None):
                 home_institution=institution.label if institution else uai_code or '-',
                 allowed_global_registrations=calendar.year_nb_authorized_immersion,
                 allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
-                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester
+                allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester,
             )
         elif institution and record.home_institution != institution.label:
             record.home_institution = institution.label
@@ -596,9 +598,9 @@ def student_record(request, student_id=None, record_id=None):
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
-                    messages.warning(request, _(
-                        """You have updated the email."""
-                        """<br>A new activation email has been sent."""))
+                    messages.warning(
+                        request, _("""You have updated the email.""" """<br>A new activation email has been sent.""")
+                    )
                 except Exception as e:
                     logger.exception("Cannot send 'change mail' message : %s", e)
 
@@ -627,12 +629,12 @@ def student_record(request, student_id=None, record_id=None):
     now = datetime.today().time()
 
     past_immersions = student.immersions.filter(
-        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now),
-        cancellation_type__isnull=True).count()
+        Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
+    ).count()
 
     future_immersions = student.immersions.filter(
-        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now),
-        cancellation_type__isnull=True).count()
+        Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
+    ).count()
 
     context = {
         'calender': calendar,
@@ -647,8 +649,9 @@ def student_record(request, student_id=None, record_id=None):
 
     return render(request, 'immersion/student_record.html', context)
 
+
 @login_required
-@groups_required('LYC','ETU')
+@groups_required('LYC', 'ETU')
 def immersions(request):
     """
     Students : display to come, past and cancelled immersions
@@ -670,4 +673,27 @@ def immersions(request):
     }
 
     return render(request, 'immersion/my_immersions.html', context)
-    
+
+    @login_required
+    @groups_required('LYC', 'ETU')
+    def immersion_attestation_download(request, immersion_id):
+        try:
+            student = request.user
+
+            immersion = Immersion.objects.prefetch_related(
+                'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
+            ).filter(student_id=student.pk)
+
+            doc = AttendanceCertificateModel.object.first()
+
+            f = GenerateDocx(user=student, doc=doc, immersion=immersion)
+
+            response = HttpResponse(
+                f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            )
+            response['Content-Disposition'] = 'attachment; filename=example.docx'
+            response['Content-Length'] = f.tell()
+            return response
+        except Exception as e:
+            print(e)
+            pass
