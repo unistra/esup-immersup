@@ -1,6 +1,7 @@
 import logging
 import uuid
 from datetime import datetime, timedelta
+from io import BytesIO
 
 from django.conf import settings
 from django.contrib import messages
@@ -17,21 +18,22 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from shibboleth.decorators import login_optional
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
+
 from immersionlyceens.apps.core.models import (
     AttendanceCertificateModel, Calendar, CancelType, HigherEducationInstitution,
     Immersion, ImmersionUser, UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.utils import check_active_year
-from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from .forms import (
     HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
     NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
-from .utils import GenerateDocx
+from .utils import merge_docx
 
 logger = logging.getLogger(__name__)
 
@@ -674,26 +676,25 @@ def immersions(request):
 
     return render(request, 'immersion/my_immersions.html', context)
 
-    @login_required
-    @groups_required('LYC', 'ETU')
-    def immersion_attestation_download(request, immersion_id):
-        try:
-            student = request.user
 
-            immersion = Immersion.objects.prefetch_related(
-                'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
-            ).filter(student_id=student.pk)
+@login_required
+@groups_required('LYC', 'ETU')
+def immersion_attestation_download(request, immersion_id):
+    student = request.user
+    immersion = Immersion.objects.prefetch_related(
+        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
+    ).filter(student_id=student.pk)
+    doc = AttendanceCertificateModel.objects.first()
 
-            doc = AttendanceCertificateModel.object.first()
+    docx = merge_docx(request, user=student, doc=doc, immersion=immersion)
 
-            f = GenerateDocx(user=student, doc=doc, immersion=immersion)
+    f = BytesIO()
+    docx.write(f)
 
-            response = HttpResponse(
-                f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            )
-            response['Content-Disposition'] = 'attachment; filename=example.docx'
-            response['Content-Length'] = f.tell()
-            return response
-        except Exception as e:
-            print(e)
-            pass
+    response = HttpResponse(
+        f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
+    response['Content-Disposition'] = f'attachment; filename={student.last_name}.docx'
+    response['Content-Length'] = f.tell()
+
+    return response

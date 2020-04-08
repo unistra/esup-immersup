@@ -1,24 +1,25 @@
-import io
 
 
-def GenerateDocx(request, **kwargs):
+from mailmerge import MailMerge
 
-    # TODO: try to put all availables objects related to docx merging
-    slot = kwargs.get('slot')
-    slot_list = kwargs.get('slot_list')
-    course = kwargs.get('course')
-    immersion = kwargs.get('immersion')
-    user = kwargs.get('user')
-    doc = kwargs.get('doc')
 
-    tpl = doc.document.path
+def merge_docx(request, **kwargs):
 
-    docx = MailMerge(tpl)
-    docx.merge(
-        name='testcoy', title='My title',
-    )
-    f = io.BytesIO()
-    docx.write(f)
-    f.seek(0)
+    try:
+        # TODO: try to put all availables objects related to docx merging
+        slot = kwargs.get('slot')
+        slot_list = kwargs.get('slot_list')
+        course = kwargs.get('course')
+        immersion = kwargs.get('immersion')
+        user = kwargs.get('user')
+        doc = kwargs.get('doc')
 
-    return f
+        tpl = doc.document.path
+        docx = MailMerge(tpl)
+        docx.merge(
+            name='test', title='My title',
+        )
+
+        return docx
+    except Exception as e:
+        print(str(e))
