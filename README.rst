@@ -97,4 +97,20 @@ Application parameters:
 * TWITTER_ACCOUNT_URL
 * CONTACT_FORM_URL (for external contact form use)
 
+Docx file template:
+-------------------
+
+**The docx template have several merge fields**
+
+* birth_date  student birth date
+* building    slot's building
+* campus      slot's campus
+* course      slot's course
+* end_time    slot's end time
+* first_name  student first name
+* home_institution  student highschool / university
+* last_name   student last name
+* slot_date   slot's date
+* start_time  slot's start time
+
 
