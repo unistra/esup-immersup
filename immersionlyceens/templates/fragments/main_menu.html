@@ -1,17 +1,21 @@
 {% load static i18n immersionlyceens_tags %}
 {% authorized_groups request.user %}
-<header>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{% url 'home' %}">
-      <img src="{% static 'img/unistra-white.png'%}" class="d-inline-block align-top" alt=""> Immersion
-      Lyc&eacute;ens</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+<nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
+  <div class="container">
+    <a href="#" class="navbar-brand d-md-none">Lycéen en immersion</a>
+    <button class="navbar-toggler btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-bars fa-fw show"></i>
+        <i class="fa fa-times fa-fw hide"></i>
     </button>
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="mainNav">
+      <hr class="d-md-none">
       <div class="navbar-nav mr-auto">
+        <div class="nav-item">
+          <a class="nav-link d-none d-md-block" href="#" title="Accueil">
+            <i class="nv nv-home d-none d-md-inline"></i>
+            <span class="d-md-none">Accueil</span>
+          </a>
+        </div>
         {# Scuio or cmp #}
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
           <div class="nav-item dropdown">
@@ -169,5 +173,6 @@
         </div>
       </div>
     </div>
-  </nav>
-</header>
+  </div>
+</nav>
+
