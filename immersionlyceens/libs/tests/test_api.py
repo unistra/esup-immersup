@@ -14,7 +14,7 @@ from immersionlyceens.apps.core.models import (
     Training, TrainingDomain,
     TrainingSubdomain,
     Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation,
-    UserCourseAlert)
+    UserCourseAlert, GeneralSettings)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -34,6 +34,7 @@ class APITestCase(TestCase):
     fixtures = ['group']
 
     def setUp(self):
+        GeneralSettings.objects.create(setting='MAIL_CONTACT_SCUIO_IP', value='unittest@unittest.fr')
         self.scuio_user = get_user_model().objects.create_user(
             username='scuio', password='pass', email='immersion@no-reply.com', first_name='scuio', last_name='scuio',
         )
@@ -1794,3 +1795,68 @@ class APITestCase(TestCase):
         self.assertFalse(content['error'])
         self.assertGreater(len(content['msg']), 0)
         self.assertIsNone(content['err_msg'])
+
+    def test_API_ajax_send_email_us__no_param(self):
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/send_email_contact_us"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_send_email_us__no_general_settings(self):
+        GeneralSettings.objects.get(setting='MAIL_CONTACT_SCUIO_IP').delete()
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/send_email_contact_us"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_send_email_us(self):
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/send_email_contact_us"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {
+            'subject': 'Unittest',
+            'body': 'Hello world',
+            'lastname': 'Hello',
+            'firstname': 'World',
+            'email': 'unittest@unittest.fr',
+            'notify_user': True,
+        }
+
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertFalse(content['error'])
+
+    def test_API_ajax_get_students_presence(self):
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/get_students_presence"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        i = content['data'][0]
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(_date(self.immersion.slot.date, 'l d/m/Y'), i['date'])
+        self.assertEqual(self.immersion.slot.start_time.strftime('%Hh%M'), i['time']['start'])
+        self.assertEqual(self.immersion.slot.end_time.strftime('%Hh%M'), i['time']['end'])
+        self.assertEqual(f'{self.highschool_user.last_name} {self.highschool_user.first_name}', i['name'])
+        self.assertEqual(self.hs_record.highschool.label, i['institution'])
+        self.assertEqual(self.hs_record.phone, i['phone'])
+        self.assertEqual(self.highschool_user.email, i['email'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['room'])
