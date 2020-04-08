@@ -126,9 +126,6 @@
 
         {% if user.is_staff %}
           <a class="nav-item nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
-          {% if user.is_superuser %}
-            {% include "./user_selector.html" %}
-          {% endif %}
         {% endif %}
       </div>
       {# user menu bar #}

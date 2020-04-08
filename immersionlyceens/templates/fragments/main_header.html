@@ -28,6 +28,9 @@
           </span>
         </div>
       </div>
+      {% if user.is_superuser %}
+        {% include "./user_selector.html" %}
+      {% endif %}
     </div>
   </div>
 </header>
