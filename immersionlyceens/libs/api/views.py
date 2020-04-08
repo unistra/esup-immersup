@@ -1418,8 +1418,13 @@ def ajax_batch_cancel_registration(request):
     if not immersion_ids or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
     else:
-        for immersion_id in json.loads(immersion_ids):
+        try:
+            json_data = json.loads(immersion_ids)
+        except json.decoder.JSONDecodeError:
+            response = {'error': True, 'msg': gettext("Invalid json decoding")}
+            return JsonResponse(response, safe=False)
 
+        for immersion_id in json_data:
             try:
                 immersion = Immersion.objects.get(pk=immersion_id)
                 if immersion.slot.date <= datetime.datetime.today().date():
