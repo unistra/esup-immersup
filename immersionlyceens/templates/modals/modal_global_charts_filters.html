@@ -1,0 +1,181 @@
+{% load immersionlyceens_tags i18n static staticfiles %}
+{% authorized_groups request.user %}
+<!-- Modal -->
+<div class="modal fade" id="modal_global_charts_filter" tabindex="-1" role="dialog" aria-labelledby="modal_global_charts_filter_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_global_charts_filter_title">{% trans 'Charts filters' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col">
+            <form id="filters_form" method="POST">
+              {% csrf_token %}
+              <table id="filters_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
+              <thead>
+                <tr>
+                  <th class="td-centered"><input type="checkbox" id="select_all"></th>
+                  <th id="institution_filter">{% trans 'Institution' %}</th>
+                  <th id="type_filter">{% trans 'Type' %}</th>
+                  <th id="city_filter">{% trans 'City' %}</th>
+                  <th id="department_filter">{% trans 'Department' %}</th>
+                  <th id="country_filter">{% trans 'Country' %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+              </table>
+              <button id="submit_filters" type="submit" class="btn btn-primary">{% trans 'Submit filters' %}</button>>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+var $select_all = $('#select_all');
+$.fn.dataTableExt.errMode = 'console';
+
+dtr = $('#filters_table').DataTable({
+  'processing': false,
+  'order': [
+    [1, "asc"],
+  ],
+  'pageLength': 5,
+  'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+  'serverSide': false,
+  'responsive': true,
+  'ajax': {
+    url: "/charts/get_charts_filters_data",
+    dataSrc: function (json) {
+      if (json['data'] != undefined) {
+        return json['data'];
+      }
+    }
+  },
+  'searching': true,
+  'language': {
+      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+  },
+  'select': {
+    style: 'multi',
+    selector: 'td.select-checkbox'
+  },
+  'columns': [
+    {
+        orderable: false,
+        className: 'select-checkbox',
+    },
+    { "data": "institution" },
+    { "data": "type" },
+    { "data": "city" },
+    { "data": "department" },
+    { "data": "country" },
+  ],
+  "columnDefs": [
+    {
+      "defaultContent": "",
+      "targets": "_all",
+      "className": "all",
+    },
+    {
+      "orderable": false, "targets": 4
+    },
+  ],
+});
+
+yadcf.init(dtr, [{
+  column_number: 1,
+  filter_default_label: "",
+  filter_type: "text",
+  filter_container_id: "institution_filter",
+  style_class: "form-control form-control-sm",
+  filter_reset_button_text: false,
+},
+{
+  column_number: 2,
+  filter_default_label: "",
+  filter_container_id: "type_filter",
+  style_class: "form-control form-control-sm",
+  filter_reset_button_text: false,
+},
+{
+  column_number: 3,
+  filter_default_label: "",
+  filter_type: "text",
+  filter_container_id: "city_filter",
+  style_class: "form-control form-control-sm",
+  filter_reset_button_text: false,
+},
+{
+  column_number: 4,
+  filter_default_label: "",
+  filter_container_id: "department_filter",
+  style_class: "form-control form-control-sm",
+  filter_reset_button_text: false,
+},
+{
+  column_number: 5,
+  filter_default_label: "",
+  filter_container_id: "country_filter",
+  style_class: "form-control form-control-sm",
+  filter_reset_button_text: false,
+},
+]);
+
+let counterChecked = 0;
+$('#checkall').change(function() {
+    var isChecked = this.checked;
+    isChecked ? dtr.rows().select() : dtr.rows().deselect();
+    var d = $('#filters_table').DataTable().rows().data();
+    $.each(d, function (i, item) {
+      // TODO: very dirty enhance me please !!!!
+      if (this.checked) {
+        counterChecked++;
+      } else if (counterChecked > 0) {
+        counterChecked--;
+      }
+      item.isChecked = isChecked;
+    });
+    $(".checkcell input").prop("checked", isChecked);
+    $('td input[type="checkbox"]').change();
+});
+
+$select_all.click(function(event) {
+  if(this.checked) {
+      dtr.rows(".selectable").select();
+  } else {
+      dtr.rows(".selectable").deselect();
+  }
+});
+
+// $('#filters_form').on('submit', function(e){
+$('#submit_filters').click(function(event) {
+   var $form = $('#filters_form');
+   var insts = [];
+   // Iterate over all checkboxes in the table
+   $.each(dtr.rows('.selected').data(), function() {
+      var values = [this.type_code, this.institution_id];
+      insts.push(values);
+  });
+
+  $form.append($('<input>')
+          .attr('type', 'hidden')
+          .attr('name', 'insts')
+          .val(JSON.stringify(insts)));
+});
+
+</script>
