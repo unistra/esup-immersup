@@ -17,7 +17,9 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
+
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
@@ -685,9 +687,25 @@ def immersion_attestation_download(request, immersion_id):
         'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
     ).get(student_id=student.pk, pk=immersion_id)
 
+    if immersion.student.is_high_school_student():
+        record = immersion.student.get_high_school_student_record()
+        home_institution = record.highschool.label
+    elif immersion.student.is_student():
+        record = immersion.student.get_student_record()
+        # TODO: to complete when method home_instituion() is available
+        home_institution = 'FIXME'  # record.home_institution()
+
     doc = AttendanceCertificateModel.objects.first()
 
-    docx = merge_docx(request, user=student, doc=doc, immersion=immersion)
+    docx = merge_docx(
+        request,
+        user=student,
+        doc=doc,
+        immersion=immersion,
+        birth_date=date_format(record.birth_date, 'd/m/Y'),
+        home_institution=home_institution,
+        slot_date=date_format(immersion.slot.date),
+    )
 
     f = BytesIO()
     docx.write(f)
