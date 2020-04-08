@@ -13,7 +13,8 @@ from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
     Training, TrainingDomain,
     TrainingSubdomain,
-    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation)
+    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation,
+    UserCourseAlert)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -223,6 +224,10 @@ class APITestCase(TestCase):
             description='description'
         )
         self.mail_t.available_vars.add(self.var)
+        self.alert = UserCourseAlert.objects.create(
+            email=self.student.email,
+            course=self.course
+        )
 
 
     def test_API_get_documents__ok(self):
@@ -1701,3 +1706,91 @@ class APITestCase(TestCase):
 
         self.assertEqual(content['success'], '')
         self.assertGreater(len(content['error']), 0)
+
+    def test_API_ajax_get_alerts(self):
+        request.user = self.student
+        client = Client()
+        client.login(username='student', password='pass')
+
+        url = "/api/get_alerts"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get(url, request, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertIsInstance(content['data'], list)
+        self.assertGreater(len(content['data']), 0)
+        a = content['data'][0]
+        self.assertIsInstance(a, dict)
+        self.assertEqual(self.alert.id, a['id'])
+        self.assertEqual(self.alert.course.label, a['course'])
+        self.assertEqual(self.alert.course.training.label, a['training'])
+        self.assertEqual([s.label for s in self.alert.course.training.training_subdomains.all()], a['subdomains'])
+        self.assertEqual([s.training_domain.label for s in self.alert.course.training.training_subdomains.all()], a['domains'])
+        self.assertEqual(self.alert.email_sent, a['email_sent'])
+
+
+
+    def test_API_ajax_send_email__no_params(self):
+        request.user = self.scuio_user
+        url = "/api/send_email"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_send_email(self):
+        request.user = self.scuio_user
+        url = "/api/send_email"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'slot_id': self.slot.id, 'send_copy': 'true', 'subject': 'hello',
+                'body': 'Hello world'}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertFalse(content['error'])
+        self.assertEqual(len(content['msg']), 0)
+
+    def test_API_ajax_batch_cancel_registration__no_param(self):
+        request.user = self.scuio_user
+        url = "/api/batch_cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_batch_cancel_registration__invalid_json_param(self):
+        request.user = self.scuio_user
+        url = "/api/batch_cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_ids': 'hello world', 'reason_id': self.cancel_type.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_batch_cancel_registration__past_immersion(self):
+        request.user = self.scuio_user
+        url = "/api/batch_cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_ids': f'[{self.immersion.id}]', 'reason_id': self.cancel_type.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_batch_cancel_registration(self):
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/batch_cancel_registration"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'immersion_ids': json.dumps([self.immersion.id]), 'reason_id': self.cancel_type.id}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertFalse(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+        self.assertIsNone(content['err_msg'])

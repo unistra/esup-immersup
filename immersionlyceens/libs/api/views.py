@@ -1423,7 +1423,6 @@ def ajax_batch_cancel_registration(request):
         except json.decoder.JSONDecodeError:
             response = {'error': True, 'msg': gettext("Invalid json decoding")}
             return JsonResponse(response, safe=False)
-
         for immersion_id in json_data:
             try:
                 immersion = Immersion.objects.get(pk=immersion_id)
@@ -1435,9 +1434,9 @@ def ajax_batch_cancel_registration(request):
                 immersion.save()
                 immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
 
-            except ImmersionUser.DoesNotExist:
+            except Immersion.DoesNotExist:
                 # should not happen !
-                err_msg += _("User not found")
+                err_msg += _("Immersion not found")
             except CancelType.DoesNotExist:
                 # should not happen as well !
                 response = {'error': True, 'msg': _("Invalid cancellation reason #id")}
