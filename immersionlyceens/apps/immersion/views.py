@@ -14,12 +14,11 @@ from django.contrib.auth.password_validation import password_validators_help_tex
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
-
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
@@ -683,37 +682,43 @@ def immersions(request):
 @groups_required('LYC', 'ETU')
 def immersion_attestation_download(request, immersion_id):
     student = request.user
-    immersion = Immersion.objects.prefetch_related(
-        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
-    ).get(student_id=student.pk, pk=immersion_id)
+    try:
+        immersion = Immersion.objects.prefetch_related(
+            'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
+        ).get(student_id=student.pk, pk=immersion_id, attendance_status=True)
 
-    if immersion.student.is_high_school_student():
-        record = immersion.student.get_high_school_student_record()
-        home_institution = record.highschool.label
-    elif immersion.student.is_student():
-        record = immersion.student.get_student_record()
-        # TODO: to complete when method home_instituion() is available
-        home_institution = 'FIXME'  # record.home_institution()
+        if immersion.student.is_high_school_student():
+            record = immersion.student.get_high_school_student_record()
+            home_institution = record.highschool.label
+        elif immersion.student.is_student():
+            record = immersion.student.get_student_record()
+            # TODO: to complete when method home_instituion() is available
+            home_institution = 'FIXME'  # record.home_institution()
 
-    doc = AttendanceCertificateModel.objects.first()
+        doc = AttendanceCertificateModel.objects.first()
 
-    docx = merge_docx(
-        request,
-        user=student,
-        doc=doc,
-        immersion=immersion,
-        birth_date=date_format(record.birth_date, 'd/m/Y'),
-        home_institution=home_institution,
-        slot_date=date_format(immersion.slot.date),
-    )
+        docx = merge_docx(
+            request,
+            user=student,
+            doc=doc,
+            immersion=immersion,
+            birth_date=date_format(record.birth_date, 'd/m/Y'),
+            home_institution=home_institution,
+            slot_date=date_format(immersion.slot.date),
+        )
 
-    f = BytesIO()
-    docx.write(f)
+        f = BytesIO()
+        docx.write(f)
 
-    response = HttpResponse(
-        f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    )
-    response['Content-Disposition'] = f'attachment; filename={student.last_name}.docx'
-    response['Content-Length'] = f.tell()
+        response = HttpResponse(
+            f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response[
+            'Content-Disposition'
+        ] = f'attachment; filename=immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.docx'
+        response['Content-Length'] = f.tell()
 
-    return response
+        return response
+
+    except Immersion.DoesNotExist:
+        raise Http404()
