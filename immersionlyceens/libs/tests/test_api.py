@@ -182,7 +182,7 @@ class APITestCase(TestCase):
         )
         self.student_record = StudentRecord.objects.create(
             student=self.student,
-            home_institution='Université de Strasbourg',
+            uai_code='0673021V', # Université de Strasbourg
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
@@ -190,7 +190,7 @@ class APITestCase(TestCase):
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
-            home_institution='Université de Lille',
+            uai_code='0597065J', # Université de Lille
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
@@ -690,7 +690,7 @@ class APITestCase(TestCase):
                 self.assertEqual(self.high_school.label, row[15])
                 self.assertEqual(HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1], row[16])
             elif n == 2:
-                self.assertEqual(self.student_record.home_institution, row[15])
+                self.assertEqual(self.student_record.uai_code, row[15])
                 self.assertEqual(StudentRecord.LEVELS[self.student_record.level - 1][1], row[16])
             n += 1
 
@@ -1305,7 +1305,7 @@ class APITestCase(TestCase):
         stu = content['data'][1]
         self.assertEqual(stu['profile'], _('Student'))
         self.assertEqual(stu['level'], self.student_record.get_level_display())
-        self.assertEqual(stu['school'], self.student_record.home_institution)
+        self.assertEqual(stu['school'], self.student_record.uai_code)
         self.assertEqual(stu['city'], '')
 
     def test_API_ajax_get_available_students(self):
@@ -1331,7 +1331,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.student2.first_name, stu['firstname'])
         self.assertEqual(self.student2.last_name, stu['lastname'])
         self.assertEqual(pgettext('person type', 'Student'), stu['profile'])
-        self.assertEqual(self.student_record2.home_institution, stu['school'])
+        self.assertEqual(self.student_record2.uai_code, stu['school'])
         self.assertEqual('', stu['level'])
         self.assertEqual('', stu['city'])
         self.assertEqual('', stu['class'])

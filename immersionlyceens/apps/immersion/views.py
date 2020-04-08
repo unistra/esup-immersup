@@ -541,32 +541,27 @@ def student_record(request, student_id=None, record_id=None):
     if request.user.is_student():
         student = request.user
         record = student.get_student_record()
-
         uai_code = None
-        institution = None
 
         try:
             shib_attrs = request.session.get("shib", {})
-            uai_code = shib_attrs.get("home_institution")
+            uai_code = shib_attrs.get("uai_code")
         except Exception:
             logger.error("Cannot retrieve uai code from shibboleth data")
 
         if uai_code and uai_code.startswith('{UAI}'):
-            try:
-                institution = HigherEducationInstitution.objects.get(pk=uai_code.replace('{UAI}', ''))
-            except HigherEducationInstitution.DoesNotExist:
-                pass
+            uai_code = uai_code.replace('{UAI}', '')
 
         if not record:
             record = StudentRecord(
                 student=request.user,
-                home_institution=institution.label if institution else uai_code or '-',
+                uai_code=uai_code,
                 allowed_global_registrations=calendar.year_nb_authorized_immersion,
                 allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
                 allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester
             )
-        elif institution and record.home_institution != institution.label:
-            record.home_institution = institution.label
+        elif record.uai_code != uai_code:
+            record.uai_code = uai_code
             record.save()
     elif record_id:
         try:

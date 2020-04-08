@@ -289,7 +289,7 @@ class StudentRecordForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["student"].widget = forms.HiddenInput()
-        self.fields["home_institution"].disabled = True
+        self.fields["uai_code"].disabled = True
         self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
 
@@ -306,7 +306,7 @@ class StudentRecordForm(forms.ModelForm):
 
     class Meta:
         model = StudentRecord
-        fields = ['civility', 'birth_date', 'phone', 'home_institution', 'level',
+        fields = ['civility', 'birth_date', 'phone', 'uai_code', 'level',
                   'origin_bachelor_type', 'current_diploma', 'student',
                   'allowed_global_registrations', 'allowed_first_semester_registrations',
                   'allowed_second_semester_registrations']

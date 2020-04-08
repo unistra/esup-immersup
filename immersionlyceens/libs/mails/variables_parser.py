@@ -92,18 +92,19 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         registered_students = []
 
         for registration in Immersion.objects.filter(slot=slot, cancellation_type__isnull=True):
-            institution = _("Unknown home institution")
+            institution_label = _("Unknown home institution")
             if registration.student.is_high_school_student():
                 record = registration.student.get_high_school_student_record()
                 if record:
-                    institution = record.highschool.label
+                    institution_label = record.highschool.label
             elif registration.student.is_student():
                 record = registration.student.get_student_record()
                 if record:
-                    institution = record.home_institution
+                    uai_code, institution = record.home_institution()
+                    institution_label = institution.label if institution else uai_code
 
             registered_students.append("%s %s - %s" %
-                (registration.student.last_name, registration.student.first_name, institution))
+                (registration.student.last_name, registration.student.first_name, institution_label))
 
         vars += [('${listeInscrits}', '<br />'.join(sorted(registered_students)))]
 
