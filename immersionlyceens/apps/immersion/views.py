@@ -683,7 +683,8 @@ def immersion_attestation_download(request, immersion_id):
     student = request.user
     immersion = Immersion.objects.prefetch_related(
         'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
-    ).filter(student_id=student.pk)
+    ).get(student_id=student.pk, pk=immersion_id)
+
     doc = AttendanceCertificateModel.objects.first()
 
     docx = merge_docx(request, user=student, doc=doc, immersion=immersion)
