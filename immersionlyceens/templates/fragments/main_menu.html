@@ -38,6 +38,7 @@
             </div>
           </div>
         {% endif %}
+        {# Component #}
         {% if authorized_groups|in_groups:"REF-CMP" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
@@ -61,7 +62,6 @@
             </div>
           </div>
         {% endif %}
-
         {# Students #}
         {% if authorized_groups|in_groups:"LYC,ETU" %}
           <div class="nav-item dropdown">
@@ -107,7 +107,7 @@
             </div>
           {% endif %}
         {% endif %}
-
+        {# charts #}
         {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -119,11 +119,11 @@
             </div>
           </div>
         {% endif %}
-
+        {# stats #}
         {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP,REF-CMP" %}
           <a class="nav-item nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
         {% endif %}
-
+        {# admin #}
         {% if user.is_staff %}
           <a class="nav-item nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
         {% endif %}

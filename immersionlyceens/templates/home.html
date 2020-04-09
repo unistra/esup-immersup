@@ -4,6 +4,78 @@
 {% trans "Homepage" %}
 {% endblock %}
 {% block content %}
+<div class="main-title">
+    <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 offset-md-1 col-lg-6 offset-lg-2">
+                <div class="presentation">
+                    {{ welcome_txt | safe}}
+                    <h1>Lycéens,</h1>
+                    <p>Entrez dans la peau d’un étudiant de l’Université de Strasbourg et participez à des cours magistraux, des travaux dirigés ou des travaux pratiques, dans les différents domaines d’études proposés à l’Université de Strasbourg.</p>
+                    <p><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#connexionModal">S'identifier</button> <a href="#" class="btn btn-outline-light">Créer un compte</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="info">
+          <div class="info-icon">
+            <i class="us us-file us-fw us-2x text-third"></i>
+          </div>
+          <div class="info-description">
+            <h4>Procédure</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
+            <p><a href="procedure-unistra.html" class="btn btn-primary" title="Procédure d'inscription">Procédure en détail</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info">
+          <div class="info-icon">
+            <i class="nv nv-graduation-hat nv-fw nv-2x text-third"></i>
+          </div>
+          <div class="info-description">
+            <h4>Offre</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
+            <p><a href="offre-unistra.html" class="btn btn-primary" title="Les cours accessibles en immersion">Découvrir les cours</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info">
+          <div class="info-icon">
+            <i class="us us-meeting-sm us-fw us-2x text-third"></i>
+          </div>
+          <div class="info-description">
+            <h4>Accompagnement</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
+            <p><a href="#" class="btn btn-primary" title="Accompagnement des lycéens">Besoin d'aide ?</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info">
+          {% if twitter_url %}
+          <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
+          {% trans 'Tweeter feed' %}
+          </a>
+          <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+          {% endif %}
+
+        </aside>
+
+        </div>
+        <aside>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
