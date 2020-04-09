@@ -11,11 +11,9 @@
             <div class="col-md-10 offset-md-1 col-lg-6 offset-lg-2">
                 <div class="presentation">
                     {{ welcome_txt | safe}}
-                    <h1>Lycéens,</h1>
-                    <p>Entrez dans la peau d’un étudiant de l’Université de Strasbourg et participez à des cours magistraux, des travaux dirigés ou des travaux pratiques, dans les différents domaines d’études proposés à l’Université de Strasbourg.</p>
                     <p><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#connexionModal">S'identifier</button> <a href="#" class="btn btn-outline-light">Créer un compte</a></p>
                 </div>
-            </div>
+            </div>é
         </div>
     </div>
 </div>
@@ -30,7 +28,7 @@
           <div class="info-description">
             <h4>{% trans 'Procedure' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
-            <p><a href="{% url 'procedure' %}" class="btn btn-primary"  data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">Procédure en détail</a></p>
+            <p><a href="{% url 'procedure' %}" class="btn btn-primary"  data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">{% trans 'Details of the procedure' %}</a></p>
           </div>
         </div>
       </div>
@@ -42,7 +40,7 @@
           <div class="info-description">
             <h4>{% trans 'Offer' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
-            <p><a href="{% url 'offer' %}" class="btn btn-primary"data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Discrover courses' %}</a></p>
+            <p><a href="{% url 'offer' %}" class="btn btn-primary"data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Discover courses' %}</a></p>
           </div>
         </div>
       </div>
@@ -54,23 +52,26 @@
           <div class="info-description">
             <h4>{% trans 'Accompaniment' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
-            <p><a href="{% url 'accompanying' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">Besoin d'aide ?</a></p>
+            <p><a href="{% url 'accompanying' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">{% trans 'Need help ?' %}</a></p>
           </div>
         </div>
       </div>
+      {% if twitter_url %}
       <div class="col-md-3">
         <div class="info">
-          {% if twitter_url %}
+          <div class="info-icon">
+            <i class="fa fa-twitter text-third"></i>
+          </div>
+          <aside class="info-description">
           <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
           {% trans 'Tweeter feed' %}
           </a>
           <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-          {% endif %}
+          <aside>
+      {% endif %}
 
-        </aside>
 
         </div>
-        <aside>
       </div>
     </div>
   </div>
