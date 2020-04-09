@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{% static 'css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}" type="text/css" title="no title" charset="utf-8" />
     <link rel="shortcut icon" href="{% static 'img/favicon-unistra-32px.png' %}" type="image/png">
+    {% comment %} TODO: remove s3.unistra.fr dep ! {% endcomment %}
     <link rel="stylesheet" href="https://s3.unistra.fr/master/common/assets/fonts/unistra-font/1.0.0/css/unistra-font.css?AWSAccessKeyId=M2M78RKXPAP75Y692QZX&Signature=Ros22u4Tp0Dy106qr0rRkGBPoJM%3D&Expires=1870971370">
     <link rel="stylesheet" href="https://s3.unistra.fr/master/common/assets/fonts/unistra-symbol/1.0.4/css/unistra-symbol.css?AWSAccessKeyId=M2M78RKXPAP75Y692QZX&Signature=lfTwAVnRXjgZc9ryRpAcWhiMbCA%3D&Expires=1876298241">
     <link rel="stylesheet" href="https://s3.unistra.fr/master/common/assets/fonts/nova-icons/1.0.2/css/nova-icons.css?AWSAccessKeyId=M2M78RKXPAP75Y692QZX&Signature=hFFKhRhE9%2B1xVyIi%2F%2BQPD%2BftVbk%3D&Expires=1887617035">
@@ -26,9 +27,6 @@
     <link rel="stylesheet" href="{% static 'css/styles-unistra.css' %}">
     {% block head-css %}{% endblock %}
     {% block head-javascript %}
-    <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
     {% endblock %}
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
 </head>
@@ -61,17 +59,20 @@
     {% endif %}
     {% include './fragments/main_share.html' %}
     {% include './fragments/main_footer.html' %}
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+    <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
+    {% comment %}
+    TODO: check later if used !
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-
     <script src="js/plugins/imagesloaded/imagesloaded-4.1.4.pkgd.min.js"></script>
     <script src="js/plugins/masonry/masonry-4.2.2.pkgd.min.js"></script>
+    {% endcomment %}
 
+    {% comment %} TODO: remove s3.unistra.fr dep ! {% endcomment %}
     <script src="https://s3.unistra.fr/master/common/assets/fonts/unistra-signature/3.0.1/js/sun.js?AWSAccessKeyId=M2M78RKXPAP75Y692QZX&Signature=FtPYMZbxBS1r1HS6YDn%2FPt%2BiI%2Bc%3D&Expires=1887617036"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 
-    <script src="js/bootstrap/bootstrap-4.4.1.min.js"></script>
-
-    <script src="js/scripts.js"></script>
+    <script src="{% static 'js/scripts.js' %}"></script>
 
     {% block foot-javascript %}{% endblock %}
 </body>
