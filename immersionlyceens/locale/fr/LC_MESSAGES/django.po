@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-09 14:21+0200\n"
+"POT-Creation-Date: 2020-04-09 22:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,6 +62,7 @@ msgstr "Statistiques"
 
 #: immersionlyceens/apps/charts/views.py:54
 #: immersionlyceens/apps/charts/views.py:104
+#: immersionlyceens/templates/charts/trainings_charts.html:80
 #: immersionlyceens/templates/core/courses_list.html:134
 #: immersionlyceens/templates/core/duplicated_accounts.html:101
 #: immersionlyceens/templates/core/highschool_students.html:114
@@ -818,6 +819,7 @@ msgstr "Site web"
 
 #: immersionlyceens/apps/core/models.py:408
 #: immersionlyceens/apps/core/models.py:800
+#: immersionlyceens/templates/charts/trainings_charts.html:35
 #: immersionlyceens/templates/core/course.html:51
 #: immersionlyceens/templates/core/courses_list.html:50
 #: immersionlyceens/templates/core/mycourses.html:37
@@ -1329,7 +1331,7 @@ msgstr "Absent(e)"
 #: immersionlyceens/apps/immersion/models.py:50
 #: immersionlyceens/apps/immersion/models.py:238
 #: immersionlyceens/libs/api/views.py:966
-#: immersionlyceens/libs/tests/test_api.py:1316
+#: immersionlyceens/libs/tests/test_api.py:1317
 #: immersionlyceens/templates/core/students_presence.html:42
 msgid "Student"
 msgstr "Etudiant/Lycéen"
@@ -2030,7 +2032,7 @@ msgid "Error : invalid slot id"
 msgstr "Erreur : id de créneau invalide"
 
 #: immersionlyceens/libs/api/views.py:957
-#: immersionlyceens/libs/tests/test_api.py:1308
+#: immersionlyceens/libs/tests/test_api.py:1309
 msgid "High-school student"
 msgstr "Lycéen"
 
@@ -2104,14 +2106,14 @@ msgstr "Les inscriptions ne sont pas encore autorisées"
 
 #: immersionlyceens/libs/api/views.py:1259
 #: immersionlyceens/libs/api/views.py:1318
-#: immersionlyceens/libs/tests/test_api.py:1352
+#: immersionlyceens/libs/tests/test_api.py:1353
 msgctxt "person type"
 msgid "High school student"
 msgstr "Lycéen"
 
 #: immersionlyceens/libs/api/views.py:1265
 #: immersionlyceens/libs/api/views.py:1323
-#: immersionlyceens/libs/tests/test_api.py:1343
+#: immersionlyceens/libs/tests/test_api.py:1344
 msgctxt "person type"
 msgid "Student"
 msgstr "Etudiant"
@@ -2144,147 +2146,147 @@ msgid "Immersion(s) cancelled"
 msgstr "Immersion(s) annulée(s)"
 
 #: immersionlyceens/libs/api/views.py:1461
-#: immersionlyceens/libs/tests/test_api.py:760
+#: immersionlyceens/libs/tests/test_api.py:761
 msgid "domain"
 msgstr "domaine"
 
 #: immersionlyceens/libs/api/views.py:1462
-#: immersionlyceens/libs/tests/test_api.py:761
+#: immersionlyceens/libs/tests/test_api.py:762
 msgid "subdomain"
 msgstr "sous domaine"
 
 #: immersionlyceens/libs/api/views.py:1463
 #: immersionlyceens/libs/api/views.py:1526
 #: immersionlyceens/libs/api/views.py:1585
-#: immersionlyceens/libs/tests/test_api.py:663
-#: immersionlyceens/libs/tests/test_api.py:725
-#: immersionlyceens/libs/tests/test_api.py:762
+#: immersionlyceens/libs/tests/test_api.py:664
+#: immersionlyceens/libs/tests/test_api.py:726
+#: immersionlyceens/libs/tests/test_api.py:763
 msgid "training"
 msgstr "formation"
 
 #: immersionlyceens/libs/api/views.py:1464
 #: immersionlyceens/libs/api/views.py:1527
 #: immersionlyceens/libs/api/views.py:1586
-#: immersionlyceens/libs/tests/test_api.py:664
-#: immersionlyceens/libs/tests/test_api.py:726
-#: immersionlyceens/libs/tests/test_api.py:763
+#: immersionlyceens/libs/tests/test_api.py:665
+#: immersionlyceens/libs/tests/test_api.py:727
+#: immersionlyceens/libs/tests/test_api.py:764
 msgid "course"
 msgstr "cours"
 
 #: immersionlyceens/libs/api/views.py:1465
-#: immersionlyceens/libs/tests/test_api.py:764
+#: immersionlyceens/libs/tests/test_api.py:765
 msgid "course type"
 msgstr "Type de cours"
 
 #: immersionlyceens/libs/api/views.py:1466
 #: immersionlyceens/libs/api/views.py:1588
-#: immersionlyceens/libs/tests/test_api.py:666
-#: immersionlyceens/libs/tests/test_api.py:765
+#: immersionlyceens/libs/tests/test_api.py:667
+#: immersionlyceens/libs/tests/test_api.py:766
 msgid "date"
 msgstr "date"
 
 #: immersionlyceens/libs/api/views.py:1467
 #: immersionlyceens/libs/api/views.py:1589
-#: immersionlyceens/libs/tests/test_api.py:667
-#: immersionlyceens/libs/tests/test_api.py:766
+#: immersionlyceens/libs/tests/test_api.py:668
+#: immersionlyceens/libs/tests/test_api.py:767
 msgid "start_time"
 msgstr "heure de début"
 
 #: immersionlyceens/libs/api/views.py:1468
 #: immersionlyceens/libs/api/views.py:1590
-#: immersionlyceens/libs/tests/test_api.py:668
-#: immersionlyceens/libs/tests/test_api.py:767
+#: immersionlyceens/libs/tests/test_api.py:669
+#: immersionlyceens/libs/tests/test_api.py:768
 msgid "end_time"
 msgstr "heure de fin"
 
 #: immersionlyceens/libs/api/views.py:1469
 #: immersionlyceens/libs/api/views.py:1591
-#: immersionlyceens/libs/tests/test_api.py:669
-#: immersionlyceens/libs/tests/test_api.py:768
+#: immersionlyceens/libs/tests/test_api.py:670
+#: immersionlyceens/libs/tests/test_api.py:769
 msgid "campus"
 msgstr "campus"
 
 #: immersionlyceens/libs/api/views.py:1470
 #: immersionlyceens/libs/api/views.py:1592
-#: immersionlyceens/libs/tests/test_api.py:670
-#: immersionlyceens/libs/tests/test_api.py:769
+#: immersionlyceens/libs/tests/test_api.py:671
+#: immersionlyceens/libs/tests/test_api.py:770
 msgid "building"
 msgstr "bâtiment"
 
 #: immersionlyceens/libs/api/views.py:1471
 #: immersionlyceens/libs/api/views.py:1593
-#: immersionlyceens/libs/tests/test_api.py:671
-#: immersionlyceens/libs/tests/test_api.py:770
+#: immersionlyceens/libs/tests/test_api.py:672
+#: immersionlyceens/libs/tests/test_api.py:771
 msgid "room"
 msgstr "salle"
 
 #: immersionlyceens/libs/api/views.py:1472
-#: immersionlyceens/libs/tests/test_api.py:771
+#: immersionlyceens/libs/tests/test_api.py:772
 msgid "teachers"
 msgstr "enseignants"
 
 #: immersionlyceens/libs/api/views.py:1473
 #: immersionlyceens/libs/api/views.py:1594
-#: immersionlyceens/libs/tests/test_api.py:672
-#: immersionlyceens/libs/tests/test_api.py:772
+#: immersionlyceens/libs/tests/test_api.py:673
+#: immersionlyceens/libs/tests/test_api.py:773
 msgid "registration number"
 msgstr "nombre d'inscrits"
 
 #: immersionlyceens/libs/api/views.py:1474
 #: immersionlyceens/libs/api/views.py:1595
-#: immersionlyceens/libs/tests/test_api.py:673
-#: immersionlyceens/libs/tests/test_api.py:773
+#: immersionlyceens/libs/tests/test_api.py:674
+#: immersionlyceens/libs/tests/test_api.py:774
 msgid "place number"
 msgstr "nombre de places"
 
 #: immersionlyceens/libs/api/views.py:1475
 #: immersionlyceens/libs/api/views.py:1596
-#: immersionlyceens/libs/tests/test_api.py:674
-#: immersionlyceens/libs/tests/test_api.py:774
+#: immersionlyceens/libs/tests/test_api.py:675
+#: immersionlyceens/libs/tests/test_api.py:775
 msgid "additional information"
 msgstr "informations complémentaires"
 
 #: immersionlyceens/libs/api/views.py:1518
-#: immersionlyceens/libs/tests/test_api.py:717
+#: immersionlyceens/libs/tests/test_api.py:718
 msgid "last name"
 msgstr "nom"
 
 #: immersionlyceens/libs/api/views.py:1519
-#: immersionlyceens/libs/tests/test_api.py:718
+#: immersionlyceens/libs/tests/test_api.py:719
 msgid "first name"
 msgstr "prénom"
 
 #: immersionlyceens/libs/api/views.py:1520
-#: immersionlyceens/libs/tests/test_api.py:719
+#: immersionlyceens/libs/tests/test_api.py:720
 msgid "birthdate"
 msgstr "date de naissance"
 
 #: immersionlyceens/libs/api/views.py:1521
-#: immersionlyceens/libs/tests/test_api.py:720
+#: immersionlyceens/libs/tests/test_api.py:721
 msgid "level"
 msgstr "niveau"
 
 #: immersionlyceens/libs/api/views.py:1522
-#: immersionlyceens/libs/tests/test_api.py:721
+#: immersionlyceens/libs/tests/test_api.py:722
 msgid "class name"
 msgstr "classe"
 
 #: immersionlyceens/libs/api/views.py:1523
-#: immersionlyceens/libs/tests/test_api.py:722
+#: immersionlyceens/libs/tests/test_api.py:723
 msgid "bachelor type"
 msgstr "type de baccalauréat"
 
 #: immersionlyceens/libs/api/views.py:1524
 #: immersionlyceens/libs/api/views.py:1583
-#: immersionlyceens/libs/tests/test_api.py:661
-#: immersionlyceens/libs/tests/test_api.py:723
+#: immersionlyceens/libs/tests/test_api.py:662
+#: immersionlyceens/libs/tests/test_api.py:724
 msgid "training domain"
 msgstr "domaine de formation"
 
 #: immersionlyceens/libs/api/views.py:1525
 #: immersionlyceens/libs/api/views.py:1584
-#: immersionlyceens/libs/tests/test_api.py:662
-#: immersionlyceens/libs/tests/test_api.py:724
+#: immersionlyceens/libs/tests/test_api.py:663
+#: immersionlyceens/libs/tests/test_api.py:725
 msgid "training subdomain"
 msgstr "sous-domaines de formation"
 
@@ -2293,22 +2295,22 @@ msgid "anonymous_immersion"
 msgstr "immersions_anonymisées"
 
 #: immersionlyceens/libs/api/views.py:1582
-#: immersionlyceens/libs/tests/test_api.py:660
+#: immersionlyceens/libs/tests/test_api.py:661
 msgid "component"
 msgstr "composante d'enseignement"
 
 #: immersionlyceens/libs/api/views.py:1587
-#: immersionlyceens/libs/tests/test_api.py:665
+#: immersionlyceens/libs/tests/test_api.py:666
 msgid "course_type"
 msgstr "type de cours"
 
 #: immersionlyceens/libs/api/views.py:1597
-#: immersionlyceens/libs/tests/test_api.py:675
+#: immersionlyceens/libs/tests/test_api.py:676
 msgid "origin institution"
 msgstr "établissement d'origine"
 
 #: immersionlyceens/libs/api/views.py:1598
-#: immersionlyceens/libs/tests/test_api.py:676
+#: immersionlyceens/libs/tests/test_api.py:677
 msgid "student level"
 msgstr "niveau étudiant"
 
@@ -2457,6 +2459,37 @@ msgstr "Statistiques - inscriptions lycéens par domaines"
 #: immersionlyceens/templates/charts/highschool_domains_charts.html:44
 msgid "Select a student level"
 msgstr "Sélectionnez un niveau"
+
+#: immersionlyceens/templates/charts/trainings_charts.html:18
+msgid "Trainings statistics"
+msgstr "Statistiques par formation"
+
+#: immersionlyceens/templates/charts/trainings_charts.html:22
+#: immersionlyceens/templates/charts/trainings_charts.html:29
+msgid "Registrations statistics by trainings"
+msgstr "Statistiques d'inscriptions par formation"
+
+#: immersionlyceens/templates/charts/trainings_charts.html:36
+msgid "Subdomain"
+msgstr "Sous domaine"
+
+#: immersionlyceens/templates/charts/trainings_charts.html:37
+msgid "Domain"
+msgstr "Domaine"
+
+#: immersionlyceens/templates/charts/trainings_charts.html:38
+#: immersionlyceens/templates/charts/trainings_charts.html:39
+#: immersionlyceens/templates/charts/trainings_charts.html:40
+#: immersionlyceens/templates/charts/trainings_charts.html:41
+msgid "Students cnt"
+msgstr "Nb étudiants"
+
+#: immersionlyceens/templates/charts/trainings_charts.html:42
+#: immersionlyceens/templates/charts/trainings_charts.html:43
+#: immersionlyceens/templates/charts/trainings_charts.html:44
+#: immersionlyceens/templates/charts/trainings_charts.html:45
+msgid "Registrations"
+msgstr "Inscriptions"
 
 #: immersionlyceens/templates/core/component.html:6
 #: immersionlyceens/templates/immersion/change_password.html:10
@@ -2973,53 +3006,57 @@ msgstr "Lycées - par domaines"
 msgid "Global, by domains registrations"
 msgstr "Globales - par domaines"
 
-#: immersionlyceens/templates/fragments/main_menu.html:123
+#: immersionlyceens/templates/fragments/main_menu.html:117
+msgid "Trainings registrations data"
+msgstr "Statistiques d'inscriptions par formation"
+
+#: immersionlyceens/templates/fragments/main_menu.html:124
 msgid "Extractions"
 msgstr "Extractions"
 
-#: immersionlyceens/templates/fragments/main_menu.html:127
+#: immersionlyceens/templates/fragments/main_menu.html:128
 msgid "Administration"
 msgstr "Administration"
 
-#: immersionlyceens/templates/fragments/main_menu.html:144
+#: immersionlyceens/templates/fragments/main_menu.html:145
 #: immersionlyceens/templates/modals/modal_register_students_list.html:21
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:23
 msgid "Profile"
 msgstr "Profil"
 
-#: immersionlyceens/templates/fragments/main_menu.html:145
+#: immersionlyceens/templates/fragments/main_menu.html:146
 msgid "Admin"
 msgstr "Admin"
 
-#: immersionlyceens/templates/fragments/main_menu.html:151
+#: immersionlyceens/templates/fragments/main_menu.html:152
 msgid "Change password"
 msgstr "Changer le mot de passe"
 
-#: immersionlyceens/templates/fragments/main_menu.html:157
+#: immersionlyceens/templates/fragments/main_menu.html:158
 msgid "Logout"
 msgstr "Déconnexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:162
+#: immersionlyceens/templates/fragments/main_menu.html:163
 msgid "Sign in"
 msgstr "Connexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:165
+#: immersionlyceens/templates/fragments/main_menu.html:167
 msgid "You are"
 msgstr "Vous êtes"
 
-#: immersionlyceens/templates/fragments/main_menu.html:166
+#: immersionlyceens/templates/fragments/main_menu.html:168
 msgid "University member"
 msgstr "Membre de l'université"
 
-#: immersionlyceens/templates/fragments/main_menu.html:167
+#: immersionlyceens/templates/fragments/main_menu.html:169
 msgid "Highschool manager"
 msgstr "Référent Lycée"
 
-#: immersionlyceens/templates/fragments/main_menu.html:168
+#: immersionlyceens/templates/fragments/main_menu.html:170
 msgid "Highschool member"
 msgstr "Lycéen"
 
-#: immersionlyceens/templates/fragments/main_menu.html:169
+#: immersionlyceens/templates/fragments/main_menu.html:171
 msgctxt "login"
 msgid "Student"
 msgstr "Etudiant"
