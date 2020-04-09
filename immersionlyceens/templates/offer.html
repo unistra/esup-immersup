@@ -39,8 +39,7 @@
 
 <section class="py-5 bg-gray ">
   <div class="container ">
-    {% comment %} TODO: add counters not defined is US {% endcomment %}
-    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="172 cours disponibles répartis en sous-domaines (voir ci-dessous)">172 cours disponibles</span></p>
+    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ courses_count }} {% trans 'available courses divided in subdomains (see below)' %}">{{ courses_count }} {% trans 'available courses' %}</span></p>
     <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
     {% if subdomains %}
     {% regroup subdomains by training_domain.label as subdomains_list %}

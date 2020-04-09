@@ -11,7 +11,6 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
-
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
@@ -60,9 +59,10 @@ def offer(request):
     """Offer view"""
 
     subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-
+    courses_count = Course.objects.filter(published=True).count()
     context = {
         'subdomains': subdomains,
+        'courses_count': courses_count,
     }
     return render(request, 'offer.html', context)
 
