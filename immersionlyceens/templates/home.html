@@ -40,7 +40,7 @@
           <div class="info-description">
             <h4>{% trans 'Offer' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
-            <p><a href="{% url 'offer' %}" class="btn btn-primary"data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Discover courses' %}</a></p>
+            <p><a href="{% url 'offer' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Discover courses' %}</a></p>
           </div>
         </div>
       </div>
@@ -60,14 +60,14 @@
       <div class="col-md-3">
         <div class="info">
           <div class="info-icon">
-            <i class="fa fa-twitter text-third"></i>
+            <i class="nv nv-twitter nv-fw nv-2x text-third"></i>
           </div>
           <aside class="info-description">
           <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
           {% trans 'Tweeter feed' %}
           </a>
           <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-          <aside>
+          </aside>
       {% endif %}
 
 
