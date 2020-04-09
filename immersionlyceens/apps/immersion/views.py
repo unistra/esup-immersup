@@ -688,7 +688,7 @@ def immersion_attestation_download(request, immersion_id):
         elif immersion.student.is_student():
             record = immersion.student.get_student_record()
             # TODO: to complete when method home_instituion() is available
-            home_institution = 'FIXME'  # record.home_institution()
+            home_institution = record.home_institution()
 
         doc = AttendanceCertificateModel.objects.first()
 

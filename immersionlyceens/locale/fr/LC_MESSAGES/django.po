@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-09 11:17+0200\n"
+"POT-Creation-Date: 2020-04-09 14:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,12 +45,12 @@ msgstr "Inscrits à au moins une immersion"
 msgid "Attended to at least one immersion"
 msgstr "Participation à au moins une immersion"
 
-#: immersionlyceens/apps/charts/api.py:288
+#: immersionlyceens/apps/charts/api.py:278
 #: immersionlyceens/templates/modals/modal_register_students_list.html:23
 msgid "Highschool"
 msgstr "Lycée"
 
-#: immersionlyceens/apps/charts/api.py:305
+#: immersionlyceens/apps/charts/api.py:295
 #: immersionlyceens/apps/core/models.py:1318
 msgid "Higher education institution"
 msgstr "Etablissement d'Etudes Supérieures"
@@ -61,7 +61,7 @@ msgid "Charts"
 msgstr "Statistiques"
 
 #: immersionlyceens/apps/charts/views.py:54
-#: immersionlyceens/apps/charts/views.py:100
+#: immersionlyceens/apps/charts/views.py:104
 #: immersionlyceens/templates/core/courses_list.html:134
 #: immersionlyceens/templates/core/duplicated_accounts.html:101
 #: immersionlyceens/templates/core/highschool_students.html:114
