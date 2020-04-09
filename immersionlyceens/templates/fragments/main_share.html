@@ -1,3 +1,4 @@
+{% load i18n %}
 <section id="share" class="share">
   <div class="container">
     <div class="row">
@@ -10,19 +11,19 @@
             <span class="sun-cell sun-empty-10"></span>
             <span class="sun-cell sun-empty-2"></span>
             <span class="sun-dropdown dropup">
-              <a href="" class="sun-cell dropdown-toggle sun-hover-primary" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Partager</a>
+              <a href="" class="sun-cell dropdown-toggle sun-hover-primary" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans 'Share' %}</a>
               <a href="" class="sun-cell dropdown-toggle sun-primary sun-hover-primary sun-text-white" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                 <span class="sun-cell-inner"><i class="us us-plus"></i></span>
               </a>
               <div class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item popup-socialnetworks" href="http://twitter.com/share?url=https://immersion-lyceen.unistra.fr/" title="Partager cette page sur Twitter (Ouverture dans une nouvelle fenêtre)">
-                  <i class="fa fa-twitter"></i> Partager sur <strong>Twitter</strong>
+                <a class="dropdown-item popup-socialnetworks" href="http://twitter.com/share?url=https://immersion-lyceen.unistra.fr/" title="{% trans 'Share this page on' %} Twitter ({% trans 'Openning in a new window' %})">
+                  <i class="fa fa-twitter"></i> {% trans 'Share on' %} <strong>Twitter</strong>
                 </a>
-                <a class="dropdown-item popup-socialnetworks" href="https://www.facebook.com/sharer.php?u=https://immersion-lyceen.unistra.fr/" title="Partager cette page sur Facebook (Ouverture dans une nouvelle fenêtre)">
-                  <i class="fa fa-facebook"></i> Partager sur <strong>Facebook</strong>
+                <a class="dropdown-item popup-socialnetworks" href="https://www.facebook.com/sharer.php?u=https://immersion-lyceen.unistra.fr/" title="{% trans 'Share this page on' %} Facebook ({% trans 'Openning in a new window' %})">
+                  <i class="fa fa-facebook"></i> {% trans 'Share on' %} <strong>Facebook</strong>
                 </a>
-                <a class="dropdown-item popup-socialnetworks" href="http://www.linkedin.com/shareArticle?mini=true&url=https://immersion-lyceen.unistra.fr/" title="Partager cette page sur LinkedIn (Ouverture dans une nouvelle fenêtre)">
-                  <i class="fa fa-linkedin"></i> Partager sur <strong>LinkedIn</strong>
+                <a class="dropdown-item popup-socialnetworks" href="http://www.linkedin.com/shareArticle?mini=true&url=https://immersion-lyceen.unistra.fr/" title="{% trans 'Share this page on' %} LinkedIn ({% trans 'Openning in a new window' %})">
+                  <i class="fa fa-linkedin"></i> {% trans 'Share on' %} <strong>LinkedIn</strong>
                 </a>
               </div>
             </span>
