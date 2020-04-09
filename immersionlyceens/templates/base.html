@@ -25,6 +25,8 @@
     <link rel="stylesheet" href="https://s3.unistra.fr/master/common/assets/fonts/unistra-signature/3.0.1/css/themes/sun-theme-immersion.css?AWSAccessKeyId=M2M78RKXPAP75Y692QZX&Signature=216mNuWUwf31285a88K3dSAshsg%3D&Expires=1901524495">
     <link rel="stylesheet" href="{% static 'css/styles-unistra.css' %}">
     {% block head-css %}{% endblock %}
+    <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+    <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
     {% block head-javascript %}
     {% endblock %}
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
@@ -57,8 +59,6 @@
     {% endif %}
     {% include './fragments/main_share.html' %}
     {% include './fragments/main_footer.html' %}
-    <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
-    <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
     {% comment %}
     TODO: check later if used !
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>

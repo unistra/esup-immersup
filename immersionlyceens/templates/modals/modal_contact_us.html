@@ -67,25 +67,24 @@
     </div>
   </div>
 </div>
-{% block foot-javascript %}
 <script>
-  var numbers = [
-    "{% trans 'zero' %}",
-    "{% trans 'one' %}",
-    "{% trans 'two' %}",
-    "{% trans 'three' %}",
-    "{% trans 'four' %}",
-    "{% trans 'five' %}",
-    "{% trans 'six' %}",
-    "{% trans 'seven' %}",
-    "{% trans 'height' %}",
-    "{% trans 'nine' %}",
-    "{% trans 'ten' %}"
-  ];
-  var num1 = Math.floor(Math.random() * 10);
-  var num2 = Math.floor(Math.random() * 10);
-  $('#human_check').html("{% trans 'What is the result of' %} " + numbers[num1] + " {% trans 'plus' %} " + numbers[num2] + " ?");
   $(document).ready(function () {
+    var numbers = [
+      "{% trans 'zero' %}",
+      "{% trans 'one' %}",
+      "{% trans 'two' %}",
+      "{% trans 'three' %}",
+      "{% trans 'four' %}",
+      "{% trans 'five' %}",
+      "{% trans 'six' %}",
+      "{% trans 'seven' %}",
+      "{% trans 'height' %}",
+      "{% trans 'nine' %}",
+      "{% trans 'ten' %}"
+    ];
+    var num1 = Math.floor(Math.random() * 10);
+    var num2 = Math.floor(Math.random() * 10);
+    $('#human_check').html("{% trans 'What is the result of' %} " + numbers[num1] + " {% trans 'plus' %} " + numbers[num2] + " ?");
     $('#contact_us_form').submit(function(e) {
       e.preventDefault()
       var sum = $('#are_u_human').val();
@@ -137,4 +136,3 @@
     });
   });
 </script>
-endblock
