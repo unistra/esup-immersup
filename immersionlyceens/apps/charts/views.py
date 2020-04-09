@@ -113,3 +113,14 @@ def global_domains_charts(request):
     }
 
     return render(request, 'charts/global_domains_charts.html', context=context)
+
+
+@groups_required('SCUIO-IP')
+def trainings_charts(request):
+    """
+    Registration statistics by trainings
+    """
+    context = {
+        'levels': HighSchoolStudentRecord.LEVELS,
+    }
+    return render(request, 'charts/trainings_charts.html', context=context)

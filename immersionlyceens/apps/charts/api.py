@@ -12,7 +12,7 @@ from immersionlyceens.decorators import groups_required, is_ajax_request, is_pos
 
 from immersionlyceens.apps.core.models import (
     Immersion, ImmersionUser, TrainingDomain, TrainingSubdomain, HigherEducationInstitution,
-    HighSchool
+    HighSchool, Training
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -312,3 +312,47 @@ def get_charts_filters_data(request):
 
     return JsonResponse(response, safe=False)
 
+@is_ajax_request
+@groups_required("SCUIO-IP")
+def get_trainings_charts(request):
+    """
+    """
+    response = {'msg': '', 'data': []}
+
+    trainings = Training.objects.prefetch_related('training_subdomains__training_domain').filter(active=True)
+
+    for training in trainings:
+        for subdomain in training.training_subdomains.all():
+            base_students_qs = ImmersionUser.objects.prefetch_related('immersions__slot__course__training')\
+                .filter(immersions__slot__course__training=training, immersions__cancellation_type__isnull=True)
+
+            base_immersions_qs = Immersion.objects.prefetch_related('slot__course__training', 'student')\
+                .filter(slot__course__training=training, cancellation_type__isnull=True)
+
+            row = {
+                'training_label': training.label,
+                'subdomain_label': subdomain.label,
+                'domain_label': subdomain.training_domain.label,
+                # students registered to at least one immersion for this training
+                'unique_students': base_students_qs.distinct().count(),
+                'unique_students_lvl1': base_students_qs.filter(high_school_student_record__level=1).distinct().count(),
+                'unique_students_lvl2': base_students_qs.filter(high_school_student_record__level=2).distinct().count(),
+                # The level 3 (above bachelor) also includes higher education institutions students (any level)
+                'unique_students_lvl3': base_students_qs.filter(
+                    Q(high_school_student_record__level=3) |
+                    Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))\
+                    .distinct().count(),
+                # registrations on all slots (not cancelled)
+                'all_registrations': base_immersions_qs.count(),
+                'registrations_lvl1': base_immersions_qs.filter(student__high_school_student_record__level=1).count(),
+                'registrations_lvl2': base_immersions_qs.filter(student__high_school_student_record__level=2).count(),
+                # also includes higher education institutions students
+                'registrations_lvl3': base_immersions_qs.filter(
+                    Q(student__high_school_student_record__level=3) |
+                    Q(student__student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))\
+                    .count()
+            }
+
+            response['data'].append(row.copy())
+
+    return JsonResponse(response, safe=False)
