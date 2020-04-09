@@ -4,37 +4,84 @@
 {% trans "Offer" %}
 {% endblock %}
 {% block content %}
-<div class="container-fluid" style="padding-top:20px;">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-      <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / {% trans "Offer" %}
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col">
-          <section id="subdomains_listing">
-          {% if subdomains %}
-          {% regroup subdomains by training_domain.label as subdomains_list %}
-          <ul>
-          {% for subdomain in subdomains_list %}
 
-            <li>{{ subdomain.grouper }}
-            <ul>
-              {% for d in subdomain.list %}
-                <li><a class="unlink" href="{% url 'offer_subdomain' d.id %}">{{ d.label }}</a></li>
-              {% endfor %}
-            </ul>
-            </li>
-          {% endfor %}
-          </ul>
-          {% else %}
-          <p>{% trans 'No offer available' %}</p>
-          {% endif %}
 
-          </section>
-        </div>
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+          <h1>{% trans 'The courses' %}</h1>
+          <p class="text-uppercase">{% trans 'by domains and subdomains' %}</p>
       </div>
     </div>
   </div>
 </div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Offer' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col lead">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultricies mi eget augue ullamcorper viverra. Aliquam est mi, scelerisque a pellentesque sit amet, commodo in odio. Aliquam id suscipit nunc. Duis sed ex ipsum. Maecenas non faucibus dolor. Vestibulum eget finibus metus. Nunc ullamcorper ante purus, ac volutpat turpis blandit id. </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-gray ">
+  <div class="container ">
+    {% comment %} TODO: add counters not defined is US {% endcomment %}
+    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="172 cours disponibles répartis en sous-domaines (voir ci-dessous)">172 cours disponibles</span></p>
+    <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
+    {% if subdomains %}
+    {% regroup subdomains by training_domain.label as subdomains_list %}
+    {% for subdomain in subdomains_list %}
+      <div class="col">
+        <div class="card domain">
+          <header style="background-image: url({% static 'img/backgrounds/'%}{{ forloop.counter}}.jpg)">
+            <div class="domain-title">
+              <div class="sun sun-theme-primary">
+                <span class="sun-row">
+                  <span class="sun-cell sun-empty-1"></span>
+                    <span class="sun-cell">
+                      <span class="sun-cell-inner">
+                        <strong>{{ subdomain.grouper }}</strong>
+                      </span>
+                    </span>
+                    <span class="sun-cell sun-empty-4"></span>
+                    <span class="sun-cell sun-empty-1"></span>
+                  </span>
+              </div>
+            </div>
+          </header>
+          <div class="card-body">
+            <ul class="list-arrows">
+              {% for d in subdomain.list %}
+              <li>
+                <a href="{% url 'offer_subdomain' d.id %}">
+                {{ d.label }}
+                </a>
+                {% comment %}TODO: not planned in US doing it ? <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="8 cours disponibles">8</span></span> {% endcomment %}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    {% else %}
+      <p>{% trans 'No offer available' %}</p>
+    {% endif %}
+    </div>
+  </div>
+</section>
 {% endblock %}
