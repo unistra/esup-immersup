@@ -73,7 +73,11 @@ def global_domains_charts(request):
     higher_institutions_ids = []
 
     _insts = request.POST.get('insts')
-    _levels = request.POST.get('levels')
+
+    try:
+        level_filter = int(request.POST.get('level', 0))
+    except ValueError:
+        level_filter = 0 # default : all levels
 
     if _insts:
         try:
@@ -91,6 +95,8 @@ def global_domains_charts(request):
         except Exception as e:
             logger.exception("Filter form values error")
 
+    # High school levels
+    # the third one ('above bachelor') will also include the higher education institutions students
     levels = [(0, _("All"))] + HighSchoolStudentRecord.LEVELS
 
     context = {
@@ -99,6 +105,7 @@ def global_domains_charts(request):
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
         'levels': levels,
+        'level_filter': level_filter,
     }
 
     return render(request, 'charts/global_domains_charts.html', context=context)

@@ -192,11 +192,15 @@ def global_domains_charts(request):
     _highschools_ids = request.POST.get("highschools_ids")
     _higher_institutions_ids = request.POST.get("higher_institutions_ids")
 
+    try:
+        level = int(request.POST.get("level", 0))
+    except ValueError:
+        level = 0
+
     # Filter on highschools or higher education institutions
     if _highschools_ids:
         try:
             highschools_ids = ast.literal_eval(_highschools_ids)
-            # highschools_ids = json.loads(_highschools_ids)
             if highschools_ids:
                 immersions_filter["student__high_school_student_record__highschool__id__in"] = highschools_ids
         except Exception as e:
@@ -205,7 +209,6 @@ def global_domains_charts(request):
     if _higher_institutions_ids:
         try:
             higher_institutions_ids = ast.literal_eval(_higher_institutions_ids)
-            # higher_institutions_ids = json.loads(_higher_institutions_ids)
             if higher_institutions_ids:
                 immersions_filter["student__student_record__uai_code__in"] = higher_institutions_ids
         except Exception as e:
@@ -232,12 +235,22 @@ def global_domains_charts(request):
             'student__high_school_student_record__highschool')\
             .filter(
             slot__course__training__training_subdomains__training_domain__id=domain.id,
-        ).filter(reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()]))
+        )
 
-        """
-        if level in [1,2,3]:
+        # Level filter
+        if level in [1, 2]:  # high schools levels only : exclude higher education students
             qs = qs.filter(student__high_school_student_record__level=level)
-        """
+            qs = qs.exclude(student__student_record__isnull=False)
+        elif level == 3:
+            # 3rd high school students level + all higher education levels
+            higher_levels = [l[0] for l in StudentRecord.LEVELS]
+            qs = qs.filter(
+                Q(student__high_school_student_record__level=level)
+                | Q(student__student_record__level__in=higher_levels))
+
+        if immersions_filter:
+            qs = qs.filter(reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()]))
+
         data = {
             "domain": domain.label,
             "count": qs.count(),

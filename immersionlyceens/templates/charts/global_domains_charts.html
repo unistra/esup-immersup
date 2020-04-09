@@ -42,7 +42,7 @@
             <label><strong>{% trans 'Institutions' %}</strong></label>
           </div>
           <div class="col-md-6">
-            <label><strong>{% trans 'Levels' %}</strong></label>
+            <label><strong>{% trans 'Level' %}</strong></label>
           </div>
         </div>
         <div class="row">
@@ -66,6 +66,14 @@
             {% if not highschools and not higher_institutions %}
               {% trans 'Display all' %}
             {% endif %}
+          </div>
+          <div class="col-md-6">
+            {% for level in levels %}
+              {% if level.0 == level_filter %}
+                {{ level.1 }}
+              {% endif %}
+            {% endfor %}
+          </div>
         </div>
     </div>
   </div>
@@ -75,20 +83,8 @@
   {% autoescape off %}
     var highschools_ids = "{{ highschools_ids }}";
     var higher_institutions_ids = "{{ higher_institutions_ids }}";
+    var level = "{{ level_filter }}"
   {% endautoescape %}
-
-  /*
-  var highschools_ids_array = [];
-  var higher_institutions_ids_array = [];
-
-  if(highschools_ids) {
-    highschools_ids_array = JSON.parse(highschools_ids);
-  }
-
-  if(higher_institutions_ids) {
-    higher_institutions_ids_array = JSON.parse(higher_institutions_ids);
-  }
-  */
 
   function open_filter_modal() {
     $('#modal_global_charts_filter').modal('show');
@@ -171,6 +167,7 @@
       data: {
         'highschools_ids' : highschools_ids,
         'higher_institutions_ids': higher_institutions_ids,
+        'level': level,
          csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {

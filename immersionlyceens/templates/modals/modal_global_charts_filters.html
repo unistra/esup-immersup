@@ -15,6 +15,12 @@
           <div class="col">
             <form id="filters_form" method="POST">
               {% csrf_token %}
+              <label class='mb-4' for="id_level">{% trans 'Students level' %} :</label>
+              <select id="id_level" name="level" class="mb-4">
+                {% for level in levels %}
+                  <option value="{{ level.0 }}">{{ level.1 }}</option>
+                {% endfor %}
+              </select>
               <table id="filters_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
               <thead>
                 <tr>
@@ -36,7 +42,7 @@
                 </tr>
               </tbody>
               </table>
-              <button id="submit_filters" type="submit" class="btn btn-primary">{% trans 'Submit filters' %}</button>>
+              <button id="submit_filters" type="submit" class="btn btn-primary mt-4">{% trans 'Submit filters' %}</button>
             </form>
           </div>
         </div>
