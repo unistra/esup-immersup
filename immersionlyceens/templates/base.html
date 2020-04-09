@@ -39,7 +39,7 @@
     {% block section_title %}{% endblock %}
 
     {% if messages %}
-    <div class="container sticky-top" style="padding: 10px;">
+    <div class="container sticky-top" style="top: 50px;padding: 10px;">
       {% for message in messages %}
       {% get_bootstrap_alert_msg_css_name message.tags as alert_tag %}
       <div class="messages{% if alert_tag %} alert alert-{{ alert_tag }}{% endif %} alert-dismissible">
