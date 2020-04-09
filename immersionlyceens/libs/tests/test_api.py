@@ -1927,3 +1927,33 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], [])
         self.assertFalse(content['error'])
         self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_alert__bad_alert_id(self):
+        request.user = self.student
+        client = Client()
+        client.login(username='student', password='pass')
+        url = "/api/cancel_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'alert_id': 0}
+        response = client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertGreater(len(content['error']), 0)
+
+    def test_API_ajax_cancel_alert(self):
+        request.user = self.student
+        client = Client()
+        client.login(username='student', password='pass')
+        url = "/api/cancel_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'alert_id': self.alert.id}
+        response = client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['error'], '')
+        self.assertGreater(len(content['msg']), 0)
+
+        with self.assertRaises(UserCourseAlert.DoesNotExist):
+            UserCourseAlert.objects.get(pk=data['alert_id'])
