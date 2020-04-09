@@ -81,8 +81,8 @@
 
 <script type="text/javascript">
   {% autoescape off %}
-    var highschools_ids = "{{ highschools_ids }}";
-    var higher_institutions_ids = "{{ higher_institutions_ids }}";
+    var highschools_ids = {{ highschools_ids }};
+    var higher_institutions_ids = {{ higher_institutions_ids }};
     var level = "{{ level_filter }}"
   {% endautoescape %}
 
@@ -242,29 +242,6 @@
   }
 
   init_graph();
-
-  /*
-  if (highschool_id && level_value) {
-    init_graph(highschool_id, level_value);
-  }
-
-  $('#id_highschools').change(function () {
-    highschool_id = $('#id_highschools option:selected').val();
-
-    if (level_value != "" && highschool_id != "") {
-      init_graph(highschool_id, level_value);
-    }
-  });
-
-  $('#id_level').change(function () {
-    level_value = $('#id_level option:selected').val();
-
-    if (level_value != "" && highschool_id != "") {
-      init_graph(highschool_id, level_value);
-    }
-  });
-  */
-
 
 </script>
 {% endblock %}

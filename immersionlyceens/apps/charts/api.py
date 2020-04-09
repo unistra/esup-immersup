@@ -189,8 +189,8 @@ def global_domains_charts(request):
     immersions_filter = {}
 
     # Parse filters in POST request
-    _highschools_ids = request.POST.get("highschools_ids")
-    _higher_institutions_ids = request.POST.get("higher_institutions_ids")
+    _highschools_ids = request.POST.getlist("highschools_ids[]")
+    _higher_institutions_ids = request.POST.getlist("higher_institutions_ids[]")
 
     try:
         level = int(request.POST.get("level", 0))
@@ -199,20 +199,10 @@ def global_domains_charts(request):
 
     # Filter on highschools or higher education institutions
     if _highschools_ids:
-        try:
-            highschools_ids = ast.literal_eval(_highschools_ids)
-            if highschools_ids:
-                immersions_filter["student__high_school_student_record__highschool__id__in"] = highschools_ids
-        except Exception as e:
-            logger.exception("Cannot parse 'highschools_ids' parameter")
+        immersions_filter["student__high_school_student_record__highschool__id__in"] = _highschools_ids
 
     if _higher_institutions_ids:
-        try:
-            higher_institutions_ids = ast.literal_eval(_higher_institutions_ids)
-            if higher_institutions_ids:
-                immersions_filter["student__student_record__uai_code__in"] = higher_institutions_ids
-        except Exception as e:
-            logger.exception("Cannot parse 'higher education institutions ids' parameter")
+        immersions_filter["student__student_record__uai_code__in"] = _higher_institutions_ids
 
     datasets = []
 
@@ -285,7 +275,7 @@ def get_charts_filters_data(request):
         institution_data = {
             'institution': highschool.label,
             'institution_id': highschool.id,
-            'type': _('highschool'),
+            'type': _('Highschool'),
             'type_code': 0,
             'city': "%s - %s" % (highschool.zip_code, highschool.city),
             'department': "%s" % highschool.zip_code[0:2], # Todo add departments model somewhere

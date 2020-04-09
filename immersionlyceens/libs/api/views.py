@@ -512,10 +512,8 @@ def ajax_check_date_between_vacation(request):
             try:
                 formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
             except ValueError:
-                response['msg'] = gettext('Error: Wrong format date')
+                response['msg'] = gettext('Error: bad date format')
                 return JsonResponse(response, safe=False)
-
-
 
         response['data'] = {
             'is_between': (
@@ -999,7 +997,7 @@ def ajax_set_attendance(request):
         return JsonResponse(response, safe=False)
 
     if not immersion_id and not immersion_ids:
-        response['error'] = gettext("Error: no immersion id found")
+        response['error'] = gettext("Error: missing immersion id parameter")
         return JsonResponse(response, safe=False)
 
     if immersion_id and not immersion_ids:
