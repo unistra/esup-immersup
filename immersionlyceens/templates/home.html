@@ -50,7 +50,7 @@
             <i class="us us-meeting-sm us-fw us-2x text-third"></i>
           </div>
           <div class="info-description">
-            <h4>{% trans 'Accompaniment' %}</h4>
+            <h4>{% trans 'Accompanying' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
             <p><a href="{% url 'accompanying' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">{% trans 'Need help ?' %}</a></p>
           </div>
@@ -63,16 +63,15 @@
             <i class="nv nv-twitter nv-fw nv-2x text-third"></i>
           </div>
           <aside class="info-description">
-          <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
-          {% trans 'Tweeter feed' %}
-          </a>
-          <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+            <h4>{% trans 'Social' %}</h4>
+            <a class="twitter-timeline" data-width="350" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
+            {% trans 'Tweeter feed' %}
+            </a>
+            <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
           </aside>
-      {% endif %}
-
-
         </div>
       </div>
+      {% endif %}
     </div>
   </div>
 </section>
