@@ -957,7 +957,6 @@ def ajax_get_slot_registrations(request, slot_id):
 
             if immersion.student.is_high_school_student():
                 immersion_data['profile'] = gettext('High-school student')
-
                 record = immersion.student.get_high_school_student_record()
 
                 if record:
@@ -967,11 +966,11 @@ def ajax_get_slot_registrations(request, slot_id):
 
             elif immersion.student.is_student():
                 immersion_data['profile'] = gettext('Student')
-
                 record = immersion.student.get_student_record()
 
                 if record:
-                    immersion_data['school'] = record.home_institution
+                    uai_code, institution = record.home_institution()
+                    immersion_data['school'] = institution.label if institution else uai_code
                     immersion_data['level'] = record.get_level_display()
 
             response['data'].append(immersion_data.copy())
@@ -1264,8 +1263,9 @@ def ajax_get_available_students(request, slot_id):
                 student_data['city'] = record.highschool.city
                 student_data['class'] = record.class_name
             elif student.is_student():
+                uai_code, institution = record.home_institution()
                 student_data['profile'] = pgettext("person type", "Student")
-                student_data['school'] = record.home_institution
+                student_data['school'] = institution.label if institution else uai_code
 
             response['data'].append(student_data.copy())
 
@@ -1352,8 +1352,9 @@ def ajax_get_highschool_students(request, highschool_id=None):
                     student_data['bachelor'] = record.get_bachelor_type_display()
 
             elif student.is_student():
+                uai_code, institution = record.home_institution()
                 student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                student_data['institution'] = record.home_institution
+                student_data['institution'] = institution.label if institution else uai_code
                 student_data['post_bachelor_level'] = record.current_diploma
 
         response['data'].append(student_data.copy())
@@ -1613,7 +1614,8 @@ def get_csv_anonymous_immersion(request):
                 if imm.student.is_student():
                     try:
                         record = StudentRecord.objects.get(student=imm.student)
-                        institution = record.home_institution
+                        uai_code, institution = record.home_institution()
+                        institution = institution.label if institution else uai_code
                         level = StudentRecord.LEVELS[record.level - 1][1]
                     except StudentRecord.DoesNotExist:
                         pass
@@ -1765,7 +1767,9 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             institution = record.highschool.label if record else ''
         elif immersion.student.get_student_record():
             record = immersion.student.get_student_record()
-            institution = record.home_institution if record else ''
+            if record:
+                uai_code, institution = record.home_institution()
+                institution = institution.label if institution else uai_code
 
         immersion_data = {
             'id': immersion.pk,

@@ -7,7 +7,7 @@ from django.utils.translation import gettext, ugettext_lazy as _
 from django.shortcuts import redirect, render
 from immersionlyceens.decorators import groups_required
 
-from immersionlyceens.apps.core.models import HighSchool
+from immersionlyceens.apps.core.models import HighSchool, HigherEducationInstitution
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 
@@ -60,3 +60,52 @@ def highschool_domains_charts(request):
     }
 
     return render(request, 'charts/highschool_domains_charts.html', context=context)
+
+
+@groups_required('SCUIO-IP')
+def global_domains_charts(request):
+    """
+    All institutions charts by domains, with filters on institutions
+    """
+    highschools = []
+    highschools_ids = []
+    higher_institutions = []
+    higher_institutions_ids = []
+
+    _insts = request.POST.get('insts')
+
+    try:
+        level_filter = int(request.POST.get('level', 0))
+    except ValueError:
+        level_filter = 0 # default : all levels
+
+    if _insts:
+        try:
+            insts = json.loads(_insts)
+
+            hs = {h.pk:h for h in HighSchool.objects.all()}
+            higher = {h.uai_code:h for h in HigherEducationInstitution.objects.all()}
+
+            highschools = sorted([ hs[inst[1]].label for inst in insts if inst[0] == 0 ])
+            higher_institutions = sorted([ higher[inst[1]].label for inst in insts if inst[0] == 1 ])
+
+            highschools_ids = [ inst[1] for inst in insts if inst[0]==0 ]
+            higher_institutions_ids = [ inst[1] for inst in insts if inst[0]==1 ]
+
+        except Exception as e:
+            logger.exception("Filter form values error")
+
+    # High school levels
+    # the third one ('above bachelor') will also include the higher education institutions students
+    levels = [(0, _("All"))] + HighSchoolStudentRecord.LEVELS
+
+    context = {
+        'highschools_ids': highschools_ids,
+        'highschools': highschools,
+        'higher_institutions_ids': higher_institutions_ids,
+        'higher_institutions': higher_institutions,
+        'levels': levels,
+        'level_filter': level_filter,
+    }
+
+    return render(request, 'charts/global_domains_charts.html', context=context)
