@@ -38,12 +38,12 @@
       <div class="col-sm-10 col-sm-offset-1">
         <section id="acc_doc_listing">
         {% if accomp_docs %}
-        <ul>
+        <ul class="filelinks">
         {% for doc in accomp_docs %}
-          <li>{{ doc.type }}
+          <li class="sun sun-theme-light sun-full">{{ doc.type }}
           <ul>
             {% for file in doc.docs %}
-              <li><a href="{% url 'accompanying_document' file.pk %}">{{ file.label }}</a>
+              <li class="sun sun-theme-light sun-full"><a href="{% url 'accompanying_document' file.pk %}" class="sun-row"><span class="sun-cell sun-icon"><span class="sun-cell-inner"><i class="nv nv-download"></i></span></span>{{ file.label }}</a>
               {% if file.description %}
                 - {{ file.description }}
               {% endif %}
@@ -61,4 +61,31 @@
     </div>
   </div>
 </section>
+
+                    <ul class="filelinks">
+                        <li class="sun sun-theme-light sun-full">
+                            <a title="Télécharger le fichier : Télécharger la convention au format Word" class="sun-row" href="fileadmin/uploads/dummy/fichiers/dummy.docx">
+                                <span class="sun-cell sun-icon">
+                                    <span class="sun-cell-inner"><i class="nv nv-download"></i></span>
+                                </span>
+                                <span class="sun-cell sun-wrap">
+                                    <span class="sun-cell-inner"><span class="sr-only">Nom du fichier : </span>Télécharger la convention au format Word</span>
+                                </span>
+                                <span class="sun-cell sun-empty-6"></span>
+                                <span class="sun-cell sun-empty-2"></span>
+                                <span class="sun-cell file-ext">
+                                    <span class="sun-cell-inner"><span class="sr-only">Extension du fichier : </span><strong>docx</strong></span>
+                                </span>
+                                <span class="sun-cell file-size">
+                                    <span class="sun-cell-inner"><span class="sr-only">Poids du fichier : </span>1 Mo</span>
+                                </span>
+                                <span class="sun-cell sun-empty-full"></span>
+                            </a>
+                        </li>
+                    </ul>
+
+
 {% endblock %}
+
+
+
