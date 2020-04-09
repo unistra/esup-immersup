@@ -16,6 +16,15 @@
             <span class="d-md-none">{% trans 'Home' %}</span>
           </a>
         </div>
+        <div class="nav-item">
+        <a class="nav-link" href="{% url 'procedure' %}">{% trans 'Procedure' %}</a>
+        </div>
+        <div class="nav-item">
+        <a class="nav-link" href="{% url 'offer' %}">{% trans 'Offer' %}</a>
+        </div>
+        <div class="nav-item">
+        <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
+        </div>
         {# Scuio or cmp #}
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
           <div class="nav-item dropdown">
@@ -121,11 +130,15 @@
         {% endif %}
         {# stats #}
         {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP,REF-CMP" %}
-          <a class="nav-item nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
+        <div class="nav-item">
+          <a class="nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
+        </div>
         {% endif %}
         {# admin #}
         {% if user.is_staff %}
-          <a class="nav-item nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
+        <div class="nav-item">
+          <a class="nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
+        </div>
         {% endif %}
       </div>
       {# user menu bar #}
