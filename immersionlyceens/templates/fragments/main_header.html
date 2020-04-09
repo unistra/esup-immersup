@@ -1,4 +1,6 @@
 {% load static i18n immersionlyceens_tags %}
+{% general_settings_get 'PLATFORM_URL' as platform_url %}
+{% comment %} TODO: Some template string here should be general settings ! {% endcomment %}
 <header class="page-header py-3 bg-gray">
   <div class="container">
     <div class="row">
@@ -6,12 +8,12 @@
         <div class="signature-unistra sun sun-theme-secondary">
           <span class="sun-row">
             <span class="sun-cell sun-empty-2"></span>
-            <a href="https://immersion-lyceen.unistra.fr" class="sun-cell sun-hover-primary" title="Lycéen en immersion - Université de Strasbourg">
+            <a href="{{ platform_url }}" class="sun-cell sun-hover-primary" title="Lycéen en immersion - Université de Strasbourg">
               <span class="sun-cell-inner">
                 Lycéen
               </span>
             </a>
-            <a href="https://immersion-lyceen.unistra.fr" class="sun-cell sun-hover-primary" title="Lycéen en immersion - Université de Strasbourg" aria-hidden="true">
+            <a href="{{ platform_url }}" class="sun-cell sun-hover-primary" title="Lycéen en immersion - Université de Strasbourg" aria-hidden="true">
               <span class="sun-cell-inner">
                 en <strong>immersion</strong>
               </span>
