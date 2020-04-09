@@ -28,9 +28,9 @@
             <i class="us us-file us-fw us-2x text-third"></i>
           </div>
           <div class="info-description">
-            <h4>Procédure</h4>
+            <h4>{% trans 'Procedure' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
-            <p><a href="procedure-unistra.html" class="btn btn-primary" title="Procédure d'inscription">Procédure en détail</a></p>
+            <p><a href="{% url 'procedure' %}" class="btn btn-primary"  data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">Procédure en détail</a></p>
           </div>
         </div>
       </div>
@@ -40,9 +40,9 @@
             <i class="nv nv-graduation-hat nv-fw nv-2x text-third"></i>
           </div>
           <div class="info-description">
-            <h4>Offre</h4>
+            <h4>{% trans 'Offer' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
-            <p><a href="offre-unistra.html" class="btn btn-primary" title="Les cours accessibles en immersion">Découvrir les cours</a></p>
+            <p><a href="{% url 'offer' %}" class="btn btn-primary"data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Discrover courses' %}</a></p>
           </div>
         </div>
       </div>
@@ -52,9 +52,9 @@
             <i class="us us-meeting-sm us-fw us-2x text-third"></i>
           </div>
           <div class="info-description">
-            <h4>Accompagnement</h4>
+            <h4>{% trans 'Accompaniment' %}</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
-            <p><a href="#" class="btn btn-primary" title="Accompagnement des lycéens">Besoin d'aide ?</a></p>
+            <p><a href="{% url 'accompanying' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">Besoin d'aide ?</a></p>
           </div>
         </div>
       </div>
@@ -75,45 +75,6 @@
     </div>
   </div>
 </section>
-
-<div class="container-fluid" style="padding-top:20px;">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-    {% trans "Homepage" %}
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-sm-8">
-          <section id="home_txt">
-          {{ welcome_txt | safe}}
-          </section>
-        </div>
-        <div class="col">
-          <aside>
-            {% if twitter_url %}
-            <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
-            {% trans 'Tweeter feed' %}
-            </a>
-            <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-            {% endif %}
-
-          </aside>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-sm-3 text-center">
-          <a href="{% url 'procedure' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">{% trans 'Procedure' %}</a>
-        </div>
-        <div class="col-sm-3 text-center">
-          <a href="{% url 'offer' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Offer' %}</a>
-        </div>
-        <div class="col-sm-3 text-center">
-          <a href="{% url 'accompanying' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">{% trans 'Accompaniment' %}</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 <script>
 $(document).ready(function() {
     $("body").tooltip({ selector: '[data-toggle=tooltip]', container:'body'});
