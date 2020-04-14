@@ -674,9 +674,12 @@ def immersions(request):
 
 
 @login_required
-@groups_required('LYC', 'ETU')
-def immersion_attestation_download(request, immersion_id):
-    student = request.user
+@groups_required('LYC', 'ETU', 'REF-LYC', 'SCUIO-IP')
+def immersion_attestation_download(request, immersion_id, student_id=None):
+    if request.user.is_high_school_manager() or request.user.is_scuio_ip_manager():
+        student = ImmersionUser.get_object_or_404(pk=student_id)
+    else:
+        student = request.user
     try:
         immersion = Immersion.objects.prefetch_related(
             'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
