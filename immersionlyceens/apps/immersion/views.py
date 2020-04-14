@@ -565,7 +565,7 @@ def student_record(request, student_id=None, record_id=None):
                 allowed_first_semester_registrations=calendar.nb_authorized_immersion_per_semester,
                 allowed_second_semester_registrations=calendar.nb_authorized_immersion_per_semester,
             )
-        elif record.uai_code != uai_code:
+        elif uai_code and record.uai_code != uai_code:
             record.uai_code = uai_code
             record.save()
     elif record_id:
