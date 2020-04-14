@@ -869,6 +869,9 @@ class Course(models.Model):
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
+    def get_alerts_count(self):
+        return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
+
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
