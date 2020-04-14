@@ -688,8 +688,7 @@ def immersion_attestation_download(request, immersion_id):
         elif immersion.student.is_student():
             record = immersion.student.get_student_record()
             # TODO: to complete when method home_instituion() is available
-            home_institution = record.home_institution()
-
+            home_institution = record.home_institution()[0]
         doc = AttendanceCertificateModel.objects.first()
 
         docx = merge_docx(
@@ -698,7 +697,7 @@ def immersion_attestation_download(request, immersion_id):
             doc=doc,
             immersion=immersion,
             birth_date=date_format(record.birth_date, 'd/m/Y'),
-            home_institution=home_institution,
+            home_institution=home_institution if home_institution else _('Information not available'),
             slot_date=date_format(immersion.slot.date),
         )
 

@@ -38,4 +38,4 @@ def merge_docx(request, **kwargs):
         )
         return docx
     except Exception as e:
-        logger.error('Docx generation error ', str(e))
+        logger.error('Docx generation error ', e)
