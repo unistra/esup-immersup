@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'css/vendor/Chart/Chart.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/core.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/charts.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/themes/animated.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/themes/material.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% endblock %}
+
+{% block section_title %}
+<h3>{% trans 'Registrations and participation statistics' %}</h3>
+{% endblock %}
+
+{% block content %}
+<div id="feedback" class="container"></div>
+<div class="container-fluid mt-4">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans 'Global statistics (all institutions)' %}
+      <br>
+      <label class='mt-2' for="id_level">{% trans 'Students level' %} :</label>
+      <select id="id_level" name="level" class="mt-2">
+        {% for level in levels %}
+          <option value="{{ level.0 }}" {% if level_filter == level.0 %}selected{% endif %}>{{ level.1 }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="card-body">
+      <div id="chartdiv" style="width:100%; height:400px;"></div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var level = $('#id_level option:selected').val();
+
+  function init_graph(level) {
+    $.get("/charts/get_registration_charts/"+level, function(response) {
+      am4core.useTheme(am4themes_animated);
+      // am4core.useTheme(am4themes_material);
+
+      let chart = am4core.createFromConfig({
+        "xAxes": response.axes.x,
+        "yAxes": response.axes.y,
+        "data": response.datasets,
+        "series": response.series,
+        "legend": {
+          'position': 'right',
+        },
+      }, "chartdiv", am4charts.XYChart);
+
+    });
+  }
+
+  init_graph(level);
+
+  $('#id_level').change(function() {
+    let level = $('#id_level option:selected').val();
+    init_graph(level);
+  });
+
+</script>
+{% endblock %}

@@ -14,10 +14,12 @@ class HighSchoolStudentRecord(models.Model):
     CIVS = [(1, _('Mr')),
             (2, _('Mrs'))]
 
+    # Use gettext on the next one because strings HAS to be translated here
+    # in order to avoid sending lazy translation objects to JSON in charts API
     LEVELS = [
-        (1, _('Pupil in year 12 / 11th grade student')),
-        (2, _('Pupil in year 13 / 12th grade student')),
-        (3, _('Above A Level / High-School Degree'))
+        (1, gettext('Pupil in year 12 / 11th grade student')),
+        (2, gettext('Pupil in year 13 / 12th grade student')),
+        (3, gettext('Above A Level / High-School Degree'))
     ]
 
     BACHELOR_TYPES = [

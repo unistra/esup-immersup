@@ -139,3 +139,19 @@ def trainings_charts(request):
         'highschool_id': filter.get('pk', ''),
     }
     return render(request, 'charts/trainings_charts.html', context=context)
+
+
+@groups_required('SCUIO-IP')
+def global_registrations_charts(request):
+    """
+    Registration and participation charts by student levels
+    """
+    # High school levels
+    # the third one ('above bachelor') will also include the higher education institutions students
+    levels = [(0, _("All"))] + HighSchoolStudentRecord.LEVELS
+
+    context = {
+        'levels': levels,
+    }
+
+    return render(request, 'charts/registrations_charts.html', context=context)
