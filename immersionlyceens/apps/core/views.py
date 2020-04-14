@@ -73,9 +73,8 @@ def import_holidays(request):
                 try:
                     Holiday(label=_label, date=_date).save()
                 except IntegrityError as exc:
-                    logger.warn(str(exc))
+                    logger.warning(str(exc))
 
-    # TODO: dynamic redirect
     return redirect(redirect_url)
 
 
@@ -287,15 +286,12 @@ def modify_slot(request, slot_id):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-# TODO: AUTH
-# @groups_required('SCUIO-IP','REF-CMP')
+@groups_required('SCUIO-IP', 'REF-CMP')
 def del_slot(request, slot_id):
     from immersionlyceens.apps.core.models import Slot
 
-    # todo: check if user can delete this slot
     slot = Slot.objects.get(id=slot_id)
     slot.delete()
-    # todo check if obj is delete and return good response
 
     return HttpResponse('ok')
 
@@ -635,8 +631,6 @@ def highschool_student_record_form_manager(request, hs_record_id):
         else:
             messages.error(request, _("High school student record modification failure"))
 
-        # todo: redirect into validation high school student
-        # return redirect('')
     else:
         form = HighSchoolStudentRecordManagerForm(instance=hs)
 
