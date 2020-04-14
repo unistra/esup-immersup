@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 
-# TODO: !!!!!!!!!!!!!!!!!!!!!!! AUTHORIZATION REQUIRED !!!!!!!!!!!!!!!!!!!!!!!
+@groups_required('SCUIO-IP')
 def import_holidays(request):
     """Import holidays from API if it's convigured"""
     from immersionlyceens.apps.core.models import Holiday
