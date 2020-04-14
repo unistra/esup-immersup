@@ -21,4 +21,5 @@ urlpatterns = [
     path('get_global_domains_charts', api.global_domains_charts, name='get_global_domains_charts'),
     path('get_charts_filters_data', api.get_charts_filters_data, name='get_charts_filters_data'),
     path('get_trainings_charts', api.get_trainings_charts, name='get_trainings_charts'),
+    path('get_trainings_charts/<int:highschool_id>', api.get_trainings_charts, name='get_hs_trainings_charts'),
 ]

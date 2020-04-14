@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-09 22:39+0200\n"
+"POT-Creation-Date: 2020-04-14 11:18+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,7 +62,7 @@ msgstr "Statistiques"
 
 #: immersionlyceens/apps/charts/views.py:54
 #: immersionlyceens/apps/charts/views.py:104
-#: immersionlyceens/templates/charts/trainings_charts.html:80
+#: immersionlyceens/templates/charts/trainings_charts.html:98
 #: immersionlyceens/templates/core/courses_list.html:134
 #: immersionlyceens/templates/core/duplicated_accounts.html:101
 #: immersionlyceens/templates/core/highschool_students.html:114
@@ -819,7 +819,7 @@ msgstr "Site web"
 
 #: immersionlyceens/apps/core/models.py:408
 #: immersionlyceens/apps/core/models.py:800
-#: immersionlyceens/templates/charts/trainings_charts.html:35
+#: immersionlyceens/templates/charts/trainings_charts.html:52
 #: immersionlyceens/templates/core/course.html:51
 #: immersionlyceens/templates/core/courses_list.html:50
 #: immersionlyceens/templates/core/mycourses.html:37
@@ -2448,6 +2448,7 @@ msgstr "Statistiques - lycéens par niveau"
 
 #: immersionlyceens/templates/charts/highschool_charts.html:29
 #: immersionlyceens/templates/charts/highschool_domains_charts.html:29
+#: immersionlyceens/templates/charts/trainings_charts.html:32
 #: immersionlyceens/templates/core/student_validation.html:43
 msgid "Select a high school"
 msgstr "Sélectionnez un lycée"
@@ -2464,30 +2465,33 @@ msgstr "Sélectionnez un niveau"
 msgid "Trainings statistics"
 msgstr "Statistiques par formation"
 
-#: immersionlyceens/templates/charts/trainings_charts.html:22
-#: immersionlyceens/templates/charts/trainings_charts.html:29
+#: immersionlyceens/templates/charts/trainings_charts.html:23
 msgid "Registrations statistics by trainings"
 msgstr "Statistiques d'inscriptions par formation"
 
-#: immersionlyceens/templates/charts/trainings_charts.html:36
+#: immersionlyceens/templates/charts/trainings_charts.html:41
+msgid "leave empty for all institutions : high schools and above"
+msgstr "laisser vide pour tous les établissements : lycées et établissements supérieurs"
+
+#: immersionlyceens/templates/charts/trainings_charts.html:53
 msgid "Subdomain"
 msgstr "Sous domaine"
 
-#: immersionlyceens/templates/charts/trainings_charts.html:37
+#: immersionlyceens/templates/charts/trainings_charts.html:54
 msgid "Domain"
 msgstr "Domaine"
 
-#: immersionlyceens/templates/charts/trainings_charts.html:38
-#: immersionlyceens/templates/charts/trainings_charts.html:39
-#: immersionlyceens/templates/charts/trainings_charts.html:40
-#: immersionlyceens/templates/charts/trainings_charts.html:41
+#: immersionlyceens/templates/charts/trainings_charts.html:55
+#: immersionlyceens/templates/charts/trainings_charts.html:56
+#: immersionlyceens/templates/charts/trainings_charts.html:57
+#: immersionlyceens/templates/charts/trainings_charts.html:58
 msgid "Students cnt"
 msgstr "Nb étudiants"
 
-#: immersionlyceens/templates/charts/trainings_charts.html:42
-#: immersionlyceens/templates/charts/trainings_charts.html:43
-#: immersionlyceens/templates/charts/trainings_charts.html:44
-#: immersionlyceens/templates/charts/trainings_charts.html:45
+#: immersionlyceens/templates/charts/trainings_charts.html:59
+#: immersionlyceens/templates/charts/trainings_charts.html:60
+#: immersionlyceens/templates/charts/trainings_charts.html:61
+#: immersionlyceens/templates/charts/trainings_charts.html:62
 msgid "Registrations"
 msgstr "Inscriptions"
 
@@ -3002,13 +3006,13 @@ msgstr "Lycées - inscriptions"
 msgid "By domains registrations"
 msgstr "Lycées - par domaines"
 
-#: immersionlyceens/templates/fragments/main_menu.html:116
-msgid "Global, by domains registrations"
-msgstr "Globales - par domaines"
-
-#: immersionlyceens/templates/fragments/main_menu.html:117
+#: immersionlyceens/templates/fragments/main_menu.html:115
 msgid "Trainings registrations data"
 msgstr "Statistiques d'inscriptions par formation"
+
+#: immersionlyceens/templates/fragments/main_menu.html:117
+msgid "Global, by domains registrations"
+msgstr "Globales - par domaines"
 
 #: immersionlyceens/templates/fragments/main_menu.html:124
 msgid "Extractions"
