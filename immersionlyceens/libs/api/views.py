@@ -581,24 +581,11 @@ def ajax_get_slots_by_course(request, course_id=None):
         response['msg'] = gettext("Error : a valid course is requested")
     else:
         calendar = Calendar.objects.first()
-        # TODO: poc for now maybe refactor dirty code in a model method !!!!
         today = datetime.datetime.today().date()
-        reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-        if calendar.calendar_mode == 'YEAR':
-            reg_start_date = calendar.year_registration_start_date
-            reg_end_date = calendar.year_end_date
-        else:
-            # Year mode
-            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
-                reg_start_date = calendar.semester1_start_date
-                reg_end_date = calendar.semester1_end_date
-            # semester mode
-            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
-                reg_start_date = calendar.semester2_start_date
-                reg_end_date = calendar.semester2_end_date
+        reg_dates = calendar.get_limit_dates(today)
 
         slots = Slot.objects.filter(
-            course__id=course_id, published=True, date__gte=reg_start_date, date__lte=reg_end_date
+            course__id=course_id, published=True, date__gte=reg_dates['start'], date__lte=reg_dates['end']
         )
 
     all_data = []

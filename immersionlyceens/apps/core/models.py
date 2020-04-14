@@ -787,8 +787,8 @@ class Calendar(models.Model):
                 return 2
         return None
 
-    def get_limit_dates(self):
-        sem = self.which_semester()
+    def get_limit_dates(self, _date):
+        sem = self.which_semester(_date)
         if sem == 1:
             return {
                 'start': self.semester1_start_date,
