@@ -313,13 +313,22 @@ def get_charts_filters_data(request):
     return JsonResponse(response, safe=False)
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
-def get_trainings_charts(request):
+@groups_required("SCUIO-IP","REF-LYC")
+def get_trainings_charts(request, highschool_id=None):
     """
+    Statistics by training
+     - for a single high school (if referent)
+     - scuio-ip users can choose a high school or leave empty for all institutions
     """
     response = {'msg': '', 'data': []}
-
+    high_school_filter_id = None
     trainings = Training.objects.prefetch_related('training_subdomains__training_domain').filter(active=True)
+
+    # Additional filter if the user is a high school referent
+    if request.user.is_high_school_manager():
+        high_school_filter_id = request.user.highschool.id
+    elif highschool_id:
+        high_school_filter_id = highschool_id
 
     for training in trainings:
         for subdomain in training.training_subdomains.all():
@@ -329,6 +338,12 @@ def get_trainings_charts(request):
             base_immersions_qs = Immersion.objects.prefetch_related('slot__course__training', 'student')\
                 .filter(slot__course__training=training, cancellation_type__isnull=True)
 
+            if high_school_filter_id:
+                base_students_qs = base_students_qs.filter(
+                    high_school_student_record__highschool__id=high_school_filter_id)
+                base_immersions_qs = base_immersions_qs.filter(
+                    student__high_school_student_record__highschool__id=high_school_filter_id)
+
             row = {
                 'training_label': training.label,
                 'subdomain_label': subdomain.label,
@@ -337,7 +352,8 @@ def get_trainings_charts(request):
                 'unique_students': base_students_qs.distinct().count(),
                 'unique_students_lvl1': base_students_qs.filter(high_school_student_record__level=1).distinct().count(),
                 'unique_students_lvl2': base_students_qs.filter(high_school_student_record__level=2).distinct().count(),
-                # The level 3 (above bachelor) also includes higher education institutions students (any level)
+                # For scuio-ip users, the level 3 (above bachelor) also includes higher education
+                # institutions students (any level)
                 'unique_students_lvl3': base_students_qs.filter(
                     Q(high_school_student_record__level=3) |
                     Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))\
@@ -346,7 +362,7 @@ def get_trainings_charts(request):
                 'all_registrations': base_immersions_qs.count(),
                 'registrations_lvl1': base_immersions_qs.filter(student__high_school_student_record__level=1).count(),
                 'registrations_lvl2': base_immersions_qs.filter(student__high_school_student_record__level=2).count(),
-                # also includes higher education institutions students
+                # For scuio-ip users, also includes higher education institutions students
                 'registrations_lvl3': base_immersions_qs.filter(
                     Q(student__high_school_student_record__level=3) |
                     Q(student__student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))\

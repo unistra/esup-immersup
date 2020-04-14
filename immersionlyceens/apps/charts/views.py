@@ -115,12 +115,27 @@ def global_domains_charts(request):
     return render(request, 'charts/global_domains_charts.html', context=context)
 
 
-@groups_required('SCUIO-IP')
+@groups_required('SCUIO-IP', 'REF-LYC')
 def trainings_charts(request):
     """
     Registration statistics by trainings
     """
+    filter = {}
+    high_school_name = None
+
+    if request.user.is_high_school_manager():
+        high_school_name = request.user.highschool.label
+        filter['pk'] = request.user.highschool.id
+
+    highschools = [
+        {'id': h.id, 'label':h.label, 'city': h.city }
+        for h in HighSchool.objects.filter(**filter).order_by('city','label')
+    ]
+
     context = {
+        'high_school_name': high_school_name,
         'levels': HighSchoolStudentRecord.LEVELS,
+        'highschools': highschools,
+        'highschool_id': filter.get('pk', ''),
     }
     return render(request, 'charts/trainings_charts.html', context=context)
