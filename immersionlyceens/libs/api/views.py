@@ -99,7 +99,8 @@ def ajax_get_courses(request, component_id=None):
             'n_places': course.free_seats(),
             'published_slots_count': course.published_slots_count(),
             'registered_students_count': course.registrations_count(),
-            'alerts_count': 0,  # TODO
+            'alerts_count': course.get_alerts_count(),
+            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
             'can_delete': not course.slots.exists(),
         }
 
@@ -162,7 +163,6 @@ def ajax_get_documents(request):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_slots(request, component=None):
-    # TODO: auth access test
     can_update_attendances = False
 
     today = datetime.datetime.today().date()
@@ -369,7 +369,8 @@ def ajax_get_my_courses(request, user_id=None):
             # f'{course.published_slots_count(teacher_id=user_id)} / {course.slots_count(teacher_id=user_id)}',
             'registered_students_count': course.registrations_count(teacher_id=user_id),
             # f'{course.registrations_count(teacher_id=user_id)} / {course.free_seats(teacher_id=user_id)}',
-            'alerts_count': 0,  # TODO
+            'alerts_count': course.get_alerts_count(),
+            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
         }
 
         for teacher in course.teachers.all().order_by('last_name', 'first_name'):
@@ -419,41 +420,37 @@ def ajax_get_my_slots(request, user_id=None):
 
     for slot in slots:
         campus = ""
-        try:
-            if slot.campus and slot.building:
-                campus = f'{slot.campus.label} - {slot.building.label}'
+        if slot.campus and slot.building:
+            campus = f'{slot.campus.label} - {slot.building.label}'
 
-            slot_data = {
-                'id': slot.id,
-                'published': slot.published,
-                'component': slot.course.component.code,
-                'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
-                'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
-                'location': {'campus': campus, 'room': slot.room,},
-                'schedules': {
-                    'date': _date(slot.date, "l d/m/Y"),
-                    'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
-                },
-                'datetime': datetime.datetime.strptime(
-                    "%s:%s:%s %s:%s"
-                    % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
-                    "%Y:%m:%d %H:%M",
-                )
-                if slot.date
-                else None,
-                'start_time': slot.start_time.strftime("%H:%M"),
-                'end_time': slot.end_time.strftime("%H:%M"),
-                'label': slot.course.label,
-                'teachers': {},
-                'n_places': slot.n_places if slot.n_places is not None else 0,
-                'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(),},
-                'additional_information': slot.additional_information,
-                'attendances_status': '',
-                'attendances_value': 0,
-            }
-        except AttributeError:
-            # TODO: maybe not usefull
-            pass
+        slot_data = {
+            'id': slot.id,
+            'published': slot.published,
+            'component': slot.course.component.code,
+            'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
+            'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
+            'location': {'campus': campus, 'room': slot.room,},
+            'schedules': {
+                'date': _date(slot.date, "l d/m/Y"),
+                'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
+            },
+            'datetime': datetime.datetime.strptime(
+                "%s:%s:%s %s:%s"
+                % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
+                "%Y:%m:%d %H:%M",
+            )
+            if slot.date
+            else None,
+            'start_time': slot.start_time.strftime("%H:%M"),
+            'end_time': slot.end_time.strftime("%H:%M"),
+            'label': slot.course.label,
+            'teachers': {},
+            'n_places': slot.n_places if slot.n_places is not None else 0,
+            'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(),},
+            'additional_information': slot.additional_information,
+            'attendances_status': '',
+            'attendances_value': 0,
+        }
 
         if slot_data['datetime'] and slot_data['datetime'] <= today:
             if not slot.immersions.filter(cancellation_type__isnull=True).exists():
@@ -1596,6 +1593,7 @@ def get_csv_anonymous_immersion(request):
         _('additional information'),
         _('origin institution'),
         _('student level'),
+        _('emargement'),
     ]
 
     content = []
@@ -1648,7 +1646,7 @@ def get_csv_anonymous_immersion(request):
                             slot.n_places,
                             slot.additional_information,
                             institution,
-                            level,
+                            level
                         ]
                     )
         else:
