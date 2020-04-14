@@ -884,7 +884,7 @@ class APITestCase(TestCase):
         self.assertEqual(c['n_places'], self.course.free_seats())
         self.assertEqual(c['published_slots_count'], self.course.published_slots_count())
         self.assertEqual(c['registered_students_count'], self.course.registrations_count())
-        self.assertEqual(c['alerts_count'], 0)  # TODO:
+        self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
         self.assertEqual(c['can_delete'], not self.course.slots.exists())
 
     def test_API_ajax_delete_course__no_data(self):
@@ -993,7 +993,7 @@ class APITestCase(TestCase):
             self.course.published_slots_count(teacher_id=self.teacher1.id),
             c['published_slots_count']
         )
-        self.assertEqual(0, c['alerts_count'])
+        self.assertEqual(self.course.get_alerts_count(), c['alerts_count'])
 
     def test_API_ajax_get_my_slots(self):
         request.user = self.teacher1
