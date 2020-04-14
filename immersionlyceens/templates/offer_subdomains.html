@@ -21,17 +21,38 @@
 {% authorized_groups request.user %}
 {% include 'modals/modal_course_alert.html' %}
 <div id="feedback" class="container mt-4 sticky-top"></div>
-<div class="container-fluid" class="mt-4">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-      <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / <a class="unlink" href="{% url 'offer' %}">{% trans 'Offer' %}</a> / {{ subdomain }}
-      <div class="collapse-group pull-right">
-        <div class="controls">
-          <button class="btn btn-primary close-button" type="button">{% trans 'Close all' %}</button>
+
+<div class="main-title inside text-center domain-arts">
+    <div class="bg-main-title bg-parallax-bottom" data-scroll-speed=".3"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1>{{ subdomain }}</h1>
+                <p class="text-uppercase mb-0"></p>
+                <button class="btn btn-primary close-button pull-right" type="button">{% trans 'Close all' %}</button>
+            </div>
         </div>
-      </div>
     </div>
-    <div class="card-body">
+</div>
+
+
+<section class="py-2">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">{% trans 'Homepage' %}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'offer' %}">{% trans 'Offer' %}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ subdomain }}</li>
+            </li>
+            </ol>
+
+        </nav>
+</section>
+
+
+
+<div class="container-fluid" class="mt-4">
+
       {% if data %}
         <div id="accordion" class="accordion">
           {% regroup data by training as data_list %}
@@ -147,8 +168,7 @@
       <p>{% trans 'No training available for the selected domain' %}</p>
       <p><a class="unlink" href="{% url 'offer' %}">{% trans 'Click here to return to offer selection' %}</a></p>
       {% endif %}
-    </div>
-  </div>
+
 </div>
 <script>
 var feedback;
