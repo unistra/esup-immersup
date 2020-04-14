@@ -1872,7 +1872,6 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
         self.assertTrue(content['error'])
 
-        print(content)
 
     def test_API_ajax_set_course_alert__email_not_valid(self):
         request.user = self.scuio_user
