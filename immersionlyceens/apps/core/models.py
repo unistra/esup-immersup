@@ -482,7 +482,6 @@ class Building(models.Model):
         unique_together = ('campus', 'label')
 
     def __str__(self):
-        # TODO: Should we display campus label as well (????)
         return self.label
 
     def validate_unique(self, exclude=None):
@@ -1011,7 +1010,7 @@ class AccompanyingDocument(models.Model):
         super().delete()
 
     def get_types(self):
-        # TODO:
+        # TODO: ???
         return ",".join([t.label for t in self.public_type.all()])
 
     get_types.short_description = _('Public type')
