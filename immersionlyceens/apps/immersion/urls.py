@@ -14,6 +14,11 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('activate/<hash>', views.activate, name='activate'),
     path('dl/attestation/<int:immersion_id>', views.immersion_attestation_download, name='attestation_download'),
+    path(
+        'dl/attestation/<int:immersion_id>/student/<int:student_id>',
+        views.immersion_attestation_download,
+        name='attestation_download_by_student',
+    ),
     path('change_password', views.change_password, name='change_password'),
     path('hs_record', views.high_school_student_record, name='hs_record'),
     path('hs_record/<int:record_id>', views.high_school_student_record, name='modify_hs_record'),

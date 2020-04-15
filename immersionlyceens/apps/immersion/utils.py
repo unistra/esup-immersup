@@ -3,8 +3,13 @@ import logging
 from django.forms.models import model_to_dict
 
 from mailmerge import MailMerge
+from django.http.response import HttpResponseNotFound
 
 logger = logging.getLogger(__name__)
+
+
+class DocxMergeError(Exception):
+    pass
 
 
 def merge_docx(request, **kwargs):
@@ -39,3 +44,4 @@ def merge_docx(request, **kwargs):
         return docx
     except Exception as e:
         logger.error('Docx generation error ', e)
+        raise DocxMergeError("Failed to merge document")

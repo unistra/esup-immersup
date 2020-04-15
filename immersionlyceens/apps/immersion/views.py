@@ -15,19 +15,18 @@ from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
-from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
-
 from immersionlyceens.apps.core.models import (
     AttendanceCertificateModel, Calendar, CancelType, HigherEducationInstitution,
     Immersion, ImmersionUser, UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.utils import check_active_year
+from shibboleth.decorators import login_optional
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from .forms import (
     HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
@@ -677,7 +676,7 @@ def immersions(request):
 @groups_required('LYC', 'ETU', 'REF-LYC', 'SCUIO-IP')
 def immersion_attestation_download(request, immersion_id, student_id=None):
     if request.user.is_high_school_manager() or request.user.is_scuio_ip_manager():
-        student = ImmersionUser.get_object_or_404(pk=student_id)
+        student = get_object_or_404(ImmersionUser, pk=student_id)
     else:
         student = request.user
     try:
@@ -692,6 +691,7 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             record = immersion.student.get_student_record()
             # TODO: to complete when method home_instituion() is available
             home_institution = record.home_institution()[0]
+
         doc = AttendanceCertificateModel.objects.first()
 
         docx = merge_docx(
@@ -717,5 +717,6 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
 
         return response
 
-    except Immersion.DoesNotExist:
+    except Exception as e:
+        logger.error('Certificate download error', e)
         raise Http404()
