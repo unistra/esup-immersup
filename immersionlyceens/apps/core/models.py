@@ -1289,6 +1289,12 @@ class Immersion(models.Model):
     attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
     survey_email_sent = models.BooleanField(_("Survey notification status"), default=False)
 
+    def get_attendance_status(self) -> str:
+        try:
+            return self.ATT_STATUS[self.attendance_status][1]
+        except KeyError:
+            return ''
+
     class Meta:
         verbose_name = _('Immersion')
         verbose_name_plural = _('Immersions')

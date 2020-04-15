@@ -1633,7 +1633,8 @@ def get_csv_anonymous_immersion(request):
                             slot.n_places,
                             slot.additional_information,
                             institution,
-                            level
+                            level,
+                            imm.get_attendance_status(),
                         ]
                     )
         else:
