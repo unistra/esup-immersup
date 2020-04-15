@@ -805,6 +805,7 @@ class Calendar(models.Model):
                 'end': self.year_end_date,
             }
 
+
 class Course(models.Model):
     """
     Course class
@@ -1132,8 +1133,11 @@ class AttendanceCertificateModel(models.Model):
 
     def show_merge_fields(self):
         if self.document:
-            fields = MailMerge(self.document.path).get_merge_fields()
-            return ", ".join([d for d in fields]) if bool(fields) else _('No variables in file')
+            try:
+                fields = MailMerge(self.document.path).get_merge_fields()
+                return ", ".join([d for d in fields]) if bool(fields) else _('No variables in file')
+            except:
+                return _('Error in document please check file existence and structure')
 
     get_merge_fields.short_description = _('Variables')
     show_merge_fields.short_description = _('Variables')
