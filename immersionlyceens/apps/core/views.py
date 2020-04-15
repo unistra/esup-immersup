@@ -248,7 +248,7 @@ def modify_slot(request, slot_id):
         if notify_student:
             immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
             for immersion in immersions:
-                immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF')
+                immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF', immersion=immersion, slot=slot)
 
 
         if request.POST.get('save'):
