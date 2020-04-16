@@ -114,6 +114,7 @@
               <a class="dropdown-item" href="{% url 'charts:highschool_domains_charts' %}">{% trans 'By domains registrations' %}</a>
               <a class="dropdown-item" href="{% url 'charts:trainings_charts' %}">{% trans 'Trainings registrations data' %}</a>
               {% if authorized_groups|in_groups:"SCUIO-IP" %}
+              <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'Registrations and participation' %}</a>
               <a class="dropdown-item" href="{% url 'charts:global_domains_charts' %}">{% trans 'Global, by domains registrations' %}</a>
               {% endif %}
             </div>

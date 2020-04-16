@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static staticfiles i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'css/vendor/Chart/Chart.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/core.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/charts.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/themes/animated.js' %}"></script>
+<script src="{% static 'js/vendor/amcharts4/themes/material.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
+{% endblock %}
+
+{% block section_title %}
+<h3>{% trans 'Registrations and participation statistics' %}</h3>
+{% endblock %}
+
+{% block content %}
+{% include '../modals/modal_global_charts_filters.html' %}
+<div id="feedback" class="container"></div>
+<div class="container-fluid mt-4">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans 'Global statistics (all institutions)' %}
+      <br>
+      <label class='mt-2' for="id_level_part1">{% trans 'Students level' %} :</label>
+      <select id="id_level_part1" name="level" class="mt-2">
+        {% for level in levels %}
+          <option value="{{ level.0 }}" {% if part1_level_filter == level.0 %}selected{% endif %}>{{ level.1 }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="card-body">
+      <div id="chartdiv" style="width:100%; height:400px;"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans 'By institutions statistics' %}
+      <button class="btn btn-light btn-sm ml-4" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">{% trans 'Manage filters' %}</button>
+    </div>
+    {% if highschools_ids or higher_institutions_ids %}
+    <h5 class="card-subtitle text-muted mt-2">{% trans 'Registered users count' %}</h5>
+    <div id="chartdiv_platform_regs" style="width:100%;"></div>
+    <h5 class="card-subtitle text-muted mt-4">{% trans 'Registered to at least one immersion' %}</h5>
+    <div id="chartdiv_one_immersion" style="width:100%;"></div>
+    <h5 class="card-subtitle text-muted mt-4">{% trans 'Attended to at least one immersion' %}</h5>
+    <div id="chartdiv_attended_one" style="width:100%;"></div>
+    {% else %}
+    <span class="mt-3 mb-3"><i>{% trans 'Use the filters to build charts' %}</i></span>
+    {% endif %}
+  </div>
+</div>
+<script type="text/javascript">
+  {% autoescape off %}
+    var highschools_ids = {{ highschools_ids }};
+    var higher_institutions_ids = {{ higher_institutions_ids }};
+    var level_filter = "{{ level_filter }}";
+  {% endautoescape %}
+
+  /* First part XY Chart */
+  var part1_level = $('#id_level_part1 option:selected').val();
+
+  function init_first_graph(level) {
+    $.get("/charts/get_registration_charts/"+level, function(response) {
+      am4core.useTheme(am4themes_animated);
+
+      let chart = am4core.createFromConfig({
+        "xAxes": response.axes.x,
+        "yAxes": response.axes.y,
+        "data": response.datasets,
+        "series": response.series,
+        "legend": {
+          'position': 'right',
+        },
+      }, "chartdiv", am4charts.XYChart);
+
+    });
+  }
+
+  init_first_graph(part1_level);
+
+  $('#id_level_part1').change(function() {
+    let level = $('#id_level_part1 option:selected').val();
+    init_first_graph(level);
+  });
+
+  /* Second part XY charts */
+  function open_filter_modal() {
+    $('#modal_global_charts_filter').modal('show');
+  }
+
+  function auto_adjust_height(ev) {
+    // Get objects of interest
+    var cellSize = 60;
+    var chart = ev.target;
+    var categoryAxis = chart.yAxes.getIndex(0);
+
+    // Calculate how we need to adjust chart height
+    var adjustHeight = chart.data.length * cellSize - categoryAxis.pixelHeight;
+
+    // Get current chart height
+    var targetHeight = chart.pixelHeight + adjustHeight;
+
+    // Set it on chart's container
+    chart.svgContainer.htmlElement.style.height = targetHeight + "px";
+  };
+
+  function init_second_graphs(part2_level, highschools_ids, higher_institutions_ids) {
+    $.ajax({
+      url: "/charts/get_registration_charts_cats",
+      type: 'POST',
+      data: {
+        'highschools_ids' : highschools_ids,
+        'higher_institutions_ids': higher_institutions_ids,
+        'level': part2_level,
+         csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        platform_regs = json["platform_regs"];
+        one_immersion = json["one_immersion"];
+        attended_one = json["attended_one"];
+
+        let chart_platform = am4core.createFromConfig({
+          "xAxes": platform_regs.axes.x,
+          "yAxes": platform_regs.axes.y,
+          "data": platform_regs.datasets,
+          "series": platform_regs.series,
+          "legend": {
+            'position': 'right',
+          },
+          "events": {
+            "datavalidated": function(ev) { auto_adjust_height(ev) },
+          }
+        }, "chartdiv_platform_regs", am4charts.XYChart);
+
+        let chart_one_immersion = am4core.createFromConfig({
+          "xAxes": one_immersion.axes.x,
+          "yAxes": one_immersion.axes.y,
+          "data": one_immersion.datasets,
+          "series": one_immersion.series,
+          "legend": {
+            'position': 'right',
+          },
+          "events": {
+            "datavalidated": function(ev) { auto_adjust_height(ev) }
+          }
+        }, "chartdiv_one_immersion", am4charts.XYChart);
+
+        let chart_attended_one = am4core.createFromConfig({
+          "xAxes": attended_one.axes.x,
+          "yAxes": attended_one.axes.y,
+          "data": attended_one.datasets,
+          "series": attended_one.series,
+          "legend": {
+            'position': 'right',
+          },
+          "events": {
+            "datavalidated": function(ev) { auto_adjust_height(ev) }
+          }
+        }, "chartdiv_attended_one", am4charts.XYChart);
+
+      },
+      error: function(json) {
+        console.log(json);
+      },
+      async: false,
+    });
+  }
+
+  if(highschools_ids.length > 0 || higher_institutions_ids.length > 0) {
+    init_second_graphs(level_filter, highschools_ids, higher_institutions_ids);
+  }
+
+
+</script>
+{% endblock %}

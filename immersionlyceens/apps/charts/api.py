@@ -25,11 +25,7 @@ def highschool_charts(request, highschool_id):
     Data for amcharts 4
     Vertical bars format
     """
-    student_levels = [
-        gettext('Pupil in year 12 / 11th grade student'), # level = 1
-        gettext('Pupil in year 13 / 12th grade student'), # level = 2
-        gettext('Above A Level / High-School Degree') # level = 3
-    ]
+    # TODO : Merge with get_registration_chart ?
 
     # Each dataset represents a student level
     datasets = [
@@ -58,62 +54,34 @@ def highschool_charts(request, highschool_id):
         }],
     }
 
-    series = [
-        {
-            "name": student_levels[0],
-            "type": "ColumnSeries",
-            "stacked": True,
+    series = []
+    for level in HighSchoolStudentRecord.LEVELS:
+        series.append(
+            {
+                "name": level[1],
+                "type": "ColumnSeries",
+                "stacked": True,
 
-            "dataFields": {
-                "valueY": student_levels[0],
-                "categoryX": "name",
-            },
-            "columns": {
-                "template": {
-                    "width": "30%",
-                    "tooltipText": student_levels[0] + "\n{valueY}",
+                "dataFields": {
+                    "valueY": level[1],
+                    "categoryX": "name",
                 },
-            }
-        },
-        {
-            "name": student_levels[1],
-            "type": "ColumnSeries",
-            "stacked": True,
-            "dataFields": {
-                "valueY": student_levels[1],
-                "categoryX": "name",
+                "columns": {
+                    "template": {
+                        "width": "30%",
+                        "tooltipText": level[1] + "\n{valueY}",
+                    },
+                }
             },
-            "columns": {
-                "template": {
-                    "width": "30%",
-                    "tooltipText": student_levels[1] + "\n{valueY}",
-                },
-            }
-        },
-        {
-            "name": student_levels[2],
-            "type": "ColumnSeries",
-            "stacked": True,
-            "dataFields": {
-                "valueY": student_levels[2],
-                "categoryX": "name",
-            },
-            "columns": {
-                "template": {
-                    "width": "30%",
-                    "tooltipText": student_levels[2] + "\n{valueY}",
-                },
-            }
-        },
-    ]
+        )
 
     qs = ImmersionUser.objects.filter(high_school_student_record__highschool__id=highschool_id)
 
-    for level in [1, 2, 3]:
-        users = qs.filter(high_school_student_record__level=level)
-        datasets[0][student_levels[level-1]] = users.count() # plaform
-        datasets[1][student_levels[level-1]] = users.filter(immersions__isnull=False).distinct().count() # registered
-        datasets[2][student_levels[level-1]] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
+    for level in HighSchoolStudentRecord.LEVELS:
+        users = qs.filter(high_school_student_record__level=level[0])
+        datasets[0][level[1]] = users.count() # plaform
+        datasets[1][level[1]] = users.filter(immersions__isnull=False).distinct().count() # registered
+        datasets[2][level[1]] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
 
     response = {
         'axes': axes,
@@ -184,7 +152,7 @@ def global_domains_charts(request):
     """
     Data for amcharts 4
     Pie chart format
-    all parameters are in request
+    all parameters are in request.POST
     """
     immersions_filter = {}
 
@@ -370,5 +338,266 @@ def get_trainings_charts(request, highschool_id=None):
             }
 
             response['data'].append(row.copy())
+
+    return JsonResponse(response, safe=False)
+
+@groups_required("SCUIO-IP")
+def get_registration_charts(request, level_value=0):
+    """
+    Data for amcharts 4
+    Horizontal bars format
+    """
+
+    # TODO : Merge with highschool_charts ?
+
+    if level_value == 0 or level_value not in [l[0] for l in HighSchoolStudentRecord.LEVELS]:
+        level_value = 0 # force it
+        student_levels = [
+            l[1] for l in HighSchoolStudentRecord.LEVELS
+        ]
+    else:
+        student_levels = [
+            HighSchoolStudentRecord.LEVELS[level_value-1][1]
+        ]
+
+    request.session["current_level_filter"] = level_value
+
+    # Each dataset represents a category
+    datasets = [
+        {
+            'name': gettext("Registered users count"),
+        },
+        {
+            'name': gettext("Registered to at least one immersion"),
+        },
+        {
+            'name': gettext("Attended to at least one immersion"),
+        },
+    ]
+
+    # Horizontal bars : switched axis
+    axes = {
+        'x': [{
+            "type": "ValueAxis",
+            "min": 0,
+            "maxPrecision": 0,
+        }],
+        'y': [{
+            "type": "CategoryAxis",
+            "dataFields": {
+                "category": "name",
+            }
+        }],
+    }
+
+    series = []
+
+    for level in student_levels:
+        series.append({
+            "name": level,
+            "type": "ColumnSeries",
+            "stacked": True,
+
+            "dataFields": {
+                "valueX": level,
+                "categoryY": "name",
+            },
+            "columns": {
+                "template": {
+                    "width": "30%",
+                    "tooltipText": level + "\n{valueY}",
+                },
+            }
+        })
+
+    qs = ImmersionUser.objects.all()
+
+    if level_value == 0:
+        levels =  [l for l in HighSchoolStudentRecord.LEVELS]
+    else:
+        # dirty as there will be only one element
+        levels = [l for l in HighSchoolStudentRecord.LEVELS if l[0] == level_value]
+
+    for level in levels:
+        if level[0] != 3:
+            users = qs.filter(high_school_student_record__level=level[0])
+        else: # level 3 : highschool and higher education institutions levels
+            users = qs.filter(Q(high_school_student_record__level=3) |
+                              Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))
+
+        datasets[0][level[1]] = users.count()  # plaform
+        datasets[1][level[1]] = users.filter(immersions__isnull=False).distinct().count()  # registered
+        datasets[2][level[1]] = users.filter(immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
+
+    response = {
+        'axes': axes,
+        'datasets': datasets,
+        'series': series,
+    }
+
+    return JsonResponse(response, safe=False)
+
+
+@is_post_request
+@is_ajax_request
+@groups_required("SCUIO-IP")
+def get_registration_charts_cats(request):
+    """
+    Data for amcharts 4
+    Horizontal bars format, part 2
+    parameters are in request.POST
+    """
+
+    immersions_filter = {}
+
+    # Parse filters in POST request
+    _highschools_ids = request.POST.getlist("highschools_ids[]")
+    _higher_institutions_ids = request.POST.getlist("higher_institutions_ids[]")
+
+    try:
+        level_value = int(request.POST.get("level", 0))
+    except ValueError:
+        level_value = 0
+
+    if level_value == 0 or level_value not in [l[0] for l in HighSchoolStudentRecord.LEVELS]:
+        level_value = 0 # force it if not in authorized values
+        student_levels = [
+            l[1] for l in HighSchoolStudentRecord.LEVELS
+        ]
+        levels = [l for l in HighSchoolStudentRecord.LEVELS]
+    else:
+        student_levels = [
+            HighSchoolStudentRecord.LEVELS[level_value-1][1]
+        ]
+        # dirty as there will be only one element
+        levels = [l for l in HighSchoolStudentRecord.LEVELS if l[0] == level_value]
+
+    # Filter on highschools or higher education institutions
+    if _highschools_ids:
+        immersions_filter["student__high_school_student_record__highschool__id__in"] = _highschools_ids
+
+    if _higher_institutions_ids:
+        immersions_filter["student__student_record__uai_code__in"] = _higher_institutions_ids
+
+    # We need data for 3 graphs
+    # Axes are common, just make sure we always use 'name' as attribute name for category
+    axes = {
+        'x': [{
+            "type": "ValueAxis",
+            "min": 0,
+            "maxPrecision": 0,
+        }],
+        'y': [{
+            "type": "CategoryAxis",
+            "dataFields": {
+                "category": "name",
+            }
+        }],
+    }
+
+    # Series (common)
+    series = []
+    for level in student_levels:
+        series.append({
+            "name": level,
+            "type": "ColumnSeries",
+            "stacked": True,
+
+            "dataFields": {
+                "valueX": level,
+                "categoryY": "name",
+            },
+            "columns": {
+                "template": {
+                    "width": "30%",
+                    "tooltipText": level + "\n{valueY}",
+                },
+            }
+        })
+
+    # Datasets definitions are also common : each category is an institution
+
+    datasets = {
+        'platform_regs': [],
+        'one_immersion': [],
+        'attended_one': [],
+    }
+
+    qs = ImmersionUser.objects.prefetch_related("high_school_student_record__highschool","student_record").all()
+
+    # High schools
+    for highschool in HighSchool.objects.filter(id__in=_highschools_ids):
+        hs_qs = qs.filter(high_school_student_record__highschool=highschool)
+
+        dataset_pr = { 'name': highschool.label }
+        dataset_oi = { 'name': highschool.label }
+        dataset_ao = { 'name': highschool.label }
+
+        for level in levels:
+            if level[0] != 3:
+                users = hs_qs.filter(high_school_student_record__level=level[0])
+            else:  # level 3 : highschool and higher education institutions levels
+                users = hs_qs.filter(Q(high_school_student_record__level=3) |
+                                     Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))
+
+            dataset_pr[level[1]] = users.count()  # plaform
+            dataset_oi[level[1]] = users.filter(immersions__isnull=False).distinct().count()  # registered
+            dataset_ao[level[1]] = users.filter(
+                immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
+
+        datasets['platform_regs'].append(dataset_pr.copy())
+        datasets['one_immersion'].append(dataset_oi.copy())
+        datasets['attended_one'].append(dataset_ao.copy())
+
+
+
+    # Higher institutions
+    for uai_code in _higher_institutions_ids:
+        hii_qs = qs.filter(student_record__uai_code=uai_code)
+
+        try:
+            hei = HigherEducationInstitution.objects.get(pk=uai_code)
+            label = hei.label
+        except HigherEducationInstitution.DoesNotExist:
+            label = "%s (%s)" % (uai_code, gettext("no name match yet"))
+
+        dataset_pr = {'name': label}
+        dataset_oi = {'name': label}
+        dataset_ao = {'name': label}
+
+        for level in levels:
+            if level[0] != 3:
+                users = ImmersionUser.objects.none() # we need this to keep consistent data between institutions
+            else:  # level 3 :
+                users = hii_qs.filter(student_record__level__in=[l[0] for l in StudentRecord.LEVELS])
+
+            dataset_pr[level[1]] = users.count() # plaform
+            dataset_oi[level[1]] = users.filter(immersions__isnull=False).distinct().count() # registered
+            dataset_ao[level[1]] = users.filter(
+                immersions__attendance_status=1).distinct().count() # attended to 1 immersion
+
+        datasets['platform_regs'].append(dataset_pr.copy())
+        datasets['one_immersion'].append(dataset_oi.copy())
+        datasets['attended_one'].append(dataset_ao.copy())
+
+    # =========
+
+    response = {
+        'platform_regs': {
+            'axes': axes,
+            'datasets': datasets['platform_regs'],
+            'series': series,
+        },
+        'one_immersion': {
+            'axes': axes,
+            'datasets': datasets['one_immersion'],
+            'series': series,
+        },
+        'attended_one': {
+            'axes': axes,
+            'datasets': datasets['attended_one'],
+            'series': series,
+        }
+    }
 
     return JsonResponse(response, safe=False)
