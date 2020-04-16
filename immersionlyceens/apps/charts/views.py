@@ -191,8 +191,8 @@ def global_registrations_charts(request):
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
         'levels': levels,
-        'part1_level_filter': 0,
-        'part2_level_filter': part2_level_filter,
+        'part1_level_filter': request.session.get("current_level_filter", 0),
+        'level_filter': part2_level_filter,
     }
 
     return render(request, 'charts/registrations_charts.html', context=context)

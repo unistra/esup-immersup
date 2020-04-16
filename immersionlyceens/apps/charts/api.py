@@ -360,6 +360,8 @@ def get_registration_charts(request, level_value=0):
             HighSchoolStudentRecord.LEVELS[level_value-1][1]
         ]
 
+    request.session["current_level_filter"] = level_value
+
     # Each dataset represents a category
     datasets = [
         {
