@@ -29,9 +29,8 @@
 {% block content %}
 {% include '../modals/modal_global_charts_filters.html' %}
 <div id="feedback" class="container"></div>
+<div id="chartdiv" style="width:100%; height:400px;"></div>
 <div class="container-fluid mt-4">
-  <div id="chartdiv" style="width:80%; height:300px;"></div>
-
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
       <button class="btn btn-light btn-sm" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">{% trans 'Manage filters' %}</button>
@@ -191,8 +190,8 @@
     chart.data = datasets;
     chart.legend = new am4charts.Legend();
     // chart.legend.position = 'absolute';
-    // chart.legend.position = 'left';
-    // chart.legend.maxWidth = undefined;
+    chart.legend.position = 'left';
+    chart.legend.maxWidth = undefined;
 
 
     pieSeries = chart.series.push(new am4charts.PieSeries());
@@ -209,8 +208,8 @@
     chart2.radius = am4core.percent(60);
     chart2.legend = new am4charts.Legend();
     // chart2.legend.position = 'absolute';
-    // chart2.legend.position = 'right';
-    // chart2.legend.maxWidth = undefined;
+    chart2.legend.position = 'right';
+    chart2.legend.maxWidth = undefined;
 
     pieSeries2 = chart2.series.push(new am4charts.PieSeries());
     pieSeries2.dataFields.value = "count";
