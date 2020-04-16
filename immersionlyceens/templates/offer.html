@@ -31,7 +31,9 @@
   <div class="container">
     <div class="row">
       <div class="col lead">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultricies mi eget augue ullamcorper viverra. Aliquam est mi, scelerisque a pellentesque sit amet, commodo in odio. Aliquam id suscipit nunc. Duis sed ex ipsum. Maecenas non faucibus dolor. Vestibulum eget finibus metus. Nunc ullamcorper ante purus, ac volutpat turpis blandit id. </p>
+        {% if offer_txt %}
+        {{ offer_txt | safe }}
+        {% endif %}
       </div>
     </div>
   </div>

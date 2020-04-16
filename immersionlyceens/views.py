@@ -11,6 +11,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
+
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
@@ -63,6 +64,7 @@ def offer(request):
     context = {
         'subdomains': subdomains,
         'courses_count': courses_count,
+        'offer_txt': InformationText.objects.get(code="OFFER_TXT").content,
     }
     return render(request, 'offer.html', context)
 
