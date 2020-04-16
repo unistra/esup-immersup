@@ -405,7 +405,7 @@ def get_registration_charts(request, level_value=0):
             "columns": {
                 "template": {
                     "width": "30%",
-                    "tooltipText": level + "\n{valueY}",
+                    "tooltipText": level + "\n{valueX}",
                 },
             }
         })
@@ -510,7 +510,7 @@ def get_registration_charts_cats(request):
             "columns": {
                 "template": {
                     "width": "30%",
-                    "tooltipText": level + "\n{valueY}",
+                    "tooltipText": level + "\n{valueX}",
                 },
             }
         })
