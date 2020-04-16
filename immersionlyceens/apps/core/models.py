@@ -482,7 +482,6 @@ class Building(models.Model):
         unique_together = ('campus', 'label')
 
     def __str__(self):
-        # TODO: Should we display campus label as well (????)
         return self.label
 
     def validate_unique(self, exclude=None):
@@ -788,6 +787,24 @@ class Calendar(models.Model):
                 return 2
         return None
 
+    def get_limit_dates(self, _date):
+        sem = self.which_semester(_date)
+        if sem == 1:
+            return {
+                'start': self.semester1_start_date,
+                'end': self.semester1_end_date,
+            }
+        elif sem == 2:
+            return {
+                'start': self.semester2_start_date,
+                'end': self.semester2_end_date,
+            }
+        else:
+            return {
+                'start': self.year_start_date,
+                'end': self.year_end_date,
+            }
+
 
 class Course(models.Model):
     """
@@ -869,6 +886,9 @@ class Course(models.Model):
             filters['slot__teachers'] = teacher_id
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
+
+    def get_alerts_count(self):
+        return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
 
     class Meta:
         verbose_name = _('Course')
@@ -1011,7 +1031,7 @@ class AccompanyingDocument(models.Model):
         super().delete()
 
     def get_types(self):
-        # TODO:
+        # TODO: ???
         return ",".join([t.label for t in self.public_type.all()])
 
     get_types.short_description = _('Public type')
@@ -1113,8 +1133,11 @@ class AttendanceCertificateModel(models.Model):
 
     def show_merge_fields(self):
         if self.document:
-            fields = MailMerge(self.document.path).get_merge_fields()
-            return ", ".join([d for d in fields]) if bool(fields) else _('No variables in file')
+            try:
+                fields = MailMerge(self.document.path).get_merge_fields()
+                return ", ".join([d for d in fields]) if bool(fields) else _('No variables in file')
+            except:
+                return _('Error in document please check file existence and structure')
 
     get_merge_fields.short_description = _('Variables')
     show_merge_fields.short_description = _('Variables')
@@ -1269,6 +1292,12 @@ class Immersion(models.Model):
 
     attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
     survey_email_sent = models.BooleanField(_("Survey notification status"), default=False)
+
+    def get_attendance_status(self) -> str:
+        try:
+            return self.ATT_STATUS[self.attendance_status][1]
+        except KeyError:
+            return ''
 
     class Meta:
         verbose_name = _('Immersion')

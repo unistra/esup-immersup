@@ -401,7 +401,7 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_SN": (True, "last_name"),
     "HTTP_REMOTE_USER": (True, "username"),
     "HTTP_MAIL": (True, "email"),
-    "HTTP_SUPANNETABLISSEMENT": (True, "home_institution"),
+    "HTTP_SUPANNETABLISSEMENT": (True, "uai_code"),
 }
 
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"

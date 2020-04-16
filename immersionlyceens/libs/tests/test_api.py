@@ -14,7 +14,7 @@ from immersionlyceens.apps.core.models import (
     Training, TrainingDomain,
     TrainingSubdomain,
     Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation,
-    UserCourseAlert)
+    UserCourseAlert, GeneralSettings)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 
@@ -34,6 +34,7 @@ class APITestCase(TestCase):
     fixtures = ['group']
 
     def setUp(self):
+        GeneralSettings.objects.create(setting='MAIL_CONTACT_SCUIO_IP', value='unittest@unittest.fr')
         self.scuio_user = get_user_model().objects.create_user(
             username='scuio', password='pass', email='immersion@no-reply.com', first_name='scuio', last_name='scuio',
         )
@@ -188,7 +189,7 @@ class APITestCase(TestCase):
         )
         self.student_record = StudentRecord.objects.create(
             student=self.student,
-            home_institution='Université de Strasbourg',
+            uai_code='0673021V', # Université de Strasbourg
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
@@ -196,7 +197,7 @@ class APITestCase(TestCase):
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
-            home_institution='Université de Lille',
+            uai_code='0597065J', # Université de Lille
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
@@ -700,7 +701,7 @@ class APITestCase(TestCase):
                 self.assertEqual(self.high_school.label, row[15])
                 self.assertEqual(HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1], row[16])
             elif n == 2:
-                self.assertEqual(self.student_record.home_institution, row[15])
+                self.assertEqual(self.student_record.uai_code, row[15])
                 self.assertEqual(StudentRecord.LEVELS[self.student_record.level - 1][1], row[16])
             n += 1
 
@@ -883,7 +884,7 @@ class APITestCase(TestCase):
         self.assertEqual(c['n_places'], self.course.free_seats())
         self.assertEqual(c['published_slots_count'], self.course.published_slots_count())
         self.assertEqual(c['registered_students_count'], self.course.registrations_count())
-        self.assertEqual(c['alerts_count'], 0)  # TODO:
+        self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
         self.assertEqual(c['can_delete'], not self.course.slots.exists())
 
     def test_API_ajax_delete_course__no_data(self):
@@ -992,7 +993,7 @@ class APITestCase(TestCase):
             self.course.published_slots_count(teacher_id=self.teacher1.id),
             c['published_slots_count']
         )
-        self.assertEqual(0, c['alerts_count'])
+        self.assertEqual(self.course.get_alerts_count(), c['alerts_count'])
 
     def test_API_ajax_get_my_slots(self):
         request.user = self.teacher1
@@ -1315,7 +1316,7 @@ class APITestCase(TestCase):
         stu = content['data'][1]
         self.assertEqual(stu['profile'], _('Student'))
         self.assertEqual(stu['level'], self.student_record.get_level_display())
-        self.assertEqual(stu['school'], self.student_record.home_institution)
+        self.assertEqual(stu['school'], self.student_record.uai_code)
         self.assertEqual(stu['city'], '')
 
     def test_API_ajax_get_available_students(self):
@@ -1341,7 +1342,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.student2.first_name, stu['firstname'])
         self.assertEqual(self.student2.last_name, stu['lastname'])
         self.assertEqual(pgettext('person type', 'Student'), stu['profile'])
-        self.assertEqual(self.student_record2.home_institution, stu['school'])
+        self.assertEqual(self.student_record2.uai_code, stu['school'])
         self.assertEqual('', stu['level'])
         self.assertEqual('', stu['city'])
         self.assertEqual('', stu['class'])
@@ -1794,3 +1795,164 @@ class APITestCase(TestCase):
         self.assertFalse(content['error'])
         self.assertGreater(len(content['msg']), 0)
         self.assertIsNone(content['err_msg'])
+
+    def test_API_ajax_send_email_us__no_param(self):
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/send_email_contact_us"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_send_email_us__no_general_settings(self):
+        GeneralSettings.objects.get(setting='MAIL_CONTACT_SCUIO_IP').delete()
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/send_email_contact_us"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_send_email_us(self):
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/send_email_contact_us"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {
+            'subject': 'Unittest',
+            'body': 'Hello world',
+            'lastname': 'Hello',
+            'firstname': 'World',
+            'email': 'unittest@unittest.fr',
+            'notify_user': True,
+        }
+
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+        self.assertFalse(content['error'])
+
+    def test_API_ajax_get_students_presence(self):
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+        request.user = self.scuio_user
+        url = "/api/get_students_presence"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        i = content['data'][0]
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(_date(self.immersion.slot.date, 'l d/m/Y'), i['date'])
+        self.assertEqual(self.immersion.slot.start_time.strftime('%Hh%M'), i['time']['start'])
+        self.assertEqual(self.immersion.slot.end_time.strftime('%Hh%M'), i['time']['end'])
+        self.assertEqual(f'{self.highschool_user.last_name} {self.highschool_user.first_name}', i['name'])
+        self.assertEqual(self.hs_record.highschool.label, i['institution'])
+        self.assertEqual(self.hs_record.phone, i['phone'])
+        self.assertEqual(self.highschool_user.email, i['email'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['room'])
+
+    def test_API_ajax_set_course_alert__wrong_course_id(self):
+        request.user = self.scuio_user
+        url = "/api/set_course_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': 0}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertGreater(len(content['msg']), 0)
+        self.assertTrue(content['error'])
+
+
+    def test_API_ajax_set_course_alert__email_not_valid(self):
+        request.user = self.scuio_user
+        url = "/api/set_course_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': self.course.id, 'email': 'wrong_email_address'}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertGreater(len(content['msg']), 0)
+        self.assertTrue(content['error'])
+
+    def test_API_ajax_set_course_alert__no_alert(self):
+        self.alert.delete()
+        request.user = self.scuio_user
+        url = "/api/set_course_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': self.course.id, 'email': 'a@unittest.fr'}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertFalse(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+        raises = False
+        try:
+            UserCourseAlert.objects.get(course_id=data['course_id'], email=data['email'])
+        except UserCourseAlert.DoesNotExist:
+            raises = True
+        self.assertFalse(raises)
+
+    def test_API_ajax_set_course_alert__alert_but_not_send(self):
+        request.user = self.scuio_user
+        url = "/api/set_course_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': self.course.id, 'email': self.student.email}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertTrue(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_set_course_alert__alert_sent(self):
+        self.alert.email_sent = True
+        self.alert.save()
+        request.user = self.scuio_user
+        url = "/api/set_course_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'course_id': self.course.id, 'email': self.student.email}
+        content = json.loads(self.client.post(url, data, **header).content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertFalse(content['error'])
+        self.assertGreater(len(content['msg']), 0)
+
+    def test_API_ajax_cancel_alert__bad_alert_id(self):
+        request.user = self.student
+        client = Client()
+        client.login(username='student', password='pass')
+        url = "/api/cancel_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'alert_id': 0}
+        response = client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertGreater(len(content['error']), 0)
+
+    def test_API_ajax_cancel_alert(self):
+        request.user = self.student
+        client = Client()
+        client.login(username='student', password='pass')
+        url = "/api/cancel_alert"
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        data = {'alert_id': self.alert.id}
+        response = client.post(url, data, **header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['error'], '')
+        self.assertGreater(len(content['msg']), 0)
+
+        with self.assertRaises(UserCourseAlert.DoesNotExist):
+            UserCourseAlert.objects.get(pk=data['alert_id'])

@@ -99,7 +99,8 @@ def ajax_get_courses(request, component_id=None):
             'n_places': course.free_seats(),
             'published_slots_count': course.published_slots_count(),
             'registered_students_count': course.registrations_count(),
-            'alerts_count': 0,  # TODO
+            'alerts_count': course.get_alerts_count(),
+            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
             'can_delete': not course.slots.exists(),
         }
 
@@ -162,7 +163,6 @@ def ajax_get_documents(request):
 @is_ajax_request
 @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_slots(request, component=None):
-    # TODO: auth access test
     can_update_attendances = False
 
     today = datetime.datetime.today().date()
@@ -369,7 +369,8 @@ def ajax_get_my_courses(request, user_id=None):
             # f'{course.published_slots_count(teacher_id=user_id)} / {course.slots_count(teacher_id=user_id)}',
             'registered_students_count': course.registrations_count(teacher_id=user_id),
             # f'{course.registrations_count(teacher_id=user_id)} / {course.free_seats(teacher_id=user_id)}',
-            'alerts_count': 0,  # TODO
+            'alerts_count': course.get_alerts_count(),
+            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
         }
 
         for teacher in course.teachers.all().order_by('last_name', 'first_name'):
@@ -419,41 +420,37 @@ def ajax_get_my_slots(request, user_id=None):
 
     for slot in slots:
         campus = ""
-        try:
-            if slot.campus and slot.building:
-                campus = f'{slot.campus.label} - {slot.building.label}'
+        if slot.campus and slot.building:
+            campus = f'{slot.campus.label} - {slot.building.label}'
 
-            slot_data = {
-                'id': slot.id,
-                'published': slot.published,
-                'component': slot.course.component.code,
-                'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
-                'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
-                'location': {'campus': campus, 'room': slot.room,},
-                'schedules': {
-                    'date': _date(slot.date, "l d/m/Y"),
-                    'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
-                },
-                'datetime': datetime.datetime.strptime(
-                    "%s:%s:%s %s:%s"
-                    % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
-                    "%Y:%m:%d %H:%M",
-                )
-                if slot.date
-                else None,
-                'start_time': slot.start_time.strftime("%H:%M"),
-                'end_time': slot.end_time.strftime("%H:%M"),
-                'label': slot.course.label,
-                'teachers': {},
-                'n_places': slot.n_places if slot.n_places is not None else 0,
-                'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(),},
-                'additional_information': slot.additional_information,
-                'attendances_status': '',
-                'attendances_value': 0,
-            }
-        except AttributeError:
-            # TODO: maybe not usefull
-            pass
+        slot_data = {
+            'id': slot.id,
+            'published': slot.published,
+            'component': slot.course.component.code,
+            'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
+            'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
+            'location': {'campus': campus, 'room': slot.room,},
+            'schedules': {
+                'date': _date(slot.date, "l d/m/Y"),
+                'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
+            },
+            'datetime': datetime.datetime.strptime(
+                "%s:%s:%s %s:%s"
+                % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
+                "%Y:%m:%d %H:%M",
+            )
+            if slot.date
+            else None,
+            'start_time': slot.start_time.strftime("%H:%M"),
+            'end_time': slot.end_time.strftime("%H:%M"),
+            'label': slot.course.label,
+            'teachers': {},
+            'n_places': slot.n_places if slot.n_places is not None else 0,
+            'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(),},
+            'additional_information': slot.additional_information,
+            'attendances_status': '',
+            'attendances_value': 0,
+        }
 
         if slot_data['datetime'] and slot_data['datetime'] <= today:
             if not slot.immersions.filter(cancellation_type__isnull=True).exists():
@@ -512,10 +509,8 @@ def ajax_check_date_between_vacation(request):
             try:
                 formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
             except ValueError:
-                response['msg'] = gettext('Error: Wrong format date')
+                response['msg'] = gettext('Error: bad date format')
                 return JsonResponse(response, safe=False)
-
-
 
         response['data'] = {
             'is_between': (
@@ -586,24 +581,11 @@ def ajax_get_slots_by_course(request, course_id=None):
         response['msg'] = gettext("Error : a valid course is requested")
     else:
         calendar = Calendar.objects.first()
-        # TODO: poc for now maybe refactor dirty code in a model method !!!!
         today = datetime.datetime.today().date()
-        reg_start_date = reg_end_date = datetime.date(1, 1, 1)
-        if calendar.calendar_mode == 'YEAR':
-            reg_start_date = calendar.year_registration_start_date
-            reg_end_date = calendar.year_end_date
-        else:
-            # Year mode
-            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
-                reg_start_date = calendar.semester1_start_date
-                reg_end_date = calendar.semester1_end_date
-            # semester mode
-            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
-                reg_start_date = calendar.semester2_start_date
-                reg_end_date = calendar.semester2_end_date
+        reg_dates = calendar.get_limit_dates(today)
 
         slots = Slot.objects.filter(
-            course__id=course_id, published=True, date__gte=reg_start_date, date__lte=reg_end_date
+            course__id=course_id, published=True, date__gte=reg_dates['start'], date__lte=reg_dates['end']
         )
 
     all_data = []
@@ -957,7 +939,6 @@ def ajax_get_slot_registrations(request, slot_id):
 
             if immersion.student.is_high_school_student():
                 immersion_data['profile'] = gettext('High-school student')
-
                 record = immersion.student.get_high_school_student_record()
 
                 if record:
@@ -967,11 +948,11 @@ def ajax_get_slot_registrations(request, slot_id):
 
             elif immersion.student.is_student():
                 immersion_data['profile'] = gettext('Student')
-
                 record = immersion.student.get_student_record()
 
                 if record:
-                    immersion_data['school'] = record.home_institution
+                    uai_code, institution = record.home_institution()
+                    immersion_data['school'] = institution.label if institution else uai_code
                     immersion_data['level'] = record.get_level_display()
 
             response['data'].append(immersion_data.copy())
@@ -1000,7 +981,7 @@ def ajax_set_attendance(request):
         return JsonResponse(response, safe=False)
 
     if not immersion_id and not immersion_ids:
-        response['error'] = gettext("Error: no immersion id found")
+        response['error'] = gettext("Error: missing immersion id parameter")
         return JsonResponse(response, safe=False)
 
     if immersion_id and not immersion_ids:
@@ -1264,8 +1245,9 @@ def ajax_get_available_students(request, slot_id):
                 student_data['city'] = record.highschool.city
                 student_data['class'] = record.class_name
             elif student.is_student():
+                uai_code, institution = record.home_institution()
                 student_data['profile'] = pgettext("person type", "Student")
-                student_data['school'] = record.home_institution
+                student_data['school'] = institution.label if institution else uai_code
 
             response['data'].append(student_data.copy())
 
@@ -1352,8 +1334,9 @@ def ajax_get_highschool_students(request, highschool_id=None):
                     student_data['bachelor'] = record.get_bachelor_type_display()
 
             elif student.is_student():
+                uai_code, institution = record.home_institution()
                 student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                student_data['institution'] = record.home_institution
+                student_data['institution'] = institution.label if institution else uai_code
                 student_data['post_bachelor_level'] = record.current_diploma
 
         response['data'].append(student_data.copy())
@@ -1597,6 +1580,7 @@ def get_csv_anonymous_immersion(request):
         _('additional information'),
         _('origin institution'),
         _('student level'),
+        _('emargement'),
     ]
 
     content = []
@@ -1613,7 +1597,8 @@ def get_csv_anonymous_immersion(request):
                 if imm.student.is_student():
                     try:
                         record = StudentRecord.objects.get(student=imm.student)
-                        institution = record.home_institution
+                        uai_code, institution = record.home_institution()
+                        institution = institution.label if institution else uai_code
                         level = StudentRecord.LEVELS[record.level - 1][1]
                     except StudentRecord.DoesNotExist:
                         pass
@@ -1649,6 +1634,7 @@ def get_csv_anonymous_immersion(request):
                             slot.additional_information,
                             institution,
                             level,
+                            imm.get_attendance_status(),
                         ]
                     )
         else:
@@ -1765,7 +1751,9 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             institution = record.highschool.label if record else ''
         elif immersion.student.get_student_record():
             record = immersion.student.get_student_record()
-            institution = record.home_institution if record else ''
+            if record:
+                uai_code, institution = record.home_institution()
+                institution = institution.label if institution else uai_code
 
         immersion_data = {
             'id': immersion.pk,

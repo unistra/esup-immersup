@@ -14,10 +14,12 @@ class HighSchoolStudentRecord(models.Model):
     CIVS = [(1, _('Mr')),
             (2, _('Mrs'))]
 
+    # Use gettext on the next one because strings HAS to be translated here
+    # in order to avoid sending lazy translation objects to JSON in charts API
     LEVELS = [
-        (1, _('Pupil in year 12 / 11th grade student')),
-        (2, _('Pupil in year 13 / 12th grade student')),
-        (3, _('Above A Level / High-School Degree'))
+        (1, gettext('Pupil in year 12 / 11th grade student')),
+        (2, gettext('Pupil in year 13 / 12th grade student')),
+        (3, gettext('Above A Level / High-School Degree'))
     ]
 
     BACHELOR_TYPES = [
@@ -242,10 +244,7 @@ class StudentRecord(models.Model):
         related_name="student_record"
     )
 
-    # Todo : is this the right place to put this attribute ?
-    # It comes from shibboleth headers, should we put it in ImmersionUser ?
-    home_institution = models.CharField(_("Home institution"), blank=False, null=False, max_length=256)
-
+    uai_code = models.CharField(_("Home institution code"), blank=False, null=False, max_length=256)
     civility = models.SmallIntegerField(_("Civility"), null=False, blank=False, default=1, choices=CIVS)
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
@@ -270,6 +269,18 @@ class StudentRecord(models.Model):
 
     def is_valid(self):
         return True
+
+    def home_institution(self):
+        """
+        Get home institution if we can find a matching code, else return the code
+        Returns (label, object) if found, (code, None) if not
+        """
+        try:
+            inst = core_models.HigherEducationInstitution.objects.get(uai_code=self.uai_code)
+            return inst.label, inst
+        except core_models.HigherEducationInstitution.DoesNotExist:
+            return self.uai_code, None
+
 
     class Meta:
         verbose_name = _('Student record')
