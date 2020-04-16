@@ -26,7 +26,7 @@
           </div>
           <div class="info-description">
             <h4>{% trans 'Procedure' %}</h4>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
+            {{ procedure_intro_txt | safe}}
             <p><a href="{% url 'procedure' %}" class="btn btn-primary"  data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">{% trans 'Details of the procedure' %}</a></p>
           </div>
         </div>
@@ -38,7 +38,7 @@
           </div>
           <div class="info-description">
             <h4>{% trans 'Offer' %}</h4>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
+            {{ offer_intro_txt | safe}}
             <p><a href="{% url 'offer' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Discover courses' %}</a></p>
           </div>
         </div>
@@ -50,7 +50,7 @@
           </div>
           <div class="info-description">
             <h4>{% trans 'Accompanying' %}</h4>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin id enim quis elit tempus scelerisque. Sed fringilla vitae metus ut feugiat. Nam tempor quis ex in laoreet. Maecenas gravida tincidunt vehicula. Etiam eget aliquet nibh.</p>
+            {{ accomp_intro_txt | safe}}
             <p><a href="{% url 'accompanying' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">{% trans 'Need help ?' %}</a></p>
           </div>
         </div>

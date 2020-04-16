@@ -41,6 +41,21 @@ def home(request):
         accomp_txt = ''
 
     try:
+        procedure_intro_txt = InformationText.objects.get(code="INTRO_PROCEDURE", active=True).content
+    except InformationText.DoesNotExist:
+        procedure_intro_txt = ''
+
+    try:
+        offer_intro_txt = InformationText.objects.get(code="INTRO_OFFER", active=True).content
+    except InformationText.DoesNotExist:
+        offer_intro_txt = ''
+
+    try:
+        accomp_intro_txt = InformationText.objects.get(code="INTRO_ACCOMPAGNEMENT", active=True).content
+    except InformationText.DoesNotExist:
+        accomp_intro_txt = ''
+
+    try:
         twitter_url = GeneralSettings.objects.get(setting="TWITTER_ACCOUNT_URL").value
     except GeneralSettings.DoesNotExist:
         twitter_url = ''
@@ -51,6 +66,9 @@ def home(request):
         'offer_txt': offer_txt,
         'accomp_txt': accomp_txt,
         'twitter_url': twitter_url,
+        'offer_intro_txt': offer_intro_txt,
+        'procedure_intro_txt': procedure_intro_txt,
+        'accomp_intro_txt': accomp_intro_txt,
     }
     return render(request, 'home.html', context)
 
