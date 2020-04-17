@@ -269,3 +269,11 @@ body {
     margin-right: .5em;
     vertical-align: middle;
 }
+
+tr td i[class*="fa-"] {
+    display: block;
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    text-align: center;
+}

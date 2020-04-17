@@ -288,12 +288,12 @@
         { "data": "",
           "render": function(data, type, row) {
             var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
-                      "<i class='fa fas fa-users fa-lg'></i>" +
+                      "<i class='fa fas fa-users fa-2x'></i>" +
                       "</button>";
 
             if(row.cancellable == true) {
               msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
-                     "<i class='fa fas fa-trash fa-lg'></i>" +
+                     "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
             }
 
@@ -365,7 +365,7 @@
 
             if(row.attendance_status == 1) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
-                  "<i class='fa fas fa-download fa-lg'></i>" +
+                  "<i class='fa fas fa-download fa-2x'></i>" +
                   "</a>";
             }
             return msg;
