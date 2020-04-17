@@ -150,6 +150,8 @@
 
     chart = container.createChild(am4charts.PieChart);
     chart.data = datasets;
+    chart.legend = new am4charts.Legend();
+    chart.legend.maxWidth = undefined;
 
     pieSeries = chart.series.push(new am4charts.PieSeries());
     pieSeries.dataFields.value = "count";
@@ -168,6 +170,8 @@
 
     chart2.width = am4core.percent(50);
     chart2.radius = am4core.percent(60);
+    chart2.legend = new am4charts.Legend();
+    chart2.legend.maxWidth = undefined;
 
     pieSeries2 = chart2.series.push(new am4charts.PieSeries());
     pieSeries2.dataFields.value = "count";
