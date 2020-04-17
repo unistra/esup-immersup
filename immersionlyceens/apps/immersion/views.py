@@ -109,6 +109,7 @@ def shibbolethLogin(request, profile=None):
         shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
         if not error:
+            uai_code = shib_attrs.pop("uai_code", None)
             new_user = ImmersionUser.objects.create(**shib_attrs)
             new_user.set_validation_string()
             new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
