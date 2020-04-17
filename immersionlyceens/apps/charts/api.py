@@ -666,11 +666,11 @@ def get_slots_data(request, csv_mode=False):
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="slots_statistics.csv"'
         header = [
-            _('component'),
-            _('training'),
-            _('course'),
-            _('slots_count'),
-            _('available_seats'),
+            _('Component'),
+            _('Training'),
+            _('Course'),
+            _('Slots count'),
+            _('Available seats'),
         ]
         writer = csv.writer(response)
         writer.writerow(header)
