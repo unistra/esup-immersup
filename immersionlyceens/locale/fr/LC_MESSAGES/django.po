@@ -2426,7 +2426,7 @@ msgstr "Accompagnement"
 
 #: immersionlyceens/templates/accompanying.html:14
 msgid "Useful documents"
-msgstr "Documents utils"
+msgstr "Documents utiles"
 
 #: immersionlyceens/templates/accompanying.html:23
 #: immersionlyceens/templates/core/component.html:20

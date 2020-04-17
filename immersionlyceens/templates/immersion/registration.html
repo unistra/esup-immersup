@@ -3,7 +3,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block section_title %}
-<h2>{% trans 'Immersion Lycéens - New account' %}</h2>
+<h2 class="ml-2">{% trans 'Immersion Lycéens - New account' %}</h2>
 {% endblock %}
 
 {% block content %}
@@ -77,10 +77,10 @@
           <div class="col-sm-6 text-right">
             <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
           </div>
-          <div class="col-sm-6">   
+          <div class="col-sm-6">
             <a href="{% url 'immersion:login' %}" class="btn btn-secondary btn-sm" style='margin-left:40px;'>{% trans 'Back' %}</a>
-          </div>  
-        </div>  
+          </div>
+        </div>
       </form>
     </div>
   </div>

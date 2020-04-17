@@ -302,6 +302,8 @@ $(document).ready(function(){
       });
     }
     initFeedback();
+    // reset feedback
+    setTimeout(function(){$('#feedback').html('')}, 3000);
 
     function check_course_publication ( course_id )
     {
