@@ -3,56 +3,58 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block section_title %}
-<h2>{% trans 'Welcome on Immersion Lycéens' %}</h2>
+<h2 class="ml-2">{% trans 'Welcome on Immersion Lycéens' %}</h2>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="card" style="margin-bottom:20px;">
-    <div class="card-header text-white bg-secondary">
-      {% trans 'Authentication' %}
+<section class="py-5">
+
+  <div class="container">
+    <div class="card" style="">
+      <div class="card-header text-white bg-secondary">
+        {% trans 'Authentication' %}
+      </div>
+      <div class="card-body">
+        <form method="post" role="form">
+          {% csrf_token %}
+          <div class="form-group row">
+            <label for="id_login" class="col-sm-2 col-form-label">{% trans 'Login' %} :</label>
+            <div class="col-sm-4">
+              {{ form.login }}
+            </div>
+            <div class="col-sm-6">
+              {{ form.login.errors }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="id_password" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
+            <div class="col-sm-4">
+              {{ form.password }}
+            </div>
+            <div class="col-sm-6">
+              {{ form.password.errors }}
+            </div>
+          </div>
+          <div class="form-group row mt-5">
+            <div class="col-sm-6 text-right">
+              <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Connection' %}">
+            </div>
+            <div class="col-sm-6">
+              <a href="/" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-    <div class="card-body">
-      <form method="post">
-        {% csrf_token %}
-        <div class="form-group row">
-          <label for="id_login" class="col-sm-2 col-form-label">{% trans 'Login' %} :</label>
-          <div class="col-sm-3">
-            {{ form.login }}
-          </div>
-          <div class="col-sm-6">
-            {{ form.login.errors }}
-          </div>
-        </div>
-        <div class="form-group row">
-          <label for="id_password" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
-          <div class="col-sm-3">
-            {{ form.password }}
-          </div>
-          <div class="col-sm-6">
-            {{ form.password.errors }}
-          </div>
-        </div>
-        <div class="form-group row mt-5">
-          <div class="col-sm-6 text-right">
-            <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Connection' %}">
-          </div>
-          <div class="col-sm-6">
-            <a href="/" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
-          </div>
-        </div>
-      </form>
+    {% if profile != 'ref-lyc' %}
+    <div class="row justify-content-md-center" style="margin-bottom:20px;">
+        <a href="{% url 'immersion:register' %}">{% trans 'Not registered yet ?' %}</a>
+        <a href="{% url 'immersion:resend_activation' %}" class="ml-4">{% trans 'I have not received the activation email' %}</a>
+    </div>
+    {% endif %}
+    <div class="row justify-content-md-center">
+      <a href="{% url 'immersion:recovery' %}">{% trans 'Forgot your credentials ?' %}</a>
     </div>
   </div>
-  {% if profile != 'ref-lyc' %}
-  <div class="row justify-content-md-center" style="margin-bottom:20px;">
-      <a href="{% url 'immersion:register' %}">{% trans 'Not registered yet ?' %}</a>
-      <a href="{% url 'immersion:resend_activation' %}" class="ml-4">{% trans 'I have not received the activation email' %}</a>
-    </div>
-  </div>
-  {% endif %}
-  <div class="row justify-content-md-center">
-    <a href="{% url 'immersion:recovery' %}">{% trans 'Forgot your credentials ?' %}</a>
-  </div>
-</div>
+</section>
 {% endblock %}

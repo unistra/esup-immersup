@@ -1,4 +1,5 @@
 import ast
+import csv
 import json
 import logging
 
@@ -11,8 +12,8 @@ from django.utils.translation import gettext, ugettext_lazy as _
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from immersionlyceens.apps.core.models import (
-    Immersion, ImmersionUser, TrainingDomain, TrainingSubdomain, HigherEducationInstitution,
-    HighSchool, Training
+    Component, Immersion, ImmersionUser, TrainingDomain, TrainingSubdomain, HigherEducationInstitution,
+    HighSchool, Training, Slot, Course
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -187,7 +188,7 @@ def global_domains_charts(request):
     domains = [ domain for domain in TrainingDomain.objects.all().order_by('label') ]
 
     for domain in domains:
-        # Get all immersions for this domain, filter in schools as requested
+        # Get all immersions for this domain, filter by schools as requested
         qs = Immersion.objects.prefetch_related(
             'slot__course__training__training_subdomains__training_domain',
             'student__high_school_student_record__highschool')\
@@ -230,6 +231,7 @@ def global_domains_charts(request):
     }
 
     return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @groups_required("SCUIO-IP")
@@ -279,6 +281,7 @@ def get_charts_filters_data(request):
         response['data'].append(institution_data.copy())
 
     return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @groups_required("SCUIO-IP","REF-LYC")
@@ -601,3 +604,101 @@ def get_registration_charts_cats(request):
     }
 
     return JsonResponse(response, safe=False)
+
+@is_ajax_request
+@groups_required("SCUIO-IP")
+def get_slots_charts(request):
+    """
+    Data for amcharts 4
+    Double pie chart format
+    """
+    datasets = []
+
+    series = [
+        {
+            "type": "PieSeries",
+            "dataFields": {
+                "value": "slots_count",
+                "category": "component",
+            },
+        },
+    ]
+
+    for component in Component.objects.all():
+        # Get all slots for this component
+        qs = Slot.objects.prefetch_related('course__component', 'course__training')\
+            .filter(course__component=component, published=True)
+
+        slots_count = qs.count()
+
+        if slots_count:
+            data = {
+                "component": component.label,
+                "slots_count": slots_count,
+                "subData": [],
+            }
+
+            for training in Training.objects.prefetch_related('courses__component')\
+                .filter(courses__component=component, active=True).distinct():
+                sub_data = {
+                    "name": training.label,
+                    "slots_count": qs.filter(course__training=training).count(),
+                }
+                data['subData'].append(sub_data.copy())
+
+            datasets.append(data.copy())
+
+    response = {
+        'datasets': datasets,
+        'series': series,
+    }
+
+    return JsonResponse(response, safe=False)
+
+
+@groups_required("SCUIO-IP")
+def get_slots_data(request, csv_mode=False):
+    """
+    Data for datatables or csv extraction
+    """
+
+    if csv_mode:
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="slots_statistics.csv"'
+        header = [
+            _('Component'),
+            _('Training'),
+            _('Course'),
+            _('Slots count'),
+            _('Available seats'),
+        ]
+        writer = csv.writer(response)
+        writer.writerow(header)
+    else:
+        response = {'msg': '', 'data': []}
+
+    for course in Course.objects.prefetch_related('component', 'training').filter(published=True)\
+            .order_by("component__label", "training__label", "label"):
+        if csv_mode:
+            writer.writerow([
+                course.component.label,
+                course.training.label,
+                course.label,
+                course.published_slots_count(),
+                course.free_seats(),
+            ])
+        else:
+            course_data = {
+                "component": course.component.label,
+                "training": course.training.label,
+                "course": course.label,
+                "slots_count":course.published_slots_count(),
+                "available_seats":course.free_seats(),
+            }
+
+            response['data'].append(course_data.copy())
+
+    if csv_mode:
+        return response
+    else:
+        return JsonResponse(response, safe=False)
