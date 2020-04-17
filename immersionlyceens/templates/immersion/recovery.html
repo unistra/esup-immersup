@@ -3,7 +3,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block section_title %}
-<h2>{% trans 'Welcome on Immersion Lycéens' %}</h2>
+<h2 class="ml-2">{% trans 'Welcome on Immersion Lycéens' %}</h2>
 {% endblock %}
 
 {% block content %}
@@ -20,15 +20,15 @@
           <div class="col-sm-3">
             <input type="email" name="email" maxlength="254" required id="id_email" value="{{ email }}">
           </div>
-        </div>        
+        </div>
         <div class="form-group row">
           <div class="col-sm-6 text-right">
             <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Send me instructions !' %}">
           </div>
-          <div class="col-sm-6">   
+          <div class="col-sm-6">
             <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary btn-sm" style='margin-left:40px;'>{% trans 'Back' %}</a>
           </div>
-        </div> 
+        </div>
       </form>
     </div>
   </div>
