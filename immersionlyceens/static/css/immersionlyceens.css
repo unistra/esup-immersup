@@ -270,7 +270,7 @@ body {
     vertical-align: middle;
 }
 
-tr td i[class*="fa-"] {
+.centered-icon {
     display: block;
     height: 100%;
     width: 100%;
