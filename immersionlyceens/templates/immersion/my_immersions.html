@@ -17,12 +17,31 @@
 {% endblock %}
 {% block title %}{% trans "My immersions" %}{% endblock %}
 
-{% block section_title %}
-<div class="row m-0">
-  <div class="col-md-6">
-    <h2>{% trans "My immersions" %}</h2>
+{% block content %}
+{% include '../modals/modal_alerts.html' %}
+<div id="feedback" class="container"></div>
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+          <h1>{% trans 'My immersions' %}</h1>
+      </div>
+    </div>
   </div>
-  <div class="col-md-6 text-right">
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "My immersions" %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<div class="row m-0">
+  <div class="col-md-12 text-right">
     {% if alerts_cnt %}
       <p class="mr-2" onclick="open_alerts_modal()">
         {% blocktrans %}You have {{ alerts_cnt }} alert(s) ({{ sent_alerts_cnt }} already sent), click to view{% endblocktrans %}
@@ -32,11 +51,6 @@
     {% endif %}
   </div>
 </div>
-{% endblock %}
-
-{% block content %}
-{% include '../modals/modal_alerts.html' %}
-<div id="feedback" class="container"></div>
 <div id="accordion">
   <div class="card">
     <div class="card-header bg-primary" id="headingOne">

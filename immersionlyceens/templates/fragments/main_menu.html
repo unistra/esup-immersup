@@ -1,17 +1,30 @@
 {% load static i18n immersionlyceens_tags %}
 {% authorized_groups request.user %}
-<header>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{% url 'home' %}">
-      <img src="{% static 'img/unistra-white.png'%}" class="d-inline-block align-top" alt=""> Immersion
-      Lyc&eacute;ens</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+<nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
+  <div class="container">
+    <a href="/" class="navbar-brand d-md-none">Lycéen en immersion</a>
+    <button class="navbar-toggler btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-bars fa-fw show"></i>
+        <i class="fa fa-times fa-fw hide"></i>
     </button>
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="mainNav">
+      <hr class="d-md-none">
       <div class="navbar-nav mr-auto">
+        <div class="nav-item">
+          <a class="nav-link d-none d-md-block" href="/" title="{% trans 'Home' %}">
+            <i class="nv nv-home d-none d-md-inline"></i>
+            <span class="d-md-none">{% trans 'Home' %}</span>
+          </a>
+        </div>
+        <div class="nav-item">
+        <a class="nav-link" href="{% url 'procedure' %}">{% trans 'Procedure' %}</a>
+        </div>
+        <div class="nav-item">
+        <a class="nav-link" href="{% url 'offer' %}">{% trans 'Offer' %}</a>
+        </div>
+        <div class="nav-item">
+        <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
+        </div>
         {# Scuio or cmp #}
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
           <div class="nav-item dropdown">
@@ -34,6 +47,7 @@
             </div>
           </div>
         {% endif %}
+        {# Component #}
         {% if authorized_groups|in_groups:"REF-CMP" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
@@ -57,7 +71,6 @@
             </div>
           </div>
         {% endif %}
-
         {# Students #}
         {% if authorized_groups|in_groups:"LYC,ETU" %}
           <div class="nav-item dropdown">
@@ -103,7 +116,7 @@
             </div>
           {% endif %}
         {% endif %}
-
+        {# charts #}
         {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -120,16 +133,17 @@
             </div>
           </div>
         {% endif %}
-
+        {# stats #}
         {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP,REF-CMP" %}
-          <a class="nav-item nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
+        <div class="nav-item">
+          <a class="nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
+        </div>
         {% endif %}
-
+        {# admin #}
         {% if user.is_staff %}
-          <a class="nav-item nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
-          {% if user.is_superuser %}
-            {% include "./user_selector.html" %}
-          {% endif %}
+        <div class="nav-item">
+          <a class="nav-link" href="{% url 'admin:index' %}">{% trans 'Administration' %}</a>
+        </div>
         {% endif %}
       </div>
       {# user menu bar #}
@@ -175,5 +189,6 @@
         </div>
       </div>
     </div>
-  </nav>
-</header>
+  </div>
+</nav>
+

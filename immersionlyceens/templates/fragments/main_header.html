@@ -1,0 +1,38 @@
+{% load static i18n immersionlyceens_tags %}
+{% general_settings_get 'PLATFORM_URL' as platform_url %}
+{% comment %} TODO: Some template string here should be general settings ! {% endcomment %}
+<header class="page-header py-3 bg-gray">
+  <div class="container">
+    <div class="row">
+      <div class="logo col-auto offset-lg-2">
+        <div class="signature-unistra sun sun-theme-secondary">
+          <span class="sun-row">
+            <span class="sun-cell sun-empty-2"></span>
+            <a href="{{ platform_url }}" class="sun-cell sun-hover-primary" title="Lycéen en immersion - Université de Strasbourg">
+              <span class="sun-cell-inner">
+                Lycéen
+              </span>
+            </a>
+            <a href="{{ platform_url }}" class="sun-cell sun-hover-primary" title="Lycéen en immersion - Université de Strasbourg" aria-hidden="true">
+              <span class="sun-cell-inner">
+                en <strong>immersion</strong>
+              </span>
+            </a>
+            <span class="sun-cell sun-empty-4"></span>
+            <span class="sun-cell sun-empty-1"></span>
+          </span>
+          <span class="sun-row sun-offset-9">
+            <span class="sun-cell sun-empty-1"></span>
+            <a href="http://www.unistra.fr" class="sun-cell sun-hover-light" title="Université de Strasbourg">
+              <span class="sun-cell-inner">à l'Université de Strasbourg</span>
+            </a>
+            <span class="sun-cell sun-empty-6"></span>
+          </span>
+        </div>
+      </div>
+      {% if user.is_superuser %}
+        {% include "./user_selector.html" %}
+      {% endif %}
+    </div>
+  </div>
+</header>

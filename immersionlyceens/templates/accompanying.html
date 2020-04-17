@@ -4,41 +4,83 @@
 {% trans "Accompanying" %}
 {% endblock %}
 {% block content %}
-<div class="container-fluid" style="padding-top:20px;">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-      <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / {% trans "Accompanying" %}
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col">
-          <section id="acc_txt">
-          {{ accomp_txt | safe }}
-          </section>
-          <section id="acc_doc_listing">
-          {% if accomp_docs %}
-          <ul>
-          {% for doc in accomp_docs %}
-            <li>{{ doc.type }}
-            <ul>
-              {% for file in doc.docs %}
-                <li><a href="{% url 'accompanying_document' file.pk %}">{{ file.label }}</a>
-                {% if file.description %}
-                  - {{ file.description }}
-                {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-            </li>
-          {% endfor %}
-          </ul>
-          {% else %}
-          <p>{% trans 'No documents available' %}</p>
-          {% endif %}
-          </section>
-        </div>
+
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans "Accompanying" %}</h1>
+        <p class="text-uppercase">{% trans 'Useful documents' %}</p>
       </div>
     </div>
   </div>
 </div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Accompanying' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-10 col-sm-offset-1">
+        <section id="acc_txt">
+        {{ accomp_txt | safe }}
+        </section>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-10 col-sm-offset-1">
+        <section id="acc_doc_listing">
+        {% if accomp_docs %}
+        <ul class="filelinks">
+        {% for doc in accomp_docs %}
+          <li class="sun sun-theme-light sun-full"><strong>{{ doc.type }}</strong>
+            <ul class="filelinks">
+              {% for file in doc.docs %}
+              <li class="sun sun-theme-light sun-full">
+                <a href="{% url 'accompanying_document' file.pk %}" class="sun-row">
+                  <span class="sun-cell sun-icon">
+                    <span class="sun-cell-inner">
+                      <i class="nv nv-download"></i>
+                    </span>
+                  </span>
+                  <span class="sun-cell sun-wrap">
+                    <span class="sun-cell-inner">
+                      <span class="sr-only">{% trans 'Title of file' %}</span>
+                    {{ file.label }}
+                    </span>
+                  </span>
+                  <span class="sun-cell sun-empty-full"></span>
+                </a>
+                {% if file.description %}
+                <span class="sun-cell sun-wrap">
+                  <span class="sun-cell-inner">
+                  {{ file.description }}
+                  </span>
+                </span>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
+        </ul>
+        {% else %}
+        <p>{% trans 'No documents available' %}</p>
+        {% endif %}
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
+
+
+

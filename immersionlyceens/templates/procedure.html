@@ -5,6 +5,80 @@
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
 {% endblock %}
 {% block head-javascript %}
+{% endblock %}
+{% block title %}
+{% trans "Procedure" %}
+{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'Procedure' %}</h1>
+        <p class="text-uppercase">{% trans 'Please read before you register' %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Procedure' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-5 col-sm-offset-1">
+        <section id="procedure_txt">
+        {{ procedure_txt|safe }}
+        </section>
+      </div>
+      <div class="col-sm-5 col-sm-offset-1">
+        <section id="procedure_group_txt">
+        {{ procedure_group_txt|safe }}
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row border-top my-3"></div>
+    <div class="row" style="padding-top:20px;">
+      <div class="col offset-sm-1 text-center">
+        <form class="form-inline justify-content-center">
+          <i class="fa fas fa-search" aria-hidden="true"></i>
+          <input class="form-control form-control-sm ml-4 w-25" id="search_highschool" type="text" aria-label="{% trans 'Search Highschool'%}">
+        </form>
+      </div>
+    </div>
+    <div class="row" style="padding-top:20px;padding-bottom:20px;">
+      <div class="col table-responsive" style="width: 98%">
+        <table id="highschool_table" class="table table-striped table-bordered nowrap dt-body-nowrap">
+          <thead>
+            <tr>
+              <th>{% trans 'City' %}</th>
+              <th>{% trans 'Name' %}</th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% block foot-javascript %}
 <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
@@ -12,58 +86,6 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.js' %}"></script>
 {% endblock %}
-{% block title %}
-{% trans "Procedure" %}
-{% endblock %}
-{% block content %}
-<div class="container-fluid" style="padding-top:20px;">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-      <a class="unlink" href="{% url 'home' %}">{% trans 'Homepage' %}</a> / {% trans "Procedure" %}
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-sm-5 col-sm-offset-1">
-          <section id="procedure_txt">
-          {{ procedure_txt|safe }}
-          </section>
-        </div>
-        <div class="col-sm-5 col-sm-offset-1">
-          <section id="procedure_group_txt">
-          {{ procedure_group_txt|safe }}
-          </section>
-        </div>
-      </div>
-      <div class="row border-top my-3"></div>
-      <div class="row" style="padding-top:20px;">
-        <div class="col offset-sm-1 text-center">
-          <form class="form-inline justify-content-center">
-            <i class="fa fas fa-search" aria-hidden="true"></i>
-            <input class="form-control form-control-sm ml-4 w-25" id="search_highschool" type="text" aria-label="{% trans 'Search Highschool'%}">
-          </form>
-        </div>
-      </div>
-      <div class="row" style="padding-top:20px;padding-bottom:20px;">
-        <div class="col table-responsive" style="width: 98%">
-          <table id="highschool_table" class="table table-striped table-bordered nowrap dt-body-nowrap">
-            <thead>
-              <tr>
-                <th>{% trans 'City' %}</th>
-                <th>{% trans 'Name' %}</th>
-              </tr>
-            </thead>
-            <tfoot>
-              <tr>
-                <td></td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 <script type="text/javascript">
   $(document).ready(function() {
 

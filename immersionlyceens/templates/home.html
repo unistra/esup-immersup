@@ -4,48 +4,79 @@
 {% trans "Homepage" %}
 {% endblock %}
 {% block content %}
-<div class="container-fluid" style="padding-top:20px;">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-    {% trans "Homepage" %}
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-sm-8">
-          <section id="home_txt">
-          {{ welcome_txt | safe}}
-          </section>
+<div class="main-title">
+    <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 offset-md-1 col-lg-6 offset-lg-2">
+                <div class="presentation">
+                    {{ welcome_txt | safe}}
+                </div>
+            </div>
         </div>
-        <div class="col">
-          <aside>
-            {% if twitter_url %}
-            <a class="twitter-timeline" data-width="250" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
+    </div>
+</div>
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="info">
+          <div class="info-icon">
+            <i class="us us-file us-fw us-2x text-third"></i>
+          </div>
+          <div class="info-description">
+            <h4>{% trans 'Procedure' %}</h4>
+            {{ procedure_intro_txt | safe}}
+            <p><a href="{% url 'procedure' %}" class="btn btn-primary"  data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">{% trans 'Details of the procedure' %}</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info">
+          <div class="info-icon">
+            <i class="nv nv-graduation-hat nv-fw nv-2x text-third"></i>
+          </div>
+          <div class="info-description">
+            <h4>{% trans 'Offer' %}</h4>
+            {{ offer_intro_txt | safe}}
+            <p><a href="{% url 'offer' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Discover courses' %}</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info">
+          <div class="info-icon">
+            <i class="us us-meeting-sm us-fw us-2x text-third"></i>
+          </div>
+          <div class="info-description">
+            <h4>{% trans 'Accompanying' %}</h4>
+            {{ accomp_intro_txt | safe}}
+            <p><a href="{% url 'accompanying' %}" class="btn btn-primary" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">{% trans 'Need help ?' %}</a></p>
+          </div>
+        </div>
+      </div>
+      {% if twitter_url %}
+      <div class="col-md-3">
+        <div class="info">
+          <div class="info-icon">
+            <i class="nv nv-twitter nv-fw nv-2x text-third"></i>
+          </div>
+          <aside class="info-description">
+            <h4>{% trans 'Social' %}</h4>
+            <a class="twitter-timeline" data-width="350" data-height="450" data-theme="light" href="{{ twitter_url }}" data-lang="fr" data-chrome="nofooter">
             {% trans 'Tweeter feed' %}
             </a>
             <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-            {% endif %}
-
           </aside>
         </div>
       </div>
-      <div class="row">
-        <div class="col-sm-3 text-center">
-          <a href="{% url 'procedure' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ procedure_txt }}">{% trans 'Procedure' %}</a>
-        </div>
-        <div class="col-sm-3 text-center">
-          <a href="{% url 'offer' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ offer_txt }}">{% trans 'Offer' %}</a>
-        </div>
-        <div class="col-sm-3 text-center">
-          <a href="{% url 'accompanying' %}" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-html="true" data-placement="top" title="{{ accomp_txt }}">{% trans 'Accompaniment' %}</a>
-        </div>
-      </div>
+      {% endif %}
     </div>
   </div>
-</div>
+</section>
+{% endblock %}
 <script>
 $(document).ready(function() {
     $("body").tooltip({ selector: '[data-toggle=tooltip]', container:'body'});
 });
 </script>
-
-{% endblock %}

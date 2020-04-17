@@ -1,14 +1,12 @@
 {% load immersionlyceens_tags %} {% load i18n %} {% immersion_users %}
-<ul class="nav navbar-nav navbar-right">
-    <li>
-        <select id="selectUser" class="form-control selectpicker" name="select-hijack-user">
-      <option value=""></option>
-      {% for u in immersion_users  %}
-      <option value="{{ u.id }}">{{ u.username }}</option>
-      {% endfor %}
-    </select>
-    </li>
-</ul>
+<div class="logo col-auto offset-lg-2">
+  <select id="selectUser" class="form-control selectpicker" name="select-hijack-user">
+    <option value=""></option>
+    {% for u in immersion_users  %}
+    <option value="{{ u.id }}">{{ u.username }}</option>
+    {% endfor %}
+  </select>
+</div>
 {% block foot-javascript %}
 <script>
     $('#selectUser').on('change', function() {

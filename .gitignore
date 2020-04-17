@@ -60,3 +60,4 @@ immersionlyceens/media
 
 # isort personal config
 .isort.cfg
+pyvenv.cfg

@@ -11,7 +11,6 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
-
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
@@ -22,24 +21,39 @@ def home(request):
     """Homepage view"""
 
     try:
-        welcome_txt = InformationText.objects.get(code="ACCUEIL").content
+        welcome_txt = InformationText.objects.get(code="ACCUEIL", active=True).content
     except InformationText.DoesNotExist:
         welcome_txt = ''
 
     try:
-        procedure_txt = InformationText.objects.get(code="INFO_BULLE_PROCEDURE").content
+        procedure_txt = InformationText.objects.get(code="INFO_BULLE_PROCEDURE", active=True).content
     except InformationText.DoesNotExist:
         procedure_txt = ''
 
     try:
-        offer_txt = InformationText.objects.get(code="INFO_BULLE_OFFRE").content
+        offer_txt = InformationText.objects.get(code="INFO_BULLE_OFFRE", active=True).content
     except InformationText.DoesNotExist:
         offer_txt = ''
 
     try:
-        accomp_txt = InformationText.objects.get(code="INFO_BULLE_ACCOMPAGNEMENT").content
+        accomp_txt = InformationText.objects.get(code="INFO_BULLE_ACCOMPAGNEMENT", active=True).content
     except InformationText.DoesNotExist:
         accomp_txt = ''
+
+    try:
+        procedure_intro_txt = InformationText.objects.get(code="INTRO_PROCEDURE", active=True).content
+    except InformationText.DoesNotExist:
+        procedure_intro_txt = ''
+
+    try:
+        offer_intro_txt = InformationText.objects.get(code="INTRO_OFFER", active=True).content
+    except InformationText.DoesNotExist:
+        offer_intro_txt = ''
+
+    try:
+        accomp_intro_txt = InformationText.objects.get(code="INTRO_ACCOMPAGNEMENT", active=True).content
+    except InformationText.DoesNotExist:
+        accomp_intro_txt = ''
 
     try:
         twitter_url = GeneralSettings.objects.get(setting="TWITTER_ACCOUNT_URL").value
@@ -52,6 +66,9 @@ def home(request):
         'offer_txt': offer_txt,
         'accomp_txt': accomp_txt,
         'twitter_url': twitter_url,
+        'offer_intro_txt': offer_intro_txt,
+        'procedure_intro_txt': procedure_intro_txt,
+        'accomp_intro_txt': accomp_intro_txt,
     }
     return render(request, 'home.html', context)
 
@@ -59,10 +76,17 @@ def home(request):
 def offer(request):
     """Offer view"""
 
-    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
+    try:
+        offer_txt = InformationText.objects.get(code="OFFER", active=True).content
+    except InformationText.DoesNotExist:
+        offer_txt = ''
 
+    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
+    courses_count = Course.objects.filter(published=True).count()
     context = {
         'subdomains': subdomains,
+        'courses_count': courses_count,
+        'offer_txt': offer_txt,
     }
     return render(request, 'offer.html', context)
 
