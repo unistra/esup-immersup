@@ -15,6 +15,7 @@ urlpatterns = [
     path('global_domains_charts', views.global_domains_charts, name='global_domains_charts'),
     path('trainings_charts', views.trainings_charts, name='trainings_charts'),
     path('global_registrations_charts', views.global_registrations_charts, name='global_registrations_charts'),
+    path('global_slots_charts', views.global_slots_charts, name='global_slots_charts'),
 
     # API part
     path('get_highschool_charts/<highschool_id>', api.highschool_charts, name='get_highschool_charts'),
@@ -25,4 +26,7 @@ urlpatterns = [
     path('get_trainings_charts/<int:highschool_id>', api.get_trainings_charts, name='get_hs_trainings_charts'),
     path('get_registration_charts/<int:level_value>', api.get_registration_charts, name='get_registration_charts'),
     path('get_registration_charts_cats', api.get_registration_charts_cats, name='get_registration_charts_cats'),
+    path('get_slots_charts', api.get_slots_charts, name='get_slots_charts'),
+    path('get_slots_data', api.get_slots_data, name='get_slots_data'),
+    path('get_slots_data/csv', api.get_slots_data, {'csv_mode': True }, name='get_slots_csv_data'),
 ]

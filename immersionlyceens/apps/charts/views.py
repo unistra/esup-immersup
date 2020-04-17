@@ -196,3 +196,15 @@ def global_registrations_charts(request):
     }
 
     return render(request, 'charts/registrations_charts.html', context=context)
+
+
+@groups_required('SCUIO-IP')
+def global_slots_charts(request):
+    """
+    Slots statistics by components and trainings
+    """
+
+    context = {
+    }
+
+    return render(request, 'charts/global_slots_charts.html', context=context)
