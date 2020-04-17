@@ -228,7 +228,7 @@ def ajax_get_slots(request, component=None):
 
         if data['datetime'] and data['datetime'] <= datetime.datetime.today():
             data['is_past'] = True
-            if not slot.immersions.all().exists():
+            if not slot.immersions.filter(cancellation_type__isnull=True).exists():
                 data['attendances_value'] = -1  # nothing
             elif (
                 slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()
