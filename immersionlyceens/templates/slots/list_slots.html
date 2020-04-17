@@ -130,6 +130,9 @@ function open_modal(slot_id, edit_mode, n_places, is_past=false) {
 }
 
 $(document).ready(function(){
+    // reset feedback
+    setTimeout(function(){$('#feedback').html('')}, 3000);
+
     var selected_training = false;
 
     {% if component_id %}
