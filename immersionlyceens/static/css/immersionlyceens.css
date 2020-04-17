@@ -231,7 +231,7 @@ body {
     /* minus */
     font-family: 'FontAwesome';
     position: absolute;
-    right: 0;
+    right: 10px;
 }
 
 .more-less-title>button[aria-expanded="true"]:after {
@@ -268,4 +268,12 @@ body {
     color: #55c1c3;
     margin-right: .5em;
     vertical-align: middle;
+}
+
+.centered-icon {
+    display: block;
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    text-align: center;
 }

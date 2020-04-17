@@ -290,7 +290,7 @@ $(document).ready(function(){
             },
             { data: 'location',
               render: function(data) {
-                return data['campus'] + '</br>' + data['building'];
+                return data['campus'] + '<br>' + data['building'];
               }
             },
             { data: 'room'} ,
@@ -298,7 +298,7 @@ $(document).ready(function(){
               render: function(data) {
                 let element = '';
                 $.each(data, function(name, email) {
-                    element += '<a href="mailto:' + email + '">' + name + '</a></br>'
+                    element += '<a href="mailto:' + email + '">' + name + '</a><br>'
                 });
                 return element;
               }
@@ -324,7 +324,7 @@ $(document).ready(function(){
             { data: 'additional_information',
               render: function(data) {
                 if (data) {
-                  return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle"></i></span>'
+                  return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
                 } else {
                   return '';
                 }
@@ -334,29 +334,24 @@ $(document).ready(function(){
               render: function(data, type, row) {
                 if ( row['component']['managed_by_me'] ) {
                   let element =
-                      '<div>\n' +
-                '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light" ' +
-                '           style="background-image: url(\'{% static "img/duplicate.png" %}\'); ' +
-                '                  background-repeat: no-repeat; ' +
-                '                  background-position: center center; ' +
-                '                  background-size: 60%;"' +
-                '         title="{% trans 'Add' %}">&nbsp;&nbsp;</a>';
+                '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light btn-sm mr-1" ' +
+                '         title="{% trans 'Add' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
 
                   if(row.is_past == false) {
-                    element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light" title="{% trans 'Modify' %}">&#x270E;</a>\n';
+                    element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-edit fa-2x centered-icon"></i></a>\n';
                   }
                   if(row.n_register == 0 && row.is_past == false) {
-                    element += '<button class="btn btn-light" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}">&#x1F5D1;</button>\n';
+                    element += '<button class="btn btn-light btn-sm mr-1" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
                   }
 
                   if(row.attendances_value == 1) {
-                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'Enter attendances' %}\">" +
-                               "<i class='fa fas fa-edit'></i>" +
+                    element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'Enter attendances' %}\">" +
+                               "<i class='fa fas fa-pencil fa-2x centered-icon'></i>" +
                                "</button>";
                   }
                   else if (row.attendances_value != -1) {
-                    element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'View registered students' %}\">" +
-                               "<i class='fa fas fa-eye'></i>" +
+                    element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'View registered students' %}\">" +
+                               "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
                                "</button>";
                   }
 
