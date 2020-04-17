@@ -290,7 +290,7 @@ $(document).ready(function(){
             },
             { data: 'location',
               render: function(data) {
-                return data['campus'] + '</br>' + data['building'];
+                return data['campus'] + '<br>' + data['building'];
               }
             },
             { data: 'room'} ,
@@ -324,7 +324,7 @@ $(document).ready(function(){
             { data: 'additional_information',
               render: function(data) {
                 if (data) {
-                  return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle"></i></span>'
+                  return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-lg"></i></span>'
                 } else {
                   return '';
                 }
@@ -351,12 +351,12 @@ $(document).ready(function(){
 
                   if(row.attendances_value == 1) {
                     element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'Enter attendances' %}\">" +
-                               "<i class='fa fas fa-edit'></i>" +
+                               "<i class='fa fas fa-edit fa-lg'></i>" +
                                "</button>";
                   }
                   else if (row.attendances_value != -1) {
                     element += "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'View registered students' %}\">" +
-                               "<i class='fa fas fa-eye'></i>" +
+                               "<i class='fa fas fa-eye fa-lg'></i>" +
                                "</button>";
                   }
 
