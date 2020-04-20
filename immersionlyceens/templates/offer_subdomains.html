@@ -20,6 +20,7 @@
 {% block content %}
 {% authorized_groups request.user %}
 <style>
+{% comment %} TODO: add this in css file !!! {% endcomment %}
 table.table-bordered{
     border:2px solid grey !important;
     margin-top:20px;
@@ -69,7 +70,7 @@ table.table-bordered{
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="#training{{training.grouper.pk}}">
                 <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i> {{ training.grouper.label }}
                 </button>
-                {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle fa-lg"></i></a>{% endif %}
+                {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>{% endif %}
               </h5>
             </div>
             <div id="training{{training.grouper.pk}}" class="collapse" aria-labelledby="{{training.grouper.label}}" data-parent="#accordion">
@@ -83,7 +84,7 @@ table.table-bordered{
                     {% endif %}
                     {{ d.course.label }}
                     {% if d.course.url %}
-                      <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle"></i></a>
+                      <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
                     {% endif %}
                     {% if not d.slots %}
                       <span class="badge badge-pill badge-warning pull-right ml-2">{% trans 'No slots available' %}</span>
