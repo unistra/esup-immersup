@@ -42,42 +42,44 @@
         </div>
       </form>
       {% endif %}
-      <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-        <thead>
-          <tr>
-            {% if request.user.is_scuio_ip_manager %}
-            <th id="type_filter" class="align-top">{% trans 'Type' %}</th>
-            {% endif %}
-            <th class="align-top">{% trans 'Name' %}</th>
-            <th class="align-top">{% trans 'Birth date' %}</th>
-            {% if request.user.is_scuio_ip_manager %}
-            <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
-            {% endif %}
-            <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
-            <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
-            <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
-            {% if request.user.is_scuio_ip_manager %}
-            <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
-            {% endif %}
-            <th id="registered_filter" class="align-top">{% trans 'Registrations >= 1' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            {% if request.user.is_scuio_ip_manager %}
-            <td></td>
-            <td></td>
-            <td></td>
-            {% endif %}
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              {% if request.user.is_scuio_ip_manager %}
+              <th id="type_filter" class="align-top">{% trans 'Type' %}</th>
+              {% endif %}
+              <th class="align-top">{% trans 'Name' %}</th>
+              <th class="align-top">{% trans 'Birth date' %}</th>
+              {% if request.user.is_scuio_ip_manager %}
+              <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
+              {% endif %}
+              <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
+              <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
+              <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
+              {% if request.user.is_scuio_ip_manager %}
+              <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
+              {% endif %}
+              <th id="registered_filter" class="align-top">{% trans 'Registrations >= 1' %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {% if request.user.is_scuio_ip_manager %}
+              <td></td>
+              <td></td>
+              <td></td>
+              {% endif %}
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
