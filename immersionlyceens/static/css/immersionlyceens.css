@@ -227,16 +227,17 @@ body {
 }
 
 .more-less-title>button:after {
-    content: "\f067";
     /* minus */
+    content: "\f067";
     font-family: 'FontAwesome';
     position: absolute;
-    right: 10px;
+    right: 2px;
 }
 
 .more-less-title>button[aria-expanded="true"]:after {
-    content: "\f068";
     /* plus */
+    content: "\f068";
+    right: 2px;
 }
 
 .light-bg-secondary {
@@ -263,10 +264,10 @@ body {
     border-radius: 0px
 }
 
-.subfomains-icons {
+.subdomains-icons {
     font-size: 2em;
     color: #55c1c3;
-    margin-right: .5em;
+    margin-right: 1em;
     vertical-align: middle;
 }
 
