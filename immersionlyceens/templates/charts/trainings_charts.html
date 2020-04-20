@@ -46,38 +46,40 @@
       {% endif %}
     </div>
     <div class="card-body">
-      <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-        <thead>
-          <tr>
-            <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
-            <th id="subdomain_filter" class="align-top">{% trans 'Subdomain' %}</th>
-            <th id="domain_filter" class="align-top">{% trans 'Domain' %}</th>
-            <th class="align-top">{% trans 'Students cnt' %}</th>
-            <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.0.1 }}</th>
-            <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.1.1 }}</th>
-            <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.2.1 }}</th>
-            <th class="align-top">{% trans 'Registrations' %}</th>
-            <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.0.1 }}</th>
-            <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.1.1 }}</th>
-            <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.2.1 }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
+              <th id="subdomain_filter" class="align-top">{% trans 'Subdomain' %}</th>
+              <th id="domain_filter" class="align-top">{% trans 'Domain' %}</th>
+              <th class="align-top">{% trans 'Students cnt' %}</th>
+              <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.0.1 }}</th>
+              <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.1.1 }}</th>
+              <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.2.1 }}</th>
+              <th class="align-top">{% trans 'Registrations' %}</th>
+              <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.0.1 }}</th>
+              <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.1.1 }}</th>
+              <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.2.1 }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

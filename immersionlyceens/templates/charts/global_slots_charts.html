@@ -35,26 +35,28 @@
     <button id="id_csv_extraction" type="submit" class="btn btn-light btn-sm ml-4">{% trans 'CSV extraction' %}</button>
   </div>
   <div class="card-body">
-    <table id="slots_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
-      <thead>
-      <tr>
-        <th id="component_filter" class="align-top">{% trans 'Component' %}</th>
-        <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
-        <th id="course_filter" class="align-top">{% trans 'Course' %}</th>
-        <th id="slots_filter" class="align-top">{% trans 'Slots count' %}</th>
-        <th id="availableseats_filter" class="align-top">{% trans 'Available seats' %}</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table id="slots_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
+        <thead>
+        <tr>
+          <th id="component_filter" class="align-top">{% trans 'Component' %}</th>
+          <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
+          <th id="course_filter" class="align-top">{% trans 'Course' %}</th>
+          <th id="slots_filter" class="align-top">{% trans 'Slots count' %}</th>
+          <th id="availableseats_filter" class="align-top">{% trans 'Available seats' %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
