@@ -369,7 +369,7 @@ h6,
 h1,
 .h1 {
     font-size: 2.75rem;
-    font-weiht: bold
+    font-weight: bold
 }
 
 @media (max-width: 1200px) {
