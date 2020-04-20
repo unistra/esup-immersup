@@ -50,15 +50,13 @@ table.table-bordered{
                 <li class="breadcrumb-item"><a href="{% url 'home' %}">{% trans 'Homepage' %}</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'offer' %}">{% trans 'Offer' %}</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ subdomain }}</li>
-            </li>
             </ol>
-
         </nav>
 </section>
 
 
 <section class="py-5 bg-gray">
-<div class="container-fluid" class="mt-4">
+<div class="container-fluid mt-4">
 
       {% if data %}
         <div id="accordion" class="accordion">
