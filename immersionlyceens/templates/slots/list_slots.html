@@ -338,7 +338,7 @@ $(document).ready(function(){
                 '         title="{% trans 'Add' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
 
                   if(row.is_past == false) {
-                    element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-edit fa-2x centered-icon"></i></a>\n';
+                    element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
                   }
                   if(row.n_register == 0 && row.is_past == false) {
                     element += '<button class="btn btn-light btn-sm mr-1" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
@@ -346,7 +346,7 @@ $(document).ready(function(){
 
                   if(row.attendances_value == 1) {
                     element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'Enter attendances' %}\">" +
-                               "<i class='fa fas fa-pencil fa-2x centered-icon'></i>" +
+                               "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
                                "</button>";
                   }
                   else if (row.attendances_value != -1) {
