@@ -41,7 +41,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="address"><strong>{% trans "Address" %}*</strong></label>
+              <label class="col-sm-3" for="id_address"><strong>{% trans "Address" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.address }}
               </div>
@@ -53,7 +53,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="address2">{% trans "Address2" %}</label>
+              <label class="col-sm-3" for="id_address2">{% trans "Address2" %}</label>
               <div class="col-sm-6">
                 {{ high_school_form.address2 }}
               </div>
@@ -66,7 +66,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="address3">{% trans "Address3" %}</label>
+              <label class="col-sm-3" for="id_address3">{% trans "Address3" %}</label>
               <div class="col-sm-6">
                 {{ high_school_form.address3 }}
               </div>
@@ -78,7 +78,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="department"><strong>{% trans "Department" %}*</strong></label>
+              <label class="col-sm-3" for="id_department"><strong>{% trans "Department" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.department }}
               </div>
@@ -90,7 +90,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="city"><strong>{% trans "City" %}*</strong></label>
+              <label class="col-sm-3" for="id_city"><strong>{% trans "City" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.city }}
               </div>
@@ -102,7 +102,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="zip_code"><strong>{% trans "Zip code" %}*</strong></label>
+              <label class="col-sm-3" for="id_zip_code"><strong>{% trans "Zip code" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.zip_code }}
               </div>
@@ -114,7 +114,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="phone_number"><strong>{% trans "Phone number" %}*</strong></label>
+              <label class="col-sm-3" for="id_phone_number"><strong>{% trans "Phone number" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.phone_number }}
               </div>
@@ -126,7 +126,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="fax">{% trans "Fax" %}</label>
+              <label class="col-sm-3" for="id_fax">{% trans "Fax" %}</label>
               <div class="col-sm-6">
                 {{ high_school_form.fax }}
               </div>
@@ -138,7 +138,7 @@
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="email"><strong>{% trans "Email" %}*</strong></label>
+              <label class="col-sm-3" for="id_email"><strong>{% trans "Email" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.email }}
               </div>
@@ -156,7 +156,7 @@
           <div class="card-title card-header">{% trans "Head teacher" %}</div>
           <div class="card-body">
             <div class="form-group row">
-              <label class="col-sm-3" for="head_teacher_name"><strong>{% trans "Head teacher name" %}*</strong></label>
+              <label class="col-sm-3" for="id_head_teacher_name"><strong>{% trans "Head teacher name" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.head_teacher_name }}
                 <small>{{ high_school_form.head_teacher_name.help_text }}</small>
@@ -208,14 +208,14 @@
 
 
             <div class="form-group row">
-              <label class="col-sm-3" for="convention_start_date">{% trans "Convention start date" %}</label>
+              <label class="col-sm-3" for="id_convention_start_date">{% trans "Convention start date" %}</label>
               <div class="col-sm-6">
                 <div class="readonly">{{ high_school.convention_start_date|default:'-' }}</div>
               </div>
             </div>
 
             <div class="form-group row">
-              <label class="col-sm-3" for="convention_end_date">{% trans "Convention end date" %}</label>
+              <label class="col-sm-3" for="id_convention_end_date">{% trans "Convention end date" %}</label>
               <div class="col-sm-6">
                 <div class="readonly">{{ high_school.convention_end_date|default:'-' }}</div>
               </div>
