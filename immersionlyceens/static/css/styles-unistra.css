@@ -10635,45 +10635,52 @@ h1 {
     padding: 0 !important
 }
 
-.main-title[class*='domain-'].domain-arts .bg-main-title {
+
+/*
+TODO: add more backgrounds ?
+
+class used to display background using training domain id
+*/
+
+.main-title[class*='domain-'].domain-1 .bg-main-title {
     filter: brightness(.4);
-    background-image: url(../img/arts.jpg);
+    background-image: url(../img/backgrounds/1.jpg);
     background-position: bottom center
 }
 
-.main-title[class*='domain-'].domain-deg .bg-main-title {
+.main-title[class*='domain-'].domain-2 .bg-main-title {
     filter: brightness(.6);
-    background-image: url(../img/deg.jpg);
+    background-image: url(../img/backgrounds/2.jpg);
     background-position: bottom center
 }
 
-.main-title[class*='domain-'].domain-dut .bg-main-title {
+.main-title[class*='domain-'].domain-3 .bg-main-title {
     filter: brightness(.6);
-    background-image: url(../img/dut.jpg);
+    background-image: url(../img/backgrounds/3.jpg);
     background-position: bottom center
 }
 
-.main-title[class*='domain-'].domain-ll .bg-main-title {
+.main-title[class*='domain-'].domain-4 .bg-main-title {
     filter: brightness(.6);
-    background-image: url(../img/ll.jpg);
+    background-image: url(../img/backgrounds/4.jpg);
     background-position: bottom center
 }
 
-.main-title[class*='domain-'].domain-sante .bg-main-title {
+.main-title[class*='domain-'].domain-5 .bg-main-title {
     filter: brightness(.6);
-    background-image: url(../img/sante.jpg);
+    background-image: url(../img/backgrounds/5.jpg);
     background-position: bottom center
 }
 
-.main-title[class*='domain-'].domain-st .bg-main-title {
+.main-title[class*='domain-'].domain-6 .bg-main-title {
     filter: brightness(.6);
-    background-image: url(../img/st.jpg);
+    background-image: url(../img/backgrounds/6.jpg);
     background-position: bottom center
 }
 
-.main-title[class*='domain-'].domain-shs .bg-main-title {
+.main-title[class*='domain-'].domain-7 .bg-main-title {
     filter: brightness(.6);
-    background-image: url(../img/shs.jpg);
+    background-image: url(../img/backgrounds/7.jpg);
     background-position: bottom center
 }
 
