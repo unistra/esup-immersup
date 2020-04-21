@@ -198,6 +198,9 @@
     pieSeries.dataFields.value = "count";
     pieSeries.dataFields.category = "domain";
     pieSeries.slices.template.states.getKey("active").properties.shiftRadius = 0;
+    pieSeries.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
+    pieSeries.labels.template.text = "{category}";
+
 
     pieSeries.slices.template.events.on("hit", function (event) {
       selectSlice(event.target.dataItem);
@@ -215,8 +218,10 @@
     pieSeries2.dataFields.value = "count";
     pieSeries2.dataFields.category = "name";
     pieSeries2.slices.template.states.getKey("active").properties.shiftRadius = 0;
+    pieSeries2.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
+    pieSeries2.labels.template.text = "{category}";
 
-    pieSeries2.labels.template.disabled = true;
+    // pieSeries2.labels.template.disabled = true;
     pieSeries2.ticks.template.disabled = true;
     pieSeries2.alignLabels = false;
     pieSeries2.events.on("positionchanged", updateLines);
