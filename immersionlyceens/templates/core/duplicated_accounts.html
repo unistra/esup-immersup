@@ -29,26 +29,28 @@
       {% trans "Accounts detected as duplicates" %}
     </div>
     <div class="card-body">
-      <table id="duplicates_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-        <thead>
-          <tr>
-            <th id="student_filter" class="align-top">{% trans 'Students' %}</th>
-            <th id="birth_date_filter" class="align-top">{% trans 'Birth date' %}</th>
-            <th id="highschool_filter" class="align-top">{% trans 'High School' %}</th>
-            <th id="email_filter" class="align-top">{% trans 'Email' %}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="duplicates_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th id="student_filter" class="align-top">{% trans 'Students' %}</th>
+              <th id="birth_date_filter" class="align-top">{% trans 'Birth date' %}</th>
+              <th id="highschool_filter" class="align-top">{% trans 'High School' %}</th>
+              <th id="email_filter" class="align-top">{% trans 'Email' %}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

@@ -1,6 +1,6 @@
 {% load static staticfiles i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
-<div class="modal fade" id="modal_course_alert" tabindex="-1" role="dialog" aria-labelledby="modal_nuke_account_title" aria-hidden="true">
+<div class="modal fade" id="modal_course_alert" tabindex="-1" role="dialog" aria-labelledby="modal_course_alert" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -26,16 +26,16 @@
               {% if request.user.email %}readonly{% endif %}>
             <input type="submit" class="btn btn-secondary btn-sm mt-4" name="set_alert" onclick="set_alert()" value="{% trans 'Set alert' %}">
           </div>
-        </div>  
+        </div>
       </div>
-    </div>  
+    </div>
   </div>
 </div>
 <script>
   function set_alert(student_id) {
     let course_id = current_course_id;
     let email = $('#id_email').val();
-  
+
     $.ajax({
       url: "{% url 'set_course_alert' %}",
       type: 'POST',

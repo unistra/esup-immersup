@@ -28,21 +28,21 @@
         {# Scuio or cmp #}
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownCourses" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               {% trans 'Courses' %}
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
               <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
               <a class="dropdown-item" href="{% url 'course' %}">{% trans 'New course' %}</a>
             </div>
           </div>
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSlots" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               {% trans 'Slots' %}
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownSlots">
               <a class="dropdown-item" href="{% url 'slots_list' %}">{% trans 'Slots list' %}</a>
             </div>
           </div>
@@ -50,11 +50,11 @@
         {# Component #}
         {% if authorized_groups|in_groups:"REF-CMP" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownComponents" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               {% trans 'Components' %}
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownComponents">
               <a class="dropdown-item" href="{% url 'component' %}">{% trans 'Update components settings' %}</a>
             </div>
           </div>
@@ -62,10 +62,10 @@
         {# Teacher #}
         {% if authorized_groups|in_groups:"ENS-CH" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultTeacher" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownConsultTeacher">
               <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
               <a class="dropdown-item" href="{% url 'myslots' %}">{% trans 'My slots' %}</a>
             </div>
@@ -74,10 +74,10 @@
         {# Students #}
         {% if authorized_groups|in_groups:"LYC,ETU" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultStudent" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownConsultStudent">
               {% if authorized_groups|in_groups:"LYC" %}
                 <a class="dropdown-item" href="{% url 'immersion:hs_record' %}">{% trans 'My record' %}</a>
               {% elif authorized_groups|in_groups:"ETU" %}
@@ -91,14 +91,14 @@
         {% if not user.is_superuser %}
           {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP,SRV-JUR" %}
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHighSchool" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                   {% trans 'High school' %}
                 {% elif authorized_groups|in_groups:"SCUIO-IP,SRV-JUR" %}
                   {% trans 'Registered users' %}
                 {% endif %}
               </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <div class="dropdown-menu" aria-labelledby="navbarDropdownHighSchool">
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                   <a class="dropdown-item" href="{% url 'my_high_school' user.highschool.id %}">{% trans 'My high school' %}</a>
                   <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View my students' %}</a>
@@ -119,10 +119,10 @@
         {# charts #}
         {% if authorized_groups|in_groups:"REF-LYC,SCUIO-IP" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownStats" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Charts' %}
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownStats">
               <a class="dropdown-item" href="{% url 'charts:highschool_charts' %}">{% trans 'Highschool registrations' %}</a>
               <a class="dropdown-item" href="{% url 'charts:highschool_domains_charts' %}">{% trans 'By domains registrations' %}</a>
               <a class="dropdown-item" href="{% url 'charts:trainings_charts' %}">{% trans 'Trainings registrations data' %}</a>
@@ -150,13 +150,13 @@
       {# user menu bar #}
       <div class="navbar-nav">
         <div class="nav-item dropdown dropdown-menu-right">
-          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="navbarDropdownUser">
             <i class="fa fas fa-user"></i>
             {% if user.is_authenticated %}
               {% if request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}
               <span class="caret"></span>
             </a>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownUser">
               <span class="dropdown-item text-right">
                 {% trans "Profile" %} :
                 <strong>{% if user.is_superuser %}{% trans "Admin" %}<br />{% endif %}{{ request.user.groups.all|join:", "}}</strong>

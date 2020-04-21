@@ -19,10 +19,17 @@
 {% endblock %}
 {% block content %}
 {% authorized_groups request.user %}
+<style>
+{% comment %} TODO: add this in css file !!! {% endcomment %}
+table.table-bordered{
+    border:2px solid grey !important;
+    margin-top:20px;
+  }
+</style>
 {% include 'modals/modal_course_alert.html' %}
 <div id="feedback" class="container mt-4 sticky-top"></div>
 
-<div class="main-title inside text-center domain-arts">
+<div class="main-title inside text-center domain-{{ subdomain.training_domain.pk }}">
     <div class="bg-main-title bg-parallax-bottom" data-scroll-speed=".3"></div>
     <div class="container">
         <div class="row">
@@ -43,15 +50,13 @@
                 <li class="breadcrumb-item"><a href="{% url 'home' %}">{% trans 'Homepage' %}</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'offer' %}">{% trans 'Offer' %}</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ subdomain }}</li>
-            </li>
             </ol>
-
         </nav>
 </section>
 
 
 <section class="py-5 bg-gray">
-<div class="container-fluid" class="mt-4">
+<div class="container-fluid mt-4">
 
       {% if data %}
         <div id="accordion" class="accordion">
@@ -61,9 +66,9 @@
             <div class="card-header card-cours" id="training{{training.pk}}">
               <h5 class="mb-0 more-less-title">
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="#training{{training.grouper.pk}}">
-                <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subfomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i> {{ training.grouper.label }}
+                <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i> {{ training.grouper.label }}
                 </button>
-                {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle"></i></a>{% endif %}
+                {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>{% endif %}
               </h5>
             </div>
             <div id="training{{training.grouper.pk}}" class="collapse" aria-labelledby="{{training.grouper.label}}" data-parent="#accordion">
@@ -71,13 +76,13 @@
               {% for d in training.list %}
                 <div class="card-header">
                   <h6 class="mb-0 more-less-title">
-                    <i class="nv nv-graduation-hat nv-fw subfomains-icons" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
+                    <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
                     {% if d.slots %}
                       <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
                     {% endif %}
                     {{ d.course.label }}
                     {% if d.course.url %}
-                      <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle"></i></a>
+                      <a href="{{ d.course.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>
                     {% endif %}
                     {% if not d.slots %}
                       <span class="badge badge-pill badge-warning pull-right ml-2">{% trans 'No slots available' %}</span>
@@ -102,63 +107,65 @@
                   <div class="card">
                     <div class="card-body">
                       {% for slot in d.slots %}
-                      <table class="table table-bordered" cellspacing="0" width="100%">
-                        <tbody>
-                          <tr>
-                            <td style="width: 20%"><i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subfomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
-                            <td style="width: 20%"><i class="fa fas fa-clock-o text-secondary d-none d-md-inline-block subfomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
-                            <td style="width: 20%"><i class="us us-books us-fw text-secondary d-none d-md-inline-block subfomains-icons"></i> {{ slot.course_type }}</td>
-                            <td style="width: 20%" rowspan="2">
-                              <i class="us us-duo us-fw text-secondary d-none d-md-inline-block subfomains-icons"></i>
-                              {% trans 'Teacher(s)' %} :
-                              <ul>
-                            {% if slot.teachers.all%}
-                                {% for teacher in slot.teachers.all  %}
-                                <li>{{ teacher.last_name | title }} {{ teacher.first_name | title }}</li>
-                                {% endfor %}
-                            {% else %}
-                                <li>{% trans 'Data not available' %}</li>
-                            {% endif %}
-                              </ul>
-                            </td>
-                            <td>
-                              {% if slot.cancelled %}
-                                  <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
-                                  {% if slot.can_register %}
-                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
-                                  {% endif %}
-                              {% elif slot.already_registered %}
-                                  <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                              {% elif slot.opening_soon %}
-                                  <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                              {% elif slot.available_seats > 0 %}
-                                <span class="badge badge-primary badge-pill">
-                                {% trans 'Available places' %} : {{ slot.available_seats }}
-                                </span><br>
-                                {% if authorized_groups|in_groups:"LYC,ETU" %}
-                                    {% if slot.can_register %}
-                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
-                                    {% endif %}
-                                {% endif %}
+                      <div class="table-responsive">
+                        <table class="table table-bordered">
+                          <tbody>
+                            <tr>
+                              <td style="width: 20%"><i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
+                              <td style="width: 20%"><i class="fa fas fa-clock-o text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
+                              <td style="width: 20%"><i class="us us-books us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i> {{ slot.course_type }}</td>
+                              <td style="width: 20%" rowspan="2">
+                                <i class="us us-duo us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i>
+                                {% trans 'Teacher(s)' %} :
+                                <ul>
+                              {% if slot.teachers.all%}
+                                  {% for teacher in slot.teachers.all  %}
+                                  <li>{{ teacher.last_name | title }} {{ teacher.first_name | title }}</li>
+                                  {% endfor %}
                               {% else %}
-                                <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                  <li>{% trans 'Data not available' %}</li>
                               {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td><i class="fa fas fa-university text-secondary d-none d-md-inline-block subfomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>{% trans 'Campus' %} : {{ slot.campus }}</td>
-                            <td><i class="fa fas fa-building text-secondary d-none d-md-inline-block subfomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
-                            {% if slot.building.url %}
-                              <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subfomains-icons"></i></a>
-                            {% endif %}
-                            </td>
-                            <td>
-                            <i class="us us-meeting us-fw text-secondary d-none d-md-inline-block subfomains-icons"></i>
-                            {% trans 'Room' %} : {{ slot.room }}</td>
-                            <td>{% if slot.additional_information %}{% trans 'Additional information' %} : <p>{{ slot.additional_information }}</p>{% endif %}</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                                </ul>
+                              </td>
+                              <td>
+                                {% if slot.cancelled %}
+                                    <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                                    {% if slot.can_register %}
+                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                    {% endif %}
+                                {% elif slot.already_registered %}
+                                    <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
+                                {% elif slot.opening_soon %}
+                                    <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
+                                {% elif slot.available_seats > 0 %}
+                                  <span class="badge badge-primary badge-pill">
+                                  {% trans 'Available places' %} : {{ slot.available_seats }}
+                                  </span><br>
+                                  {% if authorized_groups|in_groups:"LYC,ETU" %}
+                                      {% if slot.can_register %}
+                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
+                                      {% endif %}
+                                  {% endif %}
+                                {% else %}
+                                  <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                                {% endif %}
+                              </td>
+                            </tr>
+                            <tr>
+                              <td><i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>{% trans 'Campus' %} : {{ slot.campus }}</td>
+                              <td><i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
+                              {% if slot.building.url %}
+                                <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
+                              {% endif %}
+                              </td>
+                              <td>
+                              <i class="us us-meeting us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i>
+                              {% trans 'Room' %} : {{ slot.room }}</td>
+                              <td>{% if slot.additional_information %}{% trans 'Additional information' %} : <p>{{ slot.additional_information }}</p>{% endif %}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
                       {% endfor %}
                     </div>
                   </div>

@@ -34,30 +34,32 @@
         <input type="text" id='id_until' name="{% trans 'until' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
         <button id="id_dates_apply" name="dates_apply" class="ml-4 btn btn-secondary btn-sm">{% trans 'Apply' %}</button>
       </div>
-      <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-        <thead>
-          <tr>
-            <th id="datetime_filter" class="align-top">{% trans 'Date' %}</th>
-            <th id="student_filter" class="align-top">{% trans 'Student' %}</th>
-            <th id="institution_filter" class="align-top">{% trans 'Institution' %}</th>
-            <th id="contact_filter" class="align-top">{% trans 'Phone / Email' %}</th>
-            <th id="campus_filter" class="align-top">{% trans 'Campus' %}</th>
-            <th id="building_filter" class="align-top">{% trans 'Building' %}</th>
-            <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th id="datetime_filter" class="align-top">{% trans 'Date' %}</th>
+              <th id="student_filter" class="align-top">{% trans 'Student' %}</th>
+              <th id="institution_filter" class="align-top">{% trans 'Institution' %}</th>
+              <th id="contact_filter" class="align-top">{% trans 'Phone / Email' %}</th>
+              <th id="campus_filter" class="align-top">{% trans 'Campus' %}</th>
+              <th id="building_filter" class="align-top">{% trans 'Building' %}</th>
+              <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

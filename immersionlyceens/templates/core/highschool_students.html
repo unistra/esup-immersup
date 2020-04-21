@@ -36,48 +36,50 @@
       <form class="form-inline">
         <div class="form-group">
           <div class="form-group form-check mx-sm-3 mb-2">
-            <input type="checkbox" id="filter_no_record" class="form-check-input"></label>
-            <label for="filter_no_record" class="form-check-label ml-md-2"> {% trans 'Display only students with no record' %}
+            <input type="checkbox" id="filter_no_record" class="form-check-input">
+            <label for="filter_no_record" class="form-check-label ml-md-2"> {% trans 'Display only students with no record' %}</label>
           </div>
         </div>
       </form>
       {% endif %}
-      <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-        <thead>
-          <tr>
-            {% if request.user.is_scuio_ip_manager %}
-            <th id="type_filter" class="align-top">{% trans 'Type' %}</th>
-            {% endif %}
-            <th class="align-top">{% trans 'Name' %}</th>
-            <th class="align-top">{% trans 'Birth date' %}</th>
-            {% if request.user.is_scuio_ip_manager %}
-            <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
-            {% endif %}
-            <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
-            <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
-            <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
-            {% if request.user.is_scuio_ip_manager %}
-            <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
-            {% endif %}
-            <th id="registered_filter" class="align-top">{% trans 'Registrations >= 1' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            {% if request.user.is_scuio_ip_manager %}
-            <td></td>
-            <td></td>
-            <td></td>
-            {% endif %}
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              {% if request.user.is_scuio_ip_manager %}
+              <th id="type_filter" class="align-top">{% trans 'Type' %}</th>
+              {% endif %}
+              <th class="align-top">{% trans 'Name' %}</th>
+              <th class="align-top">{% trans 'Birth date' %}</th>
+              {% if request.user.is_scuio_ip_manager %}
+              <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
+              {% endif %}
+              <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
+              <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
+              <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
+              {% if request.user.is_scuio_ip_manager %}
+              <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
+              {% endif %}
+              <th id="registered_filter" class="align-top">{% trans 'Registrations >= 1' %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {% if request.user.is_scuio_ip_manager %}
+              <td></td>
+              <td></td>
+              <td></td>
+              {% endif %}
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
