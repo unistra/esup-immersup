@@ -1,7 +1,7 @@
 {% load immersionlyceens_tags %} {% load i18n %} {% immersion_users %}
 <div class="logo col-auto offset-lg-2">
   <select id="selectUser" class="form-control selectpicker" name="select-hijack-user">
-    <option value=""></option>
+    <option value="">&nbsp;</option>
     {% for u in immersion_users  %}
     <option value="{{ u.id }}">{{ u.username }}</option>
     {% endfor %}
