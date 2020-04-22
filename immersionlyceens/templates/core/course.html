@@ -35,7 +35,7 @@
         {{ course_form.id }}
         <div class="form-group row">
           <label for="id_component" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>
+            <i class="fa fas fa-asterisk"></i>
             {% trans 'Component' %} :
           </label>
           <div class="col-sm-3">
@@ -47,7 +47,7 @@
         </div>
         <div class="form-group row">
           <label for="id_training" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>
+            <i class="fa fas fa-asterisk"></i>
             {% trans 'Training' %} :
           </label>
           <div class="col-sm-3">
@@ -59,7 +59,7 @@
         </div>
         <div class="form-group row">
           <label for="id_label" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>
+            <i class="fa fas fa-asterisk"></i>
             {% trans 'Course label' %} :
           </label>
           <div class="col-sm-3">
@@ -89,7 +89,7 @@
         </div>
         <div class="form-group row">
           <label for="person_search" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>
+            <i class="fa fas fa-asterisk"></i>
             {% trans 'Teachers' %} :
           </label>
           <div class="col-sm-9">
@@ -104,12 +104,12 @@
           </div>
         </div>
         {% if can_update_courses %}
-        <div class="row">
-          <div class="col-md-10">
-            <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm" name="cancel">{% trans 'Cancel' %}</a>
-            <input type="submit" class="btn btn-secondary btn-sm" name="save" style="margin-left:15px;" value="{% trans 'Save' %}">
-            <input type="submit" class="btn btn-secondary btn-sm" name="save_duplicate" style="margin-left:15px;" value="{% trans 'Save and duplicate' %}">
-            <input type="submit" class="btn btn-secondary btn-sm" name="save_add_new" style="margin-left:15px;" value="{% trans 'Save and add new' %}">
+        <div class="form-group row">
+          <div class="btn-group col-xs-6 col-sm-3">
+            <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm col-xs-6" name="cancel">{% trans 'Cancel' %}</a>
+            <input type="submit" class="btn btn-secondary btn-sm col-xs-6" name="save" style="margin-left:15px;" value="{% trans 'Save' %}">
+            <input type="submit" class="btn btn-secondary btn-sm col-xs-6" name="save_duplicate" style="margin-left:15px;" value="{% trans 'Save and duplicate' %}">
+            <input type="submit" class="btn btn-secondary btn-sm col-xs-6" name="save_add_new" style="margin-left:15px;" value="{% trans 'Save and add new' %}">
           </div>
         </div>
         {% endif %}
