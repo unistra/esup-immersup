@@ -3,6 +3,13 @@
 }
 
 
+/*
+ *TODO: check img backgrounds
+ * (./img/backgrounds/*.jpg 14 is enough?)
+ *TODO: minify this file at the end!
+ */
+
+
 /*!
  * Bootstrap v4.4.1 (https://getbootstrap.com/)
  * Copyright 2011-2019 The Bootstrap Authors
@@ -10545,7 +10552,9 @@ a.text-gray:focus {
     }
 }
 
+html,
 body {
+    max-width: 100vw !important;
     overflow-x: hidden
 }
 
@@ -10635,13 +10644,6 @@ h1 {
     padding: 0 !important
 }
 
-
-/*
-TODO: add more backgrounds ?
-
-class used to display background using training domain id
-*/
-
 .main-title[class*='domain-'].domain-1 .bg-main-title {
     filter: brightness(.4);
     background-image: url(../img/backgrounds/1.jpg);
@@ -10681,6 +10683,48 @@ class used to display background using training domain id
 .main-title[class*='domain-'].domain-7 .bg-main-title {
     filter: brightness(.6);
     background-image: url(../img/backgrounds/7.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-8 .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/backgrounds/8.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-9 .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/backgrounds/9.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-10 .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/backgrounds/10.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-11 .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/backgrounds/11.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-12 .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/backgrounds/12.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-13 .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/backgrounds/13.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-14 .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/backgrounds/14.jpg);
     background-position: bottom center
 }
 
