@@ -9,7 +9,9 @@ import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ...models import GeneralSettings, Slot, Immersion, Component, Vacation
+from ...models import Slot, Immersion, Component, Vacation
+
+from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +35,8 @@ class Command(BaseCommand):
 
         # Configured value
         try:
-            weeks = int(GeneralSettings.objects.get(setting='NB_WEEKS_COMPONENTS_SLOT_REMINDER').value)
-        except (GeneralSettings.DoesNotExist, ValueError):
+            weeks = int(get_general_setting('NB_WEEKS_COMPONENTS_SLOT_REMINDER'))
+        except ValueError:
             pass
 
         # If configured value is invalid

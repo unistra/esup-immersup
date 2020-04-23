@@ -5,11 +5,10 @@ from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
 
-from immersionlyceens.apps.core.models import (
-    EvaluationFormLink, EvaluationType, GeneralSettings, Immersion,
-    UniversityYear)
+from immersionlyceens.apps.core.models import EvaluationFormLink, EvaluationType, Immersion, UniversityYear
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +35,8 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         platform_url = request.build_absolute_uri(reverse('home'))
     else:
         try:
-            platform_url_setting = GeneralSettings.objects.get(setting='PLATFORM_URL')
-            platform_url = platform_url_setting.value
-        except GeneralSettings.DoesNotExist:
+            platform_url = get_general_setting("PLATFORM_URL")
+        except ValueError:
             logger.warning("Warning : PLATFORM_URL not set in core General Settings")
             platform_url = "https://<plateforme immersion>"
             
@@ -170,7 +168,5 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         vars.append(('${lienGlobal}', "<a href='{0}'>{0}</a>".format(global_survey.url)))
     else:
         vars.append(('${lienGlobal}', _("Link improperly configured")))
-
-
 
     return multisub(vars, message_body)

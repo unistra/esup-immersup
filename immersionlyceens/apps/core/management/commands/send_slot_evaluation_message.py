@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ...models import GeneralSettings, Slot, Immersion
+from ...models import Slot, Immersion
 
 logger = logging.getLogger(__name__)
 

@@ -25,3 +25,20 @@ def check_active_year():
         pass
 
     return registration_is_available, today_in_range, active_year
+
+
+def get_general_setting(name=None):
+    """
+    Get setting 'name' in GeneralSettings model and returns its value
+    Raise ValueError if not found or None if 'name' is not set
+    """
+    if not name:
+        return None
+
+    try:
+        return core_models.GeneralSettings.objects.get(setting=name).value
+    except Exception:
+        raise ValueError
+
+
+

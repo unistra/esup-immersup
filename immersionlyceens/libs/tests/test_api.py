@@ -17,6 +17,7 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, GeneralSettings)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
+from immersionlyceens.libs.utils import get_general_setting
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -31,10 +32,16 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['group']
+    fixtures = ['group', 'generalsettings']
 
     def setUp(self):
-        GeneralSettings.objects.create(setting='MAIL_CONTACT_SCUIO_IP', value='unittest@unittest.fr')
+        """
+        GeneralSettings.objects.create(
+            setting='MAIL_CONTACT_SCUIO_IP',
+            value='unittest@unittest.fr',
+            description='SCUIO-IP email'
+        )
+        """
         self.scuio_user = get_user_model().objects.create_user(
             username='scuio', password='pass', email='immersion@no-reply.com', first_name='scuio', last_name='scuio',
         )
@@ -1837,6 +1844,7 @@ class APITestCase(TestCase):
         }
 
         content = json.loads(self.client.post(url, data, **header).content.decode())
+
         self.assertFalse(content['error'])
 
     def test_API_ajax_get_students_presence(self):

@@ -13,7 +13,9 @@ from django.db.models import Q
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ...models import GeneralSettings, Slot, Immersion, Component, ImmersionUser
+from ...models import Slot, Immersion, Component, ImmersionUser
+
+from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +40,8 @@ class Command(BaseCommand):
             return
 
         try:
-            all_filename = GeneralSettings.objects.get(setting='GLOBAL_MAILING_LIST').value
-        except GeneralSettings.DoesNotExist:
+            all_filename = get_general_setting('GLOBAL_MAILING_LIST')
+        except ValueError:
             logger.error("'GLOBAL_MAILING_LIST' setting does not exist (check admin GeneralSettings values)", output_dir)
 
         # Global mailing list file : all students

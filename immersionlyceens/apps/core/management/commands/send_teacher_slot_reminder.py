@@ -8,7 +8,9 @@ import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ...models import GeneralSettings, Slot, Immersion
+from ...models import Slot, Immersion
+
+from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +29,8 @@ class Command(BaseCommand):
 
         # Configured value
         try:
-            days = int(GeneralSettings.objects.get(setting='NB_DAYS_TEACHER_SLOT_REMINDER').value)
-        except (GeneralSettings.DoesNotExist, ValueError):
+            days = int(get_general_setting('NB_DAYS_TEACHER_SLOT_REMINDER'))
+        except ValueError:
             pass
 
         # If configured value is invalid
