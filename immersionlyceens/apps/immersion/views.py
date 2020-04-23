@@ -23,26 +23,16 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
-    Calendar,
-    CancelType,
-    HigherEducationInstitution,
-    Immersion,
-    ImmersionUser,
-    UniversityYear,
-    UserCourseAlert,
+    Calendar, CancelType, HigherEducationInstitution, Immersion,
+    ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
-from immersionlyceens.libs.utils import check_active_year
+from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
 from .forms import (
-    HighSchoolStudentForm,
-    HighSchoolStudentRecordForm,
-    LoginForm,
-    NewPassForm,
-    RegistrationForm,
-    StudentForm,
-    StudentRecordForm,
+    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
+    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
 
@@ -710,6 +700,10 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             'birth_date': date_format(record.birth_date, 'd/m/Y'),
             'slot_date': date_format(immersion.slot.date),
             'home_institution': home_institution if home_institution else _('Information not available'),
+            'city': get_general_setting('PDF_CERTIFICATE_CITY'),
+            'certificate_header': MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True).body,
+            'certificate_body': MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True).body,
+            'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
         }
         # doc = AttendanceCertificateModel.objects.first()
 
@@ -737,7 +731,7 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
         response = generate_pdf(request, 'export/pdf/attendance_certificate.html', context, filename=filename)
 
         return response
-
+    # TODO: Manage Mailtemplate not found !!!
     except Exception as e:
         logger.error('Certificate download error', e)
         raise Http404()
