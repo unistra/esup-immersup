@@ -1,9 +1,10 @@
 import logging
 
 from django.forms.models import model_to_dict
-
-from mailmerge import MailMerge
 from django.http.response import HttpResponseNotFound
+from django.template.loader import get_template
+
+import weasyprint
 
 logger = logging.getLogger(__name__)
 
@@ -45,3 +46,18 @@ def merge_docx(request, **kwargs):
     except Exception as e:
         logger.error('Docx generation error ', e)
         raise DocxMergeError("Failed to merge document")
+
+
+def generate_pdf(request, template_name, context, **kwargs):
+    """
+    Returns a pdf based on
+        template_name : path of html template
+        context : vars used in the template
+    """
+    base_url = request.build_absolute_uri("/")
+    template = get_template(template_name)
+    context = {'tpl_vars': context}
+    html = template.render(context)
+    response = HttpResponse(content_type="application/pdf")
+    weasyprint.HTML(string=html, base_url=base_url).write_pdf(response)
+    return response
