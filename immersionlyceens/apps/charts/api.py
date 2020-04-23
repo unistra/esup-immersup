@@ -21,6 +21,7 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, Stud
 
 logger = logging.getLogger(__name__)
 
+@groups_required("SCUIO-IP", "REF-LYC")
 def highschool_charts(request, highschool_id):
     """
     Data for amcharts 4
@@ -94,6 +95,7 @@ def highschool_charts(request, highschool_id):
     return JsonResponse(response, safe=False)
 
 
+@groups_required("SCUIO-IP", "REF-LYC")
 def highschool_domains_charts(request, highschool_id, level=0):
     """
     Data for amcharts 4
@@ -346,6 +348,7 @@ def get_trainings_charts(request, highschool_id=None):
             response['data'].append(row.copy())
 
     return JsonResponse(response, safe=False)
+
 
 @groups_required("SCUIO-IP")
 def get_registration_charts(request, level_value=0):
