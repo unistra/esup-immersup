@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
+@groups_required("SCUIO-IP", "REF-CMP")
 def ajax_get_person(request):
     if settings.ACCOUNTS_CLIENT:
         response = {'msg': '', 'data': []}
@@ -65,6 +66,7 @@ def ajax_get_person(request):
 
 
 @is_ajax_request
+@groups_required("SCUIO-IP")
 def ajax_get_available_vars(request, template_id=None):
     response = {'msg': '', 'data': []}
 
@@ -115,6 +117,7 @@ def ajax_get_courses(request, component_id=None):
 
 @is_post_request
 @is_ajax_request
+@groups_required("SCUIO-IP", "REF-CMP")
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
 
@@ -249,8 +252,6 @@ def ajax_get_slots(request, component=None):
 
 
 @is_ajax_request
-# Should be public used by public page !!!
-# @groups_required('SCUIO-IP', 'REF-CMP')
 def ajax_get_courses_by_training(request, component_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
@@ -570,57 +571,9 @@ def ajax_get_student_records(request):
     return JsonResponse(response, safe=False)
 
 
-@is_ajax_request
-def ajax_get_slots_by_course(request, course_id=None):
-    """ Public get"""
-    from immersionlyceens.apps.core.models import Slot
-
-    response = {'msg': '', 'data': []}
-    slots = []
-
-    if not course_id:
-        response['msg'] = gettext("Error : a valid course is requested")
-    else:
-        calendar = Calendar.objects.first()
-        today = datetime.datetime.today().date()
-        reg_dates = calendar.get_limit_dates(today)
-
-        slots = Slot.objects.filter(
-            course__id=course_id, published=True, date__gte=reg_dates['start'], date__lte=reg_dates['end']
-        )
-
-    all_data = []
-    for slot in slots:
-        data = {
-            'id': slot.id,
-            'published': slot.published,
-            'course_label': slot.course.label,
-            'course_type': slot.course_type.label if slot.course_type is not None else '-',
-            'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
-            'date': _date(slot.date, "l j F Y") if slot.date is not None else '-',
-            'time': '{s} - {e}'.format(
-                s=slot.start_time.strftime('%Hh%M') or '', e=slot.end_time.strftime('%Hh%M') or '',
-            )
-            if slot.start_time is not None and slot.end_time is not None
-            else '-',
-            'building': '{} - {}'.format(slot.building.label, slot.campus.label)
-            if slot.building is not None and slot.campus is not None
-            else '-',
-            'room': slot.room if slot.room is not None else '-',
-            'teachers': ', '.join(['{} {}'.format(e.first_name, e.last_name.upper()) for e in slot.teachers.all()]),
-            'n_register': slot.registered_students(),
-            'n_places': slot.n_places if slot.n_places is not None and slot.n_places > 0 else '-',
-            'additional_information': slot.additional_information,
-        }
-        all_data.append(data)
-
-    response['data'] = all_data
-
-    return JsonResponse(response, safe=False)
-
-
 # REJECT / VALIDATE STUDENT
 @is_ajax_request
+@groups_required('REF-LYC', 'SCUIO-IP')
 def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
@@ -1884,6 +1837,7 @@ def ajax_cancel_alert(request):
 
 
 @is_ajax_request
+@groups_required("SCUIO-IP")
 def ajax_get_duplicates(request):
     """
     Get duplicates lists
