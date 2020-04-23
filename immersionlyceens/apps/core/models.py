@@ -1290,3 +1290,27 @@ class HigherEducationInstitution(models.Model):
     class Meta:
         verbose_name = _('Higher education institution')
         verbose_name_plural = _('Higher education institutions')
+
+
+class AnnualStatistics(models.Model):
+    """
+    Data kept over years
+    """
+    year = models.CharField(_("Year label"), primary_key=True, max_length=256, null=False)
+    platform_registrations = models.SmallIntegerField(_("Platform registrations count"), default=0)
+    one_immersion_registrations = models.SmallIntegerField(
+        _("Students registered to at least one immersion count"), default=0)
+    multiple_immersions_registrations = models.SmallIntegerField(
+        _("Students registered to more than one immersion count"), default=0)
+    participants_one_immersion = models.SmallIntegerField(
+        _("Participants in at least one immersion count"), default=0)
+    participants_multiple_immersions = models.SmallIntegerField(
+        _("Participants in multiple immersions count"), default=0)
+    immersion_registrations = models.SmallIntegerField(_("Immersion registrations count"), default=0)
+    seats_count = models.SmallIntegerField(_("Global seats count"), default=0)
+    components_count = models.SmallIntegerField(_("Participating components count"), default=0)
+    trainings_one_slot_count = models.SmallIntegerField(_("Trainings offering at least one slot count"), default=0)
+    courses_one_slot_count = models.SmallIntegerField(_("Courses offering at least one slot count"), default=0)
+    total_slots_count = models.SmallIntegerField(_("Total slots count"), default=0)
+    approved_highschools = models.SmallIntegerField(_("Approved highschools count"), default=0)
+    highschools_without_students = models.SmallIntegerField(_("Highschools with no students"), default=0)
