@@ -10,6 +10,7 @@ from immersionlyceens.decorators import groups_required
 from immersionlyceens.apps.core.models import HighSchool, HigherEducationInstitution
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
+from .utils import process_request_filters
 
 logger = logging.getLogger(__name__)
 
@@ -67,37 +68,10 @@ def global_domains_charts(request):
     """
     All institutions charts by domains, with filters on institutions
     """
-    highschools = []
-    highschools_ids = []
-    higher_institutions = []
-    higher_institutions_ids = []
 
-    _insts = request.POST.get('insts')
-
-    try:
-        level_filter = int(request.POST.get('level', 0))
-    except ValueError:
-        level_filter = 0 # default : all levels
-
-    if _insts:
-        try:
-            insts = json.loads(_insts)
-
-            hs = {h.pk:h for h in HighSchool.objects.all()}
-            higher = {h.uai_code:h for h in HigherEducationInstitution.objects.all()}
-
-            highschools = sorted(
-                [ "%s - %s" % (hs[inst[1]].city.title(), hs[inst[1]].label) for inst in insts if inst[0] == 0 ]
-            )
-            higher_institutions = sorted(
-                [ "%s - %s" % (higher[inst[1]].city.title(), higher[inst[1]].label) for inst in insts if inst[0] == 1 ]
-            )
-
-            highschools_ids = [ inst[1] for inst in insts if inst[0]==0 ]
-            higher_institutions_ids = [ inst[1] for inst in insts if inst[0]==1 ]
-
-        except Exception as e:
-            logger.exception("Filter form values error")
+    # Get filters from request POST data
+    level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
+        process_request_filters(request)
 
     # High school levels
     # the third one ('above bachelor') will also include the higher education institutions students
@@ -147,39 +121,9 @@ def global_registrations_charts(request):
     Registration and participation charts by student levels
     """
 
-    # TODO : reuse global_domains_charts ?
-
-    highschools = []
-    highschools_ids = []
-    higher_institutions = []
-    higher_institutions_ids = []
-
-    _insts = request.POST.get('insts')
-
-    try:
-        part2_level_filter = int(request.POST.get('level', 0))
-    except ValueError:
-        part2_level_filter = 0 # default : all levels
-
-    if _insts:
-        try:
-            insts = json.loads(_insts)
-
-            hs = {h.pk:h for h in HighSchool.objects.all()}
-            higher = {h.uai_code:h for h in HigherEducationInstitution.objects.all()}
-
-            highschools = sorted(
-                [ "%s - %s" % (hs[inst[1]].city.title(), hs[inst[1]].label) for inst in insts if inst[0] == 0 ]
-            )
-            higher_institutions = sorted(
-                [ "%s - %s" % (higher[inst[1]].city.title(), higher[inst[1]].label) for inst in insts if inst[0] == 1 ]
-            )
-
-            highschools_ids = [ inst[1] for inst in insts if inst[0]==0 ]
-            higher_institutions_ids = [ inst[1] for inst in insts if inst[0]==1 ]
-
-        except Exception as e:
-            logger.exception("Filter form values error")
+    # Get filters from request POST data
+    part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
+        process_request_filters(request)
 
     # High school levels
     # the third one ('above bachelor') will also include the higher education institutions students
