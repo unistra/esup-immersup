@@ -8,5 +8,4 @@ django-extensions
 ldap3
 requests
 django-summernote
-docx-mailmerge
 django-shibboleth-remoteuser
