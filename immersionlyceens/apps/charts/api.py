@@ -81,7 +81,8 @@ def highschool_charts(request, highschool_id):
     for level in HighSchoolStudentRecord.LEVELS:
         users = qs.filter(high_school_student_record__level=level[0])
         datasets[0][level[1]] = users.count() # plaform
-        datasets[1][level[1]] = users.filter(immersions__isnull=False).distinct().count() # registered
+        datasets[1][level[1]] = users.filter(
+            immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count() # registered
         datasets[2][level[1]] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
 
     response = {
@@ -119,6 +120,7 @@ def highschool_domains_charts(request, highschool_id, level=0):
             .filter(
             slot__course__training__training_subdomains__training_domain__id=domain.id,
             student__high_school_student_record__highschool__id=highschool_id,
+            cancellation_type__isnull=True
         )
 
         if level in [1,2,3]:
@@ -194,6 +196,7 @@ def global_domains_charts(request):
             'student__high_school_student_record__highschool')\
             .filter(
             slot__course__training__training_subdomains__training_domain__id=domain.id,
+            cancellation_type__isnull=True
         )
 
         # Level filter
@@ -429,7 +432,8 @@ def get_registration_charts(request, level_value=0):
                               Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))
 
         datasets[0][level[1]] = users.count()  # plaform
-        datasets[1][level[1]] = users.filter(immersions__isnull=False).distinct().count()  # registered
+        datasets[1][level[1]] = users.filter(
+            immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
         datasets[2][level[1]] = users.filter(immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
 
     response = {
@@ -544,7 +548,8 @@ def get_registration_charts_cats(request):
                                      Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))
 
             dataset_pr[level[1]] = users.count()  # plaform
-            dataset_oi[level[1]] = users.filter(immersions__isnull=False).distinct().count()  # registered
+            dataset_oi[level[1]] = users.filter(
+                immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
             dataset_ao[level[1]] = users.filter(
                 immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
 
@@ -575,7 +580,8 @@ def get_registration_charts_cats(request):
                 users = hii_qs.filter(student_record__level__in=[l[0] for l in StudentRecord.LEVELS])
 
             dataset_pr[level[1]] = users.count() # plaform
-            dataset_oi[level[1]] = users.filter(immersions__isnull=False).distinct().count() # registered
+            dataset_oi[level[1]] = users.filter(
+                immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count() # registered
             dataset_ao[level[1]] = users.filter(
                 immersions__attendance_status=1).distinct().count() # attended to 1 immersion
 
