@@ -70,5 +70,14 @@
         "value": "https://my_form.my_site.fr",
         "description": "Adresse du formulaire de contact"
     }
+},
+{
+    "model": "core.generalsettings",
+    "pk": 9,
+    "fields": {
+        "setting": "MAIL_CONTACT_SCUIO_IP",
+        "value": "scuio_ip@somewhere.og",
+        "description": "Adresse de contact du SCUIO-IP"
+    }
 }
 ]
