@@ -19,7 +19,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
-
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
@@ -35,7 +34,6 @@ from .forms import (
     NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
-from .utils import merge_docx
 
 logger = logging.getLogger(__name__)
 
@@ -695,6 +693,13 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             # TODO: to complete when method home_instituion() is available
             home_institution = record.home_institution()[0]
 
+        context = {
+            'user': student,
+            'immersion': immersion,
+            'birth_date': date_format(record.birth_date, 'd/m/Y'),
+            'slot_date': date_format(immersion.slot.date),
+            'home_institution': home_institution if home_institution else _('Information not available'),
+        }
         # doc = AttendanceCertificateModel.objects.first()
 
         # docx = merge_docx(
@@ -717,7 +722,8 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
         #     'Content-Disposition'
         # ] = f'attachment; filename=immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.docx'
         # response['Content-Length'] = f.tell()
-        response = generate_pdf(request, 'export/pdf/attendance_certificate.html', context)
+        filename = f'immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.pdf'
+        response = generate_pdf(request, 'export/pdf/attendance_certificate.html', context, filename=filename)
 
         return response
 
