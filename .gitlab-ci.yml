@@ -13,8 +13,6 @@ variables:
 before_script:
   - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0
 
-
-
 unittest:
   stage: test
   tags:

@@ -20,28 +20,19 @@ from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
 
-from immersionlyceens.apps.core.models import (
-    Calendar,
-    CancelType,
-    HigherEducationInstitution,
-    Immersion,
-    ImmersionUser,
-    UniversityYear,
-    UserCourseAlert,
-)
-from immersionlyceens.decorators import groups_required
-from immersionlyceens.libs.utils import check_active_year
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
+from immersionlyceens.apps.core.models import (
+    Calendar, CancelType, HigherEducationInstitution, Immersion, ImmersionUser, UniversityYear, UserCourseAlert,
+)
+from immersionlyceens.apps.immersion.utils import generate_pdf
+from immersionlyceens.decorators import groups_required
+from immersionlyceens.libs.utils import check_active_year
+
 from .forms import (
-    HighSchoolStudentForm,
-    HighSchoolStudentRecordForm,
-    LoginForm,
-    NewPassForm,
-    RegistrationForm,
-    StudentForm,
-    StudentRecordForm,
+    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
+    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
 from .utils import merge_docx
@@ -704,28 +695,29 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             # TODO: to complete when method home_instituion() is available
             home_institution = record.home_institution()[0]
 
-        doc = AttendanceCertificateModel.objects.first()
+        # doc = AttendanceCertificateModel.objects.first()
 
-        docx = merge_docx(
-            request,
-            user=student,
-            doc=doc,
-            immersion=immersion,
-            birth_date=date_format(record.birth_date, 'd/m/Y'),
-            home_institution=home_institution if home_institution else _('Information not available'),
-            slot_date=date_format(immersion.slot.date),
-        )
+        # docx = merge_docx(
+        #     request,
+        #     user=student,
+        #     doc=doc,
+        #     immersion=immersion,
+        #     birth_date=date_format(record.birth_date, 'd/m/Y'),
+        #     home_institution=home_institution if home_institution else _('Information not available'),
+        #     slot_date=date_format(immersion.slot.date),
+        # )
 
-        f = BytesIO()
-        docx.write(f)
+        # f = BytesIO()
+        # docx.write(f)
 
-        response = HttpResponse(
-            f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        )
-        response[
-            'Content-Disposition'
-        ] = f'attachment; filename=immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.docx'
-        response['Content-Length'] = f.tell()
+        # response = HttpResponse(
+        #     f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        # )
+        # response[
+        #     'Content-Disposition'
+        # ] = f'attachment; filename=immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.docx'
+        # response['Content-Length'] = f.tell()
+        response = generate_pdf(request, 'export/pdf/attendance_certificate.html', context)
 
         return response
 
