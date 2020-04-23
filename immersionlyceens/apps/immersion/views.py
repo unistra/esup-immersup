@@ -19,9 +19,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
+
 from immersionlyceens.apps.core.models import (
-    AttendanceCertificateModel, Calendar, CancelType, HigherEducationInstitution,
-    Immersion, ImmersionUser, UniversityYear, UserCourseAlert,
+    Calendar,
+    CancelType,
+    HigherEducationInstitution,
+    Immersion,
+    ImmersionUser,
+    UniversityYear,
+    UserCourseAlert,
 )
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.utils import check_active_year
@@ -29,8 +35,13 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
-    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
+    HighSchoolStudentForm,
+    HighSchoolStudentRecordForm,
+    LoginForm,
+    NewPassForm,
+    RegistrationForm,
+    StudentForm,
+    StudentRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
 from .utils import merge_docx

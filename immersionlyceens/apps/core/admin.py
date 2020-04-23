@@ -12,17 +12,17 @@ from hijack_admin.admin import HijackUserAdminMixin
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
-    AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
+    ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
+    GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
+    InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus, CancelType,
-    Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Slot,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component, Course,
+    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
+    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
+    PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -969,22 +969,6 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         )
 
 
-class AttendanceCertificateModelAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = AttendanceCertificateModelForm
-
-    list_display = ('__str__', 'show_merge_fields')
-
-    def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
-            return False
-
-        return True
-
-    def has_add_permission(self, request):
-        """Only one obj is valid"""
-        return not AttendanceCertificateModel.objects.exists()
-
-
 class EvaluationTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EvaluationTypeForm
     list_display = ('code', 'label')
@@ -1036,7 +1020,6 @@ admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
 admin.site.register(PublicDocument, PublicDocumentAdmin)
-admin.site.register(AttendanceCertificateModel, AttendanceCertificateModelAdmin)
 admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)

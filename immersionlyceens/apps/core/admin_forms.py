@@ -2,8 +2,6 @@ import mimetypes
 import re
 from datetime import datetime
 
-from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
-
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -12,14 +10,14 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
+from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
-    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
-    CancelType, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
-    MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
+    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
+    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
+    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -153,9 +151,7 @@ class TrainingSubdomainForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['training_domain'].queryset = self.fields['training_domain'].queryset.order_by(
-            'label'
-        )
+        self.fields['training_domain'].queryset = self.fields['training_domain'].queryset.order_by('label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -214,9 +210,7 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
-        self.fields['components'].queryset = self.fields['components'].queryset.order_by(
-            'code', 'label'
-        )
+        self.fields['components'].queryset = self.fields['components'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -356,29 +350,19 @@ class UniversityYearForm(forms.ModelForm):
         if start_date and end_date and start_date >= end_date:
             raise forms.ValidationError(_("Start date greater than end date"))
         if registration_start_date and start_date and registration_start_date < start_date:
-            raise forms.ValidationError(
-                _("Start of registration date must be set between start and end date")
-            )
+            raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
         if registration_start_date and end_date and registration_start_date >= end_date:
-            raise forms.ValidationError(
-                _("Start of registration date must be set between start and end date")
-            )
+            raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
 
         if start_date and end_date:
             all_univ_year = UniversityYear.objects.exclude(label=label)
             for uy in all_univ_year:
                 if uy.active:
-                    raise forms.ValidationError(
-                        _("All university years are not purged. you can't create a new one")
-                    )
+                    raise forms.ValidationError(_("All university years are not purged. you can't create a new one"))
                 if uy.date_is_between(start_date):
-                    raise forms.ValidationError(
-                        _("University year starts inside another university year")
-                    )
+                    raise forms.ValidationError(_("University year starts inside another university year"))
                 if uy.date_is_between(end_date):
-                    raise forms.ValidationError(
-                        _("University year ends inside another university year")
-                    )
+                    raise forms.ValidationError(_("University year ends inside another university year"))
                 if start_date <= uy.start_date <= end_date:
                     raise forms.ValidationError(_("University year contains another"))
                 if start_date <= uy.end_date <= end_date:
@@ -476,13 +460,9 @@ class VacationForm(forms.ModelForm):
             if start_date >= end_date:
                 raise forms.ValidationError(_("Start date greater than end date"))
             if start_date < univ_year.start_date or start_date > univ_year.end_date:
-                raise forms.ValidationError(
-                    _("Vacation start date must set between university year dates")
-                )
+                raise forms.ValidationError(_("Vacation start date must set between university year dates"))
             if end_date < univ_year.start_date or end_date >= univ_year.end_date:
-                raise forms.ValidationError(
-                    _("Vacation end date must set between university year dates")
-                )
+                raise forms.ValidationError(_("Vacation end date must set between university year dates"))
             if start_date < now:
                 raise forms.ValidationError(_("Vacation start date must be set in the future"))
 
@@ -550,13 +530,9 @@ class CalendarForm(forms.ModelForm):
             #     raise forms.ValidationError(_("Mandatory fields not filled in"))
             if year_start_date and year_end_date:
                 if year_start_date < univ_year.start_date or year_start_date > univ_year.end_date:
-                    raise forms.ValidationError(
-                        _("Start date must be set between university year dates")
-                    )
+                    raise forms.ValidationError(_("Start date must be set between university year dates"))
                 if year_end_date < univ_year.start_date or year_end_date > univ_year.end_date:
-                    raise forms.ValidationError(
-                        _("End date must set be between university year dates")
-                    )
+                    raise forms.ValidationError(_("End date must set be between university year dates"))
 
         # SEMESTER MODE
         elif calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
@@ -580,38 +556,20 @@ class CalendarForm(forms.ModelForm):
                 and s2_registration_start_date
             ):
                 if s1_start_date < univ_year.start_date or s1_start_date > univ_year.end_date:
-                    raise forms.ValidationError(
-                        _("semester 1 start date must set between university year dates")
-                    )
+                    raise forms.ValidationError(_("semester 1 start date must set between university year dates"))
                 if s2_start_date < univ_year.start_date or s2_start_date > univ_year.end_date:
-                    raise forms.ValidationError(
-                        _("semester 2 start date must set between university year dates")
-                    )
+                    raise forms.ValidationError(_("semester 2 start date must set between university year dates"))
                 if s1_end_date < univ_year.start_date or s1_end_date > univ_year.end_date:
-                    raise forms.ValidationError(
-                        _("semester 1 end date must set between university year dates")
-                    )
+                    raise forms.ValidationError(_("semester 1 end date must set between university year dates"))
                 if s2_end_date < univ_year.start_date or s2_end_date > univ_year.end_date:
+                    raise forms.ValidationError(_("semester 2 end date must set between university year dates"))
+                if s1_registration_start_date < univ_year.start_date or s1_registration_start_date > univ_year.end_date:
                     raise forms.ValidationError(
-                        _("semester 2 end date must set between university year dates")
+                        _("semester 1 start registration date must set between university year dates")
                     )
-                if (
-                    s1_registration_start_date < univ_year.start_date
-                    or s1_registration_start_date > univ_year.end_date
-                ):
+                if s2_registration_start_date < univ_year.start_date or s2_registration_start_date > univ_year.end_date:
                     raise forms.ValidationError(
-                        _(
-                            "semester 1 start registration date must set between university year dates"
-                        )
-                    )
-                if (
-                    s2_registration_start_date < univ_year.start_date
-                    or s2_registration_start_date > univ_year.end_date
-                ):
-                    raise forms.ValidationError(
-                        _(
-                            "semester 2 start registration date must set between university year dates"
-                        )
+                        _("semester 2 start registration date must set between university year dates")
                     )
 
         # start < end
@@ -619,14 +577,10 @@ class CalendarForm(forms.ModelForm):
             raise forms.ValidationError(_("Start date greater than end date"))
         # start1 < end1
         if s1_start_date and s1_end_date and s1_start_date >= s1_end_date:
-            raise forms.ValidationError(
-                _("Semester 1 start date greater than semester 1 end date")
-            )
+            raise forms.ValidationError(_("Semester 1 start date greater than semester 1 end date"))
         # start2 < end2
         if s2_start_date and s2_end_date and s2_start_date >= s2_end_date:
-            raise forms.ValidationError(
-                _("Semester 2 start date greater than semester 2 end date")
-            )
+            raise forms.ValidationError(_("Semester 2 start date greater than semester 2 end date"))
         # end1 < start2
         if s1_end_date and s2_start_date and s1_end_date >= s2_start_date:
             raise forms.ValidationError(_("Semester 1 ends after the beginning of semester 2"))
@@ -646,7 +600,7 @@ class ImmersionUserCreationForm(UserCreationForm):
 
         self.fields["password1"].required = False
         self.fields["password2"].required = False
-        
+
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
@@ -665,11 +619,11 @@ class ImmersionUserChangeForm(UserChangeForm):
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
                     self.fields[field].required = True
-        
+
             for field in ["is_staff", "is_superuser", "username"]:
                 if self.fields.get(field):
                     self.fields[field].disabled = True
-        
+
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
                 self.fields["components"].disabled = True
@@ -718,9 +672,7 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             elif self.request.user.has_groups('SCUIO-IP'):
                 if self.instance.is_scuio_ip_manager():
-                    raise forms.ValidationError(
-                        _("You don't have enough privileges to modify this account")
-                    )
+                    raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
 
                 # Add groups to this list when needed
                 can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP',)
@@ -729,17 +681,12 @@ class ImmersionUserChangeForm(UserChangeForm):
                 new_groups = set(groups.all().values_list('name', flat=True))
 
                 forbidden_groups = [
-                    g
-                    for g in current_groups.symmetric_difference(new_groups)
-                    if g not in can_change_groups
+                    g for g in current_groups.symmetric_difference(new_groups) if g not in can_change_groups
                 ]
 
                 if forbidden_groups:
                     raise forms.ValidationError(
-                        _(
-                            "You can't modify these groups : %s"
-                            % ', '.join(x for x in forbidden_groups)
-                        )
+                        _("You can't modify these groups : %s" % ', '.join(x for x in forbidden_groups))
                     )
 
             if self.instance.is_superuser != cleaned_data["is_superuser"]:
@@ -753,7 +700,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 raise forms.ValidationError(_("You can't modify the staff status"))
 
         return cleaned_data
-    
+
     def save(self, *args, **kwargs):
         # If REF-LYC is in new groups, send a mail to choose a password
         # if no password has been set yet
@@ -762,12 +709,12 @@ class ImmersionUserChangeForm(UserChangeForm):
             ref_lyc_group = Group.objects.get(name='REF-LYC')
         except Group.DoesNotExist:
             pass
-    
-        try:    
+
+        try:
             current_groups = set([str(g.id) for g in self.instance.groups.all()])
         except Exception:
             current_groups = set()
-        
+
         new_groups = set(self.data.get('groups', []))
 
         if ref_lyc_group and str(ref_lyc_group.id) in new_groups - current_groups:
@@ -778,9 +725,8 @@ class ImmersionUserChangeForm(UserChangeForm):
                 user.send_message(self.request, "CPT_CREATE_LYCEE")
 
         self.instance = super().save(*args, **kwargs)
-        
+
         return self.instance
-    
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
@@ -856,9 +802,7 @@ class MailTemplateForm(forms.ModelForm):
             self.fields['label'].disabled = True
             self.fields['code'].disabled = True
         else:
-            self.fields['available_vars'].queryset = self.fields[
-                'available_vars'
-            ].queryset.order_by('code')
+            self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -882,33 +826,21 @@ class MailTemplateForm(forms.ModelForm):
         body_errors_list = []
 
         # Check variables and raise an error if forbidden ones are found
-        forbidden_vars = MailTemplateVars.objects.exclude(
-            code__in=[v.code for v in available_vars]
-        )
+        forbidden_vars = MailTemplateVars.objects.exclude(code__in=[v.code for v in available_vars])
 
-        forbidden_vars_list = [
-            f_var.code for f_var in forbidden_vars if f_var.code.lower() in body.lower()
-        ]
+        forbidden_vars_list = [f_var.code for f_var in forbidden_vars if f_var.code.lower() in body.lower()]
 
         if forbidden_vars_list:
-            forbidden_vars_msg = _("The message body contains forbidden variables : ") + ', '.join(
-                forbidden_vars_list
-            )
+            forbidden_vars_msg = _("The message body contains forbidden variables : ") + ', '.join(forbidden_vars_list)
 
             body_errors_list.append(self.error_class([forbidden_vars_msg]))
 
         # Check for unknown variables in body
         all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)
-        unknown_vars = [
-            v
-            for v in all_vars
-            if not MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()
-        ]
+        unknown_vars = [v for v in all_vars if not MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()]
 
         if unknown_vars:
-            unknown_vars_msg = _("The message body contains unknown variable(s) : ") + ', '.join(
-                unknown_vars
-            )
+            unknown_vars_msg = _("The message body contains unknown variable(s) : ") + ', '.join(unknown_vars)
             body_errors_list.append(self.error_class([unknown_vars_msg]))
 
         if body_errors_list:
@@ -942,9 +874,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
             if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
                     raise forms.ValidationError(
-                        _(
-                            'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'
-                        )
+                        _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s')
                         % {
                             'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
                             'current_size': filesizeformat(document.size),
@@ -1008,9 +938,7 @@ class PublicDocumentForm(forms.ModelForm):
 
             if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
-                    _(
-                        'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'
-                    ) % {
+                    _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
                         'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
                         'current_size': filesizeformat(document.size),
                     }
@@ -1035,52 +963,6 @@ class PublicDocumentForm(forms.ModelForm):
 
     class Meta:
         model = PublicDocument
-        fields = '__all__'
-
-
-class AttendanceCertificateModelForm(forms.ModelForm):
-    """
-    Public document form class
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean_document(self):
-        document = self.cleaned_data['document']
-        if document and isinstance(document, UploadedFile):
-            content_type = document.content_type.split('/')[1]
-            # TODO: check others merge documents types (???)
-            if content_type in ('vnd.openxmlformats-officedocument.wordprocessingml.document',):
-                if document.size > int(settings.MAX_UPLOAD_SIZE):
-                    _(
-                        'Please keep filesize under %(maxupload)s. Current filesize %(current_size)s'
-                    ) % {
-                        'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
-                        'current_size': filesizeformat(document.size),
-                    }
-            else:
-                raise forms.ValidationError(_('File type is not allowed'))
-        return document
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
-    class Meta:
-        model = AttendanceCertificateModel
         fields = '__all__'
 
 
