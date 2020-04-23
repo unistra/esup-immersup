@@ -208,6 +208,12 @@ class ImmersionUser(AbstractUser):
     def get_cleaned_username(self):
         return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
+    def get_login_page(self):
+        if self.is_high_school_manager:
+            return "/immersion/login/ref-lyc"
+        else:
+            return "/immersion/login"
+
     def is_valid(self):
         """
         :return: True if account is validated else False

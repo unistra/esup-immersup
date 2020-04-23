@@ -109,11 +109,19 @@ def shibbolethLogin(request, profile=None):
         shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
         if not error:
-            uai_code = shib_attrs.pop("uai_code", None)
-            new_user = ImmersionUser.objects.create(**shib_attrs)
-            new_user.set_validation_string()
-            new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
-            new_user.save()
+            if all([value[1] in shib_attrs for value in settings.SHIBBOLETH_ATTRIBUTE_MAP.values()]):
+                # Remove uai_code from attributes as we don't want it for user creation
+                shib_attrs.pop("uai_code", None)
+                new_user = ImmersionUser.objects.create(**shib_attrs)
+                new_user.set_validation_string()
+                new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+                new_user.save()
+            else:
+                messages.error(request,
+                    _("Missing attributes, account not created."+
+                      "<br>Your institution may not be aware of the Immersion service."+
+                      "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
+                return HttpResponseRedirect("/")
 
             try:
                 Group.objects.get(name='ETU').user_set.add(new_user)
@@ -129,14 +137,6 @@ def shibbolethLogin(request, profile=None):
             messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
             return HttpResponseRedirect("/")
 
-    """
-    if not request.user.is_anonymous:
-        try:
-            Group.objects.get(name='ETU').user_set.add(request.user)
-        except Exception:
-            logger.exception("Cannot add 'ETU' group to user {}".format(request.user))
-            messages.error(request, _("Group error"))
-    """
     if request.user.is_anonymous:
         shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
@@ -262,10 +262,7 @@ def reset_password(request, hash=None):
                 messages.success(request, _("Password successfully updated."))
 
                 # Different login redirection, depending on user group
-                # TODO : create a get_login_url in ImmersionUser ?
-                redirection = "/immersion/login/ref-lyc" if user.is_high_school_manager else "/immersion/login"
-
-                return HttpResponseRedirect(redirection)
+                return HttpResponseRedirect(user.get_login_page())
 
             return render(request, 'immersion/reset_password.html', {'form': form})
     elif hash:
@@ -690,7 +687,6 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             home_institution = record.highschool.label
         elif immersion.student.is_student():
             record = immersion.student.get_student_record()
-            # TODO: to complete when method home_instituion() is available
             home_institution = record.home_institution()[0]
 
         context = {
