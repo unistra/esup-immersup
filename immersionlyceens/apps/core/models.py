@@ -1251,6 +1251,7 @@ class Immersion(models.Model):
 class GeneralSettings(models.Model):
     setting = models.CharField(_("Setting name"), max_length=128, unique=True)
     value = models.CharField(_("Setting value"), max_length=256)
+    description = models.CharField(_("Setting description"), max_length=256, default='')
 
     class Meta:
         verbose_name = _('General setting')

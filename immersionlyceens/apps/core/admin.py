@@ -993,7 +993,7 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     form = GeneralSettingsForm
-    list_display = ('setting', 'value')
+    list_display = ('setting', 'value', 'description')
     ordering = ('setting',)
 
 
