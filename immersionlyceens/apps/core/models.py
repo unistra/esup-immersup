@@ -17,7 +17,6 @@ from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 from immersionlyceens.libs.mails.utils import send_email
-from mailmerge import MailMerge
 
 from .managers import ActiveManager, ComponentQuerySet, CustomDeleteManager, HighSchoolAgreedManager
 
