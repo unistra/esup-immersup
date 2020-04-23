@@ -1,6 +1,7 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load immersionlyceens_tags %}
+{% comment %} See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for infos {% endcomment %}
 <!DOCTYPE html>
 <html>
 
@@ -8,90 +9,102 @@
     <meta charset="utf-8">
     <title></title>
     <style>
-    .pdf-body {
-        margin: 10px;
-        font-size: 1.50em;
-    }
-    .pdf-header {
-        text-align: right;
-        border: 1px solid;
-    }
-    .pdf-address {
-        text-align: left;
-        float: left;
-    }
-    .pdf-subject {
-        clear: both;
-        font-weight: bold;
-        padding-top: 80px;
-    }
-    .pdf-formal {
-        float: right;
-        padding-top: 50px;
-    }
-
     @page {
         size: A4 portrait;
         margin: 27mm 10mm 27mm 10mm;
         margin-bottom: 5%;
-
+        /* margin-left: 250px; */
+        /*
         @bottom-center {
-            content: 'Super - Cool ';
-            white-space: pre;
-            color: grey;
+          content: 'Super - Cool ';
+          white-space: pre;
+          color: grey;
         }
+        */
+
+        @left-top {
+          content: url({% static 'img/unistra-white.png' %});
+          margin: 10px 10px 10px 10px;
+
+        }
+
+        /*
+          @left-middle {
+          content: 'Immersion gêré par \n espace avenir \n super !';
+          margin: 5px;
+          margin-top: -750px;
+        }
+        */
+    }
+
+
+    @page:right{
+      @bottom-left {
+        margin: 10pt 0 30pt 0;
+        border-top: .25pt solid #666;
+        content: "Bas gauche";
+        font-size: 9pt;
+        color: #333;
+      }
+
+      @bottom-right {
+        margin: 10pt 0 30pt 0;
+        border-top: .25pt solid #666;
+        content: "Bas droite";
+        font-size: 9pt;
+      }
+
+      @top-right {
+        content:  "Attestation de présence";
+        margin: 5px 0 10pt 0;
+        font-size: 9pt;
+        color: #333;
+      }
+
     }
 
     html {
-        font-family: Helvetica;
-        font-size: 10px;
-        font-weight: normal;
+        font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
+        line-height: 1.5;
+        font-size: 9pt;
         color: #000000;
         background-color: transparent;
-        margin: 10px;
-        padding: 10px;
-        line-height: 150%;
-        display: inline;
-        width: auto;
-        height: auto;
         white-space: normal;
+    }
+
+    /* Pattern styles */
+    .left-pane {
+      float: left;
+      width: 20%;
+      margin-top: 100px;
+    }
+    .right-pane {
+      float: left;
+      width: 80%;
+      margin-top: 200px;
     }
     </style>
 </head>
-
 <body class="pdf-body">
-    <header class="pdf-header">
-      <address class="pdf-address">
-        Somewhere<br/>
-        Anywhere<br/>
-        Nowhere<br/>
-      </address>
-      <time datetime="1970-01-01">1 janvier 1970</time>
-    </header>
+    <section class="container">
+      <div class="left-pane">
+        <article>
+          {{ title }}
+          super Cool <br> bla<br> bla
 
-    <h1 class="pdf-subject">
-      Super sujet
-    </h1>
-
-    <div class="content">
-        <p>
-          Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Flammekueche knèkes rossbolla schneck choucroute un schwanz geburtstàg, Gal!
-        </p>
-        <p>
-          Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Bibbeleskaas jetz rossbolla sech choucroute un schwanz geburtstàg, Chinette dû, ìch bier deppfele schiesser. Flammekueche de knèkes Seppele gal! a hopla geburtstàg, alles fraü Chulia Roberts oder knäckes dûû blottkopf. Noch bredele schissabibala, yeuh e schmutz. E gewurtztraminer doch Carola schneck, schmutz a riesling de chambon eme rucksack Roger dû hopla geiss, jetz Chorchette de Scharrarbergheim. Kouglopf ech ìch wurscht gueut mitt schneck jetz a schiss mannele, knèkes saucisse de Niederhausbergen of fill mauls schéni fleischwurcht schnaps de eme gal nüdle blottkopf, de Chulien Roger hop pfourtz! bett mer ech schpeck un salami schmutz. Gal!
-        </p>
+        </article>
       </div>
+      <div class="right-pane">
+        <article style="margin-left: 30px">
+          <h5>A {{ city }} le {% now "j F Y " %}</h5>
+          <h5><u>{% trans 'Object' %}:</u> Attestation de présence</h5>
+          <p>Lorem Elsass Ipsum mitt picon bière munster du ftomi! Ponchour bisame. Bibbeleskaas jetz rossbolla sech choucroute un schwanz geburtstàg, Chinette dû, ìch bier deppfele schiesser. Flammekueche de knèkes Seppele gal! a hopla geburtstàg, alles fraü Chulia Roberts oder knäckes dûû blottkopf. Noch bredele schissabibala, yeuh e schmutz. E gewurtztraminer doch Carola schneck, schmutz a riesling de chambon eme rucksack Roger dû hopla geiss, jetz Chorchette de Scharrarbergheim. Kouglopf ech ìch wurscht gueut mitt schneck jetz a schiss mannele, knèkes saucisse de Niederhausbergen of fill mauls schéni fleischwurcht schnaps de eme gal nüdle blottkopf, de Chulien Roger hop pfourtz! bett mer ech schpeck un salami schmutz. Gal!</p>
+        </article>
+        <article>
+        {{ tpl_vars }}
 
-      <p class="pdf-formal">
-        MMDTG! (=Ma main dans ta gueule)
-        <br>
-        Cordialement bisous.
-      </p>
-
+        </article>
+      </div>
+    </section>
   </body>
-
-
-
-</body>
-
 </html>
