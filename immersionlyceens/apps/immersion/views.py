@@ -705,33 +705,12 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             'certificate_body': MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True).body,
             'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
         }
-        # doc = AttendanceCertificateModel.objects.first()
 
-        # docx = merge_docx(
-        #     request,
-        #     user=student,
-        #     doc=doc,
-        #     immersion=immersion,
-        #     birth_date=date_format(record.birth_date, 'd/m/Y'),
-        #     home_institution=home_institution if home_institution else _('Information not available'),
-        #     slot_date=date_format(immersion.slot.date),
-        # )
-
-        # f = BytesIO()
-        # docx.write(f)
-
-        # response = HttpResponse(
-        #     f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        # )
-        # response[
-        #     'Content-Disposition'
-        # ] = f'attachment; filename=immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.docx'
-        # response['Content-Length'] = f.tell()
         filename = f'immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.pdf'
         response = generate_pdf(request, 'export/pdf/attendance_certificate.html', context, filename=filename)
 
         return response
-    # TODO: Manage Mailtemplate not found !!!
+    # TODO: Manage Mailtemplate not found (?) anyway returns 404
     except Exception as e:
         logger.error('Certificate download error', e)
         raise Http404()

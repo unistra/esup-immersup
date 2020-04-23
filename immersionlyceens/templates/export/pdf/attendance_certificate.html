@@ -1,7 +1,9 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load immersionlyceens_tags %}
-{% comment %} See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for infos {% endcomment %}
+{% comment %}
+See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for usefull infos
+{% endcomment %}
 <!DOCTYPE html>
 <html>
 
@@ -13,28 +15,11 @@
         size: A4 portrait;
         margin: 27mm 10mm 27mm 10mm;
         margin-bottom: 5%;
-        /* margin-left: 250px; */
-        /*
-        @bottom-center {
-          content: 'Super - Cool ';
-          white-space: pre;
-          color: grey;
-        }
-        */
 
         @left-top {
           content: url({% static 'img/unistra-white.png' %});
           margin: 10px 10px 10px 10px;
-
         }
-
-        /*
-          @left-middle {
-          content: 'Immersion gêré par \n espace avenir \n super !';
-          margin: 5px;
-          margin-top: -750px;
-        }
-        */
     }
 
 
