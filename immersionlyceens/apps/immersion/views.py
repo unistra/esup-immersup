@@ -23,15 +23,26 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
-    Calendar, CancelType, HigherEducationInstitution, Immersion, ImmersionUser, UniversityYear, UserCourseAlert,
+    Calendar,
+    CancelType,
+    HigherEducationInstitution,
+    Immersion,
+    ImmersionUser,
+    UniversityYear,
+    UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.utils import check_active_year
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
-    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
+    HighSchoolStudentForm,
+    HighSchoolStudentRecordForm,
+    LoginForm,
+    NewPassForm,
+    RegistrationForm,
+    StudentForm,
+    StudentRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
 
@@ -117,10 +128,14 @@ def shibbolethLogin(request, profile=None):
                 new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
                 new_user.save()
             else:
-                messages.error(request,
-                    _("Missing attributes, account not created."+
-                      "<br>Your institution may not be aware of the Immersion service."+
-                      "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
+                messages.error(
+                    request,
+                    _(
+                        "Missing attributes, account not created."
+                        + "<br>Your institution may not be aware of the Immersion service."
+                        + "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."
+                    ),
+                )
                 return HttpResponseRedirect("/")
 
             try:
