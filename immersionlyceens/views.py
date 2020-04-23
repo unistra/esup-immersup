@@ -12,9 +12,11 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, GeneralSettings, InformationText,
+    AccompanyingDocument, Calendar, Course, InformationText,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
 )
+
+from immersionlyceens.libs.utils import get_general_setting
 
 
 def home(request):
@@ -56,8 +58,8 @@ def home(request):
         accomp_intro_txt = ''
 
     try:
-        twitter_url = GeneralSettings.objects.get(setting="TWITTER_ACCOUNT_URL").value
-    except GeneralSettings.DoesNotExist:
+        twitter_url = get_general_setting("TWITTER_ACCOUNT_URL")
+    except ValueError:
         twitter_url = ''
 
     context = {

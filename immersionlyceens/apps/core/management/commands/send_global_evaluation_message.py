@@ -10,7 +10,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from immersionlyceens.libs.mails.utils import send_email
-from ...models import GeneralSettings, Slot, Immersion, Calendar, MailTemplate
+from ...models import Slot, Immersion, Calendar, MailTemplate
+
+from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +36,8 @@ class Command(BaseCommand):
 
         # Get the mailing list address
         try:
-            mailing_list_address = GeneralSettings.objects.get(setting='GLOBAL_MAILING_LIST').value
-        except GeneralSettings.DoesNotExist:
+            mailing_list_address = get_general_setting('GLOBAL_MAILING_LIST')
+        except ValueError:
             logger.error("Cannot find global mailing list address. Please check the General Settings in admin section.")
             return
 

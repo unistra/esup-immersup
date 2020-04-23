@@ -9,6 +9,8 @@ from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
+from immersionlyceens.libs.utils import get_general_setting
+
 # TODO: uncomment later
 from ..apps.core.models import GeneralSettings, ImmersionUser
 
@@ -43,8 +45,8 @@ def settings_get(name):
 @register.simple_tag
 def general_settings_get(name):
     try:
-        return GeneralSettings.objects.get(setting=name).value
-    except Exception:
+        return get_general_setting(name=name)
+    except ValueError:
         return ""
 
 

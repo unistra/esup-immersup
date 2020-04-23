@@ -22,7 +22,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, GeneralSettings, HighSchool,
+    Building, Calendar, CancelType, Component, Course, HighSchool,
     Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument,
     Slot, Training, TrainingDomain, UniversityYear, UserCourseAlert, Vacation,
 )
@@ -30,6 +30,7 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, Stud
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.mails.variables_parser import multisub
+from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -1684,16 +1685,15 @@ def ajax_send_email_contact_us(request):
     notify_user = False
 
     try:
-        # TODO: Maybe use an util getter method for General settings
-        recipient = GeneralSettings.objects.get(setting='MAIL_CONTACT_SCUIO_IP').value
-    except Exception:
+        recipient = get_general_setting('MAIL_CONTACT_SCUIO_IP')
+    except ValueError:
         logger.error('MAIL_CONTACT_SCUIO_IP missing parameter')
         response = {'error': True, 'msg': gettext("Config parameter not found")}
         return JsonResponse(response, safe=False)
 
     response = {'error': False, 'msg': ''}
 
-    if not subject.strip or not body.strip() or not lastname.strip() or not firstname.strip() or not email.strip():
+    if not all([subject.strip, body.strip(), lastname.strip(), firstname.strip(), email.strip()]):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
