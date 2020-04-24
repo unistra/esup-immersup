@@ -1377,3 +1377,6 @@ class AnnualStatistics(models.Model):
     total_slots_count = models.SmallIntegerField(_("Total slots count"), default=0)
     approved_highschools = models.SmallIntegerField(_("Approved highschools count"), default=0)
     highschools_without_students = models.SmallIntegerField(_("Highschools with no students"), default=0)
+
+    class Meta:
+        verbose_name = _('Annual statistics')

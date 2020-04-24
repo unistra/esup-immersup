@@ -19,10 +19,10 @@ from .admin_forms import (
     TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus, CancelType,
-    Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType, Slot,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, AnnualStatistics, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
+    CancelType, Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
+    PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1012,6 +1012,26 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('setting', 'value', 'description')
     ordering = ('setting',)
 
+class AnnualStatisticsAdmin(admin.ModelAdmin):
+    list_display_links = None
+    list_display = (
+        'year',
+        'platform_registrations',
+        'one_immersion_registrations',
+        'multiple_immersions_registrations',
+        'participants_one_immersion',
+        'participants_multiple_immersions',
+        'immersion_registrations',
+        'seats_count',
+        'components_count',
+        'trainings_one_slot_count',
+        'courses_one_slot_count',
+        'total_slots_count',
+        'approved_highschools',
+        'highschools_without_students',
+    )
+    ordering = ('-year',)
+
 
 admin.site = CustomAdminSite(name='Repositories')
 
@@ -1040,3 +1060,4 @@ admin.site.register(AttendanceCertificateModel, AttendanceCertificateModelAdmin)
 admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
+admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
