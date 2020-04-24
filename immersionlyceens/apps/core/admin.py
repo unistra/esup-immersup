@@ -1032,6 +1032,19 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
     )
     ordering = ('-year',)
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    class Media:
+        css = {
+            'all': (
+                'css/immersionlyceens.css',
+                'css/admin_annual_stats.css',
+            )
+        }
 
 admin.site = CustomAdminSite(name='Repositories')
 
