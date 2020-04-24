@@ -1380,3 +1380,4 @@ class AnnualStatistics(models.Model):
 
     class Meta:
         verbose_name = _('Annual statistics')
+        verbose_name_plural = _('Annual statistics')

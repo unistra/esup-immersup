@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-24 10:34+0200\n"
+"POT-Creation-Date: 2020-04-24 11:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -687,7 +687,8 @@ msgstr "{} cours mis à jour"
 
 #: immersionlyceens/apps/core/management/commands/annual_statistics.py:25
 msgid "No active year found, can't update statistics"
-msgstr "Aucune année universitaire active, mise à jour des statistiques impossible"
+msgstr ""
+"Aucune année universitaire active, mise à jour des statistiques impossible"
 
 #: immersionlyceens/apps/core/models.py:33
 #: immersionlyceens/apps/core/models.py:906
@@ -1535,6 +1536,7 @@ msgid "Highschools with no students"
 msgstr "Nombre de lycées sans lycéen inscrit"
 
 #: immersionlyceens/apps/core/models.py:1382
+#: immersionlyceens/apps/core/models.py:1383
 msgid "Annual statistics"
 msgstr "Statistiques annuelles"
 
@@ -1926,10 +1928,10 @@ msgid ""
 "aware of the Immersion service.<br>Please use the 'contact' link at the "
 "bottom of this page, specifying your institution."
 msgstr ""
-"Attributs manquants, votre compte n'a pas pu été créé.<br>Votre établissement "
-"n'a peut-être pas configuré l'accès à ce service Immersion.<br>Merci d'utiliser "
-"le lien 'Contact' en bas de page, en précisant cette erreur et le nom de votre "
-"établissement."
+"Attributs manquants, votre compte n'a pas pu été créé.<br>Votre "
+"établissement n'a peut-être pas configuré l'accès à ce service Immersion."
+"<br>Merci d'utiliser le lien 'Contact' en bas de page, en précisant cette "
+"erreur et le nom de votre établissement."
 
 #: immersionlyceens/apps/immersion/views.py:130
 #: immersionlyceens/apps/immersion/views.py:193
