@@ -46,7 +46,7 @@ class Command(BaseCommand):
 
         # Number of registered students to at least one immersion
         annual_stats.one_immersion_registrations = ImmersionUser.objects.filter(
-            immersions__isnull=False, immersions__cancellation_type__isnull=False
+            immersions__isnull=False, immersions__cancellation_type__isnull=True
         ).distinct().count()
 
         # Number of registered students to more than one immersion
