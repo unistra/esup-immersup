@@ -36,9 +36,14 @@ def get_general_setting(name=None):
         return None
 
     try:
-        return core_models.GeneralSettings.objects.get(setting=name).value
-    except Exception:
+        value = core_models.GeneralSettings.objects.get(setting=name).value.strip()
+    except core_models.GeneralSettings.DoesNotExist:
+        raise NameError
+
+    if not value:
         raise ValueError
+
+    return value
 
 
 

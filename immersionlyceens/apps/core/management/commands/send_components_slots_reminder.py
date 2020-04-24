@@ -36,7 +36,7 @@ class Command(BaseCommand):
         # Configured value
         try:
             weeks = int(get_general_setting('NB_WEEKS_COMPONENTS_SLOT_REMINDER'))
-        except ValueError:
+        except (ValueError, NameError):
             pass
 
         # If configured value is invalid

@@ -37,9 +37,9 @@ class Command(BaseCommand):
         # Get the mailing list address
         try:
             mailing_list_address = get_general_setting('GLOBAL_MAILING_LIST')
-        except ValueError:
-            logger.error("Cannot find global mailing list address. Please check the General Settings in admin section.")
-            return
+        except (ValueError, NameError):
+            logger.error("Cannot find GLOBAL_MAILING_LIST address. Please check the General Settings in admin section.")
+            sys.exit("GLOBAL_MAILING_LIST variable not configured properly in core General Settings")
 
         # Email template
         try:

@@ -46,7 +46,7 @@ def settings_get(name):
 def general_settings_get(name):
     try:
         return get_general_setting(name=name)
-    except ValueError:
+    except (ValueError, NameError):
         return ""
 
 

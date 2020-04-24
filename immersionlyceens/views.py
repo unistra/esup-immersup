@@ -59,7 +59,7 @@ def home(request):
 
     try:
         twitter_url = get_general_setting("TWITTER_ACCOUNT_URL")
-    except ValueError:
+    except (ValueError, NameError):
         twitter_url = ''
 
     context = {

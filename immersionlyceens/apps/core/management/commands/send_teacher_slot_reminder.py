@@ -30,7 +30,7 @@ class Command(BaseCommand):
         # Configured value
         try:
             days = int(get_general_setting('NB_DAYS_TEACHER_SLOT_REMINDER'))
-        except ValueError:
+        except (ValueError, NameError):
             pass
 
         # If configured value is invalid

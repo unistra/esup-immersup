@@ -36,7 +36,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
     else:
         try:
             platform_url = get_general_setting("PLATFORM_URL")
-        except ValueError:
+        except (ValueError, NameError):
             logger.warning("Warning : PLATFORM_URL not set in core General Settings")
             platform_url = "https://<plateforme immersion>"
             

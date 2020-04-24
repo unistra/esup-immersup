@@ -6,6 +6,7 @@ Generate files containing mailing-lists subscribers
 """
 import logging
 import datetime
+import sys
 
 from os import path, mkdir, access, W_OK
 
@@ -41,8 +42,9 @@ class Command(BaseCommand):
 
         try:
             all_filename = get_general_setting('GLOBAL_MAILING_LIST')
-        except ValueError:
+        except (ValueError, NameError):
             logger.error("'GLOBAL_MAILING_LIST' setting does not exist (check admin GeneralSettings values)", output_dir)
+            sys.exit("GLOBAL_MAILING_LIST variable not configured properly in core General Settings")
 
         # Global mailing list file : all students
         if all_filename:
