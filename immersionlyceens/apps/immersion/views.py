@@ -28,6 +28,7 @@ from immersionlyceens.apps.core.models import (
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
+from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
 from .forms import (
@@ -694,15 +695,26 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             record = immersion.student.get_student_record()
             home_institution = record.home_institution()[0]
 
-        context = {
-            'user': student,
-            'immersion': immersion,
-            'birth_date': date_format(record.birth_date, 'd/m/Y'),
-            'slot_date': date_format(immersion.slot.date),
+        vars = {
+            'student_birth_date': date_format(record.birth_date, 'd/m/Y'),
             'home_institution': home_institution if home_institution else _('Information not available'),
             'city': get_general_setting('PDF_CERTIFICATE_CITY'),
+        }
+
+        tpl = MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True)
+        certificate_body = parser(
+            user=student,
+            request=request,
+            message_body=tpl.body,
+            vars=[v for v in tpl.available_vars.all()],
+            immersion=immersion,
+            slot=immersion.slot,
+        )
+
+        context = {
+            'city': get_general_setting('PDF_CERTIFICATE_CITY'),
             'certificate_header': MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True).body,
-            'certificate_body': MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True).body,
+            'certificate_body': certificate_body,
             'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
         }
 
