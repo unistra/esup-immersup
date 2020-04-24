@@ -94,12 +94,19 @@
         {% trans "Level of studies" %}
       </div>
       <div class="card-body">
-        <div class="form-group row">
+        <div class="form-group row align-items-center"">
           <label for="id_home_institution" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Home institution' %} :
           </label>
-          <div class="col-sm-3">{{ record_form.home_institution }}</div>
-          <div class="col-sm-6">{{ record_form.home_institution.errors }}</div>
+          <div class="col-sm-3">{{ record_form.uai_code }}</div>
+          <div class="col-sm-3">
+            {% if record.home_institution.1 %}
+              {{ record.home_institution.0 }}
+            {% else %}
+              {% trans 'No match' %}
+            {% endif %}
+          </div>
+          <div class="col-sm-3">{{ record_form.home_institution.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_level" class="col-sm-3 col-form-label">

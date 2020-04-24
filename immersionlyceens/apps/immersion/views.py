@@ -104,10 +104,9 @@ def customLogin(request, profile=None):
 def shibbolethLogin(request, profile=None):
     """
     """
+    shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
     if request.POST.get('submit'):
-        shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
-
         if not error:
             if all([value[1] in shib_attrs for value in settings.SHIBBOLETH_ATTRIBUTE_MAP.values()]):
                 # Remove uai_code from attributes as we don't want it for user creation
@@ -138,8 +137,6 @@ def shibbolethLogin(request, profile=None):
             return HttpResponseRedirect("/")
 
     if request.user.is_anonymous:
-        shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
-
         if not error:
             context = shib_attrs
             return render(request, "immersion/confirm_creation.html", context)
@@ -150,8 +147,6 @@ def shibbolethLogin(request, profile=None):
         if not request.user.is_valid():
             messages.error(request, _("Your account hasn't been enabled yet."))
         else:
-            # login(request, request.user, backend='django.contrib.auth.backends.ModelBackend')
-
             if request.user.is_student():
                 # If student has filled his record
                 if request.user.get_student_record():
