@@ -3,15 +3,16 @@
 Send a reminder to components referents for upcoming slots in N weeks
 This command is meant to be run on sunday
 """
+import datetime
 import logging
 
-import datetime
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
-from ...models import Slot, Immersion, Component, Vacation
 
 from immersionlyceens.libs.utils import get_general_setting
+
+from ...models import Component, Immersion, Slot, Vacation
 
 logger = logging.getLogger(__name__)
 
@@ -78,5 +79,4 @@ class Command(BaseCommand):
             if slot_list:
                 for referent in component.referents.all():
                     referent.send_message(None, 'RAPPEL_COMPOSANTE', slot_list=slot_list)
-
 

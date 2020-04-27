@@ -14,8 +14,6 @@ from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date
 from django.utils.translation import ugettext_lazy as _
 
-from mailmerge import MailMerge
-
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 from immersionlyceens.libs.mails.utils import send_email
@@ -1095,60 +1093,6 @@ class PublicDocument(models.Model):
         return list(set(l))
 
 
-class AttendanceCertificateModel(models.Model):
-    """
-    Attendance Certificate Model class
-    """
-
-    document = models.FileField(
-        _("Document"),
-        upload_to='uploads/attendance_cert_model/',
-        blank=False,
-        null=False,
-        help_text=_('Only files with type (docx)'),
-    )
-
-    objects = CustomDeleteManager()
-
-    class Meta:
-        """Meta class"""
-
-        verbose_name = _('Attendance certificate model')
-        verbose_name_plural = _('Attendance certificate model')
-
-    def __str__(self):
-        """str"""
-        return self.document.path.split('/')[-1]
-
-    def delete(self, using=None, keep_parents=False):
-        """Delete file uploaded from document Filefield"""
-        self.document.storage.delete(self.document.name)
-        super().delete()
-
-    def save(self, *args, **kwargs):
-        # Be sure to not save an other attendance certificate model !!!!
-        if not self.pk and AttendanceCertificateModel.objects.exists():
-            raise ValidationError('only one Attendance certificate model is allowed')
-        return super().save(*args, **kwargs)
-
-    def get_merge_fields(self):
-        if self.document:
-            doc = MailMerge(self.document.path)
-            return doc.get_merge_fields()
-        return ""
-
-    def show_merge_fields(self):
-        if self.document:
-            try:
-                fields = MailMerge(self.document.path).get_merge_fields()
-                return ", ".join([d for d in fields]) if bool(fields) else _('No variables in file')
-            except:
-                return _('Error in document please check file existence and structure')
-
-    get_merge_fields.short_description = _('Variables')
-    show_merge_fields.short_description = _('Variables')
-
-
 class EvaluationType(models.Model):
     """
     Evaluation type class
@@ -1381,3 +1325,84 @@ class AnnualStatistics(models.Model):
     class Meta:
         verbose_name = _('Annual statistics')
         verbose_name_plural = _('Annual statistics')
+
+class CertificateLogo(models.Model):
+
+    """
+    CertificateLogo class (singleton)
+    """
+
+    logo = models.ImageField(
+        _("Logo"),
+        upload_to='uploads/certificate_logo/',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+
+    objects = CustomDeleteManager()
+
+    @classmethod
+    def object(cls):
+        return cls._default_manager.all().first()
+
+    # Singleton !
+    def save(self, *args, **kwargs):
+        self.id = 1
+        return super().save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from logo Filefield"""
+        self.logo.storage.delete(self.logo.name)
+        super().delete()
+
+    def __str__(self):
+        """str"""
+        return 'logo'
+
+    class Meta:
+        """Meta class"""
+
+        verbose_name = _('Logo for attendance certificate')
+        verbose_name_plural = _('Logo for attendance certificate')
+
+
+class CertificateSignature(models.Model):
+
+    """
+    CertificateSignature class (singleton)
+    """
+
+    signature = models.ImageField(
+        _("Signature"),
+        upload_to='uploads/certificate_signature/',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+
+    objects = CustomDeleteManager()
+
+    @classmethod
+    def object(cls):
+        return cls._default_manager.all().first()
+
+    # Singleton !
+    def save(self, *args, **kwargs):
+        self.id = 1
+        return super().save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from signature Filefield"""
+        self.signature.storage.delete(self.signature.name)
+        super().delete()
+
+    def __str__(self):
+        """str"""
+        return 'signature'
+
+    class Meta:
+        """Meta class"""
+
+        verbose_name = _('Signature for attendance certificate')
+        verbose_name_plural = _('Signature for attendance certificate')

@@ -19,21 +19,23 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
-from immersionlyceens.apps.core.models import (
-    AttendanceCertificateModel, Calendar, CancelType, HigherEducationInstitution,
-    Immersion, ImmersionUser, UniversityYear, UserCourseAlert,
-)
-from immersionlyceens.decorators import groups_required
-from immersionlyceens.libs.utils import check_active_year
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
+
+from immersionlyceens.apps.core.models import (
+    Calendar, CancelType, CertificateLogo, CertificateSignature, HigherEducationInstitution,
+    Immersion, ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert,
+)
+from immersionlyceens.apps.immersion.utils import generate_pdf
+from immersionlyceens.decorators import groups_required
+from immersionlyceens.libs.mails.variables_parser import parser
+from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
 from .forms import (
     HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
     NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
-from .utils import merge_docx
 
 logger = logging.getLogger(__name__)
 
@@ -684,31 +686,39 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             record = immersion.student.get_student_record()
             home_institution = record.home_institution()[0]
 
-        doc = AttendanceCertificateModel.objects.first()
+        vars = {
+            'student_birth_date': date_format(record.birth_date, 'd/m/Y'),
+            'home_institution': home_institution if home_institution else _('Information not available'),
+            'city': get_general_setting('PDF_CERTIFICATE_CITY'),
+        }
 
-        docx = merge_docx(
-            request,
+        tpl = MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True)
+        certificate_body = parser(
             user=student,
-            doc=doc,
+            request=request,
+            message_body=tpl.body,
+            vars=[v for v in tpl.available_vars.all()],
             immersion=immersion,
-            birth_date=date_format(record.birth_date, 'd/m/Y'),
-            home_institution=home_institution if home_institution else _('Information not available'),
-            slot_date=date_format(immersion.slot.date),
+            slot=immersion.slot,
         )
 
-        f = BytesIO()
-        docx.write(f)
+        certificate_logo = CertificateLogo.objects.get(pk=1)
+        certificate_sig = CertificateSignature.objects.get(pk=1)
 
-        response = HttpResponse(
-            f.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        )
-        response[
-            'Content-Disposition'
-        ] = f'attachment; filename=immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.docx'
-        response['Content-Length'] = f.tell()
+        context = {
+            'city': get_general_setting('PDF_CERTIFICATE_CITY'),
+            'certificate_header': MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True).body,
+            'certificate_body': certificate_body,
+            'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
+            'certificate_logo': certificate_logo,
+            'certificate_sig': certificate_sig,
+        }
+
+        filename = f'immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.pdf'
+        response = generate_pdf(request, 'export/pdf/attendance_certificate.html', context, filename=filename)
 
         return response
-
+    # TODO: Manage Mailtemplate not found (?) anyway returns 404
     except Exception as e:
         logger.error('Certificate download error', e)
         raise Http404()

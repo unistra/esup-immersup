@@ -2,6 +2,7 @@ from datetime import datetime
 
 from immersionlyceens.apps.core import models as core_models
 
+
 def check_active_year():
     """
     Get the active year and check if today is in dates range
@@ -44,6 +45,3 @@ def get_general_setting(name=None):
         raise ValueError
 
     return value
-
-
-

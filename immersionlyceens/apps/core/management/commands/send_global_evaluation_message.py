@@ -2,17 +2,18 @@
 """
 Send a message containing the global survey link
 """
+import datetime
 import logging
 
-import datetime
-from django.db.models import Q
-from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from immersionlyceens.libs.mails.utils import send_email
-from ...models import Slot, Immersion, Calendar, MailTemplate
+from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
+from django.utils.translation import ugettext_lazy as _
 
+from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting
+
+from ...models import Calendar, Immersion, MailTemplate, Slot
 
 logger = logging.getLogger(__name__)
 

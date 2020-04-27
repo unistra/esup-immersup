@@ -4,19 +4,19 @@ Generate files containing mailing-lists subscribers
 - one file for the global mailing-list (every student registered to a slot)
 - one file for each component (every student registered to at list one slot under the component)
 """
-import logging
 import datetime
+import logging
 import sys
+from os import W_OK, access, mkdir, path
 
-from os import path, mkdir, access, W_OK
-
-from django.db.models import Q
-from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ...models import Slot, Immersion, Component, ImmersionUser
+from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
+from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.libs.utils import get_general_setting
+
+from ...models import Component, Immersion, ImmersionUser, Slot
 
 logger = logging.getLogger(__name__)
 
@@ -69,4 +69,3 @@ class Command(BaseCommand):
                     )
             except Exception as e:
                 logger.error("Cannot write mailing list file %s : %s", component.mailing_list, e)
-

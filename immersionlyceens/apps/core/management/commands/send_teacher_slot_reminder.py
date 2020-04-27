@@ -2,15 +2,16 @@
 """
 Send a reminder to teachers for upcoming slots
 """
+import datetime
 import logging
 
-import datetime
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
-from ...models import Slot, Immersion
 
 from immersionlyceens.libs.utils import get_general_setting
+
+from ...models import Immersion, Slot
 
 logger = logging.getLogger(__name__)
 
@@ -44,5 +45,4 @@ class Command(BaseCommand):
         for slot in slots:
             for teacher in slot.teachers.all():
                 teacher.send_message(None, 'IMMERSION_RAPPEL_ENS', slot=slot)
-
 

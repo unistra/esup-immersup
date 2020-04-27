@@ -1639,8 +1639,13 @@ def ajax_send_email_contact_us(request):
 
     try:
         recipient = get_general_setting('MAIL_CONTACT_SCUIO_IP')
+<<<<<<< HEAD
     except (NameError, ValueError):
         logger.error('MAIL_CONTACT_SCUIO_IP not configured properly in settings')
+=======
+    except ValueError:
+        logger.error('MAIL_CONTACT_SCUIO_IP missing parameter')
+>>>>>>> new-pdf-certificate-download
         response = {'error': True, 'msg': gettext("Config parameter not found")}
         return JsonResponse(response, safe=False)
 

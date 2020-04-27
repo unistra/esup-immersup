@@ -2,16 +2,18 @@
 """
 Update annual statistics data
 """
-import logging
 import datetime
+import logging
 import sys
 
-from django.db.models import Count, Q, Sum
-from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ...models import (Slot, Component, AnnualStatistics, Course, Training, ImmersionUser,
-    Immersion, HighSchool, UniversityYear)
+from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Count, Q, Sum
+from django.utils.translation import ugettext_lazy as _
+
+from ...models import (
+    AnnualStatistics, Component, Course, HighSchool, Immersion, ImmersionUser, Slot, Training, UniversityYear,
+)
 
 logger = logging.getLogger(__name__)
 
