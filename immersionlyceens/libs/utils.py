@@ -37,7 +37,9 @@ def get_general_setting(name=None):
         return None
 
     try:
-        value = core_models.GeneralSettings.objects.get(setting=name).value.strip()
+        value = core_models.GeneralSettings.objects.get(setting=name).value
+        if not value is None:
+            value = value.strip()
     except core_models.GeneralSettings.DoesNotExist:
         raise NameError
 
