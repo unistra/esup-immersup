@@ -1332,7 +1332,7 @@ class CertificateLogo(models.Model):
     CertificateLogo class (singleton)
     """
 
-    logo = models.FileField(
+    logo = models.ImageField(
         _("Logo"),
         upload_to='uploads/certificate_logo/',
         blank=False,
@@ -1373,7 +1373,7 @@ class CertificateSignature(models.Model):
     CertificateSignature class (singleton)
     """
 
-    signature = models.FileField(
+    signature = models.ImageField(
         _("Signature"),
         upload_to='uploads/certificate_signature/',
         blank=False,

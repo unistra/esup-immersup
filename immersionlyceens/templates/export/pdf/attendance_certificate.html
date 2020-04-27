@@ -15,37 +15,6 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
         size: A4 portrait;
         margin: 27mm 10mm 27mm 10mm;
         margin-bottom: 5%;
-
-        @left-top {
-          content: url({% static 'img/unistra-white.png' %});
-          margin: 10px 10px 10px 10px;
-        }
-    }
-
-
-    @page:right{
-      @bottom-left {
-        margin: 10pt 0 30pt 0;
-        border-top: .25pt solid #666;
-        content: "Bas gauche";
-        font-size: 9pt;
-        color: #333;
-      }
-
-      @bottom-right {
-        margin: 10pt 0 30pt 0;
-        border-top: .25pt solid #666;
-        content: "Bas droite";
-        font-size: 9pt;
-      }
-
-      @top-right {
-        content:  "{% trans 'Attendance certificate' %}";
-        margin: 5px 0 10pt 0;
-        font-size: 9pt;
-        color: #333;
-      }
-
     }
 
     html {
@@ -60,7 +29,7 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
     .left-pane {
       float: left;
       width: 30%;
-      margin-top: 100px;
+      margin-top: 20px;
     }
     .right-pane {
       float: left;
@@ -73,6 +42,9 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
     <section class="container">
       <div class="left-pane">
         <article>
+          {% if tpl_vars.certificate_logo.logo %}
+            <img src="{{ tpl_vars.certificate_logo.logo.url }}" alt="{% trans 'Logo' %}" style="width:100%;max-width:200px;">
+          {% endif %}
           {{ tpl_vars.certificate_header | safe }}
         </article>
       </div>
@@ -84,6 +56,11 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
         </article><br>
         <article>
         {{ tpl_vars.certificate_footer | safe }}
+          {% if tpl_vars.certificate_sig.signature %}
+          <div style="text-align:right;">
+            <img src="{{ tpl_vars.certificate_sig.signature.url }}" alt="{% trans 'Signature' %}" style="width:100%;max-width:200px;">
+          </div>
+          {% endif %}
         </article>
       </div>
     </section>

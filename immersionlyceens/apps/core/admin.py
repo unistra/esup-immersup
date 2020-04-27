@@ -1001,6 +1001,15 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
 class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateLogoForm
 
+    def show_logo(self, obj):
+        return format_html(f'<img src="{obj.logo.url}">')
+
+    list_display = [
+        'show_logo',
+    ]
+
+    show_logo.short_description = _('Logo')
+
 
 class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateSignatureForm

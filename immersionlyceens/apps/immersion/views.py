@@ -23,8 +23,8 @@ from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
-    Calendar, CancelType, HigherEducationInstitution, Immersion,
-    ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert,
+    Calendar, CancelType, CertificateLogo, CertificateSignature, HigherEducationInstitution,
+    Immersion, ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -711,11 +711,16 @@ def immersion_attestation_download(request, immersion_id, student_id=None):
             slot=immersion.slot,
         )
 
+        certificate_logo = CertificateLogo.objects.get(pk=1)
+        certificate_sig = CertificateSignature.objects.get(pk=1)
+
         context = {
             'city': get_general_setting('PDF_CERTIFICATE_CITY'),
             'certificate_header': MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True).body,
             'certificate_body': certificate_body,
             'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
+            'certificate_logo': certificate_logo,
+            'certificate_sig': certificate_sig,
         }
 
         filename = f'immersion_{date_format(immersion.slot.date,"dmY")}_{student.last_name}_{student.first_name}.pdf'
