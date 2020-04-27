@@ -1365,3 +1365,44 @@ class CertificateLogo(models.Model):
 
         verbose_name = _('Logo for attendance certificate')
         verbose_name_plural = _('Logo for attendance certificate')
+
+
+class CertificateSignature(models.Model):
+
+    """
+    CertificateSignature class (singleton)
+    """
+
+    signature = models.FileField(
+        _("Signature"),
+        upload_to='uploads/certificate_signature/',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+
+    objects = CustomDeleteManager()
+
+    @classmethod
+    def object(cls):
+        return cls._default_manager.all().first()
+
+    # Singleton !
+    def save(self, *args, **kwargs):
+        self.id = 1
+        return super().save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from signature Filefield"""
+        self.signature.storage.delete(self.signature.name)
+        super().delete()
+
+    def __str__(self):
+        """str"""
+        return 'signature'
+
+    class Meta:
+        """Meta class"""
+
+        verbose_name = _('Signature for attendance certificate')
+        verbose_name_plural = _('Signature for attendance certificate')

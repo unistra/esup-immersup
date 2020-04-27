@@ -14,16 +14,16 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    CertificateLogoForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    CertificateLogoForm, CertificateSignatureForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm,
+    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
-    PublicDocument, PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CertificateSignature, Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
+    PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1002,6 +1002,10 @@ class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateLogoForm
 
 
+class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = CertificateSignatureForm
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -1029,3 +1033,4 @@ admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
+admin.site.register(CertificateSignature, CertificateSignatureAdmin)
