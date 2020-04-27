@@ -21,7 +21,7 @@ from .admin_forms import (
     PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AnnualStatistics, AttendanceCertificateModel, BachelorMention, Building,
+    AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature, Component, Course,
     CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
     HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
