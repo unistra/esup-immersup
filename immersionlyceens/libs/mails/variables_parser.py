@@ -159,6 +159,8 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
             # TODO: maybe instead of lycee use a home_institution tpl var ???
             vars.append(('${lycee}', institution_label))
             vars.append(('${etudiant_date_naissance}', date_format(record.birth_date, 'd/m/Y')))
+        elif user.highschool:
+            vars.append(('${lycee}', user.highschool.label))
 
     if slot_list:
         slot_txt = [
