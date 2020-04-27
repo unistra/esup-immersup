@@ -1008,11 +1008,20 @@ class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
         'show_logo',
     ]
 
-    show_logo.short_description = _('Logo')
+    show_logo.short_description = _('Certificate logo')
 
 
 class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateSignatureForm
+
+    def show_signature(self, obj):
+        return format_html(f'<img src="{obj.signature.url}">')
+
+    list_display = [
+        'show_signature',
+    ]
+
+    show_signature.short_description = _('Certificate signature')
 
 
 admin.site = CustomAdminSite(name='Repositories')
