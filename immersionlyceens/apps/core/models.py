@@ -1303,16 +1303,19 @@ class AnnualStatistics(models.Model):
     """
     Data kept over years
     """
+
     year = models.CharField(_("Year label"), primary_key=True, max_length=256, null=False)
     platform_registrations = models.SmallIntegerField(_("Platform registrations count"), default=0)
     one_immersion_registrations = models.SmallIntegerField(
-        _("Students registered to at least one immersion count"), default=0)
+        _("Students registered to at least one immersion count"), default=0
+    )
     multiple_immersions_registrations = models.SmallIntegerField(
-        _("Students registered to more than one immersion count"), default=0)
-    participants_one_immersion = models.SmallIntegerField(
-        _("Participants in at least one immersion count"), default=0)
+        _("Students registered to more than one immersion count"), default=0
+    )
+    participants_one_immersion = models.SmallIntegerField(_("Participants in at least one immersion count"), default=0)
     participants_multiple_immersions = models.SmallIntegerField(
-        _("Participants in multiple immersions count"), default=0)
+        _("Participants in multiple immersions count"), default=0
+    )
     immersion_registrations = models.SmallIntegerField(_("Immersion registrations count"), default=0)
     seats_count = models.SmallIntegerField(_("Global seats count"), default=0)
     components_count = models.SmallIntegerField(_("Participating components count"), default=0)
@@ -1321,3 +1324,44 @@ class AnnualStatistics(models.Model):
     total_slots_count = models.SmallIntegerField(_("Total slots count"), default=0)
     approved_highschools = models.SmallIntegerField(_("Approved highschools count"), default=0)
     highschools_without_students = models.SmallIntegerField(_("Highschools with no students"), default=0)
+
+
+class CertificateLogo(models.Model):
+
+    """
+    CertificateLogo class (singleton)
+    """
+
+    logo = models.FileField(
+        _("Logo"),
+        upload_to='uploads/certificate_logo/',
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+
+    objects = CustomDeleteManager()
+
+    @classmethod
+    def object(cls):
+        return cls._default_manager.all().first()
+
+    # Singleton !
+    def save(self, *args, **kwargs):
+        self.id = 1
+        return super().save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from logo Filefield"""
+        self.logo.storage.delete(self.logo.name)
+        super().delete()
+
+    def __str__(self):
+        """str"""
+        return 'logo'
+
+    class Meta:
+        """Meta class"""
+
+        verbose_name = _('Logo for attendance certificate')
+        verbose_name_plural = _('Logo for attendance certificate')

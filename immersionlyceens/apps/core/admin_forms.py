@@ -14,10 +14,10 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ...libs.geoapi.utils import get_cities, get_zipcodes
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
-    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
+    Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
+    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars, PublicDocument,
+    PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1038,4 +1038,45 @@ class GeneralSettingsForm(forms.ModelForm):
 
     class Meta:
         model = GeneralSettings
+        fields = '__all__'
+
+
+class CertificateLogoForm(forms.ModelForm):
+    """
+    Certificate logo form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_document(self):
+        logo = self.cleaned_data['logo']
+        if logo and isinstance(logo, UploadedFile):
+
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'gif']]
+
+            if not logo.content_type in allowed_content_type:
+                raise forms.ValidationError(_('File type is not allowed'))
+
+        return logo
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_scuio_ip_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = CertificateLogo
         fields = '__all__'

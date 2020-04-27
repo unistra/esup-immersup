@@ -9,20 +9,21 @@ from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.admin import SummernoteModelAdmin
 from hijack_admin.admin import HijackUserAdminMixin
+
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
-    GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
-    InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm,
-    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    CertificateLogoForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component, Course,
-    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
-    PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
+    Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
+    PublicDocument, PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -997,6 +998,10 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('setting',)
 
 
+class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = CertificateLogoForm
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -1023,3 +1028,4 @@ admin.site.register(PublicDocument, PublicDocumentAdmin)
 admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
+admin.site.register(CertificateLogo, CertificateLogoAdmin)
