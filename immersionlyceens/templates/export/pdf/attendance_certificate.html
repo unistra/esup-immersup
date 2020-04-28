@@ -1,0 +1,68 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load immersionlyceens_tags %}
+{% comment %}
+See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for usefull infos
+{% endcomment %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+    @page {
+        size: A4 portrait;
+        margin: 27mm 10mm 27mm 10mm;
+        margin-bottom: 5%;
+    }
+
+    html {
+        font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
+        line-height: 1.5;
+        font-size: 12pt;
+        color: #000000;
+        background-color: transparent;
+        white-space: normal;
+    }
+
+    .left-pane {
+      float: left;
+      width: 30%;
+      margin-top: 20px;
+    }
+    .right-pane {
+      float: left;
+      width: 70%;
+      margin-top: 200px;
+    }
+    </style>
+</head>
+<body class="pdf-body">
+    <section class="container">
+      <div class="left-pane">
+        <article>
+          {% if tpl_vars.certificate_logo.logo %}
+            <img src="{{ tpl_vars.certificate_logo.logo.url }}" alt="{% trans 'Logo' %}" style="width:100%;max-width:200px;">
+          {% endif %}
+          {{ tpl_vars.certificate_header | safe }}
+        </article>
+      </div>
+      <div class="right-pane">
+        <article style="margin-left: 30px">
+          <h5>A {{ tpl_vars.city }} le {% now "j F Y " %}</h5>
+          <h5><u>{% trans 'Object' %}:</u> {% trans 'Attendance certificate' %}</h5>
+          {{ tpl_vars.certificate_body | safe }}
+        </article><br>
+        <article>
+        {{ tpl_vars.certificate_footer | safe }}
+          {% if tpl_vars.certificate_sig.signature %}
+          <div style="text-align:right;">
+            <img src="{{ tpl_vars.certificate_sig.signature.url }}" alt="{% trans 'Signature' %}" style="width:100%;max-width:200px;">
+          </div>
+          {% endif %}
+        </article>
+      </div>
+    </section>
+  </body>
+</html>

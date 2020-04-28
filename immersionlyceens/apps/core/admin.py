@@ -7,21 +7,24 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
+
 from django_summernote.admin import SummernoteModelAdmin
 from hijack_admin.admin import HijackUserAdminMixin
+
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
-    AccompanyingDocumentForm, AttendanceCertificateModelForm, BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
+    CertificateLogoForm, CertificateSignatureForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm,
+    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AnnualStatistics, AttendanceCertificateModel, BachelorMention, Building, Calendar, Campus,
-    CancelType, Component, Course, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
+    AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
+    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature, Component, Course,
+    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
+    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
     PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
@@ -969,22 +972,6 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         )
 
 
-class AttendanceCertificateModelAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = AttendanceCertificateModelForm
-
-    list_display = ('__str__', 'show_merge_fields')
-
-    def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
-            return False
-
-        return True
-
-    def has_add_permission(self, request):
-        """Only one obj is valid"""
-        return not AttendanceCertificateModel.objects.exists()
-
-
 class EvaluationTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EvaluationTypeForm
     list_display = ('code', 'label')
@@ -1046,6 +1033,32 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
             )
         }
 
+class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = CertificateLogoForm
+
+    def show_logo(self, obj):
+        return format_html(f'<img src="{obj.logo.url}">')
+
+    list_display = [
+        'show_logo',
+    ]
+
+    show_logo.short_description = _('Certificate logo')
+
+
+class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = CertificateSignatureForm
+
+    def show_signature(self, obj):
+        return format_html(f'<img src="{obj.signature.url}">')
+
+    list_display = [
+        'show_signature',
+    ]
+
+    show_signature.short_description = _('Certificate signature')
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -1069,8 +1082,9 @@ admin.site.register(MailTemplate, MailTemplateAdmin)
 admin.site.register(InformationText, InformationTextAdmin)
 admin.site.register(AccompanyingDocument, AccompanyingDocumentAdmin)
 admin.site.register(PublicDocument, PublicDocumentAdmin)
-admin.site.register(AttendanceCertificateModel, AttendanceCertificateModelAdmin)
 admin.site.register(EvaluationFormLink, EvaluationFormLinkAdmin)
 admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
+admin.site.register(CertificateLogo, CertificateLogoAdmin)
+admin.site.register(CertificateSignature, CertificateSignatureAdmin)
