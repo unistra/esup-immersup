@@ -4,7 +4,7 @@
     "fields": {
       "setting": "TWITTER_ACCOUNT_URL",
       "value": "https://twitter.com/unistra?ref_src=twsrc%5Etfw",
-      "description": "Compte twitter \u00e0 utiliser dans le fil d'actualit\u00e9s"
+      "description": "Compte twitter à utiliser dans le fil d'actualités"
     }
   },
   {
@@ -22,7 +22,7 @@
     "fields": {
       "setting": "MAIL_FROM",
       "value": "noreply@mon-domaine.fr",
-      "description": "Adresse d'exp\u00e9dition qui figurera sur les emails envoy\u00e9s par l'application"
+      "description": "Adresse d'expédition qui figurera sur les emails envoyés par l'application"
     }
   },
   {
@@ -40,7 +40,7 @@
     "fields": {
       "setting": "NB_DAYS_SLOT_REMINDER",
       "value": "4",
-      "description": "Rappels de cr\u00e9neaux aux participants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours"
+      "description": "Rappels de créneaux aux participants : envois des mails pour les créneaux ayant lieu dans N jours"
     }
   },
   {
@@ -49,7 +49,7 @@
     "fields": {
       "setting": "NB_DAYS_TEACHER_SLOT_REMINDER",
       "value": "4",
-      "description": "Rappels de cr\u00e9neaux aux enseignants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours"
+      "description": "Rappels de créneaux aux enseignants : envois des mails pour les créneaux ayant lieu dans N jours"
     }
   },
   {
@@ -58,7 +58,7 @@
     "fields": {
       "setting": "NB_WEEKS_COMPONENTS_SLOT_REMINDER",
       "value": "1",
-      "description": "Rappels de cr\u00e9neaux aux composantes : envois des mails pour les cr\u00e9neaux ayant lieu dans N semaines"
+      "description": "Rappels de créneaux aux composantes : envois des mails pour les créneaux ayant lieu dans N semaines"
     }
   },
   {
@@ -85,8 +85,7 @@
     "fields": {
       "setting": "PDF_CERTIFICATE_CITY",
       "value": "Strasbourg",
-      "description": "Ville sur l'attestation de pr\u00e9sence"
+      "description": "Ville sur l'attestation de présence"
     }
-  },
-
+  }
 ]
