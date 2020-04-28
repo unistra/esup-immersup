@@ -60,7 +60,7 @@ class Command(BaseCommand):
         ).distinct().count()
 
         # Number of participants in more than one immersion
-        annual_stats.multiple_immersions_registrations = ImmersionUser.objects.annotate(
+        annual_stats.participants_multiple_immersions = ImmersionUser.objects.annotate(
             imm_count=Count('immersions', filter=Q(immersions__attendance_status=1))).filter(
             imm_count__gt=1).count()
 
