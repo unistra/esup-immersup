@@ -29,6 +29,8 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
     immersion = kwargs.get('immersion')
     slot_survey = None
     global_survey = None
+    institution_label = None
+    record = None
 
     if request:
         # The following won't work in 'commands'
@@ -55,10 +57,16 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
     except UniversityYear.DoesNotExist:
         return None
 
-    vars = [('${annee}', year.label), ('${urlPlateforme}', platform_url)]
+    vars = [
+        ('${annee}', year.label),
+        ('${urlPlateforme}', platform_url)
+    ]
 
     if course:
-        vars += [('${cours.libelle}', course.label), ('${cours.nbplaceslibre}', course.free_seats())]
+        vars += [
+            ('${cours.libelle}', course.label),
+            ('${cours.nbplaceslibre}', course.free_seats())
+        ]
 
     if slot:
         vars += [
@@ -158,7 +166,8 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         elif user.is_student():
             # TODO: maybe instead of lycee use a home_institution tpl var ???
             vars.append(('${lycee}', institution_label))
-            vars.append(('${etudiant_date_naissance}', date_format(record.birth_date, 'd/m/Y')))
+            if record:
+                vars.append(('${etudiant_date_naissance}', date_format(record.birth_date, 'd/m/Y')))
         elif user.highschool:
             vars.append(('${lycee}', user.highschool.label))
 
