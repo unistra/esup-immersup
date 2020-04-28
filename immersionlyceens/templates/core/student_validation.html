@@ -17,7 +17,7 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 {% endblock %}
 {% block title %}
-{% trans "My slots" %}
+{% trans "Student validation" %}
 {% endblock %}
 
 {% block content %}
@@ -59,102 +59,103 @@
       {% else %}
       <input type="hidden" name="high_school" id="id_high_school" value="{{ high_school.id }}">
       {% endif %}
-
-      <!-- TO VALIDATE -->
-      <div class="card mb-4">
-        <div class="card-header text-white bg-secondary">
-            {% trans "Student to validate" %}
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table id="to_validate" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
-              <thead>
-                <tr>
-                  <th id="first_name_filter_to_validate">{% trans "First name" %}</th>
-                  <th id="last_name_filter_to_validate">{% trans "Last name" %}</th>
-                  <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
-                  <th id="level_filter_to_validate">{% trans "Level" %}</th>
-                  <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+      <div>
+        <!-- TO VALIDATE -->
+        <div class="card mb-4">
+          <div class="card-header text-white bg-secondary">
+              {% trans "Student to validate" %}
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="to_validate" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+                <thead>
+                  <tr>
+                    <th id="first_name_filter_to_validate">{% trans "First name" %}</th>
+                    <th id="last_name_filter_to_validate">{% trans "Last name" %}</th>
+                    <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
+                    <th id="level_filter_to_validate">{% trans "Level" %}</th>
+                    <th id="class_name_filter_to_validate">{% trans "Class name" %}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- VALIDATED -->
-      <div class="card mb-4">
-        <div class="card-header text-white bg-secondary">
-            {% trans "Validated student" %}
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table id="validated" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
-              <thead>
-                <tr>
-                  <th id="first_name_filter_validated">{% trans "First name" %}</th>
-                  <th id="last_name_filter_validated">{% trans "Last name" %}</th>
-                  <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
-                  <th id="level_filter_validated">{% trans "Level" %}</th>
-                  <th id="class_name_filter_validated">{% trans "Class name" %}</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- VALIDATED -->
+        <div class="card mb-4">
+          <div class="card-header text-white bg-secondary">
+              {% trans "Validated student" %}
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="validated" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+                <thead>
+                  <tr>
+                    <th id="first_name_filter_validated">{% trans "First name" %}</th>
+                    <th id="last_name_filter_validated">{% trans "Last name" %}</th>
+                    <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
+                    <th id="level_filter_validated">{% trans "Level" %}</th>
+                    <th id="class_name_filter_validated">{% trans "Class name" %}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- REJECTED -->
-      <div class="card mb-4">
-        <div class="card-header text-white bg-secondary">
-            {% trans "Rejected student" %}
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table id="rejected" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
-              <thead>
-                <tr>
-                  <th id="first_name_filter_rejected">{% trans "First name" %}</th>
-                  <th id="last_name_filter_rejected">{% trans "Last name" %}</th>
-                  <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
-                  <th id="level_filter_rejected">{% trans "Level" %}</th>
-                  <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- REJECTED -->
+        <div class="card mb-4">
+          <div class="card-header text-white bg-secondary">
+              {% trans "Rejected student" %}
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="rejected" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+                <thead>
+                  <tr>
+                    <th id="first_name_filter_rejected">{% trans "First name" %}</th>
+                    <th id="last_name_filter_rejected">{% trans "Last name" %}</th>
+                    <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
+                    <th id="level_filter_rejected">{% trans "Level" %}</th>
+                    <th id="class_name_filter_rejected">{% trans "Class name" %}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
