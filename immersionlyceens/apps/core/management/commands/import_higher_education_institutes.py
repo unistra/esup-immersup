@@ -78,12 +78,6 @@ class Command(BaseCommand):
                         logger.exception("Cannot create new institute from data : %s", new_data)
                 else: # update
                     if new_data != institute:
-
-                        """
-                        print("new     : %s" % new_data)
-                        print("current : %s" % institute)
-                        """
-
                         inst = current_institutes_objs[json_uai]
                         for k, v in new_data.items():
                             setattr(inst, k, v)

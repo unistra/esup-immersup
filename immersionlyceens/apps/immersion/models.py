@@ -118,6 +118,7 @@ class HighSchoolStudentRecord(models.Model):
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
 
     duplicates = models.TextField(_("Duplicates list"), null=True, blank=True, default=None)
+    solved_duplicates = models.TextField(_("Solved duplicates list"), null=True, blank=True, default=None)
 
     def __str__(self):
         return gettext("Record for {0} {1}".format(self.student.first_name, self.student.last_name))
@@ -127,10 +128,12 @@ class HighSchoolStudentRecord(models.Model):
         Search records with same name, birth date and highschool
         :return:
         """
+        solved_duplicates_list = [int(x) for x in self.solved_duplicates.split(',')] if self.solved_duplicates else []
+
         dupes = HighSchoolStudentRecord.objects.filter(
             student__last_name__iexact=self.student.last_name, student__first_name__iexact=self.student.first_name,
             birth_date=self.birth_date, highschool=self.highschool
-        ).exclude(id=self.id)
+        ).exclude(id=self.id).exclude(id__in=solved_duplicates_list)
 
         ids_list = [record.id for record in dupes]
 
@@ -140,10 +143,11 @@ class HighSchoolStudentRecord(models.Model):
 
             for id in ids_list:
                 other_ids_list = sorted([self.id] + [i for i in ids_list if i!=id])
-                json_list = json.dumps(other_ids_list)
                 try:
                     record = HighSchoolStudentRecord.objects.get(pk=id)
-                    record.duplicates=json_list
+                    solved_duplicates = set(
+                        [int(x) for x in record.solved_duplicates.split(',')]) if record.solved_duplicates else set()
+                    record.duplicates = json.dumps(list(set(other_ids_list) - solved_duplicates))
                     record.save()
                 except HighSchoolStudentRecord.DoesNotExist:
                     pass
@@ -175,9 +179,18 @@ class HighSchoolStudentRecord(models.Model):
             try:
                 dupes.remove(id)
                 self.duplicates = json.dumps(dupes) if dupes else None
-                self.save()
             except ValueError:
                 pass
+
+        if self.solved_duplicates:
+            solved_list = self.solved_duplicates.split(',')
+            if str(id) not in solved_list:
+                solved_list.append(str(id))
+                self.solved_duplicates = ','.join(solved_list)
+        else:
+            self.solved_duplicates = str(id)
+
+        self.save()
 
     def is_valid(self):
         return self.validation == 2
@@ -203,6 +216,15 @@ class HighSchoolStudentRecord(models.Model):
                 dupes = json.loads(record.duplicates)
                 dupes.remove(record_id) # will raise a Value error if record_id not in dupes
                 record.duplicates = json.dumps(dupes) if dupes else None
+                record.save()
+            except Exception:
+                pass
+
+        for record in cls.objects.filter(solved_duplicates__isnull=False):
+            try:
+                solved_dupes = record.solved_duplicates.split(',')
+                solved_dupes.remove(str(record_id))
+                record.solved_duplicates = ','.join(solved_dupes)
                 record.save()
             except Exception:
                 pass
