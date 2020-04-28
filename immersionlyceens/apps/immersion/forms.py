@@ -120,13 +120,15 @@ class StudentForm(forms.ModelForm):
 
         email = cleaned_data.get("email").strip().lower()
 
+        """ MOVED IN VIEW
         if email != self.instance.email:
             self.request.user.set_validation_string()
             try:
                 msg = self.request.user.send_message(self.request, 'CPT_MIN_CHANGE_MAIL')
             except Exception as e:
                 logger.exception("Cannot send 'change mail' message : %s", e)
-
+        """
+        cleaned_data['email'] = email
         return cleaned_data
 
     class Meta:
@@ -166,12 +168,14 @@ class HighSchoolStudentForm(forms.ModelForm):
             raise forms.ValidationError(
                 _("Error : an account already exists with this email address"))
 
+        """ MOVED IN VIEW
         if email != self.instance.email:
             self.request.user.set_validation_string()
             try:
                 msg = self.request.user.send_message(self.request, 'CPT_MIN_CHANGE_MAIL')
             except Exception as e:
                 logger.exception("Cannot send 'change mail' message : %s", e)
+        """
 
         cleaned_data['email'] = email
 
