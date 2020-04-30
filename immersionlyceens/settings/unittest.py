@@ -27,6 +27,9 @@ ALLOWED_HOSTS = [
     '*'
 ]
 
+# Language code for unit tests
+del(LANGUAGE_CODE)
+
 #####################
 # Log configuration #
 #####################

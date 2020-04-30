@@ -20,7 +20,7 @@ from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
 from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware, ShibbolethValidationError
 
 from immersionlyceens.apps.core.models import (
     Calendar, CancelType, CertificateLogo, CertificateSignature, HigherEducationInstitution,
@@ -52,21 +52,14 @@ def customLogin(request, profile=None):
     is_reg_possible, is_year_valid, year = check_active_year()
 
     if not profile and (not year or not is_year_valid):
-        messages.warning(request, _("Sorry, you can't login right now."))
+        messages.error(request, _("Sorry, the university year has not begun (or already over), you can't login yet."))
+
         context = {
             'start_date': year.start_date if year else None,
             'end_date': year.end_date if year else None,
             'reg_date': year.registration_start_date if year else None,
         }
-        return render(request, 'immersion/nologin.html', context)
-
-    # Is current university year valid ?
-    if not profile and not check_active_year():
-        return render(
-            request,
-            'immersion/nologin.html',
-            {'msg': _("Sorry, the university year has not begun (or already over), you can't login yet.")},
-        )
+        return render(request, 'immersion/nologin.html',context)
 
     if request.method == 'POST':
         form = LoginForm(request.POST, profile=profile)

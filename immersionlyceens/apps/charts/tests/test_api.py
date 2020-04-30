@@ -47,9 +47,9 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'],
-            [{'name': 'Inscrits sur la plateforme', 'Première': 3, 'Terminale': 2, 'Post-bac': 0},
-             {'name': 'Inscrits à au moins une immersion', 'Première': 2, 'Terminale': 2, 'Post-bac': 0},
-             {'name': 'Participation à au moins une immersion', 'Première': 1, 'Terminale': 1, 'Post-bac': 0}]
+            [{'name': 'Registered users count', 'Pupil in year 12 / 11th grade student': 3, 'Pupil in year 13 / 12th grade student': 2, 'Above A Level / High-School Degree': 0},
+             {'name': 'Registered to at least one immersion', 'Pupil in year 12 / 11th grade student': 2, 'Pupil in year 13 / 12th grade student': 2, 'Above A Level / High-School Degree': 0},
+             {'name': 'Attended to at least one immersion', 'Pupil in year 12 / 11th grade student': 1, 'Pupil in year 13 / 12th grade student': 1, 'Above A Level / High-School Degree': 0}]
         )
 
         # Highschool domain charts
@@ -122,16 +122,16 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['data'],
-             [{'institution': 'Lycée Coufignal', 'institution_id': 3, 'type': 'Lycée', 'type_code': 0,
+             [{'institution': 'Lycée Coufignal', 'institution_id': 3, 'type': 'Highschool', 'type_code': 0,
                'city': '68000 - COLMAR', 'department': '68', 'country': ''},
-              {'institution': 'Lycée Jean Monnet', 'institution_id': 2, 'type': 'Lycée', 'type_code': 0,
+              {'institution': 'Lycée Jean Monnet', 'institution_id': 2, 'type': 'Highschool', 'type_code': 0,
                'city': '67100 - STRASBOURG', 'department': '67', 'country': ''},
-              {'institution': 'Lycée Kléber', 'institution_id': 6, 'type': 'Lycée', 'type_code': 0,
+              {'institution': 'Lycée Kléber', 'institution_id': 6, 'type': 'Highschool', 'type_code': 0,
                'city': '67000 - STRASBOURG', 'department': '67', 'country': ''},
-              {'institution': 'Lycée Marie Curie', 'institution_id': 5, 'type': 'Lycée', 'type_code': 0,
+              {'institution': 'Lycée Marie Curie', 'institution_id': 5, 'type': 'Highschool', 'type_code': 0,
                'city': '67100 - STRASBOURG', 'department': '67', 'country': ''},
               {'institution': 'Université de Strasbourg', 'institution_id': '0673021V',
-               'type': "Etablissement d'Etudes Supérieures", 'type_code': 1, 'city': ['67081 - Strasbourg'],
+               'type': "Higher education institution", 'type_code': 1, 'city': ['67081 - Strasbourg'],
                'department': ['Bas-Rhin'], 'country': ['France']}]
         )
 
@@ -347,9 +347,18 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'],
-             [{'name': 'Inscrits sur la plateforme', 'Première': 5, 'Terminale': 4, 'Post-bac': 3},
-              {'name': 'Inscrits à au moins une immersion', 'Première': 3, 'Terminale': 4, 'Post-bac': 2},
-              {'name': 'Participation à au moins une immersion', 'Première': 2, 'Terminale': 2, 'Post-bac': 0}]
+             [{'name': 'Registered users count',
+               'Pupil in year 12 / 11th grade student': 5,
+               'Pupil in year 13 / 12th grade student': 4,
+               'Above A Level / High-School Degree': 3},
+              {'name': 'Registered to at least one immersion',
+               'Pupil in year 12 / 11th grade student': 3,
+               'Pupil in year 13 / 12th grade student': 4,
+               'Above A Level / High-School Degree': 2},
+              {'name': 'Attended to at least one immersion',
+               'Pupil in year 12 / 11th grade student': 2,
+               'Pupil in year 13 / 12th grade student': 2,
+               'Above A Level / High-School Degree': 0}]
         )
 
         # With another level
@@ -359,9 +368,9 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'],
-            [{'name': 'Inscrits sur la plateforme', 'Première': 5},
-             {'name': 'Inscrits à au moins une immersion', 'Première': 3},
-             {'name': 'Participation à au moins une immersion', 'Première': 2}]
+            [{'name': 'Registered users count', 'Pupil in year 12 / 11th grade student': 5},
+             {'name': 'Registered to at least one immersion', 'Pupil in year 12 / 11th grade student': 3},
+             {'name': 'Attended to at least one immersion', 'Pupil in year 12 / 11th grade student': 2}]
         )
 
         # Registration charts cats (ajax query, headers needed)
@@ -372,18 +381,36 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['attended_one']['datasets'],
-            [{'name': 'Lycée Jean Monnet', 'Première': 1, 'Terminale': 1, 'Post-bac': 0},
-             {'name': 'Université de Strasbourg', 'Première': 0, 'Terminale': 0, 'Post-bac': 0}]
+            [{'name': 'Lycée Jean Monnet',
+              'Pupil in year 12 / 11th grade student': 1,
+              'Pupil in year 13 / 12th grade student': 1,
+              'Above A Level / High-School Degree': 0},
+             {'name': 'Université de Strasbourg',
+              'Pupil in year 12 / 11th grade student': 0,
+              'Pupil in year 13 / 12th grade student': 0,
+              'Above A Level / High-School Degree': 0}]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
-            [{'name': 'Lycée Jean Monnet', 'Première': 2, 'Terminale': 2, 'Post-bac': 0},
-             {'name': 'Université de Strasbourg', 'Première': 0, 'Terminale': 0, 'Post-bac': 1}]
+            [{'name': 'Lycée Jean Monnet',
+              'Pupil in year 12 / 11th grade student': 2,
+              'Pupil in year 13 / 12th grade student': 2,
+              'Above A Level / High-School Degree': 0},
+             {'name': 'Université de Strasbourg',
+              'Pupil in year 12 / 11th grade student': 0,
+              'Pupil in year 13 / 12th grade student': 0,
+              'Above A Level / High-School Degree': 1}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
-            [{'name': 'Lycée Jean Monnet', 'Première': 3, 'Terminale': 2, 'Post-bac': 0},
-             {'name': 'Université de Strasbourg', 'Première': 0, 'Terminale': 0, 'Post-bac': 1}]
+            [{'name': 'Lycée Jean Monnet',
+              'Pupil in year 12 / 11th grade student': 3,
+              'Pupil in year 13 / 12th grade student': 2,
+              'Above A Level / High-School Degree': 0},
+             {'name': 'Université de Strasbourg',
+              'Pupil in year 12 / 11th grade student': 0,
+              'Pupil in year 13 / 12th grade student': 0,
+              'Above A Level / High-School Degree': 1}]
         )
 
         url = "/charts/get_registration_charts_cats"
@@ -392,15 +419,15 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['attended_one']['datasets'],
-            [{'Première': 1, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 12 / 11th grade student': 1, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
-            [{'Première': 2, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 12 / 11th grade student': 2, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
-            [{'Première': 3, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 12 / 11th grade student': 3, 'name': 'Lycée Jean Monnet'}]
         )
 
         # Slots charts (ajax query, headers needed)

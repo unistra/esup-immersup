@@ -1,5 +1,5 @@
 """
-Django Admin Forms tests suite
+Immersion app forms tests
 """
 import datetime
 
@@ -10,9 +10,10 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, Client
 
-from immersionlyceens.apps.core.models import (Component, TrainingDomain, TrainingSubdomain,
-                                               Training, Course, Building, CourseType, Slot, Campus,
-                                               HighSchool, Calendar)
+from immersionlyceens.apps.core.models import (
+    Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
+    HighSchool, Calendar
+)
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 

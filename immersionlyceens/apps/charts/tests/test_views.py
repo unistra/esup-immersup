@@ -72,7 +72,8 @@ class ChartsViewsTestCase(TestCase):
         )
         self.assertEqual(response.context['highschool_id'], '')
         self.assertEqual(response.context['levels'],
-            [(0, 'Tous'), (1, 'Première'), (2, 'Terminale'), (3, 'Post-bac')]
+            [(0, 'All'), (1, 'Pupil in year 12 / 11th grade student'), (2, 'Pupil in year 13 / 12th grade student'),
+             (3, 'Above A Level / High-School Degree')]
         )
 
         self.client.login(username='jeanmonnet', password='hiddenpassword')
@@ -92,7 +93,8 @@ class ChartsViewsTestCase(TestCase):
 
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
-        self.assertEqual(response.context['levels'], [(0, 'Tous'), (1, 'Première'), (2, 'Terminale'), (3, 'Post-bac')])
+        self.assertEqual(response.context['levels'], [(0, 'All'), (1, 'Pupil in year 12 / 11th grade student'),
+            (2, 'Pupil in year 13 / 12th grade student'), (3, 'Above A Level / High-School Degree')])
         self.assertEqual(response.context['level_filter'], 0)
 
         # Post with filters
@@ -119,7 +121,8 @@ class ChartsViewsTestCase(TestCase):
             )
         self.assertEqual(response.context['highschool_id'], '')
         self.assertEqual(response.context['levels'],
-            [(1, 'Première'), (2, 'Terminale'), (3, 'Post-bac')]
+            [(1, 'Pupil in year 12 / 11th grade student'), (2, 'Pupil in year 13 / 12th grade student'),
+             (3, 'Above A Level / High-School Degree')]
         )
         self.assertEqual(response.context['high_school_name'], None)
 
@@ -131,7 +134,8 @@ class ChartsViewsTestCase(TestCase):
             [{'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'}])
         self.assertEqual(response.context['highschool_id'], 2)
         self.assertEqual(response.context['levels'],
-            [(1, 'Première'), (2, 'Terminale'), (3, 'Post-bac')]
+            [(1, 'Pupil in year 12 / 11th grade student'), (2, 'Pupil in year 13 / 12th grade student'),
+             (3, 'Above A Level / High-School Degree')]
         )
         self.assertEqual(response.context['high_school_name'], "Lycée Jean Monnet")
 
@@ -144,7 +148,8 @@ class ChartsViewsTestCase(TestCase):
 
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
-        self.assertEqual(response.context['levels'], [(0, 'Tous'), (1, 'Première'), (2, 'Terminale'), (3, 'Post-bac')])
+        self.assertEqual(response.context['levels'], [(0, 'All'), (1, 'Pupil in year 12 / 11th grade student'),
+            (2, 'Pupil in year 13 / 12th grade student'), (3, 'Above A Level / High-School Degree')])
         self.assertEqual(response.context['part1_level_filter'], 0)
         self.assertEqual(response.context['level_filter'], 0)
 
