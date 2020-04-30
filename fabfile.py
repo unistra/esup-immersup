@@ -9,6 +9,8 @@ import pydiploy
 from fabric.api import env, execute, roles, task
 
 # edit config here !
+# TODO: check post_install & remove nginx useless stuff
+# using apache + shibb mod for now !
 
 env.remote_owner = 'django'  # remote server user
 env.remote_group = 'di'  # remote server group
@@ -92,6 +94,7 @@ def test():
     env.roledefs = {
         'web': ['django-test2.u-strasbg.fr'],
         'lb': ['django-test2.u-strasbg.fr'],
+        'shib': ['root@rp-apache-shib.di.unistra.fr'],
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
@@ -136,6 +139,7 @@ def preprod():
     env.roledefs = {
         'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
+        'shib': [],
     }
 
     # env.user = 'root'  # user for ssh
@@ -181,6 +185,7 @@ def prod():
     env.roledefs = {
         'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
         'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
+        'shib': [],
     }
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
@@ -267,7 +272,7 @@ def deploy_backend(update_pkg=False):
     execute(pydiploy.django.deploy_backend, update_pkg)
 
 
-@roles('lb')
+@roles('lb', 'shib')
 @task
 def deploy_frontend():
     """Deploy static files on load balancer"""
