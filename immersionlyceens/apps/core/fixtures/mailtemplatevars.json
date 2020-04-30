@@ -1,281 +1,282 @@
-[{
+[
+{
     "model": "core.mailtemplatevars",
     "pk": 1,
     "fields": {
-      "code": "${annee}",
-      "description": "Ann\u00e9e"
+        "code": "${annee}",
+        "description": "Ann\u00e9e"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 2,
     "fields": {
-      "code": "${cours.libelle}",
-      "description": "Libell\u00e9 du cours"
+        "code": "${cours.libelle}",
+        "description": "Libell\u00e9 du cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 3,
     "fields": {
-      "code": "${cours.nbplaceslibre}",
-      "description": "Places disponibles dans le cours"
+        "code": "${cours.nbplaceslibre}",
+        "description": "Places disponibles dans le cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 4,
     "fields": {
-      "code": "${creneau.batiment}",
-      "description": "Cr\u00e9neau : b\u00e2timent dans lequel a lieu le cours"
+        "code": "${creneau.batiment}",
+        "description": "Cr\u00e9neau : b\u00e2timent dans lequel a lieu le cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 5,
     "fields": {
-      "code": "${creneau.campus}",
-      "description": "Cr\u00e9neau : campus"
+        "code": "${creneau.campus}",
+        "description": "Cr\u00e9neau : campus"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 6,
     "fields": {
-      "code": "${creneau.composante}",
-      "description": "Cr\u00e9neau : composante"
+        "code": "${creneau.composante}",
+        "description": "Cr\u00e9neau : composante"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 7,
     "fields": {
-      "code": "${creneau.cours}",
-      "description": "Cr\u00e9neau : nom du cours"
+        "code": "${creneau.cours}",
+        "description": "Cr\u00e9neau : nom du cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 8,
     "fields": {
-      "code": "${creneau.date}",
-      "description": "Cr\u00e9neau : date"
+        "code": "${creneau.date}",
+        "description": "Cr\u00e9neau : date"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 9,
     "fields": {
-      "code": "${creneau.enseignants}",
-      "description": "Liste des enseignants du cr\u00e9neau"
+        "code": "${creneau.enseignants}",
+        "description": "Liste des enseignants du cr\u00e9neau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 10,
     "fields": {
-      "code": "${creneau.formation}",
-      "description": "Formation concern\u00e9e par le cr\u00e9neau"
+        "code": "${creneau.formation}",
+        "description": "Formation concern\u00e9e par le cr\u00e9neau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 11,
     "fields": {
-      "code": "${creneau.heuredebut}",
-      "description": "Cr\u00e9neau : heure de d\u00e9but"
+        "code": "${creneau.heuredebut}",
+        "description": "Cr\u00e9neau : heure de d\u00e9but"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 12,
     "fields": {
-      "code": "${creneau.heurefin}",
-      "description": "Cr\u00e9neau : heure de fin"
+        "code": "${creneau.heurefin}",
+        "description": "Cr\u00e9neau : heure de fin"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 13,
     "fields": {
-      "code": "${creneau.info}",
-      "description": "Cr\u00e9neau : autres informations"
+        "code": "${creneau.info}",
+        "description": "Cr\u00e9neau : autres informations"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 14,
     "fields": {
-      "code": "${creneau.salle}",
-      "description": "Cr\u00e9neau : salle"
+        "code": "${creneau.salle}",
+        "description": "Cr\u00e9neau : salle"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 15,
     "fields": {
-      "code": "${creneau.type}",
-      "description": "Cr\u00e9neau : type"
+        "code": "${creneau.type}",
+        "description": "Cr\u00e9neau : type"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 16,
     "fields": {
-      "code": "${ens.nom}",
-      "description": "Nom de l'enseignant"
+        "code": "${ens.nom}",
+        "description": "Nom de l'enseignant"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 17,
     "fields": {
-      "code": "${ens.prenom}",
-      "description": "Pr\u00e9nom de l'enseignant"
+        "code": "${ens.prenom}",
+        "description": "Pr\u00e9nom de l'enseignant"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 18,
     "fields": {
-      "code": "${identifiant}",
-      "description": "Identifiant"
+        "code": "${identifiant}",
+        "description": "Identifiant"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 19,
     "fields": {
-      "code": "${lycee}",
-      "description": "Nom du lyc\u00e9e"
+        "code": "${lycee}",
+        "description": "Nom du lyc\u00e9e"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 20,
     "fields": {
-      "code": "${jourDestructionCptMin}",
-      "description": "Date de destruction automatique du compte"
+        "code": "${jourDestructionCptMin}",
+        "description": "Date de destruction automatique du compte"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 21,
     "fields": {
-      "code": "${lienCreneau}",
-      "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du cr\u00e9neau"
+        "code": "${lienCreneau}",
+        "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du cr\u00e9neau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 22,
     "fields": {
-      "code": "${lienGlobal}",
-      "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du dispositif"
+        "code": "${lienGlobal}",
+        "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du dispositif"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 23,
     "fields": {
-      "code": "${lienValidation}",
-      "description": "Lien vers la page de validation du compte"
+        "code": "${lienValidation}",
+        "description": "Lien vers la page de validation du compte"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 24,
     "fields": {
-      "code": "${listeInscrits.etablissement}",
-      "description": "Liste des inscrits : \u00e9tablissement"
+        "code": "${listeInscrits.etablissement}",
+        "description": "Liste des inscrits : \u00e9tablissement"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 25,
     "fields": {
-      "code": "${listeInscrits}",
-      "description": "Liste des inscrits (noms et pr\u00e9noms)"
+        "code": "${listeInscrits}",
+        "description": "Liste des inscrits (noms et pr\u00e9noms)"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 26,
     "fields": {
-      "code": "${motifAnnulation}",
-      "description": "Motif de l'annulation"
+        "code": "${motifAnnulation}",
+        "description": "Motif de l'annulation"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 27,
     "fields": {
-      "code": "${nom}",
-      "description": "Nom du destinataire"
+        "code": "${nom}",
+        "description": "Nom du destinataire"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 28,
     "fields": {
-      "code": "${password}",
-      "description": "Mot de passe"
+        "code": "${password}",
+        "description": "Mot de passe"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 29,
     "fields": {
-      "code": "${prenom}",
-      "description": "Pr\u00e9nom du destinataire"
+        "code": "${prenom}",
+        "description": "Pr\u00e9nom du destinataire"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 30,
     "fields": {
-      "code": "${referentlycee.nom}",
-      "description": "Nom du r\u00e9f\u00e9rent du lyc\u00e9e"
+        "code": "${referentlycee.nom}",
+        "description": "Nom du r\u00e9f\u00e9rent du lyc\u00e9e"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 31,
     "fields": {
-      "code": "${referentlycee.prenom}",
-      "description": "Pr\u00e9nom du r\u00e9f\u00e9rent du lyc\u00e9e"
+        "code": "${referentlycee.prenom}",
+        "description": "Pr\u00e9nom du r\u00e9f\u00e9rent du lyc\u00e9e"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 32,
     "fields": {
-      "code": "${urlPlateforme}",
-      "description": "Adresse (URL) de la plateforme"
+        "code": "${urlPlateforme}",
+        "description": "Adresse (URL) de la plateforme"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 33,
     "fields": {
-      "code": "${lienMotDePasse}",
-      "description": "Lien vers la page de r\u00e9initialisation du mot de passe"
+        "code": "${lienMotDePasse}",
+        "description": "Lien vers la page de r\u00e9initialisation du mot de passe"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 34,
     "fields": {
-      "code": "${creneaux.liste}",
-      "description": "Affichage de cr\u00e9neaux sous forme de liste"
+        "code": "${creneaux.liste}",
+        "description": "Affichage de cr\u00e9neaux sous forme de liste"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 35,
     "fields": {
-      "code": "${etudiant_date_naissance}",
-      "description": "Date de naissance de l'\u00e9tudiant"
+        "code": "${etudiant_date_naissance}",
+        "description": "Date de naissance de l'\u00e9tudiant"
     }
-  }
+}
 ]
