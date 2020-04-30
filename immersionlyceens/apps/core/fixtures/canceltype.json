@@ -1,34 +1,33 @@
-[
-{
+[{
     "model": "core.canceltype",
     "pk": 1,
     "fields": {
-        "label": "Plus disponible",
-        "active": true
+      "label": "Plus disponible",
+      "active": true
     }
-},
-{
+  },
+  {
     "model": "core.canceltype",
     "pk": 2,
     "fields": {
-        "label": "Sant\u00e9",
-        "active": true
+      "label": "Sant\u00e9",
+      "active": true
     }
-},
-{
+  },
+  {
     "model": "core.canceltype",
     "pk": 3,
     "fields": {
-        "label": "Transport",
-        "active": true
+      "label": "Transport",
+      "active": true
     }
-},
-{
+  },
+  {
     "model": "core.canceltype",
     "pk": 4,
     "fields": {
-        "label": "Plus interess\u00e9",
-        "active": true
+      "label": "Plus interess\u00e9",
+      "active": true
     }
-}
+  }
 ]

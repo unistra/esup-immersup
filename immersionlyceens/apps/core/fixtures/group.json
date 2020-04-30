@@ -1,5 +1,4 @@
-[
-  {
+[{
     "model": "auth.group",
     "pk": 1,
     "fields": {
