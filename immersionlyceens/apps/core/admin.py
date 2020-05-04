@@ -1009,11 +1009,11 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
         'participants_one_immersion',
         'participants_multiple_immersions',
         'immersion_registrations',
-        'seats_count',
         'components_count',
         'trainings_one_slot_count',
         'courses_one_slot_count',
         'total_slots_count',
+        'seats_count',
         'approved_highschools',
         'highschools_without_students',
     )
