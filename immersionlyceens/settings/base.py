@@ -395,13 +395,16 @@ LDAP_API_FIRSTNAME_ATTR = ''
 
 # Do not use : may not be unique accross institutions
 # "HTTP_UID": (True, "username"),
+# Instead, http_remote_user should be the email of the user
+
+SHIBBOLETH_REMOTE_USER_ATTR = "HTTP_REMOTE_USER"
 
 SHIBBOLETH_ATTRIBUTE_MAP = {
-    "HTTP_GIVENNAME": (True, "first_name"),
-    "HTTP_SN": (True, "last_name"),
-    "HTTP_REMOTE_USER": (True, "username"),
-    "HTTP_MAIL": (True, "email"),
-    "HTTP_SUPANNETABLISSEMENT": (True, "uai_code"),
+    "HTTP_REMOTE_USER": (False, "username"),
+    "HTTP_GIVENNAME": (False, "first_name"),
+    "HTTP_SN": (False, "last_name"),
+    "HTTP_MAIL": (False, "email"),
+    "HTTP_SUPANNETABLISSEMENT": (False, "uai_code"),
 }
 
 SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"

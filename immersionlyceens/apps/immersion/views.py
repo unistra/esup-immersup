@@ -19,8 +19,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
+
 from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware, ShibbolethValidationError
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
     Calendar, CancelType, CertificateLogo, CertificateSignature, HigherEducationInstitution,
@@ -101,42 +102,42 @@ def shibbolethLogin(request, profile=None):
     """
     shib_attrs, error = ShibbolethRemoteUserMiddleware.parse_attributes(request)
 
+    if error:
+        messages.error(request, _("Incomplete data for account creation"))
+        return HttpResponseRedirect("/")
+    elif not all([value[1] in shib_attrs for value in settings.SHIBBOLETH_ATTRIBUTE_MAP.values()]):
+        messages.error(request,
+            _("Missing attributes, account not created." +
+             "<br>Your institution may not be aware of the Immersion service." +
+             "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
+        return HttpResponseRedirect("/")
+
+
     if request.POST.get('submit'):
-        if not error:
-            if all([value[1] in shib_attrs for value in settings.SHIBBOLETH_ATTRIBUTE_MAP.values()]):
-                # Remove uai_code from attributes as we don't want it for user creation
-                shib_attrs.pop("uai_code", None)
-                new_user = ImmersionUser.objects.create(**shib_attrs)
-                new_user.set_validation_string()
-                new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
-                new_user.save()
-            else:
-                messages.error(request,
-                    _("Missing attributes, account not created."+
-                      "<br>Your institution may not be aware of the Immersion service."+
-                      "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
-                return HttpResponseRedirect("/")
+        shib_attrs.pop("uai_code", None)
+        new_user = ImmersionUser.objects.create(**shib_attrs)
+        new_user.set_validation_string()
+        new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
+        new_user.save()
 
-            try:
-                Group.objects.get(name='ETU').user_set.add(new_user)
-            except Exception:
-                logger.exception("Cannot add 'ETU' group to user {}".format(new_user))
-                messages.error(request, _("Group error"))
+        try:
+            Group.objects.get(name='ETU').user_set.add(new_user)
+        except Exception:
+            logger.exception("Cannot add 'ETU' group to user {}".format(new_user))
+            messages.error(request, _("Group error"))
 
-            try:
-                msg = new_user.send_message(request, 'CPT_MIN_CREATE_ETU')
-            except Exception as e:
-                logger.exception("Cannot send activation message : %s", e)
+        try:
+            msg = new_user.send_message(request, 'CPT_MIN_CREATE_ETU')
+        except Exception as e:
+            logger.exception("Cannot send activation message : %s", e)
 
-            messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
-            return HttpResponseRedirect("/")
+        messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
+        return HttpResponseRedirect("/")
+
 
     if request.user.is_anonymous:
-        if not error:
-            context = shib_attrs
-            return render(request, "immersion/confirm_creation.html", context)
-        else:
-            messages.error(request, _("Incomplete data for account creation"))
+        context = shib_attrs
+        return render(request, "immersion/confirm_creation.html", context)
     else:
         # Activated account ?
         if not request.user.is_valid():

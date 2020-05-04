@@ -31,7 +31,7 @@ urlpatterns = [
     path('offer', offer, name='offer'),
     path('offer/<int:subdomain_id>', offer_subdomain, name='offer_subdomain'),
     path('procedure', procedure, name='procedure'),
-    path('secure', include('shibboleth.urls', namespace='shibboleth')),
+    path('shib_secure', include('shibboleth.urls', namespace='shibboleth')),
     path('shib/', shibbolethLogin, name='shibboleth_login'),
     path('summernote/', include('django_summernote.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

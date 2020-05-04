@@ -160,30 +160,55 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/immersion")
 
-    """
-    def test_shibboleth_login(self):
-        # Fail with missing attribute
-        header = {
-            'HTTP_GIVENNAME': 'student',
-            'HTTP_SN': 'user',
-            'HTTP_REMOTE_USER': 'test',
-            'HTTP_MAIL': 'test@student.fr',
-        }
-        response = self.client.get('/shib/', request, **header)
-        self.assertIn("Êtes-vous sûr(e) de vouloir créer votre compte ?", response.content.decode('utf-8'))
 
-        # All attributes
+    def test_shibboleth_login(self):
+        # Fail with one missing attribute (http_supannetablissement)
         header = {
+            'HTTP_REMOTE_USER': 'new_student@domain.fr',
             'HTTP_GIVENNAME': 'student',
             'HTTP_SN': 'user',
-            'HTTP_REMOTE_USER': 'test',
-            'HTTP_MAIL': 'test@student.fr',
+            'HTTP_MAIL': 'new_student@domain.fr',
+        }
+        response = self.client.get('/shib/', request, **header, follow=True)
+        self.assertIn("Missing attributes, account not created.", response.content.decode('utf-8'))
+
+        response = self.client.post('/shib/', data={'submit': 1}, request=request, **header, follow=True)
+        self.assertIn("Missing attributes, account not created.", response.content.decode('utf-8'))
+
+        # Tests with all attributes
+        header = {
+            'HTTP_REMOTE_USER': 'new_student@domain.fr',
+            'HTTP_GIVENNAME': 'student',
+            'HTTP_SN': 'user',
+            'HTTP_MAIL': 'new_student@domain.fr',
             'HTTP_SUPANNETABLISSEMENT': '{UAI}0673021V'
         }
 
         response = self.client.get('/shib/', request, **header)
-        self.assertIn("Êtes-vous sûr(e) de vouloir créer votre compte ?", response.content.decode('utf-8'))
-    """
+        self.assertIn("Are you sure you want to create your account ?", response.content.decode('utf-8'))
+
+        # Account creation
+        response = self.client.post('/shib/', data={'submit':1}, request=request, **header, follow=True)
+        self.assertIn("Account created. Please look at your emails for the activation procedure.",
+            response.content.decode('utf-8'))
+
+        try:
+            new_user = ImmersionUser.objects.get(email='new_student@domain.fr')
+        except ImmersionUser.DoesNotExist:
+            new_user = None
+
+        self.assertNotEqual(new_user, None)
+        self.assertNotEqual(new_user.validation_string, None)
+        self.assertTrue(new_user.is_student())
+
+        # Connection with a not-enabled-yet account
+        response = self.client.get('/shib/', request, **header, follow=True)
+        self.assertIn("Your account hasn't been enabled yet.", response.content.decode('utf-8'))
+
+        new_user.validate_account()
+        response = self.client.get('/shib/', request, **header, follow=True)
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
 
     def test_register(self):
         data = {
