@@ -15,19 +15,10 @@ from immersionlyceens.apps.core.models import (
     HighSchool, Calendar, UniversityYear, ImmersionUser
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
-
-
-class MockRequest:
-    pass
-
-
-# request = MockRequest()
-
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
-
 
 class ImmersionViewsTestCase(TestCase):
     """
@@ -252,4 +243,72 @@ class ImmersionViewsTestCase(TestCase):
         user = ImmersionUser.objects.get(username="@EXTERNAL@_hs")
         self.assertNotEqual(user.recovery_string, None)
 
+    def test_reset_password(self):
+        # Fail because of invalid hash
+        response = self.client.get('/immersion/reset_password/wrong_hash', follow=True)
+        self.assertIn("Password recovery : invalid data", response.content.decode('utf-8'))
+
+        # Set a hash and retry
+        self.highschool_user.recovery_string="hashtest"
+        self.highschool_user.save()
+        response = self.client.get('/immersion/reset_password/hashtest', follow=True)
+        self.assertNotIn("Password recovery : invalid data", response.content.decode('utf-8'))
+
+        # Password too short
+        response = self.client.post('/immersion/reset_password/hashtest',
+            {'password1': 'short', 'password2': 'short'}
+        )
+        self.assertIn("This password is too short. It must contain at least 8 characters.",
+            response.content.decode('utf-8')
+        )
+
+        # This one should be ok
+        response = self.client.post('/immersion/reset_password/hashtest',
+            {'password1': 'a_better_password', 'password2': 'a_better_password'}, follow=True
+        )
+        self.assertIn("Password successfully updated.", response.content.decode('utf-8'))
+
+    def test_activate(self):
+        # Set an activation string
+        self.highschool_user.validation_string = "activate_this"
+        self.highschool_user.save()
+
+        # Fail with incorrect hash
+        response = self.client.get('/immersion/activate/wrong_string', follow=True)
+        self.assertIn("Invalid activation data", response.content.decode('utf-8'))
+
+        # Success
+        response = self.client.get('/immersion/activate/activate_this', follow=True)
+        self.assertIn("Your account is now enabled. Thanks !", response.content.decode('utf-8'))
+
+    def test_resend_activation(self):
+        # Fail with account not found
+        response = self.client.post('/immersion/resend_activation', {'email': 'this.email@is_wrong.com'}, follow=True)
+        self.assertIn("No account found with this email address", response.content.decode('utf-8'))
+
+        # Success
+        response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)
+        self.assertIn("The activation message have been resent.", response.content.decode('utf-8'))
+
+        # Fail with account already activated
+        self.highschool_user.validation_string = None
+        self.highschool_user.save()
+        response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)
+        self.assertIn("This account has already been activated, please login.", response.content.decode('utf-8'))
+
+    def test_home(self):
+        # Not logged : redirection
+        response = self.client.post('/immersion/')
+        self.assertEqual(response.url, "/accounts/login/?next=/immersion/")
+
+        # Logged
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.post('/immersion/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_high_school_student_record(self):
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.post('/immersion/')
+
         # print(response.content.decode('utf-8'))
+
