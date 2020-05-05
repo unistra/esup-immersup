@@ -9,7 +9,7 @@ from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from immersionlyceens.libs.utils import get_general_setting
+from immersionlyceens.libs.utils import get_general_setting, get_information_text
 
 # TODO: uncomment later
 from ..apps.core.models import GeneralSettings, ImmersionUser
@@ -109,3 +109,11 @@ class AuthorizedGroupsNode(template.Node):
 def in_groups(value, args):
     value = value or set()
     return value & set(args.split(','))
+
+
+@register.simple_tag
+def information_text_get(code):
+    try:
+        return get_information_text(code=code)
+    except (ValueError, NameError):
+        return ""

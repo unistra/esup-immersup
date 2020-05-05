@@ -50,3 +50,27 @@ def get_general_setting(name=None):
         raise ValueError
 
     return value
+
+
+def get_information_text(code=None):
+    """
+    Get InformationText model by code and returns its value
+    Raise ValueError if not found or None if 'name' is not set
+    """
+    if not code:
+        return None
+
+    try:
+        value = core_models.InformationText.objects.get(code=code, active=True).content
+    except core_models.InformationText.DoesNotExist:
+        # Text not found
+        raise NameError
+    except AttributeError:
+        # Text is None
+        raise ValueError
+
+    # Text is empty
+    if not value:
+        raise ValueError
+
+    return value
