@@ -192,7 +192,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_cas.middleware.CASMiddleware',
-    'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
+    # 'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
+    'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware'
 ]
 
 AUTHENTICATION_BACKENDS = (
