@@ -12,7 +12,7 @@ from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
     Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, UniversityYear, ImmersionUser
+    HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -82,6 +82,13 @@ class ImmersionViewsTestCase(TestCase):
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
+        BachelorMention.objects.create(
+            label="Sciences et technologies du management et de la gestion (STMG)",
+            active=True
+        )
+
+        GeneralBachelorTeaching.objects.create(label="Maths", active=True)
+
         self.today = datetime.datetime.today()
         self.component = Component.objects.create(label="test component")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
@@ -103,13 +110,16 @@ class ImmersionViewsTestCase(TestCase):
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
         self.slot.teachers.add(self.teacher1),
-        self.high_school = HighSchool.objects.create(label='HS1', address='here',
-                         department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-                         email='a@b.c', head_teacher_name='M. A B')
+        self.high_school = HighSchool.objects.create(
+            label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
+            email='a@b.c', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10))
+        """
         self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
                         highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
                         phone='0123456789', level=1, class_name='1ere S 3',
                         bachelor_type=3, professional_bachelor_mention='My spe')
+        """
         self.lyc_ref.highschool = self.high_school
         self.lyc_ref.save()
         self.calendar = Calendar.objects.create(
@@ -158,7 +168,8 @@ class ImmersionViewsTestCase(TestCase):
 
         response = self.client.post('/immersion/login', {'login': 'hs', 'password': 'pass'})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/immersion")
+        # The record doesn't exist : the user is redirected to the record creation page
+        self.assertEqual(response.url, "/immersion/hs_record")
 
 
     def test_shibboleth_login(self):
@@ -208,6 +219,40 @@ class ImmersionViewsTestCase(TestCase):
         new_user.validate_account()
         response = self.client.get('/shib/', request, **header, follow=True)
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        # Student record data
+        record_data = {
+            "student": new_user.id,
+            "civility": 1,
+            "last_name": new_user.last_name,
+            "first_name": new_user.first_name,
+            "email": new_user.email,
+            "birth_date": "",
+            "phone": "0388010101",
+            "uai_code": "0673021V",
+            "level": 1,
+            "origin_bachelor_type": 1,
+            "current_diploma": "DUT 1ere année",
+            "submit": 1,
+        }
+
+        # Missing fields
+        response = self.client.post('/immersion/student_record', record_data, follow=True)
+        self.assertIn("This field is required", response.content.decode('utf-8'))
+
+        # All fields
+        record_data["birth_date"] = "1999-01-04"
+        record_data["current_diploma"] = "DUT 1ere année",
+
+        response = self.client.post('/immersion/student_record', record_data, follow=True)
+        self.assertIn("Record successfully saved.", response.content.decode('utf-8'))
+
+        # Post with an another email
+        record_data["email"] = "another@email.com"
+        response = self.client.post('/immersion/student_record', record_data, follow=True)
+
+        user = ImmersionUser.objects.get(pk=new_user.id,)
+        self.assertNotEqual(user.validation_string, None)
 
 
     def test_register(self):
@@ -332,8 +377,63 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_high_school_student_record(self):
+        # First check that high school student record doesn't exist yet
+        self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user).exists())
+
         self.client.login(username='@EXTERNAL@_hs', password='pass')
-        response = self.client.post('/immersion/')
+        response = self.client.get('/immersion/hs_record')
+
+        self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        record_data = {
+            "student": self.highschool_user.id,
+            "civility": 1,
+            "last_name": self.highschool_user.last_name,
+            "first_name": self.highschool_user.first_name,
+            "email": self.highschool_user.email,
+            "birth_date": "",
+            "phone": "0388010101",
+            "highschool": self.high_school.id,
+            "level": 1,
+            "class_name": "S10",
+            "bachelor_type": 1,
+            "general_bachelor_teachings": [1],
+            "technological_bachelor_mention": "",
+            "professional_bachelor_mention": "",
+            "post_bachelor_level": "",
+            "origin_bachelor_type": 1,
+            "current_diploma": "",
+            "visible_immersion_registrations": 1,
+            "visible_email": 1,
+            "submit": 1,
+        }
+
+        # Missing fields
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        self.assertIn("This field is required", response.content.decode('utf-8'))
+
+        # All fields
+        record_data["birth_date"] = "1999-01-04"
+        record_data["post_bachelor_level"] = 1
+
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        self.assertIn("Thank you. Your record is awaiting validation from your high-school referent.",
+            response.content.decode('utf-8'))
+        self.assertIn("Record successfully saved.", response.content.decode('utf-8'))
+
+        # Post with an another email
+        record_data["email"] = "another@email.com"
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+
+        user = ImmersionUser.objects.get(pk=self.highschool_user.id)
+        self.assertNotEqual(user.validation_string, None)
+
+
+    def test_immersions(self):
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.get('/immersion/immersions')
+
+        self.assertIn("Immersions to come", response.content.decode('utf-8'))
 
         # print(response.content.decode('utf-8'))
-
