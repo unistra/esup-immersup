@@ -2,35 +2,36 @@
 {% load static staticfiles i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
-{% block section_title %}
-<h2 class="ml-2">{% trans 'Welcome on Immersion Lycéens' %}</h2>
-{% endblock %}
-
 {% block content %}
-<div class="container">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-      {% trans 'Password reset' %}
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1>{% trans 'Password reset' %}</h1>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
+  </div>
+  <section class="py-5">
+    <div class="container">
       <form method="post">
         {% csrf_token %}
-        <div class="form-group row">
-          <label for="id_email" class="col-sm-2 col-form-label">{% trans 'My email address' %} :</label>
-          <div class="col-sm-3">
-            <input type="email" name="email" maxlength="254" required id="id_email" value="{{ email }}">
+
+        <div class="form-group row justify-content-center">
+          <label for="id_email" class="col-sm-3 col-lg-2 col-form-label">{% trans 'My email address' %} :</label>
+          <div class="col-sm-9 col-md-6">
+            <input type="email" name="email" class="form-control" maxlength="254" required id="id_email" value="{{ email }}">
           </div>
         </div>
-        <div class="form-group row">
-          <div class="col-sm-6 text-right">
-            <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Send me instructions !' %}">
-          </div>
-          <div class="col-sm-6">
-            <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary btn-sm" style='margin-left:40px;'>{% trans 'Back' %}</a>
+        <div class="form-group row justify-content-center">
+          <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
+            <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Send me instructions !' %}">
+            <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-outline-secondary">{% trans 'Back' %}</a>
           </div>
         </div>
       </form>
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}
