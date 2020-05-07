@@ -344,14 +344,14 @@ $(document).ready(function(){
           success: function (json) {
             if(json['error']) {
               $("#cancel_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-              setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+              setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
             } else {
               dtr.ajax.reload();
               dt.ajax.reload();
               $('#checkall').prop('checked', false);
               $('#select_cancel_type').val('');
               $("#cancel_feedback").html('<div class="alert alert-success">{% trans 'Registration(s) successful cancelled' %}</div>');
-              setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+              setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
             }
           },
           error: function(json) {

@@ -126,12 +126,12 @@ function register_student(student_id, slot_id, force=false) {
               if (confirm("{% trans 'Selected student as no remaining registration available would you like to register anyway'%}")) { register_student(student_id, slot_id, force=true); }
             } else {
               $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-              setTimeout(function() { $("#register_feedback").html('');}, 3000);
+              setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
             }
 
         } else {
             $("#register_feedback").html('<div class="alert alert-success">{% trans 'Registration successful' %}</div>');
-            setTimeout(function() { $("#register_feedback").html('');}, 3000);
+            setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
             dtr.ajax.reload();
             dt.ajax.reload();
             reload_register_students();

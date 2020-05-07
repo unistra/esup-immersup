@@ -48,10 +48,10 @@
         if(json['error']) {
             console.log(json['msg']);
             $("#alert_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
-            setTimeout(function() { $("#alert_feedback").html('');}, 3000);
+            setTimeout(function() { $("#alert_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
         } else {
             $("#feedback").html('<div class="alert alert-success">'+json['msg']+'</div>');
-            setTimeout(function() { $("#feedback").html('');}, 3000);
+            setTimeout(function() { $("#feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
             $("#modal_course_alert").modal('hide');
 
             // Hide the badge without refreshing the whole page

@@ -131,7 +131,7 @@ function open_modal(slot_id, edit_mode, n_places, is_past=false) {
 
 $(document).ready(function(){
     // reset feedback
-    setTimeout(function(){$('#feedback').html('')}, 3000);
+    setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
 
     var selected_training = false;
 
@@ -464,7 +464,7 @@ function reload_data() {
 
 function show_top_indicator(text) {
     let fade = 1000;
-    let display = 3000;
+    let display = {%  settings_get 'MESSAGES_TIMEOUT' %};
     $('#top_indicator__content').html(text);
     $('#top_indicator').removeClass('hide');
     $('#top_indicator').show();
