@@ -303,7 +303,7 @@ $(document).ready(function(){
     }
     initFeedback();
     // reset feedback
-    setTimeout(function(){$('#feedback').html('')}, 3000);
+    setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
 
     function check_course_publication ( course_id )
     {
@@ -604,7 +604,7 @@ $(document).ready(function(){
                     $('#ok_modify').hide();
                 });
             },
-            3000
+            {%  settings_get 'MESSAGES_TIMEOUT' %}
         );
         {% endif %}
 

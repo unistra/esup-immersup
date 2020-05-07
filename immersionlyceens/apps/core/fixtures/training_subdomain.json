@@ -1,0 +1,153 @@
+[{
+  "model": "core.trainingsubdomain",
+  "pk": 2,
+  "fields": {
+    "label": "Histoire",
+    "training_domain": 2,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 3,
+  "fields": {
+    "label": "Lettres",
+    "training_domain": 1,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 4,
+  "fields": {
+    "label": "Sciences de la vie",
+    "training_domain": 3,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 5,
+  "fields": {
+    "label": "Chimie",
+    "training_domain": 3,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 6,
+  "fields": {
+    "label": "Informatique",
+    "training_domain": 3,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 7,
+  "fields": {
+    "label": "Droit",
+    "training_domain": 4,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 8,
+  "fields": {
+    "label": "\u00c9conomie et Gestion",
+    "training_domain": 4,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 9,
+  "fields": {
+    "label": "Langues",
+    "training_domain": 1,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 10,
+  "fields": {
+    "label": "Arts visuels",
+    "training_domain": 1,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 11,
+  "fields": {
+    "label": "Arts du spectacle",
+    "training_domain": 1,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 12,
+  "fields": {
+    "label": "Musicologie",
+    "training_domain": 1,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 13,
+  "fields": {
+    "label": "Histoire de l'art et Arch\u00e9ologie",
+    "training_domain": 2,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 14,
+  "fields": {
+    "label": "Psychologie",
+    "training_domain": 2,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 15,
+  "fields": {
+    "label": "Philosophie",
+    "training_domain": 2,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 16,
+  "fields": {
+    "label": "Sciences sociales",
+    "training_domain": 2,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 17,
+  "fields": {
+    "label": "Sciences et techniques des activit\u00e9s physiques et sportives (STAPS)",
+    "training_domain": 2,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 18,
+  "fields": {
+    "label": "Th\u00e9ologie",
+    "training_domain": 2,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 19,
+  "fields": {
+    "label": "Physique",
+    "training_domain": 3,
+    "active": true
+  }
+}, {
+  "model": "core.trainingsubdomain",
+  "pk": 20,
+  "fields": {
+    "label": "G\u00e9ographie",
+    "training_domain": 2,
+    "active": true
+  }
+}]

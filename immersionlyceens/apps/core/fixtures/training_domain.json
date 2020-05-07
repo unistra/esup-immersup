@@ -1,0 +1,29 @@
+[{
+  "model": "core.trainingdomain",
+  "pk": 1,
+  "fields": {
+    "label": "Arts, Lettres et Langues",
+    "active": true
+  }
+}, {
+  "model": "core.trainingdomain",
+  "pk": 2,
+  "fields": {
+    "label": "Sciences humaines et sociales",
+    "active": true
+  }
+}, {
+  "model": "core.trainingdomain",
+  "pk": 3,
+  "fields": {
+    "label": "Sciences et Technologies, Sant\u00e9",
+    "active": true
+  }
+}, {
+  "model": "core.trainingdomain",
+  "pk": 4,
+  "fields": {
+    "label": "Droit, \u00c9conomie et Gestion, Sciences politiques et sociales",
+    "active": true
+  }
+}]

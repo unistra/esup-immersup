@@ -3,13 +3,6 @@
 }
 
 
-/*
- *TODO: check img backgrounds
- * (./img/backgrounds/*.jpg 14 is enough?)
- *TODO: minify this file at the end!
- */
-
-
 /*!
  * Bootstrap v4.4.1 (https://getbootstrap.com/)
  * Copyright 2011-2019 The Bootstrap Authors
@@ -2556,7 +2549,8 @@ textarea.form-control.is-invalid {
     }
 }
 
-.btn {
+.btn,
+#navbarDropdownUser {
     display: inline-block;
     font-weight: 400;
     color: #101517;
@@ -2574,24 +2568,30 @@ textarea.form-control.is-invalid {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .btn {
+    .btn,
+    #navbarDropdownUser {
         transition: none
     }
 }
 
-.btn:hover {
+.btn:hover,
+#navbarDropdownUser:hover {
     color: #101517;
     text-decoration: none
 }
 
 .btn:focus,
-.btn.focus {
+.btn.focus,
+#navbarDropdownUser:focus,
+#navbarDropdownUser.focus {
     outline: 0;
     box-shadow: 0 0 0 .2rem rgba(176, 60, 87, 0.25)
 }
 
 .btn.disabled,
-.btn:disabled {
+.btn:disabled,
+#navbarDropdownUser.disabled,
+#navbarDropdownUser:disabled {
     opacity: .65
 }
 
@@ -3008,6 +3008,47 @@ fieldset:disabled a.btn {
 .btn-gray:not(:disabled):not(.disabled).active:focus,
 .show>.btn-gray.dropdown-toggle:focus {
     box-shadow: 0 0 0 .2rem rgba(155, 171, 177, 0.5)
+}
+
+#navbarDropdownUser {
+    color: #fff;
+    background-color: #2D7F80;
+    border-color: #2D7F80
+}
+
+#navbarDropdownUser:hover {
+    color: #fff;
+    background-color: #236364;
+    border-color: #205a5a
+}
+
+#navbarDropdownUser:focus,
+#navbarDropdownUser.focus {
+    color: #fff;
+    background-color: #236364;
+    border-color: #205a5a;
+    box-shadow: 0 0 0 .2rem rgba(77, 146, 147, 0.5)
+}
+
+#navbarDropdownUser.disabled,
+#navbarDropdownUser:disabled {
+    color: #fff;
+    background-color: #2D7F80;
+    border-color: #2D7F80
+}
+
+#navbarDropdownUser:not(:disabled):not(.disabled):active,
+#navbarDropdownUser:not(:disabled):not(.disabled).active,
+.show>#navbarDropdownUser.dropdown-toggle {
+    color: #fff;
+    background-color: #205a5a;
+    border-color: #1c5051
+}
+
+#navbarDropdownUser:not(:disabled):not(.disabled):active:focus,
+#navbarDropdownUser:not(:disabled):not(.disabled).active:focus,
+.show>#navbarDropdownUser.dropdown-toggle:focus {
+    box-shadow: 0 0 0 .2rem rgba(77, 146, 147, 0.5)
 }
 
 .btn-outline-primary {
@@ -10427,6 +10468,29 @@ a.text-gray:focus {
     }
 }
 
+.navbar .dropdown-toggle::after {
+    vertical-align: middle;
+    border-top: .25em solid;
+    border-right: .25em solid transparent;
+    border-left: .25em solid transparent
+}
+
+.navbar .dropdown-menu .dropdown-item {
+    padding: .8rem 2rem
+}
+
+.navbar .dropdown-menu span.dropdown-item {
+    padding: 1rem 2rem;
+    margin-top: -.5rem;
+    font-weight: bold;
+    background-color: #d9e2e5
+}
+
+.navbar .dropdown-menu span.dropdown-item:hover,
+.navbar .dropdown-menu span.dropdown-item:focus {
+    background-color: #d9e2e5
+}
+
 .nav-aside {
     width: 350px;
     max-width: 90vw
@@ -10456,6 +10520,15 @@ a.text-gray:focus {
 .breadcrumb-item+.breadcrumb-item::before {
     font-family: "Unistra Symbol";
     line-height: 1
+}
+
+#navbarDropdownUser {
+    font-weight: bold;
+    padding: .5rem 1rem
+}
+
+#navbarDropdownUser .fa {
+    margin-right: .6em
 }
 
 .share {
@@ -10588,6 +10661,10 @@ h1 {
     font-size: 1.5rem
 }
 
+.presentation a:not(.btn) {
+    color: #55c1c3
+}
+
 @media (max-width: 1199.98px) {
     .presentation {
         padding: 3rem 0;
@@ -10611,22 +10688,34 @@ h1 {
     align-items: center;
     padding: 1rem 0;
     position: relative;
-    color: white;
-    background: #221826
+    color: white
 }
 
 .main-title h1 {
-    margin-top: 0
+    margin-top: 0;
+    margin-bottom: 0
 }
 
 .main-title .bg-main-title {
     position: absolute;
+    z-index: -1;
     top: 0;
     bottom: 0;
     right: 0;
     left: 0;
     background: #221826 url(../img/bg-unistra.jpg) repeat-y top center;
     background-size: 100% auto
+}
+
+.main-title .bg-main-title+.container .col {
+    position: static
+}
+
+.main-title .bg-main-title+.container .col .close-button {
+    float: none !important;
+    position: absolute;
+    right: 0;
+    bottom: 0
 }
 
 .main-title.inside {
@@ -10644,8 +10733,56 @@ h1 {
     padding: 0 !important
 }
 
-.main-title[class*='domain-'].domain-1 .bg-main-title {
+
+/* TODO: should not be use */
+
+.main-title[class*='domain-'].domain-arts .bg-main-title {
     filter: brightness(.4);
+    background-image: url(../img/arts.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-deg .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/deg.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-dut .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/dut.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-ll .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/ll.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-sante .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/sante.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-st .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/st.jpg);
+    background-position: bottom center
+}
+
+.main-title[class*='domain-'].domain-shs .bg-main-title {
+    filter: brightness(.6);
+    background-image: url(../img/shs.jpg);
+    background-position: bottom center
+}
+
+
+/* TODO: check domains ids and that 14 domains is enough ??*/
+
+.main-title[class*='domain-'].domain-1 .bg-main-title {
+    filter: brightness(.6);
     background-image: url(../img/backgrounds/1.jpg);
     background-position: bottom center
 }
@@ -10831,6 +10968,15 @@ h1 {
     margin: auto
 }
 
+.card>header .domain-title .sun {
+    margin-left: 15px;
+    margin-right: 15px
+}
+
+.card>header .domain-title .sun-cell-inner {
+    white-space: normal
+}
+
 .card .list-group-flush .list-group-item:first-child {
     border-top-width: 1px
 }
@@ -10891,4 +11037,57 @@ h1 {
 
 .masonry-item {
     margin-bottom: 30px
+}
+
+.accordion .card .more-less-title {
+    margin-top: 0
+}
+
+.accordion .card .more-less-title button::after {
+    right: 30px
+}
+
+.accordion .card .more-less-title button[aria-expanded="true"]::after {
+    right: 30px
+}
+
+.accordion .card .card-body .card-header {
+    border-radius: 0;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-top: 0
+}
+
+.accordion .card .card-body .card-header:first-child {
+    border-top: 1px solid rgba(0, 0, 0, 0.125)
+}
+
+[name="csrfmiddlewaretoken"]~.form-group:nth-of-type(1),
+[name="csrfmiddlewaretoken"]~.form-group:nth-of-type(2) {
+    -webkit-justify-content: center;
+    justify-content: center
+}
+
+[name="csrfmiddlewaretoken"]~.form-group:nth-of-type(1) .col-sm-6,
+[name="csrfmiddlewaretoken"]~.form-group:nth-of-type(2) .col-sm-6 {
+    display: none
+}
+
+body>h2 {
+    text-align: center
+}
+
+body>section>.container-fluid>p,
+body>section>.container-sm>p,
+body>section>.container-md>p,
+body>section>.container-lg>p,
+body>section>.container-xl>p {
+    text-align: center
+}
+
+a.unlink {
+    color: #B03C57
+}
+
+#feedback:empty {
+    display: none
 }

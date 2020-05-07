@@ -67,11 +67,11 @@ function cancel_alert(alert_id) {
 
           if(error != '') {
             $("#cancel_feedback").html('<div class="alert alert-danger">'+json["error"]+'</div>');
-            setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+            setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
           }
           else if(msg != '') {
             $("#cancel_feedback").html('<div class="alert alert-success">'+json["msg"]+'</div>');
-            setTimeout(function() { $("#cancel_feedback").html('');}, 3000);
+            setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
           }
 
           reload_table();

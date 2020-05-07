@@ -442,7 +442,7 @@ function validate_student( student_record_id ) {
                             $('#validate_message').hide();
                         });
                     },
-                    3000
+                    {%  settings_get 'MESSAGES_TIMEOUT' %}
                 );
             } else {
                 $('#fail_message').show();
@@ -453,7 +453,7 @@ function validate_student( student_record_id ) {
                             $('#fail_message').hide();
                         }
                     )
-                }, 3000);
+                }, {%  settings_get 'MESSAGES_TIMEOUT' %});
             }
         },
         error: function() {
@@ -465,7 +465,7 @@ function validate_student( student_record_id ) {
                         $('#fail_message').hide();
                     }
                 )
-            }, 3000);
+            }, {%  settings_get 'MESSAGES_TIMEOUT' %});
         }
     });
 
@@ -495,7 +495,7 @@ function reject_student( student_record_id ) {
                                 $('#reject_message').hide();
                             });
                         },
-                        3000
+                        {%  settings_get 'MESSAGES_TIMEOUT' %}
                     );
 
                     let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
@@ -516,7 +516,7 @@ function reject_student( student_record_id ) {
                                 $('#fail_message').hide();
                             }
                         )
-                    }, 3000);
+                    }, {%  settings_get 'MESSAGES_TIMEOUT' %});
                 }
             },
             error: function() {
@@ -528,7 +528,7 @@ function reject_student( student_record_id ) {
                             $('#fail_message').hide();
                         }
                     )
-                }, 3000);
+                }, {%  settings_get 'MESSAGES_TIMEOUT' %});
             }
         });
     }
