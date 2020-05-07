@@ -377,6 +377,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
     if calendars:
         calendar = calendars.first()
 
+    # Unused ?
     if student_id:
         try:
             student = ImmersionUser.objects.get(pk=student_id)
@@ -419,7 +420,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             current_highschool = None
 
         recordform = HighSchoolStudentRecordForm(request.POST, instance=record, request=request)
-        studentform = HighSchoolStudentForm(request.POST, request=request, instance=student)
+        studentform = HighSchoolStudentForm(request.POST, instance=student, request=request)
 
         if studentform.is_valid():
             student = studentform.save()
@@ -524,6 +525,7 @@ def student_record(request, student_id=None, record_id=None):
     if calendars:
         calendar = calendars.first()
 
+    # Unused ?
     if student_id:
         try:
             student = ImmersionUser.objects.get(pk=student_id)
@@ -660,28 +662,16 @@ def immersions(request):
 
 @login_required
 @groups_required('LYC', 'ETU', 'REF-LYC', 'SCUIO-IP')
-def immersion_attestation_download(request, immersion_id, student_id=None):
-    if request.user.is_high_school_manager() or request.user.is_scuio_ip_manager():
-        student = get_object_or_404(ImmersionUser, pk=student_id)
-    else:
-        student = request.user
+def immersion_attestation_download(request, immersion_id):
+    """
+    Attestation download
+    """
     try:
         immersion = Immersion.objects.prefetch_related(
             'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
-        ).get(student_id=student.pk, pk=immersion_id, attendance_status=True)
+        ).get(pk=immersion_id, attendance_status=1)
 
-        if immersion.student.is_high_school_student():
-            record = immersion.student.get_high_school_student_record()
-            home_institution = record.highschool.label
-        elif immersion.student.is_student():
-            record = immersion.student.get_student_record()
-            home_institution = record.home_institution()[0]
-
-        vars = {
-            'student_birth_date': date_format(record.birth_date, 'd/m/Y'),
-            'home_institution': home_institution if home_institution else _('Information not available'),
-            'city': get_general_setting('PDF_CERTIFICATE_CITY'),
-        }
+        student = immersion.student
 
         tpl = MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True)
         certificate_body = parser(

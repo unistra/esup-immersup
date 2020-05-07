@@ -160,15 +160,24 @@ class HighSchoolStudentRecord(models.Model):
         return []
 
     def has_duplicates(self):
+        """
+        Returns True if record has duplicates
+        """
         return self.duplicates is not None
 
     def get_duplicates(self):
+        """
+        Returns duplicates list
+        """
         if self.has_duplicates():
             return sorted(json.loads(self.duplicates))
         else:
             return []
 
     def remove_duplicate(self, id=None):
+        """
+        Remove a record id from duplicates list
+        """
         try:
             id = int(id)
         except ValueError:

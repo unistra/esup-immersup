@@ -113,7 +113,7 @@ dtr = $('#immersions_table').DataTable({
         var msg = data;
 
         if(row.attendance_status == 1) {
-          msg += "<a href=\"../immersion/dl/attestation/" + row.id + "/student/" + current_student_id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+          msg += "<a href=\"../immersion/dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download'></i>" +
                   "</a>";
         }

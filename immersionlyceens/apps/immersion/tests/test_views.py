@@ -12,7 +12,8 @@ from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
     Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention
+    HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
+    Immersion
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -25,7 +26,7 @@ class ImmersionViewsTestCase(TestCase):
     Immersion app views tests
     """
 
-    fixtures = ['group']
+    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
 
     def setUp(self):
         """
@@ -42,6 +43,19 @@ class ImmersionViewsTestCase(TestCase):
 
         self.highschool_user.set_password('pass')
         self.highschool_user.save()
+
+        # Set a second high school student for duplicates search
+        self.highschool_user2 = get_user_model().objects.create_user(
+            username='@EXTERNAL@_hs2',
+            password='pass',
+            email='hs2@no-reply.com',
+            first_name='high',
+            last_name='SCHOOL',
+            validation_string=None,
+        )
+
+        self.highschool_user2.set_password('pass')
+        self.highschool_user2.save()
 
         self.student_user = get_user_model().objects.create_user(
             username='test@student.fr',
@@ -76,11 +90,17 @@ class ImmersionViewsTestCase(TestCase):
             last_name='scuio',
         )
 
+        self.scuio_user.set_password('pass')
+        self.scuio_user.save()
+
         self.client = Client()
 
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
+        Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
+        Group.objects.get(name='ETU').user_set.add(self.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
+        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
 
         BachelorMention.objects.create(
             label="Sciences et technologies du management et de la gestion (STMG)",
@@ -114,6 +134,11 @@ class ImmersionViewsTestCase(TestCase):
             label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
             email='a@b.c', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
             convention_end_date=self.today + datetime.timedelta(days=10))
+
+        self.high_school2 = HighSchool.objects.create(
+            label='HS2', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
+            email='d@e.fr', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10))
         """
         self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
                         highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
@@ -137,6 +162,12 @@ class ImmersionViewsTestCase(TestCase):
             end_date=self.today.date() + datetime.timedelta(days=20),
             registration_start_date=self.today.date() - datetime.timedelta(days=1),
             active=True,
+        )
+
+        self.immersion = Immersion.objects.create(
+            student=self.highschool_user,
+            slot=self.slot,
+            attendance_status=1
         )
 
     def test_login(self):
@@ -224,7 +255,7 @@ class ImmersionViewsTestCase(TestCase):
         record_data = {
             "student": new_user.id,
             "civility": 1,
-            "last_name": new_user.last_name,
+            "last_name": "",
             "first_name": new_user.first_name,
             "email": new_user.email,
             "birth_date": "",
@@ -241,6 +272,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("This field is required", response.content.decode('utf-8'))
 
         # All fields
+        record_data["last_name"] = new_user.last_name
         record_data["birth_date"] = "1999-01-04"
         record_data["current_diploma"] = "DUT 1ere année",
 
@@ -251,8 +283,23 @@ class ImmersionViewsTestCase(TestCase):
         record_data["email"] = "another@email.com"
         response = self.client.post('/immersion/student_record', record_data, follow=True)
 
-        user = ImmersionUser.objects.get(pk=new_user.id,)
+        user = ImmersionUser.objects.get(pk=new_user.id)
         self.assertNotEqual(user.validation_string, None)
+
+        # Test uai code update
+        record = StudentRecord.objects.get(student=user)
+        record.uai_code = "XXXXX"
+        record.save()
+        response = self.client.get('/immersion/student_record', follow=True)
+        record = StudentRecord.objects.get(student=user)
+        self.assertEqual(record.uai_code, "0673021V")
+
+
+        # Test get route as scuio-ip user
+        record = StudentRecord.objects.get(student=user)
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get('/immersion/student_record/%s' % record.id)
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
 
     def test_register(self):
@@ -297,6 +344,14 @@ class ImmersionViewsTestCase(TestCase):
         lyc_group = Group.objects.get(name='LYC')
         self.assertIn(lyc_group, new_account.groups.all())
 
+        # fail with an invalid year
+        self.university_year.registration_start_date = self.today + datetime.timedelta(days=10)
+        self.university_year.registration_end_date = self.today + datetime.timedelta(days=20)
+        self.university_year.save()
+
+        response = self.client.get('/immersion/register', follow=True)
+        self.assertIn("Sorry, you can't register right now.", response.content.decode('utf-8'))
+
     def test_recovery(self):
         # Fail : not a highschool user
         response = self.client.post('/immersion/recovery', {'email': 'test@student.fr'})
@@ -337,6 +392,31 @@ class ImmersionViewsTestCase(TestCase):
             {'password1': 'a_better_password', 'password2': 'a_better_password'}, follow=True
         )
         self.assertIn("Password successfully updated.", response.content.decode('utf-8'))
+
+    def test_change_password(self):
+        # Simple get change password page
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.get('/immersion/change_password', follow=True)
+        self.assertIn("Password change", response.content.decode('utf-8'))
+
+        current_password = ImmersionUser.objects.get(pk=self.highschool_user.id).password
+
+        # Post new password
+        # Fail
+        data = {
+            "old_password": "pass",
+            "new_password1": "this_is_my_new_pass",
+            "new_password2": "this_is_my_new_pass_with_error",
+        }
+        response = self.client.post('/immersion/change_password', data)
+        self.assertIn("The two password fields didn't match", response.content.decode('utf-8'))
+
+        # Success
+        data["new_password2"] = "this_is_my_new_pass"
+        response = self.client.post('/immersion/change_password', data)
+        self.assertIn("Password successfully updated", response.content.decode('utf-8'))
+        self.assertNotEqual(ImmersionUser.objects.get(pk=self.highschool_user.id).password, current_password)
+
 
     def test_activate(self):
         # Set an activation string
@@ -389,7 +469,7 @@ class ImmersionViewsTestCase(TestCase):
         record_data = {
             "student": self.highschool_user.id,
             "civility": 1,
-            "last_name": self.highschool_user.last_name,
+            "last_name": "",
             "first_name": self.highschool_user.first_name,
             "email": self.highschool_user.email,
             "birth_date": "",
@@ -414,6 +494,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("This field is required", response.content.decode('utf-8'))
 
         # All fields
+        record_data["last_name"] = self.highschool_user.last_name
         record_data["birth_date"] = "1999-01-04"
         record_data["post_bachelor_level"] = 1
 
@@ -429,11 +510,96 @@ class ImmersionViewsTestCase(TestCase):
         user = ImmersionUser.objects.get(pk=self.highschool_user.id)
         self.assertNotEqual(user.validation_string, None)
 
+        # Assume the record has been rejected, then repost with another high school (validation should be set to 1)
+        record = HighSchoolStudentRecord.objects.get(student=self.highschool_user)
+        self.assertEqual(record.validation, 1)
+        record.validation = 3 # Rejected
+        record.save()
+
+        record_data["highschool"] = self.high_school2.id
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+
+        record = HighSchoolStudentRecord.objects.get(student=self.highschool_user)
+        self.assertEqual(record.highschool.id, self.high_school2.id)
+        self.assertEqual(record.validation, 1)
+
+        # Test record duplication with another student
+        self.client.login(username='@EXTERNAL@_hs2', password='pass')
+        self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user2).exists())
+        response = self.client.get('/immersion/hs_record')
+        self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
+        record_data["student"] = self.highschool_user2.id
+        record_data["last_name"] = self.highschool_user2.last_name
+        record_data["first_name"] = self.highschool_user2.first_name
+        record_data["email"] = self.highschool_user2.email,
+
+        response = self.client.post('/immersion/hs_record', record_data, follow=True)
+        self.assertIn("A record already exists with this identity, please contact the SCUIO-IP team.",
+            response.content.decode('utf-8'))
+
+        # Test get route as scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get('/immersion/hs_record/%s' % record.id)
+        self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
+
 
     def test_immersions(self):
+        # Should redirect to login page
+        response = self.client.get('/immersion/immersions')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/accounts/login/?next=/immersion/immersions")
+
+        # Simple view check
         self.client.login(username='@EXTERNAL@_hs', password='pass')
         response = self.client.get('/immersion/immersions')
-
         self.assertIn("Immersions to come", response.content.decode('utf-8'))
 
-        # print(response.content.decode('utf-8'))
+
+    def test_immersion_attestation_download(self):
+        # as a student
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response._headers['content-type'], ('Content-Type', 'application/pdf'))
+
+        # as scuio-ip manager
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response._headers['content-type'], ('Content-Type', 'application/pdf'))
+
+
+    def test_record_duplicates(self):
+        record = HighSchoolStudentRecord.objects.create(student=self.highschool_user, highschool=self.high_school,
+            birth_date="1990-02-19", civility=1, level=1, class_name="S20", bachelor_type=1,
+            visible_immersion_registrations=False, visible_email=False, allowed_global_registrations=None,
+            allowed_first_semester_registrations=2, allowed_second_semester_registrations=2, validation=2,
+            duplicates="[5,6,4]")
+
+        record2 = HighSchoolStudentRecord.objects.create(student=self.highschool_user2, highschool=self.high_school,
+            birth_date="1990-02-19", civility=1, level=1, class_name="S20", bachelor_type=1,
+            visible_immersion_registrations=False, visible_email=False, allowed_global_registrations=None,
+            allowed_first_semester_registrations=2, allowed_second_semester_registrations=2, validation=2,
+            duplicates="[5,6,4]")
+
+        self.assertEqual(HighSchoolStudentRecord.get_duplicate_tuples(), {(record2.id, 4, 5, 6), (record.id, 4, 5, 6)})
+
+        self.assertTrue(record.has_duplicates())
+        self.assertEqual(record.get_duplicates(), [4,5,6])
+        record.remove_duplicate(id=5)
+        self.assertEqual(record.get_duplicates(), [4,6])
+        self.assertEqual(record.solved_duplicates, "5")
+
+        record.solved_duplicates = "6,7"
+        record.save()
+
+        HighSchoolStudentRecord.clear_duplicate(6)
+
+        record = HighSchoolStudentRecord.objects.get(pk=1)
+        record2 = HighSchoolStudentRecord.objects.get(pk=2)
+
+        self.assertEqual(record.get_duplicates(), [4])
+        self.assertEqual(record.solved_duplicates, "7")
+        self.assertEqual(record2.get_duplicates(), [4,5])
