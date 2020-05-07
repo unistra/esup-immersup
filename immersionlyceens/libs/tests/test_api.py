@@ -45,15 +45,27 @@ class APITestCase(TestCase):
         self.scuio_user = get_user_model().objects.create_user(
             username='scuio', password='pass', email='immersion@no-reply.com', first_name='scuio', last_name='scuio',
         )
+        self.scuio_user.set_password('pass')
+        self.scuio_user.save()
+
         self.highschool_user = get_user_model().objects.create_user(
-            username='hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
+            username='@EXTERNAL@_hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
         )
+        self.highschool_user.set_password('pass')
+        self.highschool_user.save()
+
         self.highschool_user2 = get_user_model().objects.create_user(
-            username='hs2', password='pass', email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2',
+            username='@EXTERNAL@_hs2', password='pass', email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2',
         )
+        self.highschool_user2.set_password('pass')
+        self.highschool_user2.save()
+
         self.highschool_user3 = get_user_model().objects.create_user(
-            username='hs3', password='pass', email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3',
+            username='@EXTERNAL@_hs3', password='pass', email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3',
         )
+        self.highschool_user3.set_password('pass')
+        self.highschool_user3.save()
+
         self.ref_comp = get_user_model().objects.create_user(
             username='refcomp',
             password='pass',
@@ -104,13 +116,16 @@ class APITestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
         self.today = datetime.today()
+
         self.calendar = Calendar.objects.create(
+            label="Calendrier1",
             calendar_mode=Calendar.CALENDAR_MODE[0][0],
             year_start_date=self.today - timedelta(days=10),
             year_end_date=self.today + timedelta(days=10),
             year_nb_authorized_immersion=4,
             year_registration_start_date=self.today - timedelta(days=9)
         )
+
         self.vac = Vacation.objects.create(
             label="vac",
             start_date=self.today - timedelta(days=2),
@@ -148,10 +163,60 @@ class APITestCase(TestCase):
             campus=self.campus,
             building=self.building,
             room='room 2',
-            date=self.today,
+            date=self.today + timedelta(days=1),
             start_time=time(12, 0),
             end_time=time(14, 0),
             n_places=20,
+            additional_information="Hello there!"
+        )
+        self.slot3 = Slot.objects.create(
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            date=self.today + timedelta(days=2),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
+        )
+        self.full_slot = Slot.objects.create(
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            date=self.today + timedelta(days=1),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=0,
+            additional_information="Hello there!"
+        )
+        self.past_slot = Slot.objects.create(
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            date=self.today - timedelta(days=1),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
+        )
+
+        self.unpublished_slot = Slot.objects.create(
+            course=self.course,
+            course_type=self.course_type,
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            date=self.today + timedelta(days=1),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            published=False,
             additional_information="Hello there!"
         )
         self.slot.teachers.add(self.teacher1),
@@ -180,6 +245,9 @@ class APITestCase(TestCase):
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
             visible_email=True,
+            allowed_global_registrations=2,
+            allowed_first_semester_registrations=2,
+            allowed_second_semester_registrations=2,
         )
         self.hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
@@ -193,6 +261,9 @@ class APITestCase(TestCase):
             professional_bachelor_mention='My spe',
             visible_immersion_registrations=True,
             visible_email=True,
+            allowed_global_registrations=2,
+            allowed_first_semester_registrations=0,
+            allowed_second_semester_registrations=0,
         )
         self.student_record = StudentRecord.objects.create(
             student=self.student,
@@ -200,7 +271,10 @@ class APITestCase(TestCase):
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
+            allowed_global_registrations=2,
+            allowed_first_semester_registrations=0,
+            allowed_second_semester_registrations=0,
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
@@ -208,7 +282,10 @@ class APITestCase(TestCase):
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
-            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0]
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
+            allowed_global_registrations=2,
+            allowed_first_semester_registrations=0,
+            allowed_second_semester_registrations=0,
         )
         self.lyc_ref.highschool = self.high_school
         self.lyc_ref.save()
@@ -392,7 +469,7 @@ class APITestCase(TestCase):
         self.assertIn('data', content)
         self.assertIsInstance(content['data'], list)
         self.assertIsInstance(content['msg'], str)
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 6)
         self.assertIsInstance(content['data'][0], dict)
         slot = content['data'][0]
         self.assertEqual(slot['id'], self.slot.id)
@@ -421,7 +498,7 @@ class APITestCase(TestCase):
         self.assertIn('data', content)
         self.assertIsInstance(content['data'], list)
         self.assertIsInstance(content['msg'], str)
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 6)
         self.assertIsInstance(content['data'][0], dict)
         slot = content['data'][0]
         self.assertEqual(slot['id'], self.slot.id)
@@ -577,6 +654,8 @@ class APITestCase(TestCase):
         request.user = self.scuio_user
         url = "/api/reject_student/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+
+        # Fail with no record id
         data = {}
         response = self.client.post(url, data, **header)
         content = json.loads(response.content.decode())
@@ -585,12 +664,9 @@ class APITestCase(TestCase):
         self.assertIn('data', content)
         self.assertIsNone(content['data'])
         self.assertIsInstance(content['msg'], str)
-        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['msg'], "Error: No student selected")
 
-    def test_API_ajax_get_reject_student__no_high_school_student_id(self):
-        request.user = self.scuio_user
-        url = "/api/reject_student/"
-        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        # Fail with record id error
         data = {'student_record_id': 0}
         response = self.client.post(url, data, **header)
         content = json.loads(response.content.decode())
@@ -599,7 +675,7 @@ class APITestCase(TestCase):
         self.assertIn('data', content)
         self.assertIsNone(content['data'])
         self.assertIsInstance(content['msg'], str)
-        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['msg'], "Error: No student record")
 
     def test_API_ajax_get_reject_student__ok(self):
         self.hs_record.validation = 1  # TO_VALIDATE
@@ -930,6 +1006,10 @@ class APITestCase(TestCase):
 
         self.slot.delete()
         self.slot2.delete()
+        self.slot3.delete()
+        self.full_slot.delete()
+        self.past_slot.delete()
+        self.unpublished_slot.delete()
 
         url = f"/api/delete_course"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1899,3 +1979,104 @@ class APITestCase(TestCase):
 
         with self.assertRaises(UserCourseAlert.DoesNotExist):
             UserCourseAlert.objects.get(pk=data['alert_id'])
+
+
+    def test_ajax_slot_registration(self):
+        self.hs_record.validation = 2
+        self.hs_record.save()
+
+        self.assertEqual(self.highschool_user.remaining_registrations_count(),
+            {'semester1': 2, 'semester2': 2, 'annually': 1}
+        )
+
+        client = Client()
+        client.login(username='@EXTERNAL@_hs', password='pass')
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+
+        # Should work
+        response = client.post("/api/register", {'slot_id': self.slot3.id }, **header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual("Registration successfully added", content['msg'])
+        self.assertEqual(self.highschool_user.remaining_registrations_count(),
+            { 'semester1': 2, 'semester2': 2, 'annually': 0 }
+        )
+        self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
+
+        # Fail : already registered
+        response = client.post("/api/register", {'slot_id': self.slot3.id}, **header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Already registered to this slot", content['msg'])
+
+        # Fail : no more registration allowed
+        response = client.post("/api/register", {'slot_id': self.slot2.id}, **header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("""You have no more remaining registration available, """
+            """you should cancel an immersion or contact immersion service""", content['msg'])
+
+        # reset immersions
+        Immersion.objects.filter(student=self.highschool_user).delete()
+
+        # Fail with past slot registration
+        response = client.post("/api/register", {'slot_id': self.past_slot.id}, **header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Register to past slot is not available", content['msg'])
+
+        # Fail with full slot registration
+        response = client.post("/api/register", {'slot_id': self.full_slot.id}, **header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("No seat available for selected slot", content['msg'])
+
+        # Fail with unpublished slot
+        response = client.post("/api/register", {'slot_id': self.unpublished_slot.id}, **header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
+
+        # Todo : needs more tests with other users (scuio, ref-cmp, ...)
+        # Todo : needs tests with a calendar in semester mode
+
+    def test_ajax_get_duplicates(self):
+        self.hs_record.duplicates="[%s]" % self.hs_record2.id
+        self.hs_record.save()
+
+        self.hs_record2.duplicates = "[%s]" % self.hs_record.id
+        self.hs_record2.save()
+
+        client = Client()
+        client.login(username='scuio', password='pass')
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        response = client.get("/api/get_duplicates", **header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['data'], [
+            {'id': 0, 'record_ids': [1, 2],
+             'names': ['SCHOOL high', 'SCHOOL2 high2'],
+             'birthdates': ['May 7, 2020', 'May 7, 2020'],
+             'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],
+             'emails': ['hs@no-reply.com', 'hs2@no-reply.com'],
+             'record_links': ['/immersion/hs_record/1', '/immersion/hs_record/2']}]
+        )
+
+    def test_ajax_keep_entries(self):
+        self.hs_record.duplicates = "[%s]" % self.hs_record2.id
+        self.hs_record.save()
+
+        self.hs_record2.duplicates = "[%s]" % self.hs_record.id
+        self.hs_record2.save()
+
+        client = Client()
+        client.login(username='scuio', password='pass')
+
+        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+
+        data = {
+            "entries[]": [self.hs_record.id, self.hs_record2.id]
+        }
+        response = client.post("/api/keep_entries", data, **header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Duplicates data cleared", content['msg'])
+
+        r1 = HighSchoolStudentRecord.objects.get(pk=self.hs_record.id)
+        r2 = HighSchoolStudentRecord.objects.get(pk=self.hs_record2.id)
+
+        self.assertEqual(r1.solved_duplicates, '2')
+        self.assertEqual(r2.solved_duplicates, '1')

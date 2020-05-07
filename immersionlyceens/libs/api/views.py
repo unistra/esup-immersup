@@ -1063,7 +1063,7 @@ def ajax_slot_registration(request):
                         ),
                     }
                     return JsonResponse(response, safe=False)
-                # ref cmp request & no more remaining restistration count for student
+                # ref cmp request & no more remaining registration count for student
                 elif request.user.is_component_manager and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
