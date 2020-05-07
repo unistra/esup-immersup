@@ -41,7 +41,7 @@
     {% block section_title %}{% endblock %}
 
     {% if messages %}
-    <div class="container sticky-top" style="top: 50px;padding: 10px;">
+    <div id="messages" class="container sticky-top" style="top: 50px;padding: 10px;">
       {% for message in messages %}
       {% get_bootstrap_alert_msg_css_name message.tags as alert_tag %}
       <div class="messages{% if alert_tag %} alert alert-{{ alert_tag }}{% endif %} alert-dismissible">
@@ -64,6 +64,13 @@
     <script src="{% static 'fonts/unistra-signature/3.0.1/js/sun.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/scripts.js' %}"></script>
+    <script>
+    // hide notifications messages after x seconds
+    var messages = document.getElementById("messages");
+    setTimeout(function(){
+      messages.style.display = "none";
+    }, {%  settings_get 'MESSAGES_TIMEOUT' %} );
+    </script>
     {% block foot-javascript %}{% endblock %}
 </body>
 </html>

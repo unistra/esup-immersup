@@ -516,3 +516,7 @@ INSTITUTES_URL = "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0
     "dataset=fr-esr-principaux-etablissements-enseignement-superieur&facet=uai&facet=type_d_etablissement"+\
     "&facet=com_nom&facet=dep_nom&facet=aca_nom&facet=reg_nom&facet=pays_etranger_acheminement"+\
     "&rows=%s&start=%s" # don't forget to add rows and start values in requests for pagination
+
+
+# Notifications display time (milliseconds)
+MESSAGES_TIMEOUT = 3000
