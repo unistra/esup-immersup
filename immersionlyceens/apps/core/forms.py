@@ -22,7 +22,8 @@ class CourseForm(forms.ModelForm):
         self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
 
         for field_name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
+            if not field.widget.__class__.__name__ == 'CheckboxInput':
+                field.widget.attrs.update({'class': 'form-control'})
 
         if self.request:
             allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
@@ -88,7 +89,7 @@ class SlotForm(forms.ModelForm):
             'end_time',
             'n_places',
             'additional_information',
-            'published',
+            #'published',
         ]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
@@ -155,7 +156,7 @@ class SlotForm(forms.ModelForm):
             'end_time',
             'n_places',
             'additional_information',
-            'published',
+            #'published',
         )
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
