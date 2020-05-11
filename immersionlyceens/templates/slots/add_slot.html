@@ -580,7 +580,10 @@ $(document).ready(function(){
             load_buildings($('#id_campus').val());
         {% endif %}
         {% if not slot_form.course.value %}
-            load_teachers($('#id_course').val());
+            id_course = $('#id_course').val();
+            if (id_course) {
+              load_teachers(id_course);
+            }
         {% endif %}
 
     {% endif %}
