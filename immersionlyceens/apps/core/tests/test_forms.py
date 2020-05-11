@@ -124,26 +124,7 @@ class FormTestCase(TestCase):
         """
         Test Evaluation form link creation
         """
-
-        type = EvaluationType.objects.create(code='testCode', label='testLabel')
-
-        request.user = self.scuio_user
-
-        data = {
-            'course': self.course.id,
-            'published': False,
-            'n_places': 10,
-        }
-        form = SlotForm(data=data)
-
-        self.assertFalse(form.is_valid())
-
-    def test_clean__no_calendar(self):
-        """
-        Test Evaluation form link creation
-        """
         self.calendar.delete()
-
         type = EvaluationType.objects.create(code='testCode', label='testLabel')
 
         request.user = self.scuio_user
@@ -157,23 +138,6 @@ class FormTestCase(TestCase):
 
         self.assertFalse(form.is_valid())
 
-    def test_clean__no_calendar(self):
-        """
-        Test Evaluation form link creation
-        """
-        self.calendar.delete()
-
-        type = EvaluationType.objects.create(code='testCode', label='testLabel')
-
-        request.user = self.scuio_user
-
-        data = {
-            'course': self.course.id,
-            'published': False,
-            'n_places': 10,
-        }
-        form = SlotForm(data=data)
-        self.assertFalse(form.is_valid())
 
     def test_clean__not_published(self):
         """
@@ -260,30 +224,7 @@ class FormTestCase(TestCase):
         """
         Test Evaluation form link creation
         """
-        self.course.published = False
-        self.course.save()
 
-        request.user = self.scuio_user
-
-        data = {
-            'course': self.course.id,
-            'course_type': self.course_type.id,
-            'campus': self.campus.id,
-            'building': self.building.id,
-            'room': 'room 1',
-            'date': self.today - datetime.timedelta(days=10),
-            'start_time': datetime.time(hour=12),
-            'end_time': datetime.time(hour=14),
-            'n_places': 10,
-            'published': True,
-        }
-        form = SlotForm(data=data)
-        self.assertTrue(form.is_valid())
-
-    def test_clean__date_not_in_calendar(self):
-        """
-        Test Evaluation form link creation
-        """
         self.course.published = False
         self.course.save()
 
@@ -303,6 +244,7 @@ class FormTestCase(TestCase):
         }
         form = SlotForm(data=data)
         self.assertFalse(form.is_valid())
+
 
     def test_clean__wrong_start_end_time(self):
         """
@@ -328,6 +270,7 @@ class FormTestCase(TestCase):
         form = SlotForm(data=data)
         self.assertFalse(form.is_valid())
 
+
     def test_HighSchoolStudentImmersionUserForm__ok(self):
         request.user = self.scuio_user
         data = {
@@ -337,6 +280,7 @@ class FormTestCase(TestCase):
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertTrue(form.is_valid())
 
+
     def test_HighSchoolStudentImmersionUserForm__no_last_name(self):
         request.user = self.scuio_user
         data = {
@@ -345,6 +289,7 @@ class FormTestCase(TestCase):
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertFalse(form.is_valid())
 
+
     def test_HighSchoolStudentImmersionUserForm__no_first_name(self):
         request.user = self.scuio_user
         data = {
@@ -352,3 +297,4 @@ class FormTestCase(TestCase):
         }
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertFalse(form.is_valid())
+

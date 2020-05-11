@@ -30,7 +30,7 @@ class ImmersionViewsTestCase(TestCase):
 
     def setUp(self):
         """
-        SetUp for Admin Forms tests
+        SetUp for Immersion app tests
         """
         self.highschool_user = get_user_model().objects.create_user(
             username='@EXTERNAL@_hs',

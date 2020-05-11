@@ -1090,7 +1090,7 @@ msgid "Holidays"
 msgstr "Jours fériés"
 
 #: immersionlyceens/apps/core/models.py:665
-msgid "An holiday with this label already exists"
+msgid "A holiday with this label already exists"
 msgstr "Un jour férié avec ce nom existe déjà"
 
 #: immersionlyceens/apps/core/models.py:682

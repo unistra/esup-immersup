@@ -642,14 +642,14 @@ class UniversityYear(models.Model):
 
 
 class Holiday(models.Model):
-    """University year"""
-
+    """
+    Holidays
+    """
     label = models.CharField(_("Label"), max_length=256, unique=True)
     date = models.DateField(_("Date"))
 
     class Meta:
         """Meta class"""
-
         verbose_name = _('Holiday')
         verbose_name_plural = _('Holidays')
 
@@ -662,7 +662,7 @@ class Holiday(models.Model):
         try:
             super(Holiday, self).validate_unique()
         except ValidationError as e:
-            raise ValidationError(_('An holiday with this label already exists'))
+            raise ValidationError(_('A holiday with this label already exists'))
 
     @classmethod
     def date_is_a_holiday(cls, _date):
@@ -670,7 +670,9 @@ class Holiday(models.Model):
 
 
 class Vacation(models.Model):
-    """University year"""
+    """
+    Vacations
+    """
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
     start_date = models.DateField(_("Start date"))
@@ -706,12 +708,6 @@ class Vacation(models.Model):
             return False
 
         return Vacation.objects.filter(start_date__lte=_date, end_date__gte=_date).exists()
-        """
-        for v in Vacation.objects.all():
-            if v.date_is_between(_date):
-                return True
-        return False
-        """
 
     @classmethod
     def get_vacation_period(cls, _date):
@@ -731,7 +727,9 @@ class Vacation(models.Model):
 
 
 class Calendar(models.Model):
-    """University year"""
+    """
+    Semesters or annual dates for current university year
+    """
 
     CALENDAR_MODE = [
         ('YEAR', _('Year')),

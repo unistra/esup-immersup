@@ -17,7 +17,7 @@ from django.utils.translation import gettext, ugettext_lazy as _
 
 from .forms import ContactForm, CourseForm, ComponentForm, MyHighSchoolForm, SlotForm
 from .models import (Campus, CancelType, Component, Course, HighSchool, ImmersionUser, Slot,
-                     Training, UniversityYear, Immersion)
+    Training, UniversityYear, Immersion, Holiday)
 
 logger = logging.getLogger(__name__)
 
@@ -25,33 +25,28 @@ logger = logging.getLogger(__name__)
 
 @groups_required('SCUIO-IP')
 def import_holidays(request):
-    """Import holidays from API if it's convigured"""
-    from immersionlyceens.apps.core.models import Holiday
-    from immersionlyceens.apps.core.models import UniversityYear
-
+    """
+    Import holidays from API if it has been configured
+    """
     redirect_url = '/admin/core/holiday'
 
-    if (
-        settings.WITH_HOLIDAY_API
-        and settings.HOLIDAY_API_URL
-        and settings.HOLIDAY_API_MAP
-        and settings.HOLIDAY_API_DATE_FORMAT
-    ):
+    if all([settings.WITH_HOLIDAY_API, settings.HOLIDAY_API_URL, settings.HOLIDAY_API_MAP,
+        settings.HOLIDAY_API_DATE_FORMAT]):
         url = settings.HOLIDAY_API_URL
 
         # get holidays data
         data = []
         try:
-            u = UniversityYear.objects.get(active=True)
+            year = UniversityYear.objects.get(active=True)
         except Exception as exc:
             logger.error(str(exc))
             return redirect(redirect_url)
 
         # get API holidays
         try:
-            data = requests.get(url.format(year=u.start_date.year)).json()
-            for elem in requests.get(url.format(year=u.end_date.year)).json():
-                data.append(elem)
+            data = requests.get(url.format(year=year.start_date.year)).json()
+            if year.start_date.year != year.end_date.year:
+                data += requests.get(url.format(year=year.end_date.year)).json()
         except Exception as exc:
             logging.error(str(exc))
 
@@ -61,17 +56,14 @@ def import_holidays(request):
                 _label = None
                 _date = None
 
-                # get mapped fields
+                # get mapped fields and save the object
                 try:
                     _date_unformated = holiday[settings.HOLIDAY_API_MAP['date']]
                     _date = datetime.strptime(_date_unformated, settings.HOLIDAY_API_DATE_FORMAT)
                     _label = holiday[settings.HOLIDAY_API_MAP['label']] + ' ' + str(_date.year)
+                    Holiday.objects.create(label=_label, date=_date)
                 except ValueError as exc:
                     logger.error(str(exc))
-
-                # Save
-                try:
-                    Holiday(label=_label, date=_date).save()
                 except IntegrityError as exc:
                     logger.warning(str(exc))
 
@@ -80,12 +72,15 @@ def import_holidays(request):
 
 @groups_required('SCUIO-IP', 'REF-CMP')
 def slots_list(request):
+    """
+    Get slots list
+    get filters : component and trainings
+    """
     template = 'slots/list_slots.html'
 
     comp_id = request.GET.get('c')
     train_id = request.GET.get('t')
 
-    components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
         components = Component.activated.all()
     elif request.user.is_component_manager():
@@ -101,10 +96,15 @@ def slots_list(request):
         'cancel_types': CancelType.objects.filter(active=True),
     }
 
-    if comp_id:
+    if comp_id and int(comp_id) in [c.id for c in components]:
         context['component_id'] = comp_id
-    if train_id:
-        context['training_id'] = train_id
+
+        # Make sure the training is active and belongs to the selected component
+        try:
+            if train_id and Training.objects.filter(id=int(train_id),components=comp_id, active=True).exists():
+                context['training_id'] = train_id
+        except ValueError:
+            pass
 
     return render(request, template, context=context)
 
@@ -382,7 +382,6 @@ def course(request, course_id=None, duplicate=False):
                     'url': course.url,
                 }
                 course = Course(**data)
-                # course_form = CourseForm(initial=data, request=request)
                 course_form = CourseForm(instance=course, request=request)
             else:
                 course_form = CourseForm(instance=course, request=request)
