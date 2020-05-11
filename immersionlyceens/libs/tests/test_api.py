@@ -2050,7 +2050,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], [
             {'id': 0, 'record_ids': [1, 2],
              'names': ['SCHOOL high', 'SCHOOL2 high2'],
-             'birthdates': ['May 7, 2020', 'May 7, 2020'],
+             'birthdates': [_date(self.hs_record.birth_date), _date(self.hs_record2.birth_date)],
              'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],
              'emails': ['hs@no-reply.com', 'hs2@no-reply.com'],
              'record_links': ['/immersion/hs_record/1', '/immersion/hs_record/2']}]
