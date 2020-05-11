@@ -67,9 +67,11 @@
     <script>
     // hide notifications messages after x seconds (see settings to set value)
     var messages = document.getElementById("messages");
-    setTimeout(function(){
-      messages.style.display = "none";
-    }, {%  settings_get 'MESSAGES_TIMEOUT' %} );
+    if(messages) {
+      setTimeout(function(){
+        messages.style.display = "none";
+      }, {%  settings_get 'MESSAGES_TIMEOUT' %} );
+    }
     </script>
     {% block foot-javascript %}{% endblock %}
 </body>
