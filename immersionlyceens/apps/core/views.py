@@ -101,7 +101,7 @@ def slots_list(request):
 
         # Make sure the training is active and belongs to the selected component
         try:
-            if train_id and Training.objects.filter(id=int(train_id),components=comp_id, active=True).exists():
+            if train_id and Training.objects.filter(id=int(train_id), components=comp_id, active=True).exists():
                 context['training_id'] = train_id
         except ValueError:
             pass
@@ -111,28 +111,27 @@ def slots_list(request):
 
 @groups_required('SCUIO-IP', 'REF-CMP')
 def add_slot(request, slot_id=None):
-    slot_form = None
-    context = {}
     slot = None
     teachers_idx = None
 
     if slot_id:
-        slot = Slot.objects.get(id=slot_id)
-        teachers_idx = [t.id for t in slot.teachers.all()]
-        slot.id = None
+        try:
+            slot = Slot.objects.get(id=slot_id)
+            teachers_idx = [t.id for t in slot.teachers.all()]
+            slot.id = None
+        except Slot.DoesNotExist: # id not found : make an empty slot
+            slot = Slot()
+            teachers_idx = []
 
     # get components
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
         components = Component.activated.all().order_by('label')
     elif request.user.is_component_manager:
-
         components = request.user.components.all().order_by('label')
 
-    if request.method == 'POST' and (
-        request.POST.get('save') or request.POST.get('duplicate') or request.POST.get('save_add')
-    ):
-
+    if request.method == 'POST' and \
+        any([request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]):
         slot_form = SlotForm(request.POST, instance=slot)
         teachers = []
         teacher_prefix = 'teacher_'

@@ -75,7 +75,7 @@ class CoreViewsTestCase(TestCase):
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='teacher-immersion@no-reply.com',
+            email='lycref@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )
@@ -162,8 +162,8 @@ class CoreViewsTestCase(TestCase):
         self.calendar = Calendar.objects.create(
             label='my calendar',
             calendar_mode='YEAR',
-            year_start_date=self.today + datetime.timedelta(days=1),
-            year_end_date=self.today + datetime.timedelta(days=100),
+            year_start_date=self.today - datetime.timedelta(days=10),
+            year_end_date=self.today + datetime.timedelta(days=10),
             year_registration_start_date=self.today + datetime.timedelta(days=2),
             year_nb_authorized_immersion=4
         )
@@ -218,3 +218,52 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/slots/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slots/")
+
+    def test_add_slot(self):
+        # As any other user
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.get("/core/slot/add")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/?next=/core/slot/add")
+
+        # As scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/slot/add", follow=True)
+        self.assertIn(self.component, response.context["components"])
+
+        data = {
+            'component': self.component.id,
+            'training': self.training.id,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': "212",
+            'date': (self.today - datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'start_time': "12:00",
+            'end_time': "14:00",
+            'teacher_%s' % self.teacher1.id: 1,
+            'n_places': 33,
+            'additional_information': "Here is additional data.",
+            'published': "on",
+            'save': 1
+        }
+        # Fail with date outside of calendar boundaries
+        response = self.client.post("/core/slot/add", data, follow=True)
+        self.assertFalse(Slot.objects.filter(room="212").exists())
+        self.assertIn("Error: The date must be between the dates of the current calendar",
+            response.content.decode('utf-8'))
+
+        # Success
+        data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        response = self.client.post("/core/slot/add", data, follow=True)
+
+        self.assertTrue(Slot.objects.filter(room="212").exists())
+        self.assertIn("Course published", response.content.decode('utf-8'))
+
+        # As component referent
+        self.client.login(username='refcmp', password='pass')
+        response = self.client.get("/core/slot/add", follow=True)
+        self.assertIn(self.component, response.context["components"])
+        self.assertEqual(response.context["components"].count(), 1)
+        self.assertNotIn(self.component2, response.context["components"])

@@ -622,11 +622,11 @@ msgid "Error: Start time must be set before end time"
 msgstr "Erreur: L'heure de fin doit être postérieure à l'heure de début"
 
 #: immersionlyceens/apps/core/forms.py:161
-msgid "Input additional information"
+msgid "Enter additional information"
 msgstr "Écrivez des informations complémentaires"
 
 #: immersionlyceens/apps/core/forms.py:163
-msgid "Input the room name"
+msgid "Enter the room name"
 msgstr "Entrez le nom d'une salle"
 
 #: immersionlyceens/apps/core/forms.py:165

@@ -158,9 +158,9 @@ class SlotForm(forms.ModelForm):
             'published',
         )
         widgets = {
-            'additional_information': forms.Textarea(attrs={'placeholder': _('Input additional information'),}),
+            'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
-            'room': forms.TextInput(attrs={'placeholder': _('Input the room name')}),
+            'room': forms.TextInput(attrs={'placeholder': _('Enter the room name')}),
             'date': forms.DateInput(
                 format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
             ),
