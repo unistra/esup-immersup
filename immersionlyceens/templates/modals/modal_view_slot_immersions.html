@@ -58,11 +58,11 @@
         <span id="count" class="pull-right mt-4"></span>
       </div>
       <div class="modal-footer">
-        <div class="form-group form-row">
+        <div class="form-group row justify-content-center">
         {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
-          <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-sm-2 col-form-label col-form-label-sm">{% trans 'Cancel type' %}</label>
-          <div class="col-sm-2">
-            <select class="form-control form-control-sm mr-2" name="cancel-type" id="select_cancel_type" disabled>
+          <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-2 col-form-label col-form-label-sm mt-2">{% trans 'Cancel type' %}</label>
+          <div class="col">
+            <select class="form-control form-control mr-2" name="cancel-type" id="select_cancel_type" disabled>
               <option value=""></option>
               {% for type in cancel_types  %}
                 <option value="{{ type.pk }}">{{ type.label }}</option>
@@ -76,7 +76,6 @@
           <button type="button" id="btn_contact_students" class="btn btn-primary mr-2" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
         {% endif %}
           <button type="button" class="btn btn-primary mr-2" data-dismiss="modal">{% trans 'Close' %}</button>
-
         </div>
       </div>
     </div>
