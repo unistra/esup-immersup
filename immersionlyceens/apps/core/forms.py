@@ -156,7 +156,7 @@ class SlotForm(forms.ModelForm):
             'end_time',
             'n_places',
             'additional_information',
-            #'published',
+            'published',
         )
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
