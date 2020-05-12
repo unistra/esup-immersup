@@ -14,45 +14,47 @@
         <div id="cancel_feedback"></div>
         <div class="row">
           <div class="col">
-            <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
-            <thead>
-              <tr>
-                <th></th>
-                <th>{% trans 'Lastname' %}</th>
-                <th>{% trans 'Firstname' %}</th>
-                <th>{% trans 'Profile' %}</th>
-                <th>{% trans 'High-school / Home institution' %}</th>
-                <th>{% trans 'City' %}</th>
-                <th>{% trans 'Level' %}</th>
-                <th>{% trans 'Attendances' %}</th>
-              </tr>
-              <tr>
-                <th colspan='7'></th>
-                <th>
-                  <div id="id_update_attendances" style="display:none">
-                    <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
-                      <i class='fa fas fa-check'></i>
-                     </button>
-                     <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_attendances(2)" title="{% trans 'Set all not Present' %}">
-                       <i class='fa fas fa-times'></i>
-                     </button>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tbody>
-            </table>
+            <div class="table-responsive">
+              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>{% trans 'Lastname' %}</th>
+                  <th>{% trans 'Firstname' %}</th>
+                  <th>{% trans 'Profile' %}</th>
+                  <th>{% trans 'High-school / Home institution' %}</th>
+                  <th>{% trans 'City' %}</th>
+                  <th>{% trans 'Level' %}</th>
+                  <th>{% trans 'Attendances' %}</th>
+                </tr>
+                <tr>
+                  <th colspan='7'></th>
+                  <th>
+                    <div id="id_update_attendances" style="display:none">
+                      <button class="btn btn-sm btn-light mr-4" name="all_present" onclick="set_all_attendances(1)" title="{% trans 'Set all present' %}">
+                        <i class='fa fas fa-check'></i>
+                      </button>
+                      <button class="btn btn-sm btn-light mr-4" name="all_not_present" onclick="set_all_attendances(2)" title="{% trans 'Set all not Present' %}">
+                        <i class='fa fas fa-times'></i>
+                      </button>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+              </table>
+            </div>
           </div>
         </div>
         <span id="count" class="pull-right mt-4"></span>
