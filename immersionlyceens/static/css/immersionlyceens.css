@@ -250,3 +250,10 @@ a.unlink:hover {
     margin: auto;
     text-align: center;
 }
+
+@media all and (max-width:480px) {
+    .resp-btn {
+        width: 100%;
+        display: block;
+    }
+}
