@@ -105,11 +105,11 @@
         </div>
         {% if can_update_courses %}
         <div class="form-group row">
-          <div class="btn-group col-xs-6 col-sm-3">
-            <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm col-xs-6" name="cancel">{% trans 'Cancel' %}</a>
-            <input type="submit" class="btn btn-secondary btn-sm col-xs-6" name="save" style="margin-left:15px;" value="{% trans 'Save' %}">
-            <input type="submit" class="btn btn-secondary btn-sm col-xs-6" name="save_duplicate" style="margin-left:15px;" value="{% trans 'Save and duplicate' %}">
-            <input type="submit" class="btn btn-secondary btn-sm col-xs-6" name="save_add_new" style="margin-left:15px;" value="{% trans 'Save and add new' %}">
+          <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
+            <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
+            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
+            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
           </div>
         </div>
         {% endif %}

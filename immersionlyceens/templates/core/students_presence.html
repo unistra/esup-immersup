@@ -28,11 +28,11 @@
     </div>
     <div class="card-body">
       <div class="form-group row align-items-center ml-1">
-        <label for="id_from" class="col-form-label"> {% trans 'From' %} : </label>
+        <label for="id_from" class="col-form-label ml-2"> {% trans 'From' %} : </label>
         <input type="text" id='id_from' name="{% trans 'from' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
         <label for="id_until" class="col-form-label ml-2"> {% trans 'To' %} : </label>
         <input type="text" id='id_until' name="{% trans 'until' %}" class="form-control form-control-sm col-sm-1 ml-2 datepicker">
-        <button id="id_dates_apply" name="dates_apply" class="ml-4 btn btn-secondary btn-sm">{% trans 'Apply' %}</button>
+        <button id="id_dates_apply" name="dates_apply" class="btn btn-secondary btn-sm ml-2">{% trans 'Apply' %}</button>
       </div>
       <div class="table-responsive">
         <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">

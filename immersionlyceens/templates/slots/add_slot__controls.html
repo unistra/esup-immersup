@@ -2,19 +2,19 @@
 
 <div class="form-group">
 
-    <button type="button" name="cancel" class="btn btn-danger back_btn">{% trans 'Cancel' %}</button>
+    <button type="button" name="cancel" class="btn btn-danger back_btn mb-1">{% trans 'Cancel' %}</button>
     {% if slot and slot.id %}
 
-        <input name="save" class="btn btn-primary" value="{% trans 'Modify' %}" type="submit">
-        <input name="duplicate" class="btn btn-secondary duplicate_save_btn"
+        <input name="save" class="btn btn-primary mb-1" value="{% trans 'Modify' %}" type="submit">
+        <input name="duplicate" class="btn btn-secondary duplicate_save_btn mb-1"
                value="{% trans 'Modify and duplicate' %}" type="submit">
-        <input name="save_add" class="btn btn-secondary save_add_btn"
+        <input name="save_add" class="btn btn-secondary save_add_btn mb-1"
                value="{% trans 'Modify and add' %}" type="submit">
     {% else %}
-        <input name="save" class="btn btn-primary" value="{% trans 'Save' %}" type="submit">
-        <input name="duplicate" class="btn btn-secondary duplicate_save_btn"
+        <input name="save" class="btn btn-primary mb-1" value="{% trans 'Save' %}" type="submit">
+        <input name="duplicate" class="btn btn-secondary duplicate_save_btn mb-1"
                value="{% trans 'Save and duplicate' %}" type="submit">
-        <input name="save_add" class="btn btn-secondary save_add_btn"
+        <input name="save_add" class="btn btn-secondary save_add_btn mb-1"
            value="{% trans 'Save and add' %}" type="submit">
     {% endif %}
 </div>
