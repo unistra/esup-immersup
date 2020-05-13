@@ -138,14 +138,14 @@ def add_slot(request, slot_id=None):
         for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
             teachers.append(teacher_id)
 
-        # if not pub --> len teachers must be > 0
-        # else no teacher is needed
+        # if published, teachers count must be > 0
+        # else no teacher needed
         published = request.POST.get('published') == 'on'
         if slot_form.is_valid() and (not published or len(teachers) > 0):
             slot_form.save()
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
-            messages.success(request, _("Slot added successfully"))
+            messages.success(request, _("Slot successfully added"))
 
             if published:
                 course = Course.objects.get(id=request.POST.get('course'))
@@ -198,7 +198,12 @@ def add_slot(request, slot_id=None):
 @groups_required('SCUIO-IP', 'REF-CMP')
 def modify_slot(request, slot_id):
 
-    slot = Slot.objects.get(id=slot_id)
+    try:
+        slot = Slot.objects.get(id=slot_id)
+    except Slot.DoesNotExist:
+        messages.warning(request, _("This slot id does not exist"))
+        return redirect('/core/slots/')
+
     slot_form = SlotForm(instance=slot)
     # get components
     components = []

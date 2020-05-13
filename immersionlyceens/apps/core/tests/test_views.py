@@ -248,22 +248,69 @@ class CoreViewsTestCase(TestCase):
             'published': "on",
             'save': 1
         }
-        # Fail with date outside of calendar boundaries
+
+        # Fail with date outside of calendar boundaries and missing field
         response = self.client.post("/core/slot/add", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn("Error: The date must be between the dates of the current calendar",
             response.content.decode('utf-8'))
 
-        # Success
+        # Update to a valid date
         data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+
+        # Fail with missing field
+        del(data['teacher_%s' % self.teacher1.id])
+        response = self.client.post("/core/slot/add", data, follow=True)
+        self.assertFalse(Slot.objects.filter(room="212").exists())
+        self.assertIn("You have to select one or more teachers", response.content.decode('utf-8'))
+
+        # Success
+        data['teacher_%s' % self.teacher1.id] = 1
         response = self.client.post("/core/slot/add", data, follow=True)
 
         self.assertTrue(Slot.objects.filter(room="212").exists())
+        self.assertIn("Slot successfully added", response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
 
-        # As component referent
+        # get add_slot form with an existing slot
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/slot/add/%s" % self.slot.id, follow=True)
+        self.assertEqual(response.context["slot"].course_id, self.course.id)
+
+        # Save a slot and get back to add form
+        data = {
+            'component': self.component.id,
+            'training': self.training.id,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': "S40",
+            'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
+            'start_time': "16:00",
+            'end_time': "18:00",
+            'teacher_%s' % self.teacher1.id: 1,
+            'n_places': 33,
+            'additional_information': "Here is additional data.",
+            'published': "on",
+            'save_add': 1
+        }
+
+        response = self.client.post("/core/slot/add", data, follow=True)
+
+        self.assertTrue(Slot.objects.filter(room="S40").exists())
+        self.assertIn("Slot successfully added", response.content.decode('utf-8'))
+        self.assertIn("Course published", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/core/slot/add')
+
+        # Get as component referent
         self.client.login(username='refcmp', password='pass')
         response = self.client.get("/core/slot/add", follow=True)
+
+        # Check that we only get the components the referent has access to
         self.assertIn(self.component, response.context["components"])
         self.assertEqual(response.context["components"].count(), 1)
         self.assertNotIn(self.component2, response.context["components"])
