@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 10:48+0200\n"
+"POT-Creation-Date: 2020-05-14 14:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -601,7 +601,7 @@ msgid "Error : dates of active university year improperly configured"
 msgstr "Erreur : les dates de l'année universitaire active sont incorrectes"
 
 #: immersionlyceens/apps/core/forms.py:66
-#: immersionlyceens/apps/core/views.py:403
+#: immersionlyceens/apps/core/views.py:411
 msgid "You don't have enough privileges to update this course"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce cours"
 
@@ -1551,7 +1551,7 @@ msgid "Slot successfully added"
 msgstr "Créneau ajouté avec succès"
 
 #: immersionlyceens/apps/core/views.py:153
-#: immersionlyceens/apps/core/views.py:251
+#: immersionlyceens/apps/core/views.py:255
 msgid "Course published"
 msgstr "Cours publié"
 
@@ -1559,17 +1559,22 @@ msgstr "Cours publié"
 msgid "This slot id does not exist"
 msgstr "Modification : ce créneau n'existe pas"
 
-#: immersionlyceens/apps/core/views.py:233
+#: immersionlyceens/apps/core/views.py:211
+#: immersionlyceens/apps/core/views.py:306
+msgid "This slot belongs to another component"
+msgstr "Ce créneau appartient à une autre composante"
+
+#: immersionlyceens/apps/core/views.py:237
 msgid "Slot successfully updated"
 msgstr "Créneau modifié avec succès"
 
-#: immersionlyceens/apps/core/views.py:261
+#: immersionlyceens/apps/core/views.py:265
 #, python-format
 msgid "Notifications have been sent (%s)"
 msgstr "Notifications envoyées (%s)"
 
-#: immersionlyceens/apps/core/views.py:331
-#: immersionlyceens/apps/core/views.py:364
+#: immersionlyceens/apps/core/views.py:339
+#: immersionlyceens/apps/core/views.py:372
 msgid ""
 "Courses cannot be created, updated or deleted because the active university "
 "year has not begun yet (or is already over."
@@ -1577,55 +1582,55 @@ msgstr ""
 "Les cours ne peuvent être ni créés, ni modifiés, ni supprimés car l'année "
 "universitaire n'a pas encore commencé (ou déjà terminée)."
 
-#: immersionlyceens/apps/core/views.py:422
+#: immersionlyceens/apps/core/views.py:430
 msgid "At least one teacher is required"
 msgstr "Au moins un enseignant obligatoire"
 
-#: immersionlyceens/apps/core/views.py:446
+#: immersionlyceens/apps/core/views.py:454
 msgid "User '{}' created"
 msgstr "Utilisateur '{}' créé"
 
-#: immersionlyceens/apps/core/views.py:452
+#: immersionlyceens/apps/core/views.py:460
 msgid "A confirmation email has been sent to {}"
 msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 
-#: immersionlyceens/apps/core/views.py:461
+#: immersionlyceens/apps/core/views.py:469
 #, python-format
 msgid "Couldn't add group 'ENS-CH' to user '%s'"
 msgstr "Impossible d'ajouter le groupe 'ENS-CH' à l'utilisateur '%s'"
 
-#: immersionlyceens/apps/core/views.py:477
+#: immersionlyceens/apps/core/views.py:485
 msgid "Course successfully updated"
 msgstr "Cours modifié avec succès"
 
-#: immersionlyceens/apps/core/views.py:479
+#: immersionlyceens/apps/core/views.py:487
 msgid "Course successfully saved"
 msgstr "Cours enregistré avec succès"
 
-#: immersionlyceens/apps/core/views.py:618
+#: immersionlyceens/apps/core/views.py:626
 msgid "High school student record modified"
 msgstr "Fiche lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:629
+#: immersionlyceens/apps/core/views.py:637
 msgid "High school student user modified"
 msgstr "Compte lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:634
+#: immersionlyceens/apps/core/views.py:642
 msgid "High school student user modification failure"
 msgstr "Erreur de modification de compte lycéen"
 
-#: immersionlyceens/apps/core/views.py:636
+#: immersionlyceens/apps/core/views.py:644
 msgid "High school student record modification failure"
 msgstr "Erreur de modification de fiche lycéen"
 
-#: immersionlyceens/apps/core/views.py:661
-#: immersionlyceens/apps/core/views.py:675
+#: immersionlyceens/apps/core/views.py:669
+#: immersionlyceens/apps/core/views.py:683
 #: immersionlyceens/libs/api/views.py:1834
 #: immersionlyceens/libs/api/views.py:1888
 msgid "Invalid parameter"
 msgstr "Paramètre invalide"
 
-#: immersionlyceens/apps/core/views.py:668
+#: immersionlyceens/apps/core/views.py:676
 msgid "Component settings successfully saved"
 msgstr "Paramètre enregistré avec succès"
 
@@ -4086,8 +4091,7 @@ msgstr "Contrôle"
 msgid "Do you really want to delete this slot ?"
 msgstr "Voulez-vous vraiment supprimer ce créneau ?"
 
-#: immersionlyceens/templates/slots/list_slots.html:454
-#: immersionlyceens/templates/slots/list_slots.html:458
+#: immersionlyceens/templates/slots/list_slots.html:455
 msgid "The slot has been successfully deleted"
 msgstr "Le créneau a été supprimé avec succès"
 

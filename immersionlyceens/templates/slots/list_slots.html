@@ -451,12 +451,15 @@ function delete_slot(slot_id) {
         $.post({
             url: "/core/slot/delete/" + slot_id,
             success: function(data) {
-                show_top_indicator("{% trans 'The slot has been successfully deleted' %}");
-                reload_data();
+                if(data == "ok") {
+                  show_top_indicator("{% trans 'The slot has been successfully deleted' %}", "success");
+                  reload_data();
+                }
+                else {
+                  show_top_indicator(data, "error");
+                }
             },
         });
-        show_top_indicator("{% trans 'The slot has been successfully deleted' %}");
-        reload_data();
     }
 }
 
@@ -464,11 +467,21 @@ function reload_data() {
      $('#list_of_slots').DataTable().clear().ajax.reload();
 }
 
-function show_top_indicator(text) {
+function show_top_indicator(text, mode) {
     let fade = 1000;
-    let display = {%  settings_get 'MESSAGES_TIMEOUT' %};
+    let display = {% settings_get 'MESSAGES_TIMEOUT' %};
     $('#top_indicator__content').html(text);
     $('#top_indicator').removeClass('hide');
+
+    if(mode == "error") {
+      $('#top_indicator').removeClass('bg-success');
+      $('#top_indicator').addClass('bg-danger');
+    }
+    else {
+      $('#top_indicator').removeClass('bg-danger');
+      $('#top_indicator').addClass('bg-success');
+    }
+
     $('#top_indicator').show();
     setTimeout(function(){
             $('#top_indicator').fadeOut(fade, function(){

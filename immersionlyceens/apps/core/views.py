@@ -301,10 +301,14 @@ def modify_slot(request, slot_id):
 
 @groups_required('SCUIO-IP', 'REF-CMP')
 def del_slot(request, slot_id):
-    from immersionlyceens.apps.core.models import Slot
-
-    slot = Slot.objects.get(id=slot_id)
-    slot.delete()
+    try:
+        slot = Slot.objects.get(id=slot_id)
+        # Check whether the user has access to this slot
+        if request.user.is_component_manager() and slot.course.component not in request.user.components.all():
+            return HttpResponse(gettext("This slot belongs to another component"))
+        slot.delete()
+    except Slot.DoesNotExist:
+        pass
 
     return HttpResponse('ok')
 

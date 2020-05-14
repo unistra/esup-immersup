@@ -421,8 +421,6 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='refcmp', password='pass')
         response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
 
-        # print(response.content.decode('utf-8'))
-
         # Check that we only get the components the referent has access to
         self.assertIn(self.component, response.context["components"])
         self.assertEqual(response.context["components"].count(), 1)
@@ -437,3 +435,23 @@ class CoreViewsTestCase(TestCase):
         self.assertTrue(response.status_code, 200)
         self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
         self.assertIn("This slot belongs to another component", response.content.decode('utf-8'))
+
+    def test_delete_slot(self):
+        self.assertTrue(Slot.objects.filter(pk=self.slot.id).exists())
+
+        # As component referent, test with a slot the user doesn't have access to
+        self.client.login(username='refcmp', password='pass')
+        response = self.client.get("/core/slot/delete/%s" % self.slot2.id, follow=True)
+        self.assertEqual(response.content.decode('utf-8'), "This slot belongs to another component")
+        self.assertTrue(Slot.objects.filter(pk=self.slot.id).exists())
+
+        # As scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/slot/delete/%s" % self.slot.id, follow=True)
+        self.assertEqual(response.content.decode('utf-8'), "ok")
+        self.assertFalse(Slot.objects.filter(pk=self.slot.id).exists())
+
+        # Non existing slot
+        response = self.client.get("/core/slot/delete/123", follow=True)
+        self.assertEqual(response.content.decode('utf-8'), "ok")
+        self.assertFalse(Slot.objects.filter(pk=self.slot.id).exists())
