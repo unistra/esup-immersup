@@ -399,7 +399,14 @@ class CoreViewsTestCase(TestCase):
             "notify_student": "on",
             'save': 1
         }
+        # Fail with missing field
+        del(data['teacher_%s' % self.teacher1.id])
+        response = self.client.post("/core/slot/modify/%s" % self.slot.id, data, follow=True)
+        self.assertFalse(Slot.objects.filter(room="New room").exists())
+        self.assertIn("You have to select one or more teachers", response.content.decode('utf-8'))
 
+        # Success
+        data['teacher_%s' % self.teacher1.id] = 1
         response = self.client.post("/core/slot/modify/%s" % self.slot.id, data, follow=True)
         slot = Slot.objects.get(pk=self.slot.id)
 
@@ -416,6 +423,8 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
+
+        # TODO : test save_add and duplicate
 
         # Get as component referent
         self.client.login(username='refcmp', password='pass')
@@ -455,3 +464,39 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/slot/delete/123", follow=True)
         self.assertEqual(response.content.decode('utf-8'), "ok")
         self.assertFalse(Slot.objects.filter(pk=self.slot.id).exists())
+
+
+    def test_courses_list(self):
+        # As any other user
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.get("/core/courses_list")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/?next=/core/courses_list")
+
+        # As scuio-ip user
+        self.client.login(username='scuio', password='pass')
+
+        # with invalid year dates
+        self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
+        self.university_year.save()
+
+        response = self.client.get("/core/courses_list")
+        self.assertIn(self.component, response.context["components"])
+        self.assertEqual(None, response.context["component_id"])
+        self.assertFalse(response.context["can_update_courses"])
+        self.assertIn("Courses cannot be created, updated or deleted", response.content.decode('utf-8'))
+
+        # With valid dates
+        response = self.client.get("/core/courses_list")
+        self.university_year.start_date = self.today.date() - datetime.timedelta(days=365)
+        self.university_year.save()
+        response = self.client.get("/core/courses_list")
+        self.assertTrue(response.context["can_update_courses"])
+
+        # As component referent
+        self.client.login(username='refcmp', password='pass')
+        response = self.client.get("/core/courses_list")
+        self.assertIn(self.component, response.context["components"])
+        self.assertNotIn(self.component2, response.context["components"])
+        self.assertEqual(self.component.id, response.context["component_id"])
+        self.assertTrue(response.context["can_update_courses"])

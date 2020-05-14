@@ -341,7 +341,11 @@ def courses_list(request):
             ),
         )
 
-    context = {"components": allowed_comps, "component_id": component_id, "can_update_courses": can_update_courses}
+    context = {
+        "components": allowed_comps,
+        "component_id": component_id,
+        "can_update_courses": can_update_courses
+    }
 
     return render(request, 'core/courses_list.html', context)
 
