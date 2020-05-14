@@ -72,6 +72,15 @@ class CoreViewsTestCase(TestCase):
             first_name='teach',
             last_name='HER',
         )
+
+        self.teacher2 = get_user_model().objects.create_user(
+            username='teacher2',
+            password='pass',
+            email='teacher-immersion2@no-reply.com',
+            first_name='teach2',
+            last_name='HER2',
+        )
+
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
@@ -123,16 +132,30 @@ class CoreViewsTestCase(TestCase):
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
 
         self.today = datetime.datetime.today()
+
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
+        self.t_domain2 = TrainingDomain.objects.create(label="test t_domain 2")
+
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
+        self.t_sub_domain2 = TrainingSubdomain.objects.create(label="test t_sub_domain 2", training_domain=self.t_domain2)
+
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
+        self.training3 = Training.objects.create(label="test training 3")
+
         self.training.training_subdomains.add(self.t_sub_domain)
-        self.training2.training_subdomains.add(self.t_sub_domain)
         self.training.components.add(self.component)
+        self.training2.training_subdomains.add(self.t_sub_domain)
         self.training2.components.add(self.component)
+        self.training3.training_subdomains.add(self.t_sub_domain2)
+        self.training3.components.add(self.component2)
+
         self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
         self.course.teachers.add(self.teacher1)
+
+        self.course2 = Course.objects.create(label="course 2", training=self.training3, component=self.component2)
+        self.course2.teachers.add(self.teacher2)
+
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM')
@@ -142,6 +165,15 @@ class CoreViewsTestCase(TestCase):
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
         self.slot.teachers.add(self.teacher1),
+
+        # Add another slot : component referent shouldn't have access to this one
+        self.slot2 = Slot.objects.create(
+            course=self.course2, course_type=self.course_type, campus=self.campus,
+            building=self.building, room='room 12', date=self.today,
+            start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
+        )
+        self.slot2.teachers.add(self.teacher2),
+
         self.high_school = HighSchool.objects.create(
             label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
             email='a@b.c', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
@@ -304,7 +336,22 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Slot successfully added", response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
+
+        self.assertFalse("slot" in response.context) # "Add new" form : no slot
         self.assertEqual(response.request['PATH_INFO'], '/core/slot/add')
+
+        # Duplicate a slot : save, stay on form & keep data
+        del(data["save_add"])
+        data["duplicate"] = 1
+        data["room"] = "S41"
+        response = self.client.post("/core/slot/add", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Slot successfully added", response.content.decode('utf-8'))
+        self.assertIn("Course published", response.content.decode('utf-8'))
+        self.assertTrue(Slot.objects.filter(room="S41").exists())
+        slot = Slot.objects.get(room="S41")
+        self.assertEqual(response.context["slot"].course_id, self.course.id)  # empty slot
+        self.assertEqual(response.request['PATH_INFO'], '/core/slot/add/%s' % slot.id)
 
         # Get as component referent
         self.client.login(username='refcmp', password='pass')
@@ -314,3 +361,79 @@ class CoreViewsTestCase(TestCase):
         self.assertIn(self.component, response.context["components"])
         self.assertEqual(response.context["components"].count(), 1)
         self.assertNotIn(self.component2, response.context["components"])
+
+
+    def test_modify_slot(self):
+        # As any other user
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.get("/core/slot/modify/%s" % self.slot.id)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/?next=/core/slot/modify/%s" % self.slot.id)
+
+        # As scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        # Fail with a non existing slot
+        response = self.client.get("/core/slot/modify/250", follow=True)
+        self.assertIn("This slot id does not exist", response.content.decode('utf-8'))
+
+        # Get an existing slot
+        response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
+        self.assertIn(self.component, response.context["components"])
+
+        # Get slot data and update a few fields
+        data = {
+            'component': self.slot.course.component.id,
+            'training': self.slot.course.training.id,
+            'course': self.slot.course.id,
+            'course_type': self.slot.course_type.id,
+            'campus': self.slot.campus.id,
+            'building': self.slot.building.id,
+            'room': "New room",
+            'date': (self.slot.date + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+            'start_time': "13:30",
+            'end_time': "15:30",
+            'teacher_%s' % self.teacher1.id: 1,
+            'n_places': 20,
+            'additional_information': "New data",
+            'published': "on",
+            "notify_student": "on",
+            'save': 1
+        }
+
+        response = self.client.post("/core/slot/modify/%s" % self.slot.id, data, follow=True)
+        slot = Slot.objects.get(pk=self.slot.id)
+
+        # Check updated fields
+        self.assertEqual(slot.room, "New room")
+        self.assertEqual(slot.start_time, datetime.time(13, 30))
+        self.assertEqual(slot.end_time, datetime.time(15, 30))
+        self.assertEqual(slot.n_places, 20)
+        self.assertEqual(slot.additional_information, "New data")
+        self.assertEqual(slot.date, (self.slot.date + datetime.timedelta(days=1)).date())
+
+        self.assertIn("Slot successfully updated", response.content.decode('utf-8'))
+        self.assertIn("Course published", response.content.decode('utf-8'))
+        self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
+
+        # Get as component referent
+        self.client.login(username='refcmp', password='pass')
+        response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
+
+        # print(response.content.decode('utf-8'))
+
+        # Check that we only get the components the referent has access to
+        self.assertIn(self.component, response.context["components"])
+        self.assertEqual(response.context["components"].count(), 1)
+        self.assertNotIn(self.component2, response.context["components"])
+
+        # Test with a slot the user doesn't have access to
+        response = self.client.get("/core/slot/modify/%s" % self.slot2.id)
+        self.assertTrue(response.status_code, 302)
+        self.assertTrue(response.url, "/core/slots")
+
+        response = self.client.get("/core/slot/modify/%s" % self.slot2.id, follow=True)
+        self.assertTrue(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
+        self.assertIn("This slot belongs to another component", response.content.decode('utf-8'))

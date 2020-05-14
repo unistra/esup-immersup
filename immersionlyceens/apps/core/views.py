@@ -197,11 +197,18 @@ def add_slot(request, slot_id=None):
 
 @groups_required('SCUIO-IP', 'REF-CMP')
 def modify_slot(request, slot_id):
-
+    """
+    Update a slot
+    """
     try:
         slot = Slot.objects.get(id=slot_id)
     except Slot.DoesNotExist:
         messages.warning(request, _("This slot id does not exist"))
+        return redirect('/core/slots/')
+
+    # Check whether the user has access to this slot
+    if request.user.is_component_manager() and slot.course.component not in request.user.components.all():
+        messages.error(request, _("This slot belongs to another component"))
         return redirect('/core/slots/')
 
     slot_form = SlotForm(instance=slot)
@@ -212,10 +219,8 @@ def modify_slot(request, slot_id):
     elif request.user.is_component_manager:
         components = request.user.components.all().order_by('label')
 
-    if request.method == 'POST' and (
-        request.POST.get('save') or request.POST.get('duplicate') or request.POST.get('save_add')
-    ):
-
+    if request.method == 'POST' and any([request.POST.get('save'), request.POST.get('duplicate'),
+        request.POST.get('save_add')]):
         slot_form = SlotForm(request.POST, instance=slot)
         teachers = []
         teacher_prefix = 'teacher_'
@@ -229,7 +234,7 @@ def modify_slot(request, slot_id):
             slot_form.instance.teachers.clear()
             for teacher in teachers:
                 slot_form.instance.teachers.add(teacher)
-            messages.success(request, _("Slot modify successfully"))
+            messages.success(request, _("Slot successfully updated"))
         else:
             context = {
                 "slot": slot,
@@ -250,10 +255,14 @@ def modify_slot(request, slot_id):
                 messages.success(request, _("Course published"))
 
         if notify_student:
+            sent_msg = 0
             immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
             for immersion in immersions:
-                immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF', immersion=immersion, slot=slot)
+                if not immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF', immersion=immersion, slot=slot):
+                    sent_msg += 1
 
+            if sent_msg:
+                messages.success(request,  _("Notifications have been sent (%s)") % sent_msg)
 
         if request.POST.get('save'):
             response = redirect('slots_list')
@@ -271,7 +280,7 @@ def modify_slot(request, slot_id):
                 "course": Course.objects.get(id=request.POST.get('course', None)),
                 "components": components,
                 "campus": Campus.objects.filter(active=True).order_by('label'),
-                "trainings": Training.objects.filter(active=True),
+                "trainings": Training.objects.filter(active=True).order_by('label'),
                 "slot_form": slot_form,
                 "ready_load": True,
                 "teachers_idx": [t.id for t in slot.teachers.all()],
