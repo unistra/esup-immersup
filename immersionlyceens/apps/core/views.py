@@ -2,26 +2,40 @@ import json
 import logging
 from datetime import datetime
 
-import requests
-from immersionlyceens.decorators import groups_required
-
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext
+from django.utils.translation import ugettext_lazy as _
 
-from .forms import ContactForm, CourseForm, ComponentForm, MyHighSchoolForm, SlotForm
-from .models import (Campus, CancelType, Component, Course, HighSchool, ImmersionUser, Slot,
-    Training, UniversityYear, Immersion, Holiday)
+import requests
+
+from immersionlyceens.decorators import groups_required
+
+from .forms import ComponentForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm
+from .models import (
+    Campus,
+    CancelType,
+    Component,
+    Course,
+    HighSchool,
+    Holiday,
+    Immersion,
+    ImmersionUser,
+    Slot,
+    Training,
+    UniversityYear,
+)
 
 logger = logging.getLogger(__name__)
 
 # Create your views here.
+
 
 @groups_required('SCUIO-IP')
 def import_holidays(request):
@@ -30,8 +44,14 @@ def import_holidays(request):
     """
     redirect_url = '/admin/core/holiday'
 
-    if all([settings.WITH_HOLIDAY_API, settings.HOLIDAY_API_URL, settings.HOLIDAY_API_MAP,
-        settings.HOLIDAY_API_DATE_FORMAT]):
+    if all(
+        [
+            settings.WITH_HOLIDAY_API,
+            settings.HOLIDAY_API_URL,
+            settings.HOLIDAY_API_MAP,
+            settings.HOLIDAY_API_DATE_FORMAT,
+        ]
+    ):
         url = settings.HOLIDAY_API_URL
 
         # get holidays data
@@ -91,7 +111,7 @@ def slots_list(request):
     contact_form = ContactForm()
 
     context = {
-        'components': components.order_by('label'),
+        'components': components.order_by('code'),
         'contact_form': contact_form,
         'cancel_types': CancelType.objects.filter(active=True),
     }
@@ -119,7 +139,7 @@ def add_slot(request, slot_id=None):
             slot = Slot.objects.get(id=slot_id)
             teachers_idx = [t.id for t in slot.teachers.all()]
             slot.id = None
-        except Slot.DoesNotExist: # id not found : make an empty slot
+        except Slot.DoesNotExist:  # id not found : make an empty slot
             slot = Slot()
             teachers_idx = []
 
@@ -130,8 +150,9 @@ def add_slot(request, slot_id=None):
     elif request.user.is_component_manager:
         components = request.user.components.all().order_by('label')
 
-    if request.method == 'POST' and \
-        any([request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]):
+    if request.method == 'POST' and any(
+        [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
+    ):
         slot_form = SlotForm(request.POST, instance=slot)
         teachers = []
         teacher_prefix = 'teacher_'
@@ -219,8 +240,9 @@ def modify_slot(request, slot_id):
     elif request.user.is_component_manager:
         components = request.user.components.all().order_by('label')
 
-    if request.method == 'POST' and any([request.POST.get('save'), request.POST.get('duplicate'),
-        request.POST.get('save_add')]):
+    if request.method == 'POST' and any(
+        [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
+    ):
         slot_form = SlotForm(request.POST, instance=slot)
         teachers = []
         teacher_prefix = 'teacher_'
@@ -262,7 +284,7 @@ def modify_slot(request, slot_id):
                     sent_msg += 1
 
             if sent_msg:
-                messages.success(request,  _("Notifications have been sent (%s)") % sent_msg)
+                messages.success(request, _("Notifications have been sent (%s)") % sent_msg)
 
         if request.POST.get('save'):
             response = redirect('slots_list')
@@ -341,11 +363,7 @@ def courses_list(request):
             ),
         )
 
-    context = {
-        "components": allowed_comps,
-        "component_id": component_id,
-        "can_update_courses": can_update_courses
-    }
+    context = {"components": allowed_comps, "component_id": component_id, "can_update_courses": can_update_courses}
 
     return render(request, 'core/courses_list.html', context)
 
@@ -571,7 +589,7 @@ def my_high_school(request, high_school_id=None):
     return render(request, 'core/my_high_school.html', context)
 
 
-@groups_required('REF-LYC','SCUIO-IP')
+@groups_required('REF-LYC', 'SCUIO-IP')
 def my_students(request):
     highschool = None
 
@@ -608,7 +626,6 @@ def student_validation(request, high_school_id=None):
             context['hs_id'] = int(request.GET.get('hs_id'))
         except ValueError:
             pass
-
 
     return render(request, 'core/student_validation.html', context)
 
@@ -704,7 +721,9 @@ def component(request, component_code=None):
     return render(request, 'core/component.html', context)
 
 
-@groups_required('REF-CMP', 'SCUIO-IP', 'REF-LYC',)
+@groups_required(
+    'REF-CMP', 'SCUIO-IP', 'REF-LYC',
+)
 def stats(request):
     template = 'core/stats.html'
     components = None
@@ -753,7 +772,6 @@ def duplicated_accounts(request):
     Manage duplicated accounts
     """
 
-    context = {
-    }
+    context = {}
 
     return render(request, 'core/duplicated_accounts.html', context)
