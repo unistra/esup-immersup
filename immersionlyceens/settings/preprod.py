@@ -89,7 +89,7 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 # Email configuration #
 #######################
 
-EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.ConsoleBackend'
+EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
 FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-pprd@unistra.fr"
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
