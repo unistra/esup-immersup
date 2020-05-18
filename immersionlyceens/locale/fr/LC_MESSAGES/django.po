@@ -944,6 +944,8 @@ msgid "A campus with this label already exists"
 msgstr "Un campus avec ce nom existe déjà"
 
 #: immersionlyceens/apps/core/models.py:458
+#: immersionlyceens/apps/immersion/models.py:83
+#: immersionlyceens/templates/immersion/hs_record.html:124
 msgid "Technological bachelor mention"
 msgstr "Mention du baccalauréat technologique"
 
@@ -1809,11 +1811,6 @@ msgstr "Classe"
 #: immersionlyceens/templates/immersion/hs_record.html:107
 msgid "Bachelor type"
 msgstr "Type de baccalauréat"
-
-#: immersionlyceens/apps/immersion/models.py:83
-#: immersionlyceens/templates/immersion/hs_record.html:124
-msgid "Technological bachelor mention"
-msgstr "Mention du baccalauréat technologique"
 
 #: immersionlyceens/apps/immersion/models.py:91
 #: immersionlyceens/templates/immersion/hs_record.html:133
