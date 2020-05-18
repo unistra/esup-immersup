@@ -455,8 +455,8 @@ class BachelorMention(models.Model):
     class Meta:
         """Meta class"""
 
-        verbose_name = _('Bachelor mention')
-        verbose_name_plural = _('Bachelor mentions')
+        verbose_name = _('Technological bachelor mention')
+        verbose_name_plural = _('Technological bachelor mentions')
 
     def __str__(self):
         """str"""

@@ -944,12 +944,12 @@ msgid "A campus with this label already exists"
 msgstr "Un campus avec ce nom existe déjà"
 
 #: immersionlyceens/apps/core/models.py:458
-msgid "Bachelor mention"
-msgstr "Mention du baccalauréat"
+msgid "Technological bachelor mention"
+msgstr "Mention du baccalauréat technologique"
 
 #: immersionlyceens/apps/core/models.py:459
-msgid "Bachelor mentions"
-msgstr "Mentions du baccalauréat"
+msgid "Technological bachelor mentions"
+msgstr "Mentions du baccalauréat Technological"
 
 #: immersionlyceens/apps/core/models.py:469
 msgid "A bachelor mention with this label already exists"
