@@ -951,7 +951,7 @@ msgstr "Mention du baccalauréat technologique"
 
 #: immersionlyceens/apps/core/models.py:459
 msgid "Technological bachelor mentions"
-msgstr "Mentions du baccalauréat Technologique"
+msgstr "Mentions du baccalauréat technologique"
 
 #: immersionlyceens/apps/core/models.py:469
 msgid "A bachelor mention with this label already exists"
