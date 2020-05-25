@@ -1579,7 +1579,7 @@ msgstr "Notifications envoyées (%s)"
 #: immersionlyceens/apps/core/views.py:372
 msgid ""
 "Courses cannot be created, updated or deleted because the active university "
-"year has not begun yet (or is already over."
+"year has not begun yet (or is already over)."
 msgstr ""
 "Les cours ne peuvent être ni créés, ni modifiés, ni supprimés car l'année "
 "universitaire n'a pas encore commencé (ou déjà terminée)."

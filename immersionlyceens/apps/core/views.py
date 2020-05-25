@@ -359,7 +359,7 @@ def courses_list(request):
             request,
             _(
                 """Courses cannot be created, updated or deleted because the """
-                """active university year has not begun yet (or is already over."""
+                """active university year has not begun yet (or is already over)."""
             ),
         )
 
