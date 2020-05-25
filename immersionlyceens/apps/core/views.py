@@ -371,7 +371,7 @@ def courses_list(request):
 @groups_required('SCUIO-IP', 'REF-CMP')
 def course(request, course_id=None, duplicate=False):
     """
-
+    Course creation / update / deletion
     """
     teachers_list = []
     save_method = None
@@ -388,6 +388,7 @@ def course(request, course_id=None, duplicate=False):
     except UniversityYear.DoesNotExist:
         pass
     except UniversityYear.MultipleObjectsReturned:
+        # Todo : do something here.
         pass
 
     if not can_update_courses:
@@ -432,6 +433,8 @@ def course(request, course_id=None, duplicate=False):
 
         # check user rights
         if course and not (course.get_components_queryset() & allowed_comps).exists():
+            if request.method == 'POST':
+                return HttpResponseRedirect("/core/courses_list")
             update_rights = False
             messages.error(request, _("You don't have enough privileges to update this course"))
 
@@ -446,7 +449,7 @@ def course(request, course_id=None, duplicate=False):
         course_form = CourseForm(request.POST, instance=course, request=request)
 
         # Teachers
-        teachers_list = request.POST.get('teachers_list', [])
+        teachers_list = request.POST.get('teachers_list', "[]")
 
         try:
             teachers_list = json.loads(teachers_list)
@@ -464,7 +467,6 @@ def course(request, course_id=None, duplicate=False):
 
                 # Teachers to add
                 for teacher in teachers_list:
-                    teacher_user = None
                     if isinstance(teacher, dict):
                         try:
                             teacher_user = ImmersionUser.objects.get(username=teacher['username'])

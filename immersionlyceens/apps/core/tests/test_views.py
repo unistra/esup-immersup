@@ -73,6 +73,9 @@ class CoreViewsTestCase(TestCase):
             last_name='HER',
         )
 
+        self.teacher1.set_password('pass')
+        self.teacher1.save()
+
         self.teacher2 = get_user_model().objects.create_user(
             username='teacher2',
             password='pass',
@@ -88,6 +91,10 @@ class CoreViewsTestCase(TestCase):
             first_name='lyc',
             last_name='REF',
         )
+
+        self.lyc_ref.set_password('pass')
+        self.lyc_ref.save()
+
         self.scuio_user = get_user_model().objects.create_user(
             username='scuio',
             password='pass',
@@ -500,3 +507,148 @@ class CoreViewsTestCase(TestCase):
         self.assertNotIn(self.component2, response.context["components"])
         self.assertEqual(self.component.id, response.context["component_id"])
         self.assertTrue(response.context["can_update_courses"])
+
+
+    def test_course(self):
+        # As any other user
+        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        response = self.client.get("/core/course")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/?next=/core/course")
+
+        # As scuio-ip user
+        self.client.login(username='scuio', password='pass')
+
+        # with invalid year dates
+        self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
+        self.university_year.save()
+
+        response = self.client.get("/core/course")
+        self.assertFalse(response.context["can_update_courses"])
+        self.assertIn("Courses cannot be created, updated or deleted", response.content.decode('utf-8'))
+
+        # With valid dates
+        response = self.client.get("/core/course")
+        self.university_year.start_date = self.today.date() - datetime.timedelta(days=365)
+        self.university_year.save()
+        response = self.client.get("/core/course")
+        self.assertTrue(response.context["can_update_courses"])
+
+        # Try to access a non-existing course
+        response = self.client.get("/core/course/123456")
+        self.assertIn("Create a new course", response.content.decode('utf-8'))
+
+        # Post data to create a new course
+        data = {
+            'component': self.component.id,
+            'training': self.training.id,
+            'label': "New test course",
+            'url': "http://new-course.test.fr",
+            'published': True,
+            'teachers_list':"",
+            'save': 1
+        }
+        # Fail with missing field
+        response = self.client.post("/core/course", data, follow=True)
+        self.assertFalse(Course.objects.filter(label="New test course").exists())
+        self.assertIn("At least one teacher is required", response.content.decode('utf-8'))
+
+        data['teachers_list'] = \
+            """[{"username":"jean", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"},
+                {"username":"john", "firstname":"John", "lastname":"Jack", "email":"john.jack@domain.fr"}]"""
+
+        # Fail with invalid URL format
+        data['url'] = "whatever"
+        response = self.client.post("/core/course", data, follow=True)
+        self.assertFalse(Course.objects.filter(label="New test course").exists())
+        self.assertIn("Enter a valid URL.", response.content.decode('utf-8'))
+
+        data['url'] = "http://new-course.test.fr"
+
+        # Success
+        response = self.client.post("/core/course", data, follow=True)
+        # Course and teachers must exist
+        self.assertTrue(Course.objects.filter(label="New test course").exists())
+
+        course = Course.objects.get(label="New test course")
+        self.assertTrue(ImmersionUser.objects.filter(username='jean').exists())
+        self.assertTrue(ImmersionUser.objects.filter(username='john').exists())
+        self.assertEqual(course.teachers.count(), 2)
+        self.assertIn("A confirmation email has been sent to jean-jacques@domain.fr", response.content.decode('utf-8'))
+        self.assertIn("A confirmation email has been sent to john.jack@domain.fr", response.content.decode('utf-8'))
+
+        # Course update
+        response = self.client.get("/core/course/%s" % course.id, data, follow=True)
+        self.assertIn("New test course", response.content.decode('utf-8'))
+
+        data["label"] = "This is my new label"
+        data["teachers_list"] = \
+            """[{"username":"jean", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"}]"""
+        response = self.client.post("/core/course/%s" % course.id, data, follow=True)
+        self.assertFalse(Course.objects.filter(label="New test course").exists())
+        self.assertTrue(Course.objects.filter(label="This is my new label").exists())
+        self.assertIn("Course successfully updated", response.content.decode('utf-8'))
+        course = Course.objects.get(label="This is my new label")
+        self.assertEqual(course.teachers.count(), 1)
+
+        # Form with course duplication
+        response = self.client.get("/core/course/%s/1" % course.id, data, follow=True)
+        self.assertIn(course.label, response.content.decode('utf-8'))
+        self.assertIn("jean-jacques@domain.fr", response.content.decode('utf-8'))
+
+        # Duplicate a course : save, stay on form & keep data
+        del(data["save"])
+        data["save_duplicate"] = 1
+        data["label"] = "Duplicated course label"
+        response = self.client.post("/core/course", data, follow=True)
+        self.assertTrue(Course.objects.filter(label="Duplicated course label").exists())
+        self.assertTrue(Course.objects.filter(label="This is my new label").exists())
+        self.assertIn("Course successfully saved", response.content.decode('utf-8'))
+
+        course2 = Course.objects.get(label="Duplicated course label")
+        self.assertEqual(response.request['PATH_INFO'], '/core/course/%s/1' % course2.id)
+
+        # Try to access a course the user doesn't have access to
+        self.client.login(username='refcmp', password='pass')
+        response = self.client.get("/core/course/%s" % self.course2.id, follow=True)
+        self.assertIn("You don't have enough privileges to update this course", response.content.decode("utf-8"))
+        data["label"] = "This shouldn't happen"
+        response = self.client.post("/core/course/%s" % self.course2.id, data, follow=True)
+        self.assertEqual(response.request['PATH_INFO'], '/core/courses_list')
+        self.assertFalse(Course.objects.filter(label="This shouldn't happen").exists())
+
+    def test_mycourses(self):
+        self.client.login(username='teacher1', password='pass')
+        response = self.client.get("/core/mycourses", follow=True)
+        self.assertIn("Courses - HER teach", response.content.decode('utf-8'))
+
+    def test_myslots(self):
+        self.client.login(username='teacher1', password='pass')
+        response = self.client.get("/core/myslots/", follow=True)
+        self.assertIn("Slots - HER teach", response.content.decode('utf-8'))
+
+    def test_myhighschool(self):
+        self.client.login(username='lycref', password='pass')
+        # Shouldn't work (no access)
+        response = self.client.get("/core/high_school/%s" % self.high_school2.id, follow=True)
+        self.assertEqual(response.request['PATH_INFO'], '/')
+
+        # Should work
+        response = self.client.get("/core/high_school/%s" % self.high_school.id, follow=True)
+        self.assertIn("My high school - %s" % self.high_school.label, response.content.decode('utf-8'))
+
+        # Update
+        data = {
+            'address': "12 rue des Plantes",
+            'address2': "test_line_2",
+            'address3': "test_line_3",
+            'department': 68,
+            'city': "MULHOUSE",
+            'zip_code': '68100',
+            'phone_number': '0388888888',
+            'email': 'lycee@domain.fr',
+            'head_teacher_name': 'Headmaster'
+        }
+
+        response = self.client.post("/core/high_school/%s" % self.high_school.id, data, follow=True)
+        self.assertTrue(HighSchool.objects.filter(address='12 rue des Plantes'))
