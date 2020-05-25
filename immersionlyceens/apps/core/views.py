@@ -370,6 +370,9 @@ def courses_list(request):
 
 @groups_required('SCUIO-IP', 'REF-CMP')
 def course(request, course_id=None, duplicate=False):
+    """
+
+    """
     teachers_list = []
     save_method = None
     course = None
@@ -392,7 +395,7 @@ def course(request, course_id=None, duplicate=False):
             request,
             _(
                 """Courses cannot be created, updated or deleted because the """
-                """active university year has not begun yet (or is already over."""
+                """active university year has not begun yet (or is already over)."""
             ),
         )
 
