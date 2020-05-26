@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import socket
 from os import environ
 from os.path import normpath
-import socket
 
 from .base import *
 
@@ -47,13 +47,18 @@ for logger in LOGGING['loggers']:
 ####################
 
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
+# CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
+# CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
+CAS_SERVER_URL = 'https://cas6-pprd.unistra.fr:443/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas6-w1-pprd.di.unistra.fr', 'cas6-w2-pprd.di.unistra.fr')
+CAS_FORCE_SSL_SERVICE_URL = True
 
 
 #################
 # APIs settings #
 #################
 
-# Feel free to implement your own accounts search functions and 
+# Feel free to implement your own accounts search functions and
 # enter your plugin name here :)
 
 ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
@@ -81,10 +86,7 @@ LDAP_API_FIRSTNAME_ATTR = '{{ ldap_api_firstname_attr }}'
 
 WITH_HOLIDAY_API = True
 HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'
-HOLIDAY_API_MAP = {
-    'date': 'date',
-    'label': 'nom_jour_ferie'
-}
+HOLIDAY_API_MAP = {'date': 'date', 'label': 'nom_jour_ferie'}
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
 #######################
@@ -103,81 +105,23 @@ SUMMERNOTE_THEME = 'bs4'
 SUMMERNOTE_CONFIG = {
     'spellCheck': True,
     'iframe': True,
-    'summernote': {
-        'lang': 'fr-FR',
-    },
+    'summernote': {'lang': 'fr-FR',},
     'codeviewIframeFilter': True,
     'disable_attachment': True,
     'toolbar': [
-        [
-            'style',
-            [
-                'style',
-                'bold',
-                'italic',
-                'underline',
-                'strikethrough',
-                'superscript',
-                'subscript',
-                'clear',
-            ]
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ]
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
-            ],
-        ],
-        [
-            'others',
-            [
-                'link',
-                'table',
-                'hr'
-            ],
-        ],
-        [
-            'view',
-            [
-                'codeview',
-                'undo',
-                'redo',
-                'fullscreen'
-            ],
-        ],
+        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear',]],
+        ['font', ['fontsize', 'forecolor', 'paragraph',]],
+        ['misc', ['ol', 'ul', 'height',],],
+        ['others', ['link', 'table', 'hr'],],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'],],
     ],
     'popover': {
         'link': ['link', ['linkDialogShow', 'unlink']],
         'table': [
-            [
-                'add',
-                [
-                    'addRowDown',
-                    'addRowUp',
-                    'addColLeft',
-                    'addColRight'
-                ]
-            ],
-            [
-                'delete',
-                [
-                    'deleteRow',
-                    'deleteCol',
-                    'deleteTable'
-                ]
-            ],
+            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
         ],
-    }
+    },
 }
 
 # Mailing list subscriber files directory

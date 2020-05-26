@@ -193,7 +193,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_cas.middleware.CASMiddleware',
     # 'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
-    'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware'
+    'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -220,6 +220,7 @@ CAS_IGNORE_REFERER = True
 CAS_REDIRECT_URL = '/'
 CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
 CAS_LOGOUT_COMPLETELY = False
+# CAS_FORCE_SSL_SERVICE_URL=True
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
@@ -512,10 +513,12 @@ MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 # This should be a stable URL according to this site :
 # https://www.data.gouv.fr/fr/datasets/etablissements-denseignement-superieur-2
 # INSTITUTES_URL = "https://api.opendata.onisep.fr/downloads/57da952417293/57da952417293.json"
-INSTITUTES_URL = "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?"+\
-    "dataset=fr-esr-principaux-etablissements-enseignement-superieur&facet=uai&facet=type_d_etablissement"+\
-    "&facet=com_nom&facet=dep_nom&facet=aca_nom&facet=reg_nom&facet=pays_etranger_acheminement"+\
-    "&rows=%s&start=%s" # don't forget to add rows and start values in requests for pagination
+INSTITUTES_URL = (
+    "https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?"
+    + "dataset=fr-esr-principaux-etablissements-enseignement-superieur&facet=uai&facet=type_d_etablissement"
+    + "&facet=com_nom&facet=dep_nom&facet=aca_nom&facet=reg_nom&facet=pays_etranger_acheminement"
+    + "&rows=%s&start=%s"
+)  # don't forget to add rows and start values in requests for pagination
 
 
 # Notifications display time (milliseconds)
