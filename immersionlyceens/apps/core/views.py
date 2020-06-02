@@ -17,24 +17,12 @@ import requests
 
 from immersionlyceens.decorators import groups_required
 
-from .forms import ComponentForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm
-from .models import (
-    Campus,
-    CancelType,
-    Component,
-    Course,
-    HighSchool,
-    Holiday,
-    Immersion,
-    ImmersionUser,
-    Slot,
-    Training,
-    UniversityYear,
-)
+from .forms import (ComponentForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
+    HighSchoolStudentImmersionUserForm)
+from .models import (Campus, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
+    Training, UniversityYear)
 
 logger = logging.getLogger(__name__)
-
-# Create your views here.
 
 
 @groups_required('SCUIO-IP')
@@ -613,24 +601,29 @@ def my_students(request):
 
 @groups_required('REF-LYC', 'SCUIO-IP')
 def student_validation(request, high_school_id=None):
-    from .models import HighSchool
-
-    if not high_school_id and request.user.is_high_school_manager():
-        return redirect('student_validation', high_school_id=request.user.highschool.id)
+    if request.user.is_high_school_manager():
+        try:
+            high_school_id = request.user.highschool.id
+        except AttributeError:
+            messages.error(request, _("Your account is not bound to any high school"))
+            return redirect('/')
 
     # student_validation
     context = {}
 
     if high_school_id:
-        context['high_school'] = HighSchool.objects.get(id=high_school_id)
+        try:
+            context['high_school'] = HighSchool.objects.get(id=high_school_id)
+        except HighSchool.DoesNotExist:
+            messages.error(request, _("This high school id does not exist"))
+            return redirect('/core/student_validation/')
     else:
         context['high_schools'] = HighSchool.objects.all().order_by('city')
 
-    if request.GET.get('hs_id'):
-        try:
-            context['hs_id'] = int(request.GET.get('hs_id'))
-        except ValueError:
-            pass
+    try:
+        context['hs_id'] = int(request.GET.get('hs_id'))
+    except (ValueError, TypeError):
+        pass
 
     return render(request, 'core/student_validation.html', context)
 
@@ -639,10 +632,15 @@ def student_validation(request, high_school_id=None):
 def highschool_student_record_form_manager(request, hs_record_id):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
     from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
-    from immersionlyceens.apps.core.forms import HighSchoolStudentImmersionUserForm
 
-    hs = HighSchoolStudentRecord.objects.get(id=hs_record_id)
-    form = None
+    try:
+        hs = HighSchoolStudentRecord.objects.get(id=hs_record_id)
+    except HighSchoolStudentRecord.DoesNotExist:
+        return redirect('/core/student_validation/')
+
+    if request.user.is_high_school_manager and request.user.highschool != hs.highschool:
+        messages.error(request, _("This student is not bound to your high school"))
+        return redirect('/core/student_validation/')
 
     if request.method == 'POST':
         form = HighSchoolStudentRecordManagerForm(request.POST, instance=hs)

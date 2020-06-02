@@ -28,13 +28,13 @@
     </div>
     <div class="card-body">
       <div class="alert alert-danger hide" id="fail_message">
-          {% trans "An error occured. The validation or rejection failed." %}
+        {% trans "An error occured. The validation or rejection failed." %}
       </div>
       <div class="alert alert-success hide" id="validate_message">
-              {% trans "Student validated" %}
+        {% trans "Student validated" %}
       </div>
       <div class="alert alert-success hide" id="reject_message">
-              {% trans "Student rejected" %}
+        {% trans "Student rejected" %}
       </div>
 
       {% if not high_school %}
@@ -57,7 +57,7 @@
         </select>
       </div>
       {% else %}
-      <input type="hidden" name="high_school" id="id_high_school" value="{{ high_school.id }}">
+        <input type="hidden" name="high_school" id="id_high_school" value="{{ high_school.id }}">
       {% endif %}
       <div>
         <!-- TO VALIDATE -->

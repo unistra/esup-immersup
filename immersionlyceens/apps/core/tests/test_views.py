@@ -679,20 +679,117 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_student_validation(self):
-        pass
+        # As a scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/student_validation/", follow=True)
+        self.assertNotIn('high_school', response.context)
+        self.assertIn(self.high_school, response.context['high_schools'])
+        self.assertIn(self.high_school2, response.context['high_schools'])
+
+        response = self.client.get("/core/student_validation/%s" % self.high_school.id, follow=True)
+        self.assertIn('high_school', response.context)
+        self.assertEqual(response.context['high_school'], self.high_school)
+        self.assertNotIn('high_schools', response.context)
+
+        response = self.client.get("/core/student_validation/?hs_id=%s" % self.high_school.id, follow=True)
+        self.assertIn('hs_id', response.context)
+        self.assertEqual(response.context['hs_id'], self.high_school.id)
+
+        # With a non-existing high school id
+        response = self.client.get("/core/student_validation/99", follow=True)
+        self.assertIn("This high school id does not exist", response.content.decode('utf-8'))
+
+        # As a high school referent
+        self.client.login(username='lycref', password='pass')
+        response = self.client.get("/core/student_validation/", follow=True)
+        self.assertIn('high_school', response.context)
+        self.assertEqual(response.context['high_school'], self.lyc_ref.highschool)
+
+        # Even with a non existing high school id
+        response = self.client.get("/core/student_validation/99", follow=True)
+        self.assertIn('high_school', response.context)
+        self.assertEqual(response.context['high_school'], self.lyc_ref.highschool)
 
 
     def test_highschool_student_record_form_manager(self):
-        pass
+        # As a high school referent
+        hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=datetime.datetime.today(), civility=1,
+            phone='0123456789', level=1, class_name='1ere S 3',
+            bachelor_type=3, professional_bachelor_mention='My spe')
+
+        hs_record2 = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user2,
+            highschool=self.high_school2,
+            birth_date=datetime.datetime.today(), civility=1,
+            phone='0123456789', level=1, class_name='1ere T3',
+            bachelor_type=3, professional_bachelor_mention='My spe')
+
+        self.client.login(username='lycref', password='pass')
+        response = self.client.get("/core/hs_record_manager/%s" % hs_record.id, follow=True)
+        self.assertIn(self.highschool_user.last_name, response.content.decode('utf-8'))
+        self.assertIn(self.highschool_user.first_name, response.content.decode('utf-8'))
+        self.assertIn(hs_record.class_name, response.content.decode('utf-8'))
+
+        # Post
+        data = {
+            'student': self.highschool_user.id,
+            'high_school_id': self.high_school.id,
+            'first_name': 'Jean',
+            'last_name': 'Jacques',
+            'birth_date': "01/06/2002",
+            'level': '2',
+            'class_name': 'TS 3'
+        }
+        response = self.client.post("/core/hs_record_manager/%s" % hs_record.id, data, follow=True)
+        self.assertEqual(response.request['PATH_INFO'], '/core/student_validation/')
+
+        highschool_user = ImmersionUser.objects.get(id=self.highschool_user.id)
+        hs_record = HighSchoolStudentRecord.objects.get(id=hs_record.id)
+
+        self.assertEqual(highschool_user.first_name, 'Jean')
+        self.assertEqual(highschool_user.last_name, 'Jacques')
+        self.assertEqual(hs_record.level, 2)
+        self.assertEqual(hs_record.class_name, 'TS 3')
+
+        # Missing field
+        data.pop('class_name')
+        response = self.client.post("/core/hs_record_manager/%s" % hs_record.id, data, follow=True)
+        self.assertIn("High school student record modification failure", response.content.decode('utf-8'))
+
+        # Student belonging to another high school
+        response = self.client.get("/core/hs_record_manager/%s" % hs_record2.id, follow=True)
+        self.assertIn("This student is not bound to your high school", response.content.decode('utf-8'))
+        self.assertEqual(response.request['PATH_INFO'], '/core/student_validation/')
+
+        # Non existing record id
+        response = self.client.get("/core/hs_record_manager/999", follow=True)
+        self.assertEqual(response.request['PATH_INFO'], '/core/student_validation/')
+
 
 
     def test_component(self):
-        # As a scuio-ip user
+        # As a refcmp user
         self.client.login(username='refcmp', password='pass')
         response = self.client.get("/core/component", follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.component, response.context['component'])
         self.assertEqual(response.context['components'], None)
+
+        # Post a new mailing list URL
+        self.assertEqual(self.component.mailing_list, None)
+        data = {
+            "code" : self.component.code,
+            "mailing_list": "new_mailing_list@mydomain.com",
+            "submit": 1
+        }
+        response = self.client.post("/core/component/%s" % self.component.code, data, follow=True)
+
+        self.assertEqual(response.request['PATH_INFO'], '/core/component')
+        component = Component.objects.get(code='C1')
+        self.assertEqual(component.mailing_list, 'new_mailing_list@mydomain.com')
 
         # As any other user, first check redirection code, then redirection url
         self.client.login(username='lycref', password='pass')

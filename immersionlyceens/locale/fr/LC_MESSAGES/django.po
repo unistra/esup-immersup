@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 14:55+0200\n"
+"POT-Creation-Date: 2020-06-02 14:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -601,7 +601,7 @@ msgid "Error : dates of active university year improperly configured"
 msgstr "Erreur : les dates de l'année universitaire active sont incorrectes"
 
 #: immersionlyceens/apps/core/forms.py:66
-#: immersionlyceens/apps/core/views.py:411
+#: immersionlyceens/apps/core/views.py:427
 msgid "You don't have enough privileges to update this course"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce cours"
 
@@ -1409,7 +1409,7 @@ msgid "Survey notification status"
 msgstr "Lien enquête envoyée ?"
 
 #: immersionlyceens/apps/core/models.py:1251
-#: immersionlyceens/settings/base.py:361
+#: immersionlyceens/settings/base.py:362
 msgid "Immersion"
 msgstr "Immersion"
 
@@ -1548,35 +1548,35 @@ msgstr "Signature"
 msgid "Signature for attendance certificate"
 msgstr "Signature pour l'attestation de présence"
 
-#: immersionlyceens/apps/core/views.py:148
+#: immersionlyceens/apps/core/views.py:157
 msgid "Slot successfully added"
 msgstr "Créneau ajouté avec succès"
 
-#: immersionlyceens/apps/core/views.py:153
-#: immersionlyceens/apps/core/views.py:255
+#: immersionlyceens/apps/core/views.py:162
+#: immersionlyceens/apps/core/views.py:265
 msgid "Course published"
 msgstr "Cours publié"
 
-#: immersionlyceens/apps/core/views.py:206
+#: immersionlyceens/apps/core/views.py:215
 msgid "This slot id does not exist"
 msgstr "Modification : ce créneau n'existe pas"
 
-#: immersionlyceens/apps/core/views.py:211
-#: immersionlyceens/apps/core/views.py:306
+#: immersionlyceens/apps/core/views.py:220
+#: immersionlyceens/apps/core/views.py:318
 msgid "This slot belongs to another component"
 msgstr "Ce créneau appartient à une autre composante"
 
-#: immersionlyceens/apps/core/views.py:237
+#: immersionlyceens/apps/core/views.py:247
 msgid "Slot successfully updated"
 msgstr "Créneau modifié avec succès"
 
-#: immersionlyceens/apps/core/views.py:265
+#: immersionlyceens/apps/core/views.py:275
 #, python-format
 msgid "Notifications have been sent (%s)"
 msgstr "Notifications envoyées (%s)"
 
-#: immersionlyceens/apps/core/views.py:339
-#: immersionlyceens/apps/core/views.py:372
+#: immersionlyceens/apps/core/views.py:349
+#: immersionlyceens/apps/core/views.py:386
 msgid ""
 "Courses cannot be created, updated or deleted because the active university "
 "year has not begun yet (or is already over)."
@@ -1584,55 +1584,67 @@ msgstr ""
 "Les cours ne peuvent être ni créés, ni modifiés, ni supprimés car l'année "
 "universitaire n'a pas encore commencé (ou déjà terminée)."
 
-#: immersionlyceens/apps/core/views.py:430
+#: immersionlyceens/apps/core/views.py:446
 msgid "At least one teacher is required"
 msgstr "Au moins un enseignant obligatoire"
 
-#: immersionlyceens/apps/core/views.py:454
+#: immersionlyceens/apps/core/views.py:469
 msgid "User '{}' created"
 msgstr "Utilisateur '{}' créé"
 
-#: immersionlyceens/apps/core/views.py:460
+#: immersionlyceens/apps/core/views.py:475
 msgid "A confirmation email has been sent to {}"
 msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 
-#: immersionlyceens/apps/core/views.py:469
+#: immersionlyceens/apps/core/views.py:484
 #, python-format
 msgid "Couldn't add group 'ENS-CH' to user '%s'"
 msgstr "Impossible d'ajouter le groupe 'ENS-CH' à l'utilisateur '%s'"
 
-#: immersionlyceens/apps/core/views.py:485
+#: immersionlyceens/apps/core/views.py:500
 msgid "Course successfully updated"
 msgstr "Cours modifié avec succès"
 
-#: immersionlyceens/apps/core/views.py:487
+#: immersionlyceens/apps/core/views.py:502
 msgid "Course successfully saved"
 msgstr "Cours enregistré avec succès"
 
-#: immersionlyceens/apps/core/views.py:626
+#: immersionlyceens/apps/core/views.py:608
+msgid "Your account is not bound to any high school"
+msgstr "Votre compte n'est lié à aucun lycée"
+
+#: immersionlyceens/apps/core/views.py:618
+msgid "This high school id does not exist"
+msgstr "Ce lycée n'existe pas"
+
+#: immersionlyceens/apps/core/views.py:642
+msgid "This student is not bound to your high school"
+msgstr "Ce lycéen n'est pas dans votre lycée"
+
+#: immersionlyceens/apps/core/views.py:650
 msgid "High school student record modified"
 msgstr "Fiche lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:637
+#: immersionlyceens/apps/core/views.py:661
 msgid "High school student user modified"
 msgstr "Compte lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:642
+#: immersionlyceens/apps/core/views.py:666
 msgid "High school student user modification failure"
 msgstr "Erreur de modification de compte lycéen"
 
-#: immersionlyceens/apps/core/views.py:644
+#: immersionlyceens/apps/core/views.py:668
 msgid "High school student record modification failure"
 msgstr "Erreur de modification de fiche lycéen"
 
-#: immersionlyceens/apps/core/views.py:669
-#: immersionlyceens/apps/core/views.py:683
+#: immersionlyceens/apps/core/views.py:693
+#: immersionlyceens/apps/core/views.py:707
 #: immersionlyceens/libs/api/views.py:1834
 #: immersionlyceens/libs/api/views.py:1888
 msgid "Invalid parameter"
 msgstr "Paramètre invalide"
 
-#: immersionlyceens/apps/core/views.py:676
+#: immersionlyceens/apps/core/views.py:700
 msgid "Component settings successfully saved"
 msgstr "Paramètre enregistré avec succès"
 
@@ -2531,11 +2543,11 @@ msgstr "Etablissement d'origine inconnu"
 msgid "Link improperly configured"
 msgstr "Lien non renseigné"
 
-#: immersionlyceens/settings/base.py:362
+#: immersionlyceens/settings/base.py:363
 msgid "Immersion Admin Page"
 msgstr "Immersion - Interface d'administration"
 
-#: immersionlyceens/settings/base.py:363
+#: immersionlyceens/settings/base.py:364
 msgid "Welcome to immersion administration page"
 msgstr ""
 "Bienvenue sur la page d'administration de l'application Immersion Lycéens"
