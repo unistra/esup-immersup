@@ -757,14 +757,14 @@ def students_presence(request):
     slots = Slot.objects.filter(published=True).order_by('date', 'start_time')
 
     first_slot = slots.first()
-    min_date = first_slot.date if first_slot else None
+    min_date = first_slot.date.strftime("%Y-%m-%d") if first_slot else None
 
     last_slot = slots.last()
-    max_date = last_slot.date if last_slot else None
+    max_date = last_slot.date.strftime("%Y-%m-%d") if last_slot else None
 
     context = {
-        'min_date': min_date.strftime("%Y-%m-%d"),
-        'max_date': max_date.strftime("%Y-%m-%d"),
+        'min_date': min_date,
+        'max_date': max_date,
     }
 
     return render(request, 'core/students_presence.html', context)

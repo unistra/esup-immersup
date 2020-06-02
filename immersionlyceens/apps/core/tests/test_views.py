@@ -181,6 +181,13 @@ class CoreViewsTestCase(TestCase):
         )
         self.slot2.teachers.add(self.teacher2),
 
+        self.slot3 = Slot.objects.create(
+            course=self.course2, course_type=self.course_type, campus=self.campus,
+            building=self.building, room='room 12', date=self.today + datetime.timedelta(days=1),
+            start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
+        )
+        self.slot3.teachers.add(self.teacher2),
+
         self.high_school = HighSchool.objects.create(
             label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
             email='a@b.c', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
@@ -652,3 +659,94 @@ class CoreViewsTestCase(TestCase):
 
         response = self.client.post("/core/high_school/%s" % self.high_school.id, data, follow=True)
         self.assertTrue(HighSchool.objects.filter(address='12 rue des Plantes'))
+
+    def test_my_students(self):
+        # As high school referent
+        self.client.login(username='lycref', password='pass')
+        response = self.client.get("/core/my_students", follow=True)
+
+        self.assertIn('highschool', response.context)
+        self.assertEqual(response.context['highschool'], self.high_school)
+        self.assertFalse(response.context['is_scuio_ip_manager'])
+
+        # As a scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/my_students", follow=True)
+
+        self.assertIn('highschool', response.context)
+        self.assertEqual(response.context['highschool'], None)
+        self.assertTrue(response.context['is_scuio_ip_manager'])
+
+
+    def test_student_validation(self):
+        pass
+
+
+    def test_highschool_student_record_form_manager(self):
+        pass
+
+
+    def test_component(self):
+        # As a scuio-ip user
+        self.client.login(username='refcmp', password='pass')
+        response = self.client.get("/core/component", follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.component, response.context['component'])
+        self.assertEqual(response.context['components'], None)
+
+        # As any other user, first check redirection code, then redirection url
+        self.client.login(username='lycref', password='pass')
+        response = self.client.get("/core/component")
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get("/core/component", follow=True)
+        self.assertEqual(response.request['PATH_INFO'], '/')
+
+
+    def test_stats(self):
+        # As a scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/stats/", follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.component2, response.context['components'])
+        self.assertNotIn('high_school_id', response.context)
+
+        # As a ref-cmp user
+        self.client.login(username='refcmp', password='pass')
+        response = self.client.get("/core/stats/", follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(self.component2, response.context['components'])
+        self.assertNotIn('high_school_id', response.context)
+
+        # As ref-lyc user
+        self.client.login(username='lycref', password='pass')
+        response = self.client.get("/core/stats/", follow=True)
+        self.assertIn('high_school_id', response.context)
+        self.assertEqual(response.context['high_school_id'], self.high_school.id)
+
+
+    def test_students_presence(self):
+        # As a scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/students_presence", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.context['min_date'], self.today.strftime("%Y-%m-%d"))
+        self.assertEqual(response.context['max_date'], (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
+
+
+    def test_duplicated_accounts(self):
+        # As a scuio-ip user
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/core/duplicates", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # As any other user, first check redirection code, then redirection url
+        self.client.login(username='lycref', password='pass')
+        response = self.client.get("/core/duplicates")
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get("/core/duplicates", follow=True)
+        self.assertEqual(response.request['PATH_INFO'], '/')
+
+
