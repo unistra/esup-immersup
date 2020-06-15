@@ -94,7 +94,7 @@ def test():
     env.roledefs = {
         'web': ['django-test2.u-strasbg.fr'],
         'lb': ['django-test2.u-strasbg.fr'],
-        'shib': ['root@rp-apache-shib.di.unistra.fr'],
+        'shib': ['root@rp-apache-shib2-test.di.unistra.fr'],
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
@@ -185,20 +185,21 @@ def prod():
     env.roledefs = {
         'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
         'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
-        'shib': [],
+        'shib': ['root@rp-apache-shib2-m.di.unistra.fr', 'root@rp-apache-shib2-s.di.unistra.fr']
     }
+
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
-    env.server_name = 'immersionlyceens.net'
-    env.short_server_name = 'immersionlyceens'
+    env.server_name = 'immersion.unistra.fr'
+    env.short_server_name = 'immersion'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.214'
     env.no_shared_sessions = False
     env.server_ssl_on = True
-    env.path_to_cert = '/etc/ssl/certs/immersionlyceens.net.pem'
-    env.path_to_cert_key = '/etc/ssl/private/immersionlyceens.net.key'
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'prod'
-    env.socket_port = ''
+    env.socket_port = '8041'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",
