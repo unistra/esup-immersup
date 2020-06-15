@@ -135,7 +135,7 @@ def add_slot(request, slot_id=None):
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
         components = Component.activated.all().order_by('label')
-    elif request.user.is_component_manager:
+    elif request.user.is_component_manager():
         components = request.user.components.all().order_by('label')
 
     if request.method == 'POST' and any(
@@ -225,7 +225,7 @@ def modify_slot(request, slot_id):
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
         components = Component.activated.all().order_by('label')
-    elif request.user.is_component_manager:
+    elif request.user.is_component_manager():
         components = request.user.components.all().order_by('label')
 
     if request.method == 'POST' and any(
@@ -638,8 +638,8 @@ def highschool_student_record_form_manager(request, hs_record_id):
     except HighSchoolStudentRecord.DoesNotExist:
         return redirect('/core/student_validation/')
 
-    if request.user.is_high_school_manager and request.user.highschool != hs.highschool:
-        messages.error(request, _("This student is not bound to your high school"))
+    if request.user.is_high_school_manager() and request.user.highschool != hs.highschool:
+        messages.error(request, _("This student is not in your high school"))
         return redirect('/core/student_validation/')
 
     if request.method == 'POST':
