@@ -107,12 +107,15 @@
                 {% endif %}
                 {% if authorized_groups|in_groups:"SCUIO-IP" %}
                   <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View all students' %}</a>
-                  <a class="dropdown-item" href="{% url 'duplicates' %}">{% trans 'View duplicate accounts' %}</a>
-                  <a class="dropdown-item" href="{% url 'student_validation_global' %}">{% trans 'Validate student records' %}</a>
                 {% endif %}
                 {% if authorized_groups|in_groups:"SCUIO-IP,SRV-JUR" %}
                   <a class="dropdown-item" href="{% url 'students_presence' %}">{% trans 'View students by date' %}</a>
                 {% endif %}
+                {% if authorized_groups|in_groups:"SCUIO-IP" %}
+                  <a class="dropdown-item" href="{% url 'duplicates' %}">{% trans 'View duplicate accounts' %}</a>
+                  <a class="dropdown-item" href="{% url 'student_validation_global' %}">{% trans 'Validate student records' %}</a>
+                {% endif %}
+
               </div>
             </div>
           {% endif %}
