@@ -761,7 +761,8 @@ class CoreViewsTestCase(TestCase):
 
         # Student belonging to another high school
         response = self.client.get("/core/hs_record_manager/%s" % hs_record2.id, follow=True)
-        self.assertIn("This student is not bound to your high school", response.content.decode('utf-8'))
+
+        self.assertIn("This student is not in your high school", response.content.decode('utf-8'))
         self.assertEqual(response.request['PATH_INFO'], '/core/student_validation/')
 
         # Non existing record id
