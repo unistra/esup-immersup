@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 15:32+0200\n"
+"POT-Creation-Date: 2020-06-18 15:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,19 +19,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: immersionlyceens/apps/charts/api.py:35
-#: immersionlyceens/apps/charts/api.py:377
-#: immersionlyceens/templates/charts/registrations_charts.html:54
-msgid "Registered users count"
-msgstr "Inscrits sur la plateforme"
+#: immersionlyceens/apps/charts/api.py:383
+msgid "Registrations count"
+msgstr "Inscriptions sur la plateforme"
 
 #: immersionlyceens/apps/charts/api.py:38
 #: immersionlyceens/apps/charts/api.py:380
-#: immersionlyceens/templates/charts/registrations_charts.html:56
-msgid "Registered to at least one immersion"
-msgstr "Inscrits à au moins une immersion"
+msgid "Registrations to at least one immersion"
+msgstr "Inscriptions à au moins une immersion"
 
 #: immersionlyceens/apps/charts/api.py:41
-#: immersionlyceens/apps/charts/api.py:383
+#: immersionlyceens/apps/charts/api.py:377
 #: immersionlyceens/templates/charts/registrations_charts.html:58
 msgid "Attended to at least one immersion"
 msgstr "Participation à au moins une immersion"
@@ -2667,8 +2665,8 @@ msgid "Select a high school"
 msgstr "Sélectionnez un lycée"
 
 #: immersionlyceens/templates/charts/highschool_domains_charts.html:20
-msgid "Highschool charts - students by domains"
-msgstr "Statistiques - inscriptions lycéens par domaines"
+msgid "Highschool charts - registrations by domains"
+msgstr "Statistiques - inscriptions lycéennes par domaines"
 
 #: immersionlyceens/templates/charts/highschool_domains_charts.html:44
 msgid "Select a student level"
@@ -2690,6 +2688,14 @@ msgstr "Niveau des étudiants"
 #: immersionlyceens/templates/charts/registrations_charts.html:50
 msgid "By institutions statistics"
 msgstr "Statistiques par établissement"
+
+#: immersionlyceens/templates/charts/registrations_charts.html:54
+msgid "Registered users count"
+msgstr "Inscrits sur la plateforme"
+
+#: immersionlyceens/templates/charts/registrations_charts.html:56
+msgid "Registered to at least one immersion"
+msgstr "Inscrits à au moins une immersion"
 
 #: immersionlyceens/templates/charts/registrations_charts.html:61
 msgid "Set the filters to build charts"
@@ -4108,32 +4114,3 @@ msgstr "Le créneau a été supprimé avec succès"
 #: immersionlyceens/views.py:222
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
-
-#~ msgid "Sorry, you can't login right now."
-#~ msgstr "Désolé, vous ne pouvez pas vous connecter maintenant"
-
-#~ msgid "Information not available"
-#~ msgstr "Non renseigné"
-
-#~ msgid "Object"
-#~ msgstr "Objet"
-
-#~ msgid "Attendance certificate"
-#~ msgstr "Attestation de présence"
-
-#~ msgid "Only files with type (docx)"
-#~ msgstr "Seulement des fichiers de type (docx)"
-
-#~ msgid "No variables in file"
-#~ msgstr "Pas de variables dans le fichier"
-
-#~ msgid "Error in document please check file existence and structure"
-#~ msgstr ""
-#~ "Erreur dans le document, merci de vérifier l'existence du fichier et sa "
-#~ "structure"
-
-#~ msgid "Variables"
-#~ msgstr "Variables"
-
-#~ msgid "Error : a valid course is requested"
-#~ msgstr "Erreur : un cours valide est requis"

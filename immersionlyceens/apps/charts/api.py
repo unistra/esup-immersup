@@ -32,10 +32,10 @@ def highschool_charts(request, highschool_id):
     # Each dataset represents a student level
     datasets = [
         {
-            'name': gettext("Registered users count"),
+            'name': gettext("Registrations count"),
         },
         {
-            'name':  gettext("Registered to at least one immersion"),
+            'name':  gettext("Registrations to at least one immersion"),
         },
         {
             'name':  gettext("Attended to at least one immersion"),
@@ -374,13 +374,13 @@ def get_registration_charts(request, level_value=0):
     # Each dataset represents a category
     datasets = [
         {
-            'name': gettext("Registered users count"),
-        },
-        {
-            'name': gettext("Registered to at least one immersion"),
-        },
-        {
             'name': gettext("Attended to at least one immersion"),
+        },
+        {
+            'name': gettext("Registrations to at least one immersion"),
+        },
+        {
+            'name': gettext("Registrations count"),
         },
     ]
 
@@ -434,10 +434,10 @@ def get_registration_charts(request, level_value=0):
             users = qs.filter(Q(high_school_student_record__level=3) |
                               Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))
 
-        datasets[0][level[1]] = users.count()  # plaform
+        datasets[0][level[1]] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
         datasets[1][level[1]] = users.filter(
             immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
-        datasets[2][level[1]] = users.filter(immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
+        datasets[2][level[1]] = users.count()  # plaform
 
     response = {
         'axes': axes,
