@@ -224,9 +224,9 @@ def modify_slot(request, slot_id):
     # get components
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all().order_by('label')
+        components = Component.activated.all().order_by('code')
     elif request.user.is_component_manager():
-        components = request.user.components.all().order_by('label')
+        components = request.user.components.all().order_by('code')
 
     if request.method == 'POST' and any(
         [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
