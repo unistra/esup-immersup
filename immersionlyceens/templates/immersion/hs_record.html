@@ -44,28 +44,28 @@ ul
           <label for="id_civility" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Civility' %} * :
           </label>
-          <div class="col-sm-3 col-md-4">{{ record_form.civility }}</div>
-          <div class="col-sm-6 col-md-5">{{ record_form.civility.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ record_form.civility }}</div>
+          <div class="col-sm-3 col-md-2">{{ record_form.civility.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Lastname' %} * :
           </label>
-          <div class="col-sm-3 col-md-4">{{ student_form.last_name }}</div>
-          <div class="col-sm-6 col-md-5">{{ student_form.last_name.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ student_form.last_name }}</div>
+          <div class="col-sm-3 col-md-2">{{ student_form.last_name.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_first_name" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Firstname' %} * :
           </label>
-          <div class="col-sm-3 col-md-4">{{ student_form.first_name }}</div>
-          <div class="col-sm-6 col-md-5">{{ student_form.first_name.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ student_form.first_name }}</div>
+          <div class="col-sm-3 col-md-2">{{ student_form.first_name.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_email" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Email' %} * :
           </label>
-          <div class="col-sm-3 col-md-4">{{ student_form.email }} </div>
+          <div class="col-sm-6 col-md-6">{{ student_form.email }} </div>
           <div class="mt-4 ml-4 form-text warning">{{ student_form.email.help_text }}</div>
           <div class="col-sm-3 col-md-1">{{ student_form.email.errors }}</div>
         </div>
@@ -73,14 +73,14 @@ ul
           <label for="id_birth_date" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Birth date' %} * :
           </label>
-          <div class="col-sm-3 col-md-4">{{ record_form.birth_date }}</div>
-          <div class="col-sm-6 col-md-5">{{ record_form.birth_date.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ record_form.birth_date }}</div>
+          <div class="col-sm-3 col-md-2">{{ record_form.birth_date.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_phone" class="col-sm-3 col-md-4 col-form-label">
           {% trans 'Phone number' %} :</label>
-          <div class="col-sm-3 col-md-4">{{ record_form.phone }}</div>
-          <div class="col-sm-6 col-md-5">{{ record_form.phone.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ record_form.phone }}</div>
+          <div class="col-sm-3 col-md-2">{{ record_form.phone.errors }}</div>
         </div>
       </div>
       <div class="card-header text-white bg-secondary">
@@ -91,30 +91,30 @@ ul
           <label for="id_highschool" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'High-School' %} * :
           </label>
-          <div class="col-sm-4">{{ record_form.highschool }}</div>
-          <div class="col-sm-5 col-md-4">{{ record_form.highschool.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ record_form.highschool }}</div>
+          <div class="col-sm-3 col-md-2">{{ record_form.highschool.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_level" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Level' %} * :
           </label>
-          <div class="col-sm-4">{{ record_form.level }}</div>
-          <div class="col-sm-5 col-md-4">{{ record_form.level.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ record_form.level }}</div>
+          <div class="col-sm-3 col-md-2">{{ record_form.level.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_class_name" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Class name' context "record" %} * :
           </label>
-          <div class="col-sm-4">{{ record_form.class_name }}</div>
-          <div class="col-sm-5 col-md-4">{{ record_form.class_name.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ record_form.class_name }}</div>
+          <div class="col-sm-3 col-md-2">{{ record_form.class_name.errors }}</div>
         </div>
         <div id="id_bachelor_data" style="display:none">
           <div class="form-group row">
             <label for="id_bachelor_type" class="col-sm-3 col-md-4 col-form-label">
               {% trans 'Bachelor type' %} * :
             </label>
-            <div class="col-sm-4">{{ record_form.bachelor_type }}</div>
-            <div class="col-sm-5 col-md-4">{{ record_form.bachelor_type.errors }}</div>
+            <div class="col-sm-6 col-md-6">{{ record_form.bachelor_type }}</div>
+            <div class="col-sm-3 col-md-2">{{ record_form.bachelor_type.errors }}</div>
           </div>
           <div id="id_general_bachelor_data" style="display:none">
             <div class="form-group row">
@@ -124,7 +124,7 @@ ul
             </div>
             <div class="form-group row">
               <div class="col-sm-6 col-md-10">{{ record_form.general_bachelor_teachings }}</div>
-              <div class="col-sm-3 col-md-2">{{ record_form.general_bachelor_teachings.errors }}</div>
+              <div class="col-sm-6 col-md-2">{{ record_form.general_bachelor_teachings.errors }}</div>
             </div>
           </div>
           <div id="id_technological_bachelor_data" style="display:none">
@@ -141,8 +141,8 @@ ul
               <label for="id_professional_bachelor_mention" class="col-sm-3 col-md-4 col-form-label">
                 {% trans 'Professional bachelor mention' %} * :
               </label>
-              <div class="col-sm-4">{{ record_form.professional_bachelor_mention }}</div>
-              <div class="col-sm-5 col-md-4">{{ record_form.professional_bachelor_mention.errors }}</div>
+              <div class="col-sm-3 col-md-4">{{ record_form.professional_bachelor_mention }}</div>
+              <div class="col-sm-6 col-md-4">{{ record_form.professional_bachelor_mention.errors }}</div>
             </div>
           </div>
         </div>
@@ -151,22 +151,22 @@ ul
             <label for="id_post_bachelor_level" class="col-sm-3 col-md-4 col-form-label">
               {% trans 'Post bachelor level' %} * :
             </label>
-            <div class="col-sm-4">{{ record_form.post_bachelor_level }}</div>
-            <div class="col-sm-5 col-md-4">{{ record_form.post_bachelor_level.errors }}</div>
+            <div class="col-sm-3 col-md-4">{{ record_form.post_bachelor_level }}</div>
+            <div class="col-sm-6 col-md-4">{{ record_form.post_bachelor_level.errors }}</div>
           </div>
           <div class="form-group row">
             <label for="id_origin_bachelor_type" class="col-sm-3 col-md-4 col-form-label">
               {% trans 'Origin bachelor type' %} :
             </label>
-            <div class="col-sm-4">{{ record_form.origin_bachelor_type }}</div>
-            <div class="col-sm-5 col-md-4">{{ record_form.origin_bachelor_type.errors }}</div>
+            <div class="col-sm-3 col-md-4">{{ record_form.origin_bachelor_type }}</div>
+            <div class="col-sm-6 col-md-4">{{ record_form.origin_bachelor_type.errors }}</div>
           </div>
           <div class="form-group row">
             <label for="id_current_diploma" class="col-sm-3 col-md-4 col-form-label">
               {% trans 'Current diploma' %} :
             </label>
-            <div class="col-sm-4">{{ record_form.current_diploma }}</div>
-            <div class="col-sm-5 col-md-4">{{ record_form.current_diploma.errors }}</div>
+            <div class="col-sm-3 col-md-4">{{ record_form.current_diploma }}</div>
+            <div class="col-sm-6 col-md-4">{{ record_form.current_diploma.errors }}</div>
           </div>
         </div>
         <div class="form-group row align-items-center">
@@ -191,9 +191,9 @@ ul
               {% trans 'Annually allowed registrations' %} :
             </label>
             {% if record_form.allowed_global_registrations %}
-              <div class="col-sm-1">{{ record_form.allowed_global_registrations }}</div>
+              <div class="col-sm-2">{{ record_form.allowed_global_registrations }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ record.allowed_global_registrations }}</div>
+              <div class="col-sm-2 col-form-label">{{ record.allowed_global_registrations }}</div>
             {% endif %}
           </div>
         {% else %}
