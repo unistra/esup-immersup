@@ -22,14 +22,14 @@
 {% block content %}
 {% authorized_groups request.user %}
 {% include '../modals/modal_nuke.html' %}
-
+{% comment %} remove bullet from django multichoices fields {% endcomment %}
 <style>
 ul
 {
     list-style-type: none !important;
 }
 </style>
-<div class="container-fluid" style="padding-top:20px; width:70%;">
+<div class="container" style="padding-top:20px;">
   <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
         {% csrf_token %}
         {{ record_form.student }}
@@ -102,7 +102,7 @@ ul
           <div class="col-sm-6 col-md-5">{{ record_form.level.errors }}</div>
         </div>
         <div class="form-group row">
-          <label for="id_class_name" class="col-sm-3 col-md-4 col-form-label">
+          <label for="id_class_name" class="col-sm-4 col-md-4 col-form-label">
             <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Class name' context "record" %} :
           </label>
           <div class="col-sm-3">{{ record_form.class_name }}</div>
@@ -118,7 +118,7 @@ ul
           </div>
           <div id="id_general_bachelor_data" style="display:none">
             <div class="form-group row">
-              <label for="id_general_bachelor_teachings" class="col-sm-3 col-md-4 col-form-label">
+              <label for="id_general_bachelor_teachings" class="col-sm-3 col-md-6 col-form-label">
                 <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'General bachelor teachings' %} :
               </label>
             </div>
