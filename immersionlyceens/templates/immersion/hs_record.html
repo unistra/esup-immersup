@@ -42,28 +42,28 @@ ul
       <div class="card-body">
         <div class="form-group row">
           <label for="id_civility" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Civility' %} :
+            {% trans 'Civility' %} * :
           </label>
           <div class="col-sm-3 col-md-4">{{ record_form.civility }}</div>
           <div class="col-sm-6 col-md-5">{{ record_form.civility.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Lastname' %} :
+            {% trans 'Lastname' %} * :
           </label>
           <div class="col-sm-3 col-md-4">{{ student_form.last_name }}</div>
           <div class="col-sm-6 col-md-5">{{ student_form.last_name.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_first_name" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Firstname' %} :
+            {% trans 'Firstname' %} * :
           </label>
           <div class="col-sm-3 col-md-4">{{ student_form.first_name }}</div>
           <div class="col-sm-6 col-md-5">{{ student_form.first_name.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_email" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Email' %} :
+            {% trans 'Email' %} * :
           </label>
           <div class="col-sm-3 col-md-4">{{ student_form.email }} </div>
           <div class="mt-4 ml-4 form-text warning">{{ student_form.email.help_text }}</div>
@@ -71,14 +71,14 @@ ul
         </div>
         <div class="form-group row">
           <label for="id_birth_date" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Birth date' %} :
+            {% trans 'Birth date' %} * :
           </label>
           <div class="col-sm-3 col-md-4">{{ record_form.birth_date }}</div>
           <div class="col-sm-6 col-md-5">{{ record_form.birth_date.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_phone" class="col-sm-3 col-md-4 col-form-label">
-          <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Phone number' %} :</label>
+          {% trans 'Phone number' %} :</label>
           <div class="col-sm-3 col-md-4">{{ record_form.phone }}</div>
           <div class="col-sm-6 col-md-5">{{ record_form.phone.errors }}</div>
         </div>
@@ -89,21 +89,21 @@ ul
       <div class="card-body">
         <div class="form-group row">
           <label for="id_highschool" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'High-School' %} :
+            {% trans 'High-School' %} * :
           </label>
           <div class="col-sm-4">{{ record_form.highschool }}</div>
           <div class="col-sm-5 col-md-4">{{ record_form.highschool.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_level" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Level' %} :
+            {% trans 'Level' %} * :
           </label>
           <div class="col-sm-4">{{ record_form.level }}</div>
           <div class="col-sm-5 col-md-4">{{ record_form.level.errors }}</div>
         </div>
         <div class="form-group row">
           <label for="id_class_name" class="col-sm-3 col-md-4 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Class name' context "record" %} :
+            {% trans 'Class name' context "record" %} * :
           </label>
           <div class="col-sm-4">{{ record_form.class_name }}</div>
           <div class="col-sm-5 col-md-4">{{ record_form.class_name.errors }}</div>
@@ -111,7 +111,7 @@ ul
         <div id="id_bachelor_data" style="display:none">
           <div class="form-group row">
             <label for="id_bachelor_type" class="col-sm-3 col-md-4 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Bachelor type' %} :
+              {% trans 'Bachelor type' %} * :
             </label>
             <div class="col-sm-4">{{ record_form.bachelor_type }}</div>
             <div class="col-sm-5 col-md-4">{{ record_form.bachelor_type.errors }}</div>
@@ -119,7 +119,7 @@ ul
           <div id="id_general_bachelor_data" style="display:none">
             <div class="form-group row">
               <label for="id_general_bachelor_teachings" class="col-sm-3 col-md-6 col-form-label">
-                <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'General bachelor teachings' %} :
+                {% trans 'General bachelor teachings' %} * :
               </label>
             </div>
             <div class="form-group row">
@@ -139,7 +139,7 @@ ul
           <div id="id_professional_bachelor_data" style="display:none">
             <div class="form-group row">
               <label for="id_professional_bachelor_mention" class="col-sm-3 col-md-4 col-form-label">
-                <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Professional bachelor mention' %} :
+                {% trans 'Professional bachelor mention' %} * :
               </label>
               <div class="col-sm-4">{{ record_form.professional_bachelor_mention }}</div>
               <div class="col-sm-5 col-md-4">{{ record_form.professional_bachelor_mention.errors }}</div>
@@ -149,21 +149,21 @@ ul
         <div id="id_post_bachelor_data" style="display:none">
           <div class="form-group row">
             <label for="id_post_bachelor_level" class="col-sm-3 col-md-4 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Post bachelor level' %} :
+              {% trans 'Post bachelor level' %} * :
             </label>
             <div class="col-sm-4">{{ record_form.post_bachelor_level }}</div>
             <div class="col-sm-5 col-md-4">{{ record_form.post_bachelor_level.errors }}</div>
           </div>
           <div class="form-group row">
             <label for="id_origin_bachelor_type" class="col-sm-3 col-md-4 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Origin bachelor type' %} :
+              {% trans 'Origin bachelor type' %} :
             </label>
             <div class="col-sm-4">{{ record_form.origin_bachelor_type }}</div>
             <div class="col-sm-5 col-md-4">{{ record_form.origin_bachelor_type.errors }}</div>
           </div>
           <div class="form-group row">
             <label for="id_current_diploma" class="col-sm-3 col-md-4 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Current diploma' %} :
+              {% trans 'Current diploma' %} :
             </label>
             <div class="col-sm-4">{{ record_form.current_diploma }}</div>
             <div class="col-sm-5 col-md-4">{{ record_form.current_diploma.errors }}</div>
@@ -171,7 +171,6 @@ ul
         </div>
         <div class="form-group row align-items-center">
           <label for="id_visible_immersion_registrations" class="col-sm-9 col-form-label">
-          <i class="fa fas fa-asterisk" focusable="false"></i>
             {% trans 'Make the current immersion registrations visible ?' %}
           </label>
           <div class="col-sm-2">{{ record_form.visible_immersion_registrations }}</div>
@@ -179,7 +178,6 @@ ul
         </div>
         <div class="form-group row align-items-center">
           <label for="id_visible_email" class="col-sm-9 col-form-label">
-          <i class="fa fas fa-asterisk" focusable="false"></i>
           {% trans 'Make the email visible ?' %}
           </label>
           <div class="col-sm-2">{{ record_form.visible_email }}</div>
@@ -190,7 +188,6 @@ ul
         {% if calendar.calendar_mode == "YEAR" %}
           <div class="form-group row align-items-center">
             <label class="col-sm-3  col-md-4 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>
               {% trans 'Annually allowed registrations' %} :
             </label>
             {% if record_form.allowed_global_registrations %}
@@ -202,7 +199,6 @@ ul
         {% else %}
           <div class="form-group row align-items-center">
             <label class="col-sm-3 col-md-4 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>
               {% trans 'Allowed registrations for first semester' %} :
             </label>
             {% if record_form.allowed_first_semester_registrations %}
@@ -213,7 +209,6 @@ ul
           </div>
           <div class="form-group row align-items-center">
             <label class="col-sm-3 col-md-4 col-form-label">
-              <i class="fa fas fa-asterisk" focusable="false"></i>
               {% trans 'Allowed registrations for second semester' %} :
             </label>
             {% if record_form.allowed_second_semester_registrations %}
@@ -226,7 +221,6 @@ ul
       </div>
     </div>
     <div class="row mt-4">
-
         <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
 
