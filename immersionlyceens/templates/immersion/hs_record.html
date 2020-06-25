@@ -66,7 +66,7 @@ ul
             <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Email' %} :
           </label>
           <div class="col-sm-3 col-md-4">{{ student_form.email }} </div>
-          <div class="col-sm-2 col-md-3 warning">{{ student_form.email.help_text }}</div>
+          <div class="mt-4 ml-4 form-text warning">{{ student_form.email.help_text }}</div>
           <div class="col-sm-3 col-md-1">{{ student_form.email.errors }}</div>
         </div>
         <div class="form-group row">
@@ -113,8 +113,8 @@ ul
             <label for="id_bachelor_type" class="col-sm-3 col-md-4 col-form-label">
               <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Bachelor type' %} :
             </label>
-            <div class="col-sm-3">{{ record_form.bachelor_type }}</div>
-            <div class="col-sm-6 col-md-5">{{ record_form.bachelor_type.errors }}</div>
+            <div class="col-sm-4">{{ record_form.bachelor_type }}</div>
+            <div class="col-sm-5 col-md-4">{{ record_form.bachelor_type.errors }}</div>
           </div>
           <div id="id_general_bachelor_data" style="display:none">
             <div class="form-group row">
