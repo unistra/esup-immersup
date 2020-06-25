@@ -47,10 +47,10 @@ for logger in LOGGING['loggers']:
 ####################
 
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
-# CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
-# CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
-CAS_SERVER_URL = 'https://cas6-pprd.unistra.fr:443/cas/'
-CAS_LOGOUT_REQUEST_ALLOWED = ('cas6-w1-pprd.di.unistra.fr', 'cas6-w2-pprd.di.unistra.fr')
+CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
+# CAS_SERVER_URL = 'https://cas6-pprd.unistra.fr:443/cas/'
+# CAS_LOGOUT_REQUEST_ALLOWED = ('cas6-w1-pprd.di.unistra.fr', 'cas6-w2-pprd.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
 
 
