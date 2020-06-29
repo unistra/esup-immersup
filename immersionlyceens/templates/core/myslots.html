@@ -113,7 +113,7 @@
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
-      'responsive': true,
+      'responsive': false,
       'ajax': {
         url: "/api/get_my_slots/" + user_id + "/",
         dataSrc: function (json) {
@@ -171,8 +171,21 @@
     },
     {
       "data": "registered_students_count",
-      "render": function (data) {
-          return data.students_count + '/' + data.capacity + ' <meter min="0" max="'+ data.capacity +'" value="'+ data.students_count+'"></meter>';
+      render: function(data, type, row) {
+        let current = data.students_count;
+        let n = data.capacity;
+        element = '<span>' + current + '/' + n + '</span>' +
+            '<div class="progress">' +
+            '    <div' +
+            '       class="progress-bar"' +
+            '       role="progressbar"' +
+            '       aria-valuenow="' + current + '"' +
+            '       aria-valuemin="0"' +
+            '       aria-valuemax="' + n + '"' +
+            '       style="width: ' + Math.round(current/n * 100) + '%"' +
+            '></div>' +
+            '</div>';
+        return element;
       }
     },
     { "data": "attendances_status",
