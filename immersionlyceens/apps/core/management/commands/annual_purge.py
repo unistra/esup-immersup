@@ -18,6 +18,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         today = datetime.today().date()
         # TODO: calculate annual stats
+
+        # Delete user alerts
+        deleted = UserCourseAlert.objects.all().delete()
+        if deleted[0]:
+            logger.info(_("{} alert(s) deleted".format(deleted[0])))
+        else:
+            logger.info(_("No alert to delete"))
+
         # Delete immersion
         deleted = Immersion.objects.all().delete()
         if deleted[0]:
