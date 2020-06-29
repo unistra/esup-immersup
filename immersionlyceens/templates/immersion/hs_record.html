@@ -27,6 +27,8 @@
 ul
 {
     list-style-type: none !important;
+    padding-inline-start: 1px;
+
 }
 </style>
 <div class="container" style="padding-top:20px;">
@@ -118,19 +120,19 @@ ul
           </div>
           <div id="id_general_bachelor_data" style="display:none">
             <div class="form-group row">
-              <label for="id_general_bachelor_teachings" class="col-sm-3 col-md-6 col-form-label">
+              <label for="id_general_bachelor_teachings" class="col-sm-3 col-md-4 col-form-label">
                 {% trans 'General bachelor teachings' %} * :
               </label>
             </div>
             <div class="form-group row">
-              <div class="col-sm-6 col-md-10">{{ record_form.general_bachelor_teachings }}</div>
+              <div class="col-sm-6 col-md-6">{{ record_form.general_bachelor_teachings }}</div>
               <div class="col-sm-3 col-md-2">{{ record_form.general_bachelor_teachings.errors }}</div>
             </div>
           </div>
           <div id="id_technological_bachelor_data" style="display:none">
             <div class="form-group row">
               <label for="id_technological_bachelor_mention" class="col-sm-3 col-md-4 col-form-label">
-                <i class="fa fas fa-asterisk" focusable="false"></i> {% trans 'Technological bachelor mention' %} :
+                {% trans 'Technological bachelor mention' %} * :
               </label>
               <div class="col-sm-6 col-md-6">{{ record_form.technological_bachelor_mention }}</div>
               <div class="col-sm-3 col-md-2">{{ record_form.technological_bachelor_mention.errors }}</div>
