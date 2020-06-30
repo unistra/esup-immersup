@@ -8,8 +8,8 @@ from datetime import datetime
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
-from ...models import ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course, UserCourseAlert, 
-    Vacation, Holiday
+from ...models import (ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course, UserCourseAlert, 
+    Vacation, Holiday)
     
 
 logger = logging.getLogger(__name__)
