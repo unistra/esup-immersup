@@ -184,8 +184,6 @@ class ImmersionUser(AbstractUser):
             logger.error(msg)
             return msg
 
-        message_body = template.parse_vars(user=self, request=request, **kwargs)
-
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
             logger.debug("Message body : %s" % message_body)
