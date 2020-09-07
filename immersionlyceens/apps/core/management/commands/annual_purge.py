@@ -5,9 +5,12 @@ Delete unactivated accounts
 import logging
 
 from datetime import datetime
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _
-from ...models import ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course
+from ...models import (ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course, UserCourseAlert, 
+    Vacation, Holiday)
+    
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +20,24 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         today = datetime.today().date()
-        # TODO: calculate annual stats
+        
+        # Run annual stats first
+        try:
+            call_command('annual_statistics')
+            finished = True
+        except CommandError:
+            logger.error("Could not finish 'annual_statistics' command")
+
+        if not finished:
+            logger.error(_("Cannot parse annual statistics, purge cancelled"))
+
+        # Delete user alerts
+        deleted = UserCourseAlert.objects.all().delete()
+        if deleted[0]:
+            logger.info(_("{} user alert(s) deleted".format(deleted[0])))
+        else:
+            logger.info(_("No user alert to delete"))
+
         # Delete immersion
         deleted = Immersion.objects.all().delete()
         if deleted[0]:
@@ -39,12 +59,24 @@ class Command(BaseCommand):
         else:
             logger.info(_("No account to delete"))
 
-        # Delete calendar
+        # Delete calendar, vacations and holidays
         deleted = Calendar.objects.all().delete()
         if deleted[0]:
             logger.info(_("{} calendar(s) deleted".format(deleted[0])))
         else:
             logger.info(_("No calendar to delete"))
+            
+        deleted = Holiday.objects.all().delete()
+        if deleted[0]:
+            logger.info(_("{} holyday record(s) deleted".format(deleted[0])))
+        else:
+            logger.info(_("No holyday record to delete"))
+
+        deleted = Vacation.objects.all().delete()
+        if deleted[0]:
+            logger.info(_("{} vacation record(s) deleted".format(deleted[0])))
+        else:
+            logger.info(_("No vacation record to delete"))
 
         # Update purge date
         updated = UniversityYear.objects.filter(active=True).update(purge_date=today)

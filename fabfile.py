@@ -92,13 +92,13 @@ def dev():
 def test():
     """Define test stage"""
     env.roledefs = {
-        'web': ['django-test2.u-strasbg.fr'],
-        'lb': ['django-test2.u-strasbg.fr'],
+        'web': ['django-test2.di.unistra.fr'],
+        'lb': ['django-test2.di.unistra.fr'],
         'shib': ['root@rp-apache-shib2-test.di.unistra.fr'],
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
-    env.server_name = 'immersion-test.u-strasbg.fr'
+    env.server_name = 'immersion-test.app.unistra.fr'
     env.short_server_name = 'immersion-test'
     env.static_folder = '/site_media/'
     env.server_ip = ''
