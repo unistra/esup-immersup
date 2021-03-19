@@ -257,3 +257,18 @@ a.unlink:hover {
         display: block;
     }
 }
+
+/* ui widgets */
+.ui-widget > * {
+    font-family: "Unistra A", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+.dialog-button {
+    font-family: "Unistra A", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+    font-size: 1.1rem !important;
+    font-weight: 400 !important;
+}
+
+
