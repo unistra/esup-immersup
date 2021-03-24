@@ -50,6 +50,14 @@
     </div>
     <div class="card-body">
       <div id="chartdiv" style="width:100%; height:400px;"></div>
+      <div class="row mt-5" style="height:100%;">
+        <div class="col-md-6">
+          <div id="legenddiv1" class="mb-4"></div>
+        </div>
+        <div class="col-md-6">
+          <div id="legenddiv2" class="mb-4"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -144,19 +152,26 @@
     // am4core.useTheme(am4themes_material);
 
     container = am4core.create("chartdiv", am4core.Container);
-    container.width = am4core.percent(100);
-    container.height = am4core.percent(100);
+    container.width = am4core.percent(90);
+    container.height = am4core.percent(90);
     container.layout = "horizontal";
+
+    let legendContainer1 = am4core.create("legenddiv1", am4core.Container);
+    legendContainer1.width = am4core.percent(100);
+    legendContainer1.height = am4core.percent(100);
 
     chart = container.createChild(am4charts.PieChart);
     chart.data = datasets;
     chart.legend = new am4charts.Legend();
-    chart.legend.maxWidth = undefined;
+    // chart.legend.maxWidth = undefined;
+    chart.legend.parent = legendContainer1;
 
     pieSeries = chart.series.push(new am4charts.PieSeries());
     pieSeries.dataFields.value = "count";
     pieSeries.dataFields.category = "domain";
     pieSeries.slices.template.states.getKey("active").properties.shiftRadius = 0;
+    pieSeries.labels.template.maxWidth = 240;
+    pieSeries.labels.template.wrap = true;
 
     pieSeries.labels.template.text = "{category}";
     pieSeries.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
@@ -166,15 +181,16 @@
     });
 
     chart2 = container.createChild(am4charts.PieChart);
-    /*
-    chart2.width = am4core.percent(30);
-    chart2.radius = am4core.percent(80);
-    */
-
-    chart2.width = am4core.percent(50);
+    chart2.width = am4core.percent(60);
     chart2.radius = am4core.percent(60);
+
+    let legendContainer2 = am4core.create("legenddiv2", am4core.Container);
+    legendContainer2.width = am4core.percent(100);
+    legendContainer2.height = am4core.percent(100);
+
     chart2.legend = new am4charts.Legend();
-    chart2.legend.maxWidth = undefined;
+    // chart2.legend.maxWidth = undefined;
+    chart2.legend.parent = legendContainer2;
 
     pieSeries2 = chart2.series.push(new am4charts.PieSeries());
     pieSeries2.dataFields.value = "count";
@@ -182,10 +198,12 @@
     pieSeries2.slices.template.states.getKey("active").properties.shiftRadius = 0;
     pieSeries2.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
     pieSeries2.labels.template.text = "{category}";
+    pieSeries2.labels.template.maxWidth = 240;
+    pieSeries2.labels.template.wrap = true;
 
     // pieSeries2.labels.template.disabled = true;
     pieSeries2.ticks.template.disabled = true;
-    pieSeries2.alignLabels = false;
+    pieSeries2.alignLabels = true;
     pieSeries2.events.on("positionchanged", updateLines);
 
     var interfaceColors = new am4core.InterfaceColorSet();
@@ -207,6 +225,14 @@
         selectSlice(pieSeries.dataItems.getIndex(0));
       }, 1000);
     });
+/*
+    chart2.events.on("datavalidated", function () {
+      let nb_cats = pieSeries2.dataItems.length;
+      let height = 320 + nb_cats * 40;
+      $('#chartdiv').css("height", height + "px");
+    });
+
+ */
   }
 
   if (highschool_id && level_value) {
