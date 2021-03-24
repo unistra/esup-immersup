@@ -63,13 +63,10 @@ class ChartsTestCase(TestCase):
             [{'domain': 'Art, Lettres, Langues', 'count': 15,
               'subData': [{'name': 'Art visuels', 'count': 8}, {'name': 'Art plastiques', 'count': 7}]},
              {'domain': 'Droit, Economie, Gestion', 'count': 5, 'subData': [{'name': 'Economie, Gestion', 'count': 5}]},
-             {'domain': 'Santé', 'count': 0, 'subData': []},
              {'domain': 'Sciences Humaines et sociales', 'count': 2,
-              'subData': [{'name': 'Histoire et Géo', 'count': 0}, {'name': 'Sport', 'count': 2}]},
+              'subData': [{'name': 'Sport', 'count': 2}]},
              {'domain': 'Sciences et Technologies', 'count': 11,
-              'subData': [{'name': 'Mathématiques', 'count': 7}, {'name': 'Psychologie', 'count': 0},
-                          {'name': 'Informatique', 'count': 4}]},
-             {'domain': 'Test', 'count': 0, 'subData': [{'name': 'Test sous domaine', 'count': 0}]}]
+              'subData': [{'name': 'Mathématiques', 'count': 7}, {'name': 'Informatique', 'count': 4}]}]
         )
 
         # Global domain charts
