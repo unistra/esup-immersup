@@ -135,7 +135,7 @@
       'pageLength': 15,
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
-      'responsive': true,
+      'responsive': false,
       'ajax': {
         url: "/api/get_courses/" + $('#cmps option:selected').val() + "/",
         dataSrc: function (json) {
