@@ -128,20 +128,24 @@ def highschool_domains_charts(request, highschool_id, level=0):
         if level in [1,2,3]:
             qs = qs.filter(student__high_school_student_record__level=level)
 
-        data = {
-            "domain": domain.label,
-            "count": qs.count(),
-            "subData": [],
-        }
-
-        for subdomain in domain.Subdomains.all():
-            sub_data = {
-                "name": subdomain.label,
-                "count": qs.filter(slot__course__training__training_subdomains=subdomain).count(),
+        if qs.count():
+            data = {
+                "domain": domain.label,
+                "count": qs.count(),
+                "subData": [],
             }
-            data['subData'].append(sub_data.copy())
 
-        datasets.append(data.copy())
+            for subdomain in domain.Subdomains.all():
+                subcount = qs.filter(slot__course__training__training_subdomains=subdomain).count()
+
+                if subcount:
+                    sub_data = {
+                        "name": subdomain.label,
+                        "count": subcount,
+                    }
+                    data['subData'].append(sub_data.copy())
+
+            datasets.append(data.copy())
 
     response = {
         'datasets': datasets,

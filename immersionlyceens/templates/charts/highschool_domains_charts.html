@@ -136,6 +136,15 @@
       }
     }
 
+    function hideSmall(ev) {
+      if (ev.target.dataItem.values.value.percent === 0) {
+        ev.target.hide();
+      }
+      else {
+        ev.target.show();
+      }
+    }
+
     $.ajax({
       url: "/charts/get_highschool_domains_charts/" + hs_id + "/" + level_value,
       type: 'GET',
@@ -180,6 +189,12 @@
       selectSlice(event.target.dataItem);
     });
 
+    pieSeries.ticks.template.events.on("ready", hideSmall);
+    pieSeries.ticks.template.events.on("visibilitychanged", hideSmall);
+    pieSeries.labels.template.events.on("ready", hideSmall);
+    pieSeries.labels.template.events.on("visibilitychanged", hideSmall);
+
+
     chart2 = container.createChild(am4charts.PieChart);
     chart2.width = am4core.percent(60);
     chart2.radius = am4core.percent(60);
@@ -205,6 +220,11 @@
     pieSeries2.ticks.template.disabled = true;
     pieSeries2.alignLabels = true;
     pieSeries2.events.on("positionchanged", updateLines);
+
+    pieSeries2.ticks.template.events.on("ready", hideSmall);
+    pieSeries2.ticks.template.events.on("visibilitychanged", hideSmall);
+    pieSeries2.labels.template.events.on("ready", hideSmall);
+    pieSeries2.labels.template.events.on("visibilitychanged", hideSmall);
 
     var interfaceColors = new am4core.InterfaceColorSet();
 
