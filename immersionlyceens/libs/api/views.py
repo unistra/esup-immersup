@@ -21,13 +21,18 @@ from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
-from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, HighSchool,
-    Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument,
-    Slot, Training, TrainingDomain, UniversityYear, UserCourseAlert, Vacation,
-)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from immersionlyceens.apps.core.models import (Building, Calendar, CancelType,
+                                               Component, Course, HighSchool,
+                                               Holiday, Immersion,
+                                               ImmersionUser, MailTemplate,
+                                               MailTemplateVars,
+                                               PublicDocument, Slot, Training,
+                                               TrainingDomain, UniversityYear,
+                                               UserCourseAlert, Vacation)
+from immersionlyceens.apps.immersion.models import (HighSchoolStudentRecord,
+                                                    StudentRecord)
+from immersionlyceens.decorators import (groups_required, is_ajax_request,
+                                         is_post_request)
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.mails.variables_parser import multisub
 from immersionlyceens.libs.utils import get_general_setting
@@ -202,7 +207,7 @@ def ajax_get_slots(request, component=None):
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_components,},
+            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_components, },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
@@ -431,7 +436,7 @@ def ajax_get_my_slots(request, user_id=None):
             'component': slot.course.component.code,
             'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
             'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
-            'location': {'campus': campus, 'room': slot.room,},
+            'location': {'campus': campus, 'room': slot.room, },
             'schedules': {
                 'date': _date(slot.date, "l d/m/Y"),
                 'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
@@ -448,7 +453,7 @@ def ajax_get_my_slots(request, user_id=None):
             'label': slot.course.label,
             'teachers': {},
             'n_places': slot.n_places if slot.n_places is not None else 0,
-            'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(),},
+            'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(), },
             'additional_information': slot.additional_information,
             'attendances_status': '',
             'attendances_value': 0,
@@ -687,13 +692,15 @@ def ajax_cancel_registration(request):
     """
     immersion_id = request.POST.get('immersion_id')
     reason_id = request.POST.get('reason_id')
+    today = datetime.datetime.today()
 
     if not immersion_id or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
     else:
         try:
             immersion = Immersion.objects.get(pk=immersion_id)
-            if immersion.slot.date <= datetime.datetime.today().date():
+            if immersion.slot.date < today.date() or (immersion.slot.date == today.date()
+                                                      and immersion.slot.start_time < today.time()):
                 response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
                 return JsonResponse(response, safe=False)
 
@@ -978,6 +985,7 @@ def ajax_slot_registration(request):
     calendar, slot, student = None, None, None
     can_force_reg = request.user.is_scuio_ip_manager()
     today = datetime.datetime.today().date()
+    today_time = datetime.datetime.today().time()
 
     request.session.pop("last_registration_slot", None)
 
@@ -1018,7 +1026,7 @@ def ajax_slot_registration(request):
             return JsonResponse(response, safe=False)
 
     # Check if slot is not past
-    if slot.date <= today:
+    if slot.date < today or (slot.date == today and today_time > slot.start_time):
         response = {'error': True, 'msg': _("Register to past slot is not available")}
         return JsonResponse(response, safe=False)
 
@@ -1351,6 +1359,7 @@ def ajax_batch_cancel_registration(request):
 
     err_msg = None
     err = False
+    today = datetime.datetime.today()
 
     if not immersion_ids or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
@@ -1363,7 +1372,8 @@ def ajax_batch_cancel_registration(request):
         for immersion_id in json_data:
             try:
                 immersion = Immersion.objects.get(pk=immersion_id)
-                if immersion.slot.date <= datetime.datetime.today().date():
+                if immersion.slot.date < today.date() or (immersion.slot.date == today.date() and
+                                                          immersion.slot.start_time < today.time()):
                     response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
                     return JsonResponse(response, safe=False)
                 cancellation_reason = CancelType.objects.get(pk=reason_id)
