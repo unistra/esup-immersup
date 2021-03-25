@@ -47,7 +47,7 @@ SECRET_KEY = '{{ secret_key }}'
 ####################
 
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
-# CAS_FORCE_SSL_SERVICE_URL=True
+CAS_FORCE_SSL_SERVICE_URL = True
 
 
 #################
@@ -103,15 +103,15 @@ SUMMERNOTE_THEME = 'bs4'
 SUMMERNOTE_CONFIG = {
     'spellCheck': True,
     'iframe': True,
-    'summernote': {'lang': 'fr-FR',},
+    'summernote': {'lang': 'fr-FR', },
     'codeviewIframeFilter': True,
     'disable_attachment': True,
     'toolbar': [
-        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear',],],
-        ['font', ['fontsize', 'forecolor', 'paragraph',]],
-        ['misc', ['ol', 'ul', 'height',],],
-        ['others', ['link', 'table', 'hr'],],
-        ['view', ['codeview', 'undo', 'redo', 'fullscreen'],],
+        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
+        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
+        ['misc', ['ol', 'ul', 'height', ], ],
+        ['others', ['link', 'table', 'hr'], ],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
     ],
     'popover': {
         'link': ['link', ['linkDialogShow', 'unlink']],
