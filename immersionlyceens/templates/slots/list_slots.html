@@ -337,7 +337,7 @@ $(document).ready(function(){
                 if ( row['component']['managed_by_me'] ) {
                   let element =
                 '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light btn-sm mr-1" ' +
-                '         title="{% trans 'Add' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
+                '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
 
                   if(row.is_past == false) {
                     element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
