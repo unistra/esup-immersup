@@ -1,5 +1,10 @@
 {% load immersionlyceens_tags i18n static staticfiles %}
 <!-- Modal students list for registering -->
+<div id="confirm-dialog-form" title='{% trans "Confirm registration" %}'>
+  <span>
+    {% trans 'Selected student has no remaining registration available, would you like to register anyway ?' %}
+  </span>
+</div>
 <div class="modal fade" id="modal_register_students_list" tabindex="-1" role="dialog" aria-labelledby="modal_register_students_list_title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
         <div class="modal-content">
@@ -110,6 +115,43 @@ $('#modal_register_students_list').on('show.bs.modal', function (e) {
   reload_register_students();
 });
 
+let confirmDialog = $("#confirm-dialog-form").dialog({
+  autoOpen: false,
+  closeOnEscape: false,
+  open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+  closeText: "hide",
+  width: 'auto',
+  modal: true,
+  appendTo: '#modal_register_students_list',
+
+  buttons: [
+    {
+      text: "{% trans 'Yes' %}",
+      "class": 'dialog-button',
+      click: function () {
+        let student_id = $("#confirm-dialog-form").data('param').student_id
+        let slot_id = $("#confirm-dialog-form").data('param').slot_id
+        let force = $("#confirm-dialog-form").data('param').force
+
+        register_student(
+            student_id=student_id,
+            slot_id=slot_id,
+            force=force
+        );
+
+        confirmDialog.dialog("close");
+      },
+    },
+    {
+      text: "{% trans 'No' %}",
+      "class": 'dialog-button',
+      click: function () {
+        confirmDialog.dialog("close");
+      },
+    }
+  ],
+});
+
 function register_student(student_id, slot_id, force=false) {
     $.ajax({
       url: "{% url 'SlotRegistration' %}",
@@ -125,7 +167,12 @@ function register_student(student_id, slot_id, force=false) {
       success: function (json) {
         if(json['error']) {
             if (json['msg'] == 'force_update') {
-              if (confirm("{% trans 'Selected student as no remaining registration available would you like to register anyway'%}")) { register_student(student_id, slot_id, force=true); }
+              let data = {
+                  'student_id': student_id,
+                  'slot_id': slot_id,
+                  'force': true
+              }
+              confirmDialog.data('param', data).dialog('open');
             } else {
               $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
               setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});

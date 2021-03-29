@@ -2274,7 +2274,7 @@ msgstr ""
 #: immersionlyceens/libs/api/views.py:1104
 #: immersionlyceens/libs/api/views.py:1136
 msgid "This student has no more remaining slots to register to"
-msgstr "Cet étudiant a épuisé tous ces créneaux disponibles"
+msgstr "Cet étudiant a épuisé tous ses créneaux disponibles"
 
 #: immersionlyceens/libs/api/views.py:1153
 msgid "Registration successfully added"
@@ -3848,8 +3848,8 @@ msgstr "Inscrire l'étudiant(e)"
 
 #: immersionlyceens/templates/modals/modal_register_students_list.html:128
 msgid ""
-"Selected student as no remaining registration available would you like to "
-"register anyway"
+"Selected student has no remaining registration available, would you like to "
+"register anyway ?"
 msgstr ""
 "L'étudiant selectionné a atteint le nombre maximal d'inscription autorisé "
 "voulez vous l'inscrire malgré tout ?"
