@@ -1,6 +1,11 @@
 {% load immersionlyceens_tags i18n static staticfiles %}
 {% authorized_groups request.user %}
 <!-- Modal -->
+<div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
+  <span>
+    {% trans "Do you really want to cancel this alert ?" %}
+  </span>
+</div>
 <div class="modal fade" id="modal_alerts" tabindex="-1" role="dialog" aria-labelledby="modal_alerts_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered fullmodal-dialog" role="document">
     <div class="modal-content">
@@ -48,43 +53,69 @@
 var dtr;
 let cancel_text = "{% trans 'Cancel alert' %}";
 
-function cancel_alert(alert_id) {
-    var csrftoken = getCookie('csrftoken');
+let confirmDialog = $("#confirm-dialog-form").dialog({
+  autoOpen: false,
+  closeOnEscape: false,
+  open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+  closeText: "hide",
+  width: 'auto',
+  modal: true,
+  appendTo: '#modal_alerts',
 
-    if (confirm('{% trans "Do you really want to cancel this alert ?" %}')) {
-      $.ajax({
-        beforeSend: function (request) {
-          request.setRequestHeader("X-CSRFToken", csrftoken);
-        },
-
-        url: "/api/cancel_alert",
-        type: "POST",
-        data: {
-          alert_id: alert_id,
-        },
-
-        success: function (json) {
-          let msg = json['msg'];
-          let error = json['error'];
-
-          if(error != '') {
-            $("#cancel_feedback").html('<div class="alert alert-danger">'+json["error"]+'</div>');
-            setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
-          }
-          else if(msg != '') {
-            $("#cancel_feedback").html('<div class="alert alert-success">'+json["msg"]+'</div>');
-            setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
-          }
-
-          reload_table();
-        },
-        error: function (e) {
-          obj = JSON.stringify(e);
-          console.log("Error : " + obj);
-        }
-      });
+  buttons: [
+    {
+      text: "{% trans 'Yes' %}",
+      "class": 'dialog-button',
+      click: function () {
+        cancel_alert($("#confirm-dialog-form").data('alert_id'))
+        confirmDialog.dialog("close");
+      },
+    },
+    {
+      text: "{% trans 'No' %}",
+      "class": 'dialog-button',
+      click: function () {
+        confirmDialog.dialog("close");
+      },
     }
-  }
+  ],
+});
+
+function cancel_alert(alert_id) {
+  var csrftoken = getCookie('csrftoken');
+
+  $.ajax({
+      beforeSend: function (request) {
+        request.setRequestHeader("X-CSRFToken", csrftoken);
+      },
+
+      url: "/api/cancel_alert",
+      type: "POST",
+      data: {
+        alert_id: alert_id,
+      },
+
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error != '') {
+          $("#cancel_feedback").html('<div class="alert alert-danger">'+json["error"]+'</div>');
+          setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        }
+        else if(msg != '') {
+          $("#cancel_feedback").html('<div class="alert alert-success">'+json["msg"]+'</div>');
+          setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        }
+
+        reload_table();
+      },
+      error: function (e) {
+        obj = JSON.stringify(e);
+        console.log("Error : " + obj);
+      }
+    });
+}
 
 function reload_table() {
   dtr.rows().remove().draw();
@@ -161,7 +192,7 @@ dtr = $('#alerts_table').DataTable({
     },
     { "data": "",
       "render": function(data, type, row) {
-        let icons = "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"cancel_alert('" + row.id + "')\" title='"+ cancel_text +"'>" +
+        let icons = "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('alert_id', " + row.id + ").dialog('open')\" title='"+ cancel_text +"'>" +
                        "<i class=\"fa fas fa-trash\"</i>" +
                     "</button>";
         return icons;

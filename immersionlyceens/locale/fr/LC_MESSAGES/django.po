@@ -2274,7 +2274,7 @@ msgstr ""
 #: immersionlyceens/libs/api/views.py:1104
 #: immersionlyceens/libs/api/views.py:1136
 msgid "This student has no more remaining slots to register to"
-msgstr "Cet étudiant a épuisé tous ces créneaux disponibles"
+msgstr "Cet étudiant a épuisé tous ses créneaux disponibles"
 
 #: immersionlyceens/libs/api/views.py:1153
 msgid "Registration successfully added"
@@ -3848,8 +3848,8 @@ msgstr "Inscrire l'étudiant(e)"
 
 #: immersionlyceens/templates/modals/modal_register_students_list.html:128
 msgid ""
-"Selected student as no remaining registration available would you like to "
-"register anyway"
+"Selected student has no remaining registration available, would you like to "
+"register anyway ?"
 msgstr ""
 "L'étudiant selectionné a atteint le nombre maximal d'inscription autorisé "
 "voulez vous l'inscrire malgré tout ?"
@@ -4045,30 +4045,30 @@ msgstr "Notifier les inscrits de ces modifications ?"
 
 #: immersionlyceens/templates/slots/add_slot.html:316
 msgid ""
-"This course is unpublished. By creating this slot the associate course is "
-"going to be published. Do you want to continue?"
+"This course is unpublished. By creating this slot the associated course will "
+"be published. Do you want to continue?"
 msgstr ""
 "Ce cours n'est pas publié. En publiant ce créneau, le cours associé sera "
 "publié. Voulez-vous continuer ?"
 
 #: immersionlyceens/templates/slots/add_slot.html:340
 msgid ""
-"This date is inside a vacation or a haliday. Are you sure that you want a "
+"This date is inside a vacation or a holiday. Are you sure that you want a "
 "slot with this date ?"
 msgstr ""
 "Cette date se situe pendant une période de vacances et/ou est un jour férié. "
 "Êtes-vous sûr(e) de vouloir utiliser cette date pour ce créneau ?"
 
 #: immersionlyceens/templates/slots/add_slot.html:545
-msgid "Did you really want to cancel this modification?"
+msgid "Do you really want to cancel this modification?"
 msgstr "Voulez-vous vraiment annuler la modification ?"
 
 #: immersionlyceens/templates/slots/add_slot.html:547
-msgid "Did you really want to cancel this duplication?"
+msgid "Do you really want to cancel this duplication?"
 msgstr "Voulez-vous vraiment annuler la duplication ?"
 
 #: immersionlyceens/templates/slots/add_slot.html:550
-msgid "Did you really want to cancel this creation?"
+msgid "Do you really want to cancel this creation?"
 msgstr "Voulez-vous vraiment annuler la création ?"
 
 #: immersionlyceens/templates/slots/add_slot__controls.html:10

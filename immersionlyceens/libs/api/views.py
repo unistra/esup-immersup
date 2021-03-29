@@ -1006,7 +1006,7 @@ def ajax_slot_registration(request):
     if slot_id:
         try:
             slot = Slot.objects.get(pk=slot_id)
-        except ImmersionUser.DoesNotExist:
+        except Slot.DoesNotExist:
             pass
 
     if not slot or not student:
