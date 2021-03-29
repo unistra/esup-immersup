@@ -399,9 +399,14 @@ $(document).ready(function(){
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            let c = $('#component').val();
-            let t = $('#training').val();
-            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
+            let url = "/core/slots"
+            let comp_id = $('#component').val();
+            let train_id = $('#training').val();
+
+            if(comp_id) url += "/"+comp_id
+            if(train_id) url += "/"+train_id
+
+            window.location = url;
             cancelDialog.dialog("close");
           },
         },

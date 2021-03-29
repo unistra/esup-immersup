@@ -32,7 +32,12 @@
 </div>
 <div id="feedback" class="container sticky-top"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 98%;">
-<br>
+  <div id="delete-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot deletion" %}'>
+    <span>
+      {% trans 'Do you really want to delete this slot ?' %}
+    </span>
+  </div>
+  <br>
   <div class="card">
     <div class="card-header text-white bg-secondary">
       {% trans "Slot" %}
@@ -112,6 +117,33 @@ var dt;
 var current_slot_id;
 var can_update_attendances = false;
 var slot_places = 0;
+
+let deleteDialog = $("#delete-dialog-form").dialog({
+  autoOpen: false,
+  closeOnEscape: false,
+  open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+  closeText: "hide",
+  width: 'auto',
+  modal: true,
+
+  buttons: [
+    {
+      text: "{% trans 'Yes' %}",
+      "class": 'dialog-button',
+      click: function () {
+        delete_slot($("#delete-dialog-form").data("slot_id"))
+        deleteDialog.dialog("close");
+      },
+    },
+    {
+      text: "{% trans 'No' %}",
+      "class": 'dialog-button',
+      click: function () {
+        deleteDialog.dialog("close");
+      },
+    }
+  ],
+});
 
 function open_modal(slot_id, edit_mode, n_places, is_past=false) {
   current_slot_id = slot_id;
@@ -343,7 +375,7 @@ $(document).ready(function(){
                     element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
                   }
                   if(row.n_register == 0 && row.is_past == false) {
-                    element += '<button class="btn btn-light btn-sm mr-1" onclick="delete_slot(' + data + ')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
+                    element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
                   }
 
                   if(row.attendances_value == 1) {
@@ -447,20 +479,18 @@ $(document).ready(function(){
 
 
 function delete_slot(slot_id) {
-    if (confirm('{% trans "Do you really want to delete this slot ?" %}')) {
-        $.post({
-            url: "/core/slot/delete/" + slot_id,
-            success: function(data) {
-                if(data == "ok") {
-                  show_top_indicator("{% trans 'The slot has been successfully deleted' %}", "success");
-                  reload_data();
-                }
-                else {
-                  show_top_indicator(data, "error");
-                }
-            },
-        });
-    }
+  $.post({
+      url: "/core/slot/delete/" + slot_id,
+      success: function(data) {
+          if(data === "ok") {
+            show_top_indicator("{% trans 'The slot has been successfully deleted' %}", "success");
+            reload_data();
+          }
+          else {
+            show_top_indicator(data, "error");
+          }
+      },
+  });
 }
 
 function reload_data() {

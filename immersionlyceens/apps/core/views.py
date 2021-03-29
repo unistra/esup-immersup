@@ -10,6 +10,7 @@ from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
 
@@ -79,15 +80,12 @@ def import_holidays(request):
 
 
 @groups_required('SCUIO-IP', 'REF-CMP')
-def slots_list(request):
+def slots_list(request, comp_id=None, train_id=None):
     """
     Get slots list
     get filters : component and trainings
     """
     template = 'slots/list_slots.html'
-
-    comp_id = request.GET.get('c')
-    train_id = request.GET.get('t')
 
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
         components = Component.activated.all()
@@ -174,11 +172,15 @@ def add_slot(request, slot_id=None):
             return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
-            response = redirect('slots_list')
-            response['Location'] += '?c={}&t={}'.format(
-                request.POST.get('component', ''), request.POST.get('training', ''),
+            return HttpResponseRedirect(
+                reverse(
+                    'slots_list',
+                    kwargs={
+                        'comp_id': request.POST.get('component', ''),
+                        'train_id': request.POST.get('training', '')
+                    }
+                )
             )
-            return response
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):
@@ -275,11 +277,15 @@ def modify_slot(request, slot_id):
                 messages.success(request, _("Notifications have been sent (%s)") % sent_msg)
 
         if request.POST.get('save'):
-            response = redirect('slots_list')
-            response['Location'] += '?c={}&t={}'.format(
-                request.POST.get('component', ''), request.POST.get('training', ''),
+            return HttpResponseRedirect(
+                reverse(
+                    'slots_list',
+                    kwargs={
+                        'comp_id': request.POST.get('component', ''),
+                        'train_id': request.POST.get('training', '')
+                    }
+                )
             )
-            return response
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):
