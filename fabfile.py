@@ -6,7 +6,9 @@
 from os.path import join
 
 import pydiploy
-from fabric.api import env, execute, roles, task
+from fabric.api import abort, env, execute, local, roles, task, warn_only
+from fabric.context_managers import lcd
+from pydiploy.decorators import do_verbose
 
 # edit config here !
 # TODO: check post_install & remove nginx useless stuff
@@ -267,6 +269,8 @@ def deploy(update_pkg=False):
     """Deploy code on server"""
     execute(deploy_backend, update_pkg)
     execute(deploy_frontend)
+    # Uncomment this to use sentry when deploying new version
+    # execute(declare_release_to_sentry)
 
 
 @roles('web')
@@ -356,3 +360,66 @@ def set_up():
 def custom_manage_cmd(cmd):
     """ Execute custom command in manage.py """
     execute(pydiploy.django.custom_manage_command, cmd)
+
+
+##########
+# Sentry #
+##########
+
+@task
+def declare_release_to_sentry():
+    execute(declare_release)
+
+
+@do_verbose
+def env_setup():
+    local_repo = local("pwd", capture=True)
+    distant_repo = local("git config --get remote.origin.url", capture=True)
+    temp_dir = local("mktemp -d", capture=True)
+    working_dir = join(temp_dir, "git-clone")
+    project_version = ""
+
+    # First we git clone the local repo in the local tmp dir
+    with lcd(temp_dir):
+        print("Cloning local repo in {}".format(local("pwd", capture=True)))
+        local("git clone {} {}".format(local_repo, working_dir))
+    with lcd(working_dir):
+
+        # As a result of the local git clone, the origin of the cloned repo is the local repo
+        # So we reset it to be the distant repo
+        print("Setting origin in the temp repo to be {}".format(distant_repo))
+        local("git remote remove origin")
+        local("git remote add origin {}".format(distant_repo))
+        project_version = local("git describe --tags", capture=True)
+        print("Getting project version to declare to Sentry ({})".format(project_version))
+
+    return project_version
+
+
+@ do_verbose
+def declare_release():
+    project_version = env_setup()
+
+    # Create a release
+    print("Declaring new release to Sentry")
+    with warn_only():
+        c = local("sentry-cli releases new -p {} {}".format(
+            'immersion',
+            project_version
+        ), capture=True)
+        if c.failed:
+            abort("Sentry-cli not installed or improper configuration")
+
+        else:
+            return c
+
+    # Associate commits with the release
+    print("Associating commits with new release for Sentry")
+    local("sentry-cli releases set-commits --auto {}".format(project_version))
+
+    # Declare deployment
+    print("Declaring new deployment to Sentry")
+    local("sentry-cli releases deploys {} new -e {}".format(
+        project_version,
+        env.goal
+    ))
