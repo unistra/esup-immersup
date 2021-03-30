@@ -16,7 +16,7 @@ before_script:
 unittest:
   stage: test
   tags:
-    - python3.6
+    - python3.7
   script:
     - pip3 install tox
     - tox
