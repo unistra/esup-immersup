@@ -19,7 +19,7 @@ env.application_name = 'immersionlyceens'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
-env.remote_python_version = '3.6'  # python version
+env.remote_python_version = '3.7'  # python version
 env.remote_virtualenv_root = join(env.remote_home, '.virtualenvs')  # venv root
 env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)  # venv for webapp dir
 # git repository url
@@ -38,7 +38,8 @@ env.verbose_output = False  # True for verbose output
 # env.dest_path = '' # if not set using env_local_tmp_dir
 # env.excluded_files = ['pron.jpg'] # file(s) that rsync should exclude when deploying app
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
-env.extra_pkg_to_install = ['python3.6-dev']  # extra debian/ubuntu package(s) to install on remote
+env.extra_pkg_to_install = ['python3.7-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev',
+                            'libcairo2-dev', 'libpango1.0-dev']  # extra debian/ubuntu package(s) to install on remote
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
 # env.verbose = True # verbose display for pydiploy default value = True
@@ -137,7 +138,8 @@ def test():
 def preprod():
     """Define preprod stage"""
     env.roledefs = {
-        'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
+        # 'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
+        'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
         'shib': [],
     }
@@ -183,7 +185,8 @@ def preprod():
 def prod():
     """Define prod stage"""
     env.roledefs = {
-        'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
+        # 'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
+        'web': ['django-w7.di.unistra.fr', 'django-w8.di.unistra.fr'],
         'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
         'shib': ['root@rp-apache-shib2-m.di.unistra.fr', 'root@rp-apache-shib2-s.di.unistra.fr']
     }
