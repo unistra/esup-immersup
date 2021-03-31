@@ -219,20 +219,24 @@ def global_domains_charts(request):
         if immersions_filter:
             qs = qs.filter(reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()]))
 
-        data = {
-            "domain": domain.label,
-            "count": qs.count(),
-            "subData": [],
-        }
-
-        for subdomain in domain.Subdomains.all():
-            sub_data = {
-                "name": subdomain.label,
-                "count": qs.filter(slot__course__training__training_subdomains=subdomain).count(),
+        if qs.count():
+            data = {
+                "domain": domain.label,
+                "count": qs.count(),
+                "subData": [],
             }
-            data['subData'].append(sub_data.copy())
 
-        datasets.append(data.copy())
+            for subdomain in domain.Subdomains.all():
+                subcount = qs.filter(slot__course__training__training_subdomains=subdomain).count()
+
+                if subcount:
+                    sub_data = {
+                        "name": subdomain.label,
+                        "count": subcount,
+                    }
+                    data['subData'].append(sub_data.copy())
+
+            datasets.append(data.copy())
 
     response = {
         'datasets': datasets,
@@ -653,11 +657,14 @@ def get_slots_charts(request):
 
             for training in Training.objects.prefetch_related('courses__component')\
                 .filter(courses__component=component, active=True).distinct():
-                sub_data = {
-                    "name": training.label,
-                    "slots_count": qs.filter(course__training=training).count(),
-                }
-                data['subData'].append(sub_data.copy())
+                subcount = qs.filter(course__training=training).count()
+
+                if subcount:
+                    sub_data = {
+                        "name": training.label,
+                        "slots_count": subcount,
+                    }
+                    data['subData'].append(sub_data.copy())
 
             datasets.append(data.copy())
 
