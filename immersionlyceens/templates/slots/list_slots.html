@@ -16,12 +16,12 @@
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
-<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
+<script src="{% static 'js/immersionlyceens.js' %}"></script>
 {% endblock %}
 {% block content %}
 {% include '../modals/modal_view_slot_immersions.html' %}
@@ -67,6 +67,11 @@
             <div class="col-sm-6">
               <select name="training" id="training" class="form-control">
                 <option value="">-------------</option>
+                {% for training in trainings %}
+                  <option value="{{ training.id }}" {% if training.id == training_id %}selected{% endif %}>
+                    {{ training.label }}
+                  </option>
+                {% endfor %}
               </select>
             </div>
           </div>
@@ -173,27 +178,6 @@ $(document).ready(function(){
         $('#component option[value="{{ component_id }}"]').attr('selected', '');
     {% endif %}
 
-    function initFeedback(obj) {
-      $(document).on("showFeedback", function(event, ...messages) {
-        var $target = $(event.target).empty();
-        messages.forEach(function(element) {
-          $target.append(
-            $("<div/>", {
-              "class": "messages alert alert-dismissible alert-" + element[1],
-              "text": element[0]
-            }).append(
-              $("<a>", {
-                "href": "#",
-                "class": "close",
-                "data-dismiss": "alert",
-                "aria-label": "close",
-                "text": "×"
-              })
-            )
-          )
-        });
-      });
-    }
     initFeedback();
 
     function load_trainings( comp_id, first=false ) {
@@ -235,23 +219,6 @@ $(document).ready(function(){
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
 
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-
     $.fn.dataTableExt.errMode = 'console';
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
@@ -261,7 +228,8 @@ $(document).ready(function(){
         }
     });
 
-    load_trainings($('#component').val(), true);
+    // load_trainings($('#component').val(), true);
+
     $("#component").on('change', function(event){
         $('#training').val('');
         load_trainings(event.target.value);
@@ -279,11 +247,10 @@ $(document).ready(function(){
           data: function(d) {
               d.training_id = $('#training').val();
               d.component_id = $('#component').val();
-
               return d
           },
           dataSrc: function (json) {
-            if (json['data'] != undefined && json['data'].length != 0) {
+            if (json['data'] !== undefined && json['data'].length !== 0) {
               return json['data'];
             }
             return [];
@@ -371,19 +338,19 @@ $(document).ready(function(){
                 '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light btn-sm mr-1" ' +
                 '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
 
-                  if(row.is_past == false) {
+                  if(row.is_past === false) {
                     element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
                   }
-                  if(row.n_register == 0 && row.is_past == false) {
+                  if(row.n_register === 0 && row.is_past === false) {
                     element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
                   }
 
-                  if(row.attendances_value == 1) {
+                  if(row.attendances_value === 1) {
                     element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'Enter attendances' %}\">" +
                                "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
                                "</button>";
                   }
-                  else if (row.attendances_value != -1) {
+                  else if (row.attendances_value !== -1) {
                     element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'View registered students' %}\">" +
                                "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
                                "</button>";
@@ -494,7 +461,8 @@ function delete_slot(slot_id) {
 }
 
 function reload_data() {
-     $('#list_of_slots').DataTable().clear().ajax.reload();
+  dt.clear().draw();
+  dt.ajax.reload();
 }
 
 function show_top_indicator(text, mode) {

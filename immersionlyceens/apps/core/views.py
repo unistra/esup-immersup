@@ -104,6 +104,7 @@ def slots_list(request, comp_id=None, train_id=None):
 
     if comp_id and int(comp_id) in [c.id for c in components]:
         context['component_id'] = comp_id
+        context['trainings'] = []
 
         # Make sure the training is active and belongs to the selected component
         try:
@@ -111,6 +112,17 @@ def slots_list(request, comp_id=None, train_id=None):
                 context['training_id'] = train_id
         except ValueError:
             pass
+
+        trainings = Training.objects.prefetch_related('training_subdomains') \
+                .filter(components=comp_id, active=True) \
+                .order_by('label')
+
+        for training in trainings:
+            context['trainings'].append({
+                'id': training.id,
+                'label': training.label,
+                'subdomain': [s.label for s in training.training_subdomains.filter(active=True)],
+            })
 
     return render(request, template, context=context)
 
