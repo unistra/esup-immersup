@@ -88,9 +88,9 @@ def slots_list(request, comp_id=None, train_id=None):
     template = 'slots/list_slots.html'
 
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all()
+        components = Component.activated.all().order_by("code")
     elif request.user.is_component_manager():
-        components = request.user.components.all()
+        components = request.user.components.all().order_by("code")
     else:
         return render(request, 'base.html')
 
