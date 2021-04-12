@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-from setuptools import setup
-from setuptools import find_packages
 
+from setuptools import find_packages, setup
 
 with open('README.rst') as readme:
     long_description = readme.read()
@@ -33,7 +32,7 @@ recursive_requirements('requirements.txt', libraries, dependency_links)
 
 setup(
     name='immersionlyceens',
-    version='1.0.3',
+    version=__import__('immersionlyceens').get_version(),
     packages=find_packages(),
     install_requires=libraries,
     dependency_links=dependency_links,

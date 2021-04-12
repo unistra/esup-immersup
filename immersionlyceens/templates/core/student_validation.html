@@ -8,8 +8,6 @@
 <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
 {% endblock %}
 {% block head-javascript %}
-<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
-<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
@@ -22,6 +20,19 @@
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
+
+  <div id="vdialog-form" style='z-index:3000;' title='{% trans "Student validation" %}'>
+    <span>
+      {% trans 'Did you really want to validate this high school student?' %}
+    </span>
+  </div>
+
+  <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student validation" %}'>
+    <span>
+      {% trans 'Did you really want to reject this high school student?' %}
+    </span>
+  </div>
+
   <div class="card">
     <div class="card-header text-white bg-secondary">
       {% trans "Student validation" %}{% if high_school %} - {{ high_school.label }}{% else %}<span id="card_title"></span>{% endif %}
@@ -39,7 +50,7 @@
 
       {% if not high_school %}
       <div class="form-group row">
-        <label for="high_school" class="col-form-label col-sm-3">{% trans 'Select a high school' %}:</label>
+        <label for="id_high_school" class="col-form-label col-sm-3">{% trans 'Select a high school' %}:</label>
         <select name="high_school" id="id_high_school" class="form-control col-sm-3">
             {% if hs_id %}
                 {% for hs in high_schools %}
@@ -164,7 +175,8 @@
 </div>
 <script type="text/javascript">
 var t1, t2;
-var dts = {}
+var dts = {};
+var vdialog, rdialog;
 
 $(document).ready(function () {
     function getCookie(name) {
@@ -202,6 +214,59 @@ $(document).ready(function () {
         }
     });
 
+    vdialog = $("#vdialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            validate_student($("#vdialog-form").data('param'));
+            vdialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            vdialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    rdialog = $("#rdialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            reject_student($("#rdialog-form").data('param'));
+            rdialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            rdialog.dialog("close");
+          },
+        }
+      ],
+    });
 
     function load_to_validate() {
         dts['to_validate'] = $('#to_validate').DataTable({
@@ -241,9 +306,9 @@ $(document).ready(function () {
                 {data: 'id', render: function(data) {
                         let element = '';
                         element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
-                            'onclick="validate_student('+data+')">{% trans "Validate" %}</button>';
+                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
                         element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
-                            'onclick="reject_student('+data+')">{% trans "Reject" %}</button>';
+                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
                         return element;
                     }
                 },
@@ -293,7 +358,7 @@ $(document).ready(function () {
                 {data: 'class_name',},
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
-                            'onclick="reject_student('+data+')">{% trans "Reject" %}</button>';
+                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
                     }
                 }
             ],
@@ -341,7 +406,7 @@ $(document).ready(function () {
                 {data: 'class_name',},
                 {data: 'id', render: function(data) {
                         return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
-                            'onclick="validate_student('+data+')">{% trans "Validate" %}</button>';
+                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
                     }
                 }
             ],
@@ -351,8 +416,6 @@ $(document).ready(function () {
             }],
         });
     }
-
-
 
     // First load
     load_to_validate();
@@ -417,46 +480,29 @@ function reload_rejected() {
     $('#rejected').DataTable().ajax.reload();
 }
 
-
-
 function validate_student( student_record_id ) {
-    let msg = "{% trans 'Did you really want to validate this high school student?' %}";
-    if (confirm(msg))
-    {
-        $.post({
-        url: "{% url 'validateStudent' %}",
-        data: {
-            student_record_id: student_record_id,
-        },
-        success: function(data) {
-            if (data !== undefined) {
+  $.post({
+    url: "{% url 'validateStudent' %}",
+    data: {
+        student_record_id: student_record_id,
+    },
+    success: function(data) {
+        if (data !== undefined) {
 
-                reload_to_validate();
-                reload_validate();
-                reload_rejected();
+            reload_to_validate();
+            reload_validate();
+            reload_rejected();
 
-                $('#validate_message').show();
-                if (t1) { clearTimeout(t1); }
-                t1 = setTimeout(function(){
-                        $('#validate_message').fadeOut(1000, function(){
-                            $('#validate_message').hide();
-                        });
-                    },
-                    {%  settings_get 'MESSAGES_TIMEOUT' %}
-                );
-            } else {
-                $('#fail_message').show();
-                setTimeout(function(){
-                    $('#fail_message').fadeOut(
-                        1000,
-                        function() {
-                            $('#fail_message').hide();
-                        }
-                    )
-                }, {%  settings_get 'MESSAGES_TIMEOUT' %});
-            }
-        },
-        error: function() {
+            $('#validate_message').show();
+            if (t1) { clearTimeout(t1); }
+            t1 = setTimeout(function(){
+                    $('#validate_message').fadeOut(1000, function(){
+                        $('#validate_message').hide();
+                    });
+                },
+                {%  settings_get 'MESSAGES_TIMEOUT' %}
+            );
+        } else {
             $('#fail_message').show();
             setTimeout(function(){
                 $('#fail_message').fadeOut(
@@ -467,71 +513,77 @@ function validate_student( student_record_id ) {
                 )
             }, {%  settings_get 'MESSAGES_TIMEOUT' %});
         }
-    });
-
+    },
+    error: function() {
+        $('#fail_message').show();
+        setTimeout(function(){
+            $('#fail_message').fadeOut(
+                1000,
+                function() {
+                    $('#fail_message').hide();
+                }
+            )
+        }, {%  settings_get 'MESSAGES_TIMEOUT' %});
     }
+  });
 }
 
 function reject_student( student_record_id ) {
-    let msg = "{% trans 'Did you really want to reject this high school student?' %}";
-    if (confirm(msg))
-    {
-        $.post({
-            url: "{% url 'rejectStudent' %}",
-            data: {
-                student_record_id: student_record_id,
-            },
-            success: function(data) {
-                if (data !== undefined) {
+  $.post({
+      url: "{% url 'rejectStudent' %}",
+      data: {
+          student_record_id: student_record_id,
+      },
+      success: function(data) {
+          if (data !== undefined) {
 
-                    reload_to_validate();
-                    reload_validate();
-                    reload_rejected();
+              reload_to_validate();
+              reload_validate();
+              reload_rejected();
 
-                    $('#reject_message').show();
-                    if (t2) { clearTimeout(t2); }
-                    t2 = setTimeout(function(){
-                            $('#reject_message').fadeOut(1000, function(){
-                                $('#reject_message').hide();
-                            });
-                        },
-                        {%  settings_get 'MESSAGES_TIMEOUT' %}
-                    );
+              $('#reject_message').show();
+              if (t2) { clearTimeout(t2); }
+              t2 = setTimeout(function(){
+                      $('#reject_message').fadeOut(1000, function(){
+                          $('#reject_message').hide();
+                      });
+                  },
+                  {%  settings_get 'MESSAGES_TIMEOUT' %}
+              );
 
-                    let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
-                    elem.fadeOut(
-                        500,
-                        function() {
-                            elem.hide();
-                            reload_validate();
-                        }
-                    );
+              let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
+              elem.fadeOut(
+                  500,
+                  function() {
+                      elem.hide();
+                      reload_validate();
+                  }
+              );
 
-                } else {
-                    $('#fail_message').show();
-                    setTimeout(function(){
-                        $('#fail_message').fadeOut(
-                            1000,
-                            function() {
-                                $('#fail_message').hide();
-                            }
-                        )
-                    }, {%  settings_get 'MESSAGES_TIMEOUT' %});
-                }
-            },
-            error: function() {
-                $('#fail_message').show();
-                setTimeout(function(){
-                    $('#fail_message').fadeOut(
-                        1000,
-                        function() {
-                            $('#fail_message').hide();
-                        }
-                    )
-                }, {%  settings_get 'MESSAGES_TIMEOUT' %});
-            }
-        });
-    }
+          } else {
+              $('#fail_message').show();
+              setTimeout(function(){
+                  $('#fail_message').fadeOut(
+                      1000,
+                      function() {
+                          $('#fail_message').hide();
+                      }
+                  )
+              }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          }
+      },
+      error: function() {
+          $('#fail_message').show();
+          setTimeout(function(){
+              $('#fail_message').fadeOut(
+                  1000,
+                  function() {
+                      $('#fail_message').hide();
+                  }
+              )
+          }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
+  });
 }
 
 </script>

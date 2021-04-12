@@ -6,7 +6,9 @@
 from os.path import join
 
 import pydiploy
-from fabric.api import env, execute, roles, task
+from fabric.api import abort, env, execute, local, roles, task, warn_only
+from fabric.context_managers import lcd
+from pydiploy.decorators import do_verbose
 
 # edit config here !
 # TODO: check post_install & remove nginx useless stuff
@@ -19,7 +21,7 @@ env.application_name = 'immersionlyceens'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
-env.remote_python_version = '3.6'  # python version
+env.remote_python_version = '3.7'  # python version
 env.remote_virtualenv_root = join(env.remote_home, '.virtualenvs')  # venv root
 env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)  # venv for webapp dir
 # git repository url
@@ -38,7 +40,8 @@ env.verbose_output = False  # True for verbose output
 # env.dest_path = '' # if not set using env_local_tmp_dir
 # env.excluded_files = ['pron.jpg'] # file(s) that rsync should exclude when deploying app
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
-env.extra_pkg_to_install = ['python3.6-dev']  # extra debian/ubuntu package(s) to install on remote
+env.extra_pkg_to_install = ['python3.7-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev',
+                            'libcairo2-dev', 'libpango1.0-dev']  # extra debian/ubuntu package(s) to install on remote
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
 # env.verbose = True # verbose display for pydiploy default value = True
@@ -128,6 +131,7 @@ def test():
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
+        'release': "RELEASE",
     }
     env.extra_symlink_dirs = ['media']
     execute(build_env)
@@ -137,7 +141,8 @@ def test():
 def preprod():
     """Define preprod stage"""
     env.roledefs = {
-        'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
+        # 'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
+        'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
         'shib': [],
     }
@@ -148,7 +153,7 @@ def preprod():
     env.server_name = 'immersion-pprd.unistra.fr'
     env.short_server_name = 'immersion-pprd'
     env.static_folder = '/site_media/'
-    env.server_ip = '130.79.245.213'
+    env.server_ip = '130.79.245.212'
     env.no_shared_sessions = False
     env.server_ssl_on = True
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
@@ -175,6 +180,7 @@ def preprod():
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
+        'release': "RELEASE",
     }
     execute(build_env)
 
@@ -183,7 +189,8 @@ def preprod():
 def prod():
     """Define prod stage"""
     env.roledefs = {
-        'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
+        # 'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
+        'web': ['django-w7.di.unistra.fr', 'django-w8.di.unistra.fr'],
         'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
         'shib': ['root@rp-apache-shib2-m.di.unistra.fr', 'root@rp-apache-shib2-s.di.unistra.fr']
     }
@@ -220,6 +227,7 @@ def prod():
         'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
+        'release': "RELEASE",
     }
     execute(build_env)
 
@@ -264,6 +272,8 @@ def deploy(update_pkg=False):
     """Deploy code on server"""
     execute(deploy_backend, update_pkg)
     execute(deploy_frontend)
+    # Uncomment this to use sentry when deploying new version
+    # execute(declare_release_to_sentry)
 
 
 @roles('web')
@@ -353,3 +363,66 @@ def set_up():
 def custom_manage_cmd(cmd):
     """ Execute custom command in manage.py """
     execute(pydiploy.django.custom_manage_command, cmd)
+
+
+##########
+# Sentry #
+##########
+
+@task
+def declare_release_to_sentry():
+    execute(declare_release)
+
+
+@do_verbose
+def env_setup():
+    local_repo = local("pwd", capture=True)
+    distant_repo = local("git config --get remote.origin.url", capture=True)
+    temp_dir = local("mktemp -d", capture=True)
+    working_dir = join(temp_dir, "git-clone")
+    project_version = ""
+
+    # First we git clone the local repo in the local tmp dir
+    with lcd(temp_dir):
+        print("Cloning local repo in {}".format(local("pwd", capture=True)))
+        local("git clone {} {}".format(local_repo, working_dir))
+    with lcd(working_dir):
+
+        # As a result of the local git clone, the origin of the cloned repo is the local repo
+        # So we reset it to be the distant repo
+        print("Setting origin in the temp repo to be {}".format(distant_repo))
+        local("git remote remove origin")
+        local("git remote add origin {}".format(distant_repo))
+        project_version = local("git describe --tags", capture=True)
+        print("Getting project version to declare to Sentry ({})".format(project_version))
+
+    return project_version
+
+
+@ do_verbose
+def declare_release():
+    project_version = env_setup()
+
+    # Create a release
+    print("Declaring new release to Sentry")
+    with warn_only():
+        c = local("sentry-cli releases new -p {} {}".format(
+            'immersion',
+            project_version
+        ), capture=True)
+        if c.failed:
+            abort("Sentry-cli not installed or improper configuration")
+
+        else:
+            return c
+
+    # Associate commits with the release
+    print("Associating commits with new release for Sentry")
+    local("sentry-cli releases set-commits --auto {}".format(project_version))
+
+    # Declare deployment
+    print("Declaring new deployment to Sentry")
+    local("sentry-cli releases deploys {} new -e {}".format(
+        project_version,
+        env.goal
+    ))

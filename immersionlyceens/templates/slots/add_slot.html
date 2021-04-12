@@ -15,6 +15,32 @@
 {% block content %}
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
+  <div id="date-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot creation" %}'>
+    <span>
+      {% trans 'This date is inside a vacation or a holiday. Are you sure that you want a slot with this date ?' %}
+    </span>
+  </div>
+
+  <div id="course-dialog-form" style='z-index:3000;' title='{% trans "Confirm course" %}'>
+    <span>
+      {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
+    </span>
+  </div>
+
+  <div id="cancel-dialog-form" style='z-index:3000;' title='{% trans "Cancel" %}'>
+    <span>
+      {% if slot %}
+        {% if slot.id %}
+          {% trans 'Do you really want to cancel this modification?' %}
+        {% else %}
+          {% trans 'Do you really want to cancel this duplication?' %}
+        {% endif %}
+      {% else %}
+        {% trans 'Do you really want to cancel this creation?' %}
+      {% endif %}
+    </span>
+  </div>
+
     <div class="card">
         <div class="card-header text-white bg-secondary">
             {% if slot %}
@@ -275,6 +301,10 @@ TODO: add here other languages for jquery-ui !!
 <script>
 var course_first = true;
 var building_first = true;
+var dateDialog;
+var courseDialog;
+var cancelDialog;
+
 $(document).ready(function(){
 
     function initFeedback(obj) {
@@ -302,6 +332,94 @@ $(document).ready(function(){
     // reset feedback
     setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
 
+    dateDialog = $("#date-dialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            dateDialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            $('#id_date').val('');
+            dateDialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    courseDialog = $("#course-dialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            courseDialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            $('#id_course').val('');
+            courseDialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    cancelDialog = $("#cancel-dialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            let url = "/core/slots"
+            let comp_id = $('#component').val();
+            let train_id = $('#training').val();
+
+            if(comp_id) url += "/"+comp_id
+            if(train_id) url += "/"+train_id
+
+            window.location = url;
+            cancelDialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            cancelDialog.dialog("close");
+          },
+        }
+      ],
+    });
+
     function check_course_publication ( course_id )
     {
         $.post({
@@ -313,11 +431,7 @@ $(document).ready(function(){
                 if (data['data'])
                 {
                     if ( !data['data']['published'] ) {
-                        let msg = "{% trans 'This course is unpublished. By creating this slot the associate course is going to be published. Do you want to continue?' %}";
-                        if ( !confirm(msg) )
-                        {
-                            $('#id_course').val('');
-                        }
+                        courseDialog.dialog('open');
                     }
                 }
             }
@@ -337,9 +451,7 @@ $(document).ready(function(){
             success: function(data) {
                 if ( data['data'] ) {
                     if (data['data']['is_between']) {
-                        if (!confirm("{% trans 'This date is inside a vacation or a haliday. Are you sure that you want a slot with this date ?' %}")) {
-                            $('#id_date').val('');
-                        }
+                        dateDialog.dialog('open');
                     }
                 }
             },
@@ -528,7 +640,7 @@ $(document).ready(function(){
         });
     }
 
-    // Chenge input type
+    // Change input type
     $('#id_start_time').get(0).type = 'time';
     $('#id_end_time').get(0).type = 'time';
 
@@ -539,22 +651,7 @@ $(document).ready(function(){
 
     // Back button + confirm
     $('.back_btn').click(function (event) {
-
-        {% if slot %}
-            {% if slot.id %}
-                let msg = "{% trans 'Did you really want to cancel this modification?' %}";
-            {% else %}
-                let msg = "{% trans 'Did you really want to cancel this duplication?' %}";
-            {% endif %}
-        {% else %}
-            let msg = "{% trans 'Did you really want to cancel this creation?' %}"
-        {% endif %}
-
-        if (confirm(msg) === true){
-            c = $('#component').val();
-            t = $('#training').val();
-            window.location = "{% url 'slots_list' %}?c=" + c + "&t=" + t;
-        }
+        cancelDialog.dialog('open');
     });
 
     $(".datepicker").datepicker({

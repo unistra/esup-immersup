@@ -10,3 +10,4 @@ requests
 django-summernote
 django-shibboleth-remoteuser
 WeasyPrint
+sentry-sdk

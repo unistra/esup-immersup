@@ -10,8 +10,6 @@
 <link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
 {% endblock %}
 {% block head-javascript %}
-<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
-<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/amcharts4/core.js' %}"></script>
 <script src="{% static 'js/vendor/amcharts4/charts.js' %}"></script>
@@ -160,6 +158,15 @@
       }
     }
 
+    function hideSmall(ev) {
+      if (ev.target.dataItem.values.value.percent === 0) {
+        ev.target.hide();
+      }
+      else {
+        ev.target.show();
+      }
+    }
+
     $.ajax({
       url: "/charts/get_global_domains_charts",
       type: 'POST',
@@ -201,10 +208,14 @@
     pieSeries.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
     pieSeries.labels.template.text = "{category}";
 
-
     pieSeries.slices.template.events.on("hit", function (event) {
       selectSlice(event.target.dataItem);
     });
+
+    pieSeries.ticks.template.events.on("ready", hideSmall);
+    pieSeries.ticks.template.events.on("visibilitychanged", hideSmall);
+    pieSeries.labels.template.events.on("ready", hideSmall);
+    pieSeries.labels.template.events.on("visibilitychanged", hideSmall);
 
     chart2 = container.createChild(am4charts.PieChart);
     chart2.width = am4core.percent(50);

@@ -6,24 +6,27 @@ import json
 import unittest
 from datetime import datetime, time, timedelta
 
-from django.utils.translation import pgettext, ugettext_lazy as _
-from django.template.defaultfilters import date as _date
 from compat.templatetags.compat import url
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
-    Training, TrainingDomain,
-    TrainingSubdomain,
-    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation,
-    UserCourseAlert, GeneralSettings)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.libs.api.views import ajax_check_course_publication
-from immersionlyceens.libs.utils import get_general_setting
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
+from django.utils.translation import pgettext
+from django.utils.translation import ugettext_lazy as _
+from immersionlyceens.apps.core.models import (AccompanyingDocument, Building,
+                                               Calendar, Campus, CancelType,
+                                               Component, Course, CourseType,
+                                               GeneralSettings, HighSchool,
+                                               Immersion, ImmersionUser,
+                                               MailTemplate, MailTemplateVars,
+                                               Slot, Training, TrainingDomain,
+                                               TrainingSubdomain,
+                                               UserCourseAlert, Vacation)
+from immersionlyceens.apps.immersion.models import (HighSchoolStudentRecord,
+                                                    StudentRecord)
+from immersionlyceens.libs.api.views import ajax_check_course_publication
+from immersionlyceens.libs.utils import get_general_setting
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -54,15 +57,13 @@ class APITestCase(TestCase):
         self.highschool_user.set_password('pass')
         self.highschool_user.save()
 
-        self.highschool_user2 = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs2', password='pass', email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2',
-        )
+        self.highschool_user2 = get_user_model().objects.create_user(username='@EXTERNAL@_hs2', password='pass',
+                                                                     email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2', )
         self.highschool_user2.set_password('pass')
         self.highschool_user2.save()
 
-        self.highschool_user3 = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs3', password='pass', email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3',
-        )
+        self.highschool_user3 = get_user_model().objects.create_user(username='@EXTERNAL@_hs3', password='pass',
+                                                                     email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3', )
         self.highschool_user3.set_password('pass')
         self.highschool_user3.save()
 
@@ -267,7 +268,7 @@ class APITestCase(TestCase):
         )
         self.student_record = StudentRecord.objects.create(
             student=self.student,
-            uai_code='0673021V', # Université de Strasbourg
+            uai_code='0673021V',  # Université de Strasbourg
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
@@ -278,7 +279,7 @@ class APITestCase(TestCase):
         )
         self.student_record2 = StudentRecord.objects.create(
             student=self.student2,
-            uai_code='0597065J', # Université de Lille
+            uai_code='0597065J',  # Université de Lille
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
             level=StudentRecord.LEVELS[0][0],
@@ -313,7 +314,6 @@ class APITestCase(TestCase):
             email=self.student.email,
             course=self.course
         )
-
 
     def test_API_get_documents__ok(self):
         request.user = self.scuio_user
@@ -829,8 +829,6 @@ class APITestCase(TestCase):
 
             n += 1
 
-
-
     def test_API_get_csv_components(self):
         url = f'/api/get_csv_components/{self.high_school.id}'
         client = Client()
@@ -1218,7 +1216,6 @@ class APITestCase(TestCase):
         self.assertEqual(_date(self.high_school.convention_start_date, 'Y-m-d'), hs['convention_start_date'])
         self.assertEqual(_date(self.high_school.convention_end_date, 'Y-m-d'), hs['convention_end_date'])
 
-
     def test_API_ajax_get_immersions__no_user(self):
         request.user = self.scuio_user
         self.immersion.delete()
@@ -1288,7 +1285,6 @@ class APITestCase(TestCase):
         self.assertEqual(self.today.date() < self.immersion.slot.date.date(), i['cancellable'])
         self.assertEqual(self.immersion.slot.id, i['slot_id'])
 
-
     def test_API_ajax_get_immersions__past(self):
         request.user = self.scuio_user
         self.slot.date = self.today - timedelta(days=2)
@@ -1325,7 +1321,7 @@ class APITestCase(TestCase):
         request.user = self.scuio_user
         self.slot.date = self.today - timedelta(days=2)
         self.slot.save()
-        self.immersion.cancellation_type=self.cancel_type
+        self.immersion.cancellation_type = self.cancel_type
         self.immersion.save()
         url = f"/api/get_immersions/{self.highschool_user.id}/cancelled"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1726,7 +1722,6 @@ class APITestCase(TestCase):
         data = {'immersion_ids': 0, 'attendance_value': 1}
         content = json.loads(self.client.post(url, data, **header).content.decode())
 
-
         self.assertEqual(content['success'], '')
         self.assertGreater(len(content['error']), 0)
 
@@ -1749,10 +1744,10 @@ class APITestCase(TestCase):
         self.assertEqual(self.alert.course.label, a['course'])
         self.assertEqual(self.alert.course.training.label, a['training'])
         self.assertEqual([s.label for s in self.alert.course.training.training_subdomains.all()], a['subdomains'])
-        self.assertEqual([s.training_domain.label for s in self.alert.course.training.training_subdomains.all()], a['domains'])
+        self.assertEqual(
+            [s.training_domain.label for s in self.alert.course.training.training_subdomains.all()],
+            a['domains'])
         self.assertEqual(self.alert.email_sent, a['email_sent'])
-
-
 
     def test_API_ajax_send_email__no_params(self):
         request.user = self.scuio_user
@@ -1796,6 +1791,8 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_batch_cancel_registration__past_immersion(self):
+        self.slot.date = self.today - timedelta(days=1)
+        self.slot.save()
         request.user = self.scuio_user
         url = "/api/batch_cancel_registration"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1895,7 +1892,6 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
         self.assertTrue(content['error'])
 
-
     def test_API_ajax_set_course_alert__email_not_valid(self):
         request.user = self.scuio_user
         url = "/api/set_course_alert"
@@ -1980,27 +1976,26 @@ class APITestCase(TestCase):
         with self.assertRaises(UserCourseAlert.DoesNotExist):
             UserCourseAlert.objects.get(pk=data['alert_id'])
 
-
     def test_ajax_slot_registration(self):
         self.hs_record.validation = 2
         self.hs_record.save()
 
         self.assertEqual(self.highschool_user.remaining_registrations_count(),
-            {'semester1': 2, 'semester2': 2, 'annually': 1}
-        )
+                         {'semester1': 2, 'semester2': 2, 'annually': 1}
+                         )
 
         client = Client()
         client.login(username='@EXTERNAL@_hs', password='pass')
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
         # Should work
-        response = client.post("/api/register", {'slot_id': self.slot3.id }, **header, follow=True)
+        response = client.post("/api/register", {'slot_id': self.slot3.id}, **header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
 
         self.assertEqual("Registration successfully added", content['msg'])
         self.assertEqual(self.highschool_user.remaining_registrations_count(),
-            { 'semester1': 2, 'semester2': 2, 'annually': 0 }
-        )
+                         {'semester1': 2, 'semester2': 2, 'annually': 0}
+                         )
         self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
 
         # Fail : already registered
@@ -2012,7 +2007,7 @@ class APITestCase(TestCase):
         response = client.post("/api/register", {'slot_id': self.slot2.id}, **header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("""You have no more remaining registration available, """
-            """you should cancel an immersion or contact immersion service""", content['msg'])
+                         """you should cancel an immersion or contact immersion service""", content['msg'])
 
         # reset immersions
         Immersion.objects.filter(student=self.highschool_user).delete()
@@ -2036,7 +2031,7 @@ class APITestCase(TestCase):
         # Todo : needs tests with a calendar in semester mode
 
     def test_ajax_get_duplicates(self):
-        self.hs_record.duplicates="[%s]" % self.hs_record2.id
+        self.hs_record.duplicates = "[%s]" % self.hs_record2.id
         self.hs_record.save()
 
         self.hs_record2.duplicates = "[%s]" % self.hs_record.id

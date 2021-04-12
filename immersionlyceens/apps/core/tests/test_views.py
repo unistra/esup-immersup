@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, Client
+from django.urls import reverse
 
 from ..models import (
     Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
@@ -246,9 +247,10 @@ class CoreViewsTestCase(TestCase):
         self.assertNotIn("train_id", response.context["components"])
 
         # with parameters
-        response = self.client.get("/core/slots/?c=%s&t=%s" % (self.component.id, self.training.id))
-        self.assertEqual(str(self.component.id), response.context["component_id"])
-        self.assertEqual(str(self.training.id), response.context["training_id"])
+        # response = self.client.get("/core/slots/%s/%s" % (self.component.id, self.training.id))
+        response = self.client.get(reverse("slots_list", args=[self.component.id, self.training.id]))
+        self.assertEqual(self.component.id, response.context["component_id"])
+        self.assertEqual(self.training.id, response.context["training_id"])
 
         # As component referent
         self.client.login(username='refcmp', password='pass')
@@ -318,7 +320,7 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Slot successfully added", response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/%s/%s' % (self.component.id, self.training.id))
 
         # get add_slot form with an existing slot
         self.client.login(username='scuio', password='pass')
@@ -436,7 +438,10 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
+        self.assertEqual(
+            response.request['PATH_INFO'],
+            '/core/slots/%s/%s' % (self.slot.course.component.id, self.slot.course.training.id)
+        )
 
         # TODO : test save_add and duplicate
 

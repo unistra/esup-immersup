@@ -10,6 +10,7 @@ from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
 
@@ -79,20 +80,17 @@ def import_holidays(request):
 
 
 @groups_required('SCUIO-IP', 'REF-CMP')
-def slots_list(request):
+def slots_list(request, comp_id=None, train_id=None):
     """
     Get slots list
     get filters : component and trainings
     """
     template = 'slots/list_slots.html'
 
-    comp_id = request.GET.get('c')
-    train_id = request.GET.get('t')
-
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all()
+        components = Component.activated.all().order_by("code")
     elif request.user.is_component_manager():
-        components = request.user.components.all()
+        components = request.user.components.all().order_by("code")
     else:
         return render(request, 'base.html')
 
@@ -106,6 +104,7 @@ def slots_list(request):
 
     if comp_id and int(comp_id) in [c.id for c in components]:
         context['component_id'] = comp_id
+        context['trainings'] = []
 
         # Make sure the training is active and belongs to the selected component
         try:
@@ -113,6 +112,17 @@ def slots_list(request):
                 context['training_id'] = train_id
         except ValueError:
             pass
+
+        trainings = Training.objects.prefetch_related('training_subdomains') \
+                .filter(components=comp_id, active=True) \
+                .order_by('label')
+
+        for training in trainings:
+            context['trainings'].append({
+                'id': training.id,
+                'label': training.label,
+                'subdomain': [s.label for s in training.training_subdomains.filter(active=True)],
+            })
 
     return render(request, template, context=context)
 
@@ -134,9 +144,9 @@ def add_slot(request, slot_id=None):
     # get components
     components = []
     if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all().order_by('label')
+        components = Component.activated.all().order_by('code')
     elif request.user.is_component_manager():
-        components = request.user.components.all().order_by('label')
+        components = request.user.components.all().order_by('code')
 
     if request.method == 'POST' and any(
         [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
@@ -174,11 +184,15 @@ def add_slot(request, slot_id=None):
             return render(request, 'slots/add_slot.html', context=context)
 
         if request.POST.get('save'):
-            response = redirect('slots_list')
-            response['Location'] += '?c={}&t={}'.format(
-                request.POST.get('component', ''), request.POST.get('training', ''),
+            return HttpResponseRedirect(
+                reverse(
+                    'slots_list',
+                    kwargs={
+                        'comp_id': request.POST.get('component', ''),
+                        'train_id': request.POST.get('training', '')
+                    }
+                )
             )
-            return response
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):
@@ -275,11 +289,15 @@ def modify_slot(request, slot_id):
                 messages.success(request, _("Notifications have been sent (%s)") % sent_msg)
 
         if request.POST.get('save'):
-            response = redirect('slots_list')
-            response['Location'] += '?c={}&t={}'.format(
-                request.POST.get('component', ''), request.POST.get('training', ''),
+            return HttpResponseRedirect(
+                reverse(
+                    'slots_list',
+                    kwargs={
+                        'comp_id': request.POST.get('component', ''),
+                        'train_id': request.POST.get('training', '')
+                    }
+                )
             )
-            return response
         elif request.POST.get('save_add'):
             return redirect('add_slot')
         elif request.POST.get('duplicate'):

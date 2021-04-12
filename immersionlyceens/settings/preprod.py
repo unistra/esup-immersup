@@ -5,6 +5,9 @@ import socket
 from os import environ
 from os.path import normpath
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 from .base import *
 
 ##########################
@@ -47,7 +50,7 @@ SECRET_KEY = '{{ secret_key }}'
 ####################
 
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
-CAS_FORCE_SSL_SERVICE_URL=True
+CAS_FORCE_SSL_SERVICE_URL = True
 
 
 #################
@@ -103,15 +106,15 @@ SUMMERNOTE_THEME = 'bs4'
 SUMMERNOTE_CONFIG = {
     'spellCheck': True,
     'iframe': True,
-    'summernote': {'lang': 'fr-FR',},
+    'summernote': {'lang': 'fr-FR', },
     'codeviewIframeFilter': True,
     'disable_attachment': True,
     'toolbar': [
-        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear',],],
-        ['font', ['fontsize', 'forecolor', 'paragraph',]],
-        ['misc', ['ol', 'ul', 'height',],],
-        ['others', ['link', 'table', 'hr'],],
-        ['view', ['codeview', 'undo', 'redo', 'fullscreen'],],
+        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
+        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
+        ['misc', ['ol', 'ul', 'height', ], ],
+        ['others', ['link', 'table', 'hr'], ],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
     ],
     'popover': {
         'link': ['link', ['linkDialogShow', 'unlink']],
@@ -132,3 +135,16 @@ MEDIA_ROOT = '/nfs/immersion'
 # Mailing list subscriber files directory
 BASE_FILES_DIR = '{{ base_files_dir }}'
 MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
+
+###############
+# Sentry init #
+###############
+
+# TODO: add boolean to deactivate sentry integration ???
+RELEASE = '{{ release }}'
+sentry_sdk.init(
+    dsn="https://068693b77bd442eaa28c842d8c2ebb38@sentry.app.unistra.fr/34",
+    integrations=[DjangoIntegration()],
+    environment="preprod",
+    release=RELEASE,
+)

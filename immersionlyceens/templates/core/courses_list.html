@@ -2,13 +2,12 @@
 {% load static staticfiles i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
 <!-- <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}"> -->
 {% endblock %}
 {% block head-javascript %}
-<script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
-<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
@@ -21,6 +20,11 @@
 {% block content %}
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top:20px;">
+  <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
+    <span>
+      {% trans "Do you really want to delete this course ?" %}
+    </span>
+  </div>
   <div class="card">
     <div class="card-header text-white bg-secondary">
       {% trans "Courses list" %}
@@ -83,41 +87,40 @@
   var current_component_id;
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
+  var conformDialog;
 
   function delete_course(course_id) {
     var csrftoken = getCookie('csrftoken');
 
-    if (confirm('{% trans "Do you really want to delete this course ?" %}')) {
-      $.ajax({
-        beforeSend: function (request) {
-          request.setRequestHeader("X-CSRFToken", csrftoken);
-        },
+    $.ajax({
+      beforeSend: function (request) {
+        request.setRequestHeader("X-CSRFToken", csrftoken);
+      },
 
-        url: "/api/delete_course",
-        type: "POST",
-        data: {
-          course_id: course_id,
-        },
+      url: "/api/delete_course",
+      type: "POST",
+      data: {
+        course_id: course_id,
+      },
 
-        success: function (json) {
-          let msg = json['msg'];
-          let error = json['error'];
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
 
-          if(error != '') {
-            feedback.trigger("showFeedback", [[error, "danger"]]);
-          }
-          else if(msg != '') {
-            feedback.trigger("showFeedback", [[msg, "success"]]);
-          }
-
-          dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
-        },
-        error: function (e) {
-          obj = JSON.stringify(e);
-          console.log("Error : " + obj);
+        if(error != '') {
+          feedback.trigger("showFeedback", [[error, "danger"]]);
         }
-      });
-    }
+        else if(msg != '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+
+        dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
+      },
+      error: function (e) {
+        obj = JSON.stringify(e);
+        console.log("Error : " + obj);
+      }
+    });
   }
 
 
@@ -125,6 +128,33 @@
     initFeedback();
     feedback = $("#feedback");
     current_component_id = $('#cmps option:selected').val();
+
+    confirmDialog = $("#confirm-dialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            delete_course($("#confirm-dialog-form").data('course_id'));
+            confirmDialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            confirmDialog.dialog("close");
+          },
+        }
+      ],
+    });
 
     dt = $('#courses_table').DataTable({
       'processing': false,
@@ -135,7 +165,7 @@
       'pageLength': 15,
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
-      'responsive': true,
+      'responsive': false,
       'ajax': {
         url: "/api/get_courses/" + $('#cmps option:selected').val() + "/",
         dataSrc: function (json) {
@@ -216,7 +246,7 @@
                          "</a>\n";
 
                 if(row.can_delete) {
-                  icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"delete_course('" + row.id + "')\" title='"+ delete_text +"'>" +
+                  icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
                            "<i class=\"fa fas fa-trash fa-2x\"</i>" +
                            "</button>";
                 }

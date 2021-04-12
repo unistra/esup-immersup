@@ -2,4 +2,3 @@
 psycopg2
 https://github.com/t0mab/chaussette/archive/master.zip
 waitress==1.4.2
-

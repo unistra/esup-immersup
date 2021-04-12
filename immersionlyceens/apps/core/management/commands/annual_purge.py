@@ -68,9 +68,9 @@ class Command(BaseCommand):
             
         deleted = Holiday.objects.all().delete()
         if deleted[0]:
-            logger.info(_("{} holyday record(s) deleted".format(deleted[0])))
+            logger.info(_("{} holiday record(s) deleted".format(deleted[0])))
         else:
-            logger.info(_("No holyday record to delete"))
+            logger.info(_("No holiday record to delete"))
 
         deleted = Vacation.objects.all().delete()
         if deleted[0]:

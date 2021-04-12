@@ -6,6 +6,8 @@ from importlib import import_module
 
 from django.conf import settings
 
+from immersionlyceens.libs.utils import get_general_setting
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,6 +23,11 @@ mail_backend = import_mail_backend()
 def send_email(address, subject, body, from_=settings.DEFAULT_FROM_EMAIL):
     """
     """
+    # Get configured 'from' address or the default settings/<env>.py one
+    try:
+        default_from = get_general_setting("MAIL_FROM")
+    except Exception as e:
+        default_from = from_
 
     recipient = settings.FORCE_EMAIL_ADDRESS if settings.FORCE_EMAIL_ADDRESS else address
 
@@ -31,7 +38,7 @@ def send_email(address, subject, body, from_=settings.DEFAULT_FROM_EMAIL):
     # Email data
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
-    msg['From'] = from_
+    msg['From'] = default_from
     msg['To'] = recipient
     html = body
 
