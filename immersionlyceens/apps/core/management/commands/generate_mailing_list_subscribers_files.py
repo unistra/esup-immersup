@@ -51,8 +51,9 @@ class Command(BaseCommand):
             output_file = path.join(settings.MAILING_LIST_FILES_DIR, all_filename)
             try:
                 with open(output_file, "w") as all_registered_fd:
-                    all_registered_fd.write('\n'.join([email for email in
-                        ImmersionUser.objects.filter(Q(student_record__isnull=False)|Q(high_school_student_record__isnull=False))\
+                    all_registered_fd.write('\n'.join([email for email in ImmersionUser.objects\
+                        .filter(Q(student_record__isnull=False)
+                              | Q(high_school_student_record__validation=2, high_school_student_record__isnull=False))\
                         .values_list('email', flat=True).distinct()]))
             except Exception as e:
                 logger.error("Cannot write mailing list file %s : %s", all_filename, e)

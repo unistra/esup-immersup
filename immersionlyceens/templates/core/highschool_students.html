@@ -85,28 +85,23 @@
   var dt;
   var highschool_id = "{{ request.user.highschool.id }}";
   var current_student_id;
-
-  if("{{ is_scuio_ip_manager }}" == "True") {
-    var is_scuio_ip = true;
-  }
-  else {
-    var is_scuio_ip = false;
-  };
+  let is_scuio_ip = "{{ is_scuio_ip_manager }}" === "True";
+  let order = [[0, "asc"],];
 
   function open_modal(student_id) {
     current_student_id = student_id;
     $('#modal_student_details').modal('show');
   }
 
+  if(is_scuio_ip) {
+    order = [[3, "asc"], [1, "asc"], ];
+  }
+
   $(document).ready(function () {
     $.fn.dataTableExt.errMode = 'console';
     dt = $('#students_table').DataTable({
       'processing': false,
-      {% if request.user.is_scuio_ip_manager %}
-      'order': [[3, "asc"], [1, "asc"], ],
-      {% else %}
-      'order': [[0, "asc"],],
-      {% endif %}
+      'order': order,
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
@@ -114,7 +109,7 @@
       'ajax': {
         url: "/api/get_highschool_students/" + highschool_id,
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -124,12 +119,12 @@
         url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
     },
     'columns': [
-    {% if request.user.is_scuio_ip_manager %}
+    {% if is_scuio_ip_manager %}
     { "data": "student_type" },
     {% endif %}
     { "data": "name",
       "render": function(data, type, row) {
-        if(is_scuio_ip && row.record_link != '') {
+        if(is_scuio_ip && row.record_link !== '') {
           return "<a href='"+row.record_link+"'>"+data+"</a>";
         }
         else {
@@ -138,13 +133,13 @@
       }
     },
     { "data": "birthdate" },
-    {% if request.user.is_scuio_ip_manager %}
+    {% if is_scuio_ip_manager %}
     { "data": "institution" },
     {% endif %}
     { "data": "level" },
     { "data": "class" },
     { "data": "bachelor" },
-    {% if request.user.is_scuio_ip_manager %}
+    {% if is_scuio_ip_manager %}
     { "data": "post_bachelor_level" },
     {% endif %}
     { "data": "registered",
