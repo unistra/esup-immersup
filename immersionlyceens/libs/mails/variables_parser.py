@@ -91,7 +91,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
             institution_label = _("Unknown home institution")
             if registration.student.is_high_school_student():
                 record = registration.student.get_high_school_student_record()
-                if record:
+                if record and record.highschool:
                     institution_label = record.highschool.label
             elif registration.student.is_student():
                 record = registration.student.get_student_record()
