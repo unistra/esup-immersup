@@ -946,7 +946,7 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
-    list_display = ('code', 'label')
+    list_display = ('code', 'label', 'active')
     filter_horizontal = ('available_vars',)
     summernote_fields = ('body',)
 
