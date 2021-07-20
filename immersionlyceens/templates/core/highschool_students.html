@@ -26,7 +26,7 @@
       {% if request.user.is_scuio_ip_manager %}
         {% trans "All registered students" %}
       {% else %}
-        {% trans "Students from my high school" %}
+        {% trans "Student profiles" %}
       {% endif %}
     </div>
     <div class="card-body">
@@ -45,7 +45,7 @@
           <thead>
             <tr>
               {% if request.user.is_scuio_ip_manager %}
-              <th id="type_filter" class="align-top">{% trans 'Type' %}</th>
+              <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
               {% endif %}
               <th class="align-top">{% trans 'Name' %}</th>
               <th class="align-top">{% trans 'Birth date' %}</th>
@@ -58,7 +58,7 @@
               {% if request.user.is_scuio_ip_manager %}
               <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
               {% endif %}
-              <th id="registered_filter" class="align-top">{% trans 'Registrations >= 1' %}</th>
+              <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
             </tr>
           </thead>
           <tbody>

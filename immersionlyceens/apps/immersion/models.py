@@ -80,7 +80,7 @@ class HighSchoolStudentRecord(models.Model):
 
     technological_bachelor_mention = models.ForeignKey(
         core_models.BachelorMention,
-        verbose_name=_('Technological bachelor mention'),
+        verbose_name=_('Technological bachelor series'),
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
