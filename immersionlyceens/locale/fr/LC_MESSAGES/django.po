@@ -2753,8 +2753,8 @@ msgid "Trainings statistics"
 msgstr "Statistiques par formation"
 
 #: immersionlyceens/templates/charts/trainings_charts.html:21
-msgid "Highschools - registrations by trainings"
-msgstr "Lycées - inscriptions par formation"
+msgid "Highschools statisticts - registrations by trainings"
+msgstr "Statistiques lycéennes - inscriptions par formation"
 
 #: immersionlyceens/templates/charts/trainings_charts.html:39
 msgid "leave empty for all institutions : high schools and above"
@@ -3315,16 +3315,16 @@ msgid "By domains registrations"
 msgstr "Lycées - inscriptions par domaine"
 
 #: immersionlyceens/templates/fragments/main_menu.html:132
-msgid "Highshcool statistics - registrations by trainings"
-msgstr "Statistiques lycéennes - inscriptions par formation"
+msgid "Highshcool - registrations by trainings"
+msgstr "Lycées - inscriptions par formation"
 
 #: immersionlyceens/templates/fragments/main_menu.html:134
 msgid "Registrations and participation"
 msgstr "Inscriptions et participation"
 
 #: immersionlyceens/templates/fragments/main_menu.html:135
-msgid "Hosts - by domains"
-msgstr "Accueil - par domaines"
+msgid "Hosts - registrations by domains"
+msgstr "Accueil - inscriptions par domaines"
 
 #: immersionlyceens/templates/fragments/main_menu.html:136
 msgid "Hosts - registrations by components"
