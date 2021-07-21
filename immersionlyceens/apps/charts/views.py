@@ -21,7 +21,7 @@ def highschool_charts(request):
     """
     filter = {}
 
-    if request.user.is_high_school_manager():
+    if request.user.is_high_school_manager() and request.user.highschool:
         filter['pk'] = request.user.highschool.id
 
     highschools = [
@@ -44,7 +44,7 @@ def highschool_domains_charts(request):
     """
     filter = {}
 
-    if request.user.is_high_school_manager():
+    if request.user.is_high_school_manager() and request.user.highschool:
         filter['pk'] = request.user.highschool.id
 
     highschools = [
@@ -97,7 +97,7 @@ def trainings_charts(request):
     filter = {}
     high_school_name = None
 
-    if request.user.is_high_school_manager():
+    if request.user.is_high_school_manager() and request.user.highschool:
         high_school_name = request.user.highschool.label
         filter['pk'] = request.user.highschool.id
 

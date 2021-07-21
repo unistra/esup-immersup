@@ -207,7 +207,7 @@ class ImmersionUser(AbstractUser):
         return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def get_login_page(self):
-        if self.is_high_school_manager:
+        if self.is_high_school_manager and self.highschool:
             return "/immersion/login/ref-lyc"
         else:
             return "/immersion/login"

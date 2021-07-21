@@ -2,7 +2,7 @@ Django>2.2,<2.3
 django-hijack
 django-hijack-admin
 django-tinymce
-psycopg2
+psycopg2==2.8.6
 django-cas-sso==1.1.10
 django-extensions
 ldap3

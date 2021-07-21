@@ -309,7 +309,7 @@ def get_trainings_charts(request, highschool_id=None):
     trainings = Training.objects.prefetch_related('training_subdomains__training_domain').filter(active=True)
 
     # Additional filter if the user is a high school referent
-    if request.user.is_high_school_manager():
+    if request.user.is_high_school_manager() and request.user.highschool:
         high_school_filter_id = request.user.highschool.id
     elif highschool_id:
         high_school_filter_id = highschool_id
