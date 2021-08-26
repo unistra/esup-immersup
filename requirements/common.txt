@@ -1,5 +1,5 @@
 Django>2.2,<2.3
-django-hijack
+django-hijack==2.3.0
 django-hijack-admin
 django-tinymce
 psycopg2
