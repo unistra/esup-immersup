@@ -355,7 +355,11 @@ class UniversityYearForm(forms.ModelForm):
             raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
 
         if start_date and end_date:
-            all_univ_year = UniversityYear.objects.exclude(label=label)
+            if self.instance:
+                all_univ_year = UniversityYear.objects.exclude(pk=self.instance.pk)
+            else:
+                all_univ_year = UniversityYear.objects.all()
+
             for uy in all_univ_year:
                 if uy.active and not uy.purge_date:
                     raise forms.ValidationError(_("All university years are not purged. you can't create a new one"))
