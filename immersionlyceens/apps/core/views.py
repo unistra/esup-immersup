@@ -619,7 +619,7 @@ def my_students(request):
 
 @groups_required('REF-LYC', 'SCUIO-IP')
 def student_validation(request, high_school_id=None):
-    if request.user.is_high_school_manager():
+    if request.user.is_high_school_manager() and request.user.highschool:
         try:
             high_school_id = request.user.highschool.id
         except AttributeError:
@@ -758,7 +758,7 @@ def stats(request):
         'components': components,
     }
 
-    if request.user.is_high_school_manager():
+    if request.user.is_high_school_manager() and request.user.highschool:
         context['high_school_id'] = request.user.highschool.id
 
     return render(request, template, context)

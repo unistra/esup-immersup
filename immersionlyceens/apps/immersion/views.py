@@ -84,7 +84,7 @@ def customLogin(request, profile=None):
                             return HttpResponseRedirect("/immersion")
                         else:
                             return HttpResponseRedirect("/immersion/hs_record")
-                    elif user.is_high_school_manager():
+                    elif user.is_high_school_manager() and user.highschool:
                         return HttpResponseRedirect(reverse('home'))
             else:
                 messages.error(request, _("Authentication error"))
