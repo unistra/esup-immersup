@@ -659,6 +659,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         'label',
         'start_date',
         'end_date',
+        'purge_date',
         'active',
     )
     list_filter = ('active',)
@@ -697,14 +698,14 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj:
-            if obj.start_date <= datetime.today().date():
+            if obj.start_date <= datetime.today().date() <= obj.end_date:
                 messages.warning(
                     request,
-                    _("""This component can't be deleted """ """because university year has already started"""),
+                    _("""This university year can't be deleted """ """because university year has already started"""),
                 )
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _("This component can't be deleted because a purge date is defined"))
+                messages.warning(request, _("This university year can't be deleted because a purge date is defined"))
                 return False
 
         return True
