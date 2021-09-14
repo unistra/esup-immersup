@@ -15,19 +15,19 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 {% endblock %}
 {% block title %}
-{% trans "Student validation" %}
+{% trans "Student profiles" %}
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
 
-  <div id="vdialog-form" style='z-index:3000;' title='{% trans "Student validation" %}'>
+  <div id="vdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
     <span>
       {% trans 'Did you really want to validate this high school student?' %}
     </span>
   </div>
 
-  <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student validation" %}'>
+  <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
     <span>
       {% trans 'Did you really want to reject this high school student?' %}
     </span>
@@ -35,7 +35,7 @@
 
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans "Student validation" %}{% if high_school %} - {{ high_school.label }}{% else %}<span id="card_title"></span>{% endif %}
+      {% trans "Student profiles" %}{% if high_school %} - {{ high_school.label }}{% else %}<span id="card_title"></span>{% endif %}
     </div>
     <div class="card-body">
       <div class="alert alert-danger hide" id="fail_message">
@@ -74,7 +74,7 @@
         <!-- TO VALIDATE -->
         <div class="card mb-4">
           <div class="card-header text-white bg-secondary">
-              {% trans "Student to validate" %}
+              {% trans "Student profiles to validate" %}
           </div>
           <div class="card-body">
             <div class="table-responsive">
@@ -107,7 +107,7 @@
         <!-- VALIDATED -->
         <div class="card mb-4">
           <div class="card-header text-white bg-secondary">
-              {% trans "Validated student" %}
+              {% trans "Validated student profiles" %}
           </div>
           <div class="card-body">
             <div class="table-responsive">
@@ -140,7 +140,7 @@
         <!-- REJECTED -->
         <div class="card mb-4">
           <div class="card-header text-white bg-secondary">
-              {% trans "Rejected student" %}
+              {% trans "Rejected student profiles" %}
           </div>
           <div class="card-body">
             <div class="table-responsive">

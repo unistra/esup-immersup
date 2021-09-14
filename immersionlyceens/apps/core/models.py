@@ -12,7 +12,7 @@ from django.db import models
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext, ugettext_lazy as _
 
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
@@ -207,7 +207,7 @@ class ImmersionUser(AbstractUser):
         return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def get_login_page(self):
-        if self.is_high_school_manager:
+        if self.is_high_school_manager and self.highschool:
             return "/immersion/login/ref-lyc"
         else:
             return "/immersion/login"
@@ -453,8 +453,8 @@ class BachelorMention(models.Model):
     class Meta:
         """Meta class"""
 
-        verbose_name = _('Technological bachelor mention')
-        verbose_name_plural = _('Technological bachelor mentions')
+        verbose_name = _('Technological bachelor series')
+        verbose_name_plural = pgettext('tbs_plural', 'Technological bachelor series')
 
     def __str__(self):
         """str"""
