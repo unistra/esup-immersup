@@ -222,7 +222,9 @@ CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 CAS_USER_CREATION = False
 CAS_IGNORE_REFERER = True
 CAS_REDIRECT_URL = '/'
-CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
+def CAS_USERNAME_FORMAT(username): return username.lower().strip()
+
+
 CAS_LOGOUT_COMPLETELY = False
 CAS_FORCE_SSL_SERVICE_URL = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -261,8 +263,8 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'django_extensions',
-    'compat',
     'hijack',
+    'compat',
     'hijack.contrib.admin',
     'django_summernote',
     'shibboleth',
