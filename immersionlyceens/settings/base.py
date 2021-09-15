@@ -261,6 +261,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'django_extensions',
+    'compat',
     'hijack',
     'hijack.contrib.admin',
     'django_summernote',
