@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import socket
 from os import environ
 from os.path import normpath
-import socket
 
 from .base import *
 
@@ -59,7 +59,7 @@ ALLOWED_HOSTS = [
 #####################
 
 LOGGING['handlers']['file']['filename'] = environ.get('LOG_DIR',
-        normpath(join('/tmp', '%s.log' % SITE_NAME)))
+                                                      normpath(join('/tmp', '%s.log' % SITE_NAME)))
 LOGGING['handlers']['file']['level'] = 'DEBUG'
 
 for logger in LOGGING['loggers']:

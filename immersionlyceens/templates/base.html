@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
 {% load i18n %}
-{% load hijack_tags %}
 {% load immersionlyceens_tags %}
 {% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
 <html lang="{{ LANGUAGE_CODE }}">
@@ -33,7 +32,6 @@
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
 </head>
 <body>
-    {% hijack_notification %}
     {% include './fragments/main_header.html'%}
     {% include './fragments/main_menu.html'%}
 

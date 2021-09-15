@@ -1,6 +1,5 @@
 Django<4.0
-django-hijack==2.3.0
-django-hijack-admin
+django-hijack==3.0.0
 django-tinymce
 psycopg2==2.8.6
 django-cas-sso==1.1.10
@@ -9,5 +8,5 @@ ldap3
 requests
 django-summernote
 django-shibboleth-remoteuser
-WeasyPrint
+WeasyPrint==52.5
 sentry-sdk
