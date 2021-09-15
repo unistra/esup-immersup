@@ -3,11 +3,8 @@ Immersion app forms tests
 """
 import datetime
 
-from django.conf import settings
-from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
@@ -15,7 +12,7 @@ from immersionlyceens.apps.core.models import (
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
     Immersion
 )
-from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
+
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 
 request_factory = RequestFactory()
@@ -314,7 +311,7 @@ class ImmersionViewsTestCase(TestCase):
         # Will fail (passwords don't match, missing email2)
         response = self.client.post('/immersion/register', data)
 
-        self.assertIn("The two password fields didn't match.", response.content.decode('utf-8'))
+        self.assertIn("The two password fields didn’t match.", response.content.decode('utf-8'))
         self.assertIn("This field is required.", response.content.decode('utf-8'))
         self.assertIn("Error : emails don't match", response.content.decode('utf-8'))
 
@@ -409,7 +406,7 @@ class ImmersionViewsTestCase(TestCase):
             "new_password2": "this_is_my_new_pass_with_error",
         }
         response = self.client.post('/immersion/change_password', data)
-        self.assertIn("The two password fields didn't match", response.content.decode('utf-8'))
+        self.assertIn("The two password fields didn’t match", response.content.decode('utf-8'))
 
         # Success
         data["new_password2"] = "this_is_my_new_pass"
@@ -562,13 +559,13 @@ class ImmersionViewsTestCase(TestCase):
         self.client.login(username='@EXTERNAL@_hs', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response._headers['content-type'], ('Content-Type', 'application/pdf'))
+        self.assertEqual(response.headers['content-type'], 'application/pdf')
 
         # as scuio-ip manager
         self.client.login(username='scuio', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response._headers['content-type'], ('Content-Type', 'application/pdf'))
+        self.assertEqual(response.headers['content-type'], 'application/pdf')
 
 
     def test_record_duplicates(self):

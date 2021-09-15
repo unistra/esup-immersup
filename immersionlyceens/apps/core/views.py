@@ -31,7 +31,8 @@ def import_holidays(request):
     """
     Import holidays from API if it has been configured
     """
-    redirect_url = '/admin/core/holiday'
+
+    redirect_url = '/admin/core/holiday/'
 
     if all(
         [

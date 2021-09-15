@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 from os.path import abspath, basename, dirname, join, normpath
 
 from django.utils.translation import ugettext_lazy as _
@@ -55,6 +56,8 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 ######################
@@ -449,6 +452,36 @@ ADMIN_MODELS_ORDER = {
 
 # Define groups rights on others here ?
 HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP', 'REF-LYC', 'SRV-JUR']}
+
+###############
+# SUMMER NOTE #
+###############
+BASE_DIR = os.getcwd()
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+SUMMERNOTE_THEME = 'bs4'
+SUMMERNOTE_CONFIG = {
+    'spellCheck': True,
+    'iframe': True,
+    'summernote': {'lang': 'fr-FR', },
+    'codeviewIframeFilter': True,
+    'disable_attachment': True,
+    'toolbar': [
+        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
+        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
+        ['misc', ['ol', 'ul', 'height', ], ],
+        ['others', ['link', 'table', 'hr'], ],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
+    ],
+    'popover': {
+        'link': ['link', ['linkDialogShow', 'unlink']],
+        'table': [
+            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+        ],
+    },
+}
+
 
 ####################
 # Geo Api settings #

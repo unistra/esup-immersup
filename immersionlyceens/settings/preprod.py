@@ -97,34 +97,6 @@ EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
 FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-pprd@unistra.fr"
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
-
-# SUMMER NOTE
-BASE_DIR = os.getcwd()
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {'lang': 'fr-FR', },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
-    'toolbar': [
-        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
-        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
-        ['misc', ['ol', 'ul', 'height', ], ],
-        ['others', ['link', 'table', 'hr'], ],
-        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
-    ],
-    'popover': {
-        'link': ['link', ['linkDialogShow', 'unlink']],
-        'table': [
-            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-        ],
-    },
-}
-
 ########################
 # UPLOAD configuration #
 ########################

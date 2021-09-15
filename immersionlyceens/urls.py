@@ -17,8 +17,8 @@ urlpatterns = [
     path('', home, name='home'),
     path('accompanying', accompanying, name='accompanying'),
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
-    path('admin/', admin.site.urls),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
+    path('admin/', admin.site.urls),
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('charts/', include('immersionlyceens.apps.charts.urls', namespace='charts')),
     path('core/', include('immersionlyceens.apps.core.urls')),
@@ -35,6 +35,7 @@ urlpatterns = [
     path('shib/', shibbolethLogin, name='shibboleth_login'),
     path('summernote/', include('django_summernote.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 # debug toolbar for dev
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     import debug_toolbar

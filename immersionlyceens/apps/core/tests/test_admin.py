@@ -403,7 +403,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {
             'label': ' Santo Domingo',
-            'address': 'rue larry Kubiac',
+            'address': 'rue Larry Kubiac',
             'address2': '',
             'address3': '',
             'department': '68',
@@ -423,6 +423,7 @@ class AdminFormsTestCase(TestCase):
         # Need to populate choices fields (ajax populated IRL)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
+
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(label='Santo Domingo').exists())
