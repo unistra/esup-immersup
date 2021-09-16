@@ -222,7 +222,7 @@ CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 CAS_USER_CREATION = False
 CAS_IGNORE_REFERER = True
 CAS_REDIRECT_URL = '/'
-def CAS_USERNAME_FORMAT(username): return username.lower().strip()
+CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
 
 
 CAS_LOGOUT_COMPLETELY = False
