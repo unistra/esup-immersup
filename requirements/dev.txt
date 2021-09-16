@@ -5,3 +5,4 @@ pylint
 pycodestyle
 django-debug-toolbar
 tox
+safety

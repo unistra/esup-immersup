@@ -20,3 +20,14 @@ unittest:
   script:
     - pip3 install tox
     - tox
+
+safety:
+  stage: test
+  tags:
+    - python3.7
+  script:
+    - pip3 install -r requirements/dev.txt
+    - safety check
+  only:
+    - develop
+    - master
