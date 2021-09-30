@@ -1,0 +1,6 @@
+media/
+immersionlyceens.egg-info/
+*.md
+.tox/
+.gitlab-ci.yml
+.git/
