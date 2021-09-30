@@ -10,28 +10,32 @@ services:
       - ./:/usr/src/app/
     ports:
       - 8000:8000
+    restart: always
     env_file:
       - ./deploy/docker/.env.dev
     depends_on:
       db:
         condition: service_healthy
-
-    # links:
-    #   - db
-    # networks:
-    #   - django-dev-net
+    links:
+      - db:db
+    networks:
+      - django-dev-net
   db:
-    image: postgres:12.0-alpine
-    # networks:
-    #   - django-dev-net
+    image: postgres:12.8-alpine
+    container_name: db
+    expose:
+      - "5432"
+    networks:
+      - django-dev-net
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=immersion
       - POSTGRES_PASSWORD=immersion
       - POSTGRES_DB=immersion
-    # ports:
-    #   - "5432:5432"
+    ports:
+      - "5432:5432"
+    restart: always
     healthcheck:
       test: "pg_isready --username=immersion && psql --username=immersion --list"
       timeout: 30s
@@ -39,6 +43,7 @@ services:
 
 volumes:
   postgres_data:
-# networks:
-#   django-dev-net:
-# driver: bridge
+
+networks:
+  django-dev-net:
+    driver: bridge
