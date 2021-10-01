@@ -1,6 +1,81 @@
-media/
-immersionlyceens.egg-info/
-*.md
-.tox/
-.gitlab-ci.yml
+*.py[cod]
+__pycache__
+
+# C extensions
+*.so
+
+# Packages
+.installed.cfg
+*.egg
+*.egg-info
+bin
+build
+develop-eggs
+dist
+eggs
+lib
+lib64
+parts
+sdist
+var
+
+# Sphinx
+_build
+_static
+_template
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+htmlcov/
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+.settings
+*.sublime-*
+.fab_tasks~
+*.db
+
+# vscode
+.vscode
+
+# pycharm
+.idea
+
+# local virtual env
+venv
+
+# isort personal config
+.isort.cfg
+
+
+.DS_Store
 .git/
+.gitlab-ci.yml
+.project
+.pydevproject
+.sass-cache
+.tox
+.vagrant/
+.vsc
+*.css.map
+*.db
+*.egg-info
+*.md
+*.mo
+*.pyc
+*.pyo
+*.sql.gz
+dist
+docs
+immersionlyceens.egg-info/
+pyvenv.cfg
