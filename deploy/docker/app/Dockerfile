@@ -8,21 +8,19 @@ WORKDIR /usr/src/app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# install dependencies
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends gcc libpq-dev libxml2-dev libxslt-dev libffi-dev libcairo2-dev libpango1.0-dev
-
 # copy project
 COPY . .
+# copy entrypoint.sh
+COPY ./deploy/docker/app/entrypoint.sh /usr/local/bin
 
-# copy entrypoint.sh & config files
-COPY ./deploy/docker/app/entrypoint.sh /usr/local/bin/
-
-RUN sed -i 's/\r$//g' /usr/local/bin/entrypoint.sh \
-  && chmod +x /usr/local/bin/entrypoint.sh \
+# install dependencies
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends libxml2-dev libxslt-dev libffi-dev libcairo2-dev libpango1.0-dev \
   && sed -i 's/psycopg2==/psycopg2-binary==/g' /usr/src/app/requirements/common.txt \
-  && pip install -r requirements/dev.txt \
-  && sed -i 's/{{ goal }}/docker-dev/g' /usr/src/app/manage.py
+  && sed -i 's/{{ goal }}/docker-dev/g' /usr/src/app/manage.py \
+  && sed -i 's/\r$//g' /usr/local/bin/entrypoint.sh \
+  && chmod +x /usr/local/bin/entrypoint.sh \
+  && pip install -r requirements/dev.txt
 
 # run entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
