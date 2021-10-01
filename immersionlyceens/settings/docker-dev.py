@@ -26,7 +26,7 @@ DEBUG = environ.get('DEBUG', True)
 # engine : sqlite3
 # name : PROJECT_ROOT_DIR/default.db
 
-DATABASES['default']['HOST'] = environ.get('DEFAULT_DB_HOST', 'db')
+DATABASES['default']['HOST'] = environ.get('DEFAULT_DB_HOST', 'localhost')
 DATABASES['default']['USER'] = environ.get('DEFAULT_DB_USER', 'immersion')
 DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', 'immersion')
 DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', 'immersion')
@@ -42,6 +42,7 @@ DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 ########################
 #     CAS SETTINGS     #
 ########################
+
 CAS_SERVER_URL = environ.get('CAS_SERVER_URL', 'https://cas-dev.unistra.fr/cas/')
 CAS_LOGOUT_REQUEST_ALLOWED = environ.get('CAS_LOGOUT_REQUEST_ALLOWED', ('cas-dev.unistra.fr', 'cas-dev.unistra.fr'))
 CAS_FORCE_SSL_SERVICE_URL = environ.get('CAS_FORCE_SSL_SERVICE_URL', False)
@@ -50,9 +51,7 @@ CAS_FORCE_SSL_SERVICE_URL = environ.get('CAS_FORCE_SSL_SERVICE_URL', False)
 # Allowed hosts & Security #
 ############################
 
-ALLOWED_HOSTS = [
-    environ.get('DJANGO_ALLOWED_HOSTS', '*')
-]
+ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 #####################
 # Log configuration #
