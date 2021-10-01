@@ -13,7 +13,13 @@ Uses the default Django development server.
 1. Build the images and run the containers:
 
     ```sh
-    $ docker compose up -d --build
+    $ docker-compose up -d --build
     ```
 
     Reach [http://localhost:8000](http://localhost:8000). The "app" folder is mounted into the container and your code changes apply automatically.
+
+    A command could be executed using :
+
+    ```sh
+    $ docker-compose exec web python manage.py diffsettings --all
+    ```
