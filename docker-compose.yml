@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   web:
+    container_name: immersion-app
     build:
       context: ./
       dockerfile: ./deploy/docker/app/Dockerfile
@@ -13,16 +14,19 @@ services:
     restart: always
     env_file:
       - ./deploy/docker/.env.dev
-    environment:
-      - DEFAULT_DB_HOST=0.0.0.0
+    # environment:
+    # - DEFAULT_DB_HOST=0.0.0.0
     links:
       - db:db
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
+
   db:
     image: postgres:12
-    container_name: db
+    container_name: immersion-db
+    networks:
+      - immersion-net
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
@@ -32,16 +36,13 @@ services:
     ports:
       - 5432:5432
     restart: always
-
-    healthcheck:
-      test: "pg_isready --username=immersion && psql --username=immersion --list"
-      timeout: 30s
-      retries: 20
-
-    networks:
-      default:
-        aliases:
-          - db
+    # healthcheck:
+    #   test: "pg_isready --username=immersion && psql --username=immersion --list"
+    #   timeout: 30s
+    #   retries: 20
 
 volumes:
   postgres_data:
+
+networks:
+  immersion-net:
