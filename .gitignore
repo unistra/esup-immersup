@@ -61,3 +61,6 @@ immersionlyceens/media
 # isort personal config
 .isort.cfg
 pyvenv.cfg
+
+.env.dev
+.env.demo
