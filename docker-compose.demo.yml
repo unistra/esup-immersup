@@ -8,10 +8,10 @@ services:
     build:
       context: ./
       dockerfile: ./deploy/docker/app/Dockerfile.demo
-    command: gunicorn hello_django.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - static_volume:/home/immersion/web/staticfiles
       - media_volume:/home/immersion/web/mediafiles
+    command: uwsgi --socket :8000 --master --enable-threads --module immersionlyceens.wsgi
     expose:
       - 8000
     restart: always
@@ -29,6 +29,8 @@ services:
     restart: always
     env_file:
       - ./deploy/docker/.env.demo.db
+    ports:
+      - 5432:5432
   nginx:
     container_name: immersion-nginx-demo
     networks:
@@ -41,7 +43,7 @@ services:
       - static_volume:/home/immersion/web/staticfiles
       - media_volume:/home/immersion/web/mediafiles
     ports:
-      - 1337:80
+      - 80:80
     depends_on:
       - web
 
