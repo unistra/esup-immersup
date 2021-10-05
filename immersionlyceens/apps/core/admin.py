@@ -7,25 +7,27 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
-
 from django_summernote.admin import SummernoteModelAdmin
-from hijack_admin.admin import HijackUserAdminMixin
-
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    CertificateLogoForm, CertificateSignatureForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm,
-    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm,
-    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
+    ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
+    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
+    InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
+    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
-    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature, Component, Course,
-    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
-    PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
+    Component, Course, CourseType, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
+    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
+    Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation,
 )
 
 
@@ -106,7 +108,7 @@ class ActivationFilter(admin.SimpleListFilter):
             return queryset.filter(groups__name__in=['LYC', 'ETU'], validation_string__isnull=False)
 
 
-class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
+class CustomUserAdmin(AdminWithRequest, UserAdmin):
     form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
 
@@ -206,13 +208,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
             return False
 
         return True
-
-    def get_list_display(self, request):
-        # add hijack button for admin users
-        if request.user.is_superuser and 'hijack_field' not in self.list_display:
-            self.list_display.append('hijack_field')
-
-        return self.list_display
 
     def get_fieldsets(self, request, obj=None):
         # On user change, add Components in permissions fieldset
@@ -1000,6 +995,7 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('setting', 'value', 'description')
     ordering = ('setting',)
 
+
 class AnnualStatisticsAdmin(admin.ModelAdmin):
     list_display_links = None
     list_display = (
@@ -1033,6 +1029,7 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
                 'css/admin_annual_stats.css',
             )
         }
+
 
 class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateLogoForm

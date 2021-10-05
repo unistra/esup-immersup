@@ -59,19 +59,13 @@ class HighSchool(models.Model):
         verbose_name = _('High school')
         unique_together = ('label', 'city')
 
-    choices_departments = choices_cities = choices_zipcodes = []
-
-    if settings.USE_GEOAPI:
-        choices_departments = get_departments()
-        choices_cities = get_cities()
-
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
     address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
     address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
     address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
-    department = models.CharField(_("Department"), max_length=128, blank=False, null=False, choices=choices_departments)
-    city = UpperCharField(_("City"), max_length=255, blank=False, null=False, choices=choices_cities)
-    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False, choices=choices_zipcodes)
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
     phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
     email = models.EmailField(_('Email'))

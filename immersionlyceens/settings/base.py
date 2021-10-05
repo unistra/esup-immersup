@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 from os.path import abspath, basename, dirname, join, normpath
 
 from django.utils.translation import ugettext_lazy as _
@@ -55,6 +56,8 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 ######################
@@ -194,6 +197,7 @@ MIDDLEWARE = [
     'django_cas.middleware.CASMiddleware',
     # 'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
     'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
+    'hijack.middleware.HijackUserMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -219,9 +223,10 @@ CAS_USER_CREATION = False
 CAS_IGNORE_REFERER = True
 CAS_REDIRECT_URL = '/'
 CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
-CAS_LOGOUT_COMPLETELY = False
-CAS_FORCE_SSL_SERVICE_URL=True
 
+
+CAS_LOGOUT_COMPLETELY = False
+CAS_FORCE_SSL_SERVICE_URL = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 #####################
@@ -259,8 +264,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'django_extensions',
     'hijack',
-    'compat',
-    'hijack_admin',
+    'hijack.contrib.admin',
     'django_summernote',
     'shibboleth',
 ]
@@ -287,9 +291,9 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 ########################
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
 
@@ -302,15 +306,15 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'default': {'format': '%(levelname)s %(asctime)s %(name)s:%(lineno)s %(message)s'},
-        'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s',},
+        'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s', },
     },
     'filters': {
-        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse',},
-        'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue',},
+        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse', },
+        'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue', },
     },
     'handlers': {
-        'console': {'level': 'INFO', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler',},
-        'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server',},
+        'console': {'level': 'INFO', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler', },
+        'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server', },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -326,24 +330,11 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django': {'handlers': ['console', 'mail_admins'], 'level': 'INFO',},
-        'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False,},
-        'immersionlyceens': {'handlers': ['mail_admins', 'file'], 'level': 'ERROR', 'propagate': True,},
+        'django': {'handlers': ['console', 'mail_admins'], 'level': 'INFO', },
+        'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False, },
+        'immersionlyceens': {'handlers': ['mail_admins', 'file'], 'level': 'ERROR', 'propagate': True, },
     },
 }
-
-#################
-# Django hijack #
-#################
-# Bootstrap notification bar that does not overlap with the default navbar.
-HIJACK_USE_BOOTSTRAP = True
-# Where admins are redirected to after hijacking a user
-HIJACK_LOGIN_REDIRECT_URL = '/'
-# Where admins are redirected to after releasing a user
-HIJACK_LOGOUT_REDIRECT_URL = '/'  # Add to your settings file
-HIJACK_ALLOW_GET_REQUESTS = True
-HIJACK_REGISTER_ADMIN = False
-
 
 #######################
 # Admin page settings #
@@ -352,6 +343,22 @@ HIJACK_REGISTER_ADMIN = False
 ADMIN_SITE_HEADER = _('Immersion')
 ADMIN_SITE_TITLE = _('Immersion Admin Page')
 ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
+
+#################
+# Django hijack #
+#################
+
+# TODO: deprecated settings
+# # Bootstrap notification bar that does not overlap with the default navbar.
+# HIJACK_USE_BOOTSTRAP = True
+# # Where admins are redirected to after hijacking a user
+# HIJACK_LOGIN_REDIRECT_URL = '/'
+# # Where admins are redirected to after releasing a user
+# HIJACK_LOGOUT_REDIRECT_URL = '/'  # Add to your settings file
+# HIJACK_ALLOW_GET_REQUESTS = True
+# HIJACK_REGISTER_ADMIN = False
+HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_and_staff"
+
 
 #################
 # APIs settings #
@@ -450,6 +457,36 @@ ADMIN_MODELS_ORDER = {
 # Define groups rights on others here ?
 HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP', 'REF-LYC', 'SRV-JUR']}
 
+###############
+# SUMMER NOTE #
+###############
+BASE_DIR = os.getcwd()
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+SUMMERNOTE_THEME = 'bs4'
+SUMMERNOTE_CONFIG = {
+    'spellCheck': True,
+    'iframe': True,
+    'summernote': {'lang': 'fr-FR', },
+    'codeviewIframeFilter': True,
+    'disable_attachment': True,
+    'toolbar': [
+        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
+        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
+        ['misc', ['ol', 'ul', 'height', ], ],
+        ['others', ['link', 'table', 'hr'], ],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
+    ],
+    'popover': {
+        'link': ['link', ['linkDialogShow', 'unlink']],
+        'table': [
+            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+        ],
+    },
+}
+
+
 ####################
 # Geo Api settings #
 ####################
@@ -513,3 +550,5 @@ INSTITUTES_URL = (
 
 # Notifications display time (milliseconds)
 MESSAGES_TIMEOUT = 3000
+
+LOGIN_REDIRECT_URL = '/'

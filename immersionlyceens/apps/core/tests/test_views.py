@@ -23,7 +23,7 @@ request_factory = RequestFactory()
 request = request_factory.get('/admin')
 
 class CoreViewsTestCase(TestCase):
-    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
+    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
 
     def setUp(self):
         """
@@ -229,10 +229,15 @@ class CoreViewsTestCase(TestCase):
             attendance_status=1
         )
 
+
     def test_import_holidays(self):
-        self.client.login(username='scuio', password='pass')
+        self.scuio_user.is_staff = True
+        self.scuio_user.save()
+
         self.assertFalse(Holiday.objects.all().exists())
-        self.client.get("/admin/holiday/import", follow=True)
+        self.client.login(username='scuio', password='pass')
+        response = self.client.get("/admin/holiday/import", follow=True)
+        self.assertEqual(response.status_code, 200)
         self.assertTrue(Holiday.objects.all().exists())
 
 

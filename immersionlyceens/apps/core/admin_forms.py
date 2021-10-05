@@ -4,7 +4,6 @@ from datetime import datetime
 
 from django import forms
 from django.conf import settings
-from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import UploadedFile
@@ -12,7 +11,7 @@ from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
-from ...libs.geoapi.utils import get_cities, get_zipcodes
+from ...libs.geoapi.utils import get_cities, get_zipcodes, get_departments
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
     CertificateSignature, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
@@ -757,6 +756,8 @@ class HighSchoolForm(forms.ModelForm):
             ]
 
             # Put datas in choices fields if form instance
+            department_choices = get_departments()
+
             if self.instance.department:
                 city_choices = get_cities(self.instance.department)
 
@@ -770,6 +771,9 @@ class HighSchoolForm(forms.ModelForm):
             if 'city' in self.data:
                 zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
 
+            self.fields['department'] = forms.TypedChoiceField(
+                label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
+            )
             self.fields['city'] = forms.TypedChoiceField(
                 label=_("City"), widget=forms.Select(), choices=city_choices, required=True
             )

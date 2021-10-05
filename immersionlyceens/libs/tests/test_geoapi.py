@@ -6,25 +6,27 @@ import json
 import unittest
 from datetime import datetime, time, timedelta
 
-from django.utils.translation import pgettext, ugettext_lazy as _
-from django.template.defaultfilters import date as _date
-from compat.templatetags.compat import url
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Building, Campus, Component, Course, CourseType, HighSchool, Slot,
-    Training, TrainingDomain,
-    TrainingSubdomain,
-    Immersion, MailTemplateVars, MailTemplate, Calendar, CancelType, ImmersionUser, Vacation,
-    UserCourseAlert, GeneralSettings)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.libs.api.views import ajax_check_course_publication
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
-
-from immersionlyceens.libs.geoapi.utils import (get_json_from_url, get_departments, get_cities,
+from django.utils.translation import pgettext
+from django.utils.translation import ugettext_lazy as _
+from immersionlyceens.apps.core.models import (AccompanyingDocument, Building,
+                                               Calendar, Campus, CancelType,
+                                               Component, Course, CourseType,
+                                               GeneralSettings, HighSchool,
+                                               Immersion, ImmersionUser,
+                                               MailTemplate, MailTemplateVars,
+                                               Slot, Training, TrainingDomain,
+                                               TrainingSubdomain,
+                                               UserCourseAlert, Vacation)
+from immersionlyceens.apps.immersion.models import (HighSchoolStudentRecord,
+                                                    StudentRecord)
+from immersionlyceens.libs.api.views import ajax_check_course_publication
+from immersionlyceens.libs.geoapi.utils import (get_cities, get_departments,
+                                                get_json_from_url,
                                                 get_zipcodes)
 
 request_factory = RequestFactory()

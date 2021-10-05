@@ -1,6 +1,5 @@
-Django>2.2,<2.3
-django-hijack==2.3.0
-django-hijack-admin
+Django<4.0
+django-hijack==3.0.0
 django-tinymce
 psycopg2==2.8.6
 django-cas-sso==1.1.10

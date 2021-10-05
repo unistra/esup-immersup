@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import socket
 from os import environ
 from os.path import normpath
-import socket
 
 from .base import *
 
@@ -59,7 +59,7 @@ ALLOWED_HOSTS = [
 #####################
 
 LOGGING['handlers']['file']['filename'] = environ.get('LOG_DIR',
-        normpath(join('/tmp', '%s.log' % SITE_NAME)))
+                                                      normpath(join('/tmp', '%s.log' % SITE_NAME)))
 LOGGING['handlers']['file']['level'] = 'DEBUG'
 
 for logger in LOGGING['loggers']:
@@ -129,91 +129,6 @@ EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.ConsoleBackend'
 # FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
-
-# SUMMER NOTE
-BASE_DIR = os.getcwd()
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {
-        'lang': 'fr-FR',
-    },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
-    'toolbar': [
-        [
-            'style',
-            [
-                'style',
-                'bold',
-                'italic',
-                'underline',
-                'strikethrough',
-                'superscript',
-                'subscript',
-                'clear',
-            ]
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ]
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
-            ],
-        ],
-        [
-            'others',
-            [
-                'link',
-                'table',
-                'hr'
-            ],
-        ],
-        [
-            'view',
-            [
-                'codeview',
-                'undo',
-                'redo',
-                'fullscreen'
-            ],
-        ],
-    ],
-    'popover': {
-        'link': ['link', ['linkDialogShow', 'unlink']],
-        'table': [
-            [
-                'add',
-                [
-                    'addRowDown',
-                    'addRowUp',
-                    'addColLeft',
-                    'addColRight'
-                ]
-            ],
-            [
-                'delete',
-                [
-                    'deleteRow',
-                    'deleteCol',
-                    'deleteTable'
-                ]
-            ],
-        ],
-    }
-}
 
 # Mailing list subscriber files directory
 BASE_FILES_DIR = "/tmp"
