@@ -5,9 +5,6 @@ import socket
 from os import environ
 from os.path import normpath
 
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-
 from .base import *
 
 ##########################
@@ -49,7 +46,7 @@ SECRET_KEY = environ.get('SECRET_KEY', '8655fd634a264e3ca7bf60ed41617ce8')
 
 CAS_REDIRECT_URL = environ.get('CAS_REDIRECT_URL', '/')
 CAS_FORCE_SSL_SERVICE_URL = environ.get('CAS_FORCE_SSL_SERVICE_URL', False)
-
+CAS_SERVER_URL = environ.get('CAS_SERVER_URL', 'https://cas-dev.unistra.fr/cas/')
 
 #################
 # APIs settings #
@@ -95,9 +92,8 @@ HOLIDAY_API_DATE_FORMAT = environ.get('HOLIDAY_API_DATE_FORMAT', '%Y-%m-%d')
 #######################
 
 # SUMMER NOTE
-BASE_DIR = os.getcwd()
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
 SUMMERNOTE_THEME = 'bs4'
 SUMMERNOTE_CONFIG = {
     'spellCheck': True,
@@ -126,7 +122,7 @@ SUMMERNOTE_CONFIG = {
 ########################
 
 # url for logos upload
-MEDIA_ROOT = environ.get('MEDIA_ROOT', '')
+MEDIA_ROOT = environ.get('MEDIA_ROOT', 'mediafiles')
 
 # Mailing list subscriber files directory
 BASE_FILES_DIR = environ.get('BASE_FILES_DIR', '')
@@ -143,6 +139,9 @@ DEFAULT_FROM_EMAIL = environ.get('DEFAULT_FROM_EMAIL', 'support@unistra.fr')
 #     - immersionlyceens.libs.mails.backends.ConsoleBackend
 #     - immersionlyceens.libs.mails.backends.FileBackend
 EMAIL_BACKEND = environ.get('EMAIL_BACKEND', 'immersionlyceens.libs.mails.backends.EmailBackend')
-EMAIL_HOST = environ.get('EMAIL_HOST', '127.0.0.1')
+EMAIL_HOST = environ.get('EMAIL_HOST', '0.0.0.0')
 FROM_ADDR = environ.get('FROM_ADDR', 'no.reply@unistra.fr')
 FORCE_EMAIL_ADDRESS = environ.get('FORCE_EMAIL_ADDRESS', None)
+
+STATIC_ROOT = normpath(join(SITE_ROOT, 'staticfiles'))
+STATIC_URL = '/static/'

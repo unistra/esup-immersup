@@ -6,11 +6,6 @@ COPY uwsgi_params /etc/nginx/uwsgi_params
 
 USER root
 
-# setup static dirs
-RUN mkdir -p /vol/static
-RUN chmod 755 /vol/static
-
 USER nginx
-
 
 # CMD ["nginx", "-g", "daemon off;"]
