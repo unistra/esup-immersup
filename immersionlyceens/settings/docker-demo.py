@@ -3,7 +3,7 @@
 import os
 import socket
 from os import environ
-from os.path import normpath
+from os.path import join, normpath
 
 from .base import *
 
@@ -24,7 +24,7 @@ DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 
 ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
+#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
 
 
 #####################
@@ -82,14 +82,6 @@ WITH_HOLIDAY_API = environ.get('WITH_HOLIDAY_API', True)
 HOLIDAY_API_URL = environ.get('HOLIDAY_API_URL', 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json')
 HOLIDAY_API_MAP = environ.get('HOLIDAY_API_MAP', "{'date': 'date', 'label': 'nom_jour_ferie'}")
 HOLIDAY_API_DATE_FORMAT = environ.get('HOLIDAY_API_DATE_FORMAT', '%Y-%m-%d')
-
-#######################
-# Email configuration #
-#######################
-
-# If needed
-
-#######################
 
 # SUMMER NOTE
 MEDIA_URL = '/media/'

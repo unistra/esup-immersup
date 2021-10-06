@@ -31,4 +31,4 @@ RUN BUILD_DEPS=" \
   chmod +x /usr/local/bin/entrypoint.sh;
 
 # run entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["sh", "entrypoint.sh"]
