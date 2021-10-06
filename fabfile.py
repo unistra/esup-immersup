@@ -17,7 +17,7 @@ from pydiploy.decorators import do_verbose
 env.remote_owner = 'django'  # remote server user
 env.remote_group = 'di'  # remote server group
 
-env.application_name = 'immersionlyceens2'  # name of webapp
+env.application_name = 'immersup'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
@@ -101,8 +101,8 @@ def test():
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
-    env.server_name = 'immersion2-test.app.unistra.fr'
-    env.short_server_name = 'immersion2-test'
+    env.server_name = 'immersup-test.app.unistra.fr'
+    env.short_server_name = 'immersup-test'
     env.static_folder = '/site_media/'
     env.server_ip = ''
     env.no_shared_sessions = False
@@ -141,7 +141,6 @@ def test():
 def preprod():
     """Define preprod stage"""
     env.roledefs = {
-        # 'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
         'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
         'shib': [],
@@ -150,8 +149,8 @@ def preprod():
     # env.user = 'root'  # user for ssh
 
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion2-pprd.app.unistra.fr'
-    env.short_server_name = 'immersion2-pprd'
+    env.server_name = 'immersup-pprd.app.unistra.fr'
+    env.short_server_name = 'immersup-pprd'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.212'
     env.no_shared_sessions = False
@@ -197,8 +196,8 @@ def prod():
 
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion2.unistra.fr'
-    env.short_server_name = 'immersion2'
+    env.server_name = 'immersup.unistra.fr'
+    env.short_server_name = 'immersup'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.214'
     env.no_shared_sessions = False
