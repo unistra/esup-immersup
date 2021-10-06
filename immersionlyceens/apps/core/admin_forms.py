@@ -14,9 +14,10 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ...libs.geoapi.utils import get_cities, get_zipcodes, get_departments
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    CertificateSignature, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CertificateSignature, Component, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
+    MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -228,6 +229,45 @@ class TrainingForm(forms.ModelForm):
 
     class Meta:
         model = Training
+        fields = '__all__'
+
+class EstablishmentForm(forms.ModelForm):
+    """
+    Establishment form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        # Disable code field if it already exists
+        if self.initial:
+            self.fields["code"].disabled = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_superuser
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        if not Establishment.objects.exists():
+            cleaned_data["master"] = True
+        elif Establishment.objects.filter(master=True).exists():
+            cleaned_data["master"] = False
+
+        # TODO : run selected plugin settings selftests when available
+
+        return cleaned_data
+
+    class Meta:
+        model = Establishment
         fields = '__all__'
 
 

@@ -13,9 +13,9 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
-    ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
+    ComponentForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
+    HighSchoolForm, HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
     InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
     TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
     UniversityYearForm, VacationForm,
@@ -23,7 +23,7 @@ from .admin_forms import (
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
-    Component, Course, CourseType, EvaluationFormLink, EvaluationType,
+    Component, Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
     GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
     ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
     Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
@@ -400,6 +400,37 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
                 _("""This teaching can't be deleted """ """because it is used by a high-school student record"""),
             )
             return False
+
+        return True
+
+
+class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = EstablishmentForm
+    list_display = ('code', 'label', 'master', 'active', )
+    list_filter = ('active',)
+    ordering = ('master', 'label', )
+    search_fields = ('label',)
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        # Manage KeyError if rights for groups don't include delete !
+        try:
+            del actions['delete_selected']
+        except KeyError:
+            pass
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_superuser:
+            return False
+
+        # Test existing data before deletion (see US 160)
+        """
+        if obj and Training.objects.filter(components=obj).exists():
+            messages.warning(request, _("This establishment can't be deleted"))
+            return False
+        """
 
         return True
 
@@ -1063,6 +1094,7 @@ admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
 admin.site.register(Training, TrainingAdmin)
+admin.site.register(Establishment, EstablishementAdmin)
 admin.site.register(Component, ComponentAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)

@@ -435,6 +435,7 @@ ADMIN_MODELS_ORDER = {
     'core': [
         'ImmersionUser',
         'UniversityYear',
+        'Establishment',
         'HighSchool',
         'GeneralBachelorTeaching',
         'BachelorMention',
