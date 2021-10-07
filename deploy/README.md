@@ -35,3 +35,5 @@ Uses django/uwsgi/nginx.
     ```sh
     docker-compose -f docker-compose.demo.yml up -d --build
     ```
+
+    Reach [http://localhost](http://localhost).
