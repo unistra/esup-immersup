@@ -26,7 +26,7 @@ from .models import (Campus, CancelType, Component, Course, HighSchool, Holiday,
 logger = logging.getLogger(__name__)
 
 
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def import_holidays(request):
     """
     Import holidays from API if it has been configured
@@ -80,7 +80,7 @@ def import_holidays(request):
     return redirect(redirect_url)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def slots_list(request, comp_id=None, train_id=None):
     """
     Get slots list
@@ -88,7 +88,7 @@ def slots_list(request, comp_id=None, train_id=None):
     """
     template = 'slots/list_slots.html'
 
-    if request.user.is_superuser or request.user.is_scuio_ip_manager():
+    if request.user.is_superuser or request.user.is_ref_etab_manager():
         components = Component.activated.all().order_by("code")
     elif request.user.is_component_manager():
         components = request.user.components.all().order_by("code")
@@ -128,7 +128,7 @@ def slots_list(request, comp_id=None, train_id=None):
     return render(request, template, context=context)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def add_slot(request, slot_id=None):
     slot = None
     teachers_idx = None
@@ -144,7 +144,7 @@ def add_slot(request, slot_id=None):
 
     # get components
     components = []
-    if request.user.is_superuser or request.user.is_scuio_ip_manager():
+    if request.user.is_superuser or request.user.is_ref_etab_manager():
         components = Component.activated.all().order_by('code')
     elif request.user.is_component_manager():
         components = request.user.components.all().order_by('code')
@@ -219,7 +219,7 @@ def add_slot(request, slot_id=None):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def modify_slot(request, slot_id):
     """
     Update a slot
@@ -238,7 +238,7 @@ def modify_slot(request, slot_id):
     slot_form = SlotForm(instance=slot)
     # get components
     components = []
-    if request.user.is_superuser or request.user.is_scuio_ip_manager():
+    if request.user.is_superuser or request.user.is_ref_etab_manager():
         components = Component.activated.all().order_by('code')
     elif request.user.is_component_manager():
         components = request.user.components.all().order_by('code')
@@ -328,7 +328,7 @@ def modify_slot(request, slot_id):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
@@ -342,10 +342,10 @@ def del_slot(request, slot_id):
     return HttpResponse('ok')
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def courses_list(request):
     can_update_courses = False
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
+    allowed_comps = Component.activated.user_cmps(request.user, 'REF-ETAB').order_by("code", "label")
 
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
@@ -375,7 +375,7 @@ def courses_list(request):
     return render(request, 'core/courses_list.html', context)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def course(request, course_id=None, duplicate=False):
     """
     Course creation / update / deletion
@@ -386,7 +386,7 @@ def course(request, course_id=None, duplicate=False):
     course_form = None
     update_rights = True
     can_update_courses = False
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
+    allowed_comps = Component.activated.user_cmps(request.user, 'REF-ETAB').order_by("code", "label")
 
     # Check if we can add/update courses
     try:
@@ -551,7 +551,7 @@ def course(request, course_id=None, duplicate=False):
 def mycourses(request):
 
     component_id = None
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+    allowed_comps = Component.activated.user_cmps(request.user, 'REF-ETAB')
 
     if allowed_comps.count() == 1:
         component_id = allowed_comps.first().id
@@ -601,7 +601,7 @@ def my_high_school(request, high_school_id=None):
     return render(request, 'core/my_high_school.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def my_students(request):
     highschool = None
 
@@ -612,13 +612,13 @@ def my_students(request):
 
     context = {
         'highschool': highschool,
-        'is_scuio_ip_manager': request.user.is_scuio_ip_manager(),
+        'is_ref_etab_manager': request.user.is_ref_etab_manager(),
     }
 
     return render(request, 'core/highschool_students.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def student_validation(request, high_school_id=None):
     if request.user.is_high_school_manager() and request.user.highschool:
         try:
@@ -647,7 +647,7 @@ def student_validation(request, high_school_id=None):
     return render(request, 'core/student_validation.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def highschool_student_record_form_manager(request, hs_record_id):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
     from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
@@ -744,13 +744,13 @@ def component(request, component_code=None):
 
 
 @groups_required(
-    'REF-CMP', 'SCUIO-IP', 'REF-LYC',
+    'REF-CMP', 'REF-ETAB', 'REF-LYC',
 )
 def stats(request):
     template = 'core/stats.html'
     components = None
 
-    if request.user.is_scuio_ip_manager():
+    if request.user.is_ref_etab_manager():
         components = Component.activated.all()
     elif request.user.is_component_manager():
         components = request.user.components.all()
@@ -766,7 +766,7 @@ def stats(request):
 
 
 @login_required
-@groups_required('SRV-JUR', 'SCUIO-IP')
+@groups_required('SRV-JUR', 'REF-ETAB')
 def students_presence(request):
     """
     Displays a list of students registered to slots between min_date and max_date
@@ -788,7 +788,7 @@ def students_presence(request):
 
 
 @login_required
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def duplicated_accounts(request):
     """
     Manage duplicated accounts

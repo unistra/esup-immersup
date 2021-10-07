@@ -65,9 +65,9 @@
     "model": "core.generalsettings",
     "pk": 8,
     "fields": {
-      "setting": "MAIL_CONTACT_SCUIO_IP",
-      "value": "scuio_ip@somewhere.og",
-      "description": "Adresse de contact du SCUIO-IP"
+      "setting": "MAIL_CONTACT_REF_ETAB",
+      "value": "ref_etab@somewhere.og",
+      "description": "Adresse de contact du réferent établissement"
     }
   },
   {

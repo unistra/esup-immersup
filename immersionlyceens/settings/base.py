@@ -455,7 +455,7 @@ ADMIN_MODELS_ORDER = {
 }
 
 # Define groups rights on others here ?
-HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP', 'REF-LYC', 'SRV-JUR']}
+HAS_RIGHTS_ON_GROUP = {'REF-ETAB': ['REF-CMP', 'REF-LYC', 'SRV-JUR']}
 
 ###############
 # SUMMER NOTE #

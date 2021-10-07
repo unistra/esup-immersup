@@ -92,7 +92,7 @@ class ImmersionUser(AbstractUser):
         lambda has_group, su: has_group and not su,
     ]
     _groups = {
-        'SCUIO-IP': 'scuio_ip_manager',
+        'REF-ETAB': 'ref_etab_manager',
         'REF-CMP': 'component_manager',
         'REF-LYC': 'high_school_manager',
         'ETU': 'student',
@@ -143,7 +143,7 @@ class ImmersionUser(AbstractUser):
         :param course_id: Course id
         :return: boolean
         """
-        if self.is_superuser or self.has_groups('REF-CMP', 'SCUIO-IP'):
+        if self.is_superuser or self.has_groups('REF-CMP', 'REF-ETAB'):
             return True
 
         try:

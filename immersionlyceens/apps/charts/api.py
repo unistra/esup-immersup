@@ -21,7 +21,7 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, Stud
 
 logger = logging.getLogger(__name__)
 
-@groups_required("SCUIO-IP", "REF-LYC")
+@groups_required("REF-ETAB", "REF-LYC")
 def highschool_charts(request, highschool_id):
     """
     Data for amcharts 4
@@ -95,7 +95,7 @@ def highschool_charts(request, highschool_id):
     return JsonResponse(response, safe=False)
 
 
-@groups_required("SCUIO-IP", "REF-LYC")
+@groups_required("REF-ETAB", "REF-LYC")
 def highschool_domains_charts(request, highschool_id, level=0):
     """
     Data for amcharts 4
@@ -156,7 +156,7 @@ def highschool_domains_charts(request, highschool_id, level=0):
 
 
 @is_post_request
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def global_domains_charts(request):
     """
     Data for amcharts 4
@@ -247,7 +247,7 @@ def global_domains_charts(request):
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def get_charts_filters_data(request):
     response = {'msg': '', 'data': []}
 
@@ -297,12 +297,12 @@ def get_charts_filters_data(request):
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP","REF-LYC")
+@groups_required("REF-ETAB","REF-LYC")
 def get_trainings_charts(request, highschool_id=None):
     """
     Statistics by training
      - for a single high school (if referent)
-     - scuio-ip users can choose a high school or leave empty for all institutions
+     - REF-ETAB users can choose a high school or leave empty for all institutions
     """
     response = {'msg': '', 'data': []}
     high_school_filter_id = None
@@ -336,7 +336,7 @@ def get_trainings_charts(request, highschool_id=None):
                 'unique_students': base_students_qs.distinct().count(),
                 'unique_students_lvl1': base_students_qs.filter(high_school_student_record__level=1).distinct().count(),
                 'unique_students_lvl2': base_students_qs.filter(high_school_student_record__level=2).distinct().count(),
-                # For scuio-ip users, the level 3 (above bachelor) also includes higher education
+                # For REF-ETAB users, the level 3 (above bachelor) also includes higher education
                 # institutions students (any level)
                 'unique_students_lvl3': base_students_qs.filter(
                     Q(high_school_student_record__level=3) |
@@ -346,7 +346,7 @@ def get_trainings_charts(request, highschool_id=None):
                 'all_registrations': base_immersions_qs.count(),
                 'registrations_lvl1': base_immersions_qs.filter(student__high_school_student_record__level=1).count(),
                 'registrations_lvl2': base_immersions_qs.filter(student__high_school_student_record__level=2).count(),
-                # For scuio-ip users, also includes higher education institutions students
+                # For REF-ETAB users, also includes higher education institutions students
                 'registrations_lvl3': base_immersions_qs.filter(
                     Q(student__high_school_student_record__level=3) |
                     Q(student__student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))\
@@ -358,7 +358,7 @@ def get_trainings_charts(request, highschool_id=None):
     return JsonResponse(response, safe=False)
 
 
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def get_registration_charts(request, level_value=0):
     """
     Data for amcharts 4
@@ -458,7 +458,7 @@ def get_registration_charts(request, level_value=0):
 
 @is_post_request
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def get_registration_charts_cats(request):
     """
     Data for amcharts 4
@@ -623,7 +623,7 @@ def get_registration_charts_cats(request):
     return JsonResponse(response, safe=False)
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def get_slots_charts(request):
     """
     Data for amcharts 4
@@ -676,7 +676,7 @@ def get_slots_charts(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def get_slots_data(request, csv_mode=False):
     """
     Data for datatables or csv extraction

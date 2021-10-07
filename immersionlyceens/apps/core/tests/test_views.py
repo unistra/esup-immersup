@@ -96,16 +96,16 @@ class CoreViewsTestCase(TestCase):
         self.lyc_ref.set_password('pass')
         self.lyc_ref.save()
 
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
             email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
-        self.scuio_user.set_password('pass')
-        self.scuio_user.save()
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
 
         self.component = Component.objects.create(code='C1', label="test component")
         self.component2 = Component.objects.create(code='C2', label="Second test component")
@@ -129,7 +129,7 @@ class CoreViewsTestCase(TestCase):
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='ETU').user_set.add(self.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='REF-CMP').user_set.add(self.ref_cmp_user)
 
         BachelorMention.objects.create(
@@ -231,11 +231,11 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_import_holidays(self):
-        self.scuio_user.is_staff = True
-        self.scuio_user.save()
+        self.ref_etab_user.is_staff = True
+        self.ref_etab_user.save()
 
         self.assertFalse(Holiday.objects.all().exists())
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/admin/holiday/import", follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Holiday.objects.all().exists())
@@ -244,8 +244,8 @@ class CoreViewsTestCase(TestCase):
     def test_slots(self):
         # First test simple get with no component or training parameter
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slots/", follow=True)
         self.assertIn(self.component, response.context["components"])
         self.assertNotIn("component_id", response.context["components"])
@@ -279,8 +279,8 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slot/add")
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slot/add", follow=True)
         self.assertIn(self.component, response.context["components"])
 
@@ -328,7 +328,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.request['PATH_INFO'], '/core/slots/%s/%s' % (self.component.id, self.training.id))
 
         # get add_slot form with an existing slot
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slot/add/%s" % self.slot.id, follow=True)
         self.assertEqual(response.context["slot"].course_id, self.course.id)
 
@@ -391,8 +391,8 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slot/modify/%s" % self.slot.id)
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         # Fail with a non existing slot
         response = self.client.get("/core/slot/modify/250", follow=True)
         self.assertIn("This slot id does not exist", response.content.decode('utf-8'))
@@ -478,8 +478,8 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.content.decode('utf-8'), "This slot belongs to another component")
         self.assertTrue(Slot.objects.filter(pk=self.slot.id).exists())
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slot/delete/%s" % self.slot.id, follow=True)
         self.assertEqual(response.content.decode('utf-8'), "ok")
         self.assertFalse(Slot.objects.filter(pk=self.slot.id).exists())
@@ -497,8 +497,8 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/courses_list")
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
 
         # with invalid year dates
         self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
@@ -533,8 +533,8 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/course")
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
 
         # with invalid year dates
         self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
@@ -677,20 +677,20 @@ class CoreViewsTestCase(TestCase):
 
         self.assertIn('highschool', response.context)
         self.assertEqual(response.context['highschool'], self.high_school)
-        self.assertFalse(response.context['is_scuio_ip_manager'])
+        self.assertFalse(response.context['is_ref_etab_manager'])
 
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/my_students", follow=True)
 
         self.assertIn('highschool', response.context)
         self.assertEqual(response.context['highschool'], None)
-        self.assertTrue(response.context['is_scuio_ip_manager'])
+        self.assertTrue(response.context['is_ref_etab_manager'])
 
 
     def test_student_validation(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/student_validation/", follow=True)
         self.assertNotIn('high_school', response.context)
         self.assertIn(self.high_school, response.context['high_schools'])
@@ -812,8 +812,8 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_stats(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/stats/", follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(self.component2, response.context['components'])
@@ -834,8 +834,8 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_students_presence(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/students_presence", follow=True)
         self.assertEqual(response.status_code, 200)
 
@@ -844,8 +844,8 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_duplicated_accounts(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/duplicates", follow=True)
         self.assertEqual(response.status_code, 200)
 

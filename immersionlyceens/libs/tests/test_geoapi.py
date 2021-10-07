@@ -39,9 +39,9 @@ class GEOAPITestCase(TestCase):
     fixtures = ['group']
 
     def setUp(self):
-        GeneralSettings.objects.create(setting='MAIL_CONTACT_SCUIO_IP', value='unittest@unittest.fr')
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio', password='pass', email='immersion@no-reply.com', first_name='scuio', last_name='scuio',
+        GeneralSettings.objects.create(setting='MAIL_CONTACT_REF_ETAB', value='unittest@unittest.fr')
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab', password='pass', email='immersion@no-reply.com', first_name='ref_etab', last_name='ref_etab',
         )
         self.highschool_user = get_user_model().objects.create_user(
             username='hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
@@ -89,9 +89,9 @@ class GEOAPITestCase(TestCase):
         )
         self.cancel_type = CancelType.objects.create(label='Hello world')
         self.client = Client()
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
 
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
         Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)

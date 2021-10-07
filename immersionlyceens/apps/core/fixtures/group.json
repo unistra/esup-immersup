@@ -2,7 +2,7 @@
     "model": "auth.group",
     "pk": 1,
     "fields": {
-      "name": "SCUIO-IP"
+      "name": "REF-ETAB"
     }
   },
   {

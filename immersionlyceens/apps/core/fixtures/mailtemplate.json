@@ -455,7 +455,7 @@
     "fields": {
       "code": "CONTACTUS_NOTIFICATION",
       "label": "Mail envoy\u00e9 suite \u00e0 l'envoi du formulaire de contact g\u00e9n\u00e9ral",
-      "description": "Mail envoy\u00e9 \u00e0 la personne qui a contact\u00e9 le scuio-ip",
+      "description": "Mail envoy\u00e9 \u00e0 la personne qui a contact\u00e9 le réferent établissement",
       "subject": "Merci pour votre message au service immersion",
       "body": "<p>Bonjour ${prenom} ${nom},</p><p>Merci de nous avoir contact\u00e9 nous allons vous r\u00e9pondre dans les plus brefs d\u00e9lais.</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
       "active": true,

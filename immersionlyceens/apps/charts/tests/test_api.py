@@ -22,10 +22,10 @@ class ChartsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.scuio_user = get_user_model().objects.get(username='test-scuio-ip')
-        self.scuio_user.set_password('hiddenpassword')
-        self.scuio_user.save()
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
+        self.ref_etab_user.set_password('hiddenpassword')
+        self.ref_etab_user.save()
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
         self.reflyc_user = get_user_model().objects.get(username='jeanmonnet')
         self.reflyc_user.set_password('hiddenpassword')
@@ -36,7 +36,7 @@ class ChartsTestCase(TestCase):
 
 
     def test_charts_api(self):
-        self.client.login(username='test-scuio-ip', password='hiddenpassword')
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
         # Highschool charts
@@ -129,7 +129,7 @@ class ChartsTestCase(TestCase):
         )
 
         # Training charts (ajax request : use headers)
-        # logged as scuio-ip
+        # logged as ref-etab
         url = "/charts/get_trainings_charts"
         response = self.client.get(url, {}, **header)
 
@@ -332,7 +332,7 @@ class ChartsTestCase(TestCase):
         self.assertEqual(json_content['data'], data)
 
         # Registration charts
-        self.client.login(username='test-scuio-ip', password='hiddenpassword')
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
         url = "/charts/get_registration_charts/0"
 
         response = self.client.get(url)

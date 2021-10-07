@@ -79,16 +79,16 @@ class ImmersionViewsTestCase(TestCase):
             first_name='lyc',
             last_name='REF',
         )
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
             email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
-        self.scuio_user.set_password('pass')
-        self.scuio_user.save()
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
 
         self.client = Client()
 
@@ -97,7 +97,7 @@ class ImmersionViewsTestCase(TestCase):
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='ETU').user_set.add(self.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
         BachelorMention.objects.create(
             label="Sciences et technologies du management et de la gestion (STMG)",
@@ -292,9 +292,9 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(record.uai_code, "0673021V")
 
 
-        # Test get route as scuio-ip user
+        # Test get route as ref-etab user
         record = StudentRecord.objects.get(student=user)
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get('/immersion/student_record/%s' % record.id)
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
@@ -533,11 +533,11 @@ class ImmersionViewsTestCase(TestCase):
         record_data["email"] = self.highschool_user2.email,
 
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
-        self.assertIn("A record already exists with this identity, please contact the SCUIO-IP team.",
+        self.assertIn("A record already exists with this identity, please contact the REF-ETAB team.",
             response.content.decode('utf-8'))
 
-        # Test get route as scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # Test get route as ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get('/immersion/hs_record/%s' % record.id)
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
@@ -561,8 +561,8 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/pdf')
 
-        # as scuio-ip manager
-        self.client.login(username='scuio', password='pass')
+        # as a ref-etab manager
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/pdf')

@@ -2031,8 +2031,8 @@ msgstr "Aucun compte n'a été trouvé avec cette adresse"
 
 #: immersionlyceens/apps/immersion/views.py:225
 #: immersionlyceens/apps/immersion/views.py:267
-msgid "Error : please contact the SCUIO-IP"
-msgstr "Erreur : merci de contacter l'équipe SCUIO-IP"
+msgid "Error : please contact the establishment referent"
+msgstr "Erreur : merci de contacter le référent établissement"
 
 #: immersionlyceens/apps/immersion/views.py:242
 #: immersionlyceens/apps/immersion/views.py:264
@@ -2089,8 +2089,8 @@ msgstr "Vous avez modifié le lycée, votre fiche doit être à nouveau validée
 
 #: immersionlyceens/apps/immersion/views.py:461
 msgid ""
-"A record already exists with this identity, please contact the SCUIO-IP team."
-msgstr "Une fiche existe déjà à ce nom, merci de contacter le SCUIO-IP"
+"A record already exists with this identity, please contact the establishment referent."
+msgstr "Une fiche existe déjà à ce nom, merci de contacter le référent établissement."
 
 #: immersionlyceens/apps/immersion/views.py:465
 msgid "A record already exists with this identity, look at duplicate records."

@@ -61,16 +61,16 @@ class FormTestCase(TestCase):
             first_name='lyc',
             last_name='REF',
         )
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
             email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
         self.client = Client()
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
 
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)

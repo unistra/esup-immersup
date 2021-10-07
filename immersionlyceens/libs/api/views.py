@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP", "REF-CMP")
+@groups_required("REF-ETAB", "REF-CMP")
 def ajax_get_person(request):
     if settings.ACCOUNTS_CLIENT:
         response = {'msg': '', 'data': []}
@@ -71,7 +71,7 @@ def ajax_get_person(request):
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def ajax_get_available_vars(request, template_id=None):
     response = {'msg': '', 'data': []}
 
@@ -85,7 +85,7 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_get_courses(request, component_id=None):
     response = {'msg': '', 'data': []}
 
@@ -122,7 +122,7 @@ def ajax_get_courses(request, component_id=None):
 
 @is_post_request
 @is_ajax_request
-@groups_required("SCUIO-IP", "REF-CMP")
+@groups_required("REF-ETAB", "REF-CMP")
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
 
@@ -151,7 +151,7 @@ def ajax_get_trainings(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_get_documents(request):
     response = {'msg': '', 'data': []}
 
@@ -170,7 +170,7 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_get_slots(request, component=None):
     can_update_attendances = False
 
@@ -197,7 +197,7 @@ def ajax_get_slots(request, component=None):
 
     all_data = []
     my_components = []
-    if request.user.is_scuio_ip_manager():
+    if request.user.is_ref_etab_manager():
         my_components = Component.objects.all()
     elif request.user.is_component_manager():
         my_components = request.user.components.all()
@@ -284,7 +284,7 @@ def ajax_get_courses_by_training(request, component_id=None, training_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
@@ -304,7 +304,7 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_get_course_teachers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
@@ -325,7 +325,7 @@ def ajax_get_course_teachers(request, course_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.POST.get('course_id')
@@ -499,7 +499,7 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -534,7 +534,7 @@ def ajax_check_date_between_vacation(request):
 
 @is_post_request
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC')
 def ajax_get_student_records(request):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
@@ -578,7 +578,7 @@ def ajax_get_student_records(request):
 
 # REJECT / VALIDATE STUDENT
 @is_ajax_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
@@ -590,7 +590,7 @@ def ajax_validate_reject_student(request, validate):
     student_record_id = request.POST.get('student_record_id')
     if student_record_id:
         hs = None
-        if request.user.is_scuio_ip_manager():
+        if request.user.is_ref_etab_manager():
             hs = HighSchool.objects.all()
         else:
             hs = HighSchool.objects.filter(id=request.user.highschool.id)
@@ -620,7 +620,7 @@ def ajax_validate_reject_student(request, validate):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_validate_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=True)
@@ -628,7 +628,7 @@ def ajax_validate_student(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
@@ -636,7 +636,7 @@ def ajax_reject_student(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_check_course_publication(request, course_id):
     from immersionlyceens.apps.core.models import Course
 
@@ -650,7 +650,7 @@ def ajax_check_course_publication(request, course_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def ajax_delete_account(request):
     """
     Completely destroy a student account and all data
@@ -685,7 +685,7 @@ def ajax_delete_account(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU')
+@groups_required('REF-ETAB', 'LYC', 'ETU')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -719,7 +719,7 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-LYC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
     Get (high-school or not) students immersions
@@ -735,7 +735,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         return JsonResponse(response, safe=False)
 
     if (
-        not request.user.is_scuio_ip_manager()
+        not request.user.is_ref_etab_manager()
         and not request.user.is_high_school_manager()
         and request.user.id != user_id
     ):
@@ -872,7 +872,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-CMP', 'ENS-CH')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}
@@ -923,7 +923,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-CMP', 'ENS-CH')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -966,7 +966,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-CMP')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-CMP')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -983,7 +983,7 @@ def ajax_slot_registration(request):
     force = request.POST.get('force', False)
     cmp = request.POST.get('cmp', False)
     calendar, slot, student = None, None, None
-    can_force_reg = request.user.is_scuio_ip_manager()
+    can_force_reg = request.user.is_ref_etab_manager()
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
 
@@ -1013,8 +1013,8 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # Check slot is published for no scuio-ip user
-    if not request.user.is_scuio_ip_manager() and not slot.published:
+    # Check slot is published for no ref-etab user
+    if not request.user.is_ref_etab_manager() and not slot.published:
         response = {'error': True, 'msg': _("Registering an unpublished slot is forbidden")}
         return JsonResponse(response, safe=False)
 
@@ -1173,7 +1173,7 @@ def ajax_slot_registration(request):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_get_available_students(request, slot_id):
     """
     Get students list for manual slot registration
@@ -1218,23 +1218,23 @@ def ajax_get_available_students(request, slot_id):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-CMP', 'REF-LYC')
 def ajax_get_highschool_students(request, highschool_id=None):
     """
-    Retrieve students from a highschool or all students if user is scuio-ip manager
+    Retrieve students from a highschool or all students if user is ref-etab manager
     and no highschool id is specified
     """
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    if request.user.is_scuio_ip_manager():
+    if request.user.is_ref_etab_manager():
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            if not request.user.is_scuio_ip_manager():
+            if not request.user.is_ref_etab_manager():
                 response = {'data': [], 'msg': _('Invalid parameters')}
                 return JsonResponse(response, safe=False)
 
@@ -1308,7 +1308,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-COMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-COMP', 'ENS-CH')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1349,7 +1349,7 @@ def ajax_send_email(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-CMP')
 def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
@@ -1517,7 +1517,7 @@ def get_csv_highschool(request, high_school_id):
     return response
 
 
-@groups_required('SCUIO-IP',)
+@groups_required('REF-ETAB',)
 def get_csv_anonymous_immersion(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -1648,9 +1648,9 @@ def ajax_send_email_contact_us(request):
     notify_user = False
 
     try:
-        recipient = get_general_setting('MAIL_CONTACT_SCUIO_IP')
+        recipient = get_general_setting('MAIL_CONTACT_REF_ETAB')
     except (NameError, ValueError):
-        logger.error('MAIL_CONTACT_SCUIO_IP not configured properly in settings')
+        logger.error('MAIL_CONTACT_REF_ETAB not configured properly in settings')
         response = {'error': True, 'msg': gettext("Config parameter not found")}
         return JsonResponse(response, safe=False)
 
@@ -1660,7 +1660,7 @@ def ajax_send_email_contact_us(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # Scuio-ip mail sending
+    # ref-etab mail sending
     try:
         send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
     except Exception:
@@ -1692,7 +1692,7 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'SRV-JUR')
+@groups_required('REF-ETAB', 'SRV-JUR')
 def ajax_get_student_presence(request, date_from=None, date_until=None):
     response = {'data': [], 'msg': ''}
 
@@ -1847,7 +1847,7 @@ def ajax_cancel_alert(request):
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def ajax_get_duplicates(request):
     """
     Get duplicates lists
@@ -1884,7 +1884,7 @@ def ajax_get_duplicates(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def ajax_keep_entries(request):
     """
     Remove duplicates ids from high school student records

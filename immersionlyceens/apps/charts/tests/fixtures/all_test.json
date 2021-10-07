@@ -2045,7 +2045,7 @@
     "fields": {
         "code": "CONTACTUS_NOTIFICATION",
         "label": "Mail envoy\u00e9 suite \u00e0 l'envoi du formulaire de contact g\u00e9n\u00e9ral",
-        "description": "Mail envoy\u00e9 \u00e0 la personne qui a contact\u00e9 le scuio-ip",
+        "description": "Mail envoy\u00e9 \u00e0 la personne qui a contact\u00e9 le réferent établissement",
         "subject": "Merci pour votre message au service immersion",
         "body": "<p>Bonjour ${prenom} ${nom},</p><p>Merci de nous avoir contact\u00e9 nous allons vous r\u00e9pondre dans les plus brefs d\u00e9lais.</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
         "active": true,
@@ -2347,8 +2347,8 @@
     "model": "core.generalsettings",
     "pk": 8,
     "fields": {
-        "setting": "MAIL_CONTACT_SCUIO_IP",
-        "value": "scuio_ip@somewhere.og",
+        "setting": "MAIL_CONTACT_REF_ETAB",
+        "value": "ref_etab@somewhere.og",
         "description": ""
     }
 },
@@ -5986,7 +5986,7 @@
     "model": "auth.group",
     "pk": 1,
     "fields": {
-        "name": "SCUIO-IP",
+        "name": "REF-ETAB",
         "permissions": []
     }
 },
@@ -6070,9 +6070,9 @@
         "password": "pbkdf2_sha256$150000$wmcSCImSlxrT$D9r0x9B2zlVIZTYiS1z+CFw/UCKmQKRiWLy6yoEaq3w=",
         "last_login": null,
         "is_superuser": false,
-        "username": "test-scuio-ip",
+        "username": "test-ref-etab",
         "first_name": "TEST",
-        "last_name": "SCUIO-IP",
+        "last_name": "REF-ETAB",
         "email": "",
         "is_staff": true,
         "is_active": true,

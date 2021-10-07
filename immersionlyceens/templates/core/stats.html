@@ -25,7 +25,7 @@
     <div class="card-body">
 
 
-      {% if request.user.is_scuio_ip_manager %}
+      {% if request.user.is_ref_etab_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'Anonymous immersion data' %}</label>
         <button type="button" class="btn btn-primary" id="extract_anonymous">{% trans 'Extract data' %}</button>
