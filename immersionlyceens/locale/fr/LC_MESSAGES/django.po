@@ -57,7 +57,7 @@ msgstr "pas de correspondance"
 #: immersionlyceens/templates/slots/add_slot.html:61
 #: immersionlyceens/templates/slots/list_slots.html:50
 msgid "Component"
-msgstr "Composante d'enseignement"
+msgstr "Structure d'enseignement"
 
 #: immersionlyceens/apps/charts/api.py:690
 #: immersionlyceens/apps/core/models.py:410
@@ -231,9 +231,9 @@ msgstr ""
 "plusieurs fiches lycéens"
 
 #: immersionlyceens/apps/core/admin.py:434
-msgid "This component can't be deleted because it is used by a training"
+msgid "This structure can't be deleted because it is used by a training"
 msgstr ""
-"Cette composante ne peut pas être supprimée car elle est utilisée par une "
+"Cette structure ne peut pas être supprimée car elle est utilisée par une "
 "formation"
 
 #: immersionlyceens/apps/core/admin.py:454
@@ -506,13 +506,13 @@ msgid "Forbidden"
 msgstr "Non autorisé"
 
 #: immersionlyceens/apps/core/admin_forms.py:645
-msgid "This field is mandatory for a user belonging to 'REF-CMP' group"
-msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-CMP'"
+msgid "This field is mandatory for a user belonging to 'REF-STR' group"
+msgstr "Ce champ est obligatoire pour un utilisateur du groupe 'REF-STR'"
 
 #: immersionlyceens/apps/core/admin_forms.py:650
-msgid "The group 'REF-CMP' is mandatory when you add a component"
+msgid "The group 'REF-STR' is mandatory when you add a structure"
 msgstr ""
-"Le groupe 'REF-CMP' est obligatoire lorsqu'une composante est sélectionnée"
+"Le groupe 'REF-STR' est obligatoire lorsqu'une structure est sélectionnée"
 
 #: immersionlyceens/apps/core/admin_forms.py:656
 msgid "This field is mandatory for a user belong to 'REF-LYC' group"
@@ -800,11 +800,11 @@ msgstr "En service"
 #: immersionlyceens/apps/immersion/models.py:78
 #: immersionlyceens/templates/fragments/main_menu.html:56
 msgid "Components"
-msgstr "Composantes d'enseignement"
+msgstr "Structures d'enseignement"
 
 #: immersionlyceens/apps/core/models.py:50
-msgid "A component with this code already exists"
-msgstr "Une composante d'enseignement avec ce code existe déjà"
+msgid "A structure with this code already exists"
+msgstr "Une structure d'enseignement avec ce code existe déjà"
 
 #: immersionlyceens/apps/core/models.py:59
 #: immersionlyceens/apps/core/models.py:118
@@ -1534,8 +1534,8 @@ msgid "Global seats count"
 msgstr "Nombre de places totales proposées"
 
 #: immersionlyceens/apps/core/models.py:1314
-msgid "Participating components count"
-msgstr "Nombre de composantes participantes"
+msgid "Participating structures count"
+msgstr "Nombre de structures participantes"
 
 #: immersionlyceens/apps/core/models.py:1315
 msgid "Trainings offering at least one slot count"
@@ -1597,8 +1597,8 @@ msgstr "Modification : ce créneau n'existe pas"
 
 #: immersionlyceens/apps/core/views.py:234
 #: immersionlyceens/apps/core/views.py:336
-msgid "This slot belongs to another component"
-msgstr "Ce créneau appartient à une autre composante"
+msgid "This slot belongs to another structure"
+msgstr "Ce créneau appartient à une autre structure"
 
 #: immersionlyceens/apps/core/views.py:261
 msgid "Slot successfully updated"
@@ -1679,7 +1679,7 @@ msgid "Invalid parameter"
 msgstr "Paramètre invalide"
 
 #: immersionlyceens/apps/core/views.py:718
-msgid "Component settings successfully saved"
+msgid "Structure settings successfully saved"
 msgstr "Paramètre enregistré avec succès"
 
 #: immersionlyceens/apps/immersion/forms.py:16
@@ -2129,8 +2129,8 @@ msgstr "Erreur : pas d'id de template"
 
 #: immersionlyceens/libs/api/views.py:93 immersionlyceens/libs/api/views.py:132
 #: immersionlyceens/libs/api/views.py:264
-msgid "Error : a valid component must be selected"
-msgstr "Erreur : une composante valide doit être sélectionnée"
+msgid "Error : a valid structure must be selected"
+msgstr "Erreur : une structure valide doit être sélectionnée"
 
 #: immersionlyceens/libs/api/views.py:266
 msgid "Error : a valid training must be selected"
@@ -2512,8 +2512,8 @@ msgstr "immersions_anonymisées"
 
 #: immersionlyceens/libs/api/views.py:1530
 #: immersionlyceens/libs/tests/test_api.py:744
-msgid "component"
-msgstr "composante d'enseignement"
+msgid "structure"
+msgstr "structure d'enseignement"
 
 #: immersionlyceens/libs/api/views.py:1535
 #: immersionlyceens/libs/tests/test_api.py:749
@@ -2678,8 +2678,8 @@ msgid "Display all"
 msgstr "Tous"
 
 #: immersionlyceens/templates/charts/global_slots_charts.html:24
-msgid "Hosts charts - registrations by components"
-msgstr "Statistiques d'accueil - inscriptions par composante"
+msgid "Hosts charts - registrations by structures"
+msgstr "Statistiques d'accueil - inscriptions par structure"
 
 #: immersionlyceens/templates/charts/global_slots_charts.html:32
 msgid "Slots data"
@@ -2783,16 +2783,16 @@ msgstr "Bienvenue sur la plateforme Immersion Lycéens"
 
 #: immersionlyceens/templates/core/component.html:21
 #: immersionlyceens/templates/fragments/main_menu.html:59
-msgid "Update components settings"
-msgstr "Paramètres de composantes"
+msgid "Update structures settings"
+msgstr "Paramètres de structures"
 
 #: immersionlyceens/templates/core/component.html:30
-msgid "Select a component to update"
-msgstr "Sélectionnez une composante à paramétrer"
+msgid "Select a structure to update"
+msgstr "Sélectionnez une structure à paramétrer"
 
 #: immersionlyceens/templates/core/component.html:32
-msgid "Settings for component"
-msgstr "Paramètres de la composante"
+msgid "Settings for structure"
+msgstr "Paramètres de la structure"
 
 #: immersionlyceens/templates/core/component.html:40
 msgid "Mailing list"
@@ -2890,8 +2890,8 @@ msgid "Do you really want to delete this course ?"
 msgstr "Voulez-vous vraiment supprimer ce cours ?"
 
 #: immersionlyceens/templates/core/courses_list.html:41
-msgid "Select a component"
-msgstr "Sélectionnez une composante"
+msgid "Select a structure"
+msgstr "Sélectionnez une structure"
 
 #: immersionlyceens/templates/core/courses_list.html:56
 msgid "Managed by"
@@ -3117,12 +3117,12 @@ msgid "Extract data"
 msgstr "Extraire les données"
 
 #: immersionlyceens/templates/core/stats.html:36
-msgid "Components data"
-msgstr "Données des composantes d'enseignement"
+msgid "Structures data"
+msgstr "Données des structures d'enseignement"
 
 #: immersionlyceens/templates/core/stats.html:41
-msgid "Choose a component"
-msgstr "Sélectionnez une composante"
+msgid "Choose a structure"
+msgstr "Sélectionnez une structure"
 
 #: immersionlyceens/templates/core/stats.html:56
 msgid "High school data"
@@ -3316,8 +3316,8 @@ msgid "Hosts - registrations by domains"
 msgstr "Accueil - inscriptions par domaines"
 
 #: immersionlyceens/templates/fragments/main_menu.html:136
-msgid "Hosts - registrations by components"
-msgstr "Accueil - inscriptions par composante"
+msgid "Hosts - registrations by structures"
+msgstr "Accueil - inscriptions par structure"
 
 #: immersionlyceens/templates/fragments/main_menu.html:144
 msgid "Extractions"

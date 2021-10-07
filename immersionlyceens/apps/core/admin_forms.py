@@ -650,13 +650,13 @@ class ImmersionUserChangeForm(UserChangeForm):
         if groups.filter(name='REF-ETAB').exists():
             cleaned_data['is_staff'] = True
 
-        if groups.filter(name='REF-CMP').exists() and not components.count():
-            msg = _("This field is mandatory for a user belonging to 'REF-CMP' group")
+        if groups.filter(name='REF-STR').exists() and not components.count():
+            msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
             self._errors['components'] = self.error_class([msg])
             del cleaned_data["components"]
 
-        if components.count() and not groups.filter(name='REF-CMP').exists():
-            msg = _("The group 'REF-CMP' is mandatory when you add a component")
+        if components.count() and not groups.filter(name='REF-STR').exists():
+            msg = _("The group 'REF-STR' is mandatory when you add a structure")
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
             self._errors['groups'].append(self.error_class([msg]))

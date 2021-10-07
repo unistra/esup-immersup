@@ -107,16 +107,16 @@ class ImmersionViewsTestCase(TestCase):
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
 
         self.today = datetime.datetime.today()
-        self.component = Component.objects.create(label="test component")
+        self.structure = Component.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
+        self.training.components.add(self.structure)
+        self.training2.components.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
@@ -533,7 +533,7 @@ class ImmersionViewsTestCase(TestCase):
         record_data["email"] = self.highschool_user2.email,
 
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
-        self.assertIn("A record already exists with this identity, please contact the REF-ETAB team.",
+        self.assertIn("A record already exists with this identity, please contact the establishment referent.",
             response.content.decode('utf-8'))
 
         # Test get route as ref_etab user

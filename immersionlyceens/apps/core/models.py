@@ -34,11 +34,11 @@ class Component(models.Model):
     active = models.BooleanField(_("Active"), default=True)
 
     objects = models.Manager()  # default manager
-    activated = ActiveManager.from_queryset(ComponentQuerySet)()  # returns only activated components
+    activated = ActiveManager.from_queryset(ComponentQuerySet)()  # returns only activated structures
 
     class Meta:
-        verbose_name = _('Component')
-        verbose_name_plural = _('Components')
+        verbose_name = _('Structure')
+        verbose_name_plural = _('Structures')
 
     def __str__(self):
         return "%s : %s" % (self.code, self.label)
@@ -47,7 +47,7 @@ class Component(models.Model):
         try:
             super().validate_unique()
         except ValidationError as e:
-            raise ValidationError(_('A component with this code already exists'))
+            raise ValidationError(_('A structure with this code already exists'))
 
 
 class HighSchool(models.Model):
@@ -93,7 +93,7 @@ class ImmersionUser(AbstractUser):
     ]
     _groups = {
         'REF-ETAB': 'ref_etab_manager',
-        'REF-CMP': 'component_manager',
+        'REF-STR': 'structure_manager',
         'REF-LYC': 'high_school_manager',
         'ETU': 'student',
         'LYC': 'high_school_student',
@@ -106,7 +106,7 @@ class ImmersionUser(AbstractUser):
         for code, name in self._groups.items():
             setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
 
-    components = models.ManyToManyField(Component, verbose_name=_("Components"), blank=True, related_name='referents')
+    components = models.ManyToManyField(Component, verbose_name=_("Structures"), blank=True, related_name='referents')
     highschool = models.ForeignKey(
         HighSchool,
         verbose_name=_('High school'),
@@ -143,14 +143,14 @@ class ImmersionUser(AbstractUser):
         :param course_id: Course id
         :return: boolean
         """
-        if self.is_superuser or self.has_groups('REF-CMP', 'REF-ETAB'):
+        if self.is_superuser or self.has_groups('REF-STR', 'REF-ETAB'):
             return True
 
         try:
             course = Course.objects.get(pk=course_id)
-            course_components = course.training.components.all()
+            course_structures = course.training.components.all()
 
-            if course_components & self.components.all():
+            if course_structures & self.components.all():
                 return True
 
         except Course.DoesNotExist:
@@ -396,7 +396,7 @@ class Training(models.Model):
     training_subdomains = models.ManyToManyField(
         TrainingSubdomain, verbose_name=_("Training subdomains"), blank=False, related_name='Trainings',
     )
-    components = models.ManyToManyField(Component, verbose_name=_("Components"), blank=False, related_name='Trainings')
+    components = models.ManyToManyField(Component, verbose_name=_("Structures"), blank=False, related_name='Trainings')
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
@@ -813,7 +813,7 @@ class Course(models.Model):
 
     component = models.ForeignKey(
         Component,
-        verbose_name=_("Component"),
+        verbose_name=_("Structure"),
         null=False,
         blank=False,
         on_delete=models.CASCADE,
@@ -1305,7 +1305,7 @@ class AnnualStatistics(models.Model):
         _("Participants in multiple immersions count"), default=0)
     immersion_registrations = models.SmallIntegerField(_("Immersion registrations count"), default=0)
     seats_count = models.SmallIntegerField(_("Global seats count"), default=0)
-    components_count = models.SmallIntegerField(_("Participating components count"), default=0)
+    components_count = models.SmallIntegerField(_("Participating structures count"), default=0)
     trainings_one_slot_count = models.SmallIntegerField(_("Trainings offering at least one slot count"), default=0)
     courses_one_slot_count = models.SmallIntegerField(_("Courses offering at least one slot count"), default=0)
     total_slots_count = models.SmallIntegerField(_("Total slots count"), default=0)

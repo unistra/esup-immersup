@@ -16,7 +16,7 @@
     "model": "auth.group",
     "pk": 3,
     "fields": {
-      "name": "REF-CMP"
+      "name": "REF-STR"
     }
   },
   {
@@ -45,6 +45,13 @@
     "pk": 7,
     "fields": {
       "name": "LYC"
+    }
+  },
+  {
+    "model": "auth.group",
+    "pk": 8,
+    "fields": {
+      "name": "REF-ETAB-MAITRE"
     }
   }
 ]

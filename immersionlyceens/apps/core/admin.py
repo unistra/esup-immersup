@@ -426,7 +426,7 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         if obj and Training.objects.filter(components=obj).exists():
-            messages.warning(request, _("This component can't be deleted because it is used by a training"))
+            messages.warning(request, _("This structure can't be deleted because it is used by a training"))
             return False
 
         return True

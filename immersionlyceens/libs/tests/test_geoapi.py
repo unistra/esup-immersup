@@ -52,12 +52,12 @@ class GEOAPITestCase(TestCase):
         self.highschool_user3 = get_user_model().objects.create_user(
             username='hs3', password='pass', email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3',
         )
-        self.ref_comp = get_user_model().objects.create_user(
-            username='refcomp',
+        self.ref_str = get_user_model().objects.create_user(
+            username='ref_str',
             password='pass',
-            email='refcomp@no-reply.com',
-            first_name='refcomp',
-            last_name='refcomp',
+            email='ref_str@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
         )
         self.teacher1 = get_user_model().objects.create_user(
             username='teacher1',
@@ -93,7 +93,7 @@ class GEOAPITestCase(TestCase):
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
-        Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user3)

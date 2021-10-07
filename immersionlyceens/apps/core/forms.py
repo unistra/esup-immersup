@@ -26,7 +26,7 @@ class CourseForm(forms.ModelForm):
                 field.widget.attrs.update({'class': 'form-control'})
 
         if self.request:
-            allowed_comps = Component.activated.user_cmps(self.request.user, 'REF-ETAB')
+            allowed_comps = Component.activated.user_strs(self.request.user, 'REF-ETAB')
             self.fields["component"].queryset = allowed_comps.order_by('code', 'label')
 
             if allowed_comps.count() == 1:
@@ -58,7 +58,7 @@ class CourseForm(forms.ModelForm):
 
         # Check user rights
         if self.request:
-            allowed_comps = Component.activated.user_cmps(self.request.user, 'REF-ETAB')
+            allowed_comps = Component.activated.user_strs(self.request.user, 'REF-ETAB')
             training = cleaned_data['training']
             course_comps = training.components.all()
 

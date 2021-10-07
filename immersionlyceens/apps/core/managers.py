@@ -17,9 +17,9 @@ class ComponentQuerySet(models.QuerySet):
     """
     """
 
-    def user_cmps(self, user, *groups):
+    def user_strs(self, user, *groups):
         cmp_filter = {'referents': user}
-        # Check if the user is in a group authorized to manage all the components
+        # Check if the user is in a group authorized to manage all structures
         if user.has_groups(*groups):
             cmp_filter = {}
 

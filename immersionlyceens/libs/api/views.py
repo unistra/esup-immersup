@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-CMP")
+@groups_required("REF-ETAB", "REF-STR")
 def ajax_get_person(request):
     if settings.ACCOUNTS_CLIENT:
         response = {'msg': '', 'data': []}
@@ -85,14 +85,14 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
-def ajax_get_courses(request, component_id=None):
+@groups_required('REF-ETAB', 'REF-STR')
+def ajax_get_courses(request, structure_id=None):
     response = {'msg': '', 'data': []}
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
 
-    courses = Course.objects.prefetch_related('training', 'component').filter(training__components=component_id)
+    courses = Course.objects.prefetch_related('training', 'component').filter(training__components=structure_id)
 
     for course in courses:
         course_data = {
@@ -108,7 +108,6 @@ def ajax_get_courses(request, component_id=None):
             'published_slots_count': course.published_slots_count(),
             'registered_students_count': course.registrations_count(),
             'alerts_count': course.get_alerts_count(),
-            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
             'can_delete': not course.slots.exists(),
         }
 
@@ -122,19 +121,19 @@ def ajax_get_courses(request, component_id=None):
 
 @is_post_request
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-CMP")
+@groups_required("REF-ETAB", "REF-STR")
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
 
-    component_id = request.POST.get("component_id")
+    structure_id = request.POST.get("component_id")
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
         return JsonResponse(response, safe=False)
 
     trainings = (
         Training.objects.prefetch_related('training_subdomains')
-        .filter(components=component_id, active=True)
+        .filter(components=structure_id, active=True)
         .order_by('label')
     )
 
@@ -151,7 +150,7 @@ def ajax_get_trainings(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_documents(request):
     response = {'msg': '', 'data': []}
 
@@ -170,8 +169,8 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
-def ajax_get_slots(request, component=None):
+@groups_required('REF-ETAB', 'REF-STR')
+def ajax_get_slots(request, structure=None):
     can_update_attendances = False
 
     today = datetime.datetime.today().date()
@@ -181,7 +180,7 @@ def ajax_get_slots(request, component=None):
     except UniversityYear.DoesNotExist:
         pass
 
-    comp_id = request.GET.get('component_id')
+    str_id = request.GET.get('component_id')
     train_id = request.GET.get('training_id')
 
     response = {'msg': '', 'data': []}
@@ -190,24 +189,24 @@ def ajax_get_slots(request, component=None):
         slots = Slot.objects.prefetch_related('course__training', 'teachers', 'immersions').filter(
             course__training__id=train_id
         )
-    elif comp_id:
+    elif str_id:
         slots = Slot.objects.prefetch_related('course__training__components', 'teachers', 'immersions').filter(
-            course__training__components__id=comp_id
+            course__training__components__id=str_id
         )
 
     all_data = []
-    my_components = []
+    my_structures = []
     if request.user.is_ref_etab_manager():
-        my_components = Component.objects.all()
-    elif request.user.is_component_manager():
-        my_components = request.user.components.all()
+        my_structures = Component.objects.all()
+    elif request.user.is_structure_manager():
+        my_structures = request.user.components.all()
 
     for slot in slots:
         data = {
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_components, },
+            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_structures, },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
@@ -257,17 +256,17 @@ def ajax_get_slots(request, component=None):
 
 
 @is_ajax_request
-def ajax_get_courses_by_training(request, component_id=None, training_id=None):
+def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
     if not training_id:
         response['msg'] = gettext("Error : a valid training must be selected")
 
     courses = (
         Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, component__id=component_id,)
+        .filter(training__id=training_id, component__id=structure_id,)
         .order_by('label')
     )
 
@@ -284,7 +283,7 @@ def ajax_get_courses_by_training(request, component_id=None, training_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
@@ -304,7 +303,7 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_course_teachers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
@@ -325,7 +324,7 @@ def ajax_get_course_teachers(request, course_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.POST.get('course_id')
@@ -499,7 +498,7 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -872,7 +871,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}
@@ -923,7 +922,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -966,7 +965,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-CMP')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -981,7 +980,7 @@ def ajax_slot_registration(request):
     # Should we force registering ?
     # warning js boolean not python one
     force = request.POST.get('force', False)
-    cmp = request.POST.get('cmp', False)
+    structure = request.POST.get('structure', False)
     calendar, slot, student = None, None, None
     can_force_reg = request.user.is_ref_etab_manager()
     today = datetime.datetime.today().date()
@@ -1037,7 +1036,7 @@ def ajax_slot_registration(request):
 
     # Check current student immersions and valid dates
     if student.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
-        if not cmp:
+        if not structure:
             msg = _("Already registered to this slot")
         else:
             msg = _("Student already registered for selected slot")
@@ -1071,8 +1070,8 @@ def ajax_slot_registration(request):
                         ),
                     }
                     return JsonResponse(response, safe=False)
-                # ref cmp request & no more remaining registration count for student
-                elif request.user.is_component_manager and remaining_regs_count['annually'] <= 0:
+                # ref str request & no more remaining registration count for student
+                elif request.user.is_structure_manager and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _("This student has no more remaining slots to register to"),
@@ -1105,8 +1104,8 @@ def ajax_slot_registration(request):
                             ),
                         }
                         return JsonResponse(response, safe=False)
-                    # ref cmp request & no more remaining registration count for student
-                    elif request.user.is_component_manager and remaining_regs_count['semester1'] <= 0:
+                    # ref str request & no more remaining registration count for student
+                    elif request.user.is_structure_manager and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1137,8 +1136,8 @@ def ajax_slot_registration(request):
                             ),
                         }
                         return JsonResponse(response, safe=False)
-                    # ref cmp request & no more remaining registration count for student
-                    elif request.user.is_component_manager and remaining_regs_count['semester2'] <= 0:
+                    # ref str request & no more remaining registration count for student
+                    elif request.user.is_structure_manager and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1173,7 +1172,7 @@ def ajax_slot_registration(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_available_students(request, slot_id):
     """
     Get students list for manual slot registration
@@ -1218,7 +1217,7 @@ def ajax_get_available_students(request, slot_id):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-CMP', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC')
 def ajax_get_highschool_students(request, highschool_id=None):
     """
     Retrieve students from a highschool or all students if user is ref-etab manager
@@ -1308,7 +1307,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-COMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1349,7 +1348,7 @@ def ajax_send_email(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
@@ -1395,13 +1394,13 @@ def ajax_batch_cancel_registration(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required('REF-CMP')
-def get_csv_components(request, component_id):
+@groups_required('REF-STR')
+def get_csv_components(request, structure_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    component = Component.objects.get(id=component_id).label.replace(' ', '_')
-    response['Content-Disposition'] = f'attachment; filename="{component}_{today}.csv"'
-    slots = Slot.objects.filter(course__component_id=component_id, published=True)
+    structure = Component.objects.get(id=structure_id).label.replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="{structure}_{today}.csv"'
+    slots = Slot.objects.filter(course__component_id=structure_id, published=True)
 
     infield_separator = '|'
 
@@ -1527,7 +1526,7 @@ def get_csv_anonymous_immersion(request):
     infield_separator = '|'
 
     header = [
-        _('component'),
+        _('structure'),
         _('training domain'),
         _('training subdomain'),
         _('training'),

@@ -30,13 +30,13 @@ class Command(BaseCommand):
 
         # settings / default value
         try:
-            weeks = settings.DEFAULT_NB_WEEKS_COMPONENTS_SLOT_REMINDER
+            weeks = settings.DEFAULT_NB_WEEKS_STRUCTURES_SLOT_REMINDER
         except AttributeError:
             weeks = default_value
 
         # Configured value
         try:
-            weeks = int(get_general_setting('NB_WEEKS_COMPONENTS_SLOT_REMINDER'))
+            weeks = int(get_general_setting('NB_WEEKS_STRUCTURES_SLOT_REMINDER'))
         except (ValueError, NameError):
             pass
 
@@ -72,11 +72,11 @@ class Command(BaseCommand):
                 ).order_by('date', 'start_time')
             ]
 
-            logger.debug("======= Component : %s", component.label)
+            logger.debug("======= Structure : %s", component.label)
             for s in slot_list:
                 logger.debug(s.__dict__)
 
             if slot_list:
                 for referent in component.referents.all():
-                    referent.send_message(None, 'RAPPEL_COMPOSANTE', slot_list=slot_list)
+                    referent.send_message(None, 'RAPPEL_STRUCTURE', slot_list=slot_list)
 

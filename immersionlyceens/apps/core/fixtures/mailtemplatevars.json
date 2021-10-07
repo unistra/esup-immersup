@@ -42,8 +42,8 @@
     "model": "core.mailtemplatevars",
     "pk": 6,
     "fields": {
-      "code": "${creneau.composante}",
-      "description": "Cr\u00e9neau : composante"
+      "code": "${creneau.structure}",
+      "description": "Cr\u00e9neau : structure"
     }
   },
   {

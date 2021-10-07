@@ -30,14 +30,14 @@
         <label class="col-form-label col-sm-3" >{% trans 'Anonymous immersion data' %}</label>
         <button type="button" class="btn btn-primary" id="extract_anonymous">{% trans 'Extract data' %}</button>
       </div>
-      {% elif request.user.is_component_manager %}
+      {% elif request.user.is_structure_manager %}
       <div class="row">
-        <label class="col-form-label col-sm-3" for="component">{% trans 'Components data' %}</label>
+        <label class="col-form-label col-sm-3" for="component">{% trans 'Structures data' %}</label>
 
         <select name="component" id="component" class="form-control col-sm-3">
 
           {% if components|length > 1 %}
-            <option value="" selected>{% trans 'Choose a component' %}</option>
+            <option value="" selected>{% trans 'Choose a structure' %}</option>
             {% for component in components %}
               <option value="{{ component.id }}">{{ component.label }}</option>
             {% endfor %}

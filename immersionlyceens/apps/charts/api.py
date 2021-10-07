@@ -636,7 +636,7 @@ def get_slots_charts(request):
             "type": "PieSeries",
             "dataFields": {
                 "value": "slots_count",
-                "category": "component",
+                "category": "structure",
             },
         },
     ]
@@ -686,7 +686,7 @@ def get_slots_data(request, csv_mode=False):
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="slots_statistics.csv"'
         header = [
-            _('Component'),
+            _('Structure'),
             _('Training'),
             _('Course'),
             _('Slots count'),

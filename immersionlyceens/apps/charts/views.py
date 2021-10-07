@@ -145,7 +145,7 @@ def global_registrations_charts(request):
 @groups_required('REF-ETAB')
 def global_slots_charts(request):
     """
-    Slots statistics by components and trainings
+    Slots statistics by structures and trainings
     """
 
     context = {

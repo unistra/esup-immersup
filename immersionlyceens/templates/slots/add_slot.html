@@ -57,7 +57,7 @@
                 {% csrf_token %}
                 {{ slot_form.id }}
                 <div class="form-group row">
-                    <label for="component" class="col-form-label col-sm-3">{% trans 'Component' %}</label>
+                    <label for="component" class="col-form-label col-sm-3">{% trans 'Structure' %}</label>
                     <div class="col-sm-6">
                         <select name="component" id="component" class="form-control" required>
                             {% if components|length > 1 %}

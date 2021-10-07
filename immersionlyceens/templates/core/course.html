@@ -34,7 +34,7 @@
         <div class="form-group row">
           <label for="id_component" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% trans 'Component' %} :
+            {% trans 'Structure' %} :
           </label>
           <div class="col-sm-3">
             {{ course_form.component }}
@@ -131,7 +131,7 @@
       url: "{% url 'GetTrainings' %}",
       type: 'POST',
       data: {
-        'component_id': cmp_id,
+        'structure_id': cmp_id,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {

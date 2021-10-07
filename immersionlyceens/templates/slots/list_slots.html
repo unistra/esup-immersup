@@ -46,7 +46,7 @@
       </div>
         <div>
           <div class="form-group row">
-            <label for="component" class="col-form-label col-sm-3">{% trans "Component" %}</label>
+            <label for="component" class="col-form-label col-sm-3">{% trans "Structure" %}</label>
             <div class="col-sm-6">
               <select name="component" id="component" class="form-control">
                 <option value="" selected>-------------</option>
@@ -181,7 +181,7 @@ $(document).ready(function(){
     function load_trainings( comp_id, first=false ) {
         $.post({
           url: '/api/get_trainings',
-          data: {component_id: comp_id},
+          data: {structure_id: comp_id},
           success: function (data) {
               if ( data['data'] ) {
                 $('#training').html('');
@@ -226,8 +226,6 @@ $(document).ready(function(){
         }
     });
 
-    // load_trainings($('#component').val(), true);
-
     $("#component").on('change', function(event){
         $('#training').val('');
         load_trainings(event.target.value);
@@ -244,7 +242,7 @@ $(document).ready(function(){
           url: '/api/get_slots',
           data: function(d) {
               d.training_id = $('#training').val();
-              d.component_id = $('#component').val();
+              d.structure_id = $('#component').val();
               return d
           },
           dataSrc: function (json) {

@@ -58,7 +58,7 @@ class Command(BaseCommand):
             except Exception as e:
                 logger.error("Cannot write mailing list file %s : %s", all_filename, e)
 
-        # Components mailing list files
+        # Structures mailing list files
         for component in Component.objects.filter(mailing_list__isnull=False):
             output_file = path.join(settings.MAILING_LIST_FILES_DIR, component.mailing_list)
             try:

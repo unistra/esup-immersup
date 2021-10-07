@@ -38,7 +38,7 @@
       </div>
       {% endif %}
       <div id="cmp_filter" style="padding-bottom:10px; padding-top:20px;">
-        <label for="cmps">{% trans 'Select a component' %} :</label>
+        <label for="cmps">{% trans 'Select a structure' %} :</label>
         <select id="cmps">
           {% for component in components %}
             <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>
@@ -267,7 +267,7 @@
         },
       ],
     });
-    // Reload the table when component changes in selectbox
+    // Reload the table when structure changes in selectbox
     $('#cmps').change( function() {
       dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
       current_component_id = $('#cmps option:selected').val();

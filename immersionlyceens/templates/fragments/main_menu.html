@@ -25,8 +25,8 @@
         <div class="nav-item">
         <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
         </div>
-        {# ref-etab or cmp #}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-CMP" %}
+        {# ref-etab or ref-str #}
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownCourses" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
@@ -48,15 +48,15 @@
             </div>
           </div>
         {% endif %}
-        {# Component #}
-        {% if authorized_groups|in_groups:"REF-CMP" %}
+        {# Structure #}
+        {% if authorized_groups|in_groups:"REF-STR" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownComponents" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
-              {% trans 'Components' %}
+              {% trans 'Structures' %}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownComponents">
-              <a class="dropdown-item" href="{% url 'component' %}">{% trans 'Update components settings' %}</a>
+              <a class="dropdown-item" href="{% url 'component' %}">{% trans 'Update structures settings' %}</a>
             </div>
           </div>
         {% endif %}
@@ -133,13 +133,13 @@
               {% if authorized_groups|in_groups:"REF-ETAB" %}
               <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'Registrations and participation' %}</a>
               <a class="dropdown-item" href="{% url 'charts:global_domains_charts' %}">{% trans 'Hosts - registrations by domains' %}</a>
-              <a class="dropdown-item" href="{% url 'charts:global_slots_charts' %}">{% trans 'Hosts - registrations by components' %}</a>
+              <a class="dropdown-item" href="{% url 'charts:global_slots_charts' %}">{% trans 'Hosts - registrations by structures' %}</a>
               {% endif %}
             </div>
           </div>
         {% endif %}
         {# stats #}
-        {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-CMP" %}
+        {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-STR" %}
         <div class="nav-item">
           <a class="nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
         </div>

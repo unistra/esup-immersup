@@ -66,12 +66,12 @@ class APITestCase(TestCase):
         self.highschool_user3.set_password('pass')
         self.highschool_user3.save()
 
-        self.ref_comp = get_user_model().objects.create_user(
-            username='refcomp',
+        self.ref_str = get_user_model().objects.create_user(
+            username='ref_str',
             password='pass',
-            email='refcomp@no-reply.com',
-            first_name='refcomp',
-            last_name='refcomp',
+            email='ref_str@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
         )
         self.teacher1 = get_user_model().objects.create_user(
             username='teacher1',
@@ -107,7 +107,7 @@ class APITestCase(TestCase):
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
-        Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user3)
@@ -131,16 +131,16 @@ class APITestCase(TestCase):
             start_date=self.today - timedelta(days=2),
             end_date=self.today + timedelta(days=2)
         )
-        self.component = Component.objects.create(label="test component")
+        self.structure = Component.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
+        self.training.components.add(self.structure)
+        self.training2.components.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
@@ -440,7 +440,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_courses_by_training(self):
         request.user = self.ref_etab_user
-        url = f"/api/get_courses_by_training/{self.component.id}/{self.training.id}"
+        url = f"/api/get_courses_by_training/{self.structure.id}/{self.training.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
         content = json.loads(response.content.decode())
@@ -460,7 +460,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id, 'training_id': self.training.id}
+        data = {'component_id': self.structure.id, 'training_id': self.training.id}
         response = self.client.get(url, data, **header)
         content = json.loads(response.content.decode())
 
@@ -490,7 +490,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id}
+        data = {'component_id': self.structure.id}
         response = self.client.get(url, data, **header)
         content = json.loads(response.content.decode())
         self.assertIn('msg', content)
@@ -515,13 +515,13 @@ class APITestCase(TestCase):
         self.assertEqual(slot['n_register'], self.slot.registered_students())
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
-    def test_API_get_ajax_slots_ref_cmp(self):
+    def test_API_get_ajax_slots_ref_str(self):
         client = Client()
-        client.login(username='refcomp', password='pass')
+        client.login(username='ref_str', password='pass')
 
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id, 'training_id': self.training.id}
+        data = {'component_id': self.structure.id, 'training_id': self.training.id}
         response = client.get(url, data, **header)
         self.assertGreaterEqual(response.status_code, 200)
         self.assertLess(response.status_code, 300)
@@ -530,7 +530,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = f"/api/get_trainings"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id}
+        data = {'component_id': self.structure.id}
 
         response = self.client.post(url, data, **header)
         content = json.loads(response.content.decode())
@@ -740,7 +740,7 @@ class APITestCase(TestCase):
         content = csv.reader(response.content.decode().split('\n'))
 
         headers = [
-            _('component'),
+            _('structure'),
             _('training domain'),
             _('training subdomain'),
             _('training'),
@@ -765,7 +765,7 @@ class APITestCase(TestCase):
                 for h in headers:
                     self.assertIn(h, row)
             elif n == 1:
-                self.assertEqual(self.component.label, row[0])
+                self.assertEqual(self.structure.label, row[0])
                 self.assertIn(self.t_domain.label, row[1].split('|'))
                 self.assertIn(self.t_sub_domain.label, row[2].split('|'))
                 self.assertEqual(self.training.label, row[3])
@@ -828,12 +828,12 @@ class APITestCase(TestCase):
 
             n += 1
 
-    def test_API_get_csv_components(self):
+    def test_API_get_csv_structures(self):
         url = f'/api/get_csv_components/{self.high_school.id}'
         client = Client()
-        client.login(username='refcomp', password='pass')
+        client.login(username='ref_str', password='pass')
 
-        request.user = self.ref_comp
+        request.user = self.ref_str
         response = client.get(url, request)
 
         content = csv.reader(response.content.decode().split('\n'))
@@ -936,7 +936,7 @@ class APITestCase(TestCase):
     def test_API_get_courses__no_data(self):
         request.user = self.ref_etab_user
 
-        url = f"/api/get_courses/{self.component.id}/"
+        url = f"/api/get_courses/{self.structure.id}/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.get(url, request, **header)
         content = json.loads(response.content.decode())
@@ -1585,7 +1585,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = "/api/delete_account"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'student_id': self.ref_comp.id}
+        data = {'student_id': self.ref_str.id}
         content = json.loads(self.client.post(url, data, **header).content.decode())
 
         self.assertTrue(content['error'])
@@ -2026,7 +2026,7 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
 
-        # Todo : needs more tests with other users (ref-etab, ref-cmp, ...)
+        # Todo : needs more tests with other users (ref-etab, ref-str, ...)
         # Todo : needs tests with a calendar in semester mode
 
     def test_ajax_get_duplicates(self):

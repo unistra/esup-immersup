@@ -72,7 +72,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         vars += [
             ('${creneau.batiment}', slot.building.label),
             ('${creneau.campus}', slot.campus.label),
-            ('${creneau.composante}', slot.course.component.label),
+            ('${creneau.structure}', slot.course.component.label),
             ('${creneau.cours}', slot.course.label),
             ('${creneau.date}', date_format(slot.date)),
             ('${creneau.enseignants}', ','.join(["%s %s" % (t.first_name, t.last_name) for t in slot.teachers.all()])),

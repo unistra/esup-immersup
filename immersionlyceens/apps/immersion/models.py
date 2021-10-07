@@ -75,7 +75,7 @@ class HighSchoolStudentRecord(models.Model):
     bachelor_type = models.SmallIntegerField(_("Bachelor type"), default=1, choices=BACHELOR_TYPES)
 
     general_bachelor_teachings = models.ManyToManyField(core_models.GeneralBachelorTeaching,
-        verbose_name=_("Components"), blank=True, related_name='student_records'
+        verbose_name=_("Structures"), blank=True, related_name='student_records'
     )
 
     technological_bachelor_mention = models.ForeignKey(

@@ -18,7 +18,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Update components settings" %}</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Update structures settings" %}</li>
       </ol>
     </nav>
   </div>
@@ -27,9 +27,9 @@
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
       {% if components %}
-        {% trans 'Select a component to update' %}
+        {% trans 'Select a structure to update' %}
       {% else %}
-        {% trans 'Settings for component' %} : {{ component.label }}
+        {% trans 'Settings for structure' %} : {{ component.label }}
       {% endif %}
     </div>
     <div class="card-body">

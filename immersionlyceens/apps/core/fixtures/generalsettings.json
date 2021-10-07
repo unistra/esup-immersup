@@ -56,9 +56,9 @@
     "model": "core.generalsettings",
     "pk": 7,
     "fields": {
-      "setting": "NB_WEEKS_COMPONENTS_SLOT_REMINDER",
+      "setting": "NB_WEEKS_STRUCTURES_SLOT_REMINDER",
       "value": "1",
-      "description": "Rappels de cr\u00e9neaux aux composantes : envois des mails pour les cr\u00e9neaux ayant lieu dans N semaines"
+      "description": "Rappels de cr\u00e9neaux aux structures : envois des mails pour les cr\u00e9neaux ayant lieu dans N semaines"
     }
   },
   {

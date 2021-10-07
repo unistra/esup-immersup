@@ -44,12 +44,12 @@ class APITestCase(TestCase):
             last_name='HER',
         )
 
-        self.ref_comp = get_user_model().objects.create_user(
-            username='refcomp',
+        self.ref_str = get_user_model().objects.create_user(
+            username='ref_str',
             password='pass',
-            email='refcomp@no-reply.com',
-            first_name='refcomp',
-            last_name='refcomp',
+            email='refstr@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
         )
 
         self.lyc_ref = get_user_model().objects.create_user(
@@ -71,7 +71,7 @@ class APITestCase(TestCase):
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-        Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
 
         self.calendar = Calendar.objects.create(
             calendar_mode=Calendar.CALENDAR_MODE[0][0],
@@ -85,16 +85,16 @@ class APITestCase(TestCase):
             start_date=self.today - datetime.timedelta(days=2),
             end_date=self.today + datetime.timedelta(days=2)
         )
-        self.component = Component.objects.create(label="test component")
+        self.structure = Component.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
+        self.training.components.add(self.structure)
+        self.training2.components.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
@@ -207,8 +207,8 @@ class APITestCase(TestCase):
         self.assertIn(self.highschool_user.last_name, parsed_body)
 
         # Slots : slot list
-        message_body = MailTemplate.objects.get(code='RAPPEL_COMPOSANTE')
-        parsed_body = parser(message_body.body, user=self.ref_comp, slot_list=[self.slot])
+        message_body = MailTemplate.objects.get(code='RAPPEL_STRUCTURE')
+        parsed_body = parser(message_body.body, user=self.ref_str, slot_list=[self.slot])
         self.assertIn(self.slot.course.label, parsed_body)
         self.assertIn(self.slot.course_type.label, parsed_body)
         self.assertIn(self.slot.building.label, parsed_body)
@@ -256,8 +256,3 @@ class APITestCase(TestCase):
         message_body = MailTemplate.objects.get(code='IMMERSION_ANNUL')
         parsed_body = parser(message_body.body, user=self.highschool_user, immersion=self.immersion)
         self.assertIn(self.immersion.cancellation_type.label, parsed_body)
-
-        """
-        ${cours.nbplaceslibre}
-        ${creneau.composante}
-        """
