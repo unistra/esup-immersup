@@ -6,16 +6,16 @@ from wsgiref.util import FileWrapper
 
 from django.conf import settings
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound, StreamingHttpResponse,
+    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
+    HttpResponseNotFound, StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
-from django.utils.translation import gettext
-from django.utils.translation import ugettext_lazy as _
-from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, InformationText,
-    PublicDocument, PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
-)
+from django.utils.translation import gettext, ugettext_lazy as _
 
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
+    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
+)
 from immersionlyceens.libs.utils import get_general_setting
 
 
@@ -315,3 +315,6 @@ def offer_subdomain(request, subdomain_id):
     }
 
     return render(request, 'offer_subdomains.html', context)
+
+def error_500(request):
+    return render(request, '500.html', status=500)
