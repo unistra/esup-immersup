@@ -1,5 +1,4 @@
 import datetime
-import enum
 import logging
 import re
 import uuid
@@ -15,12 +14,39 @@ from django.template.defaultfilters import date as _date
 from django.utils.translation import pgettext, ugettext_lazy as _
 
 from immersionlyceens.fields import UpperCharField
-from immersionlyceens.libs.geoapi.utils import get_cities, get_departments
 from immersionlyceens.libs.mails.utils import send_email
 
 from .managers import ActiveManager, ComponentQuerySet, CustomDeleteManager, HighSchoolAgreedManager
 
 logger = logging.getLogger(__name__)
+
+
+class Establishment(models.Model):
+    """
+    Establishment class : highest structure level
+    """
+    TYPES = [
+        ('HIGHER_INST', _('Higher educational institution')),
+        ('HIGH_SCHOOL', _('High school')),
+    ]
+
+    code = models.CharField(_("Code"), max_length=16, unique=True)
+    establishment_type = models.CharField(_("Type"), max_length=24, choices=TYPES, blank=False, null=False)
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    short_label = models.CharField(_("Short label"), max_length=64, unique=True)
+    badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
+    email = models.EmailField(_('Email'))
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+    master = models.BooleanField(_("Master"), default=True)
+    data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True)
+    data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Establishment')
+        verbose_name_plural = _('Establishments')
+
+    def __str__(self):
+        return "%s : %s" % (self.code, self.label)
 
 
 class Component(models.Model):
@@ -529,7 +555,7 @@ class CourseType(models.Model):
         verbose_name_plural = _('Course type')
 
     def __str__(self):
-        """str"""  # from .utils import get_cities, get_departments
+        """str"""
         return "%s (%s)" % (self.full_label, self.label)
 
     def validate_unique(self, exclude=None):
