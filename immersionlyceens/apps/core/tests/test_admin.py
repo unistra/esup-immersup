@@ -12,14 +12,14 @@ from django.test import RequestFactory, TestCase
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
-    HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    ComponentForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm,
+    TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component, CourseType,
-    EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday, PublicDocument, PublicType,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday, PublicDocument,
+    PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1024,3 +1024,69 @@ class AdminFormsTestCase(TestCase):
         form = EvaluationFormLinkForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(EvaluationFormLink.objects.filter(url=data['url']).exists())
+
+
+    def test_establishment_form(self):
+        """
+        Test establishment form rules
+        """
+        self.assertFalse(Establishment.objects.filter(code='ETA1').exists())
+
+        data = {
+            'code': 'ETA1',
+            'establishment_type': 'HIGHER_INST',
+            'label': 'Etablissement 1',
+            'short_label': 'Eta 1',
+            'badge_html_color': '#112233',
+            'email': 'test@test.com',
+            'active': True
+        }
+
+        request.user = self.scuio_user
+        form = EstablishmentForm(data=data, request=request)
+
+        # Will fail (invalid user)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors['__all__'])
+
+        # Should succeed
+        request.user = self.superuser
+        form = EstablishmentForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+        form.save()
+
+        eta = Establishment.objects.get(code='ETA1')
+        self.assertTrue(eta.active) # default
+        self.assertTrue(eta.master) # first establishment creation : master = True
+
+        # Create a second establishment and check the 'unique' rules
+        # unique code
+        data['master'] = True
+        form = EstablishmentForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("This code already exists", form.errors['__all__'])
+
+        data['code'] = "ETA2"
+
+        # Label
+        form = EstablishmentForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("This label already exists", form.errors['__all__'])
+
+        data['label'] = "Etablissement 2"
+
+        # Short label
+        form = EstablishmentForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("This short label already exists", form.errors['__all__'])
+        data['short_label'] = "Eta 2"
+
+        form = EstablishmentForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+        form.save()
+
+        eta2 = Establishment.objects.get(code='ETA2')
+        self.assertTrue(eta2.active)  # default
+        self.assertFalse(eta2.master)  # first establishment creation : master = True

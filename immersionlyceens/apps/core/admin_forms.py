@@ -247,6 +247,8 @@ class EstablishmentForm(forms.ModelForm):
         if self.initial:
             self.fields["code"].disabled = True
         """
+        self.fields["active"].initial = True
+
         if not Establishment.objects.exists():
             self.fields["master"].initial = True
         elif Establishment.objects.filter(master=True).exists():
@@ -280,8 +282,10 @@ class EstablishmentForm(forms.ModelForm):
 
         if Establishment.objects.filter(code__iexact=code).exclude(**exclude_filter).exists():
             raise forms.ValidationError(_("This code already exists"))
+
         if Establishment.objects.filter(label__iexact=label).exclude(**exclude_filter).exists():
             raise forms.ValidationError(_("This label already exists"))
+
         if Establishment.objects.filter(short_label__iexact=short_label).exclude(**exclude_filter).exists():
             raise forms.ValidationError(_("This short label already exists"))
 
