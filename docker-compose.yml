@@ -2,9 +2,9 @@ version: "3.8"
 
 services:
   web:
-    container_name: immersion-app
+    container_name: immersup-app
     networks:
-      - immersion-net
+      - immersup-net
     build:
       context: ./
       dockerfile: ./deploy/docker/app/Dockerfile
@@ -21,20 +21,20 @@ services:
 
   db:
     image: postgres:12
-    container_name: immersion-db
+    container_name: immersup-db
     networks:
-      - immersion-net
+      - immersup-net
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=immersion
-      - POSTGRES_PASSWORD=immersion
-      - POSTGRES_DB=immersion
+      - POSTGRES_USER=immersup
+      - POSTGRES_PASSWORD=immersup
+      - POSTGRES_DB=immersup
     ports:
       - 5432:5432
     restart: always
     # healthcheck:
-    #   test: "pg_isready --username=immersion && psql --username=immersion --list"
+    #   test: "pg_isready --username=immersup && psql --username=immersup --list"
     #   timeout: 30s
     #   retries: 20
 
@@ -42,4 +42,4 @@ volumes:
   postgres_data:
 
 networks:
-  immersion-net:
+  immersup-net:

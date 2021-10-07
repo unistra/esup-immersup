@@ -34,21 +34,21 @@ RUN sed -i 's/psycopg2==/psycopg2-binary==/g' /usr/src/app/requirements/common.t
 # pull official base image
 FROM python:3.8-slim-bullseye
 
-ENV HOME=/home/immersion
-ENV APP_HOME=/home/immersion/web
+ENV HOME=/home/immersup
+ENV APP_HOME=/home/immersup/web
 
-# create directory for the immersion user & create user
+# create directory for the immersup user & create user
 RUN mkdir -p $APP_HOME/staticfiles; \
   mkdir -p $APP_HOME/mediafiles; \
-  addgroup immersion && adduser immersion --ingroup immersion;
+  addgroup immersup && adduser immersup --ingroup immersup;
 
 WORKDIR $APP_HOME
 
 # copy needed files
 COPY --from=builder /usr/src/app/wheels /wheels
-COPY --chown=immersion:immersion ./deploy/docker/app/entrypoint-demo.sh .
-COPY --chown=immersion:immersion ./deploy/docker/app/uwsgi.ini /etc/uwsgi/uwsgi.ini
-COPY --chown=immersion:immersion . $APP_HOME
+COPY --chown=immersup:immersup ./deploy/docker/app/entrypoint-demo.sh .
+COPY --chown=immersup:immersup ./deploy/docker/app/uwsgi.ini /etc/uwsgi/uwsgi.ini
+COPY --chown=immersup:immersup . $APP_HOME
 
 # prepare files & install requirements & set permissions
 RUN sed -i 's/\r$//g'  $APP_HOME/entrypoint-demo.sh; \
@@ -56,7 +56,7 @@ RUN sed -i 's/\r$//g'  $APP_HOME/entrypoint-demo.sh; \
   pip install --no-cache /wheels/* ; \
   sed -i 's/{{ goal }}/docker-demo/g' $APP_HOME/manage.py; \
   sed -i 's/{{ goal }}/docker-demo/g' $APP_HOME/immersionlyceens/wsgi.py; \
-  chown -R immersion:immersion $APP_HOME; \
+  chown -R immersup:immersup $APP_HOME; \
   apt-get update \
   && apt-get install -y --no-install-recommends libxml2-dev libxslt-dev libffi-dev libcairo2-dev libpango1.0-dev gettext libpcre3 libpcre3-dev;
 
@@ -64,9 +64,9 @@ RUN sed -i 's/\r$//g'  $APP_HOME/entrypoint-demo.sh; \
 COPY ./deploy/docker/app/uwsgi.ini /etc/uwsgi/uwsgi.ini
 
 # change to the app user
-USER immersion
+USER immersup
 
 # run entrypoint.demo.sh
-ENTRYPOINT ["sh", "/home/immersion/web/entrypoint-demo.sh"]
+ENTRYPOINT ["sh", "/home/immersup/web/entrypoint-demo.sh"]
 
-CMD ["uwsgi", "--uid", "immersion", "--ini", "/etc/uwsgi/uwsgi.ini", "--protocol", "http"]
+CMD ["uwsgi", "--uid", "immersup", "--ini", "/etc/uwsgi/uwsgi.ini", "--protocol", "http"]

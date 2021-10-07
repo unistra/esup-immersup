@@ -12,9 +12,9 @@ from .base import *
 ##########################
 
 DATABASES['default']['HOST'] = environ.get('DEFAULT_DB_HOST', 'localhost')
-DATABASES['default']['USER'] = environ.get('DEFAULT_DB_USER', 'immersion')
-DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', 'immersion')
-DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', 'immersion')
+DATABASES['default']['USER'] = environ.get('DEFAULT_DB_USER', 'immersup')
+DATABASES['default']['PASSWORD'] = environ.get('DEFAULT_DB_PASSWORD', 'immersup')
+DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', 'immersup')
 DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 
 

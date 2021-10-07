@@ -1,8 +1,8 @@
-=================
-Immersion lyceens
-=================
+========
+Immersup
+========
 
-# Dockerizing immersion app
+# Dockerizing immersup app
 
 ## Development
 

@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED 1
 # copy project
 COPY . .
 # copy entrypoint.sh
-COPY ./deploy/docker/app/entrypoint.sh /usr/local/bin
+COPY ./deploy/docker/app/entrypoint.sh /usr/local/bin/
 
 # install dependencies
 RUN BUILD_DEPS=" \
@@ -25,10 +25,10 @@ RUN BUILD_DEPS=" \
   sed -i 's/psycopg2==/psycopg2-binary==/g' /usr/src/app/requirements/common.txt; \
   pip install --no-cache-dir -r requirements/dev.txt; \
   apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
-  rm -rf /var/lib/apt/lists/* ;\
+  rm -rf '/var/lib/apt/lists/*';\
   sed -i 's/{{ goal }}/docker-dev/g' /usr/src/app/manage.py; \
   sed -i 's/\r$//g' /usr/local/bin/entrypoint.sh; \
   chmod +x /usr/local/bin/entrypoint.sh;
 
 # run entrypoint.sh
-ENTRYPOINT ["sh", "entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
