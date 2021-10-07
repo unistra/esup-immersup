@@ -38,8 +38,15 @@ class Establishment(models.Model):
     email = models.EmailField(_('Email'))
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
     master = models.BooleanField(_("Master"), default=True)
-    data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, unique=True)
+    data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True)
     data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Establishment')
+        verbose_name_plural = _('Establishments')
+
+    def __str__(self):
+        return "%s : %s" % (self.code, self.label)
 
 
 class Component(models.Model):

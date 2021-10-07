@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import UploadedFile
+from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
@@ -231,6 +232,7 @@ class TrainingForm(forms.ModelForm):
         model = Training
         fields = '__all__'
 
+
 class EstablishmentForm(forms.ModelForm):
     """
     Establishment form class
@@ -241,12 +243,24 @@ class EstablishmentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Disable code field if it already exists
+        """
         if self.initial:
             self.fields["code"].disabled = True
+        """
+        if not Establishment.objects.exists():
+            self.fields["master"].initial = True
+        elif Establishment.objects.filter(master=True).exists():
+            self.fields["master"].initial = False
+            self.fields["master"].disabled = True
+            self.fields["master"].help_text = _("A 'master' establishment already exists")
 
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
+
+        code = cleaned_data.get('code')
+        label = cleaned_data.get('label')
+        short_label = cleaned_data.get('short_label')
 
         try:
             user = self.request.user
@@ -257,10 +271,19 @@ class EstablishmentForm(forms.ModelForm):
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
+        exclude_filter = {'id': self.instance.id} if self.instance else {}
+
         if not Establishment.objects.exists():
             cleaned_data["master"] = True
-        elif Establishment.objects.filter(master=True).exists():
+        elif Establishment.objects.filter(master=True).exclude(**exclude_filter).exists():
             cleaned_data["master"] = False
+
+        if Establishment.objects.filter(code__iexact=code).exclude(**exclude_filter).exists():
+            raise forms.ValidationError(_("This code already exists"))
+        if Establishment.objects.filter(label__iexact=label).exclude(**exclude_filter).exists():
+            raise forms.ValidationError(_("This label already exists"))
+        if Establishment.objects.filter(short_label__iexact=short_label).exclude(**exclude_filter).exists():
+            raise forms.ValidationError(_("This short label already exists"))
 
         # TODO : run selected plugin settings selftests when available
 
@@ -269,6 +292,9 @@ class EstablishmentForm(forms.ModelForm):
     class Meta:
         model = Establishment
         fields = '__all__'
+        widgets = {
+            'badge_html_color': TextInput(attrs={'type': 'color'}),
+        }
 
 
 class ComponentForm(forms.ModelForm):

@@ -411,6 +411,15 @@ class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('master', 'label', )
     search_fields = ('label',)
 
+    """
+    fieldsets = (
+        (None, {
+            'fields': ('code', 'establishment_type', 'label', 'short_label', 'badge_html_color', 'email', 'active',
+                       'master', 'data_source_plugin', 'data_source_settings')
+        }),
+    )
+    """
+
     def get_actions(self, request):
         # Disable delete
         actions = super().get_actions(request)
