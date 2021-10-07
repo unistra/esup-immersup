@@ -1,81 +1,59 @@
-*.py[cod]
 __pycache__
-
-# C extensions
-*.so
-
-# Packages
-.installed.cfg
-*.egg
-*.egg-info
-bin
-build
-develop-eggs
-dist
-eggs
-lib
-lib64
-parts
-sdist
-var
-
-# Sphinx
 _build
 _static
 _template
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
 .coverage
-.tox
-nosetests.xml
-htmlcov/
-
-# Translations
-*.mo
-
-# Mr Developer
+.DS_Store
+.fab_tasks~
+.git/
+.gitlab-ci.yml
+.idea
+.installed.cfg
+.isort.cfg
 .mr.developer.cfg
 .project
 .pydevproject
-.settings
-*.sublime-*
-.fab_tasks~
-*.db
-
-# vscode
-.vscode
-
-# pycharm
-.idea
-
-# local virtual env
-venv
-
-# isort personal config
-.isort.cfg
-
-
-.DS_Store
-.git/
-.gitlab-ci.yml
-.project
-.pydevproject
 .sass-cache
+.settings
 .tox
 .vagrant/
 .vsc
+.vscode
 *.css.map
 *.db
+*.egg
 *.egg-info
 *.md
 *.mo
+*.py[cod]
 *.pyc
 *.pyo
+*.rst
+*.so
 *.sql.gz
+*.sublime-*
+bin
+build
+dev.pyc
+develop-eggs
 dist
 docs
+eggs
+fabfile.py
+htmlcov/
 immersionlyceens.egg-info/
+lib
+lib64
+media
+nosetests.xml
+parts
+pip-log.txt
+preprod.py
+prod.py
 pyvenv.cfg
+run_tests.py
+sdist
+test.py
+unnitest.py
+var
+venv
