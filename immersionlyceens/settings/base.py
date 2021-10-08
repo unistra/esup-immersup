@@ -266,6 +266,7 @@ THIRD_PARTY_APPS = [
     'hijack',
     'hijack.contrib.admin',
     'django_summernote',
+    'django_json_widget',
     'shibboleth',
 ]
 
@@ -364,29 +365,16 @@ HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_and_staff"
 # APIs settings #
 #################
 
-ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
+# Feel free to implement your own accounts search functions and
+# enter your plugin name here :)
 
-#####################
-# LDAP API settings #
-#####################
+ACCOUNTS_PLUGINS = {
+    'LDAP': 'immersionlyceens.libs.api.accounts.ldap'
+}
 
-# Server
-LDAP_API_HOST = ''
-LDAP_API_PORT = ''
-LDAP_API_DN = ''
-LDAP_API_PASSWORD = ''
-LDAP_API_BASE_DN = ''
-
-# Filters
-LDAP_API_ACCOUNTS_FILTER = ''
-
-# Attributes
-LDAP_API_SEARCH_ATTR = ''
-LDAP_API_DISPLAY_ATTR = ''
-LDAP_API_EMAIL_ATTR = ''
-LDAP_API_EMAIL_USERNAME = ''
-LDAP_API_LASTNAME_ATTR = ''
-LDAP_API_FIRSTNAME_ATTR = ''
+AVAILABLE_ACCOUNTS_PLUGINS = (
+    ('LDAP', 'LDAP'),
+)
 
 #######################
 # SHIBBOLETH settings #
