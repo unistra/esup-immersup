@@ -1046,7 +1046,7 @@ class AdminFormsTestCase(TestCase):
             'active': True
         }
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         form = EstablishmentForm(data=data, request=request)
 
         # Will fail (invalid user)

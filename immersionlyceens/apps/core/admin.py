@@ -12,22 +12,18 @@ from django_json_widget.widgets import JSONEditorWidget
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
-    StructureForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
-    InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
+    CertificateLogoForm, CertificateSignatureForm, StructureForm, CourseTypeForm, EstablishmentForm,
+    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
+    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
+    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
-    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
-    Structure, Course, CourseType, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
-    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
-    Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    AccompanyingDocument, AnnualStatistics, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
+    CertificateSignature, Structure, Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser, InformationText,
+    MailTemplate, PublicDocument, PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
     Vacation,
 )
 

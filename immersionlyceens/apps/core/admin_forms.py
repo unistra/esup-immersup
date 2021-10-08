@@ -16,9 +16,10 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ...libs.geoapi.utils import get_cities, get_zipcodes, get_departments
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    CertificateSignature, Structure, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    CertificateSignature, Structure, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
+    MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation,
 )
 
 
