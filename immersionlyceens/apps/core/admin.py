@@ -15,19 +15,19 @@ from .admin_forms import (
     CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
     ComponentForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm,
     EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
-    HighSchoolForm, HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
-    InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
-    TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm,
+    HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
+    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm,
+    TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
-    Component, Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
-    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
-    Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    Component, Course, CourseType, Establishment, EvaluationFormLink,
+    EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
+    Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
+    PublicDocument, PublicType, Slot, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -235,8 +235,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         return fieldsets
 
     class Media:
-        js = ('js/immersion_user.js',)  # implements user search
-        css = {'all': ('css/immersionlyceens.css',)}
+        js = ('js/immersion_user.min.js',)  # implements user search
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -822,7 +822,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         # TODO: check why I can't use django.jquery stuff !!!!!
         js = (
             'js/jquery-3.4.1.slim.min.js',
-            'js/admin_calendar.js',
+            'js/admin_calendar.min.js',
         )
 
 
@@ -869,7 +869,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         if settings.USE_GEOAPI:
             js = (
                 'js/jquery-3.4.1.slim.min.js',
-                'js/admin_highschool.js',
+                'js/admin_highschool.min.js',
             )
 
 
@@ -900,7 +900,7 @@ class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     class Media:
         css = {
             'all': (
-                'css/immersionlyceens.css',
+                'css/immersionlyceens.min.css',
                 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
                 'js/vendor/datatables/datatables.min.css',
                 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',
@@ -909,7 +909,7 @@ class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
             'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-            'js/admin_information_text.js',
+            'js/admin_information_text.min.js',
             'js/vendor/datatables/datatables.min.js',
             'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
         )
@@ -993,7 +993,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     class Media:
         css = {
             'all': (
-                'css/immersionlyceens.css',
+                'css/immersionlyceens.min.css',
                 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
                 'js/vendor/datatables/datatables.min.css',
                 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',
@@ -1002,7 +1002,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
             'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-            'js/immersion_mail_templates.js',
+            'js/immersion_mail_templates.min.js',
             'js/vendor/datatables/datatables.min.js',
             'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
         )
@@ -1065,8 +1065,8 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
     class Media:
         css = {
             'all': (
-                'css/immersionlyceens.css',
-                'css/admin_annual_stats.css',
+                'css/immersionlyceens.min.css',
+                'css/admin_annual_stats.min.css',
             )
         }
 

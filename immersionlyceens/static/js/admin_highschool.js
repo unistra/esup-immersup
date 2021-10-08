@@ -12,7 +12,7 @@ $(document).on('change', 'select#id_department', function() {
     },
   })
   $('select#id_zip_code').html('<option value="">---------</option>')
-});
+})
 $(document).on('change', 'select#id_city', () => {
   $.ajax({
     url: `/geoapi/zipcodes/${$('select#id_department').val()}/${$('select#id_city').val()}`,
@@ -31,5 +31,5 @@ $(document).on('change', 'select#id_city', () => {
       $('select#id_zip_code').html(options)
     },
   })
-});
+})
 // })(django.jQuery);

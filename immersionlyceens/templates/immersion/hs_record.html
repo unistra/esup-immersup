@@ -3,11 +3,11 @@
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
-<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 {% endblock %}
 {% block title %}{% trans "Student record" %}
