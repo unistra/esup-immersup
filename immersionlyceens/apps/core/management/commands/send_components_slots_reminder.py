@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Send a reminder to components referents for upcoming slots in N weeks
+Send a reminder to structures referents for upcoming slots in N weeks
 This command is meant to be run on sunday
 """
 import datetime
@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.libs.utils import get_general_setting
 
-from ...models import Component, Immersion, Slot, Vacation
+from ...models import Structure, Immersion, Slot, Vacation
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             weeks = default_value
 
         # ================
-        components = Component.objects.filter(active=True)
+        structures = Structure.objects.filter(active=True)
 
         # if tomorrow (today+1) is a vacation day, don't send any reminder
         if Vacation.date_is_inside_a_vacation(today + datetime.timedelta(days=1)):
@@ -65,18 +65,18 @@ class Command(BaseCommand):
               today, slot_min_date, slot_max_date, weeks
         )
 
-        for component in components:
+        for structure in structures:
             slot_list = [
                 s for s in Slot.objects.filter(
-                    course__component=component, date__gte=slot_min_date, date__lte=slot_max_date, published=True
+                    course__structure=structure, date__gte=slot_min_date, date__lte=slot_max_date, published=True
                 ).order_by('date', 'start_time')
             ]
 
-            logger.debug("======= Structure : %s", component.label)
+            logger.debug("======= Structure : %s", structure.label)
             for s in slot_list:
                 logger.debug(s.__dict__)
 
             if slot_list:
-                for referent in component.referents.all():
+                for referent in structure.referents.all():
                     referent.send_message(None, 'RAPPEL_STRUCTURE', slot_list=slot_list)
 

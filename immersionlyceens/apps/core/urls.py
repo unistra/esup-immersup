@@ -9,8 +9,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('component', views.component, name='component'),
-    path('component/<structure_code>', views.component, name='update_component'),
+    path('structure', views.structure, name='structure'),
+    path('structure/<structure_code>', views.structure, name='update_structure'),
     path('course', views.course, name='course'),
     path('course/<int:course_id>', views.course, name='modify_course'),
     path('course/<int:course_id>/<int:duplicate>', views.course, name='duplicate_course'),

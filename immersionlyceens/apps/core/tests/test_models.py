@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component, Course, CourseType,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, Course, CourseType,
     EvaluationFormLink, EvaluationType, Holiday, PublicDocument, PublicType, Slot, Training, TrainingDomain,
     TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -244,7 +244,7 @@ class TestEvaluationTypeCase(TestCase):
 class TestSlotCase(TestCase):
     def test_slot__creation(self):
         # Structure
-        c = Component(label='my structure', code='R2D2')
+        c = Structure(label='my structure', code='R2D2')
         c.save()
         # Training domain
         td = TrainingDomain(label='my_domain')
@@ -253,16 +253,16 @@ class TestSlotCase(TestCase):
         tsd = TrainingSubdomain(label='my_sub_domain', training_domain=td)
         tsd.save()
         # Training
-        t = Training(label='training',)  #  training_subdomains={tsd}, components=[c, ])
+        t = Training(label='training',)  #  training_subdomains={tsd}, structures=[c, ])
         t.save()
         t.training_subdomains.add(tsd)
-        t.components.add(c)
+        t.structures.add(c)
 
         # Course type
         ct = CourseType(label='CM')
         ct.save()
         # Course
-        course = Course(label='my super course', training=t, component=c)
+        course = Course(label='my super course', training=t, structure=c)
         course.save()
 
         # Campus

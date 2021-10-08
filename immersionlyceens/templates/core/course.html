@@ -32,15 +32,15 @@
       {% csrf_token %}
         {{ course_form.id }}
         <div class="form-group row">
-          <label for="id_component" class="col-sm-3 col-form-label">
+          <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
             {% trans 'Structure' %} :
           </label>
           <div class="col-sm-3">
-            {{ course_form.component }}
+            {{ course_form.structure }}
           </div>
           <div class="col-sm-6">
-            {{ course_form.component.errors }}
+            {{ course_form.structure.errors }}
           </div>
         </div>
         <div class="form-group row">
@@ -196,8 +196,8 @@
     refresh_teachers_list();
   };
 
-  $('#id_component').change( function() {
-    let cmp_id = $('#id_component option:selected').val();
+  $('#id_structure').change( function() {
+    let cmp_id = $('#id_structure option:selected').val();
     set_trainings(cmp_id);
   });
 
@@ -280,7 +280,7 @@
   });
 
   $(document).ready(function() {
-    set_trainings($('#id_component option:selected').val());
+    set_trainings($('#id_structure option:selected').val());
 
     if (teachers_array) {
       refresh_teachers_list();

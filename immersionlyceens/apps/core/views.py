@@ -18,9 +18,9 @@ import requests
 
 from immersionlyceens.decorators import groups_required
 
-from .forms import (ComponentForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
+from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
     HighSchoolStudentImmersionUserForm)
-from .models import (Campus, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
+from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
     Training, UniversityYear)
 
 logger = logging.getLogger(__name__)
@@ -89,33 +89,33 @@ def slots_list(request, str_id=None, train_id=None):
     template = 'slots/list_slots.html'
 
     if request.user.is_superuser or request.user.is_ref_etab_manager():
-        structures = Component.activated.all().order_by("code")
+        structures = Structure.activated.all().order_by("code")
     elif request.user.is_structure_manager():
-        structures = request.user.components.all().order_by("code")
+        structures = request.user.structures.all().order_by("code")
     else:
         return render(request, 'base.html')
 
     contact_form = ContactForm()
 
     context = {
-        'components': structures.order_by('code'),
+        'structures': structures.order_by('code'),
         'contact_form': contact_form,
         'cancel_types': CancelType.objects.filter(active=True),
     }
 
     if str_id and int(str_id) in [c.id for c in structures]:
-        context['component_id'] = str_id
+        context['structure_id'] = str_id
         context['trainings'] = []
 
         # Make sure the training is active and belongs to the selected structure
         try:
-            if train_id and Training.objects.filter(id=int(train_id), components=str_id, active=True).exists():
+            if train_id and Training.objects.filter(id=int(train_id), structures=str_id, active=True).exists():
                 context['training_id'] = train_id
         except ValueError:
             pass
 
         trainings = Training.objects.prefetch_related('training_subdomains') \
-                .filter(components=str_id, active=True) \
+                .filter(structures=str_id, active=True) \
                 .order_by('label')
 
         for training in trainings:
@@ -145,9 +145,9 @@ def add_slot(request, slot_id=None):
     # get structures
     structures = []
     if request.user.is_superuser or request.user.is_ref_etab_manager():
-        structures = Component.activated.all().order_by('code')
+        structures = Structure.activated.all().order_by('code')
     elif request.user.is_structure_manager():
-        structures = request.user.components.all().order_by('code')
+        structures = request.user.structures.all().order_by('code')
 
     if request.method == 'POST' and any(
         [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
@@ -175,7 +175,7 @@ def add_slot(request, slot_id=None):
             context = {
                 "campus": Campus.objects.filter(active=True).order_by('label'),
                 "course": Course.objects.get(id=request.POST.get('course', None)),
-                "components": structures,
+                "structures": structures,
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
@@ -189,7 +189,7 @@ def add_slot(request, slot_id=None):
                 reverse(
                     'slots_list',
                     kwargs={
-                        'str_id': request.POST.get('component', ''),
+                        'str_id': request.POST.get('structure', ''),
                         'train_id': request.POST.get('training', '')
                     }
                 )
@@ -206,7 +206,7 @@ def add_slot(request, slot_id=None):
         slot_form = SlotForm()
 
     context = {
-        "components": structures,
+        "structures": structures,
         "campus": Campus.objects.filter(active=True).order_by('label'),
         "slot_form": slot_form,
         "ready_load": True,
@@ -231,7 +231,7 @@ def modify_slot(request, slot_id):
         return redirect('/core/slots/')
 
     # Check whether the user has access to this slot
-    if request.user.is_structure_manager() and slot.course.component not in request.user.components.all():
+    if request.user.is_structure_manager() and slot.course.structure not in request.user.structures.all():
         messages.error(request, _("This slot belongs to another structure"))
         return redirect('/core/slots/')
 
@@ -239,9 +239,9 @@ def modify_slot(request, slot_id):
     # get structures
     structures = []
     if request.user.is_superuser or request.user.is_ref_etab_manager():
-        structures = Component.activated.all().order_by('code')
+        structures = Structure.activated.all().order_by('code')
     elif request.user.is_structure_manager():
-        structures = request.user.components.all().order_by('code')
+        structures = request.user.structures.all().order_by('code')
 
     if request.method == 'POST' and any(
         [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
@@ -263,7 +263,7 @@ def modify_slot(request, slot_id):
         else:
             context = {
                 "slot": slot,
-                "components": structures,
+                "structures": structures,
                 "campus": Campus.objects.filter(active=True).order_by('label'),
                 "trainings": Training.objects.filter(active=True),
                 "slot_form": slot_form,
@@ -294,7 +294,7 @@ def modify_slot(request, slot_id):
                 reverse(
                     'slots_list',
                     kwargs={
-                        'str_id': request.POST.get('component', ''),
+                        'str_id': request.POST.get('structure', ''),
                         'train_id': request.POST.get('training', '')
                     }
                 )
@@ -307,7 +307,7 @@ def modify_slot(request, slot_id):
             context = {
                 "slot": slot,
                 "course": Course.objects.get(id=request.POST.get('course', None)),
-                "components": structures,
+                "structures": structures,
                 "campus": Campus.objects.filter(active=True).order_by('label'),
                 "trainings": Training.objects.filter(active=True).order_by('label'),
                 "slot_form": slot_form,
@@ -318,7 +318,7 @@ def modify_slot(request, slot_id):
 
     context = {
         "slot": slot,
-        "components": structures,
+        "structures": structures,
         "campus": Campus.objects.filter(active=True).order_by('label'),
         "trainings": Training.objects.filter(active=True),
         "slot_form": slot_form,
@@ -333,7 +333,7 @@ def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
         # Check whether the user has access to this slot
-        if request.user.is_structure_manager() and slot.course.component not in request.user.components.all():
+        if request.user.is_structure_manager() and slot.course.structure not in request.user.structures.all():
             return HttpResponse(gettext("This slot belongs to another structure"))
         slot.delete()
     except Slot.DoesNotExist:
@@ -345,12 +345,12 @@ def del_slot(request, slot_id):
 @groups_required('REF-ETAB', 'REF-STR')
 def courses_list(request):
     can_update_courses = False
-    allowed_strs = Component.activated.user_strs(request.user, 'REF-ETAB').order_by("code", "label")
+    allowed_strs = Structure.activated.user_strs(request.user, 'REF-ETAB').order_by("code", "label")
 
     if allowed_strs.count() == 1:
         structure_id = allowed_strs.first().id
     else:
-        structure_id = request.session.get("current_component_id", None)
+        structure_id = request.session.get("current_structure_id", None)
 
     # Check if we can add/update courses
     try:
@@ -370,7 +370,7 @@ def courses_list(request):
             ),
         )
 
-    context = {"components": allowed_strs, "component_id": structure_id, "can_update_courses": can_update_courses}
+    context = {"structures": allowed_strs, "structure_id": structure_id, "can_update_courses": can_update_courses}
 
     return render(request, 'core/courses_list.html', context)
 
@@ -386,7 +386,7 @@ def course(request, course_id=None, duplicate=False):
     course_form = None
     update_rights = True
     can_update_courses = False
-    allowed_strs = Component.activated.user_strs(request.user, 'REF-ETAB').order_by("code", "label")
+    allowed_strs = Structure.activated.user_strs(request.user, 'REF-ETAB').order_by("code", "label")
 
     # Check if we can add/update courses
     try:
@@ -410,7 +410,7 @@ def course(request, course_id=None, duplicate=False):
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
-            request.session["current_component_id"] = course.component_id
+            request.session["current_structure_id"] = course.structure_id
             teachers_list = [
                 {
                     "username": t.username,
@@ -425,7 +425,7 @@ def course(request, course_id=None, duplicate=False):
 
             if duplicate:
                 data = {
-                    'component': course.component,
+                    'structure': course.structure,
                     'training': course.training,
                     'published': course.published,
                     'label': course.label,
@@ -439,7 +439,7 @@ def course(request, course_id=None, duplicate=False):
             course_form = CourseForm(request=request)
 
         # check user rights
-        if course and not (course.get_components_queryset() & allowed_strs).exists():
+        if course and not (course.get_structures_queryset() & allowed_strs).exists():
             if request.method == 'POST':
                 return HttpResponseRedirect("/core/courses_list")
             update_rights = False
@@ -467,7 +467,7 @@ def course(request, course_id=None, duplicate=False):
             if course_form.is_valid():
                 new_course = course_form.save()
 
-                request.session["current_component_id"] = new_course.component_id
+                request.session["current_structure_id"] = new_course.structure_id
 
                 current_teachers = [u for u in new_course.teachers.all().values_list('username', flat=True)]
                 new_teachers = [teacher.get('username') for teacher in teachers_list]
@@ -551,12 +551,12 @@ def course(request, course_id=None, duplicate=False):
 def mycourses(request):
 
     structure_id = None
-    allowed_strs = Component.activated.user_strs(request.user, 'REF-ETAB')
+    allowed_strs = Structure.activated.user_strs(request.user, 'REF-ETAB')
 
     if allowed_strs.count() == 1:
         structure_id = allowed_strs.first().id
 
-    context = {"components": allowed_strs, "component_id": structure_id}
+    context = {"structures": allowed_strs, "structure_id": structure_id}
 
     return render(request, 'core/mycourses.html', context)
 
@@ -697,7 +697,7 @@ def highschool_student_record_form_manager(request, hs_record_id):
 
 
 @groups_required('REF-STR')
-def component(request, structure_code=None):
+def structure(request, structure_code=None):
     """
     Update structure url and mailing list
     """
@@ -707,40 +707,40 @@ def component(request, structure_code=None):
 
     if request.method == "POST":
         try:
-            structure = Component.objects.get(code=request.POST.get('code'))
+            structure = Structure.objects.get(code=request.POST.get('code'))
         except Exception:
             messages.error(request, _("Invalid parameter"))
-            return redirect('component')
+            return redirect('structure')
 
-        form = ComponentForm(request.POST, instance=structure)
+        form = StructureForm(request.POST, instance=structure)
 
         if form.is_valid():
             form.save()
             messages.success(request, _("Structure settings successfully saved"))
-            return redirect('component')
+            return redirect('structure')
     elif structure_code:
         try:
-            structure = Component.objects.get(code=component_code)
-            form = ComponentForm(instance=structure)
-        except Component.DoesNotExist:
+            structure = Structure.objects.get(code=structure_code)
+            form = StructureForm(instance=structure)
+        except Structure.DoesNotExist:
             messages.error(request, _("Invalid parameter"))
-            return redirect('component')
+            return redirect('structure')
     else:
-        my_structures = Component.objects.filter(referents=request.user).order_by('label')
+        my_structures = Structure.objects.filter(referents=request.user).order_by('label')
 
         if my_structures.count() == 1:
             structure = my_structures.first()
-            form = ComponentForm(instance=structure)
+            form = StructureForm(instance=structure)
         else:
             structures = [c for c in my_structures]
 
     context = {
         'form': form,
-        'component': structure,
-        'components': structures,
+        'structure': structure,
+        'structures': structures,
     }
 
-    return render(request, 'core/component.html', context)
+    return render(request, 'core/structure.html', context)
 
 
 @groups_required(
@@ -751,12 +751,12 @@ def stats(request):
     structures = None
 
     if request.user.is_ref_etab_manager():
-        structures = Component.activated.all()
+        structures = Structure.activated.all()
     elif request.user.is_structure_manager():
-        structures = request.user.components.all()
+        structures = request.user.structures.all()
 
     context = {
-        'components': structures,
+        'structures': structures,
     }
 
     if request.user.is_high_school_manager() and request.user.highschool:

@@ -2,7 +2,7 @@
 """
 Generate files containing mailing-lists subscribers
 - one file for the global mailing-list (every student registered to a slot)
-- one file for each component (every student registered to at list one slot under the component)
+- one file for each structure (every student registered to at list one slot under the structure)
 """
 import datetime
 import logging
@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from immersionlyceens.libs.utils import get_general_setting
 
-from ...models import Component, Immersion, ImmersionUser, Slot
+from ...models import Structure, Immersion, ImmersionUser, Slot
 
 logger = logging.getLogger(__name__)
 
@@ -59,14 +59,14 @@ class Command(BaseCommand):
                 logger.error("Cannot write mailing list file %s : %s", all_filename, e)
 
         # Structures mailing list files
-        for component in Component.objects.filter(mailing_list__isnull=False):
-            output_file = path.join(settings.MAILING_LIST_FILES_DIR, component.mailing_list)
+        for structure in Structure.objects.filter(mailing_list__isnull=False):
+            output_file = path.join(settings.MAILING_LIST_FILES_DIR, structure.mailing_list)
             try:
-                with open(output_file, "w") as component_fd:
-                    component_fd.write('\n'.join(
+                with open(output_file, "w") as structure_fd:
+                    structure_fd.write('\n'.join(
                         [email for email in Immersion.objects.filter(
-                            cancellation_type__isnull=True, slot__course__component=component) \
+                            cancellation_type__isnull=True, slot__course__structure=structure) \
                                   .values_list('student__email', flat=True).distinct()])
                     )
             except Exception as e:
-                logger.error("Cannot write mailing list file %s : %s", component.mailing_list, e)
+                logger.error("Cannot write mailing list file %s : %s", structure.mailing_list, e)

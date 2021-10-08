@@ -12,7 +12,7 @@ from django.utils.translation import gettext, ugettext_lazy as _
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
 from immersionlyceens.apps.core.models import (
-    Component, Immersion, ImmersionUser, TrainingDomain, TrainingSubdomain, HigherEducationInstitution,
+    Structure, Immersion, ImmersionUser, TrainingDomain, TrainingSubdomain, HigherEducationInstitution,
     HighSchool, Training, Slot, Course
 )
 
@@ -641,22 +641,22 @@ def get_slots_charts(request):
         },
     ]
 
-    for component in Component.objects.all():
-        # Get all slots for this component
-        qs = Slot.objects.prefetch_related('course__component', 'course__training')\
-            .filter(course__component=component, published=True)
+    for structure in Structure.objects.all():
+        # Get all slots for this structure
+        qs = Slot.objects.prefetch_related('course__structure', 'course__training')\
+            .filter(course__structure=structure, published=True)
 
         slots_count = qs.count()
 
         if slots_count:
             data = {
-                "component": component.label,
+                "structure": structure.label,
                 "slots_count": slots_count,
                 "subData": [],
             }
 
-            for training in Training.objects.prefetch_related('courses__component')\
-                .filter(courses__component=component, active=True).distinct():
+            for training in Training.objects.prefetch_related('courses__structure')\
+                .filter(courses__structure=structure, active=True).distinct():
                 subcount = qs.filter(course__training=training).count()
 
                 if subcount:
@@ -697,11 +697,11 @@ def get_slots_data(request, csv_mode=False):
     else:
         response = {'msg': '', 'data': []}
 
-    for course in Course.objects.prefetch_related('component', 'training').filter(published=True)\
-            .order_by("component__label", "training__label", "label"):
+    for course in Course.objects.prefetch_related('structure', 'training').filter(published=True)\
+            .order_by("structure__label", "training__label", "label"):
         if csv_mode:
             writer.writerow([
-                course.component.label,
+                course.structure.label,
                 course.training.label,
                 course.label,
                 course.published_slots_count(),
@@ -709,7 +709,7 @@ def get_slots_data(request, csv_mode=False):
             ])
         else:
             course_data = {
-                "component": course.component.label,
+                "structure": course.structure.label,
                 "training": course.training.label,
                 "course": course.label,
                 "slots_count":course.published_slots_count(),

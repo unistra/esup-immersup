@@ -12,7 +12,7 @@ from django.test import RequestFactory, TestCase, Client
 from django.urls import reverse
 
 from ..models import (
-    Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
+    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
     Immersion, Holiday
 )
@@ -107,8 +107,8 @@ class CoreViewsTestCase(TestCase):
         self.ref_etab_user.set_password('pass')
         self.ref_etab_user.save()
 
-        self.structure = Component.objects.create(code='C1', label="test structure")
-        self.structure2 = Component.objects.create(code='C2', label="Second test structure")
+        self.structure = Structure.objects.create(code='C1', label="test structure")
+        self.structure2 = Structure.objects.create(code='C2', label="Second test structure")
 
         self.ref_str_user = get_user_model().objects.create_user(
             username='ref_str',
@@ -118,7 +118,7 @@ class CoreViewsTestCase(TestCase):
             last_name='ref_str',
         )
 
-        self.ref_str_user.components.add(self.structure)
+        self.ref_str_user.structures.add(self.structure)
         self.ref_str_user.set_password('pass')
         self.ref_str_user.save()
 
@@ -152,16 +152,16 @@ class CoreViewsTestCase(TestCase):
         self.training3 = Training.objects.create(label="test training 3")
 
         self.training.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.structure)
+        self.training.structures.add(self.structure)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training2.components.add(self.structure)
+        self.training2.structures.add(self.structure)
         self.training3.training_subdomains.add(self.t_sub_domain2)
-        self.training3.components.add(self.structure2)
+        self.training3.structures.add(self.structure2)
 
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
 
-        self.course2 = Course.objects.create(label="course 2", training=self.training3, component=self.structure2)
+        self.course2 = Course.objects.create(label="course 2", training=self.training3, structure=self.structure2)
         self.course2.teachers.add(self.teacher2)
 
         self.campus = Campus.objects.create(label='Esplanade')
@@ -247,24 +247,24 @@ class CoreViewsTestCase(TestCase):
         # As ref_etab user
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slots/", follow=True)
-        self.assertIn(self.structure, response.context["components"])
-        self.assertNotIn("component_id", response.context["components"])
-        self.assertNotIn("train_id", response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertNotIn("structure_id", response.context["structures"])
+        self.assertNotIn("train_id", response.context["structures"])
 
         # with parameters
         # response = self.client.get("/core/slots/%s/%s" % (self.structure.id, self.training.id))
         response = self.client.get(reverse("slots_list", args=[self.structure.id, self.training.id]))
-        self.assertEqual(self.structure.id, response.context["component_id"])
+        self.assertEqual(self.structure.id, response.context["structure_id"])
         self.assertEqual(self.training.id, response.context["training_id"])
 
         # As structure referent
         self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/slots/", follow=True)
-        self.assertIn(self.structure, response.context["components"])
-        self.assertEqual(response.context["components"].count(), 1)
-        self.assertNotIn(self.structure2, response.context["components"])
-        self.assertNotIn("component_id", response.context["components"])
-        self.assertNotIn("train_id", response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(response.context["structures"].count(), 1)
+        self.assertNotIn(self.structure2, response.context["structures"])
+        self.assertNotIn("structure_id", response.context["structures"])
+        self.assertNotIn("train_id", response.context["structures"])
 
         # As any other user
         self.client.login(username='@EXTERNAL@_hs', password='pass')
@@ -282,10 +282,10 @@ class CoreViewsTestCase(TestCase):
         # As ref_etab user
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slot/add", follow=True)
-        self.assertIn(self.structure, response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
 
         data = {
-            'component': self.structure.id,
+            'structure': self.structure.id,
             'training': self.training.id,
             'course': self.course.id,
             'course_type': self.course_type.id,
@@ -334,7 +334,7 @@ class CoreViewsTestCase(TestCase):
 
         # Save a slot and get back to add form
         data = {
-            'component': self.structure.id,
+            'structure': self.structure.id,
             'training': self.training.id,
             'course': self.course.id,
             'course_type': self.course_type.id,
@@ -379,9 +379,9 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/slot/add", follow=True)
 
         # Check that we only get the structures the referent has access to
-        self.assertIn(self.structure, response.context["components"])
-        self.assertEqual(response.context["components"].count(), 1)
-        self.assertNotIn(self.structure2, response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(response.context["structures"].count(), 1)
+        self.assertNotIn(self.structure2, response.context["structures"])
 
 
     def test_modify_slot(self):
@@ -399,11 +399,11 @@ class CoreViewsTestCase(TestCase):
 
         # Get an existing slot
         response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
-        self.assertIn(self.structure, response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
 
         # Get slot data and update a few fields
         data = {
-            'component': self.slot.course.component.id,
+            'structure': self.slot.course.structure.id,
             'training': self.slot.course.training.id,
             'course': self.slot.course.id,
             'course_type': self.slot.course_type.id,
@@ -445,7 +445,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.request['PATH_INFO'],
-            '/core/slots/%s/%s' % (self.slot.course.component.id, self.slot.course.training.id)
+            '/core/slots/%s/%s' % (self.slot.course.structure.id, self.slot.course.training.id)
         )
 
         # TODO : test save_add and duplicate
@@ -455,9 +455,9 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
 
         # Check that we only get the structures the referent has access to
-        self.assertIn(self.structure, response.context["components"])
-        self.assertEqual(response.context["components"].count(), 1)
-        self.assertNotIn(self.structure2, response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(response.context["structures"].count(), 1)
+        self.assertNotIn(self.structure2, response.context["structures"])
 
         # Test with a slot the user doesn't have access to
         response = self.client.get("/core/slot/modify/%s" % self.slot2.id)
@@ -505,8 +505,8 @@ class CoreViewsTestCase(TestCase):
         self.university_year.save()
 
         response = self.client.get("/core/courses_list")
-        self.assertIn(self.structure, response.context["components"])
-        self.assertEqual(None, response.context["component_id"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(None, response.context["structure_id"])
         self.assertFalse(response.context["can_update_courses"])
         self.assertIn("Courses cannot be created, updated or deleted", response.content.decode('utf-8'))
 
@@ -520,9 +520,9 @@ class CoreViewsTestCase(TestCase):
         # As structure referent
         self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/courses_list")
-        self.assertIn(self.structure, response.context["components"])
-        self.assertNotIn(self.structure2, response.context["components"])
-        self.assertEqual(self.structure.id, response.context["component_id"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertNotIn(self.structure2, response.context["structures"])
+        self.assertEqual(self.structure.id, response.context["structure_id"])
         self.assertTrue(response.context["can_update_courses"])
 
 
@@ -557,7 +557,7 @@ class CoreViewsTestCase(TestCase):
 
         # Post data to create a new course
         data = {
-            'component': self.structure.id,
+            'structure': self.structure.id,
             'training': self.training.id,
             'label': "New test course",
             'url': "http://new-course.test.fr",
@@ -784,10 +784,10 @@ class CoreViewsTestCase(TestCase):
     def test_structure(self):
         # As a REF-STR user
         self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/component", follow=True)
+        response = self.client.get("/core/structure", follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.structure, response.context['component'])
-        self.assertEqual(response.context['components'], None)
+        self.assertEqual(self.structure, response.context['structure'])
+        self.assertEqual(response.context['structures'], None)
 
         # Post a new mailing list URL
         self.assertEqual(self.structure.mailing_list, None)
@@ -796,18 +796,18 @@ class CoreViewsTestCase(TestCase):
             "mailing_list": "new_mailing_list@mydomain.com",
             "submit": 1
         }
-        response = self.client.post("/core/component/%s" % self.structure.code, data, follow=True)
+        response = self.client.post("/core/structure/%s" % self.structure.code, data, follow=True)
 
-        self.assertEqual(response.request['PATH_INFO'], '/core/component')
-        structure = Component.objects.get(code='C1')
+        self.assertEqual(response.request['PATH_INFO'], '/core/structure')
+        structure = Structure.objects.get(code='C1')
         self.assertEqual(structure.mailing_list, 'new_mailing_list@mydomain.com')
 
         # As any other user, first check redirection code, then redirection url
         self.client.login(username='lycref', password='pass')
-        response = self.client.get("/core/component")
+        response = self.client.get("/core/structure")
         self.assertEqual(response.status_code, 302)
 
-        response = self.client.get("/core/component", follow=True)
+        response = self.client.get("/core/structure", follow=True)
         self.assertEqual(response.request['PATH_INFO'], '/')
 
 
@@ -816,14 +816,14 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/stats/", follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(self.structure2, response.context['components'])
+        self.assertIn(self.structure2, response.context['structures'])
         self.assertNotIn('high_school_id', response.context)
 
         # As a ref-str user
         self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/stats/", follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertNotIn(self.structure2, response.context['components'])
+        self.assertNotIn(self.structure2, response.context['structures'])
         self.assertNotIn('high_school_id', response.context)
 
         # As ref-lyc user

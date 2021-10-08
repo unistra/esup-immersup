@@ -13,7 +13,7 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
-    ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    StructureForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
     GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
     HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
     InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm,
@@ -23,7 +23,7 @@ from .admin_forms import (
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
-    Component, Course, CourseType, EvaluationFormLink, EvaluationType,
+    Structure, Course, CourseType, EvaluationFormLink, EvaluationType,
     GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
     ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
     Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
@@ -141,7 +141,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     get_activated_account.short_description = _('Activated account')
     get_groups_list.short_description = _('Groups')
 
-    filter_horizontal = ('components', 'groups', 'user_permissions')
+    filter_horizontal = ('structures', 'groups', 'user_permissions')
 
     add_fieldsets = (
         (
@@ -210,7 +210,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         return True
 
     def get_fieldsets(self, request, obj=None):
-        # On user change, add Components in permissions fieldset
+        # On user change, add structures in permissions fieldset
         # after Group selection
         if not obj:
             return super().get_fieldsets(request, obj)
@@ -218,11 +218,11 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             lst = list(UserAdmin.fieldsets)
             permissions_fields = list(lst[2])
             permissions_fields_list = list(permissions_fields[1]['fields'])
-            permissions_fields_list.insert(4, 'components')
+            permissions_fields_list.insert(4, 'structures')
             permissions_fields_list.insert(5, 'highschool')
 
             if not request.user.is_superuser:
-                # Remove components widget for non superusers
+                # Remove structures widget for non superusers
                 try:
                     permissions_fields_list.remove('user_permissions')
                 except ValueError:
@@ -404,8 +404,8 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
-class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = ComponentForm
+class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = StructureForm
     list_display = ('code', 'label', 'active', 'mailing_list')
     list_filter = ('active',)
     ordering = ('label',)
@@ -425,7 +425,7 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
         if not request.user.is_ref_etab_manager():
             return False
 
-        if obj and Training.objects.filter(components=obj).exists():
+        if obj and Training.objects.filter(structures=obj).exists():
             messages.warning(request, _("This structure can't be deleted because it is used by a training"))
             return False
 
@@ -434,7 +434,7 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
-    filter_horizontal = ('components', 'training_subdomains')
+    filter_horizontal = ('structures', 'training_subdomains')
     list_display = ('label', 'active')
     list_filter = ('active',)
     ordering = ('label',)
@@ -1006,7 +1006,7 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
         'participants_one_immersion',
         'participants_multiple_immersions',
         'immersion_registrations',
-        'components_count',
+        'structures_count',
         'trainings_one_slot_count',
         'courses_one_slot_count',
         'total_slots_count',
@@ -1063,7 +1063,7 @@ admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
 admin.site.register(Training, TrainingAdmin)
-admin.site.register(Component, ComponentAdmin)
+admin.site.register(Structure, StructureAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)

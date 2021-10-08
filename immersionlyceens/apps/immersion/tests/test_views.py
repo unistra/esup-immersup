@@ -8,7 +8,7 @@ from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
-    Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
+    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
     Immersion
 )
@@ -107,16 +107,16 @@ class ImmersionViewsTestCase(TestCase):
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
 
         self.today = datetime.datetime.today()
-        self.structure = Component.objects.create(label="test structure")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.structure)
-        self.training2.components.add(self.structure)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)

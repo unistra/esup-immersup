@@ -32,7 +32,7 @@
           <thead>
             <tr>
               <th id="published_filter" class="w-5">{% trans 'Published' %}</th>
-              <th id="component_filter">{% trans 'Structure' %}</th>
+              <th id="structure_filter">{% trans 'Structure' %}</th>
               <th id="training_filter">{% trans 'Training' %}</th>
               <th id="label_filter">{% trans 'Label' %}</th>
               <th id="teacher_filter">{% trans 'Teachers' %}</th>
@@ -95,7 +95,7 @@
         return txt;
       },
     },
-    { "data": "component" },
+    { "data": "structure" },
     { "data": "training_label" },
     { "data": "label" },
     {
@@ -158,7 +158,7 @@
     column_number: 1,
     filter_type: "text",
     filter_default_label: "",
-    filter_container_id: "component_filter",
+    filter_container_id: "structure_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   }, {

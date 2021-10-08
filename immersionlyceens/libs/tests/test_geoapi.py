@@ -15,7 +15,7 @@ from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building,
                                                Calendar, Campus, CancelType,
-                                               Component, Course, CourseType,
+                                               Structure, Course, CourseType,
                                                GeneralSettings, HighSchool,
                                                Immersion, ImmersionUser,
                                                MailTemplate, MailTemplateVars,

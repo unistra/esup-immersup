@@ -12,12 +12,12 @@ from django.test import RequestFactory, TestCase
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
+    StructureForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
     HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm,
     UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component, CourseType,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, CourseType,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday, PublicDocument, PublicType,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -52,7 +52,11 @@ class AdminFormsTestCase(TestCase):
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
-            username='cmp', password='pass', email='immersion@no-reply.com', first_name='cmp', last_name='cmp',
+            username='ref_etab',
+            password='pass',
+            email='immersion@no-reply.com',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
         self.ref_str_user = get_user_model().objects.create_user(
@@ -168,21 +172,21 @@ class AdminFormsTestCase(TestCase):
 
         request.user = self.ref_etab_user
 
-        form = ComponentForm(data=data, request=request)
+        form = StructureForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(Component.objects.filter(label='test').exists())
+        self.assertTrue(Structure.objects.filter(label='test').exists())
 
         # Validation fail (code unicity)
         data["label"] = "test_fail"
-        form = ComponentForm(data=data, request=request)
+        form = StructureForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
         # Validation fail (invalid user)
         request.user = self.ref_str_user
-        form = ComponentForm(data=data, request=request)
+        form = StructureForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertEqual(Component.objects.count(), 1)
+        self.assertEqual(Structure.objects.count(), 1)
 
     def test_training_creation(self):
         """
@@ -190,21 +194,21 @@ class AdminFormsTestCase(TestCase):
         """
         training_domain_data = {'label': 'domain', 'active': True}
         training_subdomain_data = {'label': 'subdomain', 'active': True}
-        component_data = {'code': 'AB123', 'label': 'test', 'active': True}
+        structure_data = {'code': 'AB123', 'label': 'test', 'active': True}
 
         training_domain = TrainingDomain.objects.create(**training_domain_data)
         training_subdomain = TrainingSubdomain.objects.create(
             training_domain=training_domain, **training_subdomain_data
         )
-        component = Component.objects.create(**component_data)
+        structure = Structure.objects.create(**structure_data)
 
         self.assertTrue(TrainingDomain.objects.all().exists())
         self.assertTrue(TrainingSubdomain.objects.all().exists())
-        self.assertTrue(Component.objects.all().exists())
+        self.assertTrue(Structure.objects.all().exists())
 
         data = {
             'label': 'test',
-            'components': [component.pk,],
+            'structures': [structure.pk,],
             'training_subdomains': [training_subdomain.pk,],
         }
         # TODO: missing stuff ?

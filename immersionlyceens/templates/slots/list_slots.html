@@ -46,15 +46,15 @@
       </div>
         <div>
           <div class="form-group row">
-            <label for="component" class="col-form-label col-sm-3">{% trans "Structure" %}</label>
+            <label for="structure" class="col-form-label col-sm-3">{% trans "Structure" %}</label>
             <div class="col-sm-6">
-              <select name="component" id="component" class="form-control">
+              <select name="structure" id="structure" class="form-control">
                 <option value="" selected>-------------</option>
-                {% for comp in components %}
-                    {% if components|length == 1 %}
-                    <option value="{{ comp.id }}" selected>{{ comp.code }} - {{ comp.label }}</option>
+                {% for str in structures %}
+                    {% if structures|length == 1 %}
+                    <option value="{{ str.id }}" selected>{{ str.code }} - {{ str.label }}</option>
                     {% else %}
-                    <option value="{{ comp.id }}">{{ comp.code }} - {{ comp.label }}</option>
+                    <option value="{{ str.id }}">{{ str.code }} - {{ str.label }}</option>
                     {% endif %}
                 {% endfor %}
               </select>
@@ -172,16 +172,16 @@ $(document).ready(function(){
 
     var selected_training = false;
 
-    {% if component_id %}
-        $('#component option[value="{{ component_id }}"]').attr('selected', '');
+    {% if structure_id %}
+        $('#structure option[value="{{ structure_id }}"]').attr('selected', '');
     {% endif %}
 
     initFeedback();
 
-    function load_trainings( comp_id, first=false ) {
+    function load_trainings( str_id, first=false ) {
         $.post({
           url: '/api/get_trainings',
-          data: {structure_id: comp_id},
+          data: {structure_id: str_id},
           success: function (data) {
               if ( data['data'] ) {
                 $('#training').html('');
@@ -202,7 +202,7 @@ $(document).ready(function(){
                         if ( !selected_training )
                         {
                             selected_training = true;
-                            $('#component option[value="{{ component_id }}"]').attr('selected', '');
+                            $('#structure option[value="{{ structure_id }}"]').attr('selected', '');
                         }
                     {% endif %}
                 } else {
@@ -226,7 +226,7 @@ $(document).ready(function(){
         }
     });
 
-    $("#component").on('change', function(event){
+    $("#structure").on('change', function(event){
         $('#training').val('');
         load_trainings(event.target.value);
         reload_data();
@@ -242,7 +242,7 @@ $(document).ready(function(){
           url: '/api/get_slots',
           data: function(d) {
               d.training_id = $('#training').val();
-              d.structure_id = $('#component').val();
+              d.structure_id = $('#structure').val();
               return d
           },
           dataSrc: function (json) {
@@ -270,7 +270,7 @@ $(document).ready(function(){
               }
             },
             { data: 'course_label' },
-            { data: 'component',
+            { data: 'structure',
               render: function(data, type, row) {
                 return data['code'];
                },
@@ -329,7 +329,7 @@ $(document).ready(function(){
             },
             { data: 'id',
               render: function(data, type, row) {
-                if ( row['component']['managed_by_me'] ) {
+                if ( row['structure']['managed_by_me'] ) {
                   let element =
                 '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light btn-sm mr-1" ' +
                 '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';

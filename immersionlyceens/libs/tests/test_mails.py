@@ -13,7 +13,7 @@ from immersionlyceens.libs.utils import get_general_setting
 from ..mails.variables_parser import parser
 
 from immersionlyceens.apps.core.models import (
-    UniversityYear, MailTemplate, Component, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
+    UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
     Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
     CancelType
 )
@@ -85,16 +85,16 @@ class APITestCase(TestCase):
             start_date=self.today - datetime.timedelta(days=2),
             end_date=self.today + datetime.timedelta(days=2)
         )
-        self.structure = Component.objects.create(label="test structure")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.structure)
-        self.training2.components.add(self.structure)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)

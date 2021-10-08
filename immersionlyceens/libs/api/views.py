@@ -22,7 +22,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.apps.core.models import (Building, Calendar, CancelType,
-                                               Component, Course, HighSchool,
+                                               Structure, Course, HighSchool,
                                                Holiday, Immersion,
                                                ImmersionUser, MailTemplate,
                                                MailTemplateVars,
@@ -92,7 +92,7 @@ def ajax_get_courses(request, structure_id=None):
     if not structure_id:
         response['msg'] = gettext("Error : a valid structure must be selected")
 
-    courses = Course.objects.prefetch_related('training', 'component').filter(training__components=structure_id)
+    courses = Course.objects.prefetch_related('training', 'structure').filter(training__structures=structure_id)
 
     for course in courses:
         course_data = {
@@ -100,8 +100,8 @@ def ajax_get_courses(request, structure_id=None):
             'published': course.published,
             'training_label': course.training.label,
             'label': course.label,
-            'component_code': course.component.code,
-            'component_id': course.component.id,
+            'structure_code': course.structure.code,
+            'structure_id': course.structure.id,
             'teachers': [],
             'slots_count': course.slots_count(),
             'n_places': course.free_seats(),
@@ -125,7 +125,7 @@ def ajax_get_courses(request, structure_id=None):
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
 
-    structure_id = request.POST.get("component_id")
+    structure_id = request.POST.get("structure_id")
 
     if not structure_id:
         response['msg'] = gettext("Error : a valid structure must be selected")
@@ -133,7 +133,7 @@ def ajax_get_trainings(request):
 
     trainings = (
         Training.objects.prefetch_related('training_subdomains')
-        .filter(components=structure_id, active=True)
+        .filter(structures=structure_id, active=True)
         .order_by('label')
     )
 
@@ -180,7 +180,7 @@ def ajax_get_slots(request, structure=None):
     except UniversityYear.DoesNotExist:
         pass
 
-    str_id = request.GET.get('component_id')
+    str_id = request.GET.get('structure_id')
     train_id = request.GET.get('training_id')
 
     response = {'msg': '', 'data': []}
@@ -190,23 +190,23 @@ def ajax_get_slots(request, structure=None):
             course__training__id=train_id
         )
     elif str_id:
-        slots = Slot.objects.prefetch_related('course__training__components', 'teachers', 'immersions').filter(
-            course__training__components__id=str_id
+        slots = Slot.objects.prefetch_related('course__training__structures', 'teachers', 'immersions').filter(
+            course__training__structures__id=str_id
         )
 
     all_data = []
     my_structures = []
     if request.user.is_ref_etab_manager():
-        my_structures = Component.objects.all()
+        my_structures = Structure.objects.all()
     elif request.user.is_structure_manager():
-        my_structures = request.user.components.all()
+        my_structures = request.user.structures.all()
 
     for slot in slots:
         data = {
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_structures, },
+            'structure': {'code': slot.course.structure.code, 'managed_by_me': slot.course.structure in my_structures, },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
@@ -266,7 +266,7 @@ def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
 
     courses = (
         Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, component__id=structure_id,)
+        .filter(training__id=training_id, structure__id=structure_id,)
         .order_by('label')
     )
 
@@ -365,7 +365,7 @@ def ajax_get_my_courses(request, user_id=None):
         course_data = {
             'id': course.id,
             'published': course.published,
-            'component': course.component.code,
+            'structure': course.structure.code,
             'training_label': course.training.label,
             'label': course.label,
             'teachers': {},
@@ -408,13 +408,13 @@ def ajax_get_my_slots(request, user_id=None):
 
     if past_slots:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'teachers', 'immersions')
             .filter(teachers=user_id)
             .exclude(date__lt=today.date(), immersions__isnull=True)
         ).distinct()
     else:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'teachers', 'immersions')
             .filter(
                 Q(date__gte=today.date())
                 | Q(date=today.date(), end_time__gte=today.time())
@@ -432,7 +432,7 @@ def ajax_get_my_slots(request, user_id=None):
         slot_data = {
             'id': slot.id,
             'published': slot.published,
-            'component': slot.course.component.code,
+            'structure': slot.course.structure.code,
             'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
             'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
             'location': {'campus': campus, 'room': slot.room, },
@@ -1395,12 +1395,12 @@ def ajax_batch_cancel_registration(request):
 
 
 @groups_required('REF-STR')
-def get_csv_components(request, structure_id):
+def get_csv_structures(request, structure_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    structure = Component.objects.get(id=structure_id).label.replace(' ', '_')
+    structure = Structure.objects.get(id=structure_id).label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{structure}_{today}.csv"'
-    slots = Slot.objects.filter(course__component_id=structure_id, published=True)
+    slots = Slot.objects.filter(course__structure_id=structure_id, published=True)
 
     infield_separator = '|'
 
@@ -1576,7 +1576,7 @@ def get_csv_anonymous_immersion(request):
                 if record:
                     content.append(
                         [
-                            slot.course.component.label,
+                            slot.course.structure.label,
                             infield_separator.join(
                                 [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                             ),
@@ -1603,7 +1603,7 @@ def get_csv_anonymous_immersion(request):
         else:
             content.append(
                 [
-                    slot.course.component.label,
+                    slot.course.structure.label,
                     infield_separator.join(
                         [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                     ),

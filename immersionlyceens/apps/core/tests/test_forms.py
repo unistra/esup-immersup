@@ -12,13 +12,13 @@ from django.test import RequestFactory, TestCase, Client
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    CancelTypeForm, StructureForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
     GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
     TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..forms import SlotForm, MyHighSchoolForm, HighSchoolStudentImmersionUserForm
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure,
     CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
     PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
     Training, Slot, Course)
@@ -84,16 +84,16 @@ class FormTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
         self.today = datetime.datetime.today()
-        self.structure = Component.objects.create(label="test structure")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.structure)
-        self.training2.components.add(self.structure)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)

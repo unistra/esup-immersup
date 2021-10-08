@@ -32,23 +32,23 @@
       </div>
       {% elif request.user.is_structure_manager %}
       <div class="row">
-        <label class="col-form-label col-sm-3" for="component">{% trans 'Structures data' %}</label>
+        <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
 
-        <select name="component" id="component" class="form-control col-sm-3">
+        <select name="structure" id="structure" class="form-control col-sm-3">
 
-          {% if components|length > 1 %}
+          {% if structures|length > 1 %}
             <option value="" selected>{% trans 'Choose a structure' %}</option>
-            {% for component in components %}
-              <option value="{{ component.id }}">{{ component.label }}</option>
+            {% for structure in structures %}
+              <option value="{{ structure.id }}">{{ structure.label }}</option>
             {% endfor %}
           {% else %}
-            {% for component in components %}
-              <option value="{{ component.id }}" selected>{{ component.label }}</option>
+            {% for structure in structures %}
+              <option value="{{ structure.id }}" selected>{{ structure.label }}</option>
             {% endfor %}
           {% endif %}
 
         </select>
-        <button type="button" class="btn btn-primary ml-1" id="extract_component">{% trans 'Extract data' %}</button>
+        <button type="button" class="btn btn-primary ml-1" id="extract_structure">{% trans 'Extract data' %}</button>
       </div>
       {% elif request.user.is_high_school_manager %}
       <div class="row">
@@ -65,20 +65,20 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-  function toggle_component_btn() {
-    if ($('#component').val() === ''){
-        $('#extract_component').prop('disabled', true);
+  function toggle_structure_btn() {
+    if ($('#structure').val() === ''){
+        $('#extract_structure').prop('disabled', true);
     } else {
-        $('#extract_component').prop('disabled', false);
+        $('#extract_structure').prop('disabled', false);
     }
   }
 
-  toggle_component_btn();
-  $('#component').change(function(){ toggle_component_btn(); });
+  toggle_structure_btn();
+  $('#structure').change(function(){ toggle_structure_btn(); });
 
-  $('#extract_component').click(function(event){
-    let component = $('#component').val();
-    let url = '/api/get_csv_components/' + component;
+  $('#extract_structure').click(function(event){
+    let structure = $('#structure').val();
+    let url = '/api/get_csv_structures/' + structure;
     window.open(url, '_blank');
   });
   $('#extract_highschool').click(function(event){

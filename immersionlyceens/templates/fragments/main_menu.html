@@ -51,12 +51,12 @@
         {# Structure #}
         {% if authorized_groups|in_groups:"REF-STR" %}
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownComponents" role="button" data-toggle="dropdown"
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownStructures" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               {% trans 'Structures' %}
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownComponents">
-              <a class="dropdown-item" href="{% url 'component' %}">{% trans 'Update structures settings' %}</a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownStructures">
+              <a class="dropdown-item" href="{% url 'structure' %}">{% trans 'Update structures settings' %}</a>
             </div>
           </div>
         {% endif %}

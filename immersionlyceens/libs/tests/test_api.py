@@ -15,7 +15,7 @@ from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building,
                                                Calendar, Campus, CancelType,
-                                               Component, Course, CourseType,
+                                               Structure, Course, CourseType,
                                                GeneralSettings, HighSchool,
                                                Immersion, ImmersionUser,
                                                MailTemplate, MailTemplateVars,
@@ -131,16 +131,16 @@ class APITestCase(TestCase):
             start_date=self.today - timedelta(days=2),
             end_date=self.today + timedelta(days=2)
         )
-        self.structure = Component.objects.create(label="test structure")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.structure)
-        self.training2.components.add(self.structure)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.structure)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
@@ -460,7 +460,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.structure.id, 'training_id': self.training.id}
+        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
         response = self.client.get(url, data, **header)
         content = json.loads(response.content.decode())
 
@@ -474,8 +474,8 @@ class APITestCase(TestCase):
         self.assertEqual(slot['id'], self.slot.id)
         self.assertEqual(slot['published'], self.slot.published)
         self.assertEqual(slot['course_label'], self.slot.course.label)
-        self.assertEqual(slot['component']['code'], self.slot.course.component.code)
-        self.assertTrue(slot['component']['managed_by_me'])
+        self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
+        self.assertTrue(slot['structure']['managed_by_me'])
         self.assertEqual(slot['course_type'], self.slot.course_type.label)
         self.assertEqual(slot['date'], _date(self.today, 'l d/m/Y'))
         self.assertEqual(slot['time']['start'], '12h00')
@@ -490,7 +490,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.structure.id}
+        data = {'structure_id': self.structure.id}
         response = self.client.get(url, data, **header)
         content = json.loads(response.content.decode())
         self.assertIn('msg', content)
@@ -503,8 +503,8 @@ class APITestCase(TestCase):
         self.assertEqual(slot['id'], self.slot.id)
         self.assertEqual(slot['published'], self.slot.published)
         self.assertEqual(slot['course_label'], self.slot.course.label)
-        self.assertEqual(slot['component']['code'], self.slot.course.component.code)
-        self.assertTrue(slot['component']['managed_by_me'])
+        self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
+        self.assertTrue(slot['structure']['managed_by_me'])
         self.assertEqual(slot['course_type'], self.slot.course_type.label)
         self.assertEqual(slot['date'], _date(self.today, 'l d/m/Y'))
         self.assertEqual(slot['time']['start'], '12h00')
@@ -521,7 +521,7 @@ class APITestCase(TestCase):
 
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.structure.id, 'training_id': self.training.id}
+        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
         response = client.get(url, data, **header)
         self.assertGreaterEqual(response.status_code, 200)
         self.assertLess(response.status_code, 300)
@@ -530,7 +530,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = f"/api/get_trainings"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.structure.id}
+        data = {'structure_id': self.structure.id}
 
         response = self.client.post(url, data, **header)
         content = json.loads(response.content.decode())
@@ -829,7 +829,7 @@ class APITestCase(TestCase):
             n += 1
 
     def test_API_get_csv_structures(self):
-        url = f'/api/get_csv_components/{self.high_school.id}'
+        url = f'/api/get_csv_structures/{self.high_school.id}'
         client = Client()
         client.login(username='ref_str', password='pass')
 
@@ -953,8 +953,8 @@ class APITestCase(TestCase):
         self.assertEqual(c['published'], self.course.published)
         self.assertEqual(c['training_label'], self.course.training.label)
         self.assertEqual(c['label'], self.course.label)
-        self.assertEqual(c['component_code'], self.course.component.code)
-        self.assertEqual(c['component_id'], self.course.component.id)
+        self.assertEqual(c['structure_code'], self.course.structure.code)
+        self.assertEqual(c['structure_id'], self.course.structure.id)
 
         teachers_naming = [f'{t.last_name} {t.first_name}' for t in self.course.teachers.all()]
         for t in c['teachers']:
@@ -1067,7 +1067,7 @@ class APITestCase(TestCase):
         c = content['data'][0]
         self.assertEqual(self.course.id, c['id'])
         self.assertEqual(self.course.published, c['published'])
-        self.assertEqual(self.course.component.code, c['component'])
+        self.assertEqual(self.course.structure.code, c['structure'])
         self.assertEqual(self.course.training.label, c['training_label'])
         self.assertEqual(self.course.label, c['label'])
         # teachers
@@ -1098,7 +1098,7 @@ class APITestCase(TestCase):
         s = content['data'][0]
         self.assertEqual(self.slot.id, s['id'])
         self.assertEqual(self.slot.published, s['published'])
-        self.assertEqual(self.slot.course.component.code, s['component'])
+        self.assertEqual(self.slot.course.structure.code, s['structure'])
         self.assertEqual(
             f'{self.slot.course.training.label} ({self.slot.course_type.label})',
             s['training_label']

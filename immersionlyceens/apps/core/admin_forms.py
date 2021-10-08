@@ -14,7 +14,7 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ...libs.geoapi.utils import get_cities, get_zipcodes, get_departments
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    CertificateSignature, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    CertificateSignature, Structure, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
     PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -209,7 +209,7 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
-        self.fields['components'].queryset = self.fields['components'].queryset.order_by('code', 'label')
+        self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -231,9 +231,9 @@ class TrainingForm(forms.ModelForm):
         fields = '__all__'
 
 
-class ComponentForm(forms.ModelForm):
+class StructureForm(forms.ModelForm):
     """
-    Component form class
+    Structure form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -260,7 +260,7 @@ class ComponentForm(forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = Component
+        model = Structure
         fields = '__all__'
 
 
@@ -635,13 +635,13 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
-                self.fields["components"].disabled = True
+                self.fields["structures"].disabled = True
                 self.fields["highschool"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data['groups']
-        components = cleaned_data['components']
+        structures = cleaned_data['structures']
         highschool = cleaned_data['highschool']
         forbidden_msg = _("Forbidden")
 
@@ -650,12 +650,12 @@ class ImmersionUserChangeForm(UserChangeForm):
         if groups.filter(name='REF-ETAB').exists():
             cleaned_data['is_staff'] = True
 
-        if groups.filter(name='REF-STR').exists() and not components.count():
+        if groups.filter(name='REF-STR').exists() and not structures.count():
             msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
-            self._errors['components'] = self.error_class([msg])
-            del cleaned_data["components"]
+            self._errors['structures'] = self.error_class([msg])
+            del cleaned_data["structures"]
 
-        if components.count() and not groups.filter(name='REF-STR').exists():
+        if structures.count() and not groups.filter(name='REF-STR').exists():
             msg = _("The group 'REF-STR' is mandatory when you add a structure")
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
@@ -677,7 +677,7 @@ class ImmersionUserChangeForm(UserChangeForm):
             # a member of REF-ETAB group
             if is_own_account:
                 del cleaned_data['groups']
-                del cleaned_data['components']
+                del cleaned_data['structures']
 
             elif self.request.user.has_groups('REF-ETAB'):
                 if self.instance.is_ref_etab_manager():

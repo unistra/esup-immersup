@@ -440,7 +440,7 @@ ADMIN_MODELS_ORDER = {
         'BachelorMention',
         'Campus',
         'Building',
-        'Component',
+        'Structure',
         'TrainingDomain',
         'TrainingSubdomain',
         'Training',
