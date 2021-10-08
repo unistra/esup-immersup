@@ -242,19 +242,21 @@ class EstablishmentForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        # Disable code field if it already exists
-        """
-        if self.initial:
-            self.fields["code"].disabled = True
-        """
         self.fields["active"].initial = True
 
+        # First establishment is always 'master'
         if not Establishment.objects.exists():
             self.fields["master"].initial = True
+        # Next ones can't
         elif Establishment.objects.filter(master=True).exists():
             self.fields["master"].initial = False
             self.fields["master"].disabled = True
             self.fields["master"].help_text = _("A 'master' establishment already exists")
+
+        # The 'master' flag can't be updated
+        if self.instance:
+            self.fields["master"].disabled = True
+            self.fields["master"].help_text = _("This attribute cannot be updated")
 
     def clean(self):
         cleaned_data = super().clean()
