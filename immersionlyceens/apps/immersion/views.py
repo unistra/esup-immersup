@@ -222,7 +222,7 @@ def recovery(request):
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("No account found with this email address"))
         except ImmersionUser.MultipleObjectsReturned:
-            messages.error(request, _("Error : please contact the SCUIO-IP"))
+            messages.error(request, _("Error : please contact the establishment referent"))
 
     context = {
         'email': email,
@@ -264,7 +264,7 @@ def reset_password(request, hash=None):
             messages.error(request, _("Password recovery : invalid data"))
             return HttpResponseRedirect("/immersion/login")
         except ImmersionUser.MultipleObjectsReturned:
-            messages.error(request, _("Error : please contact the SCUIO-IP"))
+            messages.error(request, _("Error : please contact the establishment referent"))
             return HttpResponseRedirect("/immersion/login")
 
         form = NewPassForm(instance=user)
@@ -363,7 +363,7 @@ def home(request):
 
 
 @login_required
-@groups_required('SCUIO-IP', 'LYC')
+@groups_required('REF-ETAB', 'LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
@@ -458,7 +458,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
             if record.search_duplicates():
                 if request.user.is_high_school_student():
                     messages.warning(
-                        request, _("A record already exists with this identity, please contact the SCUIO-IP team.")
+                        request,
+                        _("A record already exists with this identity, please contact the establishment referent.")
                     )
                 else:
                     messages.warning(
@@ -512,7 +513,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
 
 @login_required
-@groups_required('SCUIO-IP', 'ETU')
+@groups_required('REF-ETAB', 'ETU')
 def student_record(request, student_id=None, record_id=None):
     """
     Student record
@@ -661,7 +662,7 @@ def immersions(request):
 
 
 @login_required
-@groups_required('LYC', 'ETU', 'REF-LYC', 'SCUIO-IP')
+@groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB')
 def immersion_attestation_download(request, immersion_id):
     """
     Attestation download

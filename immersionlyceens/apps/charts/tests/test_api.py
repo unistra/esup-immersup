@@ -22,10 +22,10 @@ class ChartsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.scuio_user = get_user_model().objects.get(username='test-scuio-ip')
-        self.scuio_user.set_password('hiddenpassword')
-        self.scuio_user.save()
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
+        self.ref_etab_user.set_password('hiddenpassword')
+        self.ref_etab_user.save()
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
         self.reflyc_user = get_user_model().objects.get(username='jeanmonnet')
         self.reflyc_user.set_password('hiddenpassword')
@@ -36,7 +36,7 @@ class ChartsTestCase(TestCase):
 
 
     def test_charts_api(self):
-        self.client.login(username='test-scuio-ip', password='hiddenpassword')
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
         # Highschool charts
@@ -129,7 +129,7 @@ class ChartsTestCase(TestCase):
         )
 
         # Training charts (ajax request : use headers)
-        # logged as scuio-ip
+        # logged as ref-etab
         url = "/charts/get_trainings_charts"
         response = self.client.get(url, {}, **header)
 
@@ -332,7 +332,7 @@ class ChartsTestCase(TestCase):
         self.assertEqual(json_content['data'], data)
 
         # Registration charts
-        self.client.login(username='test-scuio-ip', password='hiddenpassword')
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
         url = "/charts/get_registration_charts/0"
 
         response = self.client.get(url)
@@ -430,14 +430,14 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content["datasets"],
-            [{'component': 'Faculté des Arts',
+            [{'structure': 'Faculté des Arts',
               'slots_count': 21,
               'subData': [{'name': 'Licence Arts Plastiques & '
                                    'Design',
                            'slots_count': 13},
                           {'name': 'Licence Arts du Spectacle',
                            'slots_count': 8}]},
-             {'component': 'UFR Mathématiques et Informatique',
+             {'structure': 'UFR Mathématiques et Informatique',
               'slots_count': 17,
               'subData': [{'name': 'Licence Informatique',
                            'slots_count': 6},
@@ -445,16 +445,16 @@ class ChartsTestCase(TestCase):
                            'slots_count': 7},
                           {'name': 'Licence Maths-Eco',
                            'slots_count': 4}]},
-             {'component': 'Faculté des sciences du sport',
+             {'structure': 'Faculté des sciences du sport',
               'slots_count': 5,
               'subData': [{'name': 'Licence STAPS',
                            'slots_count': 5}]},
-             {'component': 'Faculté des Sciences économiques et de '
+             {'structure': 'Faculté des Sciences économiques et de '
                            'gestion',
               'slots_count': 9,
               'subData': [{'name': 'Licence Maths-Eco',
                            'slots_count': 9}]},
-             {'component': 'IUT Louis Pasteur',
+             {'structure': 'IUT Louis Pasteur',
               'slots_count': 1,
               'subData': [{'name': 'DUT Informatique',
                            'slots_count': 1}]}]
@@ -468,124 +468,124 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['data'],
              [{'available_seats': 15,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Arts du spectacle',
                'slots_count': 2,
                'training': 'Licence Arts Plastiques & Design'},
               {'available_seats': 15,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Arts plastiques',
                'slots_count': 3,
                'training': 'Licence Arts Plastiques & Design'},
               {'available_seats': 29,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Arts plastiques 2',
                'slots_count': 2,
                'training': 'Licence Arts Plastiques & Design'},
               {'available_seats': 15,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Design théorie',
                'slots_count': 3,
                'training': 'Licence Arts Plastiques & Design'},
               {'available_seats': 0,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Histoire des arts',
                'slots_count': 2,
                'training': 'Licence Arts Plastiques & Design'},
               {'available_seats': 4,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'cours test 1',
                'slots_count': 1,
                'training': 'Licence Arts Plastiques & Design'},
               {'available_seats': 10,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Théatre',
                'slots_count': 3,
                'training': 'Licence Arts du Spectacle'},
               {'available_seats': 14,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Théatre 2',
                'slots_count': 3,
                'training': 'Licence Arts du Spectacle'},
               {'available_seats': 16,
-               'component': 'Faculté des Arts',
+               'structure': 'Faculté des Arts',
                'course': 'Théatre débutant',
                'slots_count': 2,
                'training': 'Licence Arts du Spectacle'},
               {'available_seats': 8,
-               'component': 'Faculté des Sciences économiques et de '
+               'structure': 'Faculté des Sciences économiques et de '
                             'gestion',
                'course': 'Economie 2',
                'slots_count': 1,
                'training': 'Licence Maths-Eco'},
               {'available_seats': 43,
-               'component': 'Faculté des Sciences économiques et de '
+               'structure': 'Faculté des Sciences économiques et de '
                             'gestion',
                'course': 'Economie 3',
                'slots_count': 7,
                'training': 'Licence Maths-Eco'},
               {'available_seats': 6,
-               'component': 'Faculté des sciences du sport',
+               'structure': 'Faculté des sciences du sport',
                'course': 'Ergonomie du mouvement',
                'slots_count': 2,
                'training': 'Licence STAPS'},
               {'available_seats': 20,
-               'component': 'Faculté des sciences du sport',
+               'structure': 'Faculté des sciences du sport',
                'course': 'Pratiques sportives',
                'slots_count': 3,
                'training': 'Licence STAPS'},
               {'available_seats': 8,
-               'component': 'IUT Louis Pasteur',
+               'structure': 'IUT Louis Pasteur',
                'course': 'Developpement Web',
                'slots_count': 1,
                'training': 'DUT Informatique'},
               {'available_seats': 15,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Algorithmique',
                'slots_count': 3,
                'training': 'Licence Informatique'},
               {'available_seats': 0,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Algorithmique 3',
                'slots_count': 0,
                'training': 'Licence Informatique'},
               {'available_seats': 19,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Algèbre 1',
                'slots_count': 3,
                'training': 'Licence Informatique'},
               {'available_seats': 0,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Anglais pour informatique',
                'slots_count': 0,
                'training': 'Licence Informatique'},
               {'available_seats': 0,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Algo_prog',
                'slots_count': 0,
                'training': 'Licence Maths-Eco'},
               {'available_seats': 19,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Analyse S1',
                'slots_count': 1,
                'training': 'Licence Maths-Eco'},
               {'available_seats': 15,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Organisation',
                'slots_count': 3,
                'training': 'Licence Maths-Eco'},
               {'available_seats': 47,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Algorithmique',
                'slots_count': 3,
                'training': 'Licence Mathématiques'},
               {'available_seats': 40,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Analyse 2',
                'slots_count': 3,
                'training': 'Licence Mathématiques'},
               {'available_seats': 10,
-               'component': 'UFR Mathématiques et Informatique',
+               'structure': 'UFR Mathématiques et Informatique',
                'course': 'Analyse S1',
                'slots_count': 1,
                'training': 'Licence Mathématiques'}]

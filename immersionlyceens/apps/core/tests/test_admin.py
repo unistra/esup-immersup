@@ -12,12 +12,12 @@ from django.test import RequestFactory, TestCase
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    ComponentForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    StructureForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
     GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm,
     TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component, CourseType,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, CourseType,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday, PublicDocument,
     PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
@@ -51,20 +51,24 @@ class AdminFormsTestCase(TestCase):
             username='super', password='pass', email='immersion@no-reply.com'
         )
 
-        self.scuio_user = get_user_model().objects.create_user(
-            username='cmp', password='pass', email='immersion@no-reply.com', first_name='cmp', last_name='cmp',
-        )
-
-        self.ref_cmp_user = get_user_model().objects.create_user(
-            username='ref_cmp',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
             email='immersion@no-reply.com',
-            first_name='ref_cmp',
-            last_name='ref_cmp',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
-        Group.objects.get(name='REF-CMP').user_set.add(self.ref_cmp_user)
+        self.ref_str_user = get_user_model().objects.create_user(
+            username='ref_str',
+            password='pass',
+            email='immersion@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
+        )
+
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
 
     def test_training_domain_creation(self):
         """
@@ -72,7 +76,7 @@ class AdminFormsTestCase(TestCase):
         """
         data = {'label': 'test', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = TrainingDomainForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -81,7 +85,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_fail', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = TrainingDomainForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(TrainingDomain.objects.filter(label='test_fail').exists())
@@ -97,7 +101,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {'label': 'sd test', 'training_domain': td.pk, 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = TrainingSubdomainForm(data=data, request=request)
 
@@ -107,7 +111,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_fail', 'training_domain': td, 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = TrainingSubdomainForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(TrainingSubdomain.objects.filter(label='test_fail').exists())
@@ -119,7 +123,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {'label': 'testCampus', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = CampusForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -128,7 +132,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_fail', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = CampusForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(Campus.objects.filter(label='test_fail').exists())
@@ -146,7 +150,7 @@ class AdminFormsTestCase(TestCase):
             'active': True,
         }
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = BuildingForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -155,34 +159,34 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_fail', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = BuildingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(Building.objects.filter(label='test_fail').exists())
 
-    def test_component_creation(self):
+    def test_structure_creation(self):
         """
-        Test admin Component creation with group rights
+        Test admin structure creation with group rights
         """
         data = {'code': 'AB123', 'label': 'test', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
-        form = ComponentForm(data=data, request=request)
+        form = StructureForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(Component.objects.filter(label='test').exists())
+        self.assertTrue(Structure.objects.filter(label='test').exists())
 
         # Validation fail (code unicity)
         data["label"] = "test_fail"
-        form = ComponentForm(data=data, request=request)
+        form = StructureForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
         # Validation fail (invalid user)
-        request.user = self.ref_cmp_user
-        form = ComponentForm(data=data, request=request)
+        request.user = self.ref_str_user
+        form = StructureForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertEqual(Component.objects.count(), 1)
+        self.assertEqual(Structure.objects.count(), 1)
 
     def test_training_creation(self):
         """
@@ -190,21 +194,21 @@ class AdminFormsTestCase(TestCase):
         """
         training_domain_data = {'label': 'domain', 'active': True}
         training_subdomain_data = {'label': 'subdomain', 'active': True}
-        component_data = {'code': 'AB123', 'label': 'test', 'active': True}
+        structure_data = {'code': 'AB123', 'label': 'test', 'active': True}
 
         training_domain = TrainingDomain.objects.create(**training_domain_data)
         training_subdomain = TrainingSubdomain.objects.create(
             training_domain=training_domain, **training_subdomain_data
         )
-        component = Component.objects.create(**component_data)
+        structure = Structure.objects.create(**structure_data)
 
         self.assertTrue(TrainingDomain.objects.all().exists())
         self.assertTrue(TrainingSubdomain.objects.all().exists())
-        self.assertTrue(Component.objects.all().exists())
+        self.assertTrue(Structure.objects.all().exists())
 
         data = {
             'label': 'test',
-            'components': [component.pk,],
+            'structures': [structure.pk,],
             'training_subdomains': [training_subdomain.pk,],
         }
         # TODO: missing stuff ?
@@ -216,7 +220,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {'label': 'testBachelor', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = BachelorMentionForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -225,7 +229,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = BachelorMentionForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(BachelorMention.objects.filter(label='test_failure').exists())
@@ -237,7 +241,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {'label': 'testBachelor', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = CancelTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -246,7 +250,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = CancelTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(CancelType.objects.filter(label='test_failure').exists())
@@ -257,7 +261,7 @@ class AdminFormsTestCase(TestCase):
         """
         data = {'label': 'testCourse', 'full_label': 'testFullCourse', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = CourseTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -266,7 +270,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = CourseTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(CourseType.objects.filter(label='test_failure').exists())
@@ -277,7 +281,7 @@ class AdminFormsTestCase(TestCase):
         """
         data = {'label': 'test', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = GeneralBachelorTeachingForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -286,7 +290,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = GeneralBachelorTeachingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(GeneralBachelorTeaching.objects.filter(label='test_failure').exists())
@@ -297,7 +301,7 @@ class AdminFormsTestCase(TestCase):
         """
         data = {'label': 'testCourse', 'active': True}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = PublicTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -306,7 +310,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = PublicTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(PublicType.objects.filter(label='test_fail').exists())
@@ -324,7 +328,7 @@ class AdminFormsTestCase(TestCase):
             'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = UniversityYearForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -339,13 +343,13 @@ class AdminFormsTestCase(TestCase):
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
             'registration_start_date': datetime.datetime.today().date(),
         }
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(UniversityYear.objects.filter(label='test_fail').exists())
 
     def test_university_year_constraint__fail_before_now(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'test_ok',
             'active': True,
@@ -353,12 +357,12 @@ class AdminFormsTestCase(TestCase):
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
         }
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
     def test_university_year_constraint__fail_start_greater_end(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'test_ok',
             'active': True,
@@ -366,12 +370,12 @@ class AdminFormsTestCase(TestCase):
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=9),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
         }
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
     def test_university_year_constraint__fail_registrtion_before_start(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'test_ok',
             'active': True,
@@ -379,12 +383,12 @@ class AdminFormsTestCase(TestCase):
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
         }
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
     def test_university_year_constraint__fail_registrtion_after_end(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'test_ok',
             'active': True,
@@ -392,7 +396,7 @@ class AdminFormsTestCase(TestCase):
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=20),
         }
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
@@ -417,7 +421,7 @@ class AdminFormsTestCase(TestCase):
             'convention_end_date': '',
         }
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = HighSchoolForm(data=data, request=request)
         # Need to populate choices fields (ajax populated IRL)
@@ -444,7 +448,7 @@ class AdminFormsTestCase(TestCase):
             'convention_start_date': datetime.datetime.today().date(),
             'convention_end_date': '',
         }
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = HighSchoolForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(HighSchool.objects.filter(label='Degrassi Junior School').exists())
@@ -465,7 +469,7 @@ class AdminFormsTestCase(TestCase):
             'date': datetime.datetime.today().date() + datetime.timedelta(days=2),
         }
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = HolidayForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -475,7 +479,7 @@ class AdminFormsTestCase(TestCase):
         # Validation fail (invalid user)
         data['label'] = 'test failure'
 
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = HolidayForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(Holiday.objects.filter(label='test_fail').exists())
@@ -493,7 +497,7 @@ class AdminFormsTestCase(TestCase):
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
         }
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = VacationForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -503,7 +507,7 @@ class AdminFormsTestCase(TestCase):
         # Validation fail (invalid user)
         data['label'] = 'test failure'
 
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = HolidayForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(Vacation.objects.filter(label='test failure').exists())
@@ -512,13 +516,13 @@ class AdminFormsTestCase(TestCase):
         data['label'] = 'test failure 2'
         data['end_date'] = datetime.datetime.today().date() + datetime.timedelta(days=1)
 
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = HolidayForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(Vacation.objects.filter(label='test failure 2').exists())
 
     def test_vacation__fail_before_univ_year_(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         UniversityYear(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
@@ -534,7 +538,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_vacation__fail_after_univ_year_(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         UniversityYear(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
@@ -550,7 +554,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_vacation__fail_start_date_inside_other_vacation(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         UniversityYear(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
@@ -572,7 +576,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_vacation__fail_end_date_inside_other_vacation(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         UniversityYear(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
@@ -594,7 +598,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_vacation__fail_other_vacation_inside_this_one(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         UniversityYear(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
@@ -627,7 +631,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {'label': 'testDocument', 'description': 'testDescription', 'active': True, 'public_type': ['1',]}
         # TODO: fix me needed manytomany public type field !!!!
-        # request.user = self.scuio_user
+        # request.user = self.ref_etab_user
 
         # form = AccompanyingDocumentForm(data=data, files=file, request=request)
         # self.assertTrue(form.is_valid())
@@ -641,7 +645,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = AccompanyingDocumentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(AccompanyingDocument.objects.filter(label='test_fail').exists())
@@ -669,7 +673,7 @@ class AdminFormsTestCase(TestCase):
             'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = CalendarForm(data=data_year, request=request)
         self.assertTrue(form.is_valid())
@@ -702,7 +706,7 @@ class AdminFormsTestCase(TestCase):
             'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = CalendarForm(data=data_year, request=request)
         self.assertTrue(form.is_valid())
@@ -719,7 +723,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'YEAR',
@@ -743,7 +747,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'YEAR',
@@ -767,7 +771,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'YEAR',
@@ -791,7 +795,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -818,7 +822,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -845,7 +849,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -872,7 +876,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -899,7 +903,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -926,7 +930,7 @@ class AdminFormsTestCase(TestCase):
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
         ).save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -952,7 +956,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {'label': 'testPublicDocument', 'active': True, 'published': False}
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         form = PublicDocumentForm(data=data, files=file, request=request)
         self.assertTrue(form.is_valid())
@@ -966,7 +970,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
         form = PublicDocumentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(PublicDocument.objects.filter(label='test_fail').exists())
@@ -994,7 +998,7 @@ class AdminFormsTestCase(TestCase):
 
         # Validation fail (invalid user)
         data = {'code': 'testCode', 'label': 'test_failure'}
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         form = EvaluationTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(EvaluationType.objects.filter(label='test_fail').exists())
@@ -1006,7 +1010,7 @@ class AdminFormsTestCase(TestCase):
 
         type = EvaluationType.objects.create(code='testCode', label='testLabel')
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {'evaluation_type': type.pk, 'url': 'http://google.fr'}
         form = EvaluationFormLinkForm(data=data, request=request)
@@ -1016,7 +1020,7 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(EvaluationFormLink.objects.filter(url=data['url']).exists())
 
         # Validation fail (invalid user)
-        request.user = self.ref_cmp_user
+        request.user = self.ref_str_user
 
         type = EvaluationType.objects.create(code='testNoobCode', label='testNoobLabel')
 

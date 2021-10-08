@@ -12,7 +12,7 @@ from django.test import RequestFactory, TestCase, Client
 from django.urls import reverse
 
 from ..models import (
-    Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
+    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
     Immersion, Holiday
 )
@@ -96,31 +96,31 @@ class CoreViewsTestCase(TestCase):
         self.lyc_ref.set_password('pass')
         self.lyc_ref.save()
 
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
             email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
-        self.scuio_user.set_password('pass')
-        self.scuio_user.save()
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
 
-        self.component = Component.objects.create(code='C1', label="test component")
-        self.component2 = Component.objects.create(code='C2', label="Second test component")
+        self.structure = Structure.objects.create(code='C1', label="test structure")
+        self.structure2 = Structure.objects.create(code='C2', label="Second test structure")
 
-        self.ref_cmp_user = get_user_model().objects.create_user(
-            username='refcmp',
+        self.ref_str_user = get_user_model().objects.create_user(
+            username='ref_str',
             password='pass',
             email='immersion@no-reply.com',
-            first_name='refcmp',
-            last_name='refcmp',
+            first_name='ref_str',
+            last_name='ref_str',
         )
 
-        self.ref_cmp_user.components.add(self.component)
-        self.ref_cmp_user.set_password('pass')
-        self.ref_cmp_user.save()
+        self.ref_str_user.structures.add(self.structure)
+        self.ref_str_user.set_password('pass')
+        self.ref_str_user.save()
 
         self.client = Client()
 
@@ -129,8 +129,8 @@ class CoreViewsTestCase(TestCase):
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='ETU').user_set.add(self.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
-        Group.objects.get(name='REF-CMP').user_set.add(self.ref_cmp_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
 
         BachelorMention.objects.create(
             label="Sciences et technologies du management et de la gestion (STMG)",
@@ -152,16 +152,16 @@ class CoreViewsTestCase(TestCase):
         self.training3 = Training.objects.create(label="test training 3")
 
         self.training.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
+        self.training.structures.add(self.structure)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training2.components.add(self.component)
+        self.training2.structures.add(self.structure)
         self.training3.training_subdomains.add(self.t_sub_domain2)
-        self.training3.components.add(self.component2)
+        self.training3.structures.add(self.structure2)
 
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
 
-        self.course2 = Course.objects.create(label="course 2", training=self.training3, component=self.component2)
+        self.course2 = Course.objects.create(label="course 2", training=self.training3, structure=self.structure2)
         self.course2.teachers.add(self.teacher2)
 
         self.campus = Campus.objects.create(label='Esplanade')
@@ -174,7 +174,7 @@ class CoreViewsTestCase(TestCase):
         )
         self.slot.teachers.add(self.teacher1),
 
-        # Add another slot : component referent shouldn't have access to this one
+        # Add another slot : structure referent shouldn't have access to this one
         self.slot2 = Slot.objects.create(
             course=self.course2, course_type=self.course_type, campus=self.campus,
             building=self.building, room='room 12', date=self.today,
@@ -231,40 +231,40 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_import_holidays(self):
-        self.scuio_user.is_staff = True
-        self.scuio_user.save()
+        self.ref_etab_user.is_staff = True
+        self.ref_etab_user.save()
 
         self.assertFalse(Holiday.objects.all().exists())
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/admin/holiday/import", follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Holiday.objects.all().exists())
 
 
     def test_slots(self):
-        # First test simple get with no component or training parameter
+        # First test simple get with no structure or training parameter
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slots/", follow=True)
-        self.assertIn(self.component, response.context["components"])
-        self.assertNotIn("component_id", response.context["components"])
-        self.assertNotIn("train_id", response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertNotIn("structure_id", response.context["structures"])
+        self.assertNotIn("train_id", response.context["structures"])
 
         # with parameters
-        # response = self.client.get("/core/slots/%s/%s" % (self.component.id, self.training.id))
-        response = self.client.get(reverse("slots_list", args=[self.component.id, self.training.id]))
-        self.assertEqual(self.component.id, response.context["component_id"])
+        # response = self.client.get("/core/slots/%s/%s" % (self.structure.id, self.training.id))
+        response = self.client.get(reverse("slots_list", args=[self.structure.id, self.training.id]))
+        self.assertEqual(self.structure.id, response.context["structure_id"])
         self.assertEqual(self.training.id, response.context["training_id"])
 
-        # As component referent
-        self.client.login(username='refcmp', password='pass')
+        # As structure referent
+        self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/slots/", follow=True)
-        self.assertIn(self.component, response.context["components"])
-        self.assertEqual(response.context["components"].count(), 1)
-        self.assertNotIn(self.component2, response.context["components"])
-        self.assertNotIn("component_id", response.context["components"])
-        self.assertNotIn("train_id", response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(response.context["structures"].count(), 1)
+        self.assertNotIn(self.structure2, response.context["structures"])
+        self.assertNotIn("structure_id", response.context["structures"])
+        self.assertNotIn("train_id", response.context["structures"])
 
         # As any other user
         self.client.login(username='@EXTERNAL@_hs', password='pass')
@@ -279,13 +279,13 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slot/add")
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slot/add", follow=True)
-        self.assertIn(self.component, response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
 
         data = {
-            'component': self.component.id,
+            'structure': self.structure.id,
             'training': self.training.id,
             'course': self.course.id,
             'course_type': self.course_type.id,
@@ -325,16 +325,16 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Slot successfully added", response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request['PATH_INFO'], '/core/slots/%s/%s' % (self.component.id, self.training.id))
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/%s/%s' % (self.structure.id, self.training.id))
 
         # get add_slot form with an existing slot
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slot/add/%s" % self.slot.id, follow=True)
         self.assertEqual(response.context["slot"].course_id, self.course.id)
 
         # Save a slot and get back to add form
         data = {
-            'component': self.component.id,
+            'structure': self.structure.id,
             'training': self.training.id,
             'course': self.course.id,
             'course_type': self.course_type.id,
@@ -374,14 +374,14 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.context["slot"].course_id, self.course.id)  # empty slot
         self.assertEqual(response.request['PATH_INFO'], '/core/slot/add/%s' % slot.id)
 
-        # Get as component referent
-        self.client.login(username='refcmp', password='pass')
+        # Get as structure referent
+        self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/slot/add", follow=True)
 
-        # Check that we only get the components the referent has access to
-        self.assertIn(self.component, response.context["components"])
-        self.assertEqual(response.context["components"].count(), 1)
-        self.assertNotIn(self.component2, response.context["components"])
+        # Check that we only get the structures the referent has access to
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(response.context["structures"].count(), 1)
+        self.assertNotIn(self.structure2, response.context["structures"])
 
 
     def test_modify_slot(self):
@@ -391,19 +391,19 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slot/modify/%s" % self.slot.id)
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         # Fail with a non existing slot
         response = self.client.get("/core/slot/modify/250", follow=True)
         self.assertIn("This slot id does not exist", response.content.decode('utf-8'))
 
         # Get an existing slot
         response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
-        self.assertIn(self.component, response.context["components"])
+        self.assertIn(self.structure, response.context["structures"])
 
         # Get slot data and update a few fields
         data = {
-            'component': self.slot.course.component.id,
+            'structure': self.slot.course.structure.id,
             'training': self.slot.course.training.id,
             'course': self.slot.course.id,
             'course_type': self.slot.course_type.id,
@@ -445,19 +445,19 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.request['PATH_INFO'],
-            '/core/slots/%s/%s' % (self.slot.course.component.id, self.slot.course.training.id)
+            '/core/slots/%s/%s' % (self.slot.course.structure.id, self.slot.course.training.id)
         )
 
         # TODO : test save_add and duplicate
 
-        # Get as component referent
-        self.client.login(username='refcmp', password='pass')
+        # Get as structure referent
+        self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
 
-        # Check that we only get the components the referent has access to
-        self.assertIn(self.component, response.context["components"])
-        self.assertEqual(response.context["components"].count(), 1)
-        self.assertNotIn(self.component2, response.context["components"])
+        # Check that we only get the structures the referent has access to
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(response.context["structures"].count(), 1)
+        self.assertNotIn(self.structure2, response.context["structures"])
 
         # Test with a slot the user doesn't have access to
         response = self.client.get("/core/slot/modify/%s" % self.slot2.id)
@@ -467,19 +467,19 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/slot/modify/%s" % self.slot2.id, follow=True)
         self.assertTrue(response.status_code, 200)
         self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
-        self.assertIn("This slot belongs to another component", response.content.decode('utf-8'))
+        self.assertIn("This slot belongs to another structure", response.content.decode('utf-8'))
 
     def test_delete_slot(self):
         self.assertTrue(Slot.objects.filter(pk=self.slot.id).exists())
 
-        # As component referent, test with a slot the user doesn't have access to
-        self.client.login(username='refcmp', password='pass')
+        # As structure referent, test with a slot the user doesn't have access to
+        self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/slot/delete/%s" % self.slot2.id, follow=True)
-        self.assertEqual(response.content.decode('utf-8'), "This slot belongs to another component")
+        self.assertEqual(response.content.decode('utf-8'), "This slot belongs to another structure")
         self.assertTrue(Slot.objects.filter(pk=self.slot.id).exists())
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/slot/delete/%s" % self.slot.id, follow=True)
         self.assertEqual(response.content.decode('utf-8'), "ok")
         self.assertFalse(Slot.objects.filter(pk=self.slot.id).exists())
@@ -497,16 +497,16 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/courses_list")
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
 
         # with invalid year dates
         self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
         self.university_year.save()
 
         response = self.client.get("/core/courses_list")
-        self.assertIn(self.component, response.context["components"])
-        self.assertEqual(None, response.context["component_id"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertEqual(None, response.context["structure_id"])
         self.assertFalse(response.context["can_update_courses"])
         self.assertIn("Courses cannot be created, updated or deleted", response.content.decode('utf-8'))
 
@@ -517,12 +517,12 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/courses_list")
         self.assertTrue(response.context["can_update_courses"])
 
-        # As component referent
-        self.client.login(username='refcmp', password='pass')
+        # As structure referent
+        self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/courses_list")
-        self.assertIn(self.component, response.context["components"])
-        self.assertNotIn(self.component2, response.context["components"])
-        self.assertEqual(self.component.id, response.context["component_id"])
+        self.assertIn(self.structure, response.context["structures"])
+        self.assertNotIn(self.structure2, response.context["structures"])
+        self.assertEqual(self.structure.id, response.context["structure_id"])
         self.assertTrue(response.context["can_update_courses"])
 
 
@@ -533,8 +533,8 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/course")
 
-        # As scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
 
         # with invalid year dates
         self.university_year.start_date = self.today.date() + datetime.timedelta(days=1)
@@ -557,7 +557,7 @@ class CoreViewsTestCase(TestCase):
 
         # Post data to create a new course
         data = {
-            'component': self.component.id,
+            'structure': self.structure.id,
             'training': self.training.id,
             'label': "New test course",
             'url': "http://new-course.test.fr",
@@ -626,7 +626,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.request['PATH_INFO'], '/core/course/%s/1' % course2.id)
 
         # Try to access a course the user doesn't have access to
-        self.client.login(username='refcmp', password='pass')
+        self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/course/%s" % self.course2.id, follow=True)
         self.assertIn("You don't have enough privileges to update this course", response.content.decode("utf-8"))
         data["label"] = "This shouldn't happen"
@@ -677,20 +677,20 @@ class CoreViewsTestCase(TestCase):
 
         self.assertIn('highschool', response.context)
         self.assertEqual(response.context['highschool'], self.high_school)
-        self.assertFalse(response.context['is_scuio_ip_manager'])
+        self.assertFalse(response.context['is_ref_etab_manager'])
 
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/my_students", follow=True)
 
         self.assertIn('highschool', response.context)
         self.assertEqual(response.context['highschool'], None)
-        self.assertTrue(response.context['is_scuio_ip_manager'])
+        self.assertTrue(response.context['is_ref_etab_manager'])
 
 
     def test_student_validation(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/student_validation/", follow=True)
         self.assertNotIn('high_school', response.context)
         self.assertIn(self.high_school, response.context['high_schools'])
@@ -781,49 +781,49 @@ class CoreViewsTestCase(TestCase):
 
 
 
-    def test_component(self):
-        # As a refcmp user
-        self.client.login(username='refcmp', password='pass')
-        response = self.client.get("/core/component", follow=True)
+    def test_structure(self):
+        # As a REF-STR user
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/structure", follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.component, response.context['component'])
-        self.assertEqual(response.context['components'], None)
+        self.assertEqual(self.structure, response.context['structure'])
+        self.assertEqual(response.context['structures'], None)
 
         # Post a new mailing list URL
-        self.assertEqual(self.component.mailing_list, None)
+        self.assertEqual(self.structure.mailing_list, None)
         data = {
-            "code" : self.component.code,
+            "code" : self.structure.code,
             "mailing_list": "new_mailing_list@mydomain.com",
             "submit": 1
         }
-        response = self.client.post("/core/component/%s" % self.component.code, data, follow=True)
+        response = self.client.post("/core/structure/%s" % self.structure.code, data, follow=True)
 
-        self.assertEqual(response.request['PATH_INFO'], '/core/component')
-        component = Component.objects.get(code='C1')
-        self.assertEqual(component.mailing_list, 'new_mailing_list@mydomain.com')
+        self.assertEqual(response.request['PATH_INFO'], '/core/structure')
+        structure = Structure.objects.get(code='C1')
+        self.assertEqual(structure.mailing_list, 'new_mailing_list@mydomain.com')
 
         # As any other user, first check redirection code, then redirection url
         self.client.login(username='lycref', password='pass')
-        response = self.client.get("/core/component")
+        response = self.client.get("/core/structure")
         self.assertEqual(response.status_code, 302)
 
-        response = self.client.get("/core/component", follow=True)
+        response = self.client.get("/core/structure", follow=True)
         self.assertEqual(response.request['PATH_INFO'], '/')
 
 
     def test_stats(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/stats/", follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(self.component2, response.context['components'])
+        self.assertIn(self.structure2, response.context['structures'])
         self.assertNotIn('high_school_id', response.context)
 
-        # As a ref-cmp user
-        self.client.login(username='refcmp', password='pass')
+        # As a ref-str user
+        self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/stats/", follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertNotIn(self.component2, response.context['components'])
+        self.assertNotIn(self.structure2, response.context['structures'])
         self.assertNotIn('high_school_id', response.context)
 
         # As ref-lyc user
@@ -834,8 +834,8 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_students_presence(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/students_presence", follow=True)
         self.assertEqual(response.status_code, 200)
 
@@ -844,8 +844,8 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_duplicated_accounts(self):
-        # As a scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # As a ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get("/core/duplicates", follow=True)
         self.assertEqual(response.status_code, 200)
 

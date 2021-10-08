@@ -223,7 +223,7 @@ ul
         <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
 
-      {% if authorized_groups|in_groups:"SCUIO-IP" %}
+      {% if authorized_groups|in_groups:"REF-ETAB" %}
 
         <input type="button" class="btn btn-primary btn-sm ml-4" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
 

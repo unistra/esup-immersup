@@ -24,10 +24,10 @@ class ChartsViewsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.scuio_user = get_user_model().objects.get(username='test-scuio-ip')
-        self.scuio_user.set_password('hiddenpassword')
-        self.scuio_user.save()
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
+        self.ref_etab_user.set_password('hiddenpassword')
+        self.ref_etab_user.save()
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
         self.reflyc_user = get_user_model().objects.get(username='jeanmonnet')
         self.reflyc_user.set_password('hiddenpassword')
@@ -35,11 +35,11 @@ class ChartsViewsTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
 
         self.client = Client()
-        self.client.login(username='test-scuio-ip', password='hiddenpassword')
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
 
     def test_view_highschool_charts(self):
         request = self.factory.get("/")
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         response = self.client.get("/charts/highschool_charts", request)
         self.assertEqual(response.context['highschools'],
@@ -60,7 +60,7 @@ class ChartsViewsTestCase(TestCase):
 
     def test_view_highschool_domains_charts(self):
         request = self.factory.get("/")
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         response = self.client.get("/charts/highschool_domains_charts", request)
         self.assertEqual(response.context['highschools'],
@@ -86,7 +86,7 @@ class ChartsViewsTestCase(TestCase):
 
     def test_view_global_domains_charts(self):
         request = self.factory.get("/")
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         # Get : no filter
         response = self.client.get("/charts/global_domains_charts", request)
@@ -109,8 +109,8 @@ class ChartsViewsTestCase(TestCase):
 
     def test_view_trainings_charts(self):
         request = self.factory.get("/")
-        request.user = self.scuio_user
-        # As scuio-ip user
+        request.user = self.ref_etab_user
+        # As ref-etab user
         response = self.client.get("/charts/trainings_charts", request)
         self.assertEqual(response.context['highschools'],
             [{'id': 3, 'label': 'Lycée Coufignal', 'city': 'COLMAR'},
@@ -142,7 +142,7 @@ class ChartsViewsTestCase(TestCase):
 
     def test_view_global_registrations_charts(self):
         request = self.factory.get("/")
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         # Get : no filter
         response = self.client.get("/charts/global_registrations_charts", request)
 
@@ -166,7 +166,7 @@ class ChartsViewsTestCase(TestCase):
 
     def test_view_global_slots_charts(self):
         request = self.factory.get("/")
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         response = self.client.get("/charts/global_slots_charts", request)
 
         # Not much to test here, as data is gathered with ajax queries

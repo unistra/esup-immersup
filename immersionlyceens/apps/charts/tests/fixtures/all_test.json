@@ -1,6 +1,6 @@
 [
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 1,
     "fields": {
         "code": "ART",
@@ -10,7 +10,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 2,
     "fields": {
         "code": "MAI",
@@ -20,7 +20,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 3,
     "fields": {
         "code": "APS",
@@ -30,7 +30,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 6,
     "fields": {
         "code": "SEG",
@@ -40,7 +40,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 7,
     "fields": {
         "code": "ISC",
@@ -50,7 +50,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 8,
     "fields": {
         "code": "CUJ",
@@ -60,7 +60,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 9,
     "fields": {
         "code": "EOT",
@@ -70,7 +70,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 10,
     "fields": {
         "code": "HIS",
@@ -80,7 +80,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 11,
     "fields": {
         "code": "ODO",
@@ -90,7 +90,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 12,
     "fields": {
         "code": "THC",
@@ -100,7 +100,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 13,
     "fields": {
         "code": "MED",
@@ -110,7 +110,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 14,
     "fields": {
         "code": "PAG",
@@ -120,7 +120,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 16,
     "fields": {
         "code": "IHA",
@@ -130,7 +130,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 17,
     "fields": {
         "code": "PSY",
@@ -140,7 +140,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 18,
     "fields": {
         "code": "CHM",
@@ -150,7 +150,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 19,
     "fields": {
         "code": "DRT",
@@ -160,7 +160,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 20,
     "fields": {
         "code": "ESB",
@@ -170,7 +170,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 21,
     "fields": {
         "code": "LET",
@@ -180,7 +180,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 22,
     "fields": {
         "code": "PHA",
@@ -190,7 +190,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 23,
     "fields": {
         "code": "GEO",
@@ -200,7 +200,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 24,
     "fields": {
         "code": "IEP",
@@ -210,7 +210,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 25,
     "fields": {
         "code": "PLI",
@@ -220,7 +220,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 26,
     "fields": {
         "code": "THP",
@@ -230,7 +230,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 27,
     "fields": {
         "code": "ECP",
@@ -240,7 +240,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 28,
     "fields": {
         "code": "ESP",
@@ -250,7 +250,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 29,
     "fields": {
         "code": "CPI",
@@ -260,7 +260,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 30,
     "fields": {
         "code": "EMS",
@@ -270,7 +270,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 32,
     "fields": {
         "code": "PHI",
@@ -280,7 +280,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 33,
     "fields": {
         "code": "SOC",
@@ -290,7 +290,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 34,
     "fields": {
         "code": "VIE",
@@ -300,7 +300,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 35,
     "fields": {
         "code": "EPE",
@@ -310,7 +310,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 36,
     "fields": {
         "code": "LGE",
@@ -320,7 +320,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 37,
     "fields": {
         "code": "ILL",
@@ -330,7 +330,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 38,
     "fields": {
         "code": "ITR",
@@ -340,7 +340,7 @@
     }
 },
 {
-    "model": "core.component",
+    "model": "core.structure",
     "pk": 39,
     "fields": {
         "code": "OBS",
@@ -583,7 +583,7 @@
         "training_subdomains": [
             2
         ],
-        "components": [
+        "structures": [
             2
         ]
     }
@@ -598,7 +598,7 @@
         "training_subdomains": [
             7
         ],
-        "components": [
+        "structures": [
             2
         ]
     }
@@ -613,7 +613,7 @@
         "training_subdomains": [
             7
         ],
-        "components": [
+        "structures": [
             7
         ]
     }
@@ -629,7 +629,7 @@
             2,
             8
         ],
-        "components": [
+        "structures": [
             2,
             6
         ]
@@ -645,7 +645,7 @@
         "training_subdomains": [
             3
         ],
-        "components": [
+        "structures": [
             1
         ]
     }
@@ -660,7 +660,7 @@
         "training_subdomains": [
             1
         ],
-        "components": [
+        "structures": [
             1
         ]
     }
@@ -675,7 +675,7 @@
         "training_subdomains": [
             11
         ],
-        "components": [
+        "structures": [
             3
         ]
     }
@@ -1360,8 +1360,8 @@
     "model": "core.mailtemplatevars",
     "pk": 6,
     "fields": {
-        "code": "${creneau.composante}",
-        "description": "Cr\u00e9neau : composante"
+        "code": "${creneau.structure}",
+        "description": "Cr\u00e9neau : structure"
     }
 },
 {
@@ -2024,10 +2024,10 @@
     "model": "core.mailtemplate",
     "pk": 22,
     "fields": {
-        "code": "RAPPEL_COMPOSANTE",
-        "label": "Mail de rappel des gestionnaires de composantes",
-        "description": "Mail envoy\u00e9 aux gestionnaires des composantes pour rappel des cr\u00e9neaux \u00e0 venir dans n semaines",
-        "subject": "Les immersions \u00e0 venir pour votre composante",
+        "code": "RAPPEL_STRUCTURE",
+        "label": "Mail de rappel des gestionnaires de structures",
+        "description": "Mail envoy\u00e9 aux gestionnaires des structures pour rappel des cr\u00e9neaux \u00e0 venir dans n semaines",
+        "subject": "Les immersions \u00e0 venir pour votre structure",
         "body": "<p>Bonjour ${prenom} ${nom}, </p><p>Ci-dessous le rappel des cr\u00e9neaux \u00e0 venir pour v\u00e9rification :</p><p>${creneaux.liste}</p><p>Cordialement,</p><p>L'\u00e9quipe Immersion<br></p>",
         "active": true,
         "available_vars": [
@@ -2045,7 +2045,7 @@
     "fields": {
         "code": "CONTACTUS_NOTIFICATION",
         "label": "Mail envoy\u00e9 suite \u00e0 l'envoi du formulaire de contact g\u00e9n\u00e9ral",
-        "description": "Mail envoy\u00e9 \u00e0 la personne qui a contact\u00e9 le scuio-ip",
+        "description": "Mail envoy\u00e9 \u00e0 la personne qui a contact\u00e9 le réferent établissement",
         "subject": "Merci pour votre message au service immersion",
         "body": "<p>Bonjour ${prenom} ${nom},</p><p>Merci de nous avoir contact\u00e9 nous allons vous r\u00e9pondre dans les plus brefs d\u00e9lais.</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
         "active": true,
@@ -2061,7 +2061,7 @@
     "fields": {
         "label": "Texte de pr\u00e9sentation",
         "code": "ACCUEIL",
-        "content": "<p>L'universit\u00e9 propose aux lyc\u00e9ens et aux enseignants qui les accompagnent de <b>participer \u00e0 un cours magistral ou une s\u00e9ance de TD</b>. Cette d\u00e9marche permet aussi de d\u00e9couvrir l'universit\u00e9 <span class=\"italic\">in situ</span> (amphith\u00e9\u00e2tres, salles de TD...) et de visiter les composantes (facult\u00e9, institut...)</p><p><br><a href=\"http://immersion-test.u-strasbg.fr/dl/pubdoc/2\" target=\"_blank\">comment venir nous voir</a></p><p><br><br></p>",
+        "content": "<p>L'universit\u00e9 propose aux lyc\u00e9ens et aux enseignants qui les accompagnent de <b>participer \u00e0 un cours magistral ou une s\u00e9ance de TD</b>. Cette d\u00e9marche permet aussi de d\u00e9couvrir l'universit\u00e9 <span class=\"italic\">in situ</span> (amphith\u00e9\u00e2tres, salles de TD...) et de visiter les structures (facult\u00e9, institut...)</p><p><br><a href=\"http://immersion-test.u-strasbg.fr/dl/pubdoc/2\" target=\"_blank\">comment venir nous voir</a></p><p><br><br></p>",
         "description": "Ce texte se trouve sur la page d'accueil",
         "active": true
     }
@@ -2105,7 +2105,7 @@
     "fields": {
         "label": "Texte d'explication sur la proc\u00e9dure lyc\u00e9e",
         "code": "PROCEDURE_LYCEE",
-        "content": "<p></p><h2><span>Proc\u00e9dure \u00e0 destination des lyc\u00e9es pour immersion individuelle ....<br></span></h2><h3><span>Public concern\u00e9</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Seuls les \u00e9l\u00e8ves de premi\u00e8re et de terminale de l'acad\u00e9mie de \r\nStrasbourg pourront \u00eatre accueillis dans le cadre de cette action, sous \r\nr\u00e9serve que leur lyc\u00e9e ait sign\u00e9 la convention lyc\u00e9e-Unistra.</p>\r\n\t\t\r\n\t\t\t\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c79423\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Calendrier</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Pour l\u2019ann\u00e9e universitaire 2019-2020, les immersions pourront \r\ns\u2019\u00e9taler d'octobre 2019 \u00e0 avril 2020, en fonction des possibilit\u00e9s des \r\nlyc\u00e9es et des composantes de l\u2019universit\u00e9. <br>Inscriptions \r\nindividuelles : 1er semestre &gt; d\u00e9marrage des immersions le 21 octobre\r\n 2019, deuxi\u00e8me semestre &gt; d\u00e9marrage des immersions le 20 janvier \r\n2020.\r\n</p>\r\n<p>Afin de permettre le bon d\u00e9roulement du dispositif, les lyc\u00e9es \r\nsouhaitant participer et n'ayant pas encore sign\u00e9 la convention \r\ndisponible sur cette page son pri\u00e9s de bien vouloir le faire en tout \r\nd\u00e9but d'ann\u00e9e scolaire et avant l'ouverture de la plateforme pour le 1er\r\n semestre.<br><br><span style=\"text-decoration: underline;\">Attention</span> : la convention est <strong>valable jusqu'en 2021 pour les lyc\u00e9es d\u00e9j\u00e0 partenaires</strong> et cit\u00e9s dans la liste ci-dessous. Pour ces derniers, aucune d\u00e9marche administrative n'est \u00e0 entreprendre cette ann\u00e9e.</p>\r\n\t\t\r\n\t\t\t</div>\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c59336\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Convention</span></h3>\r\n\t\t\r\n\t\t\t</div>\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c59335\" class=\"csc-default\"><div class=\"alert alert-info\"><p>Les lyc\u00e9ens ne peuvent \u00eatre accueillis en immersion qu'\u00e0 condition que leur lyc\u00e9e ait<strong> pr\u00e9alablement sign\u00e9 la convention \"Immersion\" Universit\u00e9 de Strasbourg - lyc\u00e9e</strong>.</p></div></div><h4><span style=\"font-size: 18px;\"><a href=\"http://immersion-test.u-strasbg.fr/dl/pubdoc/1\">Convention Lyc\u00e9e</a></span></h4><h3><span style=\"text-decoration: underline;\">Proc\u00e9dure \u00e0 suivre par le chef d'\u00e9tablissement (si la convention n'a pas \u00e9t\u00e9 sign\u00e9e une ann\u00e9e pr\u00e9c\u00e9dente)<br></span></h3>\r\n<h4>\u00c9tape 1</h4>\r\n<p><em class=\"fa fa-arrow-right\"></em> Envoyer par mail \u00e0 <a href=\"mailto:espace-avenir-lyceens-immersions@unistra.fr\">espace-avenir-lyceens-immersions@unistra.fr</a> une convention sign\u00e9e par le chef d'\u00e9tablissement et num\u00e9ris\u00e9e (afin de rendre la proc\u00e9dure la plus rapide possible)<em></em>\r\n</p>\r\n<h4>\u00c9tape 2</h4>\r\n<p><em class=\"fa fa-arrow-right\"></em> Envoyer <strong>3 exemplaires papier sign\u00e9s de sa main</strong> \u00e0 :\r\n</p>\r\n<p style=\"padding-left: 30px;\"><strong>Universit\u00e9 de Strasbourg<em></em></strong><strong><em><br></em></strong>Espace Avenir - P\u00f4le lyc\u00e9ens<br>Nouveau Patio<br>20a rue Ren\u00e9 Descartes - CS 90032<br>67081 Strasbourg cedex</p>\r\n<p><em class=\"fa fa-arrow-right\"></em> Les trois exemplaires de la \r\nconvention seront alors sign\u00e9s par le pr\u00e9sident de chacune des deux \r\nuniversit\u00e9s puis un exemplaire sera renvoy\u00e9 au lyc\u00e9e.</p><p></p><br><br>",
+        "content": "<p></p><h2><span>Proc\u00e9dure \u00e0 destination des lyc\u00e9es pour immersion individuelle ....<br></span></h2><h3><span>Public concern\u00e9</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Seuls les \u00e9l\u00e8ves de premi\u00e8re et de terminale de l'acad\u00e9mie de \r\nStrasbourg pourront \u00eatre accueillis dans le cadre de cette action, sous \r\nr\u00e9serve que leur lyc\u00e9e ait sign\u00e9 la convention lyc\u00e9e-Unistra.</p>\r\n\t\t\r\n\t\t\t\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c79423\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Calendrier</span></h3>\r\n\t\t\r\n\t\t\t\r\n\t\t\r\n\t\t\t<p>Pour l\u2019ann\u00e9e universitaire 2019-2020, les immersions pourront \r\ns\u2019\u00e9taler d'octobre 2019 \u00e0 avril 2020, en fonction des possibilit\u00e9s des \r\nlyc\u00e9es et des structures de l\u2019universit\u00e9. <br>Inscriptions \r\nindividuelles : 1er semestre &gt; d\u00e9marrage des immersions le 21 octobre\r\n 2019, deuxi\u00e8me semestre &gt; d\u00e9marrage des immersions le 20 janvier \r\n2020.\r\n</p>\r\n<p>Afin de permettre le bon d\u00e9roulement du dispositif, les lyc\u00e9es \r\nsouhaitant participer et n'ayant pas encore sign\u00e9 la convention \r\ndisponible sur cette page son pri\u00e9s de bien vouloir le faire en tout \r\nd\u00e9but d'ann\u00e9e scolaire et avant l'ouverture de la plateforme pour le 1er\r\n semestre.<br><br><span style=\"text-decoration: underline;\">Attention</span> : la convention est <strong>valable jusqu'en 2021 pour les lyc\u00e9es d\u00e9j\u00e0 partenaires</strong> et cit\u00e9s dans la liste ci-dessous. Pour ces derniers, aucune d\u00e9marche administrative n'est \u00e0 entreprendre cette ann\u00e9e.</p>\r\n\t\t\r\n\t\t\t</div>\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c59336\" class=\"csc-default\">\r\n\t\t\r\n\t\t\t<h3><span>Convention</span></h3>\r\n\t\t\r\n\t\t\t</div>\r\n\t\r\n\t\t\r\n\t\r\n\t\t<div id=\"c59335\" class=\"csc-default\"><div class=\"alert alert-info\"><p>Les lyc\u00e9ens ne peuvent \u00eatre accueillis en immersion qu'\u00e0 condition que leur lyc\u00e9e ait<strong> pr\u00e9alablement sign\u00e9 la convention \"Immersion\" Universit\u00e9 de Strasbourg - lyc\u00e9e</strong>.</p></div></div><h4><span style=\"font-size: 18px;\"><a href=\"http://immersion-test.u-strasbg.fr/dl/pubdoc/1\">Convention Lyc\u00e9e</a></span></h4><h3><span style=\"text-decoration: underline;\">Proc\u00e9dure \u00e0 suivre par le chef d'\u00e9tablissement (si la convention n'a pas \u00e9t\u00e9 sign\u00e9e une ann\u00e9e pr\u00e9c\u00e9dente)<br></span></h3>\r\n<h4>\u00c9tape 1</h4>\r\n<p><em class=\"fa fa-arrow-right\"></em> Envoyer par mail \u00e0 <a href=\"mailto:espace-avenir-lyceens-immersions@unistra.fr\">espace-avenir-lyceens-immersions@unistra.fr</a> une convention sign\u00e9e par le chef d'\u00e9tablissement et num\u00e9ris\u00e9e (afin de rendre la proc\u00e9dure la plus rapide possible)<em></em>\r\n</p>\r\n<h4>\u00c9tape 2</h4>\r\n<p><em class=\"fa fa-arrow-right\"></em> Envoyer <strong>3 exemplaires papier sign\u00e9s de sa main</strong> \u00e0 :\r\n</p>\r\n<p style=\"padding-left: 30px;\"><strong>Universit\u00e9 de Strasbourg<em></em></strong><strong><em><br></em></strong>Espace Avenir - P\u00f4le lyc\u00e9ens<br>Nouveau Patio<br>20a rue Ren\u00e9 Descartes - CS 90032<br>67081 Strasbourg cedex</p>\r\n<p><em class=\"fa fa-arrow-right\"></em> Les trois exemplaires de la \r\nconvention seront alors sign\u00e9s par le pr\u00e9sident de chacune des deux \r\nuniversit\u00e9s puis un exemplaire sera renvoy\u00e9 au lyc\u00e9e.</p><p></p><br><br>",
         "description": "Ce texte est celui affich\u00e9 sur la page de proc\u00e9dure dans le premier bloc",
         "active": true
     }
@@ -2338,7 +2338,7 @@
     "model": "core.generalsettings",
     "pk": 7,
     "fields": {
-        "setting": "NB_WEEKS_COMPONENTS_SLOT_REMINDER",
+        "setting": "NB_WEEKS_STRUCTURES_SLOT_REMINDER",
         "value": "1",
         "description": ""
     }
@@ -2347,8 +2347,8 @@
     "model": "core.generalsettings",
     "pk": 8,
     "fields": {
-        "setting": "MAIL_CONTACT_SCUIO_IP",
-        "value": "scuio_ip@somewhere.og",
+        "setting": "MAIL_CONTACT_REF_ETAB",
+        "value": "ref_etab@somewhere.og",
         "description": ""
     }
 },
@@ -5974,7 +5974,7 @@
         "participants_multiple_immersions": 0,
         "immersion_registrations": 46,
         "seats_count": 368,
-        "components_count": 5,
+        "structures_count": 5,
         "trainings_one_slot_count": 7,
         "courses_one_slot_count": 22,
         "total_slots_count": 53,
@@ -5986,7 +5986,7 @@
     "model": "auth.group",
     "pk": 1,
     "fields": {
-        "name": "SCUIO-IP",
+        "name": "REF-ETAB",
         "permissions": []
     }
 },
@@ -6002,7 +6002,7 @@
     "model": "auth.group",
     "pk": 3,
     "fields": {
-        "name": "REF-CMP",
+        "name": "REF-STR",
         "permissions": []
     }
 },
@@ -6039,6 +6039,13 @@
     }
 },
 {
+    "model": "auth.group",
+    "pk": 8,
+    "fields": {
+      "name": "REF-ETAB-MAITRE"
+    }
+},
+{
     "model": "core.immersionuser",
     "pk": 2,
     "fields": {
@@ -6060,7 +6067,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6070,9 +6077,9 @@
         "password": "pbkdf2_sha256$150000$wmcSCImSlxrT$D9r0x9B2zlVIZTYiS1z+CFw/UCKmQKRiWLy6yoEaq3w=",
         "last_login": null,
         "is_superuser": false,
-        "username": "test-scuio-ip",
+        "username": "test-ref-etab",
         "first_name": "TEST",
-        "last_name": "SCUIO-IP",
+        "last_name": "REF-ETAB",
         "email": "",
         "is_staff": true,
         "is_active": true,
@@ -6085,7 +6092,7 @@
             1
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6108,7 +6115,7 @@
         "recovery_string": null,
         "groups": [],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6131,7 +6138,7 @@
         "recovery_string": null,
         "groups": [],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6157,7 +6164,7 @@
             2
         ],
         "user_permissions": [],
-        "components": [
+        "structures": [
             3
         ]
     }
@@ -6184,7 +6191,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6209,7 +6216,7 @@
             3
         ],
         "user_permissions": [],
-        "components": [
+        "structures": [
             2
         ]
     }
@@ -6236,7 +6243,7 @@
             3
         ],
         "user_permissions": [],
-        "components": [
+        "structures": [
             6
         ]
     }
@@ -6263,7 +6270,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6288,7 +6295,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6313,7 +6320,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6338,7 +6345,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6363,7 +6370,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6388,7 +6395,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6413,7 +6420,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6438,7 +6445,7 @@
             4
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6463,7 +6470,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6488,7 +6495,7 @@
             4
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6511,7 +6518,7 @@
         "recovery_string": null,
         "groups": [],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6536,7 +6543,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6559,7 +6566,7 @@
         "recovery_string": null,
         "groups": [],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6584,7 +6591,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6609,7 +6616,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6634,7 +6641,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6659,7 +6666,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6684,7 +6691,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6709,7 +6716,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6734,7 +6741,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6759,7 +6766,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6784,7 +6791,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6809,7 +6816,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6834,7 +6841,7 @@
             4
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6859,7 +6866,7 @@
             4
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6884,7 +6891,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6909,7 +6916,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6934,7 +6941,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6959,7 +6966,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -6984,7 +6991,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7009,7 +7016,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7034,7 +7041,7 @@
             4
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7059,7 +7066,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7084,7 +7091,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7109,7 +7116,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7134,7 +7141,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7159,7 +7166,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7184,7 +7191,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7209,7 +7216,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7234,7 +7241,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7259,7 +7266,7 @@
             6
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7284,7 +7291,7 @@
             6
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7309,7 +7316,7 @@
             3
         ],
         "user_permissions": [],
-        "components": [
+        "structures": [
             1
         ]
     }
@@ -7336,7 +7343,7 @@
             2
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7361,7 +7368,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7386,7 +7393,7 @@
             1
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7411,7 +7418,7 @@
             7
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7436,7 +7443,7 @@
             5
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7461,7 +7468,7 @@
             5
         ],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7484,7 +7491,7 @@
         "recovery_string": null,
         "groups": [],
         "user_permissions": [],
-        "components": []
+        "structures": []
     }
 },
 {
@@ -7493,7 +7500,7 @@
     "fields": {
         "label": "Alg\u00e8bre 1",
         "training": 3,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7509,7 +7516,7 @@
     "fields": {
         "label": "Analyse S1",
         "training": 2,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME257&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN898&cHash=811a70170e6d6e5dd3dde59aef66f3d2",
         "teachers": [
@@ -7525,7 +7532,7 @@
     "fields": {
         "label": "Economie 3",
         "training": 7,
-        "component": 6,
+        "structure": 6,
         "published": true,
         "url": null,
         "teachers": [
@@ -7539,7 +7546,7 @@
     "fields": {
         "label": "Analyse 2",
         "training": 2,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7554,7 +7561,7 @@
     "fields": {
         "label": "Histoire des arts",
         "training": 8,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": null,
         "teachers": [
@@ -7568,7 +7575,7 @@
     "fields": {
         "label": "Algo_prog",
         "training": 7,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7582,7 +7589,7 @@
     "fields": {
         "label": "Arts plastiques 2",
         "training": 8,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": null,
         "teachers": [
@@ -7597,7 +7604,7 @@
     "fields": {
         "label": "Algorithmique",
         "training": 2,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7611,7 +7618,7 @@
     "fields": {
         "label": "Algorithmique",
         "training": 3,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7625,7 +7632,7 @@
     "fields": {
         "label": "Analyse S1",
         "training": 7,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME257&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN898&cHash=811a70170e6d6e5dd3dde59aef66f3d2",
         "teachers": [
@@ -7639,7 +7646,7 @@
     "fields": {
         "label": "Algorithmique 3",
         "training": 3,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7653,7 +7660,7 @@
     "fields": {
         "label": "Economie 2",
         "training": 7,
-        "component": 6,
+        "structure": 6,
         "published": true,
         "url": null,
         "teachers": [
@@ -7667,7 +7674,7 @@
     "fields": {
         "label": "Arts du spectacle",
         "training": 8,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": null,
         "teachers": [
@@ -7681,7 +7688,7 @@
     "fields": {
         "label": "Arts plastiques",
         "training": 8,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": null,
         "teachers": [
@@ -7696,7 +7703,7 @@
     "fields": {
         "label": "Design th\u00e9orie",
         "training": 8,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": null,
         "teachers": [
@@ -7710,7 +7717,7 @@
     "fields": {
         "label": "cours test 1",
         "training": 8,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": null,
         "teachers": [
@@ -7724,7 +7731,7 @@
     "fields": {
         "label": "Test",
         "training": 7,
-        "component": 6,
+        "structure": 6,
         "published": false,
         "url": null,
         "teachers": [
@@ -7738,7 +7745,7 @@
     "fields": {
         "label": "Organisation",
         "training": 7,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7752,7 +7759,7 @@
     "fields": {
         "label": "Th\u00e9atre d\u00e9butant",
         "training": 9,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": null,
         "teachers": [
@@ -7767,7 +7774,7 @@
     "fields": {
         "label": "Th\u00e9atre",
         "training": 9,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME29&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN1435&cHash=0b290824df287062c6020d9f1c3bbd39",
         "teachers": [
@@ -7781,7 +7788,7 @@
     "fields": {
         "label": "Th\u00e9atre 2",
         "training": 9,
-        "component": 1,
+        "structure": 1,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME29&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN1435&cHash=0b290824df287062c6020d9f1c3bbd39",
         "teachers": [
@@ -7795,7 +7802,7 @@
     "fields": {
         "label": "Anglais pour informatique",
         "training": 3,
-        "component": 2,
+        "structure": 2,
         "published": true,
         "url": null,
         "teachers": [
@@ -7809,7 +7816,7 @@
     "fields": {
         "label": "Developpement Web",
         "training": 6,
-        "component": 7,
+        "structure": 7,
         "published": true,
         "url": null,
         "teachers": [
@@ -7824,7 +7831,7 @@
     "fields": {
         "label": "Pratiques sportives",
         "training": 10,
-        "component": 3,
+        "structure": 3,
         "published": true,
         "url": null,
         "teachers": [
@@ -7839,7 +7846,7 @@
     "fields": {
         "label": "Ergonomie du mouvement",
         "training": 10,
-        "component": 3,
+        "structure": 3,
         "published": true,
         "url": null,
         "teachers": [

@@ -16,10 +16,9 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ...libs.geoapi.utils import get_cities, get_zipcodes, get_departments
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    CertificateSignature, Component, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
-    MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    CertificateSignature, Structure, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
+    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -34,7 +33,7 @@ class BachelorMentionForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -59,7 +58,7 @@ class CampusForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -84,7 +83,7 @@ class CancelTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -109,7 +108,7 @@ class CourseTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -134,7 +133,7 @@ class TrainingDomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -161,7 +160,7 @@ class TrainingSubdomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -187,7 +186,7 @@ class BuildingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -212,7 +211,7 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
-        self.fields['components'].queryset = self.fields['components'].queryset.order_by('code', 'label')
+        self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -220,7 +219,7 @@ class TrainingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -324,9 +323,9 @@ class EstablishmentForm(forms.ModelForm):
         }
 
 
-class ComponentForm(forms.ModelForm):
+class StructureForm(forms.ModelForm):
     """
-    Component form class
+    Structure form class
     """
 
     def __init__(self, *args, **kwargs):
@@ -343,7 +342,7 @@ class ComponentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -353,7 +352,7 @@ class ComponentForm(forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = Component
+        model = Structure
         fields = '__all__'
 
 
@@ -368,7 +367,7 @@ class GeneralBachelorTeachingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -397,7 +396,7 @@ class PublicTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -430,7 +429,7 @@ class UniversityYearForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -496,7 +495,7 @@ class HolidayForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -546,7 +545,7 @@ class VacationForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -614,7 +613,7 @@ class CalendarForm(forms.ModelForm):
         # Test user group
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -730,28 +729,28 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
-                self.fields["components"].disabled = True
+                self.fields["structures"].disabled = True
                 self.fields["highschool"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data['groups']
-        components = cleaned_data['components']
+        structures = cleaned_data['structures']
         highschool = cleaned_data['highschool']
         forbidden_msg = _("Forbidden")
 
         is_own_account = self.request.user.id == self.instance.id
 
-        if groups.filter(name='SCUIO-IP').exists():
+        if groups.filter(name='REF-ETAB').exists():
             cleaned_data['is_staff'] = True
 
-        if groups.filter(name='REF-CMP').exists() and not components.count():
-            msg = _("This field is mandatory for a user belonging to 'REF-CMP' group")
-            self._errors['components'] = self.error_class([msg])
-            del cleaned_data["components"]
+        if groups.filter(name='REF-STR').exists() and not structures.count():
+            msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
+            self._errors['structures'] = self.error_class([msg])
+            del cleaned_data["structures"]
 
-        if components.count() and not groups.filter(name='REF-CMP').exists():
-            msg = _("The group 'REF-CMP' is mandatory when you add a component")
+        if structures.count() and not groups.filter(name='REF-STR').exists():
+            msg = _("The group 'REF-STR' is mandatory when you add a structure")
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
             self._errors['groups'].append(self.error_class([msg]))
@@ -769,17 +768,17 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
-            # a member of SCUIO-IP group
+            # a member of REF-ETAB group
             if is_own_account:
                 del cleaned_data['groups']
-                del cleaned_data['components']
+                del cleaned_data['structures']
 
-            elif self.request.user.has_groups('SCUIO-IP'):
-                if self.instance.is_scuio_ip_manager():
+            elif self.request.user.has_groups('REF-ETAB'):
+                if self.instance.is_ref_etab_manager():
                     raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
 
                 # Add groups to this list when needed
-                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP',)
+                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB',)
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
                 new_groups = set(groups.all().values_list('name', flat=True))
@@ -882,7 +881,7 @@ class HighSchoolForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager() or (user.is_high_school_manager() and user.highschool)
+            valid_user = user.is_ref_etab_manager() or (user.is_high_school_manager() and user.highschool)
         except AttributeError as exc:
             pass
 
@@ -923,7 +922,7 @@ class MailTemplateForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -1001,7 +1000,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -1061,7 +1060,7 @@ class PublicDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -1111,7 +1110,7 @@ class EvaluationFormLinkForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -1136,7 +1135,7 @@ class GeneralSettingsForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -1177,7 +1176,7 @@ class CertificateLogoForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 
@@ -1218,7 +1217,7 @@ class CertificateSignatureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_ref_etab_manager()
         except AttributeError:
             pass
 

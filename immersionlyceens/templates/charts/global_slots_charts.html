@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block section_title %}
-<h3 class="ml-2">{% trans 'Hosts charts - registrations by components' %}</h3>
+<h3 class="ml-2">{% trans 'Hosts charts - registrations by structures' %}</h3>
 {% endblock %}
 
 {% block content %}
@@ -37,7 +37,7 @@
       <table id="slots_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
         <thead>
         <tr>
-          <th id="component_filter" class="align-top">{% trans 'Component' %}</th>
+          <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
           <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
           <th id="course_filter" class="align-top">{% trans 'Course' %}</th>
           <th id="slots_filter" class="align-top">{% trans 'Slots count' %}</th>
@@ -157,7 +157,7 @@
 
     pieSeries = chart.series.push(new am4charts.PieSeries());
     pieSeries.dataFields.value = "slots_count";
-    pieSeries.dataFields.category = "component";
+    pieSeries.dataFields.category = "structure";
     pieSeries.slices.template.states.getKey("active").properties.shiftRadius = 0;
 
     pieSeries.slices.template.events.on("hit", function (event) {
@@ -227,7 +227,7 @@
         url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
     },
     'columns': [
-      { "data": "component" },
+      { "data": "structure" },
       { "data": "training" },
       { "data": "course" },
       { "data": "slots_count" },
@@ -245,7 +245,7 @@
   yadcf.init(dtr, [{
       column_number: 0,
       filter_default_label: "",
-      filter_container_id: "component_filter",
+      filter_container_id: "structure_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },

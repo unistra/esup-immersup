@@ -13,8 +13,9 @@ from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
+
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building, Calendar, Campus, CancelType,
-    Component, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
+    Structure, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -33,9 +34,9 @@ class APITestCase(TestCase):
     def setUp(self):
         """
         GeneralSettings.objects.create(
-            setting='MAIL_CONTACT_SCUIO_IP',
+            setting='MAIL_CONTACT_REF_ETAB',
             value='unittest@unittest.fr',
-            description='SCUIO-IP email'
+            description='REF-ETAB email'
         )
         """
         self.establishment = Establishment.objects.create(
@@ -43,11 +44,12 @@ class APITestCase(TestCase):
             establishment_type='HIGHER_INST'
         )
 
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio', password='pass', email='immersion@no-reply.com', first_name='scuio', last_name='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab', password='pass', email='immersion@no-reply.com', first_name='ref_etab', last_name='ref_etab',
+
         )
-        self.scuio_user.set_password('pass')
-        self.scuio_user.save()
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
 
         self.highschool_user = get_user_model().objects.create_user(
             username='@EXTERNAL@_hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
@@ -65,12 +67,12 @@ class APITestCase(TestCase):
         self.highschool_user3.set_password('pass')
         self.highschool_user3.save()
 
-        self.ref_comp = get_user_model().objects.create_user(
-            username='refcomp',
+        self.ref_str = get_user_model().objects.create_user(
+            username='ref_str',
             password='pass',
-            email='refcomp@no-reply.com',
-            first_name='refcomp',
-            last_name='refcomp',
+            email='ref_str@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
         )
         self.teacher1 = get_user_model().objects.create_user(
             username='teacher1',
@@ -102,11 +104,11 @@ class APITestCase(TestCase):
         )
         self.cancel_type = CancelType.objects.create(label='Hello world')
         self.client = Client()
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
 
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
-        Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user3)
@@ -130,16 +132,16 @@ class APITestCase(TestCase):
             start_date=self.today - timedelta(days=2),
             end_date=self.today + timedelta(days=2)
         )
-        self.component = Component.objects.create(label="test component")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
@@ -314,7 +316,7 @@ class APITestCase(TestCase):
         )
 
     def test_API_get_documents__ok(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = "/api/get_available_documents/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -340,7 +342,7 @@ class APITestCase(TestCase):
         self.course.published = False
         self.course.save()
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/check_course_publication/1"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -355,7 +357,7 @@ class APITestCase(TestCase):
     def test_API_ajax_check_course_publication__true(self):
         self.course.published = True
         self.course.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/check_course_publication/1"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -370,7 +372,7 @@ class APITestCase(TestCase):
     def test_API_ajax_check_course_publication__true(self):
         self.course.published = True
         self.course.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/check_course_publication/1"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -383,7 +385,7 @@ class APITestCase(TestCase):
         self.assertTrue(content['data']['published'])
 
     def test_API_ajax_check_course_publication__404(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/check_course_publication/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -391,21 +393,21 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_API_ajax_get_course_teachers__404(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/check_course_teachers/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
         self.assertEqual(response.status_code, 404)
 
     def test_API_ajax_get_course_teachers__ok(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/get_course_teachers/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
         self.assertEqual(response.status_code, 404)
 
     def test_API_ajax_get_course_teachers__ok(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = f"/api/get_course_teachers/{self.course.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
@@ -422,7 +424,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['last_name'], self.teacher1.last_name)
 
     def test_API_ajax_get_buildings__ok(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = f"/api/get_buildings/{self.campus.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
@@ -438,8 +440,8 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['label'], self.building.label)
 
     def test_API_ajax_get_courses_by_training(self):
-        request.user = self.scuio_user
-        url = f"/api/get_courses_by_training/{self.component.id}/{self.training.id}"
+        request.user = self.ref_etab_user
+        url = f"/api/get_courses_by_training/{self.structure.id}/{self.training.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
         content = json.loads(response.content.decode())
@@ -456,10 +458,10 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['slots'], Slot.objects.filter(course__training=self.training).count())
 
     def test_API_get_ajax_slots_ok(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id, 'training_id': self.training.id}
+        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
         response = self.client.get(url, data, **header)
         content = json.loads(response.content.decode())
 
@@ -473,8 +475,8 @@ class APITestCase(TestCase):
         self.assertEqual(slot['id'], self.slot.id)
         self.assertEqual(slot['published'], self.slot.published)
         self.assertEqual(slot['course_label'], self.slot.course.label)
-        self.assertEqual(slot['component']['code'], self.slot.course.component.code)
-        self.assertTrue(slot['component']['managed_by_me'])
+        self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
+        self.assertTrue(slot['structure']['managed_by_me'])
         self.assertEqual(slot['course_type'], self.slot.course_type.label)
         self.assertEqual(slot['date'], _date(self.today, 'l d/m/Y'))
         self.assertEqual(slot['time']['start'], '12h00')
@@ -486,10 +488,10 @@ class APITestCase(TestCase):
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
     def test_API_get_ajax_slots_ok__no_training_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id}
+        data = {'structure_id': self.structure.id}
         response = self.client.get(url, data, **header)
         content = json.loads(response.content.decode())
         self.assertIn('msg', content)
@@ -502,8 +504,8 @@ class APITestCase(TestCase):
         self.assertEqual(slot['id'], self.slot.id)
         self.assertEqual(slot['published'], self.slot.published)
         self.assertEqual(slot['course_label'], self.slot.course.label)
-        self.assertEqual(slot['component']['code'], self.slot.course.component.code)
-        self.assertTrue(slot['component']['managed_by_me'])
+        self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
+        self.assertTrue(slot['structure']['managed_by_me'])
         self.assertEqual(slot['course_type'], self.slot.course_type.label)
         self.assertEqual(slot['date'], _date(self.today, 'l d/m/Y'))
         self.assertEqual(slot['time']['start'], '12h00')
@@ -514,22 +516,22 @@ class APITestCase(TestCase):
         self.assertEqual(slot['n_register'], self.slot.registered_students())
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
-    def test_API_get_ajax_slots_ref_cmp(self):
+    def test_API_get_ajax_slots_ref_str(self):
         client = Client()
-        client.login(username='refcomp', password='pass')
+        client.login(username='ref_str', password='pass')
 
         url = f"/api/get_slots"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id, 'training_id': self.training.id}
+        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
         response = client.get(url, data, **header)
         self.assertGreaterEqual(response.status_code, 200)
         self.assertLess(response.status_code, 300)
 
     def test_API_get_trainings(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = f"/api/get_trainings"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'component_id': self.component.id}
+        data = {'structure_id': self.structure.id}
 
         response = self.client.post(url, data, **header)
         content = json.loads(response.content.decode())
@@ -548,7 +550,7 @@ class APITestCase(TestCase):
         self.assertEqual(t2['subdomain'], [s.label for s in self.training2.training_subdomains.filter(active=True)])
 
     def test_API_get_trainings__empty(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = f"/api/get_trainings"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -561,7 +563,7 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['data']), 0)
 
     def test_API_get_student_records__no_action(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/get_student_records/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -576,7 +578,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_get_student_records__no_student_hs_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/get_student_records/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'action': 'TO_VALIDATE'}
@@ -591,7 +593,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_get_student_records__TO_VALIDATE(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.hs_record.validation = 1  # to validate
         self.hs_record.save()
         url = "/api/get_student_records/"
@@ -613,7 +615,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs_record['class_name'], self.hs_record.class_name)
 
     def test_API_get_student_records__VALIDget_available_documentsATED(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.hs_record.validation = 2  # validate
         self.hs_record.save()
         url = "/api/get_student_records/"
@@ -631,7 +633,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs_record['id'], self.hs_record.id)
 
     def test_API_get_student_records__REJECTED(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.hs_record.validation = 3  # rejected
         self.hs_record.save()
         url = "/api/get_student_records/"
@@ -649,7 +651,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs_record['id'], self.hs_record.id)
 
     def test_API_ajax_get_reject_student__no_high_school_student_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/reject_student/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -678,7 +680,7 @@ class APITestCase(TestCase):
     def test_API_ajax_get_reject_student__ok(self):
         self.hs_record.validation = 1  # TO_VALIDATE
         self.hs_record.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/reject_student/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'student_record_id': self.hs_record.id}
@@ -717,7 +719,7 @@ class APITestCase(TestCase):
     def test_API_ajax_get_validate_student__ok(self):
         self.hs_record.validation = 1  # TO_VALIDATE
         self.hs_record.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/validate_student/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'student_record_id': self.hs_record.id}
@@ -739,7 +741,7 @@ class APITestCase(TestCase):
         content = csv.reader(response.content.decode().split('\n'))
 
         headers = [
-            _('component'),
+            _('structure'),
             _('training domain'),
             _('training subdomain'),
             _('training'),
@@ -764,7 +766,7 @@ class APITestCase(TestCase):
                 for h in headers:
                     self.assertIn(h, row)
             elif n == 1:
-                self.assertEqual(self.component.label, row[0])
+                self.assertEqual(self.structure.label, row[0])
                 self.assertIn(self.t_domain.label, row[1].split('|'))
                 self.assertIn(self.t_sub_domain.label, row[2].split('|'))
                 self.assertEqual(self.training.label, row[3])
@@ -827,12 +829,12 @@ class APITestCase(TestCase):
 
             n += 1
 
-    def test_API_get_csv_components(self):
-        url = f'/api/get_csv_components/{self.high_school.id}'
+    def test_API_get_csv_structures(self):
+        url = f'/api/get_csv_structures/{self.high_school.id}'
         client = Client()
-        client.login(username='refcomp', password='pass')
+        client.login(username='ref_str', password='pass')
 
-        request.user = self.ref_comp
+        request.user = self.ref_str
         response = client.get(url, request)
 
         content = csv.reader(response.content.decode().split('\n'))
@@ -882,7 +884,7 @@ class APITestCase(TestCase):
             n += 1
 
     def test_API_ajax_get_available_vars(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/get_available_vars/{self.mail_t.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -902,7 +904,7 @@ class APITestCase(TestCase):
         self.assertEqual(var['description'], self.var.description)
 
     def test_API_ajax_get_available_vars__empty(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/get_available_vars/0"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -917,7 +919,7 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['data']), 0)
 
     def test_API_get_person__no_data(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/get_person"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -947,9 +949,9 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], [])
 
     def test_API_get_courses__no_data(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
-        url = f"/api/get_courses/{self.component.id}/"
+        url = f"/api/get_courses/{self.structure.id}/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.get(url, request, **header)
         content = json.loads(response.content.decode())
@@ -966,8 +968,8 @@ class APITestCase(TestCase):
         self.assertEqual(c['published'], self.course.published)
         self.assertEqual(c['training_label'], self.course.training.label)
         self.assertEqual(c['label'], self.course.label)
-        self.assertEqual(c['component_code'], self.course.component.code)
-        self.assertEqual(c['component_id'], self.course.component.id)
+        self.assertEqual(c['structure_code'], self.course.structure.code)
+        self.assertEqual(c['structure_id'], self.course.structure.id)
 
         teachers_naming = [f'{t.last_name} {t.first_name}' for t in self.course.teachers.all()]
         for t in c['teachers']:
@@ -981,7 +983,7 @@ class APITestCase(TestCase):
         self.assertEqual(c['can_delete'], not self.course.slots.exists())
 
     def test_API_ajax_delete_course__no_data(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/delete_course"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -996,7 +998,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], '')
 
     def test_API_ajax_delete_course__not_exists(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/delete_course"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1011,7 +1013,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], '')
 
     def test_API_ajax_delete_course__no_slot_attach(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         course_id = self.course.id
 
         self.slot.delete()
@@ -1038,7 +1040,7 @@ class APITestCase(TestCase):
             Course.objects.get(id=self.course.id)
 
     def test_API_ajax_delete_course__slot_attach(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         course_id = self.course.id
 
         url = f"/api/delete_course"
@@ -1080,7 +1082,7 @@ class APITestCase(TestCase):
         c = content['data'][0]
         self.assertEqual(self.course.id, c['id'])
         self.assertEqual(self.course.published, c['published'])
-        self.assertEqual(self.course.component.code, c['component'])
+        self.assertEqual(self.course.structure.code, c['structure'])
         self.assertEqual(self.course.training.label, c['training_label'])
         self.assertEqual(self.course.label, c['label'])
         # teachers
@@ -1111,7 +1113,7 @@ class APITestCase(TestCase):
         s = content['data'][0]
         self.assertEqual(self.slot.id, s['id'])
         self.assertEqual(self.slot.published, s['published'])
-        self.assertEqual(self.slot.course.component.code, s['component'])
+        self.assertEqual(self.slot.course.structure.code, s['structure'])
         self.assertEqual(
             f'{self.slot.course.training.label} ({self.slot.course_type.label})',
             s['training_label']
@@ -1200,7 +1202,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['data']), 0)
 
     def test_API_ajax_get_agreed_highschools(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/get_agreed_highschools"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1229,7 +1231,7 @@ class APITestCase(TestCase):
         self.assertEqual(_date(self.high_school.convention_end_date, 'Y-m-d'), hs['convention_end_date'])
 
     def test_API_ajax_get_immersions__no_user(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.immersion.delete()
         self.immersion2.delete()
         url = f"/api/get_immersions/0"
@@ -1253,7 +1255,7 @@ class APITestCase(TestCase):
         self.assertIsInstance(content['data'], list)
 
     def test_API_ajax_get_immersions__user_not_found(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/get_immersions/999"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1266,7 +1268,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_get_immersions__future(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.slot.date = self.today + timedelta(days=2)
         self.slot.save()
         url = f"/api/get_immersions/{self.highschool_user.id}/future"
@@ -1298,7 +1300,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.id, i['slot_id'])
 
     def test_API_ajax_get_immersions__past(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.slot.date = self.today - timedelta(days=2)
         self.slot.save()
         url = f"/api/get_immersions/{self.highschool_user.id}/past"
@@ -1330,7 +1332,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.id, i['slot_id'])
 
     def test_API_ajax_get_immersions__cancelled(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.slot.date = self.today - timedelta(days=2)
         self.slot.save()
         self.immersion.cancellation_type = self.cancel_type
@@ -1385,7 +1387,7 @@ class APITestCase(TestCase):
         self.assertEqual(i['email'], self.highschool_user.email)
 
     def test_API_ajax_get_slot_registrations(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/get_slot_registrations/{self.slot.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1415,7 +1417,7 @@ class APITestCase(TestCase):
         self.assertEqual(stu['city'], '')
 
     def test_API_ajax_get_available_students(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         self.hs_record.validation = 2
         self.hs_record.save()
@@ -1452,7 +1454,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.hs_record2.class_name, hs['class'])
 
     def test_API_ajax_get_highschool_students__no_record(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/get_highschool_students/no_record"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1532,7 +1534,7 @@ class APITestCase(TestCase):
         self.assertTrue(one)
 
     def test_API_ajax_check_date_between_vacation__no_date(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/check_vacations"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1543,7 +1545,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], {})
 
     def test_API_ajax_check_date_between_vacation__date_format_failure(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/check_vacations?date=failure"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1554,7 +1556,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'], {})
 
     def test_API_ajax_check_date_between_vacation__dmY_format(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         url = f"/api/check_vacations?date=01/01/2010"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1568,7 +1570,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data']['is_between'], False)
 
     def test_API_ajax_check_date_between_vacation__Ymd_format(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         d = self.today
         if d.weekday() == 6:
             d = self.today + timedelta(days=1)
@@ -1585,7 +1587,7 @@ class APITestCase(TestCase):
         self.assertEqual(content['data']['is_between'], True)
 
     def test_API_ajax_delete_account__not_student_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/delete_account"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1595,17 +1597,17 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_delete_account__wrong_user_group(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/delete_account"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        data = {'student_id': self.ref_comp.id}
+        data = {'student_id': self.ref_str.id}
         content = json.loads(self.client.post(url, data, **header).content.decode())
 
         self.assertTrue(content['error'])
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_delete_account(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/delete_account"
         uid = self.highschool_user.id
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -1618,7 +1620,7 @@ class APITestCase(TestCase):
             ImmersionUser.objects.get(pk=uid)
 
     def test_API_ajax_cancel_registration__no_post_param(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/cancel_registration"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1627,7 +1629,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_cancel_registration__bad_user_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/cancel_registration"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'immersion_id': 0, 'reason_id': 1}
@@ -1636,7 +1638,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_cancel_registration__bad_reason_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
         url = "/api/cancel_registration"
@@ -1647,7 +1649,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_cancel_registration__past_immersion(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.slot.date = self.today - timedelta(days=1)
         self.slot.save()
         url = "/api/cancel_registration"
@@ -1658,7 +1660,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_cancel_registration(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
         self.assertIsNone(self.immersion.cancellation_type)
@@ -1672,7 +1674,7 @@ class APITestCase(TestCase):
         self.assertEqual(i.cancellation_type.id, self.cancel_type.id)
 
     def test_API_ajax_set_attendance(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_attendance"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1682,7 +1684,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['error']), 0)
 
     def test_API_ajax_set_attendance__no_attendance_status(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_attendance"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'immersion_id': self.immersion.id}
@@ -1694,7 +1696,7 @@ class APITestCase(TestCase):
     def test_API_ajax_set_attendance__immersion_id(self):
         self.assertEqual(self.immersion.attendance_status, 0)
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_attendance"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'immersion_id': self.immersion.id, 'attendance_value': 1}
@@ -1711,7 +1713,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.attendance_status, 0)
         self.assertEqual(self.immersion2.attendance_status, 0)
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_attendance"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data_immersion = json.dumps([self.immersion.id, self.immersion2.id])
@@ -1728,7 +1730,7 @@ class APITestCase(TestCase):
         self.assertEqual(i.attendance_status, 1)
 
     def test_API_ajax_set_attendance__wrong_immersion_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_attendance"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'immersion_ids': 0, 'attendance_value': 1}
@@ -1762,7 +1764,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.alert.email_sent, a['email_sent'])
 
     def test_API_ajax_send_email__no_params(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/send_email"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1772,7 +1774,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_send_email(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/send_email"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'slot_id': self.slot.id, 'send_copy': 'true', 'subject': 'hello',
@@ -1783,7 +1785,7 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['msg']), 0)
 
     def test_API_ajax_batch_cancel_registration__no_param(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/batch_cancel_registration"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1793,7 +1795,7 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_batch_cancel_registration__invalid_json_param(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/batch_cancel_registration"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'immersion_ids': 'hello world', 'reason_id': self.cancel_type.id}
@@ -1805,7 +1807,7 @@ class APITestCase(TestCase):
     def test_API_ajax_batch_cancel_registration__past_immersion(self):
         self.slot.date = self.today - timedelta(days=1)
         self.slot.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/batch_cancel_registration"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'immersion_ids': f'[{self.immersion.id}]', 'reason_id': self.cancel_type.id}
@@ -1817,7 +1819,7 @@ class APITestCase(TestCase):
     def test_API_ajax_batch_cancel_registration(self):
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/batch_cancel_registration"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'immersion_ids': json.dumps([self.immersion.id]), 'reason_id': self.cancel_type.id}
@@ -1830,7 +1832,7 @@ class APITestCase(TestCase):
     def test_API_ajax_send_email_us__no_param(self):
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/send_email_contact_us"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1840,10 +1842,10 @@ class APITestCase(TestCase):
         self.assertGreater(len(content['msg']), 0)
 
     def test_API_ajax_send_email_us__no_general_settings(self):
-        GeneralSettings.objects.get(setting='MAIL_CONTACT_SCUIO_IP').delete()
+        GeneralSettings.objects.get(setting='MAIL_CONTACT_REF_ETAB').delete()
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/send_email_contact_us"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1855,7 +1857,7 @@ class APITestCase(TestCase):
     def test_API_ajax_send_email_us(self):
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/send_email_contact_us"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {
@@ -1874,7 +1876,7 @@ class APITestCase(TestCase):
     def test_API_ajax_get_students_presence(self):
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/get_students_presence"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {}
@@ -1894,7 +1896,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.room, i['room'])
 
     def test_API_ajax_set_course_alert__wrong_course_id(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_course_alert"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'course_id': 0}
@@ -1905,7 +1907,7 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
 
     def test_API_ajax_set_course_alert__email_not_valid(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_course_alert"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'course_id': self.course.id, 'email': 'wrong_email_address'}
@@ -1917,7 +1919,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_set_course_alert__no_alert(self):
         self.alert.delete()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_course_alert"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'course_id': self.course.id, 'email': 'a@unittest.fr'}
@@ -1935,7 +1937,7 @@ class APITestCase(TestCase):
         self.assertFalse(raises)
 
     def test_API_ajax_set_course_alert__alert_but_not_send(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_course_alert"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'course_id': self.course.id, 'email': self.student.email}
@@ -1948,7 +1950,7 @@ class APITestCase(TestCase):
     def test_API_ajax_set_course_alert__alert_sent(self):
         self.alert.email_sent = True
         self.alert.save()
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         url = "/api/set_course_alert"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         data = {'course_id': self.course.id, 'email': self.student.email}
@@ -2039,7 +2041,7 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
 
-        # Todo : needs more tests with other users (scuio, ref-cmp, ...)
+        # Todo : needs more tests with other users (ref-etab, ref-str, ...)
         # Todo : needs tests with a calendar in semester mode
 
     def test_ajax_get_duplicates(self):
@@ -2050,7 +2052,7 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         client = Client()
-        client.login(username='scuio', password='pass')
+        client.login(username='ref_etab', password='pass')
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = client.get("/api/get_duplicates", **header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
@@ -2071,7 +2073,7 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         client = Client()
-        client.login(username='scuio', password='pass')
+        client.login(username='ref_etab', password='pass')
 
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 

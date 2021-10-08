@@ -429,7 +429,7 @@ ADMIN_MODELS_ORDER = {
         'BachelorMention',
         'Campus',
         'Building',
-        'Component',
+        'Structure',
         'TrainingDomain',
         'TrainingSubdomain',
         'Training',
@@ -444,7 +444,7 @@ ADMIN_MODELS_ORDER = {
 }
 
 # Define groups rights on others here ?
-HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP', 'REF-LYC', 'SRV-JUR']}
+HAS_RIGHTS_ON_GROUP = {'REF-ETAB': ['REF-STR', 'REF-LYC', 'SRV-JUR']}
 
 ###############
 # SUMMER NOTE #
@@ -519,7 +519,7 @@ DESTRUCTION_DELAY = 5  # in days
 # Some general settings default values
 DEFAULT_NB_DAYS_SLOT_REMINDER = 4
 DEFAULT_NB_DAYS_TEACHER_SLOT_REMINDER = 4
-DEFAULT_NB_WEEKS_COMPONENTS_SLOT_REMINDER = 1
+DEFAULT_NB_WEEKS_STRUCTURES_SLOT_REMINDER = 1
 
 # Mailing list subscriber files directory
 BASE_FILES_DIR = ""

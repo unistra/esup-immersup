@@ -57,17 +57,17 @@
                 {% csrf_token %}
                 {{ slot_form.id }}
                 <div class="form-group row">
-                    <label for="component" class="col-form-label col-sm-3">{% trans 'Component' %}</label>
+                    <label for="structure" class="col-form-label col-sm-3">{% trans 'Structure' %}</label>
                     <div class="col-sm-6">
-                        <select name="component" id="component" class="form-control" required>
-                            {% if components|length > 1 %}
+                        <select name="structure" id="structure" class="form-control" required>
+                            {% if structures|length > 1 %}
                                 <option value="" selected>{% trans 'Choose a value' %}</option>
-                                {% for component in components %}
-                                    <option value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% for structure in structures %}
+                                    <option value="{{ structure.id }}">{{ structure.code }}: {{ structure.label }}</option>
                                 {% endfor %}
                             {% else %}
-                                {% for component in components %}
-                                    <option selected value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% for structure in structures %}
+                                    <option selected value="{{ structure.id }}">{{ structure.code }}: {{ structure.label }}</option>
                                 {% endfor %}
                             {% endif %}
                         </select>
@@ -399,10 +399,10 @@ $(document).ready(function(){
           "class": 'dialog-button',
           click: function () {
             let url = "/core/slots"
-            let comp_id = $('#component').val();
+            let str_id = $('#structure').val();
             let train_id = $('#training').val();
 
-            if(comp_id) url += "/"+comp_id
+            if(str_id) url += "/"+str_id
             if(train_id) url += "/"+train_id
 
             window.location = url;
@@ -511,7 +511,7 @@ $(document).ready(function(){
             },
             url: '{% url "GetTrainings" %}',
             data: {
-                component_id: value,
+                structure_id: value,
             },
             success: function(data){
                 if ( data['data'] ) {
@@ -538,7 +538,7 @@ $(document).ready(function(){
                         if ( course_first ) {
                             course_first = false;
                             load_course(
-                                $('#component').val(),
+                                $('#structure').val(),
                                 $('#training').val()
                             );
                         }
@@ -548,11 +548,11 @@ $(document).ready(function(){
         });
     }
 
-    function load_course(component, training) {
-        component = (component == '') ? '0' : component;
+    function load_course(structure, training) {
+        structure = (structure == '') ? '0' : structure;
         training = (training == '') ? '0' : training;
         $.ajax({
-            url: '/api/get_courses_by_training/' + component + '/' + training,
+            url: '/api/get_courses_by_training/' + structure + '/' + training,
             success: function(data){
                 if ( data['data']) {
                     $('#id_course').html('');
@@ -662,12 +662,12 @@ $(document).ready(function(){
 
     {% if not slot %}
 
-        {% if not request.POST.component %}
-            load_trainings($('#component').val());
+        {% if not request.POST.structure %}
+            load_trainings($('#structure').val());
         {% endif %}
-        {% if not request.POST.component and not request.POST.training %}
+        {% if not request.POST.structure and not request.POST.training %}
         load_course(
-            $('#component').val(),
+            $('#structure').val(),
             $('#training').val()
         );
         {% endif %}
@@ -687,13 +687,13 @@ $(document).ready(function(){
     toggle_required_fields();
 
     // add change handler
-    $('#component').change(function(event){ load_trainings(event.target.value); });
-    $('#training').change(function(event){ load_course($('#component').val(), event.target.value); });
+    $('#structure').change(function(event){ load_trainings(event.target.value); });
+    $('#training').change(function(event){ load_course($('#structure').val(), event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
     $('#id_course').change(function(event){ load_teachers(event.target.value); });
     $('#id_published').on('change', function(){ toggle_required_fields(); });
 
-    {% if slot or request.POST.component %}
+    {% if slot or request.POST.structure %}
         {% if slot %}
         setTimeout(function(){
                 $('#ok_modify').fadeOut(1000, function(){
@@ -704,11 +704,11 @@ $(document).ready(function(){
         );
         {% endif %}
 
-    $('#component option').each(function(i, e) {
-        {% if request.POST.component %}
-        if ( $(e).val() == '{{ request.POST.component }}' )
+    $('#structure option').each(function(i, e) {
+        {% if request.POST.structure %}
+        if ( $(e).val() == '{{ request.POST.structure }}' )
         {% elif slot %}
-        if ( $(e).val() == '{{ slot.course.component.id }}' )
+        if ( $(e).val() == '{{ slot.course.structure.id }}' )
         {% endif %}
         {
             e.selected = true;

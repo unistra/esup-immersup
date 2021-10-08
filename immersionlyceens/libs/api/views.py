@@ -22,8 +22,9 @@ from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
+
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Component, Course, Establishment, HighSchool, Holiday, Immersion,
+    Building, Calendar, CancelType, Structure, Course, Establishment, HighSchool, Holiday, Immersion,
     ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, TrainingDomain, UniversityYear,
     UserCourseAlert, Vacation
 )
@@ -37,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP", "REF-CMP")
+@groups_required("REF-ETAB", "REF-STR")
 def ajax_get_person(request):
     response = {'msg': '', 'data': []}
     search_str = request.POST.get("username", None)
@@ -79,7 +80,7 @@ def ajax_get_person(request):
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def ajax_get_available_vars(request, template_id=None):
     response = {'msg': '', 'data': []}
 
@@ -93,14 +94,14 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_courses(request, component_id=None):
+@groups_required('REF-ETAB', 'REF-STR')
+def ajax_get_courses(request, structure_id=None):
     response = {'msg': '', 'data': []}
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
 
-    courses = Course.objects.prefetch_related('training', 'component').filter(training__components=component_id)
+    courses = Course.objects.prefetch_related('training', 'structure').filter(training__structures=structure_id)
 
     for course in courses:
         course_data = {
@@ -108,15 +109,14 @@ def ajax_get_courses(request, component_id=None):
             'published': course.published,
             'training_label': course.training.label,
             'label': course.label,
-            'component_code': course.component.code,
-            'component_id': course.component.id,
+            'structure_code': course.structure.code,
+            'structure_id': course.structure.id,
             'teachers': [],
             'slots_count': course.slots_count(),
             'n_places': course.free_seats(),
             'published_slots_count': course.published_slots_count(),
             'registered_students_count': course.registrations_count(),
             'alerts_count': course.get_alerts_count(),
-            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
             'can_delete': not course.slots.exists(),
         }
 
@@ -130,19 +130,19 @@ def ajax_get_courses(request, component_id=None):
 
 @is_post_request
 @is_ajax_request
-@groups_required("SCUIO-IP", "REF-CMP")
+@groups_required("REF-ETAB", "REF-STR")
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
 
-    component_id = request.POST.get("component_id")
+    structure_id = request.POST.get("structure_id")
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
         return JsonResponse(response, safe=False)
 
     trainings = (
         Training.objects.prefetch_related('training_subdomains')
-        .filter(components=component_id, active=True)
+        .filter(structures=structure_id, active=True)
         .order_by('label')
     )
 
@@ -159,7 +159,7 @@ def ajax_get_trainings(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_documents(request):
     response = {'msg': '', 'data': []}
 
@@ -178,8 +178,8 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_slots(request, component=None):
+@groups_required('REF-ETAB', 'REF-STR')
+def ajax_get_slots(request, structure=None):
     can_update_attendances = False
 
     today = datetime.datetime.today().date()
@@ -189,7 +189,7 @@ def ajax_get_slots(request, component=None):
     except UniversityYear.DoesNotExist:
         pass
 
-    comp_id = request.GET.get('component_id')
+    str_id = request.GET.get('structure_id')
     train_id = request.GET.get('training_id')
 
     response = {'msg': '', 'data': []}
@@ -198,24 +198,24 @@ def ajax_get_slots(request, component=None):
         slots = Slot.objects.prefetch_related('course__training', 'teachers', 'immersions').filter(
             course__training__id=train_id
         )
-    elif comp_id:
-        slots = Slot.objects.prefetch_related('course__training__components', 'teachers', 'immersions').filter(
-            course__training__components__id=comp_id
+    elif str_id:
+        slots = Slot.objects.prefetch_related('course__training__structures', 'teachers', 'immersions').filter(
+            course__training__structures__id=str_id
         )
 
     all_data = []
-    my_components = []
-    if request.user.is_scuio_ip_manager():
-        my_components = Component.objects.all()
-    elif request.user.is_component_manager():
-        my_components = request.user.components.all()
+    my_structures = []
+    if request.user.is_ref_etab_manager():
+        my_structures = Structure.objects.all()
+    elif request.user.is_structure_manager():
+        my_structures = request.user.structures.all()
 
     for slot in slots:
         data = {
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_components, },
+            'structure': {'code': slot.course.structure.code, 'managed_by_me': slot.course.structure in my_structures, },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
@@ -265,17 +265,17 @@ def ajax_get_slots(request, component=None):
 
 
 @is_ajax_request
-def ajax_get_courses_by_training(request, component_id=None, training_id=None):
+def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
     if not training_id:
         response['msg'] = gettext("Error : a valid training must be selected")
 
     courses = (
         Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, component__id=component_id,)
+        .filter(training__id=training_id, structure__id=structure_id,)
         .order_by('label')
     )
 
@@ -292,7 +292,7 @@ def ajax_get_courses_by_training(request, component_id=None, training_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
@@ -312,7 +312,7 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_course_teachers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
@@ -333,7 +333,7 @@ def ajax_get_course_teachers(request, course_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.POST.get('course_id')
@@ -374,7 +374,7 @@ def ajax_get_my_courses(request, user_id=None):
         course_data = {
             'id': course.id,
             'published': course.published,
-            'component': course.component.code,
+            'structure': course.structure.code,
             'training_label': course.training.label,
             'label': course.label,
             'teachers': {},
@@ -417,13 +417,13 @@ def ajax_get_my_slots(request, user_id=None):
 
     if past_slots:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'teachers', 'immersions')
             .filter(teachers=user_id)
             .exclude(date__lt=today.date(), immersions__isnull=True)
         ).distinct()
     else:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'teachers', 'immersions')
             .filter(
                 Q(date__gte=today.date())
                 | Q(date=today.date(), end_time__gte=today.time())
@@ -441,7 +441,7 @@ def ajax_get_my_slots(request, user_id=None):
         slot_data = {
             'id': slot.id,
             'published': slot.published,
-            'component': slot.course.component.code,
+            'structure': slot.course.structure.code,
             'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
             'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
             'location': {'campus': campus, 'room': slot.room, },
@@ -507,7 +507,7 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -542,7 +542,7 @@ def ajax_check_date_between_vacation(request):
 
 @is_post_request
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC')
 def ajax_get_student_records(request):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
@@ -586,7 +586,7 @@ def ajax_get_student_records(request):
 
 # REJECT / VALIDATE STUDENT
 @is_ajax_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
@@ -598,7 +598,7 @@ def ajax_validate_reject_student(request, validate):
     student_record_id = request.POST.get('student_record_id')
     if student_record_id:
         hs = None
-        if request.user.is_scuio_ip_manager():
+        if request.user.is_ref_etab_manager():
             hs = HighSchool.objects.all()
         else:
             hs = HighSchool.objects.filter(id=request.user.highschool.id)
@@ -628,7 +628,7 @@ def ajax_validate_reject_student(request, validate):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_validate_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=True)
@@ -636,7 +636,7 @@ def ajax_validate_student(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
@@ -644,7 +644,7 @@ def ajax_reject_student(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_check_course_publication(request, course_id):
     from immersionlyceens.apps.core.models import Course
 
@@ -658,7 +658,7 @@ def ajax_check_course_publication(request, course_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def ajax_delete_account(request):
     """
     Completely destroy a student account and all data
@@ -693,7 +693,7 @@ def ajax_delete_account(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU')
+@groups_required('REF-ETAB', 'LYC', 'ETU')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -727,7 +727,7 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-LYC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
     Get (high-school or not) students immersions
@@ -743,7 +743,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         return JsonResponse(response, safe=False)
 
     if (
-        not request.user.is_scuio_ip_manager()
+        not request.user.is_ref_etab_manager()
         and not request.user.is_high_school_manager()
         and request.user.id != user_id
     ):
@@ -880,7 +880,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}
@@ -931,7 +931,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -974,7 +974,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-CMP')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -989,9 +989,9 @@ def ajax_slot_registration(request):
     # Should we force registering ?
     # warning js boolean not python one
     force = request.POST.get('force', False)
-    cmp = request.POST.get('cmp', False)
+    structure = request.POST.get('structure', False)
     calendar, slot, student = None, None, None
-    can_force_reg = request.user.is_scuio_ip_manager()
+    can_force_reg = request.user.is_ref_etab_manager()
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
 
@@ -1021,8 +1021,8 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # Check slot is published for no scuio-ip user
-    if not request.user.is_scuio_ip_manager() and not slot.published:
+    # Check slot is published for no ref-etab user
+    if not request.user.is_ref_etab_manager() and not slot.published:
         response = {'error': True, 'msg': _("Registering an unpublished slot is forbidden")}
         return JsonResponse(response, safe=False)
 
@@ -1045,7 +1045,7 @@ def ajax_slot_registration(request):
 
     # Check current student immersions and valid dates
     if student.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
-        if not cmp:
+        if not structure:
             msg = _("Already registered to this slot")
         else:
             msg = _("Student already registered for selected slot")
@@ -1079,8 +1079,8 @@ def ajax_slot_registration(request):
                         ),
                     }
                     return JsonResponse(response, safe=False)
-                # ref cmp request & no more remaining registration count for student
-                elif request.user.is_component_manager and remaining_regs_count['annually'] <= 0:
+                # ref str request & no more remaining registration count for student
+                elif request.user.is_structure_manager and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _("This student has no more remaining slots to register to"),
@@ -1113,8 +1113,8 @@ def ajax_slot_registration(request):
                             ),
                         }
                         return JsonResponse(response, safe=False)
-                    # ref cmp request & no more remaining registration count for student
-                    elif request.user.is_component_manager and remaining_regs_count['semester1'] <= 0:
+                    # ref str request & no more remaining registration count for student
+                    elif request.user.is_structure_manager and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1145,8 +1145,8 @@ def ajax_slot_registration(request):
                             ),
                         }
                         return JsonResponse(response, safe=False)
-                    # ref cmp request & no more remaining registration count for student
-                    elif request.user.is_component_manager and remaining_regs_count['semester2'] <= 0:
+                    # ref str request & no more remaining registration count for student
+                    elif request.user.is_structure_manager and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1181,7 +1181,7 @@ def ajax_slot_registration(request):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_available_students(request, slot_id):
     """
     Get students list for manual slot registration
@@ -1226,23 +1226,23 @@ def ajax_get_available_students(request, slot_id):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC')
 def ajax_get_highschool_students(request, highschool_id=None):
     """
-    Retrieve students from a highschool or all students if user is scuio-ip manager
+    Retrieve students from a highschool or all students if user is ref-etab manager
     and no highschool id is specified
     """
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    if request.user.is_scuio_ip_manager():
+    if request.user.is_ref_etab_manager():
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            if not request.user.is_scuio_ip_manager():
+            if not request.user.is_ref_etab_manager():
                 response = {'data': [], 'msg': _('Invalid parameters')}
                 return JsonResponse(response, safe=False)
 
@@ -1316,7 +1316,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-COMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1357,7 +1357,7 @@ def ajax_send_email(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
@@ -1403,13 +1403,13 @@ def ajax_batch_cancel_registration(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required('REF-CMP')
-def get_csv_components(request, component_id):
+@groups_required('REF-STR')
+def get_csv_structures(request, structure_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    component = Component.objects.get(id=component_id).label.replace(' ', '_')
-    response['Content-Disposition'] = f'attachment; filename="{component}_{today}.csv"'
-    slots = Slot.objects.filter(course__component_id=component_id, published=True)
+    structure = Structure.objects.get(id=structure_id).label.replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="{structure}_{today}.csv"'
+    slots = Slot.objects.filter(course__structure_id=structure_id, published=True)
 
     infield_separator = '|'
 
@@ -1525,7 +1525,7 @@ def get_csv_highschool(request, high_school_id):
     return response
 
 
-@groups_required('SCUIO-IP',)
+@groups_required('REF-ETAB',)
 def get_csv_anonymous_immersion(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -1535,7 +1535,7 @@ def get_csv_anonymous_immersion(request):
     infield_separator = '|'
 
     header = [
-        _('component'),
+        _('structure'),
         _('training domain'),
         _('training subdomain'),
         _('training'),
@@ -1585,7 +1585,7 @@ def get_csv_anonymous_immersion(request):
                 if record:
                     content.append(
                         [
-                            slot.course.component.label,
+                            slot.course.structure.label,
                             infield_separator.join(
                                 [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                             ),
@@ -1612,7 +1612,7 @@ def get_csv_anonymous_immersion(request):
         else:
             content.append(
                 [
-                    slot.course.component.label,
+                    slot.course.structure.label,
                     infield_separator.join(
                         [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                     ),
@@ -1656,9 +1656,9 @@ def ajax_send_email_contact_us(request):
     notify_user = False
 
     try:
-        recipient = get_general_setting('MAIL_CONTACT_SCUIO_IP')
+        recipient = get_general_setting('MAIL_CONTACT_REF_ETAB')
     except (NameError, ValueError):
-        logger.error('MAIL_CONTACT_SCUIO_IP not configured properly in settings')
+        logger.error('MAIL_CONTACT_REF_ETAB not configured properly in settings')
         response = {'error': True, 'msg': gettext("Config parameter not found")}
         return JsonResponse(response, safe=False)
 
@@ -1668,7 +1668,7 @@ def ajax_send_email_contact_us(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # Scuio-ip mail sending
+    # ref-etab mail sending
     try:
         send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
     except Exception:
@@ -1700,7 +1700,7 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'SRV-JUR')
+@groups_required('REF-ETAB', 'SRV-JUR')
 def ajax_get_student_presence(request, date_from=None, date_until=None):
     response = {'data': [], 'msg': ''}
 
@@ -1855,7 +1855,7 @@ def ajax_cancel_alert(request):
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def ajax_get_duplicates(request):
     """
     Get duplicates lists
@@ -1892,7 +1892,7 @@ def ajax_get_duplicates(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def ajax_keep_entries(request):
     """
     Remove duplicates ids from high school student records

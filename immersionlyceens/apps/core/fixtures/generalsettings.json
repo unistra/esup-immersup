@@ -56,18 +56,18 @@
     "model": "core.generalsettings",
     "pk": 7,
     "fields": {
-      "setting": "NB_WEEKS_COMPONENTS_SLOT_REMINDER",
+      "setting": "NB_WEEKS_STRUCTURES_SLOT_REMINDER",
       "value": "1",
-      "description": "Rappels de cr\u00e9neaux aux composantes : envois des mails pour les cr\u00e9neaux ayant lieu dans N semaines"
+      "description": "Rappels de cr\u00e9neaux aux structures : envois des mails pour les cr\u00e9neaux ayant lieu dans N semaines"
     }
   },
   {
     "model": "core.generalsettings",
     "pk": 8,
     "fields": {
-      "setting": "MAIL_CONTACT_SCUIO_IP",
-      "value": "scuio_ip@somewhere.og",
-      "description": "Adresse de contact du SCUIO-IP"
+      "setting": "MAIL_CONTACT_REF_ETAB",
+      "value": "ref_etab@somewhere.og",
+      "description": "Adresse de contact du réferent établissement"
     }
   },
   {

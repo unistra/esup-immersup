@@ -12,13 +12,13 @@ from django.test import RequestFactory, TestCase, Client
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
-    CancelTypeForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    CancelTypeForm, StructureForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
     GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
     TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..forms import SlotForm, MyHighSchoolForm, HighSchoolStudentImmersionUserForm
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Component,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure,
     CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
     PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
     Training, Slot, Course)
@@ -68,32 +68,32 @@ class FormTestCase(TestCase):
             first_name='lyc',
             last_name='REF',
         )
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
             email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
         self.client = Client()
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
 
         Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
         self.today = datetime.datetime.today()
-        self.component = Component.objects.create(label="test component")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.teachers.add(self.teacher1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
@@ -127,7 +127,7 @@ class FormTestCase(TestCase):
         self.calendar.delete()
         type = EvaluationType.objects.create(code='testCode', label='testLabel')
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {
             'course': self.course.id,
@@ -145,7 +145,7 @@ class FormTestCase(TestCase):
         """
         type = EvaluationType.objects.create(code='testCode', label='testLabel')
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {
             'course': self.course.id,
@@ -161,7 +161,7 @@ class FormTestCase(TestCase):
         """
         type = EvaluationType.objects.create(code='testCode', label='testLabel')
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {
             'course': self.course.id,
@@ -177,7 +177,7 @@ class FormTestCase(TestCase):
         """
         type = EvaluationType.objects.create(code='testCode', label='testLabel')
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {
             'course': self.course.id,
@@ -201,7 +201,7 @@ class FormTestCase(TestCase):
         self.course.published = False
         self.course.save()
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {
             'course': self.course.id,
@@ -228,7 +228,7 @@ class FormTestCase(TestCase):
         self.course.published = False
         self.course.save()
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {
             'course': self.course.id,
@@ -253,7 +253,7 @@ class FormTestCase(TestCase):
         self.course.published = False
         self.course.save()
 
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
 
         data = {
             'course': self.course.id,
@@ -272,7 +272,7 @@ class FormTestCase(TestCase):
 
 
     def test_HighSchoolStudentImmersionUserForm__ok(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'first_name': 'hello',
             'last_name': 'world'
@@ -282,7 +282,7 @@ class FormTestCase(TestCase):
 
 
     def test_HighSchoolStudentImmersionUserForm__no_last_name(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'first_name': 'hello',
         }
@@ -291,7 +291,7 @@ class FormTestCase(TestCase):
 
 
     def test_HighSchoolStudentImmersionUserForm__no_first_name(self):
-        request.user = self.scuio_user
+        request.user = self.ref_etab_user
         data = {
             'last_name': 'hello',
         }

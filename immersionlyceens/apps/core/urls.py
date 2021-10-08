@@ -9,8 +9,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('component', views.component, name='component'),
-    path('component/<component_code>', views.component, name='update_component'),
+    path('structure', views.structure, name='structure'),
+    path('structure/<structure_code>', views.structure, name='update_structure'),
     path('course', views.course, name='course'),
     path('course/<int:course_id>', views.course, name='modify_course'),
     path('course/<int:course_id>/<int:duplicate>', views.course, name='duplicate_course'),
@@ -28,8 +28,8 @@ urlpatterns = [
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
     path('slot/modify/<int:slot_id>', views.modify_slot, name='modify_slot'),
 
-    path('slots/<int:comp_id>/<int:train_id>', views.slots_list, name='slots_list'),
-    path('slots/<int:comp_id>', views.slots_list, name='slots_list'),
+    path('slots/<int:str_id>/<int:train_id>', views.slots_list, name='slots_list'),
+    path('slots/<int:str_id>', views.slots_list, name='slots_list'),
     path('slots/', views.slots_list, name='slots_list'),
 
     path('stats/', views.stats, name="stats"),
