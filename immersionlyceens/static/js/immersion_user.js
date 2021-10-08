@@ -16,12 +16,17 @@ function getCookie(name) {
 }
 window.addEventListener('load', function() {
   (function($) {
-    var query_order = 0
-    var results
-    var results_text = gettext('Results')
-    var select_text = gettext('Select a user ...')
+    let query_order = 0
+    let results
+    let establishment_id
+    let results_text = gettext("Results")
+    let select_text = gettext("Select a user ...")
 
     $(document).ready(function() {
+      $('#id_establishment').on('change', function() {
+        establishment_id = this.value;
+      })
+
       $('#id_username').after(
         '<label id=\'livesearch_label\'>'+results_text+' :</label>' +
             '<select id=\'live_select\' style=\'visibility:hidden\'></select>' +
@@ -37,11 +42,11 @@ window.addEventListener('load', function() {
             beforeSend: function (request) {
               request.setRequestHeader('X-CSRFToken', csrftoken)
             },
-
-            url : '/api/get_person',
-            type : 'POST',
+            url : "/api/get_person",
+            type : "POST",
             data : {
               username : this.value,
+              establishment_id: establishment_id,
               query_order : query_order
             },
 

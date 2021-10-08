@@ -38,7 +38,9 @@ class Establishment(models.Model):
     email = models.EmailField(_('Email'))
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
     master = models.BooleanField(_("Master"), default=True)
-    data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True)
+    data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
+        choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
+    )
     data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
 
     class Meta:
@@ -131,6 +133,10 @@ class ImmersionUser(AbstractUser):
         super().__init__(*args, **kwargs)
         for code, name in self._groups.items():
             setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
+
+    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
+        blank=True, null=True
+    )
 
     components = models.ManyToManyField(Component, verbose_name=_("Components"), blank=True, related_name='referents')
     highschool = models.ForeignKey(

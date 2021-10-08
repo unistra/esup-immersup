@@ -2,26 +2,59 @@ import ldap3
 import sys
 import logging
 from ldap3 import Connection, Server, SUBTREE, ALL
-from .base import BaseAccountsAPI
 from django.conf import settings
+from django.utils.translation import gettext, ugettext_lazy as _
+from django.core.exceptions import ImproperlyConfigured
 
+from immersionlyceens.apps.core.models import Establishment
+
+from .base import BaseAccountsAPI
 logger = logging.getLogger(__name__)
 
+class AccountAPI(BaseAccountsAPI):
+    attrs_list = [
+        'HOST', 'PORT', 'DN', 'PASSWORD', 'BASE_DN', 'ACCOUNTS_FILTER', 'SEARCH_ATTR', 'DISPLAY_ATTR',
+        'EMAIL_ATTR', 'USERNAME_ATTR', 'LASTNAME_ATTR', 'FIRSTNAME_ATTR'
+    ]
 
-class LdapAPI(BaseAccountsAPI):
-    def __init__(self):
+    def __init__(self, establishment: Establishment):
+        self.establishment = establishment
+
         try:
-            logger.debug('Host: %s, port: %s, dn: %s, base: %s',
-                settings.LDAP_API_HOST, settings.LDAP_API_PORT,
-                settings.LDAP_API_DN, settings.LDAP_API_BASE_DN)
-            ldap_server = Server(settings.LDAP_API_HOST, port=int(settings.LDAP_API_PORT),
-                       get_info=ALL)
-            logger.debug('Server: %s', ldap_server)
-            self.ldap_connection = Connection(ldap_server, auto_bind=True,
-                user=settings.LDAP_API_DN, password=settings.LDAP_API_PASSWORD)
-        except Exception:
-            logger.error("Cannot connect to LDAP server : %s", sys.exc_info()[0])
+            self.check_settings()
+        except Exception as e:
+            raise ImproperlyConfigured(_("Please check establishment LDAP plugin settings : %s") % e)
+
+        try:
+            logger.debug(f"Host: {self.HOST}, port: {self.PORT}, dn: {self.DN}, base: {self.BASE_DN}")
+            ldap_server = Server(self.HOST, port=int(self.PORT), get_info=ALL)
+            logger.debug(f"Server: {ldap_server}")
+            self.ldap_connection = Connection(ldap_server, auto_bind=True, user=self.DN, password=self.PASSWORD)
+        except Exception as e:
+            logger.error("Cannot connect to LDAP server : %s", e)
             raise
+
+    @classmethod
+    def get_plugin_attrs(self):
+        return self.attrs_list
+
+    def check_settings(self):
+        if not isinstance(self.establishment, Establishment):
+            raise Exception(_("Not an Establishment object"))
+
+        if self.establishment.data_source_plugin != "LDAP":
+            raise Exception(_("Establishment is not configured with LDAP plugin"))
+
+        for attr in self.attrs_list:
+            try:
+                value = self.establishment.data_source_settings[attr]
+                setattr(self, attr.upper(), value)
+            except TypeError:
+                raise ImproperlyConfigured(_("LDAP plugin settings are empty"))
+            except KeyError:
+                raise ImproperlyConfigured(_("LDAP plugin setting '%s' not found") % attr)
+            except Exception as e:
+                raise Exception(attr, e)
 
 
     def decode_value(self, value):
@@ -29,32 +62,23 @@ class LdapAPI(BaseAccountsAPI):
 
     
     def search_user(self, search_value):
-        search_attr = settings.LDAP_API_SEARCH_ATTR
-
         attributes = {
-            'username': settings.LDAP_API_USERNAME_ATTR,
-            'email': settings.LDAP_API_EMAIL_ATTR,
-            'lastname': settings.LDAP_API_LASTNAME_ATTR,
-            'firstname': settings.LDAP_API_FIRSTNAME_ATTR,
-            'display_name': settings.LDAP_API_DISPLAY_ATTR,
+            'username': self.USERNAME_ATTR,
+            'email': self.EMAIL_ATTR,
+            'lastname': self.LASTNAME_ATTR,
+            'firstname': self.FIRSTNAME_ATTR,
+            'display_name': self.DISPLAY_ATTR,
         }
+        search_filter = f"({self.SEARCH_ATTR}={search_value}*)"
 
-        search_filter = "(%s=%s*)" % (
-            settings.LDAP_API_SEARCH_ATTR,
-            search_value,
-        )
+        if self.ACCOUNTS_FILTER:
+            search_filter = f"(&{search_filter}{self.ACCOUNTS_FILTER})"
 
-        if settings.LDAP_API_ACCOUNTS_FILTER:
-            search_filter = "(&%s%s)" % (
-                search_filter,
-                settings.LDAP_API_ACCOUNTS_FILTER
-            )
- 
-        logger.debug("LDAP Filter : %s", search_filter)
+        logger.debug(f"LDAP Filter : {search_filter}")
 
         try:
             self.ldap_connection.search(
-                search_base=settings.LDAP_API_BASE_DN,
+                search_base=self.BASE_DN,
                 search_filter=search_filter,
                 search_scope=SUBTREE,
                 attributes=list(attributes.values())
@@ -74,5 +98,3 @@ class LdapAPI(BaseAccountsAPI):
             results.append(result)
 
         return results
-
-

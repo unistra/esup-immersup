@@ -3,11 +3,12 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.db.models import Q
+from django.db import models
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.admin import SummernoteModelAdmin
+from django_json_widget.widgets import JSONEditorWidget
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
@@ -148,7 +149,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             None,
             {
                 'classes': ('wide',),
-                'fields': ('username', 'password1', 'password2', 'email', 'first_name', 'last_name',),
+                'fields': ('establishment', 'username', 'password1', 'password2', 'email', 'first_name', 'last_name',),
             },
         ),
     )
@@ -411,14 +412,9 @@ class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('master', 'label', )
     search_fields = ('label',)
 
-    """
-    fieldsets = (
-        (None, {
-            'fields': ('code', 'establishment_type', 'label', 'short_label', 'badge_html_color', 'email', 'active',
-                       'master', 'data_source_plugin', 'data_source_settings')
-        }),
-    )
-    """
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
 
     def get_actions(self, request):
         # Disable delete

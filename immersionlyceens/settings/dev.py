@@ -86,32 +86,10 @@ MIDDLEWARE += [
 ]
 INTERNAL_IPS = ['127.0.0.1', '0.0.0.0']
 
-#################
-# APIs settings #
-#################
 
-ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
-
-
-#####################
-# LDAP API settings #
-#####################
-
-# Server
-LDAP_API_HOST = environ.get('LDAP_API_HOST', '')
-LDAP_API_PORT = environ.get('LDAP_API_PORT', '')
-LDAP_API_DN = environ.get('LDAP_API_DN', '')
-LDAP_API_PASSWORD = environ.get('LDAP_API_PASSWORD', '')
-LDAP_API_BASE_DN = environ.get('LDAP_API_BASE_DN', '')
-
-# Filters and attributes
-LDAP_API_ACCOUNTS_FILTER = environ.get('LDAP_API_ACCOUNTS_FILTER', '')
-LDAP_API_SEARCH_ATTR = environ.get('LDAP_API_SEARCH_ATTR', '')
-LDAP_API_DISPLAY_ATTR = environ.get('LDAP_API_DISPLAY_ATTR', '')
-LDAP_API_EMAIL_ATTR = environ.get('LDAP_API_EMAIL_ATTR', '')
-LDAP_API_USERNAME_ATTR = environ.get('LDAP_API_USERNAME_ATTR', '')
-LDAP_API_LASTNAME_ATTR = environ.get('LDAP_API_LASTNAME_ATTR', '')
-LDAP_API_FIRSTNAME_ATTR = environ.get('LDAP_API_FIRSTNAME_ATTR', '')
+################
+# API settings #
+################
 
 WITH_HOLIDAY_API = True
 HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'

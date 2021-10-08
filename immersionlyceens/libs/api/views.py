@@ -3,6 +3,7 @@ API Views
 """
 import csv
 import datetime
+import importlib
 import json
 import logging
 from functools import reduce
@@ -21,18 +22,13 @@ from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
-from immersionlyceens.apps.core.models import (Building, Calendar, CancelType,
-                                               Component, Course, HighSchool,
-                                               Holiday, Immersion,
-                                               ImmersionUser, MailTemplate,
-                                               MailTemplateVars,
-                                               PublicDocument, Slot, Training,
-                                               TrainingDomain, UniversityYear,
-                                               UserCourseAlert, Vacation)
-from immersionlyceens.apps.immersion.models import (HighSchoolStudentRecord,
-                                                    StudentRecord)
-from immersionlyceens.decorators import (groups_required, is_ajax_request,
-                                         is_post_request)
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, CancelType, Component, Course, Establishment, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, TrainingDomain, UniversityYear,
+    UserCourseAlert, Vacation
+)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.mails.variables_parser import multisub
 from immersionlyceens.libs.utils import get_general_setting
@@ -43,29 +39,41 @@ logger = logging.getLogger(__name__)
 @is_ajax_request
 @groups_required("SCUIO-IP", "REF-CMP")
 def ajax_get_person(request):
-    if settings.ACCOUNTS_CLIENT:
-        response = {'msg': '', 'data': []}
+    response = {'msg': '', 'data': []}
+    search_str = request.POST.get("username", None)
+    query_order = request.POST.get("query_order")
+    establishment_id = request.POST.get('establishment_id')
 
-        accounts_api = import_string(settings.ACCOUNTS_CLIENT)
+    if not search_str:
+        return JsonResponse(response, safe=False)
 
+    try:
+        establishment = Establishment.objects.get(pk=establishment_id)
+    except Establishment.DoesNotExist:
+        return JsonResponse(response, safe=False)
+
+    if establishment.data_source_plugin:
         try:
-            accounts_client = accounts_api()
-        except:
-            response['msg'] = gettext("Error : can't query LDAP server")
-            return JsonResponse(response, safe=False)
+            module_name = settings.ACCOUNTS_PLUGINS[establishment.data_source_plugin]
+            source = importlib.import_module(module_name, package=None)
+            account_api = source.AccountAPI(establishment)
 
-        search_str = request.POST.get("username", None)
-
-        if search_str:
-            query_order = request.POST.get("query_order")
             persons_list = [query_order]
 
-            users = accounts_client.search_user(search_str)
+            users = account_api.search_user(search_str)
+
             if users != False:
                 users = sorted(users, key=lambda u: [u['lastname'], u['firstname']])
                 response['data'] = persons_list + users
             else:
-                response['msg'] = gettext("Error : can't query LDAP server")
+                response['msg'] = gettext("Error : can't query establishment accounts data source")
+
+        except KeyError:
+            pass
+        except Exception as e:
+            response['msg'] = gettext("Error : %s" % e)
+    else:
+        response['msg'] = gettext("No source plugin configured")
 
     return JsonResponse(response, safe=False)
 

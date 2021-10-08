@@ -1,3 +1,4 @@
+import importlib
 import mimetypes
 import re
 from datetime import datetime
@@ -258,6 +259,9 @@ class EstablishmentForm(forms.ModelForm):
             self.fields["master"].disabled = True
             self.fields["master"].help_text = _("This attribute cannot be updated")
 
+        # Plugins
+        # self.fields["data_source_plugins"] = forms.ChoiceField(choices=settings.AVAILABLE_ACCOUNTS_PLUGINS)
+
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
@@ -265,6 +269,9 @@ class EstablishmentForm(forms.ModelForm):
         code = cleaned_data.get('code')
         label = cleaned_data.get('label')
         short_label = cleaned_data.get('short_label')
+
+        data_source_plugin = cleaned_data.get('data_source_plugin')
+        data_source_settings = cleaned_data.get('data_source_settings')
 
         try:
             user = self.request.user
@@ -274,6 +281,20 @@ class EstablishmentForm(forms.ModelForm):
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+        if not data_source_plugin:
+            cleaned_data['data_source_settings'] = None
+        elif not data_source_settings:
+            cleaned_data['data_source_settings'] = {}
+            try:
+                module_name = settings.ACCOUNTS_PLUGINS[data_source_plugin]
+                source = importlib.import_module(module_name, package=None)
+
+                for attr in source.AccountAPI.get_plugin_attrs():
+                    cleaned_data['data_source_settings'][attr] = ""
+
+            except KeyError:
+                pass
 
         exclude_filter = {'id': self.instance.id} if self.instance else {}
 
@@ -678,6 +699,8 @@ class ImmersionUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        self.fields["establishment"].required = False
 
         self.fields["password1"].required = False
         self.fields["password2"].required = False
