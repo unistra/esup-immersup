@@ -125,7 +125,7 @@ class ImmersionUser(AbstractUser):
         'REF-LYC': 'high_school_manager',
         'ETU': 'student',
         'LYC': 'high_school_student',
-        'ENS-CH': 'teacher',
+        'INTER': 'speaker',
         'SRV-JUR': 'legal_department_staff',
     }
 
@@ -855,7 +855,7 @@ class Course(models.Model):
 
     published = models.BooleanField(_("Published"), default=True)
 
-    teachers = models.ManyToManyField(ImmersionUser, verbose_name=_("Teachers"), related_name='courses')
+    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses')
 
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
 
@@ -865,52 +865,52 @@ class Course(models.Model):
     def get_structures_queryset(self):
         return self.training.structures.all()
 
-    def free_seats(self, teacher_id=None):
+    def free_seats(self, speaker_id=None):
         """
-        :teacher_id: optional : only consider slots attached to 'teacher'
+        :speaker_id: optional : only consider slots attached to 'speaker'
         :return: number of seats as the sum of seats of all slots under this course
         """
         filters = {'published': True}
 
-        if teacher_id:
-            filters['teachers'] = teacher_id
+        if speaker_id:
+            filters['speakers'] = speaker_id
 
         d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
 
         return d['total_seats']
 
-    def published_slots_count(self, teacher_id=None):
+    def published_slots_count(self, speaker_id=None):
         """
-        :teacher_id: optional : only consider slots attached to 'teacher'
+        :speaker_id: optional : only consider slots attached to 'speaker'
         Return number of published slots under this course
         """
         filters = {'published': True}
 
-        if teacher_id:
-            filters['teachers'] = teacher_id
+        if speaker_id:
+            filters['speakers'] = speaker_id
 
         return self.slots.filter(**filters).count()
 
-    def slots_count(self, teacher_id=None):
+    def slots_count(self, speaker_id=None):
         """
-        :teacher_id: optional : only consider slots attached to 'teacher'
+        :speaker_id: optional : only consider slots attached to 'speaker'
         Return number of slots under this course, published or not
         """
-        if teacher_id:
-            return self.slots.filter(teachers=teacher_id).count()
+        if speaker_id:
+            return self.slots.filter(speakers=speaker_id).count()
         else:
             return self.slots.all().count()
 
-    def registrations_count(self, teacher_id=None):
+    def registrations_count(self, speaker_id=None):
         """
-        :teacher_id: optional : only consider slots attached to 'teacher'
+        :speaker_id: optional : only consider slots attached to 'speaker'
         :return: the number of non-cancelled registered students on all the slots
         under this course (past and future)
         """
         filters = {'slot__course': self, 'cancellation_type__isnull': True}
 
-        if teacher_id:
-            filters['slot__teachers'] = teacher_id
+        if speaker_id:
+            filters['slot__speakers'] = speaker_id
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
@@ -1205,7 +1205,7 @@ class Slot(models.Model):
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
     end_time = models.TimeField(_('End time'), blank=True, null=True)
 
-    teachers = models.ManyToManyField(ImmersionUser, verbose_name=_("Teachers"), related_name='slots')
+    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='slots')
 
     n_places = models.PositiveIntegerField(_('Number of places'))
     additional_information = models.CharField(_('Additional information'), max_length=128, null=True, blank=True)

@@ -35,7 +35,7 @@
               <th id="structure_filter">{% trans 'Structure' %}</th>
               <th id="training_filter">{% trans 'Training' %}</th>
               <th id="label_filter">{% trans 'Label' %}</th>
-              <th id="teacher_filter">{% trans 'Teachers' %}</th>
+              <th id="speaker_filter">{% trans 'Speakers' %}</th>
               <th id="published_slots_filter" class="align-top">{% trans 'Published slots' %}</th>
               <th id="registered_students_filter" class="align-top">{% trans 'Registered students' %}</th>
             </tr>
@@ -99,7 +99,7 @@
     { "data": "training_label" },
     { "data": "label" },
     {
-      "data": "teachers",
+      "data": "speakers",
       "render": function (data) {
         let txt = "";
         $.each(data, function (name, email) {
@@ -180,7 +180,7 @@
     filter_type: "text",
     filter_default_label: "",
     style_class: "form-control form-control-sm",
-    filter_container_id: "teacher_filter",
+    filter_container_id: "speaker_filter",
     filter_reset_button_text: false,
   }
   ]);

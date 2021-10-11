@@ -73,7 +73,7 @@
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
                 <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Teachers' %}</th>
+                <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Additional info' %}</th>
                 <th></th>
               </tr>
@@ -118,7 +118,7 @@
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
                 <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Teachers' %}</th>
+                <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Attendance status' %}</th>
                 <th></th>
               </tr>
@@ -163,7 +163,7 @@
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
                 <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Teachers' %}</th>
+                <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Cancellation type' %}</th>
               </tr>
             </thead>
@@ -279,7 +279,7 @@
             return data;
           },
         },
-        { "data": "teachers",
+        { "data": "speakers",
           "render": function (data) {
             let txt = "";
             $.each(data, function(index, value) {
@@ -354,7 +354,7 @@
             return data;
           },
         },
-        { "data": "teachers",
+        { "data": "speakers",
           "render": function (data) {
             let txt = "";
             $.each(data, function(index, value) {
@@ -426,7 +426,7 @@
             return data;
           },
         },
-        { "data": "teachers",
+        { "data": "speakers",
           "render": function (data) {
             let txt = "";
             $.each(data, function(index, value) {

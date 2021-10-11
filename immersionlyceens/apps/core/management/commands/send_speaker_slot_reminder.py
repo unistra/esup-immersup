@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Send a reminder to teachers for upcoming slots
+Send a reminder to speakers for upcoming slots
 """
 import datetime
 import logging
@@ -24,13 +24,13 @@ class Command(BaseCommand):
 
         # settings / default value
         try:
-            days = settings.DEFAULT_NB_DAYS_TEACHER_SLOT_REMINDER
+            days = settings.DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER
         except AttributeError:
             days = default_value
 
         # Configured value
         try:
-            days = int(get_general_setting('NB_DAYS_TEACHER_SLOT_REMINDER'))
+            days = int(get_general_setting('NB_DAYS_SPEAKER_SLOT_REMINDER'))
         except (ValueError, NameError):
             pass
 
@@ -43,6 +43,6 @@ class Command(BaseCommand):
         slots = Slot.objects.filter(date=slot_date, published=True)
 
         for slot in slots:
-            for teacher in slot.teachers.all():
-                teacher.send_message(None, 'IMMERSION_RAPPEL_ENS', slot=slot)
+            for speaker in slot.speakers.all():
+                speaker.send_message(None, 'IMMERSION_RAPPEL_ENS', slot=slot)
 

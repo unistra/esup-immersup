@@ -55,7 +55,7 @@
             <th><span id="training_filter">{% trans 'Training' %}</span></th>
             <th><span id="managed_by_filter">{% trans 'Managed by' %}</span></th>
             <th><span id="label_filter">{% trans 'Label' %}</span></th>
-            <th class="align-top">{% trans 'Teachers' %}</th>
+            <th class="align-top">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %}</th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th><span id="alerts_filter">{% trans 'Alerts' %}</span></th>
@@ -203,7 +203,7 @@
               }
             },
           },
-          { "data": "teachers",
+          { "data": "speakers",
             "render": function (data) {
               let txt = "";
               $.each(data, function(index, value) {

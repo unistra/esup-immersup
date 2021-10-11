@@ -74,17 +74,17 @@ class APITestCase(TestCase):
             first_name='ref_str',
             last_name='ref_str',
         )
-        self.teacher1 = get_user_model().objects.create_user(
-            username='teacher1',
+        self.speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
             password='pass',
-            email='teacher-immersion@no-reply.com',
-            first_name='teach',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
             last_name='HER',
         )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='teacher-immersion@no-reply.com',
+            email='speaker-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )
@@ -107,7 +107,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
-        Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
@@ -142,7 +142,7 @@ class APITestCase(TestCase):
         self.training.structures.add(self.structure)
         self.training2.structures.add(self.structure)
         self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
-        self.course.teachers.add(self.teacher1)
+        self.course.speakers.add(self.speaker1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM')
@@ -220,8 +220,8 @@ class APITestCase(TestCase):
             published=False,
             additional_information="Hello there!"
         )
-        self.slot.teachers.add(self.teacher1),
-        self.slot2.teachers.add(self.teacher1),
+        self.slot.speakers.add(self.speaker1),
+        self.slot2.speakers.add(self.speaker1),
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -392,23 +392,23 @@ class APITestCase(TestCase):
         response = self.client.post(url, {}, **header)
         self.assertEqual(response.status_code, 404)
 
-    def test_API_ajax_get_course_teachers__404(self):
+    def test_API_ajax_get_course_speakers__404(self):
         request.user = self.ref_etab_user
-        url = "/api/check_course_teachers/"
+        url = "/api/check_course_speakers/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
         self.assertEqual(response.status_code, 404)
 
-    def test_API_ajax_get_course_teachers__ok(self):
+    def test_API_ajax_get_course_speakers__ok(self):
         request.user = self.ref_etab_user
-        url = "/api/get_course_teachers/"
+        url = "/api/get_course_speakers/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
         self.assertEqual(response.status_code, 404)
 
-    def test_API_ajax_get_course_teachers__ok(self):
+    def test_API_ajax_get_course_speakers__ok(self):
         request.user = self.ref_etab_user
-        url = f"/api/get_course_teachers/{self.course.id}"
+        url = f"/api/get_course_speakers/{self.course.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = self.client.post(url, {}, **header)
         content = json.loads(response.content.decode())
@@ -419,9 +419,9 @@ class APITestCase(TestCase):
         self.assertIsInstance(content['msg'], str)
         self.assertEqual(len(content['data']), 1)
         self.assertIsInstance(content['data'][0], dict)
-        self.assertEqual(content['data'][0]['id'], self.teacher1.id)
-        self.assertEqual(content['data'][0]['first_name'], self.teacher1.first_name)
-        self.assertEqual(content['data'][0]['last_name'], self.teacher1.last_name)
+        self.assertEqual(content['data'][0]['id'], self.speaker1.id)
+        self.assertEqual(content['data'][0]['first_name'], self.speaker1.first_name)
+        self.assertEqual(content['data'][0]['last_name'], self.speaker1.last_name)
 
     def test_API_ajax_get_buildings__ok(self):
         request.user = self.ref_etab_user
@@ -850,7 +850,7 @@ class APITestCase(TestCase):
             _('campus'),
             _('building'),
             _('room'),
-            _('teachers'),
+            _('speakers'),
             _('registration number'),
             _('place number'),
             _('additional information'),
@@ -874,7 +874,7 @@ class APITestCase(TestCase):
                 self.assertIn(self.slot.building.label, row[9])
                 self.assertEqual(self.slot.room, row[10])
                 self.assertIn(
-                    f'{self.teacher1.first_name} {self.teacher1.last_name}',
+                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
                     row[11].split('|')
                 ),
                 self.assertEqual(str(self.slot.registered_students()), row[12])
@@ -971,9 +971,9 @@ class APITestCase(TestCase):
         self.assertEqual(c['structure_code'], self.course.structure.code)
         self.assertEqual(c['structure_id'], self.course.structure.id)
 
-        teachers_naming = [f'{t.last_name} {t.first_name}' for t in self.course.teachers.all()]
-        for t in c['teachers']:
-            self.assertIn(t, teachers_naming)
+        speakers_naming = [f'{t.last_name} {t.first_name}' for t in self.course.speakers.all()]
+        for t in c['speakers']:
+            self.assertIn(t, speakers_naming)
 
         self.assertEqual(c['slots_count'], self.course.slots_count())
         self.assertEqual(c['n_places'], self.course.free_seats())
@@ -1064,11 +1064,11 @@ class APITestCase(TestCase):
         self.assertTrue(not_raised)
 
     def test_API_ajax_get_my_courses(self):
-        request.user = self.teacher1
+        request.user = self.speaker1
         client = Client()
-        client.login(username='teacher1', password='pass')
+        client.login(username='speaker1', password='pass')
 
-        url = f"/api/get_my_courses/{self.teacher1.id}/"
+        url = f"/api/get_my_courses/{self.speaker1.id}/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = client.get(url, request, **header)
         content = json.loads(response.content.decode())
@@ -1085,21 +1085,21 @@ class APITestCase(TestCase):
         self.assertEqual(self.course.structure.code, c['structure'])
         self.assertEqual(self.course.training.label, c['training_label'])
         self.assertEqual(self.course.label, c['label'])
-        # teachers
-        self.assertEqual(self.course.slots_count(teacher_id=self.teacher1.id), c['slots_count'])
-        self.assertEqual(self.course.free_seats(teacher_id=self.teacher1.id), c['n_places'])
+        # speakers
+        self.assertEqual(self.course.slots_count(speaker_id=self.speaker1.id), c['slots_count'])
+        self.assertEqual(self.course.free_seats(speaker_id=self.speaker1.id), c['n_places'])
         self.assertEqual(
-            self.course.published_slots_count(teacher_id=self.teacher1.id),
+            self.course.published_slots_count(speaker_id=self.speaker1.id),
             c['published_slots_count']
         )
         self.assertEqual(self.course.get_alerts_count(), c['alerts_count'])
 
     def test_API_ajax_get_my_slots(self):
-        request.user = self.teacher1
+        request.user = self.speaker1
         client = Client()
-        client.login(username='teacher1', password='pass')
+        client.login(username='speaker1', password='pass')
 
-        url = f"/api/get_my_slots/{self.teacher1.id}/"
+        url = f"/api/get_my_slots/{self.speaker1.id}/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = client.get(url, request, **header)
         content = json.loads(response.content.decode())
@@ -1151,7 +1151,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.slot.start_time.strftime("%H:%M"), s['start_time'])
         self.assertEqual(self.slot.end_time.strftime("%H:%M"), s['end_time'])
         self.assertEqual(self.slot.course.label, s['label'])
-        # TODO: teachers
+        # TODO: speakers
         self.assertEqual(self.slot.n_places, s['n_places'])
         capa = s['registered_students_count']
         self.assertIsInstance(capa, dict)
@@ -1162,11 +1162,11 @@ class APITestCase(TestCase):
     def test_API_ajax_get_my_slots_all__past(self):
         self.slot.date = self.today - timedelta(days=10)
         self.slot.save()
-        request.user = self.teacher1
+        request.user = self.speaker1
         client = Client()
-        client.login(username='teacher1', password='pass')
+        client.login(username='speaker1', password='pass')
 
-        url = f"/api/get_my_slots/all/{self.teacher1.id}/"
+        url = f"/api/get_my_slots/all/{self.speaker1.id}/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = client.get(url, request, **header)
         content = json.loads(response.content.decode())
@@ -1185,11 +1185,11 @@ class APITestCase(TestCase):
         self.slot.save()
         self.immersion.delete()
         self.immersion2.delete()
-        request.user = self.teacher1
+        request.user = self.speaker1
         client = Client()
-        client.login(username='teacher1', password='pass')
+        client.login(username='speaker1', password='pass')
 
-        url = f"/api/get_my_slots/all/{self.teacher1.id}/"
+        url = f"/api/get_my_slots/all/{self.speaker1.id}/"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = client.get(url, request, **header)
         content = json.loads(response.content.decode())
@@ -1247,7 +1247,7 @@ class APITestCase(TestCase):
         client = Client()
         client.login(username='student', password='pass')
 
-        url = f"/api/get_immersions/{self.teacher1.id}"
+        url = f"/api/get_immersions/{self.speaker1.id}"
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         response = client.get(url, request, **header)
         content = json.loads(response.content.decode())

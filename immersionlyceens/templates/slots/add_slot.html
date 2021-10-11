@@ -188,45 +188,45 @@
                 </div>
 
                 <div class="form-group row">
-                    <label class="col-sm-3">{% trans 'Teachers' %}</label>
+                    <label class="col-sm-3">{% trans 'Speakers' %}</label>
                     <div class="form-group col-sm-6 row">
-                        <div class="form-check" id="id_teachers">
+                        <div class="form-check" id="id_speakers">
                             {% if slot %}
-                                {% for t in slot.course.teachers.all %}
+                                {% for t in slot.course.speakers.all %}
                                 <div class="custom-control custom-checkbox">
-                                    {% if t.id in teachers_idx %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                    {% if t.id in speakers_idx %}
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}" checked>
                                     {% else %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}">
                                     {% endif %}
-                                    <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                                    <label for="speaker_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
                                 </div>
                                 {% endfor %}
                             {% elif course %}
-                                {% for t in course.teachers.all %}
+                                {% for t in course.speakers.all %}
                                 <div class="custom-control custom-checkbox">
-                                    {% if t.id in teachers_idx %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                    {% if t.id in speakers_idx %}
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}" checked>
                                     {% else %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}">
                                     {% endif %}
-                                    <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                                    <label for="speaker_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
                                 </div>
                                 {% endfor %}
                             {% endif %}
                         </div>
 
                     </div>
-                    {% if slot_form.teachers.errors %}
+                    {% if slot_form.speakers.errors %}
                     <div class="col-sm-3 alert alert-danger">
-                      {{ slot_form.teachers.errors }}
+                      {{ slot_form.speakers.errors }}
                     </div>
-                    {% elif teacher_error %}
+                    {% elif speaker_error %}
                         <div class="alert alert-danger">
-                        {% if teacher_error %}
+                        {% if speaker_error %}
                         <ul>
-                            <li>{% trans "Teachers" %}
-                                <ul><li>{% trans "You have to select one or more teachers" %}</li></ul>
+                            <li>{% trans "Speakers" %}
+                                <ul><li>{% trans "You have to select one or more speakers" %}</li></ul>
                             </li>
                         </ul>
                     {% endif %}
@@ -480,7 +480,7 @@ $(document).ready(function(){
             let mandatory = [
                 'course', 'course_type', 'campus',
                 'building', 'room', 'date', 'start_time', 'end_time',
-                'teachers', 'n_places'
+                'speakers', 'n_places'
             ];
             mandatory.forEach(function(e){
                 $('#id_' + e).attr('required', 'sfdgsg');
@@ -489,7 +489,7 @@ $(document).ready(function(){
 
             let not_mandatory = [
                 'course_type', 'campus', 'building', 'room', 'date',
-                'start_time', 'end_time', 'teachers', 'n_places'
+                'start_time', 'end_time', 'speakers', 'n_places'
             ];
             let mandatory = ['training', 'course'];
 
@@ -571,7 +571,7 @@ $(document).ready(function(){
                     $('#id_course option[value="{{ request.POST.course }}"]').attr('selected', '');
                     {% endif %}
                 }
-                // load_teachers($('#id_course').val());
+                // load_speakers($('#id_course').val());
             }
         });
     }
@@ -619,23 +619,23 @@ $(document).ready(function(){
         });
     }
 
-    function load_teachers(value) {
+    function load_speakers(value) {
         $.ajax({
-            url: '/api/get_course_teachers/' + value,
+            url: '/api/get_course_speakers/' + value,
             success: function(data){
                 if ( data['data'] ) {
-                    $('#id_teachers').html('');
+                    $('#id_speakers').html('');
                     data['data'].forEach(function(e){
                         let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
                         element = '<div class="custom-checkbox custom-control">';
-                        element += '<input type="checkbox" name="teacher_' + e['id'] + '" value="' + e['id'] + '">';
-                        element += '<label for="teacher_' + e['id'] + '">' + name +'</label>';
+                        element += '<input type="checkbox" name="speaker_' + e['id'] + '" value="' + e['id'] + '">';
+                        element += '<label for="speaker_' + e['id'] + '">' + name +'</label>';
                         element += '</div>';
-                        $('#id_teachers').append(element);
+                        $('#id_speakers').append(element);
                     });
                 }
             },
-            error: function() {$('#id_teachers').html('');}
+            error: function() {$('#id_speakers').html('');}
         });
     }
 
@@ -678,7 +678,7 @@ $(document).ready(function(){
         {% if not slot_form.course.value %}
             id_course = $('#id_course').val();
             if (id_course) {
-              load_teachers(id_course);
+              load_speakers(id_course);
             }
         {% endif %}
 
@@ -690,7 +690,7 @@ $(document).ready(function(){
     $('#structure').change(function(event){ load_trainings(event.target.value); });
     $('#training').change(function(event){ load_course($('#structure').val(), event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
-    $('#id_course').change(function(event){ load_teachers(event.target.value); });
+    $('#id_course').change(function(event){ load_speakers(event.target.value); });
     $('#id_published').on('change', function(){ toggle_required_fields(); });
 
     {% if slot or request.POST.structure %}

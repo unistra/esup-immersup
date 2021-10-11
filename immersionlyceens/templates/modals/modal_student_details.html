@@ -22,7 +22,7 @@
                   <th>{% trans 'Type' %}</th>
                   <th>{% trans 'Place' %}</th>
                   <th>{% trans 'Date and time' %}</th>
-                  <th>{% trans 'Teachers' %}</th>
+                  <th>{% trans 'Speakers' %}</th>
                   <th>{% trans 'Additional info' %}</th>
                   <th>{% trans 'Cancellation type' %}</th>
                   <th>{% trans 'Attendance' %}</th>
@@ -99,7 +99,7 @@ dtr = $('#immersions_table').DataTable({
         return data;
       },
     },
-    { "data": "teachers",
+    { "data": "speakers",
       "render": function (data) {
         let txt = "";
         $.each(data, function(index, value) {

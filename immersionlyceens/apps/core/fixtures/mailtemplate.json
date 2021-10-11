@@ -120,11 +120,11 @@
     "model": "core.mailtemplate",
     "pk": 8,
     "fields": {
-      "code": "CPT_CREATE_ENS",
-      "label": "Mail cr\u00e9ation compte enseignant",
-      "description": "Mail envoy\u00e9 lors de la cr\u00e9ation d\u2019un compte Enseignant",
+      "code": "CPT_CREATE_INTER",
+      "label": "Mail cr\u00e9ation compte intervenant",
+      "description": "Mail envoy\u00e9 lors de la cr\u00e9ation d\u2019un compte Intervenant",
       "subject": "Votre compte immersion",
-      "body": "<p>Bonjour ${ens.prenom} ${ens.nom}, </p><p>un compte immersion vient de vous \u00eatre cr\u00e9\u00e9 pour l'ann\u00e9e ${annee}. </p><p>Vous pouvez vous connecter en utilisant vos identifiants ENT habituels. </p><p>La plateforme a l'adresse suivante ${urlPlateforme}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+      "body": "<p>Bonjour ${int.prenom} ${int.nom}, </p><p>un compte immersion vient de vous \u00eatre cr\u00e9\u00e9 pour l'ann\u00e9e ${annee}. </p><p>Vous pouvez vous connecter en utilisant vos identifiants ENT habituels. </p><p>La plateforme a l'adresse suivante ${urlPlateforme}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
       "active": true,
       "available_vars": [
         17,
@@ -304,11 +304,11 @@
     "model": "core.mailtemplate",
     "pk": 16,
     "fields": {
-      "code": "IMMERSION_RAPPEL_ENS",
-      "label": "Mail de rappel de participation \u00e0 un cr\u00e9neau pour les enseignants",
-      "description": "Mail envoy\u00e9 \u00e0 un enseignant n jours avant le cr\u00e9neau",
+      "code": "IMMERSION_RAPPEL_INT",
+      "label": "Mail de rappel de participation \u00e0 un cr\u00e9neau pour les intervenants",
+      "description": "Mail envoy\u00e9 \u00e0 un intervenant n jours avant le cr\u00e9neau",
       "subject": "Rappel : votre cours en immersion",
-      "body": "<p>Bonjour ${ens.prenom} ${ens.nom}, </p><p>Un de vos cours a \u00e9t\u00e9 d\u00e9fini comme cours en immersion. Il s'agit du cours suivant : </p><p>formation ${creneau.formation} cours ${creneau.cours}. </p><p>Il aura lieu le ${creneau.date} de ${creneau.heuredebut} \u00e0 ${creneau.heurefin}. ${creneau.campus} ${creneau.batiment} ${creneau.salle}. <br>Informations compl\u00e9mentaires :${creneau.info}. </p><p>Voici la liste des inscrits : <br>${listeInscrits}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+      "body": "<p>Bonjour ${int.prenom} ${int.nom}, </p><p>Un de vos cours a \u00e9t\u00e9 d\u00e9fini comme cours en immersion. Il s'agit du cours suivant : </p><p>formation ${creneau.formation} cours ${creneau.cours}. </p><p>Il aura lieu le ${creneau.date} de ${creneau.heuredebut} \u00e0 ${creneau.heurefin}. ${creneau.campus} ${creneau.batiment} ${creneau.salle}. <br>Informations compl\u00e9mentaires :${creneau.info}. </p><p>Voici la liste des inscrits : <br>${listeInscrits}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
       "active": true,
       "available_vars": [
         1,
@@ -388,7 +388,7 @@
       "label": "Mail envoy\u00e9 pour l'\u00e9valuation d'un cr\u00e9neau",
       "description": "Mail envoy\u00e9 \u00e0 tous les inscrits d'un cr\u00e9neau",
       "subject": "Evaluation du dispositif d'immersion",
-      "body": "<p>Bonjour ${prenom} ${nom},</p><p>Vous venez de participer \u00e0 un cr\u00e9neau d'immersion : </p><p>${creneau.formation},\r\n ${creneau.cours}<br>Type : ${creneau.type}</p><p>Campus : ${creneau.campus}<br>B\u00e2timent : ${creneau.batiment}<br>Salle : ${creneau.salle}</p><p>Date : ${creneau.date}, \r\n${creneau.heuredebut}, ${creneau.heurefin}<br>Enseignant(s) : ${creneau.enseignants}<br></p><p>Informations compl\u00e9mentaires : ${creneau.info} </p><p>Nous souhaiterions connaitre votre opinion sur ce cours. </p><p>Merci de r\u00e9pondre au questionnaire suivant : ${lienCreneau} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+      "body": "<p>Bonjour ${prenom} ${nom},</p><p>Vous venez de participer \u00e0 un cr\u00e9neau d'immersion : </p><p>${creneau.formation},\r\n ${creneau.cours}<br>Type : ${creneau.type}</p><p>Campus : ${creneau.campus}<br>B\u00e2timent : ${creneau.batiment}<br>Salle : ${creneau.salle}</p><p>Date : ${creneau.date}, \r\n${creneau.heuredebut}, ${creneau.heurefin}<br>Intervenant(s) : ${creneau.intervenants}<br></p><p>Informations compl\u00e9mentaires : ${creneau.info} </p><p>Nous souhaiterions connaitre votre opinion sur ce cours. </p><p>Merci de r\u00e9pondre au questionnaire suivant : ${lienCreneau} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
       "active": true,
       "available_vars": [
         1,

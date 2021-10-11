@@ -47,9 +47,9 @@
     "model": "core.generalsettings",
     "pk": 6,
     "fields": {
-      "setting": "NB_DAYS_TEACHER_SLOT_REMINDER",
+      "setting": "NB_DAYS_SPEAKER_SLOT_REMINDER",
       "value": "3",
-      "description": "Rappels de cr\u00e9neaux aux enseignants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours"
+      "description": "Rappels de cr\u00e9neaux aux intervenants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours"
     }
   },
   {
