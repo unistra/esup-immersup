@@ -73,7 +73,7 @@ class Command(BaseCommand):
 
         # Number of offered seats
         annual_stats.seats_count = Slot.objects.filter(published=True).aggregate(
-            seats_count=Sum('n_places'))['seats_count']
+            seats_count=Sum('n_places'))['seats_count'] or 0
 
         # Participating structures
         annual_stats.strucures_count = Structure.objects.annotate(
