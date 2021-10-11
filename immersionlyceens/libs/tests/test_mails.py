@@ -36,11 +36,11 @@ class APITestCase(TestCase):
         self.highschool_user.destruction_date = self.today.date() + datetime.timedelta(days=settings.DESTRUCTION_DELAY)
         self.highschool_user.save()
 
-        self.teacher1 = get_user_model().objects.create_user(
-            username='teacher1',
+        self.speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
             password='pass',
-            email='teacher-immersion@no-reply.com',
-            first_name='teach',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
             last_name='HER',
         )
 
@@ -55,7 +55,7 @@ class APITestCase(TestCase):
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='teacher-immersion@no-reply.com',
+            email='speaker-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )
@@ -68,7 +68,7 @@ class APITestCase(TestCase):
             active=True,
         )
 
-        Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
@@ -95,7 +95,7 @@ class APITestCase(TestCase):
         self.training.structures.add(self.structure)
         self.training2.structures.add(self.structure)
         self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
-        self.course.teachers.add(self.teacher1)
+        self.course.speakers.add(self.speaker1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM', full_label='Cours magistral')
@@ -123,8 +123,8 @@ class APITestCase(TestCase):
             n_places=20,
             additional_information="Hello there!"
         )
-        self.slot.teachers.add(self.teacher1),
-        self.slot2.teachers.add(self.teacher1),
+        self.slot.speakers.add(self.speaker1),
+        self.slot2.speakers.add(self.speaker1),
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -199,10 +199,10 @@ class APITestCase(TestCase):
         self.assertIn(self.slot.end_time.strftime("%-Hh%M"), parsed_body)
 
         # Slots : registered users list
-        message_body = MailTemplate.objects.get(code='IMMERSION_RAPPEL_ENS')
-        parsed_body = parser(message_body.body, user=self.teacher1, slot=self.slot)
-        self.assertIn(self.teacher1.first_name, parsed_body)
-        self.assertIn(self.teacher1.last_name, parsed_body)
+        message_body = MailTemplate.objects.get(code='IMMERSION_RAPPEL_INT')
+        parsed_body = parser(message_body.body, user=self.speaker1, slot=self.slot)
+        self.assertIn(self.speaker1.first_name, parsed_body)
+        self.assertIn(self.speaker1.last_name, parsed_body)
         self.assertIn(self.highschool_user.first_name, parsed_body)
         self.assertIn(self.highschool_user.last_name, parsed_body)
 
@@ -213,7 +213,7 @@ class APITestCase(TestCase):
         self.assertIn(self.slot.course_type.label, parsed_body)
         self.assertIn(self.slot.building.label, parsed_body)
         self.assertIn(self.slot.room, parsed_body)
-        self.assertIn(self.teacher1.last_name, parsed_body)
+        self.assertIn(self.speaker1.last_name, parsed_body)
 
         # Slots : availability
         message_body = MailTemplate.objects.get(code='ALERTE_DISPO')
@@ -226,7 +226,7 @@ class APITestCase(TestCase):
         parsed_body = parser(message_body.body, user=self.highschool_user, slot=self.slot)
         self.assertIn(self.slot_eval_link.url, parsed_body)
         self.assertIn(self.slot.course_type.full_label, parsed_body)
-        self.assertIn(self.teacher1.last_name, parsed_body)
+        self.assertIn(self.speaker1.last_name, parsed_body)
 
         # highschool
         message_body = MailTemplate.objects.get(code='CPT_AVALIDER_LYCEE')

@@ -66,22 +66,22 @@ class CoreViewsTestCase(TestCase):
         self.student_user.set_password('pass')
         self.student_user.save()
 
-        self.teacher1 = get_user_model().objects.create_user(
-            username='teacher1',
+        self.speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
             password='pass',
-            email='teacher-immersion@no-reply.com',
-            first_name='teach',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
             last_name='HER',
         )
 
-        self.teacher1.set_password('pass')
-        self.teacher1.save()
+        self.speaker1.set_password('pass')
+        self.speaker1.save()
 
-        self.teacher2 = get_user_model().objects.create_user(
-            username='teacher2',
+        self.speaker2 = get_user_model().objects.create_user(
+            username='speaker2',
             password='pass',
-            email='teacher-immersion2@no-reply.com',
-            first_name='teach2',
+            email='speaker-immersion2@no-reply.com',
+            first_name='speak2',
             last_name='HER2',
         )
 
@@ -124,7 +124,7 @@ class CoreViewsTestCase(TestCase):
 
         self.client = Client()
 
-        Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='ETU').user_set.add(self.student_user)
@@ -159,10 +159,10 @@ class CoreViewsTestCase(TestCase):
         self.training3.structures.add(self.structure2)
 
         self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
-        self.course.teachers.add(self.teacher1)
+        self.course.speakers.add(self.speaker1)
 
         self.course2 = Course.objects.create(label="course 2", training=self.training3, structure=self.structure2)
-        self.course2.teachers.add(self.teacher2)
+        self.course2.speakers.add(self.speaker2)
 
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
@@ -172,7 +172,7 @@ class CoreViewsTestCase(TestCase):
             building=self.building, room='room 1', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.teachers.add(self.teacher1),
+        self.slot.speakers.add(self.speaker1),
 
         # Add another slot : structure referent shouldn't have access to this one
         self.slot2 = Slot.objects.create(
@@ -180,14 +180,14 @@ class CoreViewsTestCase(TestCase):
             building=self.building, room='room 12', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot2.teachers.add(self.teacher2),
+        self.slot2.speakers.add(self.speaker2),
 
         self.slot3 = Slot.objects.create(
             course=self.course2, course_type=self.course_type, campus=self.campus,
             building=self.building, room='room 12', date=self.today + datetime.timedelta(days=1),
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot3.teachers.add(self.teacher2),
+        self.slot3.speakers.add(self.speaker2),
 
         self.high_school = HighSchool.objects.create(
             label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
@@ -295,7 +295,7 @@ class CoreViewsTestCase(TestCase):
             'date': (self.today - datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
-            'teacher_%s' % self.teacher1.id: 1,
+            'speaker_%s' % self.speaker1.id: 1,
             'n_places': 33,
             'additional_information': "Here is additional data.",
             'published': "on",
@@ -312,13 +312,13 @@ class CoreViewsTestCase(TestCase):
         data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
 
         # Fail with missing field
-        del(data['teacher_%s' % self.teacher1.id])
+        del(data['speaker_%s' % self.speaker1.id])
         response = self.client.post("/core/slot/add", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
-        self.assertIn("You have to select one or more teachers", response.content.decode('utf-8'))
+        self.assertIn("You have to select one or more speakers", response.content.decode('utf-8'))
 
         # Success
-        data['teacher_%s' % self.teacher1.id] = 1
+        data['speaker_%s' % self.speaker1.id] = 1
         response = self.client.post("/core/slot/add", data, follow=True)
 
         self.assertTrue(Slot.objects.filter(room="212").exists())
@@ -344,7 +344,7 @@ class CoreViewsTestCase(TestCase):
             'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
             'start_time': "16:00",
             'end_time': "18:00",
-            'teacher_%s' % self.teacher1.id: 1,
+            'speaker_%s' % self.speaker1.id: 1,
             'n_places': 33,
             'additional_information': "Here is additional data.",
             'published': "on",
@@ -413,7 +413,7 @@ class CoreViewsTestCase(TestCase):
             'date': (self.slot.date + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
             'start_time': "13:30",
             'end_time': "15:30",
-            'teacher_%s' % self.teacher1.id: 1,
+            'speaker_%s' % self.speaker1.id: 1,
             'n_places': 20,
             'additional_information': "New data",
             'published': "on",
@@ -421,13 +421,13 @@ class CoreViewsTestCase(TestCase):
             'save': 1
         }
         # Fail with missing field
-        del(data['teacher_%s' % self.teacher1.id])
+        del(data['speaker_%s' % self.speaker1.id])
         response = self.client.post("/core/slot/modify/%s" % self.slot.id, data, follow=True)
         self.assertFalse(Slot.objects.filter(room="New room").exists())
-        self.assertIn("You have to select one or more teachers", response.content.decode('utf-8'))
+        self.assertIn("You have to select one or more speakers", response.content.decode('utf-8'))
 
         # Success
-        data['teacher_%s' % self.teacher1.id] = 1
+        data['speaker_%s' % self.speaker1.id] = 1
         response = self.client.post("/core/slot/modify/%s" % self.slot.id, data, follow=True)
         slot = Slot.objects.get(pk=self.slot.id)
 
@@ -562,15 +562,15 @@ class CoreViewsTestCase(TestCase):
             'label': "New test course",
             'url': "http://new-course.test.fr",
             'published': True,
-            'teachers_list':"",
+            'speakers_list':"",
             'save': 1
         }
         # Fail with missing field
         response = self.client.post("/core/course", data, follow=True)
         self.assertFalse(Course.objects.filter(label="New test course").exists())
-        self.assertIn("At least one teacher is required", response.content.decode('utf-8'))
+        self.assertIn("At least one speaker is required", response.content.decode('utf-8'))
 
-        data['teachers_list'] = \
+        data['speakers_list'] = \
             """[{"username":"jean", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"},
                 {"username":"john", "firstname":"John", "lastname":"Jack", "email":"john.jack@domain.fr"}]"""
 
@@ -584,13 +584,13 @@ class CoreViewsTestCase(TestCase):
 
         # Success
         response = self.client.post("/core/course", data, follow=True)
-        # Course and teachers must exist
+        # Course and speakers must exist
         self.assertTrue(Course.objects.filter(label="New test course").exists())
 
         course = Course.objects.get(label="New test course")
         self.assertTrue(ImmersionUser.objects.filter(username='jean').exists())
         self.assertTrue(ImmersionUser.objects.filter(username='john').exists())
-        self.assertEqual(course.teachers.count(), 2)
+        self.assertEqual(course.speakers.count(), 2)
         self.assertIn("A confirmation email has been sent to jean-jacques@domain.fr", response.content.decode('utf-8'))
         self.assertIn("A confirmation email has been sent to john.jack@domain.fr", response.content.decode('utf-8'))
 
@@ -599,14 +599,14 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("New test course", response.content.decode('utf-8'))
 
         data["label"] = "This is my new label"
-        data["teachers_list"] = \
+        data["speakers_list"] = \
             """[{"username":"jean", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"}]"""
         response = self.client.post("/core/course/%s" % course.id, data, follow=True)
         self.assertFalse(Course.objects.filter(label="New test course").exists())
         self.assertTrue(Course.objects.filter(label="This is my new label").exists())
         self.assertIn("Course successfully updated", response.content.decode('utf-8'))
         course = Course.objects.get(label="This is my new label")
-        self.assertEqual(course.teachers.count(), 1)
+        self.assertEqual(course.speakers.count(), 1)
 
         # Form with course duplication
         response = self.client.get("/core/course/%s/1" % course.id, data, follow=True)
@@ -635,14 +635,14 @@ class CoreViewsTestCase(TestCase):
         self.assertFalse(Course.objects.filter(label="This shouldn't happen").exists())
 
     def test_mycourses(self):
-        self.client.login(username='teacher1', password='pass')
+        self.client.login(username='speaker1', password='pass')
         response = self.client.get("/core/mycourses", follow=True)
-        self.assertIn("Courses - HER teach", response.content.decode('utf-8'))
+        self.assertIn("Courses - HER speak", response.content.decode('utf-8'))
 
     def test_myslots(self):
-        self.client.login(username='teacher1', password='pass')
+        self.client.login(username='speaker1', password='pass')
         response = self.client.get("/core/myslots/", follow=True)
-        self.assertIn("Slots - HER teach", response.content.decode('utf-8'))
+        self.assertIn("Slots - HER speak", response.content.decode('utf-8'))
 
     def test_myhighschool(self):
         self.client.login(username='lycref', password='pass')

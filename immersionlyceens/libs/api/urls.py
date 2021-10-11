@@ -24,7 +24,7 @@ urlpatterns = [
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),
     path('get_available_vars/<int:template_id>', views.ajax_get_available_vars, name='GetAvailableVars',),
     path('get_buildings/<int:campus_id>', views.ajax_get_buildings, name='get_buildings',),
-    path('get_course_teachers/<int:course_id>', views.ajax_get_course_teachers, name='get_course_teachers',),
+    path('get_course_speakers/<int:course_id>', views.ajax_get_course_speakers, name='get_course_speakers',),
     path(
         'get_courses_by_training/<int:structure_id>/<int:training_id>',
         views.ajax_get_courses_by_training,

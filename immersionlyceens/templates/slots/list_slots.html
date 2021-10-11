@@ -86,7 +86,7 @@
               <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
               <th id="building_filter" class="align-top">{% trans 'Campus' %} - {% trans 'Building' %}</th>
               <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
-              <th id="teachers_filter" class="align-top">{% trans 'Teachers' %}</th>
+              <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
               <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
               <th class="align-top">{% trans 'Info.' %}</th>
               <th class="align-top">{% trans 'Control' %}</th>
@@ -291,7 +291,7 @@ $(document).ready(function(){
               }
             },
             { data: 'room'} ,
-            { data: 'teachers',
+            { data: 'speakers',
               render: function(data) {
                 let element = '';
                 $.each(data, function(name, email) {
@@ -425,7 +425,7 @@ $(document).ready(function(){
             column_number: 7,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "teachers_filter",
+            filter_container_id: "speakers_filter",
             style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },

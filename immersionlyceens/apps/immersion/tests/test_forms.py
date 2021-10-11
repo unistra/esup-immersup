@@ -47,17 +47,17 @@ class FormTestCase(TestCase):
             first_name='high',
             last_name='SCHOOL',
         )
-        self.teacher1 = get_user_model().objects.create_user(
-            username='teacher1',
+        self.speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
             password='pass',
-            email='teacher-immersion@no-reply.com',
-            first_name='teach',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
             last_name='HER',
         )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='teacher-immersion@no-reply.com',
+            email='speaker-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )
@@ -72,7 +72,7 @@ class FormTestCase(TestCase):
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
 
-        Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
@@ -87,7 +87,7 @@ class FormTestCase(TestCase):
         self.training.structures.add(self.structure)
         self.training2.structures.add(self.structure)
         self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
-        self.course.teachers.add(self.teacher1)
+        self.course.speakers.add(self.speaker1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM')
@@ -96,7 +96,7 @@ class FormTestCase(TestCase):
             building=self.building, room='room 1', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.teachers.add(self.teacher1),
+        self.slot.speakers.add(self.speaker1),
         self.high_school = HighSchool.objects.create(label='HS1', address='here',
                          department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
                          email='a@b.c', head_teacher_name='M. A B')

@@ -1028,7 +1028,7 @@
     "model": "core.publictype",
     "pk": 2,
     "fields": {
-        "label": "Enseignant",
+        "label": "Intervenant",
         "active": true
     }
 },
@@ -1384,8 +1384,8 @@
     "model": "core.mailtemplatevars",
     "pk": 9,
     "fields": {
-        "code": "${creneau.enseignants}",
-        "description": "Liste des enseignants du cr\u00e9neau"
+        "code": "${creneau.intervenants}",
+        "description": "Liste des intervenants du cr\u00e9neau"
     }
 },
 {
@@ -1440,16 +1440,16 @@
     "model": "core.mailtemplatevars",
     "pk": 16,
     "fields": {
-        "code": "${ens.nom}",
-        "description": "Nom de l'enseignant"
+        "code": "${int.nom}",
+        "description": "Nom de l'intervenant"
     }
 },
 {
     "model": "core.mailtemplatevars",
     "pk": 17,
     "fields": {
-        "code": "${ens.prenom}",
-        "description": "Pr\u00e9nom de l'enseignant"
+        "code": "${int.prenom}",
+        "description": "Pr\u00e9nom de l'intervenant"
     }
 },
 {
@@ -1710,11 +1710,11 @@
     "model": "core.mailtemplate",
     "pk": 8,
     "fields": {
-        "code": "CPT_CREATE_ENS",
-        "label": "Mail cr\u00e9ation compte enseignant",
-        "description": "Mail envoy\u00e9 lors de la cr\u00e9ation d\u2019un compte Enseignant",
+        "code": "CPT_CREATE_INTER",
+        "label": "Mail cr\u00e9ation compte intervenant",
+        "description": "Mail envoy\u00e9 lors de la cr\u00e9ation d\u2019un compte Intervenant",
         "subject": "Votre compte immersion",
-        "body": "<p>Bonjour ${ens.prenom} ${ens.nom}, </p><p>un compte immersion vient de vous \u00eatre cr\u00e9\u00e9 pour l'ann\u00e9e ${annee}. </p><p>Vous pouvez vous connecter en utilisant vos identifiants ENT habituels. </p><p>La plateforme a l'adresse suivante ${urlPlateforme}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour ${int.prenom} ${int.nom}, </p><p>un compte immersion vient de vous \u00eatre cr\u00e9\u00e9 pour l'ann\u00e9e ${annee}. </p><p>Vous pouvez vous connecter en utilisant vos identifiants ENT habituels. </p><p>La plateforme a l'adresse suivante ${urlPlateforme}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             17,
@@ -1894,11 +1894,11 @@
     "model": "core.mailtemplate",
     "pk": 16,
     "fields": {
-        "code": "IMMERSION_RAPPEL_ENS",
-        "label": "Mail de rappel de participation \u00e0 un cr\u00e9neau pour les enseignants",
-        "description": "Mail envoy\u00e9 \u00e0 un enseignant n jours avant le cr\u00e9neau",
+        "code": "IMMERSION_RAPPEL_INT",
+        "label": "Mail de rappel de participation \u00e0 un cr\u00e9neau pour les intervenants",
+        "description": "Mail envoy\u00e9 \u00e0 un intervenant n jours avant le cr\u00e9neau",
         "subject": "Rappel : votre cours en immersion",
-        "body": "<p>Bonjour ${ens.prenom} ${ens.nom}, </p><p>Un de vos cours a \u00e9t\u00e9 d\u00e9fini comme cours en immersion. Il s'agit du cours suivant : </p><p>formation ${creneau.formation} cours ${creneau.cours}. </p><p>Il aura lieu le ${creneau.date} de ${creneau.heuredebut} \u00e0 ${creneau.heurefin}. ${creneau.campus} ${creneau.batiment} ${creneau.salle}. <br>Informations compl\u00e9mentaires :${creneau.info}. </p><p>Voici la liste des inscrits : <br>${listeInscrits}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour ${int.prenom} ${int.nom}, </p><p>Un de vos cours a \u00e9t\u00e9 d\u00e9fini comme cours en immersion. Il s'agit du cours suivant : </p><p>formation ${creneau.formation} cours ${creneau.cours}. </p><p>Il aura lieu le ${creneau.date} de ${creneau.heuredebut} \u00e0 ${creneau.heurefin}. ${creneau.campus} ${creneau.batiment} ${creneau.salle}. <br>Informations compl\u00e9mentaires :${creneau.info}. </p><p>Voici la liste des inscrits : <br>${listeInscrits}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
@@ -1978,7 +1978,7 @@
         "label": "Mail envoy\u00e9 pour l'\u00e9valuation d'un cr\u00e9neau",
         "description": "Mail envoy\u00e9 \u00e0 tous les inscrits d'un cr\u00e9neau",
         "subject": "Evaluation du dispositif d'immersion",
-        "body": "<p>Bonjour ${prenom} ${nom},</p><p>Vous venez de participer \u00e0 un cr\u00e9neau d'immersion : </p><p>${creneau.formation},\r\n ${creneau.cours}<br>Type : ${creneau.type}</p><p>Campus : ${creneau.campus}<br>B\u00e2timent : ${creneau.batiment}<br>Salle : ${creneau.salle}</p><p>Date : ${creneau.date}, \r\n${creneau.heuredebut}, ${creneau.heurefin}<br>Enseignant(s) : ${creneau.enseignants}<br></p><p>Informations compl\u00e9mentaires : ${creneau.info} </p><p>Nous souhaiterions connaitre votre opinion sur ce cours. </p><p>Merci de r\u00e9pondre au questionnaire suivant : ${lienCreneau} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour ${prenom} ${nom},</p><p>Vous venez de participer \u00e0 un cr\u00e9neau d'immersion : </p><p>${creneau.formation},\r\n ${creneau.cours}<br>Type : ${creneau.type}</p><p>Campus : ${creneau.campus}<br>B\u00e2timent : ${creneau.batiment}<br>Salle : ${creneau.salle}</p><p>Date : ${creneau.date}, \r\n${creneau.heuredebut}, ${creneau.heurefin}<br>Intervenant(s) : ${creneau.intervenants}<br></p><p>Informations compl\u00e9mentaires : ${creneau.info} </p><p>Nous souhaiterions connaitre votre opinion sur ce cours. </p><p>Merci de r\u00e9pondre au questionnaire suivant : ${lienCreneau} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
@@ -2329,7 +2329,7 @@
     "model": "core.generalsettings",
     "pk": 6,
     "fields": {
-        "setting": "NB_DAYS_TEACHER_SLOT_REMINDER",
+        "setting": "NB_DAYS_SPEAKER_SLOT_REMINDER",
         "value": "3",
         "description": ""
     }
@@ -5994,7 +5994,7 @@
     "model": "auth.group",
     "pk": 2,
     "fields": {
-        "name": "ENS-CH",
+        "name": "INTER",
         "permissions": []
     }
 },
@@ -7503,7 +7503,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             19,
             22,
             18
@@ -7519,7 +7519,7 @@
         "structure": 2,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME257&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN898&cHash=811a70170e6d6e5dd3dde59aef66f3d2",
-        "teachers": [
+        "speakers": [
             22,
             23,
             18
@@ -7535,7 +7535,7 @@
         "structure": 6,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -7549,7 +7549,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             22,
             23
         ]
@@ -7564,7 +7564,7 @@
         "structure": 1,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             26
         ]
     }
@@ -7578,7 +7578,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             27
         ]
     }
@@ -7592,7 +7592,7 @@
         "structure": 1,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             57,
             28
         ]
@@ -7607,7 +7607,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -7621,7 +7621,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -7635,7 +7635,7 @@
         "structure": 2,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME257&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN898&cHash=811a70170e6d6e5dd3dde59aef66f3d2",
-        "teachers": [
+        "speakers": [
             18
         ]
     }
@@ -7649,7 +7649,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             18
         ]
     }
@@ -7663,7 +7663,7 @@
         "structure": 6,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             32
         ]
     }
@@ -7677,7 +7677,7 @@
         "structure": 1,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             58
         ]
     }
@@ -7691,7 +7691,7 @@
         "structure": 1,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             49,
             76
         ]
@@ -7706,7 +7706,7 @@
         "structure": 1,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             50
         ]
     }
@@ -7720,7 +7720,7 @@
         "structure": 1,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             60
         ]
     }
@@ -7734,7 +7734,7 @@
         "structure": 6,
         "published": false,
         "url": null,
-        "teachers": [
+        "speakers": [
             55
         ]
     }
@@ -7748,7 +7748,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -7762,7 +7762,7 @@
         "structure": 1,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             70,
             71
         ]
@@ -7777,7 +7777,7 @@
         "structure": 1,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME29&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN1435&cHash=0b290824df287062c6020d9f1c3bbd39",
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -7791,7 +7791,7 @@
         "structure": 1,
         "published": true,
         "url": "http://www.unistra.fr/index.php?id=27885&tx_unistrarof_pi1%5Brof-program%5D=ME29&tx_unistrarof_pi1%5Brof-course%5D=FRUAI0673021VCOEN1435&cHash=0b290824df287062c6020d9f1c3bbd39",
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -7805,7 +7805,7 @@
         "structure": 2,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             77
         ]
     }
@@ -7819,7 +7819,7 @@
         "structure": 7,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             18,
             78
         ]
@@ -7834,7 +7834,7 @@
         "structure": 3,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             98,
             99
         ]
@@ -7849,7 +7849,7 @@
         "structure": 3,
         "published": true,
         "url": null,
-        "teachers": [
+        "speakers": [
             104
         ]
     }
@@ -7869,7 +7869,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": false,
-        "teachers": [
+        "speakers": [
             18
         ]
     }
@@ -7889,7 +7889,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -7909,7 +7909,7 @@
         "n_places": 4,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -7929,7 +7929,7 @@
         "n_places": 8,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -7949,7 +7949,7 @@
         "n_places": 24,
         "additional_information": "Hello",
         "published": true,
-        "teachers": [
+        "speakers": [
             57
         ]
     }
@@ -7969,7 +7969,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             22
         ]
     }
@@ -7989,7 +7989,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             49
         ]
     }
@@ -8009,7 +8009,7 @@
         "n_places": 0,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             26
         ]
     }
@@ -8029,7 +8029,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             50
         ]
     }
@@ -8049,7 +8049,7 @@
         "n_places": 4,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             60
         ]
     }
@@ -8069,7 +8069,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -8089,7 +8089,7 @@
         "n_places": 5,
         "additional_information": "Prendre des peintures",
         "published": true,
-        "teachers": [
+        "speakers": [
             49
         ]
     }
@@ -8109,7 +8109,7 @@
         "n_places": 19,
         "additional_information": "qsd",
         "published": true,
-        "teachers": [
+        "speakers": [
             18
         ]
     }
@@ -8129,7 +8129,7 @@
         "n_places": 5,
         "additional_information": "Avec toute votre bonne humeur",
         "published": true,
-        "teachers": [
+        "speakers": [
             58
         ]
     }
@@ -8149,7 +8149,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             50
         ]
     }
@@ -8169,7 +8169,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             50
         ]
     }
@@ -8189,7 +8189,7 @@
         "n_places": 0,
         "additional_information": "Prendre une blouse",
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -8209,7 +8209,7 @@
         "n_places": 29,
         "additional_information": "Prendre une blouse",
         "published": true,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -8229,7 +8229,7 @@
         "n_places": 13,
         "additional_information": "Prendre une blouse",
         "published": true,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -8249,7 +8249,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             49
         ]
     }
@@ -8269,7 +8269,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             57,
             28
         ]
@@ -8290,7 +8290,7 @@
         "n_places": 0,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             26
         ]
     }
@@ -8310,7 +8310,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": false,
-        "teachers": [
+        "speakers": [
             19,
             22
         ]
@@ -8331,7 +8331,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             19
         ]
     }
@@ -8351,7 +8351,7 @@
         "n_places": 20,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             22
         ]
     }
@@ -8371,7 +8371,7 @@
         "n_places": 5,
         "additional_information": "Prendre une blouse",
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -8391,7 +8391,7 @@
         "n_places": 6,
         "additional_information": "Prendre une blouse",
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -8411,7 +8411,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -8431,7 +8431,7 @@
         "n_places": 0,
         "additional_information": "Prendre une blouse",
         "published": false,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -8451,7 +8451,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": false,
-        "teachers": [
+        "speakers": [
             19,
             22,
             18
@@ -8473,7 +8473,7 @@
         "n_places": 8,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             32
         ]
     }
@@ -8493,7 +8493,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             70
         ]
     }
@@ -8513,7 +8513,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             22
         ]
     }
@@ -8533,7 +8533,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -8553,7 +8553,7 @@
         "n_places": 6,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             70
         ]
     }
@@ -8573,7 +8573,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             23,
             18
         ]
@@ -8594,7 +8594,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -8614,7 +8614,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -8634,7 +8634,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": false,
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -8654,7 +8654,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -8674,7 +8674,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             29
         ]
     }
@@ -8694,7 +8694,7 @@
         "n_places": 0,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             55
         ]
     }
@@ -8714,7 +8714,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             58
         ]
     }
@@ -8734,7 +8734,7 @@
         "n_places": 8,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             18
         ]
     }
@@ -8754,7 +8754,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -8774,7 +8774,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }
@@ -8794,7 +8794,7 @@
         "n_places": 3,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -8814,7 +8814,7 @@
         "n_places": 0,
         "additional_information": null,
         "published": false,
-        "teachers": []
+        "speakers": []
     }
 },
 {
@@ -8832,7 +8832,7 @@
         "n_places": 4,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             22
         ]
     }
@@ -8852,7 +8852,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -8872,7 +8872,7 @@
         "n_places": 0,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             98
         ]
     }
@@ -8892,7 +8892,7 @@
         "n_places": 2,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -8912,7 +8912,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             99
         ]
     }
@@ -8932,7 +8932,7 @@
         "n_places": 3,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             104
         ]
     }
@@ -8952,7 +8952,7 @@
         "n_places": 4,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             72
         ]
     }
@@ -8972,7 +8972,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             22
         ]
     }
@@ -8992,7 +8992,7 @@
         "n_places": 10,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             99
         ]
     }
@@ -9012,7 +9012,7 @@
         "n_places": 3,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             104
         ]
     }
@@ -9032,7 +9032,7 @@
         "n_places": 5,
         "additional_information": null,
         "published": true,
-        "teachers": [
+        "speakers": [
             24
         ]
     }

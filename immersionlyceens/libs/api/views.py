@@ -111,7 +111,7 @@ def ajax_get_courses(request, structure_id=None):
             'label': course.label,
             'structure_code': course.structure.code,
             'structure_id': course.structure.id,
-            'teachers': [],
+            'speakers': [],
             'slots_count': course.slots_count(),
             'n_places': course.free_seats(),
             'published_slots_count': course.published_slots_count(),
@@ -120,8 +120,8 @@ def ajax_get_courses(request, structure_id=None):
             'can_delete': not course.slots.exists(),
         }
 
-        for teacher in course.teachers.all().order_by('last_name', 'first_name'):
-            course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
+        for speaker in course.speakers.all().order_by('last_name', 'first_name'):
+            course_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
 
         response['data'].append(course_data.copy())
 
@@ -195,11 +195,11 @@ def ajax_get_slots(request, structure=None):
     response = {'msg': '', 'data': []}
     slots = []
     if train_id:  # and train_id[0] is not '':
-        slots = Slot.objects.prefetch_related('course__training', 'teachers', 'immersions').filter(
+        slots = Slot.objects.prefetch_related('course__training', 'speakers', 'immersions').filter(
             course__training__id=train_id
         )
     elif str_id:
-        slots = Slot.objects.prefetch_related('course__training__structures', 'teachers', 'immersions').filter(
+        slots = Slot.objects.prefetch_related('course__training__structures', 'speakers', 'immersions').filter(
             course__training__structures__id=str_id
         )
 
@@ -235,7 +235,7 @@ def ajax_get_slots(request, structure=None):
                 'building': slot.building.label if slot.building else '',
             },
             'room': slot.room or '-',
-            'teachers': {},
+            'speakers': {},
             'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'additional_information': slot.additional_information,
@@ -255,8 +255,8 @@ def ajax_get_slots(request, structure=None):
             else:
                 data['attendances_value'] = 2  # view only
 
-        for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
-            data['teachers'].update([(f"{teacher.last_name} {teacher.first_name}", teacher.email,)],)
+        for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
+            data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
         all_data.append(data.copy())
 
     response['data'] = all_data
@@ -313,21 +313,21 @@ def ajax_get_buildings(request, campus_id=None):
 
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR')
-def ajax_get_course_teachers(request, course_id=None):
+def ajax_get_course_speakers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
     if not course_id:
         response['msg'] = gettext("Error : a valid course must be selected")
     else:
-        teachers = Course.objects.get(id=course_id).teachers.all().order_by('last_name')
+        speakers = Course.objects.get(id=course_id).speakers.all().order_by('last_name')
 
-        for teacher in teachers:
-            teachers_data = {
-                'id': teacher.id,
-                'first_name': teacher.first_name,
-                'last_name': teacher.last_name.upper(),
+        for speaker in speakers:
+            speakers_data = {
+                'id': speaker.id,
+                'first_name': speaker.first_name,
+                'last_name': speaker.last_name.upper(),
             }
-            response['data'].append(teachers_data.copy())
+            response['data'].append(speakers_data.copy())
 
     return JsonResponse(response, safe=False)
 
@@ -361,14 +361,14 @@ def ajax_delete_course(request):
 
 
 @is_ajax_request
-@groups_required('ENS-CH')
+@groups_required('INTER')
 def ajax_get_my_courses(request, user_id=None):
     response = {'msg': '', 'data': []}
 
     if not user_id:
         response['msg'] = gettext("Error : a valid user must be passed")
 
-    courses = Course.objects.prefetch_related('training').filter(teachers=user_id)
+    courses = Course.objects.prefetch_related('training').filter(speakers=user_id)
 
     for course in courses:
         course_data = {
@@ -377,19 +377,19 @@ def ajax_get_my_courses(request, user_id=None):
             'structure': course.structure.code,
             'training_label': course.training.label,
             'label': course.label,
-            'teachers': {},
-            'slots_count': course.slots_count(teacher_id=user_id),
-            'n_places': course.free_seats(teacher_id=user_id),
-            'published_slots_count': course.published_slots_count(teacher_id=user_id),
-            # f'{course.published_slots_count(teacher_id=user_id)} / {course.slots_count(teacher_id=user_id)}',
-            'registered_students_count': course.registrations_count(teacher_id=user_id),
-            # f'{course.registrations_count(teacher_id=user_id)} / {course.free_seats(teacher_id=user_id)}',
+            'speakers': {},
+            'slots_count': course.slots_count(speaker_id=user_id),
+            'n_places': course.free_seats(speaker_id=user_id),
+            'published_slots_count': course.published_slots_count(speaker_id=user_id),
+            # f'{course.published_slots_count(speaker_id=user_id)} / {course.slots_count(speaker_id=user_id)}',
+            'registered_students_count': course.registrations_count(speaker_id=user_id),
+            # f'{course.registrations_count(speaker_id=user_id)} / {course.free_seats(speaker_id=user_id)}',
             'alerts_count': course.get_alerts_count(),
             # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
         }
 
-        for teacher in course.teachers.all().order_by('last_name', 'first_name'):
-            course_data['teachers'].update([("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],)
+        for speaker in course.speakers.all().order_by('last_name', 'first_name'):
+            course_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
 
         response['data'].append(course_data.copy())
 
@@ -397,7 +397,7 @@ def ajax_get_my_courses(request, user_id=None):
 
 
 @is_ajax_request
-@groups_required('ENS-CH')
+@groups_required('INTER')
 def ajax_get_my_slots(request, user_id=None):
     response = {'msg': '', 'data': []}
     can_update_attendances = False
@@ -417,18 +417,18 @@ def ajax_get_my_slots(request, user_id=None):
 
     if past_slots:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__structure', 'teachers', 'immersions')
-            .filter(teachers=user_id)
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
+            .filter(speakers=user_id)
             .exclude(date__lt=today.date(), immersions__isnull=True)
         ).distinct()
     else:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__structure', 'teachers', 'immersions')
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
             .filter(
                 Q(date__gte=today.date())
                 | Q(date=today.date(), end_time__gte=today.time())
                 | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
-                teachers=user_id,
+                speakers=user_id,
             )
             .distinct()
         )
@@ -459,7 +459,7 @@ def ajax_get_my_slots(request, user_id=None):
             'start_time': slot.start_time.strftime("%H:%M"),
             'end_time': slot.end_time.strftime("%H:%M"),
             'label': slot.course.label,
-            'teachers': {},
+            'speakers': {},
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(), },
             'additional_information': slot.additional_information,
@@ -486,8 +486,8 @@ def ajax_get_my_slots(request, user_id=None):
         else:
             slot_data['attendances_status'] = gettext("Future slot")
 
-        for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
-            slot_data['teachers'].update([("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],)
+        for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
+            slot_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
 
         response['data'].append(slot_data.copy())
 
@@ -768,7 +768,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
 
     immersions = Immersion.objects.prefetch_related(
-        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
+        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
     ).filter(student_id=user_id)
 
     if immersion_type == "future":
@@ -811,7 +811,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'date': date_format(immersion.slot.date),
             'start_time': immersion.slot.start_time.strftime("%-Hh%M"),
             'end_time': immersion.slot.end_time.strftime("%-Hh%M"),
-            'teachers': [],
+            'speakers': [],
             'info': immersion.slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
@@ -838,8 +838,8 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
                 if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
                     immersion_data['can_register'] = True
 
-        for teacher in immersion.slot.teachers.all().order_by('last_name', 'first_name'):
-            immersion_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
+        for speaker in immersion.slot.speakers.all().order_by('last_name', 'first_name'):
+            immersion_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
 
         response['data'].append(immersion_data.copy())
 
@@ -880,7 +880,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}
@@ -931,7 +931,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -1316,7 +1316,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1425,7 +1425,7 @@ def get_csv_structures(request, structure_id):
         _('campus'),
         _('building'),
         _('room'),
-        _('teachers'),
+        _('speakers'),
         _('registration number'),
         _('place number'),
         _('additional information'),
@@ -1446,7 +1446,7 @@ def get_csv_structures(request, structure_id):
             slot.campus.label,
             slot.building.label,
             slot.room,
-            '|'.join([f'{t.first_name} {t.last_name}' for t in slot.teachers.all()]),
+            '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
             slot.registered_students(),
             slot.n_places,
             slot.additional_information,

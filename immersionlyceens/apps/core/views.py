@@ -131,16 +131,16 @@ def slots_list(request, str_id=None, train_id=None):
 @groups_required('REF-ETAB', 'REF-STR')
 def add_slot(request, slot_id=None):
     slot = None
-    teachers_idx = None
+    speakers_idx = None
 
     if slot_id:
         try:
             slot = Slot.objects.get(id=slot_id)
-            teachers_idx = [t.id for t in slot.teachers.all()]
+            speakers_idx = [t.id for t in slot.speakers.all()]
             slot.id = None
         except Slot.DoesNotExist:  # id not found : make an empty slot
             slot = Slot()
-            teachers_idx = []
+            speakers_idx = []
 
     # get structures
     structures = []
@@ -153,18 +153,18 @@ def add_slot(request, slot_id=None):
         [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
     ):
         slot_form = SlotForm(request.POST, instance=slot)
-        teachers = []
-        teacher_prefix = 'teacher_'
-        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-            teachers.append(teacher_id)
+        speakers = []
+        speaker_prefix = 'speaker_'
+        for speaker_id in [e.replace(speaker_prefix, '') for e in request.POST if speaker_prefix in e]:
+            speakers.append(speaker_id)
 
-        # if published, teachers count must be > 0
-        # else no teacher needed
+        # if published, speakers count must be > 0
+        # else no speaker needed
         published = request.POST.get('published') == 'on'
-        if slot_form.is_valid() and (not published or len(teachers) > 0):
+        if slot_form.is_valid() and (not published or len(speakers) > 0):
             slot_form.save()
-            for teacher in teachers:
-                slot_form.instance.teachers.add(teacher)
+            for speaker in speakers:
+                slot_form.instance.speakers.add(speaker)
             messages.success(request, _("Slot successfully added"))
 
             if published:
@@ -179,8 +179,8 @@ def add_slot(request, slot_id=None):
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
-                "teacher_error": len(teachers) < 1,
-                "teachers_idx": [int(t) for t in teachers],
+                "speaker_error": len(speakers) < 1,
+                "speakers_idx": [int(t) for t in speakers],
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -214,7 +214,7 @@ def add_slot(request, slot_id=None):
     if slot:
         context['slot'] = slot
         context['course'] = slot.course
-        context['teachers_idx'] = teachers_idx
+        context['speakers_idx'] = speakers_idx
 
     return render(request, 'slots/add_slot.html', context=context)
 
@@ -247,18 +247,18 @@ def modify_slot(request, slot_id):
         [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
     ):
         slot_form = SlotForm(request.POST, instance=slot)
-        teachers = []
-        teacher_prefix = 'teacher_'
-        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-            teachers.append(teacher_id)
+        speakers = []
+        speaker_prefix = 'speaker_'
+        for speaker_id in [e.replace(speaker_prefix, '') for e in request.POST if speaker_prefix in e]:
+            speakers.append(speaker_id)
 
         published = request.POST.get('published') == 'on'
         notify_student = request.POST.get('notify_student') == 'on'
-        if slot_form.is_valid() and (not published or len(teachers) > 0):
+        if slot_form.is_valid() and (not published or len(speakers) > 0):
             slot_form.save()
-            slot_form.instance.teachers.clear()
-            for teacher in teachers:
-                slot_form.instance.teachers.add(teacher)
+            slot_form.instance.speakers.clear()
+            for speaker in speakers:
+                slot_form.instance.speakers.add(speaker)
             messages.success(request, _("Slot successfully updated"))
         else:
             context = {
@@ -269,8 +269,8 @@ def modify_slot(request, slot_id):
                 "slot_form": slot_form,
                 "ready_load": True,
                 "errors": slot_form.errors,
-                "teacher_error": len(teachers) < 1,
-                "teachers_idx": [int(t) for t in teachers],
+                "speaker_error": len(speakers) < 1,
+                "speakers_idx": [int(t) for t in speakers],
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -312,7 +312,7 @@ def modify_slot(request, slot_id):
                 "trainings": Training.objects.filter(active=True).order_by('label'),
                 "slot_form": slot_form,
                 "ready_load": True,
-                "teachers_idx": [t.id for t in slot.teachers.all()],
+                "speakers_idx": [t.id for t in slot.speakers.all()],
             }
             return render(request, 'slots/add_slot.html', context=context)
 
@@ -323,7 +323,7 @@ def modify_slot(request, slot_id):
         "trainings": Training.objects.filter(active=True),
         "slot_form": slot_form,
         "ready_load": True,
-        "teachers_idx": [t.id for t in slot.teachers.all()],
+        "speakers_idx": [t.id for t in slot.speakers.all()],
     }
     return render(request, 'slots/add_slot.html', context=context)
 
@@ -380,7 +380,7 @@ def course(request, course_id=None, duplicate=False):
     """
     Course creation / update / deletion
     """
-    teachers_list = []
+    speakers_list = []
     save_method = None
     course = None
     course_form = None
@@ -411,7 +411,7 @@ def course(request, course_id=None, duplicate=False):
         try:
             course = Course.objects.get(pk=course_id)
             request.session["current_structure_id"] = course.structure_id
-            teachers_list = [
+            speakers_list = [
                 {
                     "username": t.username,
                     "lastname": t.last_name,
@@ -420,7 +420,7 @@ def course(request, course_id=None, duplicate=False):
                     "display_name": "%s %s" % (t.last_name, t.first_name),
                     "is_removable": not t.slots.filter(course=course_id).exists(),
                 }
-                for t in course.teachers.all()
+                for t in course.speakers.all()
             ]
 
             if duplicate:
@@ -455,63 +455,63 @@ def course(request, course_id=None, duplicate=False):
     if request.method == 'POST' and save_method:
         course_form = CourseForm(request.POST, instance=course, request=request)
 
-        # Teachers
-        teachers_list = request.POST.get('teachers_list', "[]")
+        # speakers
+        speakers_list = request.POST.get('speakers_list', "[]")
 
         try:
-            teachers_list = json.loads(teachers_list)
-            assert len(teachers_list) > 0
+            speakers_list = json.loads(speakers_list)
+            assert len(speakers_list) > 0
         except Exception:
-            messages.error(request, _("At least one teacher is required"))
+            messages.error(request, _("At least one speaker is required"))
         else:
             if course_form.is_valid():
                 new_course = course_form.save()
 
                 request.session["current_structure_id"] = new_course.structure_id
 
-                current_teachers = [u for u in new_course.teachers.all().values_list('username', flat=True)]
-                new_teachers = [teacher.get('username') for teacher in teachers_list]
+                current_speakers = [u for u in new_course.speakers.all().values_list('username', flat=True)]
+                new_speakers = [speaker.get('username') for speaker in speakers_list]
 
-                # Teachers to add
-                for teacher in teachers_list:
-                    if isinstance(teacher, dict):
+                # speakers to add
+                for speaker in speakers_list:
+                    if isinstance(speaker, dict):
                         try:
-                            teacher_user = ImmersionUser.objects.get(username=teacher['username'])
+                            speaker_user = ImmersionUser.objects.get(username=speaker['username'])
                         except ImmersionUser.DoesNotExist:
-                            teacher_user = ImmersionUser.objects.create(
-                                username=teacher['username'],
-                                last_name=teacher['lastname'],
-                                first_name=teacher['firstname'],
-                                email=teacher['email'],
+                            speaker_user = ImmersionUser.objects.create(
+                                username=speaker['username'],
+                                last_name=speaker['lastname'],
+                                first_name=speaker['firstname'],
+                                email=speaker['email'],
                             )
 
-                            messages.success(request, gettext("User '{}' created").format(teacher['username']))
-                            return_msg = teacher_user.send_message(request, 'CPT_CREATE_ENS')
+                            messages.success(request, gettext("User '{}' created").format(speaker['username']))
+                            return_msg = speaker_user.send_message(request, 'CPT_CREATE_INTER')
 
                             if not return_msg:
                                 messages.success(
                                     request,
-                                    gettext("A confirmation email has been sent to {}").format(teacher['email']),
+                                    gettext("A confirmation email has been sent to {}").format(speaker['email']),
                                 )
                             else:
                                 messages.warning(request, return_msg)
 
                         try:
-                            Group.objects.get(name='ENS-CH').user_set.add(teacher_user)
+                            Group.objects.get(name='INTER').user_set.add(speaker_user)
                         except Exception:
                             messages.error(
-                                request, _("Couldn't add group 'ENS-CH' to user '%s'" % teacher['username']),
+                                request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
                             )
 
-                        if teacher_user:
-                            new_course.teachers.add(teacher_user)
+                        if speaker_user:
+                            new_course.speakers.add(speaker_user)
 
-                # Teachers to remove
-                remove_list = set(current_teachers) - set(new_teachers)
+                # speakers to remove
+                remove_list = set(current_speakers) - set(new_speakers)
                 for username in remove_list:
                     try:
                         user = ImmersionUser.objects.get(username=username)
-                        new_course.teachers.remove(user)
+                        new_course.speakers.remove(user)
                     except ImmersionUser.DoesNotExist:
                         pass
 
@@ -540,14 +540,14 @@ def course(request, course_id=None, duplicate=False):
         "course": course,
         "course_form": course_form,
         "duplicate": True if duplicate else False,
-        "teachers": json.dumps(teachers_list),
+        "speakers": json.dumps(speakers_list),
         "update_rights": update_rights,
     }
 
     return render(request, 'core/course.html', context)
 
 
-@groups_required('ENS-CH',)
+@groups_required('INTER',)
 def mycourses(request):
 
     structure_id = None
@@ -561,7 +561,7 @@ def mycourses(request):
     return render(request, 'core/mycourses.html', context)
 
 
-@groups_required('ENS-CH',)
+@groups_required('INTER',)
 def myslots(request):
     contact_form = ContactForm()
 

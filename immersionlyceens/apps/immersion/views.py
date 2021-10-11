@@ -669,7 +669,7 @@ def immersion_attestation_download(request, immersion_id):
     """
     try:
         immersion = Immersion.objects.prefetch_related(
-            'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
+            'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
         ).get(pk=immersion_id, attendance_status=1)
 
         student = immersion.student
