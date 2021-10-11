@@ -23,42 +23,25 @@ class Migration(migrations.Migration):
             name='structure',
             options={'verbose_name': 'Structure', 'verbose_name_plural': 'Structures'},
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name='annualstatistics',
-            name='components_count',
+            old_name='components_count',
+            new_name='structures_count'
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name='course',
-            name='component',
+            old_name='component',
+            new_name='structure'
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name='immersionuser',
-            name='components',
+            old_name='components',
+            new_name='structures'            
         ),
-        migrations.RemoveField(
+        migrations.RenameField(
             model_name='training',
-            name='components',
-        ),
-        migrations.AddField(
-            model_name='annualstatistics',
-            name='structures_count',
-            field=models.SmallIntegerField(default=0, verbose_name='Participating structures count'),
-        ),
-        migrations.AddField(
-            model_name='course',
-            name='structure',
-            field=models.ForeignKey(default=7, on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='core.structure', verbose_name='Structure'),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='immersionuser',
-            name='structures',
-            field=models.ManyToManyField(blank=True, related_name='referents', to='core.Structure', verbose_name='Structures'),
-        ),
-        migrations.AddField(
-            model_name='training',
-            name='structures',
-            field=models.ManyToManyField(related_name='Trainings', to='core.Structure', verbose_name='Structures'),
+            old_name='components',
+            new_name='structures'
         ),
         migrations.AlterField(
             model_name='accompanyingdocument',
