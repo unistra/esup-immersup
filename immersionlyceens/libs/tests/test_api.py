@@ -45,7 +45,13 @@ class APITestCase(TestCase):
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
-            username='ref_etab', password='pass', email='immersion@no-reply.com', first_name='ref_etab', last_name='ref_etab',
+            username='ref_etab',
+            password='pass',
+            email='immersion@no-reply.com',
+            first_name='ref_etab',
+            last_name='ref_etab',
+            establishment=self.establishment
+
 
         )
         self.ref_etab_user.set_password('pass')
@@ -932,7 +938,7 @@ class APITestCase(TestCase):
         self.assertIsInstance(content, dict)
         self.assertIn('data', content)
         self.assertIn('msg', content)
-        self.assertEqual(len(content['msg']), 0)
+        self.assertEqual(content['msg'], "Search string is empty")
         self.assertIsInstance(content['data'], list)
         self.assertEqual(content['data'], [])
 
@@ -944,7 +950,7 @@ class APITestCase(TestCase):
         self.assertIsInstance(content, dict)
         self.assertIn('data', content)
         self.assertIn('msg', content)
-        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['msg'], "No source plugin configured")
         self.assertIsInstance(content['data'], list)
         self.assertEqual(content['data'], [])
 
