@@ -134,7 +134,7 @@ class TrainingDomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 

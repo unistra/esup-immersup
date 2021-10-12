@@ -50,6 +50,25 @@ class AdminFormsTestCase(TestCase):
         self.superuser = get_user_model().objects.create_superuser(
             username='super', password='pass', email='immersion@no-reply.com'
         )
+        """
+        self.master_establishment = Establishment.objects.create(
+            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        self.establishment = Establishment.objects.create(
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+        """
+        self.ref_master_etab_user = get_user_model().objects.create_user(
+            username='ref_master_etab',
+            password='pass',
+            email='immersion@no-reply.com',
+            first_name='ref_master_etab',
+            last_name='ref_master_etab',
+
+        )
 
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
@@ -57,6 +76,7 @@ class AdminFormsTestCase(TestCase):
             email='immersion@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
+
         )
 
         self.ref_str_user = get_user_model().objects.create_user(
@@ -68,27 +88,36 @@ class AdminFormsTestCase(TestCase):
         )
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
 
     def test_training_domain_creation(self):
         """
         Test admin TrainingDomain creation with group rights
         """
-        data = {'label': 'test', 'active': True}
+        # Failures (invalid users)
+        data = {'label': 'test_fail', 'active': True}
+        request.user = self.ref_str_user
+        form = TrainingDomainForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(TrainingDomain.objects.filter(label='test_fail').exists())
 
         request.user = self.ref_etab_user
+        form = TrainingDomainForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(TrainingDomain.objects.filter(label='test_fail').exists())
+
+        # Success
+        data = {'label': 'test', 'active': True}
+        request.user = self.ref_master_etab_user
 
         form = TrainingDomainForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(TrainingDomain.objects.filter(label='test').exists())
-
-        # Validation fail (invalid user)
-        data = {'label': 'test_fail', 'active': True}
-        request.user = self.ref_str_user
-        form = TrainingDomainForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(TrainingDomain.objects.filter(label='test_fail').exists())
 
     def test_training_sub_domain_creation(self):
         """
