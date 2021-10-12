@@ -84,7 +84,7 @@ class CancelTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -109,7 +109,7 @@ class CourseTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -221,7 +221,7 @@ class TrainingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -369,7 +369,7 @@ class GeneralBachelorTeachingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -398,7 +398,7 @@ class PublicTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -431,7 +431,7 @@ class UniversityYearForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -497,7 +497,7 @@ class HolidayForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -547,7 +547,7 @@ class VacationForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -615,7 +615,7 @@ class CalendarForm(forms.ModelForm):
         # Test user group
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -1091,7 +1091,7 @@ class PublicDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -1141,7 +1141,7 @@ class EvaluationFormLinkForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
