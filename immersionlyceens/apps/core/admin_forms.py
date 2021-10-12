@@ -743,13 +743,24 @@ class ImmersionUserChangeForm(UserChangeForm):
         cleaned_data = super().clean()
         groups = cleaned_data['groups']
         structures = cleaned_data['structures']
+        establishment = cleaned_data['establishment']
         highschool = cleaned_data['highschool']
         forbidden_msg = _("Forbidden")
 
         is_own_account = self.request.user.id == self.instance.id
 
-        if groups.filter(name='REF-ETAB').exists():
+        if groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE')).exists():
             cleaned_data['is_staff'] = True
+            if establishment is None:
+                msg = _("This field is mandatory for a user belonging to 'REF-ETAB' or 'REF-ETAB-MAITRE' groups")
+                self._errors['establishment'] = self.error_class([msg])
+                del cleaned_data["establishment"]
+
+        if establishment and not groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE')).exists():
+            msg = _("Please add either 'REF-ETAB' or 'REF-ETAB-MAITRE' when you select an establishment")
+            if not self._errors.get("groups"):
+                self._errors["groups"] = forms.utils.ErrorList()
+            self._errors['groups'].append(self.error_class([msg]))
 
         if groups.filter(name='REF-STR').exists() and not structures.count():
             msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
