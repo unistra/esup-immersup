@@ -711,7 +711,7 @@ class ImmersionUserCreationForm(UserCreationForm):
         self.fields["establishment"].required = False
 
         # Master establishment manager has only access to the other establishments
-        if self.request.user.is_master_establishment_manager():
+        if not self.request.user.is_superuser and self.request.user.is_master_establishment_manager():
             self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
 
 
