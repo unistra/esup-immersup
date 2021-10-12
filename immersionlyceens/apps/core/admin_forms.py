@@ -749,15 +749,27 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         is_own_account = self.request.user.id == self.instance.id
 
-        if groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE')).exists():
-            cleaned_data['is_staff'] = True
-            if establishment is None:
-                msg = _("This field is mandatory for a user belonging to 'REF-ETAB' or 'REF-ETAB-MAITRE' groups")
+        if groups.filter(name='REF-ETAB').exists():
+            if establishment is None or establishment.master:
+                msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
                 self._errors['establishment'] = self.error_class([msg])
                 del cleaned_data["establishment"]
 
-        if establishment and not groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE')).exists():
-            msg = _("Please add either 'REF-ETAB' or 'REF-ETAB-MAITRE' when you select an establishment")
+        if groups.filter(name='REF-ETAB-MAITRE').exists():
+            cleaned_data['is_staff'] = True
+            if establishment is None or not establishment.master:
+                msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
+                self._errors['establishment'] = self.error_class([msg])
+                del cleaned_data["establishment"]
+
+        if establishment and establishment.master and not groups.filter(name='REF-ETAB-MAITRE').exists():
+            msg = _("The group 'REF-ETAB-MAITRE' is mandatory when you select a master establishment")
+            if not self._errors.get("groups"):
+                self._errors["groups"] = forms.utils.ErrorList()
+            self._errors['groups'].append(self.error_class([msg]))
+
+        if establishment and not establishment.master and not groups.filter(name='REF-ETAB').exists():
+            msg = _("The group 'REF-ETAB' is mandatory when you select a non-master establishment")
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
             self._errors['groups'].append(self.error_class([msg]))
@@ -774,7 +786,7 @@ class ImmersionUserChangeForm(UserChangeForm):
             self._errors['groups'].append(self.error_class([msg]))
 
         if groups.filter(name='REF-LYC').exists() and not highschool:
-            msg = _("This field is mandatory for a user belong to 'REF-LYC' group")
+            msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
             self._errors["highschool"] = self.error_class([msg])
             del cleaned_data["highschool"]
 
