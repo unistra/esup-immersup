@@ -261,7 +261,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_establishment_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and TrainingSubdomain.objects.filter(training_domain=obj).exists():
@@ -295,7 +295,7 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_establishment_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():

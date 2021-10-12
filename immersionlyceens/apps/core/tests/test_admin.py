@@ -128,22 +128,28 @@ class AdminFormsTestCase(TestCase):
 
         self.assertTrue(TrainingDomain.objects.filter(label='test').exists())
 
-        data = {'label': 'sd test', 'training_domain': td.pk, 'active': True}
-
-        request.user = self.ref_etab_user
-
-        form = TrainingSubdomainForm(data=data, request=request)
-
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(TrainingSubdomain.objects.filter(label='sd test').exists())
-
-        # Validation fail (invalid user)
+        # Validation fail (invalid users)
         data = {'label': 'test_fail', 'training_domain': td, 'active': True}
         request.user = self.ref_str_user
         form = TrainingSubdomainForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertFalse(TrainingSubdomain.objects.filter(label='test_fail').exists())
+
+        request.user = self.ref_etab_user
+        form = TrainingSubdomainForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(TrainingSubdomain.objects.filter(label='test_fail').exists())
+
+        # Success
+        data = {'label': 'sd test', 'training_domain': td.pk, 'active': True}
+
+        request.user = self.ref_master_etab_user
+        form = TrainingSubdomainForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(TrainingSubdomain.objects.filter(label='sd test').exists())
 
     def test_campus_creation(self):
         """

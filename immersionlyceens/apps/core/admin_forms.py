@@ -153,7 +153,8 @@ class TrainingSubdomainForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['training_domain'].queryset = self.fields['training_domain'].queryset.order_by('label')
+        if self.fields.get('training_domain'):
+            self.fields['training_domain'].queryset = self.fields['training_domain'].queryset.order_by('label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -161,7 +162,7 @@ class TrainingSubdomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
