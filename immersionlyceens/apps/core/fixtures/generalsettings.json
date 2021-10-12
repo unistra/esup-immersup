@@ -1,91 +1,157 @@
 [{
-    "model": "core.generalsettings",
-    "pk": 1,
-    "fields": {
-      "setting": "TWITTER_ACCOUNT_URL",
-      "value": "https://twitter.com/unistra?ref_src=twsrc%5Etfw",
-      "description": "Compte twitter \u00e0 utiliser dans le fil d'actualit\u00e9s"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 2,
-    "fields": {
-      "setting": "PLATFORM_URL",
-      "value": "https://immersionlyceens.unistra.fr",
-      "description": "Adresse de la plateforme Immersion"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 3,
-    "fields": {
-      "setting": "MAIL_FROM",
-      "value": "noreply@mon-domaine.fr",
-      "description": "Adresse d'exp\u00e9dition qui figurera sur les emails envoy\u00e9s par l'application"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 4,
-    "fields": {
-      "setting": "GLOBAL_MAILING_LIST",
-      "value": "liste-immersion@mon-domaine.fr",
-      "description": "Adresse de la liste de diffusion globale"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 5,
-    "fields": {
-      "setting": "NB_DAYS_SLOT_REMINDER",
-      "value": "3",
-      "description": "Rappels de cr\u00e9neaux aux participants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 6,
-    "fields": {
-      "setting": "NB_DAYS_SPEAKER_SLOT_REMINDER",
-      "value": "3",
-      "description": "Rappels de cr\u00e9neaux aux intervenants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 7,
-    "fields": {
-      "setting": "NB_WEEKS_STRUCTURES_SLOT_REMINDER",
-      "value": "1",
-      "description": "Rappels de cr\u00e9neaux aux structures : envois des mails pour les cr\u00e9neaux ayant lieu dans N semaines"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 8,
-    "fields": {
-      "setting": "MAIL_CONTACT_REF_ETAB",
-      "value": "ref_etab@somewhere.og",
-      "description": "Adresse de contact du réferent établissement"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 10,
-    "fields": {
-      "setting": "CONTACT_FORM_URL",
-      "value": "https://dynamic-forms.app.unistra.fr/form/1/read/1",
-      "description": "Adresse du formulaire de contact"
-    }
-  },
-  {
-    "model": "core.generalsettings",
-    "pk": 11,
-    "fields": {
-      "setting": "PDF_CERTIFICATE_CITY",
-      "value": "Strasbourg",
-      "description": "Ville a afficher dans le certificat de pr\u00e9sence"
+  "model": "core.generalsettings",
+  "pk": 1,
+  "fields": {
+    "setting": "TWITTER_ACCOUNT_URL",
+    "parameters" : {
+      "description": "Compte twitter \u00e0 utiliser dans le fil d'actualit\u00e9s",
+      "type": "text",
+      "value": "https://twitter.com/unistra?ref_src=twsrc%5Etfw"
     }
   }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 2,
+  "fields": {
+    "setting": "PLATFORM_URL",
+    "parameters" : {
+      "description": "Adresse de la plateforme Immersion",
+      "type": "text",
+      "value": "https://immersionlyceens.unistra.fr"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 3,
+  "fields": {
+    "setting": "MAIL_FROM",
+    "parameters" : {
+      "description": "Adresse d'exp\u00e9dition qui figurera sur les emails envoy\u00e9s par l'application",
+      "type": "text",
+      "value": "noreply@mon-domaine.fr"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 4,
+  "fields": {
+    "setting": "GLOBAL_MAILING_LIST",
+    "parameters" : {
+      "description": "Adresse de la liste de diffusion globale",
+      "type": "text",
+      "value": "liste-immersion@mon-domaine.fr"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 5,
+  "fields": {
+    "setting": "NB_DAYS_SLOT_REMINDER",
+    "parameters" : {
+      "description": "Rappels de cr\u00e9neaux aux participants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours",
+      "type": "text",
+      "value": "3"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 6,
+  "fields": {
+    "setting": "NB_DAYS_SPEAKER_SLOT_REMINDER",
+    "parameters" : {
+      "description": "Rappels de cr\u00e9neaux aux intervenants : envois des mails pour les cr\u00e9neaux ayant lieu dans N jours",
+      "type": "text",
+      "value": "3"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 7,
+  "fields": {
+    "setting": "NB_WEEKS_STRUCTURES_SLOT_REMINDER",
+    "parameters" : {
+      "description": "Rappels de cr\u00e9neaux aux structures : envois des mails pour les cr\u00e9neaux ayant lieu dans N semaines",
+      "type": "text",
+      "value": "1"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 8,
+  "fields": {
+    "setting": "MAIL_CONTACT_REF_ETAB",
+    "parameters" : {
+      "description": "Adresse de contact du réferent établissement",
+      "type": "text",
+      "value": "ref_etab@somewhere.og"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 10,
+  "fields": {
+    "setting": "CONTACT_FORM_URL",
+    "parameters" : {
+      "description": "Adresse du formulaire de contact",
+      "type": "text",
+      "value": "https://dynamic-forms.app.unistra.fr/form/1/read/1"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 11,
+  "fields": {
+    "setting": "PDF_CERTIFICATE_CITY",
+    "parameters" : {
+      "description": "Ville a afficher dans le certificat de pr\u00e9sence",
+      "type": "text",
+      "value": "Strasbourg"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 12,
+  "fields": {
+    "setting": "CHARTER_SIGN",
+    "parameters" : {
+      "description": "Activation de la signature de la charte",
+      "type": "boolean",
+      "value": true
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 13,
+  "fields": {
+    "setting": "HIGHSCHOOL_VISIT",
+    "parameters" : {
+      "description": "Activation de visites en Lyc\u00e9e",
+      "type": "boolean",
+      "value": true
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 14,
+  "fields": {
+    "setting": "EVENTS_OFF_OFFER",
+    "parameters" : {
+      "description": "Activation de l'utilisation d'\u00e9v\u00e8nement hors offre",
+      "type": "boolean",
+      "value": true
+    }
+  }
+}
 ]

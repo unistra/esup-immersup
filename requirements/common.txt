@@ -11,3 +11,4 @@ django-shibboleth-remoteuser
 WeasyPrint==52.5
 sentry-sdk
 django-json-widget
+jsonschema
