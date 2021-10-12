@@ -173,6 +173,9 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 messages.warning(request, no_delete_msg)
                 return False
 
+            if request.user.is_master_establishment_manager():
+                return obj.groups.filter(name='REF-ETAB').exists()
+
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
             if request.user.is_establishment_manager():
@@ -192,6 +195,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return True
             elif obj.is_superuser:
                 return False
+
+            # When creating a user, the group is not here yet
+            if request.user.is_master_establishment_manager():
+                return obj.establishment and not obj.establishment.master
 
             # A user can only be updated if not superuser and the authenticated user has
             # rights on ALL his groups
