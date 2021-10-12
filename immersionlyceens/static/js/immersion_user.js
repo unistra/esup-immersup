@@ -51,10 +51,11 @@ window.addEventListener('load', function() {
             },
 
             success : function(json) {
-              var msg = json['msg']
-              var query = json['data'][0]
+              let msg = json['msg'] !== undefined ? json['msg'] : ""
+              let query = json['data'] !== undefined ? json['data'][0] : ""
+              results = json['data'] !== undefined ? json['data'].slice(1) : null
 
-              if(msg != '') {
+              if(msg !== '') {
                 document.getElementById('ws_message').innerHTML = msg
                 $('#ws_message').show()
               }
@@ -68,20 +69,18 @@ window.addEventListener('load', function() {
                 document.getElementById('livesearch_label').style.visibility = 'visible'
                 document.getElementById('live_select').style.visibility = 'visible'
 
-                if (json['data'].length <= 1) {
+                if (results === null) {
                   $('#id_email').val('')
                   $('#id_first_name').val('')
                   $('#id_last_name').val('')
                 }
                 else {
-                  results=json['data']
-
                   $('#live_select').empty().append(
                     '<option value=\'\'>'+select_text+'</option>'
                   )
-                  for (var i = 1; i < json['data'].length; i++) {
+                  for (var i = 0; i < results.length; i++) {
                     $('#live_select').append(
-                      '<option value=\''+i+'\'>'+json['data'][i]['display_name']+'</option>')
+                      '<option value=\''+i+'\'>'+results[i]['display_name']+'</option>')
                   }
                 }
               }
@@ -107,7 +106,7 @@ window.addEventListener('load', function() {
         var optionSelected = $('option:selected', this)
         var valueSelected = this.value
 
-        if(this.value!='') {
+        if(this.value !== '') {
           $('#id_username').val(results[valueSelected]['username'])
           $('#id_email').val(results[valueSelected]['email'])
           $('#id_first_name').val(results[valueSelected]['firstname'])

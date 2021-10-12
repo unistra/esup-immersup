@@ -677,7 +677,7 @@ class CoreViewsTestCase(TestCase):
 
         self.assertIn('highschool', response.context)
         self.assertEqual(response.context['highschool'], self.high_school)
-        self.assertFalse(response.context['is_ref_etab_manager'])
+        self.assertFalse(response.context['is_establishment_manager'])
 
         # As a ref_etab user
         self.client.login(username='ref_etab', password='pass')
@@ -685,7 +685,7 @@ class CoreViewsTestCase(TestCase):
 
         self.assertIn('highschool', response.context)
         self.assertEqual(response.context['highschool'], None)
-        self.assertTrue(response.context['is_ref_etab_manager'])
+        self.assertTrue(response.context['is_establishment_manager'])
 
 
     def test_student_validation(self):

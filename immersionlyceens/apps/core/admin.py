@@ -175,7 +175,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
-            if request.user.is_ref_etab_manager():
+            if request.user.is_establishment_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
 
@@ -195,7 +195,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             # A user can only be updated if not superuser and the authenticated user has
             # rights on ALL his groups
-            if request.user.is_ref_etab_manager():
+            if request.user.is_establishment_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
 
@@ -215,8 +215,9 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             lst = list(UserAdmin.fieldsets)
             permissions_fields = list(lst[2])
             permissions_fields_list = list(permissions_fields[1]['fields'])
-            permissions_fields_list.insert(4, 'structures')
-            permissions_fields_list.insert(5, 'highschool')
+            permissions_fields_list.insert(4, 'establishment')
+            permissions_fields_list.insert(5, 'structures')
+            permissions_fields_list.insert(6, 'highschool')
 
             if not request.user.is_superuser:
                 # Remove structures widget for non superusers
@@ -253,7 +254,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and TrainingSubdomain.objects.filter(training_domain=obj).exists():
@@ -287,7 +288,7 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():
@@ -317,7 +318,7 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Building.objects.filter(campus=obj).exists():
@@ -348,7 +349,7 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
@@ -364,7 +365,7 @@ class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and HighSchoolStudentRecord.objects.filter(technological_bachelor_mention=obj).exists():
@@ -388,7 +389,7 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and HighSchoolStudentRecord.objects.filter(general_bachelor_teachings=obj).exists():
@@ -454,7 +455,7 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Training.objects.filter(structures=obj).exists():
@@ -473,7 +474,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Course.objects.filter(training=obj).exists():
@@ -491,7 +492,7 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Immersion.objects.filter(cancellation_type=obj).exists():
@@ -509,7 +510,7 @@ class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Slot.objects.filter(course_type=obj).exists():
@@ -527,7 +528,7 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and AccompanyingDocument.objects.filter(public_type=obj).exists():
@@ -566,7 +567,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
     #     return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj:
@@ -712,7 +713,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
-        elif request.user.is_ref_etab_manager():
+        elif request.user.is_establishment_manager():
             return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
         else:
             return False
@@ -721,7 +722,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if request.user.is_superuser:
             return True
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj:
@@ -959,7 +960,7 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         return ('label', file_url, doc_used_in, 'active', 'published')
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_ref_etab_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj:

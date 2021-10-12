@@ -38,14 +38,19 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-STR")
+@groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR")
 def ajax_get_person(request):
     response = {'msg': '', 'data': []}
     search_str = request.POST.get("username", None)
     query_order = request.POST.get("query_order")
-    establishment_id = request.POST.get('establishment_id')
+    establishment_id = request.POST.get('establishment_id', None)
 
     if not search_str:
+        response['msg'] = gettext("Search string is empty")
+        return JsonResponse(response, safe=False)
+
+    if establishment_id is None:
+        response['msg'] = gettext("Please select an establishment first")
         return JsonResponse(response, safe=False)
 
     try:
@@ -205,7 +210,7 @@ def ajax_get_slots(request, structure=None):
 
     all_data = []
     my_structures = []
-    if request.user.is_ref_etab_manager():
+    if request.user.is_establishment_manager():
         my_structures = Structure.objects.all()
     elif request.user.is_structure_manager():
         my_structures = request.user.structures.all()
@@ -598,7 +603,7 @@ def ajax_validate_reject_student(request, validate):
     student_record_id = request.POST.get('student_record_id')
     if student_record_id:
         hs = None
-        if request.user.is_ref_etab_manager():
+        if request.user.is_establishment_manager():
             hs = HighSchool.objects.all()
         else:
             hs = HighSchool.objects.filter(id=request.user.highschool.id)
@@ -743,7 +748,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         return JsonResponse(response, safe=False)
 
     if (
-        not request.user.is_ref_etab_manager()
+        not request.user.is_establishment_manager()
         and not request.user.is_high_school_manager()
         and request.user.id != user_id
     ):
@@ -991,7 +996,7 @@ def ajax_slot_registration(request):
     force = request.POST.get('force', False)
     structure = request.POST.get('structure', False)
     calendar, slot, student = None, None, None
-    can_force_reg = request.user.is_ref_etab_manager()
+    can_force_reg = request.user.is_establishment_manager()
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
 
@@ -1022,7 +1027,7 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Check slot is published for no ref-etab user
-    if not request.user.is_ref_etab_manager() and not slot.published:
+    if not request.user.is_establishment_manager() and not slot.published:
         response = {'error': True, 'msg': _("Registering an unpublished slot is forbidden")}
         return JsonResponse(response, safe=False)
 
@@ -1235,14 +1240,14 @@ def ajax_get_highschool_students(request, highschool_id=None):
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    if request.user.is_ref_etab_manager():
+    if request.user.is_establishment_manager():
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            if not request.user.is_ref_etab_manager():
+            if not request.user.is_establishment_manager():
                 response = {'data': [], 'msg': _('Invalid parameters')}
                 return JsonResponse(response, safe=False)
 

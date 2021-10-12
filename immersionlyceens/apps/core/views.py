@@ -88,7 +88,7 @@ def slots_list(request, str_id=None, train_id=None):
     """
     template = 'slots/list_slots.html'
 
-    if request.user.is_superuser or request.user.is_ref_etab_manager():
+    if request.user.is_superuser or request.user.is_establishment_manager():
         structures = Structure.activated.all().order_by("code")
     elif request.user.is_structure_manager():
         structures = request.user.structures.all().order_by("code")
@@ -144,7 +144,7 @@ def add_slot(request, slot_id=None):
 
     # get structures
     structures = []
-    if request.user.is_superuser or request.user.is_ref_etab_manager():
+    if request.user.is_superuser or request.user.is_establishment_manager():
         structures = Structure.activated.all().order_by('code')
     elif request.user.is_structure_manager():
         structures = request.user.structures.all().order_by('code')
@@ -238,7 +238,7 @@ def modify_slot(request, slot_id):
     slot_form = SlotForm(instance=slot)
     # get structures
     structures = []
-    if request.user.is_superuser or request.user.is_ref_etab_manager():
+    if request.user.is_superuser or request.user.is_establishment_manager():
         structures = Structure.activated.all().order_by('code')
     elif request.user.is_structure_manager():
         structures = request.user.structures.all().order_by('code')
@@ -612,7 +612,7 @@ def my_students(request):
 
     context = {
         'highschool': highschool,
-        'is_ref_etab_manager': request.user.is_ref_etab_manager(),
+        'is_establishment_manager': request.user.is_establishment_manager(),
     }
 
     return render(request, 'core/highschool_students.html', context)
@@ -750,7 +750,7 @@ def stats(request):
     template = 'core/stats.html'
     structures = None
 
-    if request.user.is_ref_etab_manager():
+    if request.user.is_establishment_manager():
         structures = Structure.activated.all()
     elif request.user.is_structure_manager():
         structures = request.user.structures.all()

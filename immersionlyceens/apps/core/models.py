@@ -48,7 +48,7 @@ class Establishment(models.Model):
         verbose_name_plural = _('Establishments')
 
     def __str__(self):
-        return "%s : %s" % (self.code, self.label)
+        return "%s : %s%s" % (self.code, self.label, _(" (master)") if self.master else "")
 
 
 class Structure(models.Model):
@@ -120,7 +120,8 @@ class ImmersionUser(AbstractUser):
         lambda has_group, su: has_group and not su,
     ]
     _groups = {
-        'REF-ETAB': 'ref_etab_manager',
+        'REF-ETAB': 'establishment_manager',
+        'REF-ETAB-MAITRE': 'master_establishment_manager',
         'REF-STR': 'structure_manager',
         'REF-LYC': 'high_school_manager',
         'ETU': 'student',

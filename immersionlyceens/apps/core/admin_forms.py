@@ -34,7 +34,7 @@ class BachelorMentionForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -59,7 +59,7 @@ class CampusForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -84,7 +84,7 @@ class CancelTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -109,7 +109,7 @@ class CourseTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -134,7 +134,7 @@ class TrainingDomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -161,7 +161,7 @@ class TrainingSubdomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -187,7 +187,7 @@ class BuildingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -220,7 +220,7 @@ class TrainingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -343,7 +343,7 @@ class StructureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -368,7 +368,7 @@ class GeneralBachelorTeachingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -397,7 +397,7 @@ class PublicTypeForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -430,7 +430,7 @@ class UniversityYearForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -496,7 +496,7 @@ class HolidayForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -546,7 +546,7 @@ class VacationForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -614,7 +614,7 @@ class CalendarForm(forms.ModelForm):
         # Test user group
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -700,14 +700,20 @@ class ImmersionUserCreationForm(UserCreationForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields["establishment"].required = False
-
         self.fields["password1"].required = False
         self.fields["password2"].required = False
 
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
+
+        # Establishment
+        self.fields["establishment"].required = False
+
+        # Master establishment manager has only access to the other establishments
+        if self.request.user.is_master_establishment_manager():
+            self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
+
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
@@ -775,7 +781,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 del cleaned_data['structures']
 
             elif self.request.user.has_groups('REF-ETAB'):
-                if self.instance.is_ref_etab_manager():
+                if self.instance.is_establishment_manager():
                     raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
 
                 # Add groups to this list when needed
@@ -882,7 +888,7 @@ class HighSchoolForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager() or (user.is_high_school_manager() and user.highschool)
+            valid_user = user.is_establishment_manager() or (user.is_high_school_manager() and user.highschool)
         except AttributeError as exc:
             pass
 
@@ -923,7 +929,7 @@ class MailTemplateForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1001,7 +1007,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1061,7 +1067,7 @@ class PublicDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1111,7 +1117,7 @@ class EvaluationFormLinkForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1136,7 +1142,7 @@ class GeneralSettingsForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1177,7 +1183,7 @@ class CertificateLogoForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1218,7 +1224,7 @@ class CertificateSignatureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_ref_etab_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 

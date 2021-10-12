@@ -223,7 +223,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        if not self.request or not self.request.user.is_ref_etab_manager():
+        if not self.request or not self.request.user.is_establishment_manager():
             del self.fields['allowed_global_registrations']
             del self.fields['allowed_first_semester_registrations']
             del self.fields['allowed_second_semester_registrations']
@@ -303,7 +303,7 @@ class StudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        if not self.request or not self.request.user.is_ref_etab_manager():
+        if not self.request or not self.request.user.is_establishment_manager():
             del self.fields['allowed_global_registrations']
             del self.fields['allowed_first_semester_registrations']
             del self.fields['allowed_second_semester_registrations']
