@@ -3,6 +3,7 @@ import logging
 import re
 import uuid
 from functools import partial
+from os.path import dirname, join
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
@@ -12,11 +13,14 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date
 from django.utils.translation import pgettext, ugettext_lazy as _
-
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
+from immersionlyceens.libs.validators import JsonSchemaValidator
 
-from .managers import ActiveManager, StructureQuerySet, CustomDeleteManager, HighSchoolAgreedManager
+from .managers import (
+    ActiveManager, CustomDeleteManager, HighSchoolAgreedManager,
+    StructureQuerySet,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1280,12 +1284,20 @@ class Immersion(models.Model):
 
 class GeneralSettings(models.Model):
     setting = models.CharField(_("Setting name"), max_length=128, unique=True)
-    value = models.CharField(_("Setting value"), max_length=256, null=True, blank=True)
-    description = models.CharField(_("Setting description"), max_length=256, default='')
+    parameters = models.JSONField(_("Setting configuration"),
+    blank=False,
+    default=dict,
+    validators=[
+        JsonSchemaValidator(join(dirname(__file__), 'schemas', \
+        'general_settings.json'))
+    ])
 
     class Meta:
         verbose_name = _('General setting')
         verbose_name_plural = _('General settings')
+
+    def __str__(self):
+        return self.setting
 
 
 class UserCourseAlert(models.Model):

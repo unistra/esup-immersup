@@ -64,3 +64,4 @@ pyvenv.cfg
 
 .env.dev
 .env.demo
+.pre-commit-config.yaml

@@ -37,7 +37,7 @@ def get_general_setting(name=None):
         return None
 
     try:
-        value = core_models.GeneralSettings.objects.get(setting=name).value.strip()
+        value = core_models.GeneralSettings.objects.get(setting=name).parameters
     except core_models.GeneralSettings.DoesNotExist:
         # Variable not found
         raise NameError
@@ -49,7 +49,7 @@ def get_general_setting(name=None):
     if not value:
         raise ValueError
 
-    return value
+    return value.get('value', '')
 
 
 def get_information_text(code=None):

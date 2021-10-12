@@ -11,23 +11,20 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
-from django.utils.translation import pgettext
-from django.utils.translation import ugettext_lazy as _
-from immersionlyceens.apps.core.models import (AccompanyingDocument, Building,
-                                               Calendar, Campus, CancelType,
-                                               Structure, Course, CourseType,
-                                               GeneralSettings, HighSchool,
-                                               Immersion, ImmersionUser,
-                                               MailTemplate, MailTemplateVars,
-                                               Slot, Training, TrainingDomain,
-                                               TrainingSubdomain,
-                                               UserCourseAlert, Vacation)
-from immersionlyceens.apps.immersion.models import (HighSchoolStudentRecord,
-                                                    StudentRecord)
+from django.utils.translation import pgettext, ugettext_lazy as _
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, Building, Calendar, Campus, CancelType, Course,
+    CourseType, GeneralSettings, HighSchool, Immersion, ImmersionUser,
+    MailTemplate, MailTemplateVars, Slot, Structure, Training, TrainingDomain,
+    TrainingSubdomain, UserCourseAlert, Vacation,
+)
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 from immersionlyceens.libs.api.views import ajax_check_course_publication
-from immersionlyceens.libs.geoapi.utils import (get_cities, get_departments,
-                                                get_json_from_url,
-                                                get_zipcodes)
+from immersionlyceens.libs.geoapi.utils import (
+    get_cities, get_departments, get_json_from_url, get_zipcodes,
+)
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -39,7 +36,7 @@ class GEOAPITestCase(TestCase):
     fixtures = ['group']
 
     def setUp(self):
-        GeneralSettings.objects.create(setting='MAIL_CONTACT_REF_ETAB', value='unittest@unittest.fr')
+        GeneralSettings.objects.create(setting='MAIL_CONTACT_REF_ETAB', parameters={'value': 'unittest@unittest.fr', 'type': 'text', 'description': 'unittest setting'})
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab', password='pass', email='immersion@no-reply.com', first_name='ref_etab', last_name='ref_etab',
         )

@@ -7,24 +7,28 @@ from django.db import models
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
-from django_summernote.admin import SummernoteModelAdmin
 from django_json_widget.widgets import JSONEditorWidget
+from django_summernote.admin import SummernoteModelAdmin
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    CertificateLogoForm, CertificateSignatureForm, StructureForm, CourseTypeForm, EstablishmentForm,
-    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
-    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
-    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
+    CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
+    HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
+    PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
-    AccompanyingDocument, AnnualStatistics, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    CertificateSignature, Structure, Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion, ImmersionUser, InformationText,
-    MailTemplate, PublicDocument, PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
+    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
+    Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
+    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
+    Slot, Structure, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -1024,9 +1028,39 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
+    def setting_type(self, obj):
+        if obj.parameters['type'] == 'boolean':
+            return _('boolean')
+        elif obj.parameters['type'] == 'text':
+            return _('text')
+        else:
+            #TODO: hope to have localized type in i18n files ?
+            return _(obj.parameters['type'])
+        return ""
+
+    def setting_value(self, obj):
+        if obj.parameters['type'] == 'boolean':
+            return _('Yes') if obj.parameters['value'] == True else _('No')
+        else:
+            return obj.parameters['value']
+
+    def setting_description(self, obj):
+        return obj.parameters['description']
+
     form = GeneralSettingsForm
-    list_display = ('setting', 'value', 'description')
+    list_display = ('setting', 'setting_value', 'setting_type', 'setting_description')
     ordering = ('setting',)
+
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
+
+    setting_type.short_description = _('Setting type')
+    setting_value.short_description = _('Setting value')
+    setting_description.short_description = _('Setting description')
+
+# value = models.CharField(_("Setting value"), max_length=256, null=True, blank=True)
+# description = models.CharField(_("Setting description"), max_length=256, default='')
 
 
 class AnnualStatisticsAdmin(admin.ModelAdmin):

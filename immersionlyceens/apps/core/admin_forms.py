@@ -13,13 +13,14 @@ from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
-from ...libs.geoapi.utils import get_cities, get_zipcodes, get_departments
+from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    CertificateSignature, Structure, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
-    MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    CancelType, CertificateLogo, CertificateSignature, CourseType,
+    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
+    MailTemplate, MailTemplateVars, PublicDocument, PublicType, Structure,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1165,12 +1166,14 @@ class GeneralSettingsForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_superuser
         except AttributeError:
             pass
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+
 
         return cleaned_data
 
