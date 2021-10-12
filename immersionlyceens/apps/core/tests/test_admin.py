@@ -248,33 +248,42 @@ class AdminFormsTestCase(TestCase):
         }
         # TODO: missing stuff ?
 
+
     def test_bachelor_mention_creation(self):
         """
         Test admin bachelor mention creation with group rights
         """
 
-        data = {'label': 'testBachelor', 'active': True}
+        data = {'label': 'test_failure', 'active': True}
 
+        # Failures (invalid users)
         request.user = self.ref_etab_user
+        form = BachelorMentionForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(BachelorMention.objects.filter(label='test_failure').exists())
 
+        request.user = self.ref_str_user
+        form = BachelorMentionForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(BachelorMention.objects.filter(label='test_failure').exists())
+
+        # Success
+        data = {'label': 'testBachelor', 'active': True}
+        request.user = self.ref_master_etab_user
         form = BachelorMentionForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(BachelorMention.objects.filter(label=data['label']).exists())
 
-        # Validation fail (invalid user)
-        data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_str_user
-        form = BachelorMentionForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(BachelorMention.objects.filter(label='test_failure').exists())
 
     def test_cancel_type_creation(self):
         """
-        Test admin bachelor mention creation with group rights
+        Test admin cancellation type creation with group rights
         """
 
-        data = {'label': 'testBachelor', 'active': True}
+        data = {'label': 'my_cancel_type', 'active': True}
 
         request.user = self.ref_etab_user
 
