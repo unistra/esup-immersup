@@ -421,7 +421,7 @@ class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     formfield_overrides = {
-        models.JSONField: {'widget': JSONEditorWidget},
+        models.JSONField: {'widget': JSONEditorWidget(options={ 'mode': 'form' })},
     }
 
     def get_actions(self, request):
@@ -1043,6 +1043,9 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     def setting_type(self, obj):
+        if 'type' not in obj.parameters:
+            return ""
+
         if obj.parameters['type'] == 'boolean':
             return _('boolean')
         elif obj.parameters['type'] == 'text':
@@ -1050,23 +1053,27 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
         else:
             #TODO: hope to have localized type in i18n files ?
             return _(obj.parameters['type'])
-        return ""
 
     def setting_value(self, obj):
+        if 'type' not in obj.parameters:
+            return None
+
         if obj.parameters['type'] == 'boolean':
             return _('Yes') if obj.parameters['value'] == True else _('No')
         else:
             return obj.parameters['value']
 
     def setting_description(self, obj):
-        return obj.parameters['description']
+        return obj.parameters.get('description', '')
 
     form = GeneralSettingsForm
     list_display = ('setting', 'setting_value', 'setting_type', 'setting_description')
     ordering = ('setting',)
 
     formfield_overrides = {
-        models.JSONField: {'widget': JSONEditorWidget},
+        models.JSONField: {
+            'widget': JSONEditorWidget(options={ 'mode': 'form' }),
+        },
     }
 
     setting_type.short_description = _('Setting type')
