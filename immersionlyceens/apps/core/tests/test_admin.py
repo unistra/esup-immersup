@@ -13,13 +13,14 @@ from django.test import RequestFactory, TestCase
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
     StructureForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, InformationTextForm, MailTemplateForm,
+    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, CourseType,
-    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday, PublicDocument,
-    PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
+    InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, 
+    UniversityYear, Vacation,
 )
 
 
@@ -282,22 +283,29 @@ class AdminFormsTestCase(TestCase):
         """
         Test admin cancellation type creation with group rights
         """
-
+        # Failures (invalid users)
         data = {'label': 'my_cancel_type', 'active': True}
+        request.user = self.ref_str_user
+        form = CancelTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(CancelType.objects.filter(label=data['label']).exists())
 
         request.user = self.ref_etab_user
+        form = CancelTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(CancelType.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
 
         form = CancelTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(CancelType.objects.filter(label=data['label']).exists())
 
-        # Validation fail (invalid user)
-        data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_str_user
-        form = CancelTypeForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(CancelType.objects.filter(label='test_failure').exists())
 
     def test_course_type_creation(self):
         """
@@ -305,19 +313,29 @@ class AdminFormsTestCase(TestCase):
         """
         data = {'label': 'testCourse', 'full_label': 'testFullCourse', 'active': True}
 
+        # Failures (invalid users)
+        data = {'label': 'testCourse', 'full_label': 'testFullCourse', 'active': True}
+        request.user = self.ref_str_user
+        form = CourseTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(CourseType.objects.filter(label=data['label']).exists())
+
         request.user = self.ref_etab_user
+        form = CourseTypeForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(CourseType.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
 
         form = CourseTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(CourseType.objects.filter(label=data['label']).exists())
 
-        # Validation fail (invalid user)
-        data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_str_user
-        form = CourseTypeForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(CourseType.objects.filter(label='test_failure').exists())
 
     def test_general_bachelor_teaching_creation(self):
         """
@@ -325,19 +343,28 @@ class AdminFormsTestCase(TestCase):
         """
         data = {'label': 'test', 'active': True}
 
+        # Failures (invalid users)
+        data = {'label': 'test', 'active': True}
+        request.user = self.ref_str_user
+        form = GeneralBachelorTeachingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(GeneralBachelorTeaching.objects.filter(label=data['label']).exists())
+
         request.user = self.ref_etab_user
+        form = GeneralBachelorTeachingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(GeneralBachelorTeaching.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
 
         form = GeneralBachelorTeachingForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(GeneralBachelorTeaching.objects.filter(label=data['label']).exists())
-
-        # Validation fail (invalid user)
-        data = {'label': 'test_failure', 'active': True}
-        request.user = self.ref_str_user
-        form = GeneralBachelorTeachingForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(GeneralBachelorTeaching.objects.filter(label='test_failure').exists())
 
     def test_public_type_creation(self):
         """
@@ -350,13 +377,13 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
 
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(PublicType.objects.filter(label='test_fail').exists())
+        self.assertFalse(PublicType.objects.filter(label=data['label']).exists())
 
         request.user = self.ref_etab_user
         form = PublicTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(PublicType.objects.filter(label='test_fail').exists())
+        self.assertFalse(PublicType.objects.filter(label=data['label']).exists())
 
         # Success
         data = {'label': 'testPublicType', 'active': True}
@@ -365,7 +392,8 @@ class AdminFormsTestCase(TestCase):
         form = PublicTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(PublicType.objects.filter(label='testPublicType').exists())
+        self.assertTrue(PublicType.objects.filter(label=data['label']).exists())
+
 
     def test_university_year_creation(self):
         """
@@ -380,25 +408,28 @@ class AdminFormsTestCase(TestCase):
             'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
 
+        # Failures (invalid users)
+        request.user = self.ref_str_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(UniversityYear.objects.filter(label=data['label']).exists())
+
         request.user = self.ref_etab_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(UniversityYear.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
 
         form = UniversityYearForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(UniversityYear.objects.filter(label=data['label']).exists())
 
-        # Validation fail (invalid user)
-        data = {
-            'label': 'test_failure',
-            'active': True,
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-            'registration_start_date': datetime.datetime.today().date(),
-        }
-        request.user = self.ref_str_user
-        form = UniversityYearForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(UniversityYear.objects.filter(label='test_fail').exists())
 
     def test_university_year_constraint__fail_before_now(self):
         request.user = self.ref_etab_user
@@ -712,28 +743,36 @@ class AdminFormsTestCase(TestCase):
         public_type_data = {'label': 'testPublicType', 'active': True}
         public_type = PublicType.objects.create(**public_type_data)
 
-        file = {'document': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
+        file = {'document': SimpleUploadedFile("doc_test.pdf", b"toto", content_type="application/pdf")}
+        data = {
+            'label': 'testDocument',
+            'description': 'testDescription',
+            'active': True,
+            'public_type': ['1',]
+        }
 
-        data = {'label': 'testDocument', 'description': 'testDescription', 'active': True, 'public_type': ['1',]}
-        # TODO: fix me needed manytomany public type field !!!!
-        # request.user = self.ref_etab_user
-
-        # form = AccompanyingDocumentForm(data=data, files=file, request=request)
-        # self.assertTrue(form.is_valid())
-        # form.save()
-        # self.assertTrue(AccompanyingDocument.objects.filter(label=data['label']).exists())
-
-        # # Validation fail (invalid file format
-        # file['content_type'] = "application/fail"
-        # form = AccompanyingDocumentForm(data=data, files=file, request=request)
-        # self.assertFalse(form.is_valid())
-
-        # Validation fail (invalid user)
-        data = {'label': 'test_failure', 'active': True}
+        # Failures (invalid users)
         request.user = self.ref_str_user
-        form = AccompanyingDocumentForm(data=data, request=request)
+        form = AccompanyingDocumentForm(data=data, files=file, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(AccompanyingDocument.objects.filter(label='test_fail').exists())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(AccompanyingDocument.objects.filter(label=data['label']).exists())
+
+        request.user = self.ref_etab_user
+        form = AccompanyingDocumentForm(data=data, files=file, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(AccompanyingDocument.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
+
+        form = AccompanyingDocumentForm(data=data, files=file, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(AccompanyingDocument.objects.filter(label=data['label']).exists())
+
 
     def test_calendar_creation__year_mode(self):
         """
@@ -1223,3 +1262,74 @@ class AdminFormsTestCase(TestCase):
         eta2 = Establishment.objects.get(code='ETA2')
         self.assertTrue(eta2.active)  # default
         self.assertFalse(eta2.master)  # first establishment creation : master = True
+
+
+    def test_information_text_creation(self):
+        """
+        Test admin information text creation with group rights
+        """
+        # Failures (invalid users)
+        data = {
+            'label': 'my text',
+            'code': 'my code',
+            'content':'test content',
+            'description': 'test desc',
+            'active': True
+        }
+
+        request.user = self.ref_str_user
+        form = InformationTextForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(InformationText.objects.filter(label=data['label']).exists())
+
+        request.user = self.ref_etab_user
+        form = InformationTextForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(InformationText.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
+
+        form = InformationTextForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(InformationText.objects.filter(label=data['label']).exists())
+
+
+    def test_mail_template_creation(self):
+        # Test admin mail template creation with group rights
+        # Failures (invalid users)
+        data = {
+            'label': 'my text',
+            'code': 'my code',
+            'subject': 'the mail subject',
+            'body':'test content',
+            'description': 'test desc',
+            'active': True,
+            'available_vars': MailTemplateVars.objects.first()
+        }
+
+
+        request.user = self.ref_str_user
+        form = MailTemplateForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(MailTemplate.objects.filter(label=data['label']).exists())
+
+        request.user = self.ref_etab_user
+        form = MailTemplateForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(MailTemplate.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
+
+        form = MailTemplateForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(MailTemplate.objects.filter(label=data['label']).exists())

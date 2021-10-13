@@ -930,6 +930,13 @@ class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         return ('label', 'description', 'get_types', file_url, 'active')
 
 
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager():
+            return False
+
+        return True
+
+
 class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = PublicDocumentForm
     ordering = ('label',)

@@ -934,14 +934,16 @@ class MailTemplateForm(forms.ModelForm):
         for field in ('label', 'description'):
             self.fields[field].widget.attrs['class'] = 'form-control'
             self.fields[field].widget.attrs['size'] = 80
-
-        if not self.request.user.is_superuser:
+        
+        if not self.request.user.is_master_establishment_manager():
             self.fields['available_vars'].widget = forms.MultipleHiddenInput()
             self.fields['description'].disabled = True
             self.fields['label'].disabled = True
             self.fields['code'].disabled = True
-        else:
+        else:    
             self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
+
+        self.fields['available_vars'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
@@ -953,7 +955,7 @@ class MailTemplateForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -991,7 +993,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body': SummernoteInplaceWidget(),
+            'body': SummernoteWidget(),
         }
 
 
@@ -1031,7 +1033,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -1053,6 +1055,24 @@ class InformationTextForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_master_establishment_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
 
     class Meta:
         model = InformationText
