@@ -1,4 +1,5 @@
-[{
+[
+  {
     "model": "core.informationtext",
     "pk": 1,
     "fields": {
@@ -126,7 +127,40 @@
       "label": "Mentions l\u00e9gales inscription",
       "code": "MENTIONS_INSCRIPTION",
       "content": "<p data-sourcepos=\"3:1-6:84\" dir=\"auto\">Les informations recueillies sont indispensables pour assurer la gestion des inscriptions et du suivi de l\u2019activit\u00e9 d\u2019immersion au sein de l\u2019universit\u00e9 par l\u2019Espace avenir de l\u2019Universit\u00e9 de Strasbourg, et les lyc\u00e9es dont sont issus les participants. La base l\u00e9gale de ce traitement est l'ex\u00e9cution d'une mission de service public (Article 6 (1) e. du RGPD) Les donn\u00e9es seront trait\u00e9es par les personnels en charge de l\u2019immersion au sein de l\u2019Universit\u00e9 de Strasbourg. Elles seront conserv\u00e9es jusqu\u2019\u00e0 la fin de l\u2019ann\u00e9e universitaire en cours. L\u2019Universit\u00e9 de Strasbourg met en \u0153uvre des mesures de s\u00e9curit\u00e9 appropri\u00e9es.</p><p></p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">Vous disposez de droits d'acc\u00e8s, rectification et suppression de vos donn\u00e9es.</p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">Pour les exercer vous pouvez contacter ................... \u00e0 .........@...........fr</p><p data-sourcepos=\"8:1-10:151\" dir=\"auto\">L\u2019Universit\u00e9 de Strasbourg a d\u00e9sign\u00e9 une d\u00e9l\u00e9gu\u00e9e \u00e0 la protection des donn\u00e9es que vous pouvez contacter \u00e0 l\u2019adresse suivante :&nbsp;<a href=\"mailto:dpo@unistra.fr\">dpo@unistra.fr</a>&nbsp;Si apr\u00e8s nous avoir contact\u00e9, vous estimez que vos droits n\u2019ont pas \u00e9t\u00e9 respect\u00e9s vous pouvez introduire une r\u00e9clamation aupr\u00e8s de la CNIL.</p>",
-      "description": "Metions l\u00e9gales affich\u00e9es \u00e0 l'inscription",
+      "description": "Mentions l\u00e9gales affich\u00e9es \u00e0 l'inscription",
+      "active": true
+    }
+  },
+  {
+    "model": "core.informationtext",
+    "pk": 13,
+    "fields": {
+      "label": "Offre de visite",
+      "code": "INTRO_VISITE",
+      "content": "<p>Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
+      "description": "Texte d'intoduction de la page de l'offre de visite",
+      "active": true
+    }
+  },
+  {
+    "model": "core.informationtext",
+    "pk": 14,
+    "fields": {
+      "label": "Évènements hors offre de formation",
+      "code": "INTRO_EVENEMENTHO",
+      "content": "<p>TODO: Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
+      "description": "Texte d'ntroduction de la page d'offre des évènements hors offre de formation",
+      "active": true
+    }
+  },
+  {
+    "model": "core.informationtext",
+    "pk": 15,
+    "fields": {
+      "label": "TODO: Charte",
+      "code": "CHARTE_ETABLISSEENT_ACCUEIL",
+      "content": "<p>TODO: Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
+      "description": "Texte à valider lors de la connexion d'un nouvel établissement d'accueil",
       "active": true
     }
   }
