@@ -716,6 +716,9 @@ class ImmersionUserCreationForm(UserCreationForm):
         if not self.request.user.is_superuser and self.request.user.is_master_establishment_manager():
             self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
 
+        # A regular establishment manager has only access to his own establishment
+        if self.request.user.is_establishment_manager():
+            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
@@ -741,6 +744,17 @@ class ImmersionUserChangeForm(UserChangeForm):
                 self.fields["structures"].disabled = True
                 self.fields["highschool"].disabled = True
 
+            self.fields["groups"].queryset = Group.objects.none()
+
+            # Restrictions on group selection depending on current user level
+            if self.request.user.is_master_establishment_manager():
+                self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE'])
+
+            if self.request.user.is_establishment_manager():
+                self.fields["groups"].queryset = Group.objects.filter(
+                    name__in=['REF-STR', 'SRV-JUR']
+                )
+
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data['groups']
@@ -764,6 +778,9 @@ class ImmersionUserChangeForm(UserChangeForm):
                 self._errors['establishment'] = self.error_class([msg])
                 del cleaned_data["establishment"]
 
+        """
+        # FIXME / TODO : check these potential restrictions
+        
         if establishment and establishment.master and not groups.filter(name='REF-ETAB-MAITRE').exists():
             msg = _("The group 'REF-ETAB-MAITRE' is mandatory when you select a master establishment")
             if not self._errors.get("groups"):
@@ -775,6 +792,7 @@ class ImmersionUserChangeForm(UserChangeForm):
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
             self._errors['groups'].append(self.error_class([msg]))
+        """
 
         if groups.filter(name='REF-STR').exists() and not structures.count():
             msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
@@ -805,12 +823,17 @@ class ImmersionUserChangeForm(UserChangeForm):
                 del cleaned_data['groups']
                 del cleaned_data['structures']
 
-            elif self.request.user.has_groups('REF-ETAB'):
-                if self.instance.is_establishment_manager():
+
+            elif self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
+                if (self.request.user.has_groups('REF-ETAB') and self.instance.is_establishment_manager()) or \
+                   (self.request.user.has_groups('REF-ETAB-MAITRE') and self.instance.is_master_establishment_manager()):
                     raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
 
                 # Add groups to this list when needed
-                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB',)
+                if self.request.user.has_groups('REF-ETAB'):
+                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB',)
+                elif self.request.user.has_groups('REF-ETAB-MAITRE'):
+                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE', )
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
                 new_groups = set(groups.all().values_list('name', flat=True))
