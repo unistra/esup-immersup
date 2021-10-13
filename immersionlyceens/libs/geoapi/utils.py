@@ -8,8 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_json_from_url(url):
+    connect_timeout = 1.0
+    read_timeout = 10.0
+
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=(connect_timeout, read_timeout))
         return r.json()
     except Exception:
         logger.error("Cannot connect to url : %s", sys.exc_info()[0])

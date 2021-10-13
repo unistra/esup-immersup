@@ -110,6 +110,9 @@ class HighSchool(models.Model):
     objects = models.Manager()  # default manager
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
 
+    postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
+    mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
+
     def __str__(self):
         return "%s - %s" % (self.city, self.label)
 

@@ -455,7 +455,7 @@ HAS_RIGHTS_ON_GROUP = {
 BASE_DIR = os.getcwd()
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-X_FRAME_OPTIONS = "SAMEORIGIN"
+# X_FRAME_OPTIONS = "SAMEORIGIN"
 SUMMERNOTE_THEME = 'bs4'
 SUMMERNOTE_CONFIG = {
     'spellCheck': True,

@@ -470,6 +470,7 @@ class AdminFormsTestCase(TestCase):
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
+
     def test_university_year_constraint__fail_registrtion_after_end(self):
         request.user = self.ref_etab_user
         data = {
@@ -483,13 +484,14 @@ class AdminFormsTestCase(TestCase):
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
+
     def test_highschool_creation(self):
         """
         Test admin HighSchool creation with group rights
         """
 
         data = {
-            'label': ' Santo Domingo',
+            'label': 'Santo Domingo',
             'address': 'rue Larry Kubiac',
             'address2': '',
             'address3': '',
@@ -502,39 +504,42 @@ class AdminFormsTestCase(TestCase):
             'head_teacher_name': 'Madame Musso Grace',
             'convention_start_date': datetime.datetime.today().date(),
             'convention_end_date': '',
+            'postbac_immersion': True,
+            'mailing_list': 'test@mailing-list.fr'
         }
-
-        request.user = self.ref_etab_user
 
         form = HighSchoolForm(data=data, request=request)
         # Need to populate choices fields (ajax populated IRL)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
 
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(HighSchool.objects.filter(label='Santo Domingo').exists())
-
-        # Validation fail (invalid user)
-        data = {
-            'label': 'Degrassi Junior School',
-            'address': 'rue Joey Jeremiah',
-            'address2': '',
-            'address3': '',
-            'department': '68',
-            'city': 'MULHOUSE',
-            'zip_code': '68100',
-            'phone_number': '+3312345678',
-            'fax': '+3397654321',
-            'email': 'degrassi@degrassi.edu',
-            'head_teacher_name': 'M. Daniel Raditch',
-            'convention_start_date': datetime.datetime.today().date(),
-            'convention_end_date': '',
-        }
+        # Failures (invalid users)
         request.user = self.ref_str_user
         form = HighSchoolForm(data=data, request=request)
+        form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
+        form.fields['zip_code'].choices = [('68100', '68100')]
         self.assertFalse(form.is_valid())
-        self.assertFalse(HighSchool.objects.filter(label='Degrassi Junior School').exists())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(HighSchool.objects.filter(label=data['label']).exists())
+
+        request.user = self.ref_etab_user
+        form = HighSchoolForm(data=data, request=request)
+        form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
+        form.fields['zip_code'].choices = [('68100', '68100')]
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(HighSchool.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_master_etab_user
+
+        form = HighSchoolForm(data=data, request=request)
+        form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
+        form.fields['zip_code'].choices = [('68100', '68100')]
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
 
     def test_holiday_creation(self):
         """
