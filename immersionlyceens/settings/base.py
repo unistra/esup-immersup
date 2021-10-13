@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 from os.path import abspath, basename, dirname, join, normpath
 
 from django.utils.translation import ugettext_lazy as _
@@ -545,3 +546,10 @@ INSTITUTES_URL = (
 MESSAGES_TIMEOUT = 3000
 
 LOGIN_REDIRECT_URL = '/'
+
+# Ignored queries for 404 error
+IGNORABLE_404_URLS = [
+    re.compile(r'^/apple-touch-icon.*\.png$'),
+    re.compile(r'^/favicon\.ico$'),
+    re.compile(r'^/robots\.txt$'),
+]
