@@ -434,23 +434,25 @@ class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_superuser:
             return False
 
         # Test existing data before deletion (see US 160)
-        """
-        if obj and Training.objects.filter(components=obj).exists():
+        if obj and Structure.objects.filter(establishment=obj).exists():
             messages.warning(request, _("This establishment can't be deleted"))
             return False
-        """
 
         return True
 
 
 class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = StructureForm
-    list_display = ('code', 'label', 'active', 'mailing_list')
+    list_display = ('code', 'label', 'establishment', 'active', 'mailing_list')
     list_filter = ('active',)
     ordering = ('label',)
     search_fields = ('label',)
@@ -465,9 +467,23 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser or request.user.is_master_establishment_manager():
+            return True
+
+        if obj and request.user.is_establishment_manager() and obj.establishment == request.user.establishment:
+            return True
+
+        return False
+
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_establishment_manager():
-            return False
+        if not request.user.is_superuser:
+            if not request.user.is_establishment_manager() and not request.user.is_master_establishment_manager():
+                return False
+
+            # Own establishement structure only
+            if obj and request.user.is_establishment_manager() and obj.establishment != request.user.establishment:
+                return False
 
         if obj and Training.objects.filter(structures=obj).exists():
             messages.warning(request, _("This structure can't be deleted because it is used by a training"))

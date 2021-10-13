@@ -68,7 +68,6 @@ class AdminFormsTestCase(TestCase):
             email='immersion@no-reply.com',
             first_name='ref_master_etab',
             last_name='ref_master_etab',
-
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
@@ -200,14 +199,48 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertFalse(Building.objects.filter(label='test_fail').exists())
 
+
     def test_structure_creation(self):
         """
         Test admin structure creation with group rights
         """
-        data = {'code': 'AB123', 'label': 'test', 'active': True}
+        master_establishment = Establishment.objects.create(
+            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        establishment = Establishment.objects.create(
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        self.ref_etab_user.establishment = establishment
+        self.ref_etab_user.save()
+
+        data = {
+            'code': 'AB123', 'label': 'test', 'active': True
+        }
 
         request.user = self.ref_etab_user
 
+        # Fail : missing field
+        form = StructureForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn('This field is required.', form.errors['establishment'])
+        self.assertFalse(Structure.objects.filter(label='test').exists())
+
+        # Fail : bad establishment for this user
+        data['establishment'] = master_establishment
+        form = StructureForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            'Select a valid choice. That choice is not one of the available choices.',
+            form.errors['establishment']
+        )
+        self.assertFalse(Structure.objects.filter(label='test').exists())
+
+        # Success
+        data['establishment'] = establishment
         form = StructureForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()

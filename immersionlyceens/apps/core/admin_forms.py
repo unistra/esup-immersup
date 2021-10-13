@@ -245,21 +245,22 @@ class EstablishmentForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields["active"].initial = True
+        if self.fields:
+            self.fields["active"].initial = True
 
-        # First establishment is always 'master'
-        if not Establishment.objects.exists():
-            self.fields["master"].initial = True
-        # Next ones can't
-        elif Establishment.objects.filter(master=True).exists():
-            self.fields["master"].initial = False
-            self.fields["master"].disabled = True
-            self.fields["master"].help_text = _("A 'master' establishment already exists")
+            # First establishment is always 'master'
+            if not Establishment.objects.exists():
+                self.fields["master"].initial = True
+            # Next ones can't
+            elif Establishment.objects.filter(master=True).exists():
+                self.fields["master"].initial = False
+                self.fields["master"].disabled = True
+                self.fields["master"].help_text = _("A 'master' establishment already exists")
 
-        # The 'master' flag can't be updated
-        if self.instance:
-            self.fields["master"].disabled = True
-            self.fields["master"].help_text = _("This attribute cannot be updated")
+            # The 'master' flag can't be updated
+            if self.instance:
+                self.fields["master"].disabled = True
+                self.fields["master"].help_text = _("This attribute cannot be updated")
 
         # Plugins
         # self.fields["data_source_plugins"] = forms.ChoiceField(choices=settings.AVAILABLE_ACCOUNTS_PLUGINS)
@@ -339,15 +340,29 @@ class StructureForm(forms.ModelForm):
         if self.initial:
             self.fields["code"].disabled = True
 
+        if self.fields.get("establishment") and not self.request.user.is_superuser \
+                and self.request.user.is_establishment_manager():
+            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
+
+
     def clean(self):
         cleaned_data = super().clean()
+        establishment = cleaned_data.get("establishment")
+
         valid_user = False
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
         except AttributeError:
             pass
+
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            if establishment and establishment != self.request.user.establishment:
+                msg = _("You must select your own establishment")
+                if not self._errors.get("establishment"):
+                    self._errors["establishment"] = forms.utils.ErrorList()
+                self._errors['establishment'].append(self.error_class([msg]))
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))

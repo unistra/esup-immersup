@@ -68,6 +68,9 @@ class Structure(models.Model):
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(StructureQuerySet)()  # returns only activated structures
 
+    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
+        blank=False, null=True)
+
     class Meta:
         verbose_name = _('Structure')
         verbose_name_plural = _('Structures')
