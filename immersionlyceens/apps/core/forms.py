@@ -188,6 +188,9 @@ class MyHighSchoolForm(HighSchoolForm):
             'email',
             'phone_number',
             'head_teacher_name',
+            'postbac_immersion',
+            'mailing_list'
+
         ]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
@@ -205,6 +208,8 @@ class MyHighSchoolForm(HighSchoolForm):
             'email',
             'phone_number',
             'head_teacher_name',
+            'postbac_immersion',
+            'mailing_list'
         ]
 
 

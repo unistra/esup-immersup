@@ -873,6 +873,7 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+
         if settings.USE_GEOAPI:
             city_choices = [
                 ('', '---------'),
@@ -881,31 +882,41 @@ class HighSchoolForm(forms.ModelForm):
                 ('', '---------'),
             ]
 
-            # Put datas in choices fields if form instance
             department_choices = get_departments()
 
-            if self.instance.department:
-                city_choices = get_cities(self.instance.department)
+            # if this test fails, it's probably an API error or timeout => switch to manual form
+            if department_choices:
+                # Put datas in choices fields if form instance
+                if self.instance.department:
+                    city_choices = get_cities(self.instance.department)
 
-            if self.instance.city:
-                zip_choices = get_zipcodes(self.instance.department, self.instance.city)
+                if self.instance.city:
+                    zip_choices = get_zipcodes(self.instance.department, self.instance.city)
 
-            # Put datas in choices fields if form data
-            if 'department' in self.data:
-                city_choices = get_cities(self.data.get('department'))
+                # Put datas in choices fields if form data
+                if 'department' in self.data:
+                    city_choices = get_cities(self.data.get('department'))
 
-            if 'city' in self.data:
-                zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
+                if 'city' in self.data:
+                    zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
 
-            self.fields['department'] = forms.TypedChoiceField(
-                label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
-            )
-            self.fields['city'] = forms.TypedChoiceField(
-                label=_("City"), widget=forms.Select(), choices=city_choices, required=True
-            )
-            self.fields['zip_code'] = forms.TypedChoiceField(
-                label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
-            )
+                self.fields['department'] = forms.TypedChoiceField(
+                    label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
+                )
+                self.fields['city'] = forms.TypedChoiceField(
+                    label=_("City"), widget=forms.Select(), choices=city_choices, required=True
+                )
+                self.fields['zip_code'] = forms.TypedChoiceField(
+                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
+                )
+
+
+        if not self.instance or (self.instance and not self.instance.postbac_immersion):
+            self.fields["mailing_list"].disabled = True
+
+        self.fields["mailing_list"].help_text = \
+            _("This field is available when 'Offer post-bachelor immersions is enabled")
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -913,7 +924,7 @@ class HighSchoolForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager() or (user.is_high_school_manager() and user.highschool)
+            valid_user = user.is_master_establishment_manager() or (user.is_high_school_manager() and user.highschool)
         except AttributeError as exc:
             pass
 

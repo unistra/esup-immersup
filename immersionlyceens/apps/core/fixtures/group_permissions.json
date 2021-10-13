@@ -249,30 +249,6 @@
 },
 {
     "model": "auth.group_permissions",
-    "pk": 65,
-    "fields": {
-        "group": 1,
-        "permission": 101
-    }
-},
-{
-    "model": "auth.group_permissions",
-    "pk": 66,
-    "fields": {
-        "group": 1,
-        "permission": 102
-    }
-},
-{
-    "model": "auth.group_permissions",
-    "pk": 67,
-    "fields": {
-        "group": 1,
-        "permission": 103
-    }
-},
-{
-    "model": "auth.group_permissions",
     "pk": 68,
     "fields": {
         "group": 1,
