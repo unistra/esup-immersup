@@ -12,7 +12,7 @@ class JsonSchemaValidator:
     # Scandal : some parts here are from ThierrYxxxxxx
 
     messages = {
-        'invalid': _('Erreur : %(exception)s')
+        'invalid': _('Error : %(exception)s')
     }
 
     def __init__(self, schema_path):
