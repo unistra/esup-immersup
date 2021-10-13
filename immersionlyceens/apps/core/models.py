@@ -953,7 +953,7 @@ class MailTemplate(models.Model):
     active = models.BooleanField(_("Active"), default=True)
 
     available_vars = models.ManyToManyField(
-        MailTemplateVars, related_name='mail_templates', verbose_name=_("Available variables"), blank=False,
+        MailTemplateVars, related_name='mail_templates', verbose_name=_("Available variables"),
     )
 
     def __str__(self):

@@ -249,58 +249,10 @@
 },
 {
     "model": "auth.group_permissions",
-    "pk": 41,
-    "fields": {
-        "group": 1,
-        "permission": 77
-    }
-},
-{
-    "model": "auth.group_permissions",
-    "pk": 42,
-    "fields": {
-        "group": 1,
-        "permission": 78
-    }
-},
-{
-    "model": "auth.group_permissions",
-    "pk": 43,
-    "fields": {
-        "group": 1,
-        "permission": 79
-    }
-},
-{
-    "model": "auth.group_permissions",
     "pk": 44,
     "fields": {
         "group": 1,
         "permission": 80
-    }
-},
-{
-    "model": "auth.group_permissions",
-    "pk": 45,
-    "fields": {
-        "group": 1,
-        "permission": 81
-    }
-},
-{
-    "model": "auth.group_permissions",
-    "pk": 46,
-    "fields": {
-        "group": 1,
-        "permission": 82
-    }
-},
-{
-    "model": "auth.group_permissions",
-    "pk": 47,
-    "fields": {
-        "group": 1,
-        "permission": 83
     }
 },
 {
