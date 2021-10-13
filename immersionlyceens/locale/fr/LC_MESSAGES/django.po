@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-13 10:49+0200\n"
+"POT-Creation-Date: 2021-10-13 11:25+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -642,7 +642,8 @@ msgstr "Code postal"
 
 #: immersionlyceens/apps/core/admin_forms.py:918
 msgid "This field is available when 'Offer post-bachelor immersions is enabled"
-msgstr "Ce champ est activé si 'Propose son offre post-bac à l'immersion' est coché"
+msgstr ""
+"Ce champ est activé si 'Propose son offre post-bac à l'immersion' est coché"
 
 #: immersionlyceens/apps/core/admin_forms.py:987
 msgid "The message body contains forbidden variables : "
@@ -1577,7 +1578,6 @@ msgid "Survey notification status"
 msgstr "Lien enquête envoyée ?"
 
 #: immersionlyceens/apps/core/models.py:1284
-#: immersionlyceens/settings/base.py:345
 msgid "Immersion"
 msgstr "Immersion"
 
@@ -2755,14 +2755,17 @@ msgstr "Lien non renseigné"
 msgid "Error : %(exception)s"
 msgstr "Erreur : %(exception)s"
 
+#: immersionlyceens/settings/base.py:345
+msgid "ImmerSup"
+msgstr "ImmerSup"
+
 #: immersionlyceens/settings/base.py:346
-msgid "Immersion Admin Page"
-msgstr "Immersion - Interface d'administration"
+msgid "ImmerSup Admin Page"
+msgstr "ImmerSup - Interface d'administration"
 
 #: immersionlyceens/settings/base.py:347
-msgid "Welcome to immersion administration page"
-msgstr ""
-"Bienvenue sur la page d'administration de l'application Immersion Lycéens"
+msgid "Welcome to ImmerSup administration page"
+msgstr "Bienvenue sur la page d'administration de l'application ImmerSup"
 
 #: immersionlyceens/templates/404.html:3 immersionlyceens/templates/404.html:10
 msgid "Page not found"
@@ -2770,8 +2773,8 @@ msgstr "Page non trouvée"
 
 #: immersionlyceens/templates/404.html:11
 msgid ""
-"The page you are looking for might have been removed, had its name changed or "
-"is temporarily unavailable."
+"The page you are looking for might have been removed, had its name changed "
+"or is temporarily unavailable."
 msgstr ""
 "La page que vous recherchez a peut-être été supprimée, son nom modifié ou "
 "est temporairement indisponible."

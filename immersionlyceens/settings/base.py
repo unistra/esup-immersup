@@ -342,9 +342,9 @@ LOGGING = {
 # Admin page settings #
 #######################
 
-ADMIN_SITE_HEADER = _('Immersion')
-ADMIN_SITE_TITLE = _('Immersion Admin Page')
-ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
+ADMIN_SITE_HEADER = _('ImmerSup')
+ADMIN_SITE_TITLE = _('ImmerSup Admin Page')
+ADMIN_SITE_INDEX_TITLE = _('Welcome to ImmerSup administration page')
 
 #################
 # Django hijack #
