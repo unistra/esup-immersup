@@ -460,7 +460,7 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('code', 'label', 'establishment', 'active', 'mailing_list')
     list_filter = (
         'active',
-        ('establishment__label', DropdownFilter),
+        ('establishment', RelatedDropdownFilter),
     )
     ordering = ('label',)
     search_fields = ('label',)
@@ -512,21 +512,41 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
     filter_horizontal = ('structures', 'training_subdomains')
-    list_display = ('label', 'get_structures_list', 'active')
+    list_display = ('label', 'get_structures_list', 'get_subdomains_list', 'active')
+
     list_filter = (
         'active',
-        ('structures__label', DropdownFilter),
+        ('structures', RelatedDropdownFilter),
+        ('training_subdomains', RelatedDropdownFilter),
     )
+
     ordering = ('label',)
     search_fields = ('label',)
 
     def get_structures_list(self, obj):
-        return [
-            f"{s.code} ({s.establishment.code if s.establishment else '-'})"
+        return ["%s (%s)" % (s.code, s.establishment.code if s.establishment else '-')
             for s in obj.structures.all().order_by('code')
         ]
 
     get_structures_list.short_description = _('Structures')
+
+    def get_subdomains_list(self, obj):
+        return [sub.label for sub in obj.training_subdomains.all().order_by('label')]
+
+    get_structures_list.short_description = _('Structures')
+    get_subdomains_list.short_description = _('Training subdomains')
+
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_establishment_manager():
+            return qs.filter(
+                Q(structures__establishment__isnull=True)
+                |Q(structures__establishment=request.user.establishment)
+            )
+
+        return qs
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_master_establishment_manager():

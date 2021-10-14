@@ -11,7 +11,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 
-from ..admin import EstablishmentAdmin, CustomAdminSite, StructureAdmin
+from ..admin import EstablishmentAdmin, CustomAdminSite, TrainingAdmin, StructureAdmin
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
@@ -372,6 +372,19 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn(["A training with this label already exists within the same establishment"], form.errors["label"])
         self.assertEqual(Training.objects.filter(label=data_training_1['label']).count(), 2)
+
+        # Test training admin queryset
+        adminsite = CustomAdminSite(name='Repositories')
+        training_admin = TrainingAdmin(admin_site=adminsite, model=Training)
+
+        request.user = self.ref_etab_user
+        queryset = training_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 1)
+
+        request.user = self.ref_master_etab_user
+        queryset = training_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 2)
+
 
     def test_bachelor_mention_creation(self):
         """
