@@ -3,7 +3,7 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.db import models
+from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
@@ -418,7 +418,7 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
-class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
+class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EstablishmentForm
     list_display = ('code', 'label', 'master', 'active', )
     list_filter = ('active',)
@@ -426,7 +426,7 @@ class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     formfield_overrides = {
-        models.JSONField: {'widget': JSONEditorWidget(options={ 'mode': 'form' })},
+        JSONField: {'widget': JSONEditorWidget(options={ 'mode': 'form' })},
     }
 
     def get_actions(self, request):
@@ -472,6 +472,15 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_establishment_manager():
+            return qs.filter(Q(establishment__isnull=True)|Q(establishment=request.user.establishment))
+
+        return qs
+
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser or request.user.is_master_establishment_manager():
             return True
@@ -486,7 +495,7 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
             if not request.user.is_establishment_manager() and not request.user.is_master_establishment_manager():
                 return False
 
-            # Own establishement structure only
+            # Own establishment structure only
             if obj and request.user.is_establishment_manager() and obj.establishment != request.user.establishment:
                 return False
 
@@ -1103,7 +1112,7 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('setting',)
 
     formfield_overrides = {
-        models.JSONField: {
+        JSONField: {
             'widget': JSONEditorWidget(options={ 'mode': 'form' }),
         },
     }
@@ -1111,9 +1120,6 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
     setting_type.short_description = _('Setting type')
     setting_value.short_description = _('Setting value')
     setting_description.short_description = _('Setting description')
-
-# value = models.CharField(_("Setting value"), max_length=256, null=True, blank=True)
-# description = models.CharField(_("Setting description"), max_length=256, default='')
 
 
 class AnnualStatisticsAdmin(admin.ModelAdmin):
@@ -1183,7 +1189,7 @@ admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
 admin.site.register(Training, TrainingAdmin)
-admin.site.register(Establishment, EstablishementAdmin)
+admin.site.register(Establishment, EstablishmentAdmin)
 admin.site.register(Structure, StructureAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)

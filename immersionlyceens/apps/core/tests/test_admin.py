@@ -11,7 +11,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 
-from ..admin import EstablishementAdmin, CustomAdminSite
+from ..admin import EstablishmentAdmin, CustomAdminSite, StructureAdmin
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
@@ -203,6 +203,39 @@ class AdminFormsTestCase(TestCase):
         form = BuildingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertFalse(Building.objects.filter(label='test_fail').exists())
+
+    def test_structure_list(self):
+        adminsite = CustomAdminSite(name='Repositories')
+        structure_admin = StructureAdmin(admin_site=adminsite, model=Structure)
+
+        master_establishment = Establishment.objects.create(
+            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        establishment = Establishment.objects.create(
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment': master_establishment}
+        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment': establishment}
+        structure_1 = Structure.objects.create(**structure_1_data)
+        structure_2 = Structure.objects.create(**structure_2_data)
+
+        self.ref_master_etab_user.establishment = master_establishment
+        self.ref_master_etab_user.save()
+
+        self.ref_etab_user.establishment = establishment
+        self.ref_etab_user.save()
+
+        request.user = self.ref_etab_user
+        queryset = structure_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 1)
+
+        request.user = self.ref_master_etab_user
+        queryset = structure_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 2)
 
 
     def test_structure_creation(self):
@@ -1363,12 +1396,12 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_master_etab_user
 
         adminsite = CustomAdminSite(name='Repositories')
-        est_admin = EstablishementAdmin(admin_site=adminsite, model=Establishment)
+        est_admin = EstablishmentAdmin(admin_site=adminsite, model=Establishment)
 
         # Bad user + structure attached to establishment:
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
 
-        # Super admin but structure still attached to establishement:
+        # Super admin but structure still attached to establishment:
         request.user = self.superuser
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
 
