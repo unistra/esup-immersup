@@ -318,8 +318,11 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CampusForm
-    list_display = ('label', 'active')
-    list_filter = ('active',)
+    list_display = ('label', 'establishment', 'active')
+    list_filter = (
+        'active',
+        ('establishment', RelatedDropdownFilter),
+    )
     ordering = ('label',)
     search_fields = ('label',)
 
@@ -332,6 +335,15 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         except KeyError:
             pass
         return actions
+
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_establishment_manager():
+            return qs.filter(Q(establishment__isnull=True)|Q(establishment=request.user.establishment))
+
+        return qs
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_establishment_manager():

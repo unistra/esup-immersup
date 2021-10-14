@@ -463,21 +463,18 @@ class Campus(models.Model):
     Campus class
     """
 
-    label = models.CharField(_("Label"), max_length=255, unique=True)
+    label = models.CharField(_("Label"), max_length=255)
     active = models.BooleanField(_("Active"), default=True)
+
+    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
+        blank=False, null=True)
 
     class Meta:
         verbose_name = _('Campus')
         verbose_name_plural = _('Campus')
 
     def __str__(self):
-        return self.label
-
-    def validate_unique(self, exclude=None):
-        try:
-            super(Campus, self).validate_unique()
-        except ValidationError as e:
-            raise ValidationError(_('A campus with this label already exists'))
+        return f"{self.label} ({self.establishment.label if self.establishment else '-'})"
 
 
 class BachelorMention(models.Model):

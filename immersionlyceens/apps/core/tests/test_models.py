@@ -8,19 +8,27 @@ from django.utils.translation import ugettext_lazy as _
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, Course, CourseType,
-    EvaluationFormLink, EvaluationType, Holiday, PublicDocument, PublicType, Slot, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    Establishment, EvaluationFormLink, EvaluationType, Holiday, PublicDocument, PublicType, Slot, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
 class CampusTestCase(TestCase):
-    def test_campus_str(self):
-        test_campus = Campus.objects.create(label='MyCampus')
-        self.assertEqual(str(test_campus), 'MyCampus')
-
-    def test_campus_creation_activated(self):
+    def test_campus_model(self):
         test_campus = Campus.objects.create(label='MyCampus')
         self.assertEqual(test_campus.active, True)
+        self.assertEqual(str(test_campus), 'MyCampus (-)')
+
+        establishment = Establishment.objects.create(
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        test_campus.establishment = establishment
+        test_campus.save()
+
+        self.assertEqual(str(test_campus), f'{test_campus.label} ({establishment.label})')
+
 
     def test_building_str(self):
         test_campus = Campus.objects.create(label='MyCampus')
@@ -29,52 +37,41 @@ class CampusTestCase(TestCase):
 
 
 class BachelorMentionTestCase(TestCase):
-    def test_bachelor_mention_str(self):
+    def test_bachelor_mention_model(self):
         label = "Techo parade"
         o = BachelorMention.objects.create(label=label)
         self.assertEqual(str(o), label)
-
-    def test_bachelor_mention_activated(self):
-        o = BachelorMention.objects.create(label="Techo parade")
         self.assertTrue(o.active)
 
 
 class CancelTypeTestCase(TestCase):
-    def test_cancel_type_str(self):
+    def test_cancel_type_model(self):
         label = "Cancel type"
         o = CancelType.objects.create(label=label)
         self.assertEqual(str(o), label)
-
-    def test_cancel_type_activated(self):
-        o = CancelType.objects.create(label="Cancel type")
         self.assertTrue(o.active)
 
 
 class CourseTypeTestCase(TestCase):
-    def test_course_type_str(self):
+    def test_course_type_model(self):
         label = "course type"
         full_label = "course full type"
         o = CourseType.objects.create(full_label=full_label, label=label)
         self.assertEqual(str(o), f"{full_label} ({label})")
-
-    def test_course_type_activated(self):
-        o = CourseType.objects.create(label="course type", full_label="course full type")
         self.assertTrue(o.active)
 
 
 class PublicTypeTestCase(TestCase):
-    def test_public_type_str(self):
+    def test_public_type_model(self):
         label = "PublicType"
         o = PublicType.objects.create(label=label)
         self.assertEqual(str(o), label)
-
-    def test_public_type_activated(self):
-        o = PublicType.objects.create(label="PublicType")
         self.assertTrue(o.active)
 
 
+
 class UniversityYearTestCase(TestCase):
-    def test_public_type_str(self):
+    def test_university_year_model(self):
         label = "UniversityYear"
         o = UniversityYear.objects.create(
             label=label,
@@ -83,28 +80,23 @@ class UniversityYearTestCase(TestCase):
             registration_start_date=datetime.datetime.today().date(),
         )
         self.assertEqual(str(o), label)
+        self.assertTrue(o.active)
 
-    def test_public_type_activated(self):
-        o1 = UniversityYear.objects.create(
-            label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
-            registration_start_date=datetime.datetime.today().date(),
-        )
-
+        # Test activation
         o2 = UniversityYear.objects.create(
             label='World',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
             registration_start_date=datetime.datetime.today().date(),
         )
-        self.assertTrue(o1.active)
+
         self.assertFalse(o2.active)
 
-        o1.delete()
+        o.delete()
         o2.label = 'Coucou'
         o2.save()
         self.assertTrue(o2.active)
+
 
     def test_university_year__date_is_between(self):
         now = datetime.datetime.today().date()
@@ -131,14 +123,10 @@ class UniversityYearTestCase(TestCase):
 
 
 class TestHolidayCase(TestCase):
-    def test_holiday_str(self):
+    def test_holiday_model(self):
         label = "Holiday"
         o = Holiday.objects.create(label=label, date=datetime.datetime.today().date(),)
         self.assertEqual(str(o), label)
-
-    def test_holiday__date_is_a_holiday(self):
-        o = Holiday.objects.create(label="Holiday", date=datetime.datetime.today().date(),)
-
         self.assertTrue(Holiday.date_is_a_holiday(datetime.datetime.today().date()))
         self.assertFalse(Holiday.date_is_a_holiday(datetime.datetime.today().date() + datetime.timedelta(days=1)))
 
@@ -244,33 +232,27 @@ class TestEvaluationTypeCase(TestCase):
 class TestSlotCase(TestCase):
     def test_slot__creation(self):
         # Structure
-        c = Structure(label='my structure', code='R2D2')
-        c.save()
+        c = Structure.objects.create(label='my structure', code='R2D2')
         # Training domain
-        td = TrainingDomain(label='my_domain')
-        td.save()
+        td = TrainingDomain.objects.create(label='my_domain')
         # Training subdomain
-        tsd = TrainingSubdomain(label='my_sub_domain', training_domain=td)
-        tsd.save()
+        tsd = TrainingSubdomain.objects.create(label='my_sub_domain', training_domain=td)
         # Training
-        t = Training(label='training',)  #  training_subdomains={tsd}, structures=[c, ])
-        t.save()
+        t = Training.objects.create(label='training',)  #  training_subdomains={tsd}, structures=[c, ])
+
         t.training_subdomains.add(tsd)
         t.structures.add(c)
 
         # Course type
-        ct = CourseType(label='CM')
-        ct.save()
+        ct = CourseType.objects.create(label='CM')
         # Course
-        course = Course(label='my super course', training=t, structure=c)
-        course.save()
+        course = Course.objects.create(label='my super course', training=t, structure=c)
 
         # Campus
-        campus = Campus(label='Campus Esplanade')
-        campus.save()
+        campus = Campus.objects.create(label='Campus Esplanade')
+
         # Building
-        building = Building(label='Le portique', campus=campus)
-        building.save()
+        building = Building.objects.create(label='Le portique', campus=campus)
 
         s = Slot(
             course=course,
