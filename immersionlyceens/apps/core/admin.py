@@ -11,6 +11,10 @@ from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
+from django_admin_listfilter_dropdown.filters import (
+    DropdownFilter, RelatedDropdownFilter,
+)
+
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
@@ -251,7 +255,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingDomainForm
     list_display = ('label', 'active')
-    list_filter = ('active',)
+    list_filter = ('active', )
+
     ordering = ('label',)
     search_fields = ('label',)
 
@@ -495,10 +500,21 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
     filter_horizontal = ('structures', 'training_subdomains')
-    list_display = ('label', 'active')
-    list_filter = ('active',)
+    list_display = ('label', 'get_structures_list', 'active')
+    list_filter = (
+        'active',
+        ('structures__label', DropdownFilter),
+    )
     ordering = ('label',)
     search_fields = ('label',)
+
+    def get_structures_list(self, obj):
+        return [
+            f"{s.code} ({s.establishment.code if s.establishment else '-'})"
+            for s in obj.structures.all().order_by('code')
+        ]
+
+    get_structures_list.short_description = _('Structures')
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_master_establishment_manager():

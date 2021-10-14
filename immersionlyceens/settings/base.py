@@ -268,6 +268,7 @@ THIRD_PARTY_APPS = [
     'hijack.contrib.admin',
     'django_summernote',
     'django_json_widget',
+    'django_admin_listfilter_dropdown',
     'shibboleth',
 ]
 

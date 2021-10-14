@@ -436,7 +436,7 @@ class Training(models.Model):
     Training class
     """
 
-    label = models.CharField(_("Label"), max_length=128, unique=True)
+    label = models.CharField(_("Label"), max_length=128)
     training_subdomains = models.ManyToManyField(
         TrainingSubdomain, verbose_name=_("Training subdomains"), blank=False, related_name='Trainings',
     )

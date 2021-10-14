@@ -214,7 +214,12 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
-        self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
+        if self.request.user.is_establishment_manager():
+            self.fields['structures'].queryset = self.fields['structures'].queryset\
+                .filter(establishment=self.request.user.establishment)\
+                .order_by('code', 'label')
+        else:
+            self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -222,9 +227,26 @@ class TrainingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_establishment_manager()
         except AttributeError:
             pass
+
+        # Check label unicity within the same establishment
+        excludes = {}
+        if self.instance:
+            excludes['id'] = self.instance.id
+
+        structure_establishments = [structure.establishment.id for structure in cleaned_data.get("structures", [])]
+
+        tr_queryset = Training.objects.exclude(**excludes).filter(
+            label__iexact=cleaned_data.get("label"),
+            structures__establishment__in=structure_establishments)
+
+        if tr_queryset.exists():
+            msg = _("A training with this label already exists within the same establishment")
+            if not self._errors.get("label"):
+                self._errors["label"] = forms.utils.ErrorList()
+            self._errors['label'].append(self.error_class([msg]))
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
@@ -727,13 +749,17 @@ class ImmersionUserCreationForm(UserCreationForm):
         # Establishment
         self.fields["establishment"].required = False
 
-        # Master establishment manager has only access to the other establishments
-        if not self.request.user.is_superuser and self.request.user.is_master_establishment_manager():
-            self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
 
-        # A regular establishment manager has only access to his own establishment
-        if self.request.user.is_establishment_manager():
-            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
+        if not self.request.user.is_superuser:
+            # Master establishment manager has only access to the other establishments
+            if self.request.user.is_master_establishment_manager():
+                self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
+
+            # A regular establishment manager has only access to his own establishment
+            elif self.request.user.is_establishment_manager():
+                self.fields["establishment"].queryset = Establishment.objects.filter(
+                    pk=self.request.user.establishment.pk
+                )
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser

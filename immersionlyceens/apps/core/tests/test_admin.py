@@ -17,13 +17,14 @@ from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
     StructureForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
     GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, InformationTextForm, MailTemplateForm,
-    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, CourseType,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
-    InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, 
-    UniversityYear, Vacation,
+    InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -265,27 +266,79 @@ class AdminFormsTestCase(TestCase):
         """
         Test admin Training creation with group rights
         """
+        master_establishment = Establishment.objects.create(
+            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        establishment = Establishment.objects.create(
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
         training_domain_data = {'label': 'domain', 'active': True}
         training_subdomain_data = {'label': 'subdomain', 'active': True}
-        structure_data = {'code': 'AB123', 'label': 'test', 'active': True}
+        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment':master_establishment}
+        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment':establishment}
 
         training_domain = TrainingDomain.objects.create(**training_domain_data)
         training_subdomain = TrainingSubdomain.objects.create(
             training_domain=training_domain, **training_subdomain_data
         )
-        structure = Structure.objects.create(**structure_data)
+        structure_1 = Structure.objects.create(**structure_1_data)
+        structure_2 = Structure.objects.create(**structure_2_data)
+
+        self.ref_master_etab_user.establishment = master_establishment
+        self.ref_master_etab_user.save()
+
+        self.ref_etab_user.establishment = establishment
+        self.ref_etab_user.save()
 
         self.assertTrue(TrainingDomain.objects.all().exists())
         self.assertTrue(TrainingSubdomain.objects.all().exists())
-        self.assertTrue(Structure.objects.all().exists())
+        self.assertTrue(Structure.objects.filter(code='A').exists())
+        self.assertTrue(Structure.objects.filter(code='B').exists())
 
-        data = {
+        data_training_1 = {
             'label': 'test',
-            'structures': [structure.pk,],
+            'structures': [structure_1,],
             'training_subdomains': [training_subdomain.pk,],
         }
-        # TODO: missing stuff ?
 
+        data_training_2 = {
+            'label': 'test',
+            'structures': [structure_2, ],
+            'training_subdomains': [training_subdomain.pk, ],
+        }
+
+        # Failures (invalid user)
+        request.user = self.ref_str_user
+        form = TrainingForm(data=data_training_2, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(Training.objects.filter(label=data_training_2['label']).exists())
+
+        # Success
+        request.user = self.ref_etab_user
+        form = TrainingForm(data=data_training_2, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Training.objects.filter(label=data_training_2['label']).exists())
+        self.assertEqual(Training.objects.filter(label=data_training_1['label']).count(), 1)
+
+        # Second training in another establishment : success
+        request.user = self.ref_master_etab_user
+        form = TrainingForm(data=data_training_1, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Training.objects.filter(label=data_training_1['label']).exists())
+        self.assertEqual(Training.objects.filter(label=data_training_1['label']).count(), 2)
+
+        # Second training within the same establishment : fail
+        form = TrainingForm(data=data_training_1, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(["A training with this label already exists within the same establishment"], form.errors["label"])
+        self.assertEqual(Training.objects.filter(label=data_training_1['label']).count(), 2)
 
     def test_bachelor_mention_creation(self):
         """

@@ -12,3 +12,4 @@ WeasyPrint==52.5
 sentry-sdk
 django-json-widget
 jsonschema
+django-admin-list-filter-dropdown
