@@ -11,7 +11,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 
-from ..admin import EstablishmentAdmin, CustomAdminSite, TrainingAdmin, StructureAdmin
+from ..admin import CampusAdmin, CustomAdminSite, EstablishmentAdmin, TrainingAdmin, StructureAdmin
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
@@ -56,7 +56,6 @@ class AdminFormsTestCase(TestCase):
         self.superuser = get_user_model().objects.create_superuser(
             username='super', password='pass', email='immersion@no-reply.com'
         )
-        """
         self.master_establishment = Establishment.objects.create(
             code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
             establishment_type='HIGHER_INST'
@@ -66,13 +65,14 @@ class AdminFormsTestCase(TestCase):
             code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
             establishment_type='HIGHER_INST'
         )
-        """
+
         self.ref_master_etab_user = get_user_model().objects.create_user(
             username='ref_master_etab',
             password='pass',
             email='immersion@no-reply.com',
             first_name='ref_master_etab',
             last_name='ref_master_etab',
+            establishment=self.master_establishment
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
@@ -81,7 +81,7 @@ class AdminFormsTestCase(TestCase):
             email='immersion@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
-
+            establishment=self.establishment
         )
 
         self.ref_str_user = get_user_model().objects.create_user(
@@ -156,26 +156,64 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(TrainingSubdomain.objects.filter(label='sd test').exists())
 
+
     def test_campus_creation(self):
         """
         Test admin Campus creation with group rights
         """
+        data_campus_1 = {
+            'label': 'Test Campus',
+            'active': True,
+            'establishment': self.master_establishment
+        }
 
-        data = {'label': 'testCampus', 'active': True}
+        data_campus_2 = {
+            'label': 'Test Campus',
+            'active': True,
+            'establishment': self.establishment
+        }
 
+        # Failures (invalid user)
+        request.user = self.ref_str_user
+        form = CampusForm(data=data_campus_2, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(Campus.objects.filter(label=data_campus_2['label']).exists())
+
+        # Success
         request.user = self.ref_etab_user
-
-        form = CampusForm(data=data, request=request)
+        form = CampusForm(data=data_campus_2, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(Campus.objects.filter(label='testCampus').exists())
+        self.assertTrue(Campus.objects.filter(label=data_campus_2['label']).exists())
+        self.assertEqual(Campus.objects.filter(label=data_campus_2['label']).count(), 1)
 
-        # Validation fail (invalid user)
-        data = {'label': 'test_fail', 'active': True}
-        request.user = self.ref_str_user
-        form = CampusForm(data=data, request=request)
+        # Second campus (same label) in another establishment : success
+        request.user = self.ref_master_etab_user
+        form = CampusForm(data=data_campus_1, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Campus.objects.filter(label=data_campus_1['label']).exists())
+        self.assertEqual(Campus.objects.filter(label=data_campus_1['label']).count(), 2)
+
+        # Second campus within the same establishment : fail
+        form = CampusForm(data=data_campus_1, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(Campus.objects.filter(label='test_fail').exists())
+        self.assertIn(["A campus with this label already exists within the same establishment"], form.errors["label"])
+        self.assertEqual(Campus.objects.filter(label=data_campus_1['label']).count(), 2)
+
+        # Test campus admin queryset
+        adminsite = CustomAdminSite(name='Repositories')
+        campus_admin = CampusAdmin(admin_site=adminsite, model=Campus)
+
+        request.user = self.ref_etab_user
+        queryset = campus_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 1)
+
+        request.user = self.ref_master_etab_user
+        queryset = campus_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 2)
+
 
     def test_building_creation(self):
         """
@@ -208,26 +246,10 @@ class AdminFormsTestCase(TestCase):
         adminsite = CustomAdminSite(name='Repositories')
         structure_admin = StructureAdmin(admin_site=adminsite, model=Structure)
 
-        master_establishment = Establishment.objects.create(
-            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
-            establishment_type='HIGHER_INST'
-        )
-
-        establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
-            establishment_type='HIGHER_INST'
-        )
-
-        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment': master_establishment}
-        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment': establishment}
+        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment': self.master_establishment}
+        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment': self.establishment}
         structure_1 = Structure.objects.create(**structure_1_data)
         structure_2 = Structure.objects.create(**structure_2_data)
-
-        self.ref_master_etab_user.establishment = master_establishment
-        self.ref_master_etab_user.save()
-
-        self.ref_etab_user.establishment = establishment
-        self.ref_etab_user.save()
 
         request.user = self.ref_etab_user
         queryset = structure_admin.get_queryset(request=request)
@@ -242,17 +264,7 @@ class AdminFormsTestCase(TestCase):
         """
         Test admin structure creation with group rights
         """
-        master_establishment = Establishment.objects.create(
-            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
-            establishment_type='HIGHER_INST'
-        )
-
-        establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
-            establishment_type='HIGHER_INST'
-        )
-
-        self.ref_etab_user.establishment = establishment
+        self.ref_etab_user.establishment = self.establishment
         self.ref_etab_user.save()
 
         data = {
@@ -268,7 +280,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(Structure.objects.filter(label='test').exists())
 
         # Fail : bad establishment for this user
-        data['establishment'] = master_establishment
+        data['establishment'] = self.master_establishment
         form = StructureForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn(
@@ -278,7 +290,7 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(Structure.objects.filter(label='test').exists())
 
         # Success
-        data['establishment'] = establishment
+        data['establishment'] = self.establishment
         form = StructureForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
@@ -299,20 +311,10 @@ class AdminFormsTestCase(TestCase):
         """
         Test admin Training creation with group rights
         """
-        master_establishment = Establishment.objects.create(
-            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
-            establishment_type='HIGHER_INST'
-        )
-
-        establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
-            establishment_type='HIGHER_INST'
-        )
-
         training_domain_data = {'label': 'domain', 'active': True}
         training_subdomain_data = {'label': 'subdomain', 'active': True}
-        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment':master_establishment}
-        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment':establishment}
+        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment': self.master_establishment}
+        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment': self.establishment}
 
         training_domain = TrainingDomain.objects.create(**training_domain_data)
         training_subdomain = TrainingSubdomain.objects.create(
@@ -320,12 +322,6 @@ class AdminFormsTestCase(TestCase):
         )
         structure_1 = Structure.objects.create(**structure_1_data)
         structure_2 = Structure.objects.create(**structure_2_data)
-
-        self.ref_master_etab_user.establishment = master_establishment
-        self.ref_master_etab_user.save()
-
-        self.ref_etab_user.establishment = establishment
-        self.ref_etab_user.save()
 
         self.assertTrue(TrainingDomain.objects.all().exists())
         self.assertTrue(TrainingSubdomain.objects.all().exists())
@@ -1343,6 +1339,10 @@ class AdminFormsTestCase(TestCase):
         """
         Test establishment form rules
         """
+        self.establishment.delete()
+        self.master_establishment.delete()
+
+
         self.assertFalse(Establishment.objects.filter(code='ETA1').exists())
 
         data = {

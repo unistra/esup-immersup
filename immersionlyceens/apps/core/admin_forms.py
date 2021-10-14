@@ -54,18 +54,46 @@ class CampusForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        if self.fields.get("establishment") and not self.request.user.is_superuser \
+                and self.request.user.is_establishment_manager():
+            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
+
     def clean(self):
         cleaned_data = super().clean()
+        establishment = cleaned_data.get("establishment")
         valid_user = False
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
         except AttributeError:
             pass
 
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            if establishment and establishment != self.request.user.establishment:
+                msg = _("You must select your own establishment")
+                if not self._errors.get("establishment"):
+                    self._errors["establishment"] = forms.utils.ErrorList()
+                self._errors['establishment'].append(self.error_class([msg]))
+
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+        # Check label uniqueness within the same establishment
+        excludes = {}
+        if self.instance:
+            excludes['id'] = self.instance.id
+
+        campus_queryset = Campus.objects.exclude(**excludes).filter(
+            label__iexact=cleaned_data.get("label"),
+            establishment=establishment
+        )
+
+        if campus_queryset.exists():
+            msg = _("A campus with this label already exists within the same establishment")
+            if not self._errors.get("label"):
+                self._errors["label"] = forms.utils.ErrorList()
+            self._errors['label'].append(self.error_class([msg]))
 
         return cleaned_data
 
@@ -231,7 +259,7 @@ class TrainingForm(forms.ModelForm):
         except AttributeError:
             pass
 
-        # Check label unicity within the same establishment
+        # Check label uniqueness within the same establishment
         excludes = {}
         if self.instance:
             excludes['id'] = self.instance.id
