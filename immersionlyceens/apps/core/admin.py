@@ -458,7 +458,10 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
     form = StructureForm
     list_display = ('code', 'label', 'establishment', 'active', 'mailing_list')
-    list_filter = ('active',)
+    list_filter = (
+        'active',
+        ('establishment__label', DropdownFilter),
+    )
     ordering = ('label',)
     search_fields = ('label',)
 
