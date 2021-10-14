@@ -7,8 +7,11 @@ from django.conf import settings
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
+
+from ..admin import EstablishementAdmin, CustomAdminSite
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
@@ -30,10 +33,11 @@ class MockRequest:
 
 # request = MockRequest()
 
-
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
-
+setattr(request, 'session', 'session')
+messages = FallbackStorage(request)
+setattr(request, '_messages', messages)
 
 class AdminFormsTestCase(TestCase):
     """
@@ -1301,6 +1305,28 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(eta2.active)  # default
         self.assertFalse(eta2.master)  # first establishment creation : master = True
 
+        # Deletion
+        structure = Structure.objects.create(code="CODE", label="LABEL", active=True, establishment=eta2)
+        request.user = self.ref_master_etab_user
+
+        adminsite = CustomAdminSite(name='Repositories')
+        est_admin = EstablishementAdmin(admin_site=adminsite, model=Establishment)
+
+        # Bad user + structure attached to establishment:
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
+
+        # Super admin but structure still attached to establishement:
+        request.user = self.superuser
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
+
+        # No more structure : success
+        structure.establishment = None
+        structure.save()
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=eta2))
+
+        # Test again with bad user:
+        request.user = self.ref_master_etab_user
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
 
     def test_information_text_creation(self):
         """

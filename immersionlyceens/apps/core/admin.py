@@ -444,7 +444,7 @@ class EstablishementAdmin(AdminWithRequest, admin.ModelAdmin):
 
         # Test existing data before deletion (see US 160)
         if obj and Structure.objects.filter(establishment=obj).exists():
-            messages.warning(request, _("This establishment can't be deleted"))
+            messages.warning(request, _("This establishment can't be deleted (linked structures)"))
             return False
 
         return True
