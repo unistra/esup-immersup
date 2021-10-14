@@ -57,7 +57,7 @@ msgstr "pas de correspondance"
 #: immersionlyceens/templates/slots/add_slot.html:60
 #: immersionlyceens/templates/slots/list_slots.html:49
 msgid "Structure"
-msgstr "Structure d'enseignement"
+msgstr "Structure d'établissement"
 
 #: immersionlyceens/apps/charts/api.py:690
 #: immersionlyceens/apps/core/models.py:448
@@ -249,7 +249,7 @@ msgstr ""
 #: immersionlyceens/apps/immersion/models.py:78
 #: immersionlyceens/templates/fragments/main_menu.html:56
 msgid "Structures"
-msgstr "Structures d'enseignement"
+msgstr "Structures d'établissements"
 
 #: immersionlyceens/apps/core/admin.py:525
 msgid "This training can't be deleted because it is used by some courses"
@@ -966,7 +966,7 @@ msgstr "Liste de diffusion"
 
 #: immersionlyceens/apps/core/models.py:85
 msgid "A structure with this code already exists"
-msgstr "Une structure d'enseignement avec ce code existe déjà"
+msgstr "Une structure d'établissement avec ce code existe déjà"
 
 #: immersionlyceens/apps/core/models.py:99
 #: immersionlyceens/templates/core/my_high_school.html:47
@@ -2685,7 +2685,7 @@ msgstr "immersions_anonymisées"
 #: immersionlyceens/libs/api/views.py:1543
 #: immersionlyceens/libs/tests/test_api.py:750
 msgid "structure"
-msgstr "structure d'enseignement"
+msgstr "structure d'établissement"
 
 #: immersionlyceens/libs/api/views.py:1548
 #: immersionlyceens/libs/tests/test_api.py:755
@@ -3275,7 +3275,7 @@ msgstr "Extraire les données"
 
 #: immersionlyceens/templates/core/stats.html:36
 msgid "Structures data"
-msgstr "Données des structures d'enseignement"
+msgstr "Données des structures d'établissements"
 
 #: immersionlyceens/templates/core/stats.html:41
 msgid "Choose a structure"
