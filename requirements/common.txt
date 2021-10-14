@@ -1,5 +1,5 @@
 Django<4.0
-django-hijack==3.0.0
+django-hijack==3.0.4
 django-tinymce
 psycopg2==2.8.6
 django-cas-sso==1.1.10
