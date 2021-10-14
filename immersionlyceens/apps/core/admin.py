@@ -340,6 +340,9 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         # Other groups has no "Can view structure" permission
         qs = super().get_queryset(request)
 
+        if request.user.is_superuser:
+            return qs
+
         if request.user.is_establishment_manager():
             return qs.filter(Q(establishment__isnull=True)|Q(establishment=request.user.establishment))
 
@@ -491,6 +494,9 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
         # Other groups has no "Can view structure" permission
         qs = super().get_queryset(request)
 
+        if request.user.is_superuser:
+            return qs
+
         if request.user.is_establishment_manager():
             return qs.filter(Q(establishment__isnull=True)|Q(establishment=request.user.establishment))
 
@@ -551,6 +557,9 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_queryset(self, request):
         # Other groups has no "Can view structure" permission
         qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
 
         if request.user.is_establishment_manager():
             return qs.filter(
