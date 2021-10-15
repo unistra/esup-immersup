@@ -182,16 +182,20 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return False
 
             if request.user.is_master_establishment_manager():
-                return obj.groups.filter(name='REF-ETAB').exists()
+                return obj.groups.filter(name__in=('REF-ETAB', 'REF-STR')).exists()
 
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
             if request.user.is_establishment_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
+                establishment_condition = obj.establishment == request.user.establishment
 
-                if not (set(x for x in user_groups) - set(rights)):
-                    return True
+                if not establishment_condition:
+                    messages.warning(request, no_delete_msg)
+                    return False
+
+                return not (set(x for x in user_groups) - set(rights))
 
             messages.warning(request, no_delete_msg)
 

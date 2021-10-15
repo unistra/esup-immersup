@@ -822,7 +822,7 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if not self.request.user.is_superuser:
             # Disable establishement modification
-            if self.instance.id:
+            if self.instance.id and self.fields.get('establishment'):
                 self.fields["establishment"].disabled = True
                 self.fields["establishment"].help_text = _("The establishement cannot be updated once the user created")
 
@@ -839,7 +839,8 @@ class ImmersionUserChangeForm(UserChangeForm):
                 self.fields["structures"].disabled = True
                 self.fields["highschool"].disabled = True
 
-            self.fields["groups"].queryset = Group.objects.none()
+            if self.fields.get('groups'):
+                self.fields["groups"].queryset = Group.objects.none()
 
             # Restrictions on group / structures selection depending on current user group
             if self.request.user.is_master_establishment_manager():
@@ -848,12 +849,16 @@ class ImmersionUserChangeForm(UserChangeForm):
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment
 
-                self.fields["groups"].queryset = Group.objects.filter(
-                    name__in=['REF-STR', 'SRV-JUR']
-                )
+                if self.fields.get('groups'):
+                    self.fields["groups"].queryset = Group.objects.filter(
+                        name__in=['REF-STR', 'SRV-JUR']
+                    )
 
-                self.fields["structures"].queryset = Structure.objects.filter(establishment=user_establishment)
-                self.fields["establishment"].queryset = Establishment.objects.filter(pk=user_establishment.id)
+                if self.fields.get('structures'):
+                    self.fields["structures"].queryset = Structure.objects.filter(establishment=user_establishment)
+
+                if self.fields.get('establishment'):
+                    self.fields["establishment"].queryset = Establishment.objects.filter(pk=user_establishment.id)
 
     def clean(self):
         cleaned_data = super().clean()
