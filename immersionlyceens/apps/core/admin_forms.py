@@ -819,7 +819,13 @@ class ImmersionUserChangeForm(UserChangeForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+
         if not self.request.user.is_superuser:
+            # Disable establishement modification
+            if self.instance.id:
+                self.fields["establishment"].disabled = True
+                self.fields["establishment"].help_text = _("The establishement cannot be updated once the user created")
+
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
                     self.fields[field].required = True
@@ -835,14 +841,19 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             self.fields["groups"].queryset = Group.objects.none()
 
-            # Restrictions on group selection depending on current user level
+            # Restrictions on group / structures selection depending on current user group
             if self.request.user.is_master_establishment_manager():
                 self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE'])
 
             if self.request.user.is_establishment_manager():
+                user_establishment = self.request.user.establishment
+
                 self.fields["groups"].queryset = Group.objects.filter(
                     name__in=['REF-STR', 'SRV-JUR']
                 )
+
+                self.fields["structures"].queryset = Structure.objects.filter(establishment=user_establishment)
+                self.fields["establishment"].queryset = Establishment.objects.filter(pk=user_establishment.id)
 
     def clean(self):
         cleaned_data = super().clean()
