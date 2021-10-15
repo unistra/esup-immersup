@@ -809,6 +809,11 @@ class ImmersionUserCreationForm(UserCreationForm):
                     pk=self.request.user.establishment.pk
                 )
 
+            elif self.request.user.is_high_school_manager():
+                self.fields["establishment"].disabled = True
+                self.fields["establishment"].help_text = _("You can't select the establishment")
+
+
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
         fields = '__all__'
@@ -859,6 +864,20 @@ class ImmersionUserChangeForm(UserChangeForm):
 
                 if self.fields.get('establishment'):
                     self.fields["establishment"].queryset = Establishment.objects.filter(pk=user_establishment.id)
+
+            if self.request.user.is_high_school_manager():
+                user_highschool = self.request.user.highschool
+
+                if self.fields.get("structures"):
+                    self.fields["structures"].disabled = True
+
+                if self.fields.get("groups"):
+                    self.fields["groups"].queryset = Group.objects.filter(
+                        name__in=['INTER']
+                    )
+
+                if self.fields.get('highschool'):
+                    self.fields["highschool"].queryset = HighSchool.objects.filter(pk=user_highschool.id)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -915,8 +934,8 @@ class ImmersionUserChangeForm(UserChangeForm):
             self._errors["highschool"] = self.error_class([msg])
             del cleaned_data["highschool"]
 
-        if highschool and not groups.filter(name='REF-LYC').exists():
-            msg = _("The group 'REF-LYC' is mandatory when you add a highschool")
+        if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
+            msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
             self._errors['groups'].append(self.error_class([msg]))

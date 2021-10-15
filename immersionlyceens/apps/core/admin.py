@@ -197,6 +197,17 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
                 return not (set(x for x in user_groups) - set(rights))
 
+            if request.user.is_high_school_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
+                highschool_condition = obj.highschool == request.user.highschool
+
+                if not highschool_condition:
+                    messages.warning(request, no_delete_msg)
+                    return False
+
+                return not (set(x for x in user_groups) - set(rights))
+
             messages.warning(request, no_delete_msg)
 
             return False
@@ -221,9 +232,32 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 if not (set(x for x in user_groups) - set(rights)):
                     return True
 
+            if request.user.is_high_school_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
+                highschool_condition = obj.highschool == request.user.highschool
+
+                return not (set(x for x in user_groups) - set(rights))
+
             return False
 
         return True
+
+    def has_add_permission(self, request):
+        has_permission = [
+            request.user.is_superuser,
+            request.user.is_establishment_manager(),
+            request.user.is_master_establishment_manager()
+        ]
+
+        if any(has_permission):
+            return True
+
+        if request.user.is_high_school_manager():
+            if request.user.highschool and request.user.highschool.postbac_immersion:
+                return True
+
+        return False
 
     def get_fieldsets(self, request, obj=None):
         # On user change, add structures in permissions fieldset
@@ -934,7 +968,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         """Singleton"""
-        return not Calendar.objects.exists()
+        return request.user.is_master_establishment_manager() and not Calendar.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser

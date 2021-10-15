@@ -464,8 +464,9 @@ ADMIN_MODELS_ORDER = {
 
 # Define groups rights on others here ?
 HAS_RIGHTS_ON_GROUP = {
-    'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR'],
-    'REF-ETAB': ['REF-STR', 'REF-LYC', 'SRV-JUR']
+    'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
+    'REF-ETAB': ['REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
+    'REF-LYC': ['INTER']
 }
 
 ###############
