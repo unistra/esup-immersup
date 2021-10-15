@@ -404,9 +404,11 @@ class StructureForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        # Disable code field if it already exists
+        # Disable code and structure fields if it already exists
         if self.initial:
             self.fields["code"].disabled = True
+            self.fields["establishment"].disabled = True
+            self.fields["establishment"].help_text = _("The establishement cannot be updated")
 
         if self.fields.get("establishment") and not self.request.user.is_superuser \
                 and self.request.user.is_establishment_manager():
