@@ -11,20 +11,20 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 
-from ..admin import CampusAdmin, CustomAdminSite, EstablishmentAdmin, TrainingAdmin, StructureAdmin
+from ..admin import CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin, TrainingAdmin, StructureAdmin
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    StructureForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, InformationTextForm, MailTemplateForm,
+    ImmersionUserChangeForm, StructureForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, InformationTextForm, MailTemplateForm,
     PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
     VacationForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, CourseType,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
-    InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    ImmersionUser, InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -92,9 +92,18 @@ class AdminFormsTestCase(TestCase):
             last_name='ref_str',
         )
 
+        self.ref_str_user_2 = get_user_model().objects.create_user(
+            username='ref_str_2',
+            password='pass',
+            email='immersion@no-reply.com',
+            first_name='ref_str_2',
+            last_name='ref_str_2',
+        )
+
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user_2)
 
     def test_training_domain_creation(self):
         """
@@ -1504,3 +1513,48 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(MailTemplate.objects.filter(label=data['label']).exists())
+
+
+    def test_admin_immersionuser(self):
+        """
+        Test various cases in immersion user admin form updates
+        """
+        adminsite = CustomAdminSite(name='Repositories')
+        est_admin = CustomUserAdmin(admin_site=adminsite, model=ImmersionUser)
+
+        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment': self.master_establishment}
+        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment': self.establishment}
+        structure_1 = Structure.objects.create(**structure_1_data)
+        structure_2 = Structure.objects.create(**structure_2_data)
+
+        self.ref_str_user.establishment = self.establishment
+        self.ref_str_user.structure = structure_2
+        self.ref_str_user.save()
+
+        self.ref_str_user_2.establishment = self.master_establishment
+        self.ref_str_user_2.structure = structure_1
+        self.ref_str_user_2.save()
+
+        # As superuser
+        request.user = self.superuser
+        # Should be True
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
+
+        # As a master establishment manager
+        request.user = self.ref_master_etab_user
+        # Should be True
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
+
+        # As a regular establishment manager
+        request.user = self.ref_etab_user
+        # Should be True
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
+
+        # Should NOT be True
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_master_etab_user))
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
+
