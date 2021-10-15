@@ -361,13 +361,23 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BuildingForm
-    list_display = ('label', 'campus', 'url', 'active')
-    list_filter = ('campus', 'active')
+    list_display = ('label', 'campus', 'get_establishment', 'url', 'active')
+    list_filter = (
+        ('campus', RelatedDropdownFilter),
+        ('campus__establishment', RelatedDropdownFilter),
+        'active'
+    )
     ordering = (
+        'campus__establishment',
         'campus',
         'label',
     )
     search_fields = ('label',)
+
+    def get_establishment(self, obj):
+        return obj.campus.establishment
+
+    get_establishment.short_description = _('Establishments')
 
     def get_actions(self, request):
         # Disable delete
@@ -379,6 +389,18 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_establishment_manager():
+            return qs.filter(Q(campus__establishment__isnull=True)|Q(campus__establishment=request.user.establishment))
+
+        return qs
+
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_establishment_manager():
             return False
@@ -388,6 +410,12 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         return True
+
+    class Media:
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/admin_building.min.js',
+        )
 
 
 class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):

@@ -4,12 +4,16 @@ django-tinymce
 psycopg2==2.8.6
 django-cas-sso==1.1.10
 django-extensions
+django-filter
 ldap3
 requests
-django-summernote
+django-summernote<0.8.20.0
 django-shibboleth-remoteuser
 WeasyPrint==52.5
 sentry-sdk
 django-json-widget
 jsonschema
 django-admin-list-filter-dropdown
+djangorestframework<4.0
+djangorestframework-custom-exceptions
+djangorestframework-custom-paginations

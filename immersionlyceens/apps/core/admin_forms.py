@@ -206,10 +206,27 @@ class TrainingSubdomainForm(forms.ModelForm):
 
 
 class BuildingForm(forms.ModelForm):
+    establishment = forms.TypedChoiceField()
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         self.fields['campus'].queryset = Campus.objects.order_by('label')
+
+        establishment_choices = [('', '---------'), ]
+
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            user_establishment = self.request.user.establishment
+
+            establishment_choices.append((user_establishment.id, user_establishment))
+            self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
+        else:
+            establishment_choices += [(e.id, e) for e in Establishment.objects.filter(active=True)]
+            self.fields['campus'].queryset = Campus.objects.filter(active=True)
+
+        self.fields['establishment'] = forms.TypedChoiceField(
+            label=_("Establishment"), widget=forms.Select(), choices=establishment_choices, required=False
+        )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -217,7 +234,7 @@ class BuildingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -228,7 +245,8 @@ class BuildingForm(forms.ModelForm):
 
     class Meta:
         model = Building
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ('label', 'establishment', 'campus', 'url', 'active')
 
 
 class TrainingForm(forms.ModelForm):

@@ -1,0 +1,15 @@
+$(document).on('change', 'select#id_establishment', function() {
+  $.ajax({
+    url: `/api/campuses/?establishment=${$(this).val()}`,
+    type: 'GET',
+    success(data) {
+      console.log(data);
+
+      let options = '<option value="">---------</option>'
+      for (let i = 0; i < data.length; i++) {
+        options += `<option value="${data[i]['id']}">${data[i]['label']}</option>`
+      }
+      $('select#id_campus').html(options)
+    },
+  })
+})

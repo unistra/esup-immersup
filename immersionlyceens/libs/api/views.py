@@ -6,6 +6,8 @@ import datetime
 import importlib
 import json
 import logging
+import django_filters.rest_framework
+
 from functools import reduce
 from itertools import permutations
 
@@ -23,11 +25,21 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
 
+from rest_framework import generics, status
+"""
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
+"""
+
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, CancelType, Structure, Course, Establishment, HighSchool, Holiday, Immersion,
+    Building, Calendar, Campus, CancelType, Structure, Course, Establishment, HighSchool, Holiday, Immersion,
     ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, TrainingDomain, UniversityYear,
     UserCourseAlert, Vacation
 )
+
+from immersionlyceens.apps.core.serializers import CampusSerializer
+
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
@@ -1928,3 +1940,21 @@ def ajax_keep_entries(request):
     response['msg'] = gettext("Duplicates data cleared")
 
     return JsonResponse(response, safe=False)
+
+
+class CampusList(generics.ListAPIView):
+    """
+    Campus list
+    """
+    serializer_class = CampusSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['establishment', ]
+
+    def get_queryset(self):
+        queryset = Campus.objects.filter(active=True).order_by('label')
+        user = self.request.user
+
+        if not user.is_superuser and user.is_establishment_manager():
+            queryset = queryset.filter(establishment=user.establishment)
+
+        return queryset

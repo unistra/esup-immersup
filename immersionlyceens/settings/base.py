@@ -264,6 +264,8 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'django_extensions',
+    'rest_framework',
+    'django_filters',
     'hijack',
     'hijack.contrib.admin',
     'django_summernote',
@@ -337,6 +339,21 @@ LOGGING = {
         'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False, },
         'immersionlyceens': {'handlers': ['mail_admins', 'file'], 'level': 'ERROR', 'propagate': True, },
     },
+}
+
+######################################
+# django-restframework configuration #
+######################################
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'rest_framework_custom_exceptions.exceptions.simple_error_handler',
 }
 
 #######################
