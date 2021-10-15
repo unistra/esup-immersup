@@ -220,7 +220,7 @@ class AdminFormsTestCase(TestCase):
         Test admin Campus creation with group rights
         """
 
-        testCampus = Campus.objects.create(label='testCampus', active=True)
+        testCampus = Campus.objects.create(label='testCampus', active=True, establishment=self.establishment)
         data = {
             'label': 'testBuilding',
             'campus': testCampus.pk,
@@ -228,19 +228,27 @@ class AdminFormsTestCase(TestCase):
             'active': True,
         }
 
-        request.user = self.ref_etab_user
-
-        form = BuildingForm(data=data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(Building.objects.filter(label='testBuilding').exists())
-
         # Validation fail (invalid user)
-        data = {'label': 'test_fail', 'active': True}
         request.user = self.ref_str_user
         form = BuildingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertFalse(Building.objects.filter(label='test_fail').exists())
+        self.assertFalse(Building.objects.filter(label=data['label']).exists())
+
+        # Success
+        request.user = self.ref_etab_user
+        form = BuildingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Building.objects.filter(label=data['label']).exists())
+
+        # Another success with master establishement manager
+        data['label'] = "Another test"
+        request.user = self.ref_master_etab_user
+        form = BuildingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Building.objects.filter(label=data['label']).exists())
+
 
     def test_structure_list(self):
         adminsite = CustomAdminSite(name='Repositories')

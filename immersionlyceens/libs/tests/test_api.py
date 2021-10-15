@@ -11,8 +11,12 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
+from django.urls import reverse
 from django.utils.translation import pgettext
 from django.utils.translation import ugettext_lazy as _
+
+from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
 
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building, Calendar, Campus, CancelType,
     Structure, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
@@ -2095,3 +2099,35 @@ class APITestCase(TestCase):
 
         self.assertEqual(r1.solved_duplicates, '2')
         self.assertEqual(r2.solved_duplicates, '1')
+
+
+    def test_campus(self):
+        campus = Campus.objects.create(label='Campus', establishment=self.establishment, active=True)
+
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        response = client.get(reverse("campus_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content[0]['label'], 'Campus')
+"""
+
+class ApiDRFTestCase(APITestCase):
+    fixtures = ['group', 'generalsettings']
+
+    def setUp(self):
+        super().setUp()
+
+        self.campus = Campus.objects.create(label='Campus', establishment=self.establishment, active=True)
+
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
+
+    def test_campus(self):
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(reverse("campus_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content[0]['label'], 'Campus')
+"""
