@@ -99,7 +99,7 @@ class CoreViewsTestCase(TestCase):
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
-            email='immersion@no-reply.com',
+            email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
         )
@@ -113,7 +113,7 @@ class CoreViewsTestCase(TestCase):
         self.ref_str_user = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
-            email='immersion@no-reply.com',
+            email='ref_str@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
         )

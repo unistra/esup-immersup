@@ -29,7 +29,7 @@ class ChartsViewsTestCase(TestCase):
         self.ref_etab_user.save()
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
-        self.reflyc_user = get_user_model().objects.get(username='jeanmonnet')
+        self.reflyc_user = get_user_model().objects.get(username='jeanjacquesmonnet')
         self.reflyc_user.set_password('hiddenpassword')
         self.reflyc_user.save()
         Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
@@ -51,7 +51,7 @@ class ChartsViewsTestCase(TestCase):
         )
         self.assertEqual(response.context['highschool_id'], '')
 
-        self.client.login(username='jeanmonnet', password='hiddenpassword')
+        self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
         response = self.client.get("/charts/highschool_charts", request)
         self.assertEqual(response.context['highschools'],
             [{'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'}])
@@ -76,7 +76,7 @@ class ChartsViewsTestCase(TestCase):
              (3, 'Above A Level / High-School Degree')]
         )
 
-        self.client.login(username='jeanmonnet', password='hiddenpassword')
+        self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
         response = self.client.get("/charts/highschool_domains_charts", request)
 
         self.assertEqual(response.context['highschools'],
@@ -127,7 +127,7 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['high_school_name'], None)
 
         # As high school referent
-        self.client.login(username='jeanmonnet', password='hiddenpassword')
+        self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
         response = self.client.get("/charts/trainings_charts", request)
 
         self.assertEqual(response.context['highschools'],

@@ -36,18 +36,44 @@ class GEOAPITestCase(TestCase):
     fixtures = ['group']
 
     def setUp(self):
-        GeneralSettings.objects.create(setting='MAIL_CONTACT_REF_ETAB', parameters={'value': 'unittest@unittest.fr', 'type': 'text', 'description': 'unittest setting'})
+
+        # TODO : use test fixtures
+
+        GeneralSettings.objects.create(
+            setting='MAIL_CONTACT_REF_ETAB',
+            parameters={
+                'value': 'unittest@unittest.fr',
+                'type': 'text',
+                'description':
+                'unittest setting'}
+        )
         self.ref_etab_user = get_user_model().objects.create_user(
-            username='ref_etab', password='pass', email='immersion@no-reply.com', first_name='ref_etab', last_name='ref_etab',
+            username='ref_etab',
+            password='pass',
+            email='ref_etab@no-reply.com',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
         self.highschool_user = get_user_model().objects.create_user(
-            username='hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
+            username='hs',
+            password='pass',
+            email='hs@no-reply.com',
+            first_name='high',
+            last_name='SCHOOL',
         )
         self.highschool_user2 = get_user_model().objects.create_user(
-            username='hs2', password='pass', email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2',
+            username='hs2',
+            password='pass',
+            email='hs2@no-reply.com',
+            first_name='high2',
+            last_name='SCHOOL2',
         )
         self.highschool_user3 = get_user_model().objects.create_user(
-            username='hs3', password='pass', email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3',
+            username='hs3',
+            password='pass',
+            email='hs3@no-reply.com',
+            first_name='high3',
+            last_name='SCHOOL3',
         )
         self.ref_str = get_user_model().objects.create_user(
             username='ref_str',
@@ -66,7 +92,7 @@ class GEOAPITestCase(TestCase):
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='speaker-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )

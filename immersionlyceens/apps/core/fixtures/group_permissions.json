@@ -1198,5 +1198,37 @@
         "group": 8,
         "permission": 63
     }
+},
+{
+    "model": "auth.group_permissions",
+    "pk": 221,
+    "fields": {
+        "group": 4,
+        "permission": 56
+    }
+},
+{
+    "model": "auth.group_permissions",
+    "pk": 222,
+    "fields": {
+        "group": 4,
+        "permission": 53
+    }
+},
+{
+    "model": "auth.group_permissions",
+    "pk": 223,
+    "fields": {
+        "group": 4,
+        "permission": 54
+    }
+},
+{
+    "model": "auth.group_permissions",
+    "pk": 224,
+    "fields": {
+        "group": 4,
+        "permission": 55
+    }
 }
 ]

@@ -75,14 +75,14 @@ class ImmersionViewsTestCase(TestCase):
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='speaker-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
-            email='immersion@no-reply.com',
+            email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
         )

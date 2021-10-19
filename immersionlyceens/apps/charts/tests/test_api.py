@@ -27,7 +27,7 @@ class ChartsTestCase(TestCase):
         self.ref_etab_user.save()
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
-        self.reflyc_user = get_user_model().objects.get(username='jeanmonnet')
+        self.reflyc_user = get_user_model().objects.get(username='jeanjacquesmonnet')
         self.reflyc_user.set_password('hiddenpassword')
         self.reflyc_user.save()
         Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
@@ -324,7 +324,7 @@ class ChartsTestCase(TestCase):
 
         # logged as ref-lyc : highschool id not needed
         # Result data should be the same
-        self.client.login(username='jeanmonnet', password='hiddenpassword')
+        self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
         url = "/charts/get_trainings_charts"
         response = self.client.get(url, {}, **header)
         content = response.content.decode()

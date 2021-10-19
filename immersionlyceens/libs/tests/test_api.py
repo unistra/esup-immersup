@@ -43,15 +43,23 @@ class APITestCase(TestCase):
             description='REF-ETAB email'
         )
         """
+
+        # TODO : put all these objects in test fixtures
+
         self.establishment = Establishment.objects.create(
-            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
             establishment_type='HIGHER_INST'
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
-            email='immersion@no-reply.com',
+            email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
             establishment=self.establishment
@@ -62,18 +70,31 @@ class APITestCase(TestCase):
         self.ref_etab_user.save()
 
         self.highschool_user = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs', password='pass', email='hs@no-reply.com', first_name='high', last_name='SCHOOL',
+            username='@EXTERNAL@_hs',
+            password='pass',
+            email='hs@no-reply.com',
+            first_name='high',
+            last_name='SCHOOL',
         )
         self.highschool_user.set_password('pass')
         self.highschool_user.save()
 
-        self.highschool_user2 = get_user_model().objects.create_user(username='@EXTERNAL@_hs2', password='pass',
-                                                                     email='hs2@no-reply.com', first_name='high2', last_name='SCHOOL2', )
+        self.highschool_user2 = get_user_model().objects.create_user(
+            username='@EXTERNAL@_hs2',
+            password='pass',
+            email='hs2@no-reply.com',
+            first_name='high2',
+            last_name='SCHOOL2',
+        )
         self.highschool_user2.set_password('pass')
         self.highschool_user2.save()
 
-        self.highschool_user3 = get_user_model().objects.create_user(username='@EXTERNAL@_hs3', password='pass',
-                                                                     email='hs3@no-reply.com', first_name='high3', last_name='SCHOOL3', )
+        self.highschool_user3 = get_user_model().objects.create_user(
+            username='@EXTERNAL@_hs3', password='pass',
+            email='hs3@no-reply.com',
+            first_name='high3',
+            last_name='SCHOOL3',
+        )
         self.highschool_user3.set_password('pass')
         self.highschool_user3.save()
 
@@ -94,7 +115,7 @@ class APITestCase(TestCase):
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='speaker-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )

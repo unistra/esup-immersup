@@ -52,24 +52,50 @@ class AdminFormsTestCase(TestCase):
         SetUp for Admin Forms tests
         """
 
+        # TODO Use test fixtures for all these objects
+
         self.site = AdminSite()
         self.superuser = get_user_model().objects.create_superuser(
-            username='super', password='pass', email='immersion@no-reply.com'
+            username='super', password='pass', email='immersion1@no-reply.com'
         )
         self.master_establishment = Establishment.objects.create(
-            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test@test.com',
+            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test1@test.com',
             establishment_type='HIGHER_INST'
         )
 
         self.establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test2@test.com',
             establishment_type='HIGHER_INST'
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            postbac_immersion=True
+        )
+
+        self.high_school_2 = HighSchool.objects.create(
+            label='HS2',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='d@e.f',
+            head_teacher_name='M. C D',
+            postbac_immersion=False
         )
 
         self.ref_master_etab_user = get_user_model().objects.create_user(
             username='ref_master_etab',
             password='pass',
-            email='immersion@no-reply.com',
+            email='immersion2@no-reply.com',
             first_name='ref_master_etab',
             last_name='ref_master_etab',
             establishment=self.master_establishment
@@ -78,7 +104,7 @@ class AdminFormsTestCase(TestCase):
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
-            email='immersion@no-reply.com',
+            email='immersion3@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
             establishment=self.establishment
@@ -87,7 +113,7 @@ class AdminFormsTestCase(TestCase):
         self.ref_str_user = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
-            email='immersion@no-reply.com',
+            email='immersion4@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
         )
@@ -95,15 +121,55 @@ class AdminFormsTestCase(TestCase):
         self.ref_str_user_2 = get_user_model().objects.create_user(
             username='ref_str_2',
             password='pass',
-            email='immersion@no-reply.com',
+            email='immersion5@no-reply.com',
             first_name='ref_str_2',
             last_name='ref_str_2',
+        )
+
+        self.ref_lyc_user = get_user_model().objects.create_user(
+            username='ref_lyc',
+            password='pass',
+            email='ref-lyc@no-reply.com',
+            first_name='ref_lyc',
+            last_name='ref_lyc',
+            highschool=self.high_school
+        )
+
+        self.ref_lyc_user_2 = get_user_model().objects.create_user(
+            username='ref_lyc2',
+            password='pass',
+            email='ref-lyc2@no-reply.com',
+            first_name='ref_lyc2',
+            last_name='ref_lyc2',
+            highschool=self.high_school_2
+        )
+
+        self.speaker_user = get_user_model().objects.create_user(
+            username='speaker1',
+            password='pass',
+            email='speaker1@no-reply.com',
+            first_name='speaker1',
+            last_name='speaker1',
+            highschool=self.high_school
+        )
+
+        self.speaker_user_2 = get_user_model().objects.create_user(
+            username='speaker2',
+            password='pass',
+            email='speaker2@no-reply.com',
+            first_name='speaker2',
+            last_name='speaker2',
+            highschool=self.high_school_2
         )
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user_2)
+        Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc_user)
+        Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc_user_2)
+        Group.objects.get(name='INTER').user_set.add(self.speaker_user)
+        Group.objects.get(name='INTER').user_set.add(self.speaker_user_2)
 
     def test_training_domain_creation(self):
         """
@@ -1535,21 +1601,27 @@ class AdminFormsTestCase(TestCase):
         self.ref_str_user_2.structure = structure_1
         self.ref_str_user_2.save()
 
+        # --------------------------------------
         # As superuser
+        # --------------------------------------
         request.user = self.superuser
         # Should be True
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
 
+        # --------------------------------------
         # As a master establishment manager
+        # --------------------------------------
         request.user = self.ref_master_etab_user
         # Should be True
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
 
+        # --------------------------------------
         # As a regular establishment manager
+        # --------------------------------------
         request.user = self.ref_etab_user
         # Should be True
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
@@ -1558,3 +1630,14 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_master_etab_user))
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
 
+        # --------------------------------------
+        # As a high school referent
+        # --------------------------------------
+        request.user = self.ref_lyc_user
+        # Should be True
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.speaker_user))
+
+        # Should NOT be True
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_master_etab_user))
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
+        self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.speaker_user_2))

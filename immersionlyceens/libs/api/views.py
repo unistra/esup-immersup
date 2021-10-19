@@ -38,7 +38,7 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, Vacation
 )
 
-from immersionlyceens.apps.core.serializers import CampusSerializer
+from immersionlyceens.apps.core.serializers import CampusSerializer, EstablishmentSerializer
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
@@ -1958,3 +1958,30 @@ class CampusList(generics.ListAPIView):
             queryset = queryset.filter(establishment=user.establishment)
 
         return queryset
+
+
+class EstablishmentList(generics.ListAPIView):
+    """
+    Establishments list
+    """
+    serializer_class = EstablishmentSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+
+    def get_queryset(self):
+        queryset = Establishment.objects.filter(active=True).order_by('label')
+        user = self.request.user
+
+        if not user.is_superuser and user.is_establishment_manager():
+            queryset = queryset.filter(id=user.establishment.id)
+
+        return queryset
+
+
+class GetEstablishment(generics.RetrieveAPIView):
+    """
+    Single establishment
+    """
+    serializer_class = EstablishmentSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    queryset = Establishment.objects.all()
+    lookup_field = "id"

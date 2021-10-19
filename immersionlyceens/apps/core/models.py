@@ -166,6 +166,8 @@ class ImmersionUser(AbstractUser):
 
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
 
+    email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
+
     def __str__(self):
         return "%s %s" % (self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
 

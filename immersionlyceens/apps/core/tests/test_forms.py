@@ -64,7 +64,7 @@ class FormTestCase(TestCase):
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='speaker-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )

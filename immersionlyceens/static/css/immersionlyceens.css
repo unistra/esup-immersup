@@ -32,6 +32,10 @@ input[type=number] {
     float: left;
 }
 
+#id_search {
+    float: left;
+}
+
 .top-buffer {
     margin-top: 20px;
 }

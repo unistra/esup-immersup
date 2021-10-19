@@ -783,6 +783,15 @@ class CalendarForm(forms.ModelForm):
 
 
 class ImmersionUserCreationForm(UserCreationForm):
+    search = forms.CharField(
+        max_length=150,
+        label=_("User search"),
+        required=False,
+        help_text=_("This field is only useful if the selected establishment has a source plugin set")
+    )
+
+
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -793,10 +802,15 @@ class ImmersionUserCreationForm(UserCreationForm):
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
+        self.fields["email"].help_text = _("The user email will be used as username")
+
+        self.fields["username"].required = False
+        self.fields["username"].disabled = True
 
         # Establishment
         self.fields["establishment"].required = False
 
+        self.fields["search"].widget.attrs["class"] = "vTextField"
 
         if not self.request.user.is_superuser:
             # Master establishment manager has only access to the other establishments
@@ -813,10 +827,32 @@ class ImmersionUserCreationForm(UserCreationForm):
                 self.fields["establishment"].disabled = True
                 self.fields["establishment"].help_text = _("You can't select the establishment")
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # A high-school manager can only create high-school speakers
+        # For them, the login in always the email address
+        if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
+            cleaned_data["username"] = cleaned_data.get("email")
+            self.instance.highschool = self.request.user.highschool
+
+        return cleaned_data
+
+
+    def save(self, *args, **kwargs):
+        obj = super().save(*args, **kwargs)
+
+        if self.request.user.is_high_school_manager():
+            obj.highschool = self.request.user.highschool
+            obj.save()
+            Group.objects.get(name='INTER').user_set.add(obj)
+
+        return obj
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ("establishment", "search", "password1", "password2", "email", "first_name", "last_name")
 
 
 class ImmersionUserChangeForm(UserChangeForm):
@@ -868,6 +904,9 @@ class ImmersionUserChangeForm(UserChangeForm):
             if self.request.user.is_high_school_manager():
                 user_highschool = self.request.user.highschool
 
+                if self.fields.get("username"):
+                    self.fields["username"].widget.attrs['readonly'] = 'readonly'
+
                 if self.fields.get("structures"):
                     self.fields["structures"].disabled = True
 
@@ -875,8 +914,10 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["groups"].queryset = Group.objects.filter(
                         name__in=['INTER']
                     )
+                    self.fields["groups"].disabled = True
 
                 if self.fields.get('highschool'):
+                    self.fields["highschool"].empty_label = None
                     self.fields["highschool"].queryset = HighSchool.objects.filter(pk=user_highschool.id)
 
     def clean(self):

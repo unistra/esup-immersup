@@ -26,10 +26,16 @@ class APITestCase(TestCase):
     fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype']
 
     def setUp(self):
+        # TODO : use test fixtures
+
         self.today = datetime.datetime.today()
 
         self.highschool_user = get_user_model().objects.create_user(
-            username='the_username', password='pass', email='hs@no-reply.com', first_name='Jean', last_name='MICHEL',
+            username='the_username',
+            password='pass',
+            email='hs@no-reply.com',
+            first_name='Jean',
+            last_name='MICHEL',
         )
 
         self.highschool_user.set_validation_string()
@@ -47,7 +53,7 @@ class APITestCase(TestCase):
         self.ref_str = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
-            email='refstr@no-reply.com',
+            email='ref_str@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
         )
@@ -55,7 +61,7 @@ class APITestCase(TestCase):
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='speaker-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )

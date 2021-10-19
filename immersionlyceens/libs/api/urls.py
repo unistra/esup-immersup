@@ -71,4 +71,6 @@ urlpatterns = [
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
 
     path('campuses/', views.CampusList.as_view(), name='campus_list'),
+    path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),
+    path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_list'),
 ]

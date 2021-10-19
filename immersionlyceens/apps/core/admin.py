@@ -153,7 +153,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             None,
             {
                 'classes': ('wide',),
-                'fields': ('establishment', 'username', 'password1', 'password2', 'email', 'first_name', 'last_name',),
+                'fields': ('establishment', 'search', 'username', 'password1', 'password2', 'email', 'first_name',
+                           'last_name',),
             },
         ),
     )
@@ -170,6 +171,18 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         except KeyError:
             pass
         return actions
+
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_high_school_manager():
+            return qs.filter(groups__name__in=['INTER'], highschool=request.user.highschool)
+
+        return qs
 
     def has_delete_permission(self, request, obj=None):
         no_delete_msg = _("You don't have enough privileges to delete this account")
@@ -237,7 +250,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
                 highschool_condition = obj.highschool == request.user.highschool
 
-                return not (set(x for x in user_groups) - set(rights))
+                return highschool_condition and not (set(x for x in user_groups) - set(rights))
 
             return False
 
@@ -286,7 +299,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         return fieldsets
 
     class Media:
-        js = ('js/immersion_user.min.js',)  # implements user search
+        js = (
+            'js/vendor/jquery/jquery-3.4.1.min.js',
+            'js/immersion_user.min.js',
+        )
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
