@@ -1463,8 +1463,10 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
         self.assertEqual(len(content['data']), 2)
-        stu = content['data'][0]
-        hs = content['data'][1]
+
+        # Careful with the results order (last_name, first_name)
+        hs = content['data'][0]
+        stu = content['data'][1]
 
         self.assertEqual(self.student2.id, stu['id'])
         self.assertEqual(self.student2.first_name, stu['firstname'])

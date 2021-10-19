@@ -892,15 +892,15 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             # Restrictions on group / structures selection depending on current user group
             if self.request.user.is_master_establishment_manager():
-                self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE'])
+                self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
 
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment
 
                 if self.fields.get('groups'):
                     self.fields["groups"].queryset = Group.objects.filter(
-                        name__in=['REF-STR', 'SRV-JUR']
-                    )
+                        name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB']
+                    ).order_by('name')
 
                 if self.fields.get('structures'):
                     self.fields["structures"].queryset = Structure.objects.filter(establishment=user_establishment)
@@ -1139,18 +1139,21 @@ class MailTemplateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         for field in ('label', 'description'):
-            self.fields[field].widget.attrs['class'] = 'form-control'
-            self.fields[field].widget.attrs['size'] = 80
-        
-        if not self.request.user.is_master_establishment_manager():
-            self.fields['available_vars'].widget = forms.MultipleHiddenInput()
-            self.fields['description'].disabled = True
-            self.fields['label'].disabled = True
-            self.fields['code'].disabled = True
-        else:    
-            self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
+            if self.fields.get(field):
+                self.fields[field].widget.attrs['class'] = 'form-control'
+                self.fields[field].widget.attrs['size'] = 80
 
-        self.fields['available_vars'].required = False
+        if self.fields:
+            if not self.request.user.is_master_establishment_manager():
+                self.fields['available_vars'].widget = forms.MultipleHiddenInput()
+                self.fields['description'].disabled = True
+                self.fields['label'].disabled = True
+                self.fields['code'].disabled = True
+            else:
+                self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
+
+            self.fields['available_vars'].required = False
+
 
     def clean(self):
         cleaned_data = super().clean()
