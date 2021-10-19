@@ -675,36 +675,60 @@ def ajax_check_course_publication(request, course_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', 'REF-LYC')
 def ajax_delete_account(request):
     """
     Completely destroy a student account and all data
     """
-    student_id = request.POST.get('student_id')
+    account_id = request.POST.get('account_id')
     send_mail = request.POST.get('send_email', False) == "true"
 
-    if student_id:
-        try:
-            student = ImmersionUser.objects.get(id=student_id, groups__name__in=['LYC', 'ETU'])
+    if not account_id:
+        response = {'error': True, 'msg': gettext("Missing parameter")}
+        return JsonResponse(response, safe=False)
 
-            if send_mail:
-                student.send_message(request, 'CPT_DELETE')
+    try:
+        account = ImmersionUser.objects.get(id=account_id) # , groups__name__in=['LYC', 'ETU'])
+    except ImmersionUser.DoesNotExist:
+        response = {'error': True, 'msg': gettext("Account not found")}
+        return JsonResponse(response, safe=False)
 
-            response = {'error': False, 'msg': gettext("Account deleted")}
+    if send_mail and account.groups.filter(name__in=['LYC', 'ETU']):
+        account.send_message(request, 'CPT_DELETE')
 
-            if student.is_high_school_student():
-                record = student.get_high_school_student_record()
-                if record:
-                    HighSchoolStudentRecord.clear_duplicate(record.id)
+    if not request.user.is_superuser:
+        if account.is_speaker():
+            if account.slots.exists():
+                response = {'error': True, 'msg': gettext("You can't delete this account (this user has slots)")}
+                return JsonResponse(response, safe=False)
 
-            student.delete()
+            if request.user.is_high_school_manager():
+                if not request.user.highschool or request.user.highschool != account.highschool:
+                    response = {'error': True, 'msg': gettext("You can't delete this account (insufficient privileges)")}
+                    return JsonResponse(response, safe=False)
 
-            messages.success(request, _("User deleted successfully"))
-        except ImmersionUser.DoesNotExist:
-            response = {'error': True, 'msg': gettext("User not found")}
-    else:
-        response = {'error': True, 'msg': gettext("User not found")}
+            if request.user.is_establishment_manager():
+                if not request.user.establishment or request.user.establishment != account.establishment:
+                    response = {'error': True, 'msg': gettext("You can't delete this account (insufficient privileges)")}
+                    return JsonResponse(response, safe=False)
 
+        elif account.is_high_school_student():
+            record = account.get_high_school_student_record()
+            if record:
+                HighSchoolStudentRecord.clear_duplicate(record.id)
+
+        elif account.is_student():
+            pass
+
+        else:
+            response = {'error': True, 'msg': gettext("You can't delete this account (invalid group)")}
+            return JsonResponse(response, safe=False)
+
+    account.delete()
+
+    messages.success(request, _("User deleted successfully"))
+
+    response = {'error': False, 'msg': gettext("Account deleted")}
     return JsonResponse(response, safe=False)
 
 
@@ -1938,6 +1962,30 @@ def ajax_keep_entries(request):
             response['error'] = gettext("An error occurred while clearing duplicates data")
 
     response['msg'] = gettext("Duplicates data cleared")
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('REF-LYC')
+def ajax_get_highschool_speakers(request, highschool_id=None):
+    """
+    get highschool speakers
+    """
+    response = {'data': [], 'msg': '', 'error': ''}
+
+    if request.user.highschool and highschool_id and request.user.highschool.id == highschool_id:
+        for speaker in ImmersionUser.objects.filter(groups__name='INTER', highschool=request.user.highschool):
+            has_slots = speaker.slots.exists()
+
+            response["data"].append({
+                'id': speaker.id,
+                'last_name': speaker.last_name,
+                'first_name': speaker.first_name,
+                'email': speaker.email,
+                'has_slots': _("Yes") if has_slots else _("No"),
+                'can_delete': not has_slots
+            })
 
     return JsonResponse(response, safe=False)
 
