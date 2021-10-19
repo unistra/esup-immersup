@@ -20,7 +20,7 @@ from .models import (
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
     MailTemplate, MailTemplateVars, PublicDocument, PublicType, Structure,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, OffOfferEventType,
 )
 
 
@@ -1491,4 +1491,31 @@ class CertificateSignatureForm(forms.ModelForm):
 
     class Meta:
         model = CertificateSignature
+        fields = '__all__'
+
+
+class OffOfferEventTypeForm(forms.ModelForm):
+    """Off ovver event type form"""
+    # todo: mixin for types (course type, off offer event type, etc)
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_master_establishment_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = OffOfferEventType
         fields = '__all__'

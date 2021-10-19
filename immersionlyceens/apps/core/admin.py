@@ -23,7 +23,7 @@ from .admin_forms import (
     HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
     ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
     PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
-    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm, OffOfferEventTypeForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -32,7 +32,7 @@ from .models import (
     GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
     ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
     Slot, Structure, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UniversityYear, Vacation, OffOfferEventType,
 )
 
 
@@ -1309,6 +1309,25 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     show_signature.short_description = _('Certificate signature')
 
 
+class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = OffOfferEventTypeForm
+    list_display = ('label', 'full_label', 'active')
+    ordering = ('label',)
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager():
+            return False
+
+        # todo: implement off offer event type in slot
+        # if obj and Slot.objects.filter(course_type=obj).exists():
+        #     messages.warning(
+        #         request, _("This off offer event type can't be deleted because it is used by some slots"),
+        #     )
+        #     return False
+
+        return True
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -1339,3 +1358,4 @@ admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
+admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
