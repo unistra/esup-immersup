@@ -574,18 +574,20 @@ def myslots(request):
 
 @groups_required('REF-LYC',)
 def my_high_school(request, high_school_id=None):
-    if request.user.highschool.id != high_school_id:
+    if request.user.highschool and request.user.highschool.id != high_school_id:
         return redirect('home')
 
     hs = HighSchool.objects.get(id=high_school_id)
     post_values = request.POST.copy()
     post_values['label'] = hs.label
 
-    high_school_form = None
     context = {
         'high_school': hs,
         'modified': False,
-        'referents': ImmersionUser.objects.filter(highschool=request.user.highschool),
+        'referents': ImmersionUser.objects.filter(
+            highschool=request.user.highschool,
+            groups__name__in=['REF-LYC', ]
+        ),
     }
 
     if request.method == 'POST':
@@ -599,6 +601,27 @@ def my_high_school(request, high_school_id=None):
     context['high_school_form'] = high_school_form
 
     return render(request, 'core/my_high_school.html', context)
+
+
+@groups_required('REF-LYC',)
+def my_high_school_speakers(request, high_school_id=None):
+    """
+    Display high school speakers (INTER group)
+    """
+    highschool = request.user.highschool
+
+    if highschool and (highschool.id != high_school_id or not highschool.postbac_immersion):
+        return redirect('home')
+
+    context = {
+        'high_school': highschool,
+        'speakers': ImmersionUser.objects.filter(
+            highschool=highschool,
+            groups__name__in=['INTER', ]
+        ),
+    }
+
+    return render(request, 'core/my_high_school_speakers.html', context)
 
 
 @groups_required('REF-LYC', 'REF-ETAB')

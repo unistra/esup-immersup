@@ -102,6 +102,9 @@
               <div class="dropdown-menu" aria-labelledby="navbarDropdownHighSchool">
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                   <a class="dropdown-item" href="{% url 'my_high_school' user.highschool.id %}">{% trans 'My high school' %}</a>
+                  {% if user.highschool.postbac_immersion %}
+                    <a class="dropdown-item" href="{% url 'my_high_school_speakers' user.highschool.id %}">{% trans 'My high school speakers' %}</a>
+                  {% endif %}
                   <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View all registrants' %}</a>
                   <a class="dropdown-item" href="{% url 'student_validation' user.highschool.id %}">{% trans 'Validate student profiles' %}</a>
                 {% endif %}

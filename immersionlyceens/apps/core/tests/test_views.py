@@ -30,6 +30,36 @@ class CoreViewsTestCase(TestCase):
         SetUp for Core app tests
         @TODO : this is a copy/paste from immersion app setup, it may need to be cleaned a little
         """
+        self.today = datetime.datetime.today()
+        
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            postbac_immersion=True
+        )
+
+        self.high_school2 = HighSchool.objects.create(
+            label='HS2',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='d@e.fr',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            postbac_immersion=False
+        )
+
         self.highschool_user = get_user_model().objects.create_user(
             username='@EXTERNAL@_hs',
             password='pass',
@@ -72,6 +102,7 @@ class CoreViewsTestCase(TestCase):
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
+            highschool=self.high_school
         )
 
         self.speaker1.set_password('pass')
@@ -83,6 +114,7 @@ class CoreViewsTestCase(TestCase):
             email='speaker-immersion2@no-reply.com',
             first_name='speak2',
             last_name='HER2',
+            highschool=self.high_school2
         )
 
         self.lyc_ref = get_user_model().objects.create_user(
@@ -91,6 +123,7 @@ class CoreViewsTestCase(TestCase):
             email='lycref@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school
         )
 
         self.lyc_ref.set_password('pass')
@@ -125,6 +158,7 @@ class CoreViewsTestCase(TestCase):
         self.client = Client()
 
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='ETU').user_set.add(self.student_user)
@@ -138,8 +172,6 @@ class CoreViewsTestCase(TestCase):
         )
 
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
-
-        self.today = datetime.datetime.today()
 
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_domain2 = TrainingDomain.objects.create(label="test t_domain 2")
@@ -180,32 +212,15 @@ class CoreViewsTestCase(TestCase):
             building=self.building, room='room 12', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot2.speakers.add(self.speaker2),
+        self.slot2.speakers.add(self.speaker2)
 
         self.slot3 = Slot.objects.create(
             course=self.course2, course_type=self.course_type, campus=self.campus,
             building=self.building, room='room 12', date=self.today + datetime.timedelta(days=1),
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot3.speakers.add(self.speaker2),
+        self.slot3.speakers.add(self.speaker2)
 
-        self.high_school = HighSchool.objects.create(
-            label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-            email='a@b.c', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10))
-
-        self.high_school2 = HighSchool.objects.create(
-            label='HS2', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-            email='d@e.fr', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10))
-        """
-        self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
-                        highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
-                        phone='0123456789', level=1, class_name='1ere S 3',
-                        bachelor_type=3, professional_bachelor_mention='My spe')
-        """
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
         self.calendar = Calendar.objects.create(
             label='my calendar',
             calendar_mode='YEAR',
@@ -668,7 +683,24 @@ class CoreViewsTestCase(TestCase):
         }
 
         response = self.client.post("/core/high_school/%s" % self.high_school.id, data, follow=True)
-        self.assertTrue(HighSchool.objects.filter(address='12 rue des Plantes'))
+        self.assertTrue(HighSchool.objects.filter(address='12 rue des Plantes').exists())
+
+
+    def my_high_school_speakers(self):
+        self.client.login(username='lycref', password='pass')
+
+        # Shouldn't work (no access)
+        response = self.client.get("/core/high_school_speakers/%s" % self.high_school2.id, follow=True)
+        self.assertEqual(response.request['PATH_INFO'], '/')
+
+        # Should work
+        response = self.client.get("/core/high_school_speakers/%s" % self.high_school.id, follow=True)
+        self.assertIn("My high school - %s" % self.high_school.label, response.content.decode('utf-8'))
+        self.assertIn(self.speaker1.last_name, response.content.decode('utf-8'))
+        self.assertNotIn(self.speaker2.last_name, response.content.decode('utf-8'))
+
+
+
 
     def test_my_students(self):
         # As high school referent
