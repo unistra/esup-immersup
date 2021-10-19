@@ -24,14 +24,14 @@
     <div class="card-header text-white bg-secondary">
         {% trans "My high school" %} - {{ high_school.label }}
     </div>
-    {% if modified %}
-      <div class="alert alert-success" id="ok_modify">{% trans "High school modified" %}</div>
-    {% endif %}
     <div class="card-body">
       <form class="" role="form" action="/core/high_school_speakers/{{ high_school.id }}" method="POST">
       {% csrf_token %}
         <div class="card">
-          <div class="card-title card-header">{% trans "My high school speakers" %}</div>
+          <div class="card-title card-header d-flex justify-content-between align-items-center">
+              {% trans "My high school speakers" %}
+              <a class="btn btn-secondary btn-sm" href="{% url 'speaker' %}">{% trans 'New speaker' %}</a>
+          </div>
           <div class="card-body">
             <div class="table-responsive">
               <table id="speakers_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">

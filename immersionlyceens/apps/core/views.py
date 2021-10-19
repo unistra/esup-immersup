@@ -20,6 +20,9 @@ from immersionlyceens.decorators import groups_required
 
 from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
     HighSchoolStudentImmersionUserForm)
+
+from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm
+
 from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
     Training, UniversityYear)
 
@@ -622,6 +625,36 @@ def my_high_school_speakers(request, high_school_id=None):
     }
 
     return render(request, 'core/my_high_school_speakers.html', context)
+
+
+@groups_required('REF-LYC',)
+def speaker(request, high_school_id=None):
+    if not request.user.highschool:
+        return redirect('home')
+
+    hs = request.user.highschool
+
+    context = {
+        'high_school': hs,
+    }
+
+    initial = {
+        'highschool': hs,
+        'is_active': True,
+        'establishment': None
+    }
+
+    if request.method == 'POST':
+        speaker_form = ImmersionUserCreationForm(request.POST, initial=initial, request=request)
+        if speaker_form.is_valid():
+            new_speaker = speaker_form.save()
+            Group.objects.get(name='INTER').user_set.add(new_speaker)
+    else:
+        speaker_form = ImmersionUserCreationForm(initial=initial, request=request)
+
+    context['speaker_form'] = speaker_form
+
+    return render(request, 'core/speaker.html', context)
 
 
 @groups_required('REF-LYC', 'REF-ETAB')

@@ -37,4 +37,5 @@ urlpatterns = [
     path('student_validation/', views.student_validation, name='student_validation_global'),
     path('student_validation/<int:high_school_id>/', views.student_validation, name='student_validation'),
     path('students_presence', views.students_presence, name="students_presence"),
+    path('speaker', views.speaker, name='speaker'),
 ]

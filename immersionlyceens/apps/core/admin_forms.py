@@ -859,14 +859,14 @@ class ImmersionUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
         # fields = '__all__'
-        fields = ("establishment", "username", "search", "password1", "password2", "email", "first_name", "last_name")
+        fields = ("establishment", "username", "search", "password1", "password2", "email", "first_name", "last_name",
+                  "is_active")
 
 
 class ImmersionUserChangeForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-
 
         if not self.request.user.is_superuser:
             # Disable establishement modification
