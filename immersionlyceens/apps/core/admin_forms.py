@@ -790,8 +790,6 @@ class ImmersionUserCreationForm(UserCreationForm):
         help_text=_("This field is only useful if the selected establishment has a source plugin set")
     )
 
-
-
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -827,13 +825,21 @@ class ImmersionUserCreationForm(UserCreationForm):
                 self.fields["establishment"].disabled = True
                 self.fields["establishment"].help_text = _("You can't select the establishment")
 
+
     def clean(self):
         cleaned_data = super().clean()
 
         # A high-school manager can only create high-school speakers
         # For them, the login in always the email address
-        if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
+
+        establishment = cleaned_data.get("establishment")
+
+        # Override username
+        if not establishment or (establishment and establishment.data_source_plugin is None):
             cleaned_data["username"] = cleaned_data.get("email")
+
+        # Force high school
+        if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
             self.instance.highschool = self.request.user.highschool
 
         return cleaned_data
@@ -842,17 +848,18 @@ class ImmersionUserCreationForm(UserCreationForm):
     def save(self, *args, **kwargs):
         obj = super().save(*args, **kwargs)
 
-        if self.request.user.is_high_school_manager():
+        if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
             obj.highschool = self.request.user.highschool
             obj.save()
             Group.objects.get(name='INTER').user_set.add(obj)
 
         return obj
 
+
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
         # fields = '__all__'
-        fields = ("establishment", "search", "password1", "password2", "email", "first_name", "last_name")
+        fields = ("establishment", "username", "search", "password1", "password2", "email", "first_name", "last_name")
 
 
 class ImmersionUserChangeForm(UserChangeForm):

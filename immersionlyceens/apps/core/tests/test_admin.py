@@ -15,10 +15,10 @@ from ..admin import CampusAdmin, CustomAdminSite, CustomUserAdmin, Establishment
 
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    ImmersionUserChangeForm, StructureForm, CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm,
-    EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, InformationTextForm, MailTemplateForm,
-    PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm,
+    ImmersionUserChangeForm, ImmersionUserCreationForm, StructureForm, CourseTypeForm, EstablishmentForm,
+    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
+    InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm,
+    TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, CourseType,
@@ -45,7 +45,7 @@ class AdminFormsTestCase(TestCase):
     Main admin forms tests class
     """
 
-    fixtures = ['group']
+    fixtures = ['group', 'group_permissions']
 
     def setUp(self):
         """
@@ -132,6 +132,7 @@ class AdminFormsTestCase(TestCase):
             email='ref-lyc@no-reply.com',
             first_name='ref_lyc',
             last_name='ref_lyc',
+            is_staff=True,
             highschool=self.high_school
         )
 
@@ -1641,3 +1642,22 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_master_etab_user))
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.speaker_user_2))
+
+
+        # User creation
+        # Check the overriden fields
+        data = {
+            'username' : 'speaker3',
+            'email' : 'speaker3@no-reply.com',
+            'first_name' : 'speaker3',
+            'last_name' : 'speaker3'
+        }
+
+        form = ImmersionUserCreationForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        new_speaker = form.save()
+
+        self.assertEqual(new_speaker.username, data['email'])
+        self.assertEqual(new_speaker.email, data['email'])
+        self.assertEqual(new_speaker.highschool, self.ref_lyc_user.highschool)
+        self.assertTrue(new_speaker.has_groups('INTER'))
