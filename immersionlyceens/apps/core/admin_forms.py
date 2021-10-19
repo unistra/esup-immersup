@@ -24,7 +24,7 @@ from .models import (
 )
 
 
-class BachelorMentionForm(forms.ModelForm):
+class TypeFormMixin(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -44,6 +44,8 @@ class BachelorMentionForm(forms.ModelForm):
 
         return cleaned_data
 
+
+class BachelorMentionForm(TypeFormMixin):
     class Meta:
         model = BachelorMention
         fields = '__all__'
@@ -102,76 +104,19 @@ class CampusForm(forms.ModelForm):
         fields = '__all__'
 
 
-class CancelTypeForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class CancelTypeForm(TypeFormMixin):
     class Meta:
         model = CancelType
         fields = '__all__'
 
 
-class CourseTypeForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class CourseTypeForm(TypeFormMixin):
     class Meta:
         model = CourseType
         fields = '__all__'
 
 
-class TrainingDomainForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class TrainingDomainForm(TypeFormMixin):
     class Meta:
         model = TrainingDomain
         fields = '__all__'
@@ -444,55 +389,14 @@ class StructureForm(forms.ModelForm):
         fields = '__all__'
 
 
-class GeneralBachelorTeachingForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class GeneralBachelorTeachingForm(TypeFormMixin):
     class Meta:
         model = GeneralBachelorTeaching
         fields = '__all__'
 
 
-class PublicTypeForm(forms.ModelForm):
-    """
-    public type form class
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class PublicTypeForm(TypeFormMixin):
+    """public type form class"""
     class Meta:
         model = PublicType
         fields = '__all__'
@@ -1360,26 +1264,7 @@ class EvaluationTypeForm(forms.ModelForm):
         fields = '__all__'
 
 
-class EvaluationFormLinkForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class EvaluationFormLinkForm(TypeFormMixin):
     class Meta:
         model = EvaluationFormLink
         fields = '__all__'
@@ -1494,28 +1379,8 @@ class CertificateSignatureForm(forms.ModelForm):
         fields = '__all__'
 
 
-class OffOfferEventTypeForm(forms.ModelForm):
-    """Off ovver event type form"""
-    # todo: mixin for types (course type, off offer event type, etc)
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_master_establishment_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class OffOfferEventTypeForm(TypeFormMixin):
+    """Off over event type form"""
     class Meta:
         model = OffOfferEventType
         fields = '__all__'
