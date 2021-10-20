@@ -1567,3 +1567,26 @@ class CertificateSignature(models.Model):
         """Meta class"""
         verbose_name = _('Signature for attendance certificate')
         verbose_name_plural = _('Signature for attendance certificate')
+
+
+class OffOfferEventType(models.Model):
+    """Off offer event type"""
+
+    label = models.CharField(_("Short label"), max_length=256, unique=True)
+    full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self) -> str:
+        return f"{self.full_label} ({self.label})"
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super(OffOfferEventType, self).validate_unique()
+        except ValidationError as e:
+            raise ValidationError(_('An off offer event type with this label already exists'))
+
+    class Meta:
+        verbose_name = _('Off offer event type')
+        verbose_name_plural = _('Off offer event types')
+        ordering = ('label',)
