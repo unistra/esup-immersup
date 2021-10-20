@@ -660,7 +660,6 @@ def ajax_reject_student(request):
 
 
 @is_ajax_request
-@is_post_request
 @groups_required('REF-LYC', 'REF-ETAB')
 def ajax_check_course_publication(request, course_id):
     from immersionlyceens.apps.core.models import Course
