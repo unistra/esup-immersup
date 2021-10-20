@@ -611,10 +611,15 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(PublicType.objects.filter(label=data['label']).exists())
 
 
-    def test_university_year_creation(self):
+    def test_university_year(self):
         """
-        Test public type mention creation with group rights
+        University year tests
         """
+
+        ############
+        # CREATION #
+        ############
+
         data = {
             'label': 'university_year',
             'active': True,
@@ -638,67 +643,80 @@ class AdminFormsTestCase(TestCase):
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertFalse(UniversityYear.objects.filter(label=data['label']).exists())
 
-        # Success
+        # Fail : constraint : before now
         request.user = self.ref_master_etab_user
 
-        form = UniversityYearForm(data=data, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(UniversityYear.objects.filter(label=data['label']).exists())
-
-
-    def test_university_year_constraint__fail_before_now(self):
-        request.user = self.ref_etab_user
         data = {
             'label': 'test_ok',
             'active': True,
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=-99),
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
+            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
-        request.user = self.ref_etab_user
+
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn("Start date can't be today or earlier", form.errors["__all__"])
 
-    def test_university_year_constraint__fail_start_greater_end(self):
-        request.user = self.ref_etab_user
+        # Fail : start > end
         data = {
             'label': 'test_ok',
             'active': True,
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=99),
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=9),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
+            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
-        request.user = self.ref_etab_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn("Start date greater than end date", form.errors["__all__"])
 
-    def test_university_year_constraint__fail_registrtion_before_start(self):
-        request.user = self.ref_etab_user
+        # Fail : registration before start date
         data = {
             'label': 'test_ok',
             'active': True,
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=1),
+            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
-        request.user = self.ref_etab_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn("Start of registration date must be set between start and end date", form.errors["__all__"])
 
-
-    def test_university_year_constraint__fail_registrtion_after_end(self):
-        request.user = self.ref_etab_user
+        # Fail : registration date after end date
         data = {
             'label': 'test_ok',
             'active': True,
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
             'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
             'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=20),
+            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
         }
-        request.user = self.ref_etab_user
         form = UniversityYearForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn("Start of registration date must be set between start and end date", form.errors["__all__"])
+
+
+        ###########
+        # Success #
+        ###########
+        data = {
+            'label': 'university_year',
+            'active': True,
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'registration_start_date': datetime.datetime.today().date() + datetime.timedelta(days=3),
+            'purge_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+        }
+
+        request.user = self.ref_master_etab_user
+
+        form = UniversityYearForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(UniversityYear.objects.filter(label=data['label']).exists())
 
 
     def test_highschool_creation(self):
@@ -796,12 +814,12 @@ class AdminFormsTestCase(TestCase):
 
 
     def test_vacation_creation(self):
-        UniversityYear(
+        university_year = UniversityYear.objects.create(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
             registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-        ).save()
+        )
 
         # Failures (invalid users)
         data = {
@@ -834,7 +852,70 @@ class AdminFormsTestCase(TestCase):
         self.assertIn("Start date greater than end date", form.errors["__all__"])
         self.assertFalse(Vacation.objects.filter(label=data['label']).exists())
 
-        # Success
+        # Fail : vacation before university year
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=-10),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+        }
+        form = VacationForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Vacation start date must set between university year dates", form.errors["__all__"])
+
+        # Fail : vacation after university year
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=40),
+        }
+        form = VacationForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Vacation end date must set between university year dates", form.errors["__all__"])
+
+        # Fails : overlapping vacation dates
+        university_year.end_date += datetime.timedelta(days=100)
+        university_year.save()
+        vacation = Vacation.objects.create(
+            label='Vac 1',
+            start_date=datetime.datetime.today().date() + datetime.timedelta(days=40),
+            end_date=datetime.datetime.today().date() + datetime.timedelta(days=60),
+        )
+
+        # - invalid start date
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=50),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=70),
+        }
+        form = VacationForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Vacation start inside another vacation", form.errors["__all__"])
+
+        # - invalid end date
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=30),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=50),
+        }
+        form = VacationForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Vacation end inside another vacation", form.errors["__all__"])
+
+        # - vacation period inside the new one
+        data = {
+            'label': 'Vacation',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=70),
+        }
+        form = VacationForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A vacation exists inside this vacation", form.errors["__all__"])
+
+        ###########
+        # Success #
+        ###########
+        vacation.delete() # cleanup
+
         data = {
             'label': 'Vacation',
             'start_date': datetime.datetime.today().date() + datetime.timedelta(days=2),
@@ -845,115 +926,6 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Vacation.objects.filter(label=data['label']).exists())
-
-
-    def test_vacation__fail_before_univ_year_(self):
-        request.user = self.ref_master_etab_user
-        UniversityYear(
-            label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-        ).save()
-        data = {
-            'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=-10),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-        }
-        form = VacationForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Vacation start date must set between university year dates", form.errors["__all__"])
-
-
-
-    def test_vacation__fail_after_univ_year_(self):
-        request.user = self.ref_master_etab_user
-        UniversityYear(
-            label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-        ).save()
-        data = {
-            'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=4),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=40),
-        }
-        form = VacationForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Vacation end date must set between university year dates", form.errors["__all__"])
-
-
-    def test_vacation__fail_start_date_inside_other_vacation(self):
-        request.user = self.ref_master_etab_user
-        UniversityYear(
-            label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-        ).save()
-        Vacation(
-            label='Vac 1',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
-        ).save()
-
-        data = {
-            'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=40),
-        }
-        form = VacationForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Vacation start inside another vacation", form.errors["__all__"])
-
-
-    def test_vacation__fail_end_date_inside_other_vacation(self):
-        request.user = self.ref_master_etab_user
-        UniversityYear(
-            label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-        ).save()
-        Vacation(
-            label='Vac 1',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=50),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=60),
-        ).save()
-
-        data = {
-            'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=55),
-        }
-        form = VacationForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Vacation end inside another vacation", form.errors["__all__"])
-
-
-    def test_vacation__fail_other_vacation_inside_this_one(self):
-        request.user = self.ref_master_etab_user
-        UniversityYear(
-            label='Hello',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=100),
-            registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-        ).save()
-        Vacation(
-            label='Vac 1',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=30),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=40),
-        ).save()
-
-        data = {
-            'label': 'Vacation',
-            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
-            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=60),
-        }
-        form = VacationForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("A vacation exists inside this vacation", form.errors["__all__"])
 
 
     def test_accompanying_document_creation(self):
@@ -1000,15 +972,42 @@ class AdminFormsTestCase(TestCase):
         Test public type mention creation with group rights
         """
         now = datetime.datetime.today().date()
-        UniversityYear(
+        UniversityYear.objects.create(
             label='University Year',
             active=True,
-            start_date=now + datetime.timedelta(days=1),
+            start_date=now + datetime.timedelta(days=10),
             end_date=now + datetime.timedelta(days=100),
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        data_year = {
+        )
+        calendar_data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'YEAR',
+            'year_start_date': now + datetime.timedelta(days=15),
+            'year_end_date': now + datetime.timedelta(days=50),
+            'year_registration_start_date': now + datetime.timedelta(days=2),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'nb_authorized_immersion_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        # Failures (invalid users)
+        request.user = self.ref_str_user
+        form = CalendarForm(data=calendar_data, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
+
+        request.user = self.ref_etab_user
+        form = CalendarForm(data=calendar_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
+
+        # Fail : invalid start date
+        request.user = self.ref_master_etab_user
+
+        data = {
             'label': 'Calendar year',
             'calendar_mode': 'YEAR',
             'year_start_date': now + datetime.timedelta(days=5),
@@ -1018,42 +1017,64 @@ class AdminFormsTestCase(TestCase):
             'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
-        # Failures (invalid users)
-        request.user = self.ref_str_user
-        form = CalendarForm(data=data_year, request=request)
+        form = CalendarForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn("Start date must be set between university year dates", form.errors["__all__"])
 
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=data_year['label']).exists())
-
-        request.user = self.ref_etab_user
-        form = CalendarForm(data=data_year, request=request)
+        # Fail : invalid end date
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'YEAR',
+            'year_start_date': now + datetime.timedelta(days=15),
+            'year_end_date': now + datetime.timedelta(days=1000),
+            'year_registration_start_date': now + datetime.timedelta(days=2),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'nb_authorized_immersion_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=data_year['label']).exists())
+        self.assertIn("End date must set be between university year dates", form.errors["__all__"])
 
-        # Success
-        request.user = self.ref_master_etab_user
+        # Fail : start > end
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'YEAR',
+            'year_start_date': now + datetime.timedelta(days=50),
+            'year_end_date': now + datetime.timedelta(days=15),
+            'year_registration_start_date': now + datetime.timedelta(days=2),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'nb_authorized_immersion_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Start date greater than end date", form.errors["__all__"])
 
-        form = CalendarForm(data=data_year, request=request)
+
+        ###########
+        # Success #
+        ###########
+        form = CalendarForm(data=calendar_data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
-        self.assertTrue(Calendar.objects.filter(label=data_year['label']).exists())
+        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
+
 
     def test_calendar_creation__semester_mode(self):
         """
         Test public type mention creation with group rights
         """
         now = datetime.datetime.today().date()
-        UniversityYear(
+        UniversityYear.objects.create(
             label='University Year',
             active=True,
             start_date=now + datetime.timedelta(days=1),
             end_date=now + datetime.timedelta(days=100),
             registration_start_date=now + datetime.timedelta(days=3),
             purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        data_year = {
+        )
+        calendar_data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
             'semester1_registration_start_date': now + datetime.timedelta(days=5),
@@ -1068,117 +1089,21 @@ class AdminFormsTestCase(TestCase):
         }
         # Failures (invalid users)
         request.user = self.ref_str_user
-        form = CalendarForm(data=data_year, request=request)
+        form = CalendarForm(data=calendar_data, request=request)
         self.assertFalse(form.is_valid())
 
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=data_year['label']).exists())
+        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
 
         request.user = self.ref_etab_user
-        form = CalendarForm(data=data_year, request=request)
+        form = CalendarForm(data=calendar_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(Calendar.objects.filter(label=data_year['label']).exists())
+        self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
 
-        # Success
+        # Fail : semester 1 : start date > end date
         request.user = self.ref_master_etab_user
 
-        form = CalendarForm(data=data_year, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.assertTrue(Calendar.objects.filter(label=data_year['label']).exists())
-
-
-    def test_calendar__validation_fail_start_before_year_beginning(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=10),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'YEAR',
-            'year_start_date': now + datetime.timedelta(days=5),
-            'year_end_date': now + datetime.timedelta(days=50),
-            'year_registration_start_date': now + datetime.timedelta(days=2),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Start date must be set between university year dates", form.errors["__all__"])
-
-
-    def test_calendar__validation_fail_end_after_year_end(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'YEAR',
-            'year_start_date': now + datetime.timedelta(days=5),
-            'year_end_date': now + datetime.timedelta(days=1000),
-            'year_registration_start_date': now + datetime.timedelta(days=2),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("End date must set be between university year dates", form.errors["__all__"])
-
-
-    def test_calendar__validation_fail_start_after_end(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
-        data = {
-            'label': 'Calendar year',
-            'calendar_mode': 'YEAR',
-            'year_start_date': now + datetime.timedelta(days=50),
-            'year_end_date': now + datetime.timedelta(days=10),
-            'year_registration_start_date': now + datetime.timedelta(days=2),
-            'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
-            'year_nb_authorized_immersion': 2,
-        }
-        form = CalendarForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("Start date greater than end date", form.errors["__all__"])
-
-
-
-    def test_calendar__validation_fail_semestrer1_start_after_end_of_semester_end(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -1189,25 +1114,14 @@ class AdminFormsTestCase(TestCase):
             'semester2_end_date': now + datetime.timedelta(days=50),
             'semester2_registration_start_date': now + datetime.timedelta(days=26),
             'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
+            'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
         form = CalendarForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Semester 1 start date greater than semester 1 end date", form.errors["__all__"])
 
-
-    def test_calendar__validation_fail_semestrer1_end_after_start_semester2_start(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
+        # Fail : semester 1 end date > semester 2 start date
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -1218,25 +1132,14 @@ class AdminFormsTestCase(TestCase):
             'semester2_end_date': now + datetime.timedelta(days=50),
             'semester2_registration_start_date': now + datetime.timedelta(days=26),
             'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
+            'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
         form = CalendarForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Semester 1 ends after the beginning of semester 2", form.errors["__all__"])
 
-
-    def test_calendar__validation_fail_semestrer2_start_after_end_semester2_end(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=1),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
+        # Fail : semester 2 : start date > end date
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -1247,36 +1150,25 @@ class AdminFormsTestCase(TestCase):
             'semester2_end_date': now + datetime.timedelta(days=50),
             'semester2_registration_start_date': now + datetime.timedelta(days=26),
             'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
+            'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
         form = CalendarForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Semester 2 start date greater than semester 2 end date", form.errors["__all__"])
 
-
-    def test_calendar__validation_fail_sem1_registration_before_year_beginning(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=4),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
+        # Fail : registration date < university year dates
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
-            'semester1_registration_start_date': now + datetime.timedelta(days=1),
+            'semester1_registration_start_date': now + datetime.timedelta(days=-1),
             'semester1_start_date': now + datetime.timedelta(days=5),
             'semester1_end_date': now + datetime.timedelta(days=20),
             'semester2_start_date': now + datetime.timedelta(days=60),
             'semester2_end_date': now + datetime.timedelta(days=50),
             'semester2_registration_start_date': now + datetime.timedelta(days=26),
             'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
+            'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
         form = CalendarForm(data=data, request=request)
@@ -1286,18 +1178,7 @@ class AdminFormsTestCase(TestCase):
             form.errors["__all__"]
         )
 
-
-    def test_calendar__validation_fail_sem2_registration_before_year_beginning(self):
-        now = datetime.datetime.today().date()
-        UniversityYear(
-            label='University Year',
-            active=True,
-            start_date=now + datetime.timedelta(days=4),
-            end_date=now + datetime.timedelta(days=100),
-            registration_start_date=now + datetime.timedelta(days=3),
-            purge_date=now + datetime.timedelta(days=5),
-        ).save()
-        request.user = self.ref_master_etab_user
+        # Fail : semester 2 registration date < university year dates
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',
@@ -1306,9 +1187,9 @@ class AdminFormsTestCase(TestCase):
             'semester1_end_date': now + datetime.timedelta(days=20),
             'semester2_start_date': now + datetime.timedelta(days=60),
             'semester2_end_date': now + datetime.timedelta(days=50),
-            'semester2_registration_start_date': now + datetime.timedelta(days=1),
+            'semester2_registration_start_date': now + datetime.timedelta(days=-1),
             'global_evaluation_date': now + datetime.timedelta(days=2),
-            'registration_start_date_per_semester': 2,
+            'nb_authorized_immersion_per_semester': 2,
             'year_nb_authorized_immersion': 2,
         }
         form = CalendarForm(data=data, request=request)
@@ -1317,6 +1198,14 @@ class AdminFormsTestCase(TestCase):
             "semester 2 start registration date must set between university year dates",
             form.errors["__all__"]
         )
+
+        ###########
+        # Success #
+        ###########
+        form = CalendarForm(data=calendar_data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
 
 
     def test_public_document_creation(self):
@@ -1356,7 +1245,6 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(PublicDocument.objects.filter(label='testPublicDocument').exists())
-
 
 
     def test_evaluation_type_creation(self):
@@ -1510,6 +1398,7 @@ class AdminFormsTestCase(TestCase):
         # Test again with bad user:
         request.user = self.ref_master_etab_user
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
+
 
     def test_information_text_creation(self):
         """
