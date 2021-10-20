@@ -419,26 +419,24 @@ $(document).ready(function(){
       ],
     });
 
-    function check_course_publication ( course_id )
-    {
-        $.post({
-            beforeSend: function (request) {
-                   request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-            },
-            url: '/api/check_course_publication/' + course_id,
-            success: function(data) {
-                if (data['data'])
-                {
-                    if ( !data['data']['published'] ) {
-                        courseDialog.dialog('open');
-                    }
-                }
+    function check_course_publication ( course_id ) {
+      $.get({
+        beforeSend: function (request) {
+          request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        },
+        url: '/api/check_course_publication/' + course_id,
+        success: function(data) {
+          if (data['data']) {
+            if ( !data['data']['published'] ) {
+              courseDialog.dialog('open');
             }
-        });
+          }
+        }
+      });
     }
 
     $('#id_course').change(function(event){
-        check_course_publication(event.target.value);
+      check_course_publication(event.target.value);
     });
 
     function check_date() {

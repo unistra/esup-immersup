@@ -18,7 +18,7 @@ from ..admin_forms import (
 )
 from ..forms import SlotForm, MyHighSchoolForm, HighSchoolStudentImmersionUserForm
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Establishment, Structure,
     CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
     PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
     Training, Slot, Course)
@@ -47,6 +47,17 @@ class FormTestCase(TestCase):
         """
         SetUp for Admin Forms tests
         """
+        self.master_establishment = Establishment.objects.create(
+            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test1@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        self.establishment = Establishment.objects.create(
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False,
+            email='test2@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
         self.highschool_user = get_user_model().objects.create_user(
             username='hs',
             password='pass',
@@ -68,12 +79,21 @@ class FormTestCase(TestCase):
             first_name='lyc',
             last_name='REF',
         )
+        self.ref_master_etab_user = get_user_model().objects.create_user(
+            username='ref_master_etab',
+            password='pass',
+            email='ref_master_etab@no-reply.com',
+            first_name='ref_master_etab',
+            last_name='ref_master_etab',
+            establishment=self.master_establishment
+        )
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
             email='immersion@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
+            establishment=self.establishment
         )
 
         self.client = Client()
@@ -120,66 +140,31 @@ class FormTestCase(TestCase):
                         year_nb_authorized_immersion=4
                         )
 
-    def test_clean__no_calendar(self):
-        """
-        Test Evaluation form link creation
-        """
-        self.calendar.delete()
-        type = EvaluationType.objects.create(code='testCode', label='testLabel')
+        self.evaluation_type = EvaluationType.objects.create(code='testCode', label='testLabel')
 
-        request.user = self.ref_etab_user
+
+    def test_slot_form(self):
+        """
+        Slot form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
 
         data = {
             'course': self.course.id,
             'published': False,
             'n_places': 10,
         }
-        form = SlotForm(data=data)
 
-        self.assertFalse(form.is_valid())
-
-
-    def test_clean__not_published(self):
-        """
-        Test Evaluation form link creation
-        """
-        type = EvaluationType.objects.create(code='testCode', label='testLabel')
-
-        request.user = self.ref_etab_user
-
-        data = {
-            'course': self.course.id,
-            'published': False,
-            'n_places': 10,
-        }
+        ###########
+        # Success #
+        ###########
+        # Unpublished slot
         form = SlotForm(data=data)
         self.assertTrue(form.is_valid())
 
-    def test_clean__missing_mandatory_fields(self):
-        """
-        Test Evaluation form link creation
-        """
-        type = EvaluationType.objects.create(code='testCode', label='testLabel')
-
-        request.user = self.ref_etab_user
-
-        data = {
-            'course': self.course.id,
-            'n_places': 10,
-            'published': True,
-        }
-        form = SlotForm(data=data)
-        self.assertFalse(form.is_valid())
-
-    def test_clean__ok(self):
-        """
-        Test Evaluation form link creation
-        """
-        type = EvaluationType.objects.create(code='testCode', label='testLabel')
-
-        request.user = self.ref_etab_user
-
-        data = {
+        # Published slot
+        valid_data = {
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
@@ -191,46 +176,23 @@ class FormTestCase(TestCase):
             'n_places': 10,
             'published': True,
         }
-        form = SlotForm(data=data)
+        form = SlotForm(data=valid_data)
         self.assertTrue(form.is_valid())
 
-    def test_clean__publish_course(self):
-        """
-        Test Evaluation form link creation
-        """
+        # Published slot with an unpublished course
         self.course.published = False
         self.course.save()
 
-        request.user = self.ref_etab_user
-
-        data = {
-            'course': self.course.id,
-            'course_type': self.course_type.id,
-            'campus': self.campus.id,
-            'building': self.building.id,
-            'room': 'room 1',
-            'date': self.today + datetime.timedelta(days=10),
-            'start_time': datetime.time(hour=12),
-            'end_time': datetime.time(hour=14),
-            'n_places': 10,
-            'published': True,
-        }
         form = SlotForm(data=data)
-        self.assertFalse(self.course.published)
         self.assertTrue(form.is_valid())
-        self.assertTrue(Course.objects.get(id=self.course.id))
+        slot = form.save()
+        self.assertFalse(slot.published)
 
-    def test_clean__date_not_in_calendar(self):
-        """
-        Test Evaluation form link creation
-        """
+        #########
+        # FAILS #
+        #########
 
-        self.course.published = False
-        self.course.save()
-
-        request.user = self.ref_etab_user
-
-        data = {
+        invalid_data = {
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
@@ -242,36 +204,37 @@ class FormTestCase(TestCase):
             'n_places': 10,
             'published': True,
         }
+        # Fail : Not between calendar dates
+        form = SlotForm(data=invalid_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+
+        # Fail : time errors
+        invalid_data["date"] = self.today + datetime.timedelta(days=10)
+        invalid_data["start_time"] = datetime.time(hour=20)
+        invalid_data["end_time"] = datetime.time(hour=2)
+        form = SlotForm(data=invalid_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Error: Start time must be set before end time", form.errors["start_time"])
+
+        # Fail : missing fields for a published Slot
+        data["published"] = True
         form = SlotForm(data=data)
         self.assertFalse(form.is_valid())
+        self.assertIn("Required fields are not filled in", form.errors["__all__"])
 
-
-    def test_clean__wrong_start_end_time(self):
-        """
-        Test Evaluation form link creation
-        """
-        self.course.published = False
-        self.course.save()
-
-        request.user = self.ref_etab_user
-
-        data = {
-            'course': self.course.id,
-            'course_type': self.course_type.id,
-            'campus': self.campus.id,
-            'building': self.building.id,
-            'room': 'room 1',
-            'date': self.today + datetime.timedelta(days=10),
-            'start_time': datetime.time(hour=20),
-            'end_time': datetime.time(hour=2),
-            'n_places': 10,
-            'published': True,
-        }
+        # Fail : no calendar
+        self.calendar.delete()
         form = SlotForm(data=data)
         self.assertFalse(form.is_valid())
+        self.assertIn("Error: A calendar is required to set a slot.", form.errors["__all__"])
 
 
-    def test_HighSchoolStudentImmersionUserForm__ok(self):
+    def test_HighSchoolStudentImmersionUserForm(self):
+        """
+        High school student user form
+        """
+        # Success
         request.user = self.ref_etab_user
         data = {
             'first_name': 'hello',
@@ -280,21 +243,18 @@ class FormTestCase(TestCase):
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertTrue(form.is_valid())
 
-
-    def test_HighSchoolStudentImmersionUserForm__no_last_name(self):
-        request.user = self.ref_etab_user
+        # Fail : missing last_name
         data = {
             'first_name': 'hello',
         }
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertFalse(form.is_valid())
+        self.assertIn("This field must be filled", form.errors["last_name"])
 
-
-    def test_HighSchoolStudentImmersionUserForm__no_first_name(self):
-        request.user = self.ref_etab_user
+        # Fail : missing first_name
         data = {
             'last_name': 'hello',
         }
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertFalse(form.is_valid())
-
+        self.assertIn("This field must be filled", form.errors["first_name"])
