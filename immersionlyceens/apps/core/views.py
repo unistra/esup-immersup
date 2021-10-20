@@ -663,6 +663,8 @@ def speaker(request, id=None):
 
             if speaker:
                 messages.success(request, _("Speaker successfully updated."))
+                if 'email' in speaker_form.changed_data:
+                    messages.warning(request, _("Warning : the username is now the new speaker's email address"))
             else:
                 messages.success(request, _("Speaker successfully created."))
             return redirect(reverse('my_high_school_speakers', kwargs={'high_school_id': high_school.id}))

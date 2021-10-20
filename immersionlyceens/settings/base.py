@@ -563,7 +563,7 @@ INSTITUTES_URL = (
 
 
 # Notifications display time (milliseconds)
-MESSAGES_TIMEOUT = 3000
+MESSAGES_TIMEOUT = 5000
 
 LOGIN_REDIRECT_URL = '/'
 
