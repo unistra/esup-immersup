@@ -635,6 +635,7 @@ def speaker(request, id=None):
     :return: speaker form
     """
     speaker = None
+    initial = {}
     high_school = request.user.highschool
     speaker_id = id or request.POST.get("id")
 
@@ -647,12 +648,12 @@ def speaker(request, id=None):
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("Speaker not found"))
             return redirect(reverse('my_high_school_speakers', kwargs={'high_school_id': high_school.id}))
-
-    initial = {
-        'highschool': high_school,
-        'is_active': True,
-        'establishment': None
-    }
+    else:
+        initial = {
+            'highschool': high_school,
+            'is_active': True,
+            'establishment': None
+        }
 
     if request.method == 'POST':
         speaker_form = ImmersionUserCreationForm(request.POST, instance=speaker, initial=initial, request=request)

@@ -1983,6 +1983,7 @@ def ajax_get_highschool_speakers(request, highschool_id=None):
                 'last_name': speaker.last_name,
                 'first_name': speaker.first_name,
                 'email': speaker.email,
+                'is_active': _("Yes") if speaker.is_active else _("No"),
                 'has_slots': _("Yes") if has_slots else _("No"),
                 'can_delete': not has_slots
             })

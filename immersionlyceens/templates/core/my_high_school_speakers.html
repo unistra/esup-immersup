@@ -40,12 +40,14 @@
                     <th>{% trans 'Last name' %}</th>
                     <th>{% trans 'First name' %}</th>
                     <th>{% trans 'Email' %}</th>
+                    <th id="is_active_filter">{% trans 'Active' %}</th>
                     <th id="has_slots_filter">{% trans 'Has courses or events' %}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -101,6 +103,7 @@
     { "data": "last_name" },
     { "data": "first_name" },
     { "data": "email" },
+    { "data": "is_active" },
     { "data": "has_slots" },
     { "data": "can_delete",
       "render": function(data, type, row) {
@@ -135,6 +138,12 @@
   // Filters init
   yadcf.init(dt, [{
     column_number: 3,
+    filter_default_label: "",
+    filter_container_id: "is_active_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  }, {
+    column_number: 4,
     filter_default_label: "",
     filter_container_id: "has_slots_filter",
     style_class: "form-control form-control-sm",
