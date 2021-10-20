@@ -1,3 +1,14 @@
+# pylint: disable=R0903,C0115,W0201,E1101,C0302
+"""
+Models classes file
+
+pylint ignore:
+- R0903: too few public methods, because it's models classes
+- C0115: class docstring, because of Meta classes
+- W0201: attr set outside init, because it's models classes
+- E1101: method/attr not exists in class A. .objects exists but not listed
+- C0302: too many lines. Nope, it's the right amount of lines :P
+"""
 import datetime
 import logging
 import re
@@ -9,7 +20,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import Count, Q, Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date
 from django.utils.translation import pgettext, ugettext_lazy as _
@@ -47,10 +58,8 @@ class Establishment(models.Model):
     )
     data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
 
-
     def __str__(self):
-        return "%s : %s%s" % (self.code, self.label, _(" (master)") if self.master else "")
-
+        return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
 
     class Meta:
         verbose_name = _('Establishment')
@@ -83,7 +92,6 @@ class Structure(models.Model):
             super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A structure with this code already exists'))
-
 
     class Meta:
         verbose_name = _('Structure')
@@ -121,7 +129,6 @@ class HighSchool(models.Model):
 
     def __str__(self):
         return "%s - %s" % (self.city, self.label)
-
 
     class Meta:
         verbose_name = _('High school')
@@ -406,7 +413,6 @@ class TrainingDomain(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A training domain with this label already exists'))
 
-
     class Meta:
         verbose_name = _('Training domain')
         verbose_name_plural = _('Training domains')
@@ -463,7 +469,6 @@ class Training(models.Model):
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
-
     def __str__(self):
         return self.label
 
@@ -473,7 +478,6 @@ class Training(models.Model):
             super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A training with this label already exists'))
-
 
     class Meta:
         verbose_name = _('Training')
@@ -495,7 +499,6 @@ class Campus(models.Model):
 
     def __str__(self):
         return f"{self.label} ({self.establishment.label if self.establishment else '-'})"
-
 
     class Meta:
         verbose_name = _('Campus')
@@ -520,7 +523,6 @@ class BachelorMention(models.Model):
             super(BachelorMention, self).validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A bachelor mention with this label already exists'))
-
 
     class Meta:
         """Meta class"""
@@ -552,7 +554,6 @@ class Building(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A building with this label for the same campus already exists'))
 
-
     class Meta:
         verbose_name = _('Building')
         unique_together = ('campus', 'label')
@@ -580,7 +581,6 @@ class CancelType(models.Model):
             super(CancelType, self).validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A cancel type with this label already exists'))
-
 
     class Meta:
         """Meta class"""
@@ -611,7 +611,6 @@ class CourseType(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A course type with this label already exists'))
 
-
     class Meta:
         """Meta class"""
         verbose_name = _('Course type')
@@ -638,7 +637,6 @@ class GeneralBachelorTeaching(models.Model):
             super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A specialty teaching with this label already exists'))
-
 
     class Meta:
         """Meta class"""
@@ -669,7 +667,6 @@ class PublicType(models.Model):
             super(PublicType, self).validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A public type with this label already exists'))
-
 
     class Meta:
         """Meta class"""
@@ -714,7 +711,6 @@ class UniversityYear(models.Model):
     def date_is_between(self, _date):
         return self.start_date <= _date <= self.end_date
 
-
     class Meta:
         """Meta class"""
         verbose_name = _('University year')
@@ -745,7 +741,6 @@ class Holiday(models.Model):
     @classmethod
     def date_is_a_holiday(cls, _date):
         return Holiday.objects.filter(date=_date).exists()
-
 
     class Meta:
         """Meta class"""
@@ -808,7 +803,6 @@ class Vacation(models.Model):
             return qs.first()
         else:
             return None
-
 
     class Meta:
         """Meta class"""
@@ -896,7 +890,6 @@ class Calendar(models.Model):
                 'start': self.year_start_date,
                 'end': self.year_end_date,
             }
-
 
     class Meta:
         """Meta class"""
@@ -996,7 +989,6 @@ class Course(models.Model):
     def get_alerts_count(self):
         return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
 
-
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
@@ -1011,7 +1003,6 @@ class MailTemplateVars(models.Model):
 
     def __str__(self):
         return "%s : %s" % (self.code, self.description)
-
 
     class Meta:
         verbose_name = _('Template variable')
@@ -1047,7 +1038,6 @@ class MailTemplate(models.Model):
         return parser(
             user=user, request=request, message_body=self.body, vars=[v for v in self.available_vars.all()], **kwargs,
         )
-
 
     class Meta:
         verbose_name = _('Mail template')
@@ -1100,7 +1090,6 @@ class InformationText(models.Model):
 
     def __str__(self):
         return self.label
-
 
     class Meta:
         verbose_name = _('Information text')
@@ -1156,7 +1145,6 @@ class AccompanyingDocument(models.Model):
         return ",".join([t.label for t in self.public_type.all()])
 
     get_types.short_description = _('Public type')
-
 
     class Meta:
         """Meta class"""
@@ -1214,7 +1202,6 @@ class PublicDocument(models.Model):
 
         return list(set(l))
 
-
     class Meta:
         """Meta class"""
         verbose_name = _('Public document')
@@ -1241,7 +1228,6 @@ class EvaluationType(models.Model):
             super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('An evaluation type with this code already exists'))
-
 
     class Meta:
         """Meta class"""
@@ -1279,7 +1265,6 @@ class EvaluationFormLink(models.Model):
             super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('An evaluation form link with this evaluation type already exists'))
-
 
     class Meta:
         """Meta class"""
@@ -1339,7 +1324,6 @@ class Slot(models.Model):
         """
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
-
     class Meta:
         verbose_name = _('Slot')
         verbose_name_plural = _('Slots')
@@ -1381,13 +1365,15 @@ class Immersion(models.Model):
     attendance_status = models.SmallIntegerField(_("Attendance status"), default=0, choices=ATT_STATUS)
     survey_email_sent = models.BooleanField(_("Survey notification status"), default=False)
 
-
     def get_attendance_status(self) -> str:
+        """
+        get attendance status
+        :return: status
+        """
         try:
             return self.ATT_STATUS[self.attendance_status][1]
         except KeyError:
             return ''
-
 
     class Meta:
         verbose_name = _('Immersion')
@@ -1402,10 +1388,8 @@ class GeneralSettings(models.Model):
         validators=[JsonSchemaValidator(join(dirname(__file__), 'schemas', 'general_settings.json'))]
     )
 
-
-    def __str__(self):
-        return self.setting
-
+    def __str__(self) -> str:
+        return str(self.setting)
 
     class Meta:
         verbose_name = _('General setting')
@@ -1424,7 +1408,6 @@ class UserCourseAlert(models.Model):
     course = course = models.ForeignKey(
         Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="alerts",
     )
-
 
     class Meta:
         unique_together = ('email', 'course')
@@ -1474,7 +1457,6 @@ class AnnualStatistics(models.Model):
     approved_highschools = models.SmallIntegerField(_("Approved highschools count"), default=0)
     highschools_without_students = models.SmallIntegerField(_("Highschools with no students"), default=0)
 
-
     class Meta:
         verbose_name = _('Annual statistics')
         verbose_name_plural = _('Annual statistics')
@@ -1497,17 +1479,16 @@ class CertificateLogo(models.Model):
 
     objects = CustomDeleteManager()
 
-
     @classmethod
     def object(cls):
+        """get only allowed object"""
         return cls._default_manager.all().first()
-
 
     # Singleton !
     def save(self, *args, **kwargs):
+        """Save a singleton"""
         self.id = 1
         return super().save(*args, **kwargs)
-
 
     def delete(self, using=None, keep_parents=False):
         """Delete file uploaded from logo Filefield"""
@@ -1518,7 +1499,6 @@ class CertificateLogo(models.Model):
     def __str__(self):
         """str"""
         return 'logo'
-
 
     class Meta:
         """Meta class"""
@@ -1543,6 +1523,7 @@ class CertificateSignature(models.Model):
 
     @classmethod
     def object(cls):
+        """get all objects"""
         return cls._default_manager.all().first()
 
 
@@ -1561,7 +1542,6 @@ class CertificateSignature(models.Model):
     def __str__(self):
         """str"""
         return 'signature'
-
 
     class Meta:
         """Meta class"""
@@ -1582,9 +1562,9 @@ class OffOfferEventType(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(OffOfferEventType, self).validate_unique()
-        except ValidationError as e:
-            raise ValidationError(_('An off offer event type with this label already exists'))
+            super().validate_unique()
+        except ValidationError as exc:
+            raise ValidationError(_('An off offer event type with this label already exists')) from exc
 
     class Meta:
         verbose_name = _('Off offer event type')
