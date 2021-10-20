@@ -37,8 +37,8 @@
               <table id="speakers_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
                 <thead>
                   <tr>
-                    <th id="lastname_filter">{% trans 'Last name' %}</th>
-                    <th id="firstname_filter">{% trans 'First name' %}</th>
+                    <th>{% trans 'Last name' %}</th>
+                    <th>{% trans 'First name' %}</th>
                     <th>{% trans 'Email' %}</th>
                     <th id="has_slots_filter">{% trans 'Has courses or events' %}</th>
                     <th></th>
@@ -104,7 +104,9 @@
     { "data": "has_slots" },
     { "data": "can_delete",
       "render": function(data, type, row) {
-        let msg = ""
+        let msg = "<a href='/core/speaker/"+ row.id +"' type=\"button\" class=\"ml-4 btn btn-light btn-sm\" title=\"{% trans 'Edit' %}\">" +
+                 "<i class='fa fas fa-edit fa-2x'></i>" +
+                 "</a>"
 
         if(data === true) {
           msg += "<button type=\"button\" class=\"ml-4 btn btn-light btn-sm\" name=\"delete\" onclick=\"open_modal(" + row.id + ")\" title=\"{% trans 'Delete' %}\">" +
@@ -132,24 +134,10 @@
 
   // Filters init
   yadcf.init(dt, [{
-    column_number: 0,
-    filter_default_label: "",
-    filter_container_id: "lastname_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 1,
-    filter_type: "text",
-    filter_default_label: "",
-    filter_container_id: "firstname_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }, {
     column_number: 3,
-    filter_type: "text",
     filter_default_label: "",
-    style_class: "form-control form-control-sm",
     filter_container_id: "has_slots_filter",
+    style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   }]);
 });

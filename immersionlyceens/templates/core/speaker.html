@@ -23,6 +23,7 @@
             {% trans "Speaker data" %}
           </div>
           <div class="card-body">
+            <input type="hidden" name="id" value="{{ speaker.id }}">
             <div class="form-group row">
               <label class="col-sm-3" for="id_last_name"><strong>{% trans "Last name" %}*</strong></label>
               <div class="col-sm-6">
@@ -72,6 +73,7 @@
         <br>
         <br>
         <div class="form-group">
+          <a href="{% url 'my_high_school_speakers' high_school_id=high_school.id %}" class="btn btn-primary">{% trans "Back" %}</a>
           <button class="btn btn-primary">{% trans "Submit" %}</button>
         </div>
       </form>

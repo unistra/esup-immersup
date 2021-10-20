@@ -628,31 +628,53 @@ def my_high_school_speakers(request, high_school_id=None):
 
 
 @groups_required('REF-LYC',)
-def speaker(request, high_school_id=None):
-    if not request.user.highschool:
+def speaker(request, id=None):
+    """
+    Speaker form for high school managers
+    :param id: speaker to edit
+    :return: speaker form
+    """
+    speaker = None
+    high_school = request.user.highschool
+    speaker_id = id or request.POST.get("id")
+
+    if not high_school:
         return redirect('home')
 
-    hs = request.user.highschool
-
-    context = {
-        'high_school': hs,
-    }
+    if speaker_id:
+        try:
+            speaker = ImmersionUser.objects.get(pk=speaker_id)
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("Speaker not found"))
+            return redirect(reverse('my_high_school_speakers', kwargs={'high_school_id': high_school.id}))
 
     initial = {
-        'highschool': hs,
+        'highschool': high_school,
         'is_active': True,
         'establishment': None
     }
 
     if request.method == 'POST':
-        speaker_form = ImmersionUserCreationForm(request.POST, initial=initial, request=request)
+        speaker_form = ImmersionUserCreationForm(request.POST, instance=speaker, initial=initial, request=request)
         if speaker_form.is_valid():
             new_speaker = speaker_form.save()
             Group.objects.get(name='INTER').user_set.add(new_speaker)
-    else:
-        speaker_form = ImmersionUserCreationForm(initial=initial, request=request)
 
-    context['speaker_form'] = speaker_form
+            if speaker:
+                messages.success(request, _("Speaker successfully updated."))
+            else:
+                messages.success(request, _("Speaker successfully created."))
+            return redirect(reverse('my_high_school_speakers', kwargs={'high_school_id': high_school.id}))
+        else:
+            messages.error(request, speaker_form.errors)
+    else:
+        speaker_form = ImmersionUserCreationForm(instance=speaker, initial=initial, request=request)
+
+    context = {
+        'high_school': high_school,
+        'speaker_form': speaker_form,
+        'speaker': speaker
+    }
 
     return render(request, 'core/speaker.html', context)
 

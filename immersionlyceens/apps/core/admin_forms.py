@@ -828,17 +828,22 @@ class ImmersionUserCreationForm(UserCreationForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        email = cleaned_data.get("email")
 
         # A high-school manager can only create high-school speakers
         # For them, the login in always the email address
 
         establishment = cleaned_data.get("establishment")
 
+        if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            self.add_error('email', _("This email address is already used"))
+            return cleaned_data
+
         # Override username
         if not establishment or (establishment and establishment.data_source_plugin is None):
-            cleaned_data["username"] = cleaned_data.get("email")
+            cleaned_data["username"] = email
 
-        # Force high school
+        # Override high school when a high school manager creates an account
         if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
             self.instance.highschool = self.request.user.highschool
 
@@ -859,8 +864,8 @@ class ImmersionUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
         # fields = '__all__'
-        fields = ("establishment", "username", "search", "password1", "password2", "email", "first_name", "last_name",
-                  "is_active")
+        fields = ("establishment", "username", "search", "password1", "password2", "email",
+                  "first_name", "last_name", "is_active")
 
 
 class ImmersionUserChangeForm(UserChangeForm):
