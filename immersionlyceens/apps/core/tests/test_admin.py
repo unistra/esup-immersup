@@ -10,6 +10,7 @@ from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
+from django.utils import timezone
 
 from ..admin import CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin, TrainingAdmin, StructureAdmin
 
@@ -59,12 +60,22 @@ class AdminFormsTestCase(TestCase):
             username='super', password='pass', email='immersion1@no-reply.com'
         )
         self.master_establishment = Establishment.objects.create(
-            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test1@test.com',
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test1@test.com',
             establishment_type='HIGHER_INST'
         )
 
         self.establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test2@test.com',
+            code='ETA2',
+            label='Etablissement 2',
+            short_label='Eta 2',
+            active=True,
+            master=False,
+            email='test2@test.com',
             establishment_type='HIGHER_INST'
         )
 
@@ -98,7 +109,8 @@ class AdminFormsTestCase(TestCase):
             email='immersion2@no-reply.com',
             first_name='ref_master_etab',
             last_name='ref_master_etab',
-            establishment=self.master_establishment
+            establishment=self.master_establishment,
+            date_joined=timezone.now()
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
@@ -107,7 +119,8 @@ class AdminFormsTestCase(TestCase):
             email='immersion3@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
-            establishment=self.establishment
+            establishment=self.establishment,
+            date_joined=timezone.now()
         )
 
         self.ref_str_user = get_user_model().objects.create_user(
@@ -116,6 +129,7 @@ class AdminFormsTestCase(TestCase):
             email='immersion4@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
+            date_joined=timezone.now(),
         )
 
         self.ref_str_user_2 = get_user_model().objects.create_user(
@@ -124,6 +138,7 @@ class AdminFormsTestCase(TestCase):
             email='immersion5@no-reply.com',
             first_name='ref_str_2',
             last_name='ref_str_2',
+            date_joined=timezone.now(),
         )
 
         self.ref_lyc_user = get_user_model().objects.create_user(
@@ -133,7 +148,8 @@ class AdminFormsTestCase(TestCase):
             first_name='ref_lyc',
             last_name='ref_lyc',
             is_staff=True,
-            highschool=self.high_school
+            highschool=self.high_school,
+            date_joined=timezone.now(),
         )
 
         self.ref_lyc_user_2 = get_user_model().objects.create_user(
@@ -142,7 +158,8 @@ class AdminFormsTestCase(TestCase):
             email='ref-lyc2@no-reply.com',
             first_name='ref_lyc2',
             last_name='ref_lyc2',
-            highschool=self.high_school_2
+            highschool=self.high_school_2,
+            date_joined=timezone.now(),
         )
 
         self.speaker_user = get_user_model().objects.create_user(
@@ -151,7 +168,8 @@ class AdminFormsTestCase(TestCase):
             email='speaker1@no-reply.com',
             first_name='speaker1',
             last_name='speaker1',
-            highschool=self.high_school
+            highschool=self.high_school,
+            date_joined=timezone.now()
         )
 
         self.speaker_user_2 = get_user_model().objects.create_user(
@@ -160,7 +178,8 @@ class AdminFormsTestCase(TestCase):
             email='speaker2@no-reply.com',
             first_name='speaker2',
             last_name='speaker2',
-            highschool=self.high_school_2
+            highschool=self.high_school_2,
+            date_joined=timezone.now()
         )
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
@@ -1338,12 +1357,28 @@ class AdminFormsTestCase(TestCase):
         request.user = self.superuser
         form = EstablishmentForm(data=data, request=request)
         self.assertTrue(form.is_valid())
-
         form.save()
 
         eta = Establishment.objects.get(code='ETA1')
         self.assertTrue(eta.active) # default
         self.assertTrue(eta.master) # first establishment creation : master = True
+        self.assertIsNone(eta.data_source_plugin) # No plugin
+        self.assertIsNone(eta.data_source_settings) # No plugin settings
+
+        # Delete, recreate with account plugin, and check again
+        eta.delete()
+        # see settings.AVAILABLE_ACCOUNTS_PLUGINS
+        data["data_source_plugin"] = "LDAP"
+        form = EstablishmentForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        eta = Establishment.objects.get(code='ETA1')
+        self.assertTrue(eta.active)  # default
+        self.assertTrue(eta.master)  # first establishment creation : master = True
+        self.assertEqual(eta.data_source_plugin, 'LDAP')  # LDAP plugin
+        self.assertIsNotNone(eta.data_source_settings)  # LDAP plugin settings
+
 
         # Create a second establishment and check the 'unique' rules
         # unique code
@@ -1369,7 +1404,6 @@ class AdminFormsTestCase(TestCase):
 
         form = EstablishmentForm(data=data, request=request)
         self.assertTrue(form.is_valid())
-
         form.save()
 
         eta2 = Establishment.objects.get(code='ETA2')
@@ -1532,7 +1566,6 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=self.speaker_user_2))
 
-
         # User creation
         # Check the overriden fields
         data = {
@@ -1550,3 +1583,38 @@ class AdminFormsTestCase(TestCase):
         self.assertEqual(new_speaker.email, data['email'])
         self.assertEqual(new_speaker.highschool, self.ref_lyc_user.highschool)
         self.assertTrue(new_speaker.has_groups('INTER'))
+
+
+    def test_admin_immersionuser_change_form(self):
+        structure_1_data = {'code': 'A', 'label': 'test 1', 'active': True, 'establishment': self.master_establishment}
+        structure_2_data = {'code': 'B', 'label': 'test 2', 'active': True, 'establishment': self.establishment}
+        structure_1 = Structure.objects.create(**structure_1_data)
+        structure_2 = Structure.objects.create(**structure_2_data)
+
+        self.ref_str_user.establishment = self.establishment
+        self.ref_str_user.structure = structure_2
+        self.ref_str_user.save()
+
+        self.ref_str_user_2.establishment = self.master_establishment
+        self.ref_str_user_2.structure = structure_1
+        self.ref_str_user_2.save()
+
+        request.user = self.ref_master_etab_user
+
+        # Try an establishment update : forbidden
+        self.assertEqual(self.ref_etab_user.establishment, self.establishment)
+        data = {
+            'establishment': self.master_establishment,
+            'username': self.ref_etab_user.username,
+            'email': self.ref_etab_user.email,
+            'first_name': self.ref_etab_user.first_name,
+            'last_name': self.ref_etab_user.last_name,
+            'date_joined': self.ref_etab_user.date_joined
+        }
+
+        form = ImmersionUserChangeForm(data, instance=self.ref_etab_user, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.ref_etab_user.refresh_from_db()
+        self.assertEqual(self.ref_etab_user.establishment, self.establishment)
