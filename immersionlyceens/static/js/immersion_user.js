@@ -29,11 +29,9 @@ $(document).ready(function() {
     function refresh_search_field() {
       if(!has_plugin) {
         $(".field-search").hide()
-        $("#id_username").attr("disabled", false)
       }
       else {
         $(".field-search").show()
-        $("#id_username").attr("disabled", true)
       }
     }
 

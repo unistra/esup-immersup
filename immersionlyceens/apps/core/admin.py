@@ -159,6 +159,16 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         ),
     )
 
+    high_school_manager_add_fieldsets = (
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': ('email', 'first_name', 'last_name',),
+            },
+        ),
+    )
+
     def __init__(self, model, admin_site):
         super(CustomUserAdmin, self).__init__(model, admin_site)
         self.form.admin_site = admin_site
@@ -226,15 +236,16 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
         if obj:
-            if request.user.is_superuser or request.user == obj:
-                return True
-            elif obj.is_superuser:
+            if obj.is_superuser:
                 return False
 
             # When creating a user, the group is not here yet
             if request.user.is_master_establishment_manager():
-                return obj.establishment and not obj.establishment.master
+                return not obj.is_master_establishment_manager()
 
             # A user can only be updated if not superuser and the authenticated user has
             # rights on ALL his groups
@@ -276,10 +287,15 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         # On user change, add structures in permissions fieldset
         # after Group selection
         if not obj:
+            if not request.user.is_superuser:
+                if request.user.is_high_school_manager():
+                    return self.high_school_manager_add_fieldsets
+
             return super().get_fieldsets(request, obj)
         else:
             lst = list(UserAdmin.fieldsets)
             permissions_fields = list(lst[2])
+
             permissions_fields_list = list(permissions_fields[1]['fields'])
             permissions_fields_list.insert(4, 'establishment')
             permissions_fields_list.insert(5, 'structures')
