@@ -353,7 +353,7 @@ class StructureForm(forms.ModelForm):
         if self.initial:
             self.fields["code"].disabled = True
             self.fields["establishment"].disabled = True
-            self.fields["establishment"].help_text = _("The establishement cannot be updated")
+            self.fields["establishment"].help_text = _("The establishment cannot be updated")
 
         if self.fields.get("establishment") and not self.request.user.is_superuser \
                 and self.request.user.is_establishment_manager():
@@ -778,10 +778,10 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
-            # Disable establishement modification
+            # Disable establishment modification
             if self.instance.id and self.fields.get('establishment'):
                 self.fields["establishment"].disabled = True
-                self.fields["establishment"].help_text = _("The establishement cannot be updated once the user created")
+                self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
@@ -838,73 +838,73 @@ class ImmersionUserChangeForm(UserChangeForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        groups = cleaned_data['groups']
-        structures = cleaned_data['structures']
-        establishment = cleaned_data['establishment']
-        highschool = cleaned_data['highschool']
+        print(cleaned_data)
+        groups = cleaned_data.get('groups')
+        structures = cleaned_data.get('structures')
+        establishment = cleaned_data.get('establishment')
+        highschool = cleaned_data.get('highschool')
         forbidden_msg = _("Forbidden")
 
         is_own_account = self.request.user.id == self.instance.id
 
-        if groups.filter(name='REF-ETAB').exists():
-            if establishment is None or establishment.master:
-                msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
-                self._errors['establishment'] = self.error_class([msg])
-                del cleaned_data["establishment"]
+        if groups:
+            if groups and groups.filter(name='REF-ETAB').exists():
+                if establishment is None or establishment.master:
+                    msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
+                    self._errors['establishment'] = self.error_class([msg])
+                    del cleaned_data["establishment"]
 
-        if groups.filter(name='REF-ETAB-MAITRE').exists():
-            cleaned_data['is_staff'] = True
-            if establishment is None or not establishment.master:
-                msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
-                self._errors['establishment'] = self.error_class([msg])
-                del cleaned_data["establishment"]
+            if groups and groups.filter(name='REF-ETAB-MAITRE').exists():
+                cleaned_data['is_staff'] = True
+                if establishment is None or not establishment.master:
+                    msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
+                    self._errors['establishment'] = self.error_class([msg])
+                    del cleaned_data["establishment"]
 
-        """
-        # FIXME / TODO : check these potential restrictions
-        
-        if establishment and establishment.master and not groups.filter(name='REF-ETAB-MAITRE').exists():
-            msg = _("The group 'REF-ETAB-MAITRE' is mandatory when you select a master establishment")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
+            """
+            # FIXME / TODO : check these potential restrictions
+            
+            if establishment and establishment.master and not groups.filter(name='REF-ETAB-MAITRE').exists():
+                msg = _("The group 'REF-ETAB-MAITRE' is mandatory when you select a master establishment")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
+    
+            if establishment and not establishment.master and not groups.filter(name='REF-ETAB').exists():
+                msg = _("The group 'REF-ETAB' is mandatory when you select a non-master establishment")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
+            """
 
-        if establishment and not establishment.master and not groups.filter(name='REF-ETAB').exists():
-            msg = _("The group 'REF-ETAB' is mandatory when you select a non-master establishment")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
-        """
+            if groups.filter(name='REF-STR').exists() and not structures.count():
+                msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
+                self._errors['structures'] = self.error_class([msg])
+                del cleaned_data["structures"]
 
-        if groups.filter(name='REF-STR').exists() and not structures.count():
-            msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
-            self._errors['structures'] = self.error_class([msg])
-            del cleaned_data["structures"]
+            if structures.count() and not groups.filter(name='REF-STR').exists():
+                msg = _("The group 'REF-STR' is mandatory when you add a structure")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
 
-        if structures.count() and not groups.filter(name='REF-STR').exists():
-            msg = _("The group 'REF-STR' is mandatory when you add a structure")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
+            if groups.filter(name='REF-LYC').exists() and not highschool:
+                msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
+                self._errors["highschool"] = self.error_class([msg])
+                del cleaned_data["highschool"]
 
-        if groups.filter(name='REF-LYC').exists() and not highschool:
-            msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
-            self._errors["highschool"] = self.error_class([msg])
-            del cleaned_data["highschool"]
-
-        if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
-            msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
+            if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
+                msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
 
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
             # a member of REF-ETAB group
             if is_own_account:
-                del cleaned_data['groups']
-                del cleaned_data['structures']
-
-
+                cleaned_data.pop('groups', None)
+                cleaned_data.pop('structures', None)
             elif self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
                 if (self.request.user.has_groups('REF-ETAB') and self.instance.is_establishment_manager()) or \
                    (self.request.user.has_groups('REF-ETAB-MAITRE') and self.instance.is_master_establishment_manager()):
@@ -969,7 +969,9 @@ class ImmersionUserChangeForm(UserChangeForm):
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ('username', 'first_name', 'last_name', 'email', 'is_active', 'is_staff', 'is_superuser',
+                  'groups', 'structures', 'establishment', 'highschool')
 
 
 class HighSchoolForm(forms.ModelForm):

@@ -439,7 +439,7 @@ msgid "This short label already exists"
 msgstr "Ce libellé court existe déjà"
 
 #: immersionlyceens/apps/core/admin_forms.py:356
-msgid "The establishement cannot be updated"
+msgid "The establishment cannot be updated"
 msgstr "L'établissement ne peut être modifié"
 
 #: immersionlyceens/apps/core/admin_forms.py:432
@@ -618,7 +618,7 @@ msgid "This email address is already used"
 msgstr "Un compte avec ce courriel existe déjà"
 
 #: immersionlyceens/apps/core/admin_forms.py:784
-msgid "The establishement cannot be updated once the user created"
+msgid "The establishment cannot be updated once the user created"
 msgstr "L'établissement ne peut pas être modifié une fois l'utilisateur créé"
 
 #: immersionlyceens/apps/core/admin_forms.py:845

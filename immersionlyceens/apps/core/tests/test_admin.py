@@ -336,7 +336,7 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(Building.objects.filter(label=data['label']).exists())
 
-        # Another success with master establishement manager
+        # Another success with master establishment manager
         data['label'] = "Another test"
         request.user = self.ref_master_etab_user
         form = BuildingForm(data=data, request=request)
@@ -1618,3 +1618,24 @@ class AdminFormsTestCase(TestCase):
 
         self.ref_etab_user.refresh_from_db()
         self.assertEqual(self.ref_etab_user.establishment, self.establishment)
+
+        # Self user tests
+        request.user = self.ref_lyc_user
+
+        data = {
+            'establishment': self.master_establishment,
+            'username': self.ref_lyc_user.username,
+            'email': self.ref_lyc_user.email,
+            'first_name': self.ref_lyc_user.first_name,
+            'last_name': self.ref_lyc_user.last_name,
+            'date_joined': self.ref_lyc_user.date_joined,
+            'structures': [structure_1],
+            'groups': [Group.objects.get(name='REF-STR').id]
+        }
+
+        form = ImmersionUserChangeForm(data, instance=self.ref_lyc_user, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Select a valid choice. 4 is not one of the available choices.", form.errors["groups"])
+
+        print(form.errors)
+
