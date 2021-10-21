@@ -25,7 +25,7 @@ class EmailBackend(BaseEmailBackend):
         self.host = getattr(settings, 'EMAIL_HOST', '127.0.0.1')
         self.host_user = getattr(settings, 'EMAIL_HOST_USER', '')
         self.host_password = getattr(settings, 'EMAIL_HOST_PASSWORD', '')
-        self.from_addr = getattr(settings, 'FROM_ADDR', None)
+        # self.from_addr = getattr(settings, 'FROM_ADDR', None)
         super(EmailBackend, self).__init__(*args, **kwargs)
 
     def send_message(self, email_message):
@@ -37,7 +37,7 @@ class EmailBackend(BaseEmailBackend):
                 s.login(self.host_user, self.host_password)
 
             try:
-                s.send_message(email_message, from_addr=self.from_addr)
+                s.send_message(email_message, from_addr=email_message["From"])
                 sent = True
             except Exception:
                 logger.error("Cannot send email : %s" %

@@ -20,14 +20,16 @@ def import_mail_backend():
 mail_backend = import_mail_backend()
 
 
-def send_email(address, subject, body, from_=settings.DEFAULT_FROM_EMAIL):
+def send_email(address, subject, body, from_addr=None):
     """
     """
     # Get configured 'from' address or the default settings/<env>.py one
-    try:
-        default_from = get_general_setting("MAIL_FROM")
-    except Exception as e:
-        default_from = from_
+
+    if not from_addr:
+        try:
+            from_addr = get_general_setting("MAIL_FROM")
+        except Exception as e:
+            from_addr = settings.DEFAULT_FROM_EMAIL
 
     recipient = settings.FORCE_EMAIL_ADDRESS if settings.FORCE_EMAIL_ADDRESS else address
 
@@ -38,7 +40,7 @@ def send_email(address, subject, body, from_=settings.DEFAULT_FROM_EMAIL):
     # Email data
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
-    msg['From'] = default_from
+    msg['From'] = from_addr
     msg['To'] = recipient
     html = body
 
