@@ -1663,7 +1663,7 @@ def ajax_send_email_contact_us(request):
     # Scuio-ip mail sending
     try:
         send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
-    except Exception:
+    except Exception as e:
         response['error'] = True
         response['msg'] += _("%s : error") % recipient
 

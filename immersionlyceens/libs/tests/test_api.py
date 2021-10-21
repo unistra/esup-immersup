@@ -1855,7 +1855,6 @@ class APITestCase(TestCase):
         }
 
         content = json.loads(self.client.post(url, data, **header).content.decode())
-
         self.assertFalse(content['error'])
 
     def test_API_ajax_get_students_presence(self):
