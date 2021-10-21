@@ -704,31 +704,27 @@ class ImmersionUserCreationForm(UserCreationForm):
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
-        self.fields["email"].help_text = _("The user email will be used as username")
 
-        self.fields["username"].required = False
-        self.fields["username"].disabled = True
+        if self.request.user.is_high_school_manager():
+            self.fields["email"].help_text = _("The user email will be used as username")
 
         # Establishment
-        self.fields["establishment"].required = False
+        if self.fields.get("establishment"):
+            self.fields["establishment"].required = False
 
-        self.fields["search"].widget.attrs["class"] = "vTextField"
+        if self.fields.get("search"):
+            self.fields["search"].widget.attrs["class"] = "vTextField"
 
         if not self.request.user.is_superuser:
-            # Master establishment manager has only access to the other establishments
-            if self.request.user.is_master_establishment_manager():
-                self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
+            # Master establishment manager has access to all establishments
+            #if self.request.user.is_master_establishment_manager():
+            #    self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
 
             # A regular establishment manager has only access to his own establishment
-            elif self.request.user.is_establishment_manager():
+            if self.request.user.is_establishment_manager():
                 self.fields["establishment"].queryset = Establishment.objects.filter(
                     pk=self.request.user.establishment.pk
                 )
-
-            elif self.request.user.is_high_school_manager():
-                self.fields["establishment"].disabled = True
-                self.fields["establishment"].help_text = _("You can't select the establishment")
-
 
     def clean(self):
         cleaned_data = super().clean()
@@ -759,6 +755,7 @@ class ImmersionUserCreationForm(UserCreationForm):
 
         if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
             obj.highschool = self.request.user.highschool
+            obj.username = obj.email
             obj.save()
             Group.objects.get(name='INTER').user_set.add(obj)
 
@@ -967,11 +964,10 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         return self.instance
 
-    class Meta(UserCreationForm.Meta):
+    class Meta(UserChangeForm.Meta):
         model = ImmersionUser
-        # fields = '__all__'
-        fields = ('username', 'first_name', 'last_name', 'email', 'is_active', 'is_staff', 'is_superuser',
-                  'groups', 'structures', 'establishment', 'highschool')
+        fields = ("establishment", "username", "first_name", "last_name", "email", "is_active", "is_staff",
+                  "is_superuser", "groups", "structures", "highschool")
 
 
 class HighSchoolForm(forms.ModelForm):
