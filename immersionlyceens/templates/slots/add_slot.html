@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load static %}
-{% load staticfiles %}
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
@@ -58,17 +57,17 @@
                 {% csrf_token %}
                 {{ slot_form.id }}
                 <div class="form-group row">
-                    <label for="component" class="col-form-label col-sm-3">{% trans 'Component' %}</label>
+                    <label for="structure" class="col-form-label col-sm-3">{% trans 'Structure' %}</label>
                     <div class="col-sm-6">
-                        <select name="component" id="component" class="form-control" required>
-                            {% if components|length > 1 %}
+                        <select name="structure" id="structure" class="form-control" required>
+                            {% if structures|length > 1 %}
                                 <option value="" selected>{% trans 'Choose a value' %}</option>
-                                {% for component in components %}
-                                    <option value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% for structure in structures %}
+                                    <option value="{{ structure.id }}">{{ structure.code }}: {{ structure.label }}</option>
                                 {% endfor %}
                             {% else %}
-                                {% for component in components %}
-                                    <option selected value="{{ component.id }}">{{ component.code }}: {{ component.label }}</option>
+                                {% for structure in structures %}
+                                    <option selected value="{{ structure.id }}">{{ structure.code }}: {{ structure.label }}</option>
                                 {% endfor %}
                             {% endif %}
                         </select>
@@ -189,45 +188,45 @@
                 </div>
 
                 <div class="form-group row">
-                    <label class="col-sm-3">{% trans 'Teachers' %}</label>
+                    <label class="col-sm-3">{% trans 'Speakers' %}</label>
                     <div class="form-group col-sm-6 row">
-                        <div class="form-check" id="id_teachers">
+                        <div class="form-check" id="id_speakers">
                             {% if slot %}
-                                {% for t in slot.course.teachers.all %}
+                                {% for t in slot.course.speakers.all %}
                                 <div class="custom-control custom-checkbox">
-                                    {% if t.id in teachers_idx %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                    {% if t.id in speakers_idx %}
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}" checked>
                                     {% else %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}">
                                     {% endif %}
-                                    <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                                    <label for="speaker_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
                                 </div>
                                 {% endfor %}
                             {% elif course %}
-                                {% for t in course.teachers.all %}
+                                {% for t in course.speakers.all %}
                                 <div class="custom-control custom-checkbox">
-                                    {% if t.id in teachers_idx %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}" checked>
+                                    {% if t.id in speakers_idx %}
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}" checked>
                                     {% else %}
-                                        <input type="checkbox" value="{{ t.id }}" name="teacher_{{ t.id }}">
+                                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}">
                                     {% endif %}
-                                    <label for="teacher_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                                    <label for="speaker_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
                                 </div>
                                 {% endfor %}
                             {% endif %}
                         </div>
 
                     </div>
-                    {% if slot_form.teachers.errors %}
+                    {% if slot_form.speakers.errors %}
                     <div class="col-sm-3 alert alert-danger">
-                      {{ slot_form.teachers.errors }}
+                      {{ slot_form.speakers.errors }}
                     </div>
-                    {% elif teacher_error %}
+                    {% elif speaker_error %}
                         <div class="alert alert-danger">
-                        {% if teacher_error %}
+                        {% if speaker_error %}
                         <ul>
-                            <li>{% trans "Teachers" %}
-                                <ul><li>{% trans "You have to select one or more teachers" %}</li></ul>
+                            <li>{% trans "Speakers" %}
+                                <ul><li>{% trans "You have to select one or more speakers" %}</li></ul>
                             </li>
                         </ul>
                     {% endif %}
@@ -400,10 +399,10 @@ $(document).ready(function(){
           "class": 'dialog-button',
           click: function () {
             let url = "/core/slots"
-            let comp_id = $('#component').val();
+            let str_id = $('#structure').val();
             let train_id = $('#training').val();
 
-            if(comp_id) url += "/"+comp_id
+            if(str_id) url += "/"+str_id
             if(train_id) url += "/"+train_id
 
             window.location = url;
@@ -420,26 +419,24 @@ $(document).ready(function(){
       ],
     });
 
-    function check_course_publication ( course_id )
-    {
-        $.post({
-            beforeSend: function (request) {
-                   request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-            },
-            url: '/api/check_course_publication/' + course_id,
-            success: function(data) {
-                if (data['data'])
-                {
-                    if ( !data['data']['published'] ) {
-                        courseDialog.dialog('open');
-                    }
-                }
+    function check_course_publication ( course_id ) {
+      $.get({
+        beforeSend: function (request) {
+          request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        },
+        url: '/api/check_course_publication/' + course_id,
+        success: function(data) {
+          if (data['data']) {
+            if ( !data['data']['published'] ) {
+              courseDialog.dialog('open');
             }
-        });
+          }
+        }
+      });
     }
 
     $('#id_course').change(function(event){
-        check_course_publication(event.target.value);
+      check_course_publication(event.target.value);
     });
 
     function check_date() {
@@ -481,7 +478,7 @@ $(document).ready(function(){
             let mandatory = [
                 'course', 'course_type', 'campus',
                 'building', 'room', 'date', 'start_time', 'end_time',
-                'teachers', 'n_places'
+                'speakers', 'n_places'
             ];
             mandatory.forEach(function(e){
                 $('#id_' + e).attr('required', 'sfdgsg');
@@ -490,7 +487,7 @@ $(document).ready(function(){
 
             let not_mandatory = [
                 'course_type', 'campus', 'building', 'room', 'date',
-                'start_time', 'end_time', 'teachers', 'n_places'
+                'start_time', 'end_time', 'speakers', 'n_places'
             ];
             let mandatory = ['training', 'course'];
 
@@ -512,7 +509,7 @@ $(document).ready(function(){
             },
             url: '{% url "GetTrainings" %}',
             data: {
-                component_id: value,
+                structure_id: value,
             },
             success: function(data){
                 if ( data['data'] ) {
@@ -539,7 +536,7 @@ $(document).ready(function(){
                         if ( course_first ) {
                             course_first = false;
                             load_course(
-                                $('#component').val(),
+                                $('#structure').val(),
                                 $('#training').val()
                             );
                         }
@@ -549,11 +546,11 @@ $(document).ready(function(){
         });
     }
 
-    function load_course(component, training) {
-        component = (component == '') ? '0' : component;
+    function load_course(structure, training) {
+        structure = (structure == '') ? '0' : structure;
         training = (training == '') ? '0' : training;
         $.ajax({
-            url: '/api/get_courses_by_training/' + component + '/' + training,
+            url: '/api/get_courses_by_training/' + structure + '/' + training,
             success: function(data){
                 if ( data['data']) {
                     $('#id_course').html('');
@@ -572,7 +569,7 @@ $(document).ready(function(){
                     $('#id_course option[value="{{ request.POST.course }}"]').attr('selected', '');
                     {% endif %}
                 }
-                // load_teachers($('#id_course').val());
+                // load_speakers($('#id_course').val());
             }
         });
     }
@@ -620,23 +617,23 @@ $(document).ready(function(){
         });
     }
 
-    function load_teachers(value) {
+    function load_speakers(value) {
         $.ajax({
-            url: '/api/get_course_teachers/' + value,
+            url: '/api/get_course_speakers/' + value,
             success: function(data){
                 if ( data['data'] ) {
-                    $('#id_teachers').html('');
+                    $('#id_speakers').html('');
                     data['data'].forEach(function(e){
                         let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
                         element = '<div class="custom-checkbox custom-control">';
-                        element += '<input type="checkbox" name="teacher_' + e['id'] + '" value="' + e['id'] + '">';
-                        element += '<label for="teacher_' + e['id'] + '">' + name +'</label>';
+                        element += '<input type="checkbox" name="speaker_' + e['id'] + '" value="' + e['id'] + '">';
+                        element += '<label for="speaker_' + e['id'] + '">' + name +'</label>';
                         element += '</div>';
-                        $('#id_teachers').append(element);
+                        $('#id_speakers').append(element);
                     });
                 }
             },
-            error: function() {$('#id_teachers').html('');}
+            error: function() {$('#id_speakers').html('');}
         });
     }
 
@@ -663,12 +660,12 @@ $(document).ready(function(){
 
     {% if not slot %}
 
-        {% if not request.POST.component %}
-            load_trainings($('#component').val());
+        {% if not request.POST.structure %}
+            load_trainings($('#structure').val());
         {% endif %}
-        {% if not request.POST.component and not request.POST.training %}
+        {% if not request.POST.structure and not request.POST.training %}
         load_course(
-            $('#component').val(),
+            $('#structure').val(),
             $('#training').val()
         );
         {% endif %}
@@ -679,7 +676,7 @@ $(document).ready(function(){
         {% if not slot_form.course.value %}
             id_course = $('#id_course').val();
             if (id_course) {
-              load_teachers(id_course);
+              load_speakers(id_course);
             }
         {% endif %}
 
@@ -688,13 +685,13 @@ $(document).ready(function(){
     toggle_required_fields();
 
     // add change handler
-    $('#component').change(function(event){ load_trainings(event.target.value); });
-    $('#training').change(function(event){ load_course($('#component').val(), event.target.value); });
+    $('#structure').change(function(event){ load_trainings(event.target.value); });
+    $('#training').change(function(event){ load_course($('#structure').val(), event.target.value); });
     $('#id_campus').change(function(event){ load_buildings(event.target.value); });
-    $('#id_course').change(function(event){ load_teachers(event.target.value); });
+    $('#id_course').change(function(event){ load_speakers(event.target.value); });
     $('#id_published').on('change', function(){ toggle_required_fields(); });
 
-    {% if slot or request.POST.component %}
+    {% if slot or request.POST.structure %}
         {% if slot %}
         setTimeout(function(){
                 $('#ok_modify').fadeOut(1000, function(){
@@ -705,11 +702,11 @@ $(document).ready(function(){
         );
         {% endif %}
 
-    $('#component option').each(function(i, e) {
-        {% if request.POST.component %}
-        if ( $(e).val() == '{{ request.POST.component }}' )
+    $('#structure option').each(function(i, e) {
+        {% if request.POST.structure %}
+        if ( $(e).val() == '{{ request.POST.structure }}' )
         {% elif slot %}
-        if ( $(e).val() == '{{ slot.course.component.id }}' )
+        if ( $(e).val() == '{{ slot.course.structure.id }}' )
         {% endif %}
         {
             e.selected = true;

@@ -17,11 +17,11 @@ from pydiploy.decorators import do_verbose
 env.remote_owner = 'django'  # remote server user
 env.remote_group = 'di'  # remote server group
 
-env.application_name = 'immersionlyceens'  # name of webapp
+env.application_name = 'immersup'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
-env.remote_python_version = '3.7'  # python version
+env.remote_python_version = '3.8'  # python version
 env.remote_virtualenv_root = join(env.remote_home, '.virtualenvs')  # venv root
 env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)  # venv for webapp dir
 # git repository url
@@ -40,7 +40,7 @@ env.verbose_output = False  # True for verbose output
 # env.dest_path = '' # if not set using env_local_tmp_dir
 # env.excluded_files = ['pron.jpg'] # file(s) that rsync should exclude when deploying app
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
-env.extra_pkg_to_install = ['python3.7-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev',
+env.extra_pkg_to_install = ['python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev',
                             'libcairo2-dev', 'libpango1.0-dev']  # extra debian/ubuntu package(s) to install on remote
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
@@ -101,8 +101,8 @@ def test():
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
-    env.server_name = 'immersion-test.app.unistra.fr'
-    env.short_server_name = 'immersion-test'
+    env.server_name = 'immersup-test.app.unistra.fr'
+    env.short_server_name = 'immersup-test'
     env.static_folder = '/site_media/'
     env.server_ip = ''
     env.no_shared_sessions = False
@@ -110,7 +110,7 @@ def test():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'test'
-    env.socket_port = '8031'
+    env.socket_port = '8022'
     env.socket_host = '127.0.0.1'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
@@ -141,7 +141,6 @@ def test():
 def preprod():
     """Define preprod stage"""
     env.roledefs = {
-        # 'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
         'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
         'shib': [],
@@ -150,8 +149,8 @@ def preprod():
     # env.user = 'root'  # user for ssh
 
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion-pprd.unistra.fr'
-    env.short_server_name = 'immersion-pprd'
+    env.server_name = 'immersup-pprd.app.unistra.fr'
+    env.short_server_name = 'immersup-pprd'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.212'
     env.no_shared_sessions = False
@@ -159,7 +158,7 @@ def preprod():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'preprod'
-    env.socket_port = '8032'
+    env.socket_port = '8044'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",
@@ -197,8 +196,8 @@ def prod():
 
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion.unistra.fr'
-    env.short_server_name = 'immersion'
+    env.server_name = 'immersup.unistra.fr'
+    env.short_server_name = 'immersup'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.214'
     env.no_shared_sessions = False
@@ -206,7 +205,7 @@ def prod():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'prod'
-    env.socket_port = '8041'
+    env.socket_port = '8010'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",

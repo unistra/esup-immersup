@@ -1,29 +1,27 @@
 <!DOCTYPE html>
 {% load static %}
-{% load staticfiles %}
 {% load i18n %}
-{% load hijack_tags %}
 {% load immersionlyceens_tags %}
 {% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
-    <title>{% block title %}immersionlyceens{% endblock %}</title>
+    <title>{% block title %}ImmerSup{% endblock %}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="author" content='Direction du Numérique - Université de Strasbourg'>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
     <link rel="shortcut icon" href="{% static 'img/favicon-unistra-32px.png' %}" type="image/png">
     {% comment %} Fonts {% endcomment %}
     <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.css' %}">
     {% comment %} TODO: add a boolean conditionnal statement to load or not unistra design {% endcomment %}
-    <link rel="stylesheet" href="{% static 'fonts/unistra-font/1.0.0/css/unistra-font.css' %}">
-    <link rel="stylesheet" href="{% static 'fonts/unistra-symbol/1.0.4/css/unistra-symbol.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/unistra-font/1.0.0/css/unistra-font.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/unistra-symbol/1.0.4/css/unistra-symbol.min.css' %}">
     <link rel="stylesheet" href="{% static 'fonts/nova-icons/1.0.2/css/nova-icons.css' %} ">
     <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.css' %}">
-    <link rel="stylesheet" href="{% static 'fonts/unistra-signature/3.0.1/css/sun.css' %}">
-    <link rel="stylesheet" href="{% static 'fonts/unistra-signature/3.0.1/css/themes/sun-theme-immersion.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/unistra-signature/3.0.1/css/sun.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/unistra-signature/3.0.1/css/themes/sun-theme-immersion.min.css' %}">
     {% comment %} End of fonts {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/styles-unistra.min.css' %}">
     {% block head-css %}{% endblock %}
@@ -34,7 +32,6 @@
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
 </head>
 <body>
-    {% hijack_notification %}
     {% include './fragments/main_header.html'%}
     {% include './fragments/main_menu.html'%}
 
@@ -61,9 +58,9 @@
     {% endif %}
     {% include './fragments/main_share.html' %}
     {% include './fragments/main_footer.html' %}
-    <script src="{% static 'fonts/unistra-signature/3.0.1/js/sun.js' %}"></script>
+    <script src="{% static 'fonts/unistra-signature/3.0.1/js/sun.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'js/scripts.js' %}"></script>
+    <script src="{% static 'js/scripts.min.js' %}"></script>
     <script>
     // hide notifications messages after x seconds (see settings to set value)
     var messages = document.getElementById("messages");

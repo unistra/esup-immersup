@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
     {{ high_school.label }}
@@ -210,6 +210,6 @@
 {% endblock %}
 
 {% block foot-javascript %}
-<script src="{% static 'js/admin_highschool.js' %}"></script>
-<script src="{% static 'js/core/my_high_school.js' %}"></script>
+<script src="{% static 'js/admin_highschool.min.js' %}"></script>
+<script src="{% static 'js/core/my_high_school.min.js' %}"></script>
 {% endblock %}

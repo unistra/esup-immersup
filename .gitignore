@@ -61,3 +61,8 @@ immersionlyceens/media
 # isort personal config
 .isort.cfg
 pyvenv.cfg
+
+.env.dev
+.env.demo
+.pre-commit-config.yaml
+lefthook.yml

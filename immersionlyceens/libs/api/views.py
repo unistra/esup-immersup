@@ -3,8 +3,11 @@ API Views
 """
 import csv
 import datetime
+import importlib
 import json
 import logging
+import django_filters.rest_framework
+
 from functools import reduce
 from itertools import permutations
 
@@ -21,18 +24,24 @@ from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
-from immersionlyceens.apps.core.models import (Building, Calendar, CancelType,
-                                               Component, Course, HighSchool,
-                                               Holiday, Immersion,
-                                               ImmersionUser, MailTemplate,
-                                               MailTemplateVars,
-                                               PublicDocument, Slot, Training,
-                                               TrainingDomain, UniversityYear,
-                                               UserCourseAlert, Vacation)
-from immersionlyceens.apps.immersion.models import (HighSchoolStudentRecord,
-                                                    StudentRecord)
-from immersionlyceens.decorators import (groups_required, is_ajax_request,
-                                         is_post_request)
+
+from rest_framework import generics, status
+"""
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
+"""
+
+from immersionlyceens.apps.core.models import (
+    Building, Calendar, Campus, CancelType, Structure, Course, Establishment, HighSchool, Holiday, Immersion,
+    ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, TrainingDomain, UniversityYear,
+    UserCourseAlert, Vacation
+)
+
+from immersionlyceens.apps.core.serializers import CampusSerializer, EstablishmentSerializer
+
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.mails.variables_parser import multisub
 from immersionlyceens.libs.utils import get_general_setting
@@ -41,37 +50,54 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP", "REF-CMP")
+@groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR")
 def ajax_get_person(request):
-    if settings.ACCOUNTS_CLIENT:
-        response = {'msg': '', 'data': []}
+    response = {'msg': '', 'data': []}
+    search_str = request.POST.get("username", None)
+    query_order = request.POST.get("query_order")
+    establishment_id = request.POST.get('establishment_id', None)
 
-        accounts_api = import_string(settings.ACCOUNTS_CLIENT)
+    if not search_str:
+        response['msg'] = gettext("Search string is empty")
+        return JsonResponse(response, safe=False)
 
+    if establishment_id is None:
+        response['msg'] = gettext("Please select an establishment first")
+        return JsonResponse(response, safe=False)
+
+    try:
+        establishment = Establishment.objects.get(pk=establishment_id)
+    except Establishment.DoesNotExist:
+        return JsonResponse(response, safe=False)
+
+    if establishment.data_source_plugin:
         try:
-            accounts_client = accounts_api()
-        except:
-            response['msg'] = gettext("Error : can't query LDAP server")
-            return JsonResponse(response, safe=False)
+            module_name = settings.ACCOUNTS_PLUGINS[establishment.data_source_plugin]
+            source = importlib.import_module(module_name, package=None)
+            account_api = source.AccountAPI(establishment)
 
-        search_str = request.POST.get("username", None)
-
-        if search_str:
-            query_order = request.POST.get("query_order")
             persons_list = [query_order]
 
-            users = accounts_client.search_user(search_str)
+            users = account_api.search_user(search_str)
+
             if users != False:
                 users = sorted(users, key=lambda u: [u['lastname'], u['firstname']])
                 response['data'] = persons_list + users
             else:
-                response['msg'] = gettext("Error : can't query LDAP server")
+                response['msg'] = gettext("Error : can't query establishment accounts data source")
+
+        except KeyError:
+            pass
+        except Exception as e:
+            response['msg'] = gettext("Error : %s" % e)
+    else:
+        response['msg'] = gettext("No source plugin configured")
 
     return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def ajax_get_available_vars(request, template_id=None):
     response = {'msg': '', 'data': []}
 
@@ -85,14 +111,14 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_courses(request, component_id=None):
+@groups_required('REF-ETAB', 'REF-STR')
+def ajax_get_courses(request, structure_id=None):
     response = {'msg': '', 'data': []}
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
 
-    courses = Course.objects.prefetch_related('training', 'component').filter(training__components=component_id)
+    courses = Course.objects.prefetch_related('training', 'structure').filter(training__structures=structure_id)
 
     for course in courses:
         course_data = {
@@ -100,20 +126,19 @@ def ajax_get_courses(request, component_id=None):
             'published': course.published,
             'training_label': course.training.label,
             'label': course.label,
-            'component_code': course.component.code,
-            'component_id': course.component.id,
-            'teachers': [],
+            'structure_code': course.structure.code,
+            'structure_id': course.structure.id,
+            'speakers': [],
             'slots_count': course.slots_count(),
             'n_places': course.free_seats(),
             'published_slots_count': course.published_slots_count(),
             'registered_students_count': course.registrations_count(),
             'alerts_count': course.get_alerts_count(),
-            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
             'can_delete': not course.slots.exists(),
         }
 
-        for teacher in course.teachers.all().order_by('last_name', 'first_name'):
-            course_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
+        for speaker in course.speakers.all().order_by('last_name', 'first_name'):
+            course_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
 
         response['data'].append(course_data.copy())
 
@@ -122,19 +147,19 @@ def ajax_get_courses(request, component_id=None):
 
 @is_post_request
 @is_ajax_request
-@groups_required("SCUIO-IP", "REF-CMP")
+@groups_required("REF-ETAB", "REF-STR")
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
 
-    component_id = request.POST.get("component_id")
+    structure_id = request.POST.get("structure_id")
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
         return JsonResponse(response, safe=False)
 
     trainings = (
         Training.objects.prefetch_related('training_subdomains')
-        .filter(components=component_id, active=True)
+        .filter(structures=structure_id, active=True)
         .order_by('label')
     )
 
@@ -151,7 +176,7 @@ def ajax_get_trainings(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_documents(request):
     response = {'msg': '', 'data': []}
 
@@ -170,8 +195,8 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_slots(request, component=None):
+@groups_required('REF-ETAB', 'REF-STR')
+def ajax_get_slots(request, structure=None):
     can_update_attendances = False
 
     today = datetime.datetime.today().date()
@@ -181,33 +206,33 @@ def ajax_get_slots(request, component=None):
     except UniversityYear.DoesNotExist:
         pass
 
-    comp_id = request.GET.get('component_id')
+    str_id = request.GET.get('structure_id')
     train_id = request.GET.get('training_id')
 
     response = {'msg': '', 'data': []}
     slots = []
     if train_id:  # and train_id[0] is not '':
-        slots = Slot.objects.prefetch_related('course__training', 'teachers', 'immersions').filter(
+        slots = Slot.objects.prefetch_related('course__training', 'speakers', 'immersions').filter(
             course__training__id=train_id
         )
-    elif comp_id:
-        slots = Slot.objects.prefetch_related('course__training__components', 'teachers', 'immersions').filter(
-            course__training__components__id=comp_id
+    elif str_id:
+        slots = Slot.objects.prefetch_related('course__training__structures', 'speakers', 'immersions').filter(
+            course__training__structures__id=str_id
         )
 
     all_data = []
-    my_components = []
-    if request.user.is_scuio_ip_manager():
-        my_components = Component.objects.all()
-    elif request.user.is_component_manager():
-        my_components = request.user.components.all()
+    my_structures = []
+    if request.user.is_establishment_manager():
+        my_structures = Structure.objects.all()
+    elif request.user.is_structure_manager():
+        my_structures = request.user.structures.all()
 
     for slot in slots:
         data = {
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'component': {'code': slot.course.component.code, 'managed_by_me': slot.course.component in my_components, },
+            'structure': {'code': slot.course.structure.code, 'managed_by_me': slot.course.structure in my_structures, },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
@@ -227,7 +252,7 @@ def ajax_get_slots(request, component=None):
                 'building': slot.building.label if slot.building else '',
             },
             'room': slot.room or '-',
-            'teachers': {},
+            'speakers': {},
             'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'additional_information': slot.additional_information,
@@ -247,8 +272,8 @@ def ajax_get_slots(request, component=None):
             else:
                 data['attendances_value'] = 2  # view only
 
-        for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
-            data['teachers'].update([(f"{teacher.last_name} {teacher.first_name}", teacher.email,)],)
+        for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
+            data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
         all_data.append(data.copy())
 
     response['data'] = all_data
@@ -257,17 +282,17 @@ def ajax_get_slots(request, component=None):
 
 
 @is_ajax_request
-def ajax_get_courses_by_training(request, component_id=None, training_id=None):
+def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
-    if not component_id:
-        response['msg'] = gettext("Error : a valid component must be selected")
+    if not structure_id:
+        response['msg'] = gettext("Error : a valid structure must be selected")
     if not training_id:
         response['msg'] = gettext("Error : a valid training must be selected")
 
     courses = (
         Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, component__id=component_id,)
+        .filter(training__id=training_id, structure__id=structure_id,)
         .order_by('label')
     )
 
@@ -284,7 +309,7 @@ def ajax_get_courses_by_training(request, component_id=None, training_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
@@ -304,28 +329,28 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
-def ajax_get_course_teachers(request, course_id=None):
+@groups_required('REF-ETAB', 'REF-STR')
+def ajax_get_course_speakers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
     if not course_id:
         response['msg'] = gettext("Error : a valid course must be selected")
     else:
-        teachers = Course.objects.get(id=course_id).teachers.all().order_by('last_name')
+        speakers = Course.objects.get(id=course_id).speakers.all().order_by('last_name')
 
-        for teacher in teachers:
-            teachers_data = {
-                'id': teacher.id,
-                'first_name': teacher.first_name,
-                'last_name': teacher.last_name.upper(),
+        for speaker in speakers:
+            speakers_data = {
+                'id': speaker.id,
+                'first_name': speaker.first_name,
+                'last_name': speaker.last_name.upper(),
             }
-            response['data'].append(teachers_data.copy())
+            response['data'].append(speakers_data.copy())
 
     return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.POST.get('course_id')
@@ -353,35 +378,35 @@ def ajax_delete_course(request):
 
 
 @is_ajax_request
-@groups_required('ENS-CH')
+@groups_required('INTER')
 def ajax_get_my_courses(request, user_id=None):
     response = {'msg': '', 'data': []}
 
     if not user_id:
         response['msg'] = gettext("Error : a valid user must be passed")
 
-    courses = Course.objects.prefetch_related('training').filter(teachers=user_id)
+    courses = Course.objects.prefetch_related('training').filter(speakers=user_id)
 
     for course in courses:
         course_data = {
             'id': course.id,
             'published': course.published,
-            'component': course.component.code,
+            'structure': course.structure.code,
             'training_label': course.training.label,
             'label': course.label,
-            'teachers': {},
-            'slots_count': course.slots_count(teacher_id=user_id),
-            'n_places': course.free_seats(teacher_id=user_id),
-            'published_slots_count': course.published_slots_count(teacher_id=user_id),
-            # f'{course.published_slots_count(teacher_id=user_id)} / {course.slots_count(teacher_id=user_id)}',
-            'registered_students_count': course.registrations_count(teacher_id=user_id),
-            # f'{course.registrations_count(teacher_id=user_id)} / {course.free_seats(teacher_id=user_id)}',
+            'speakers': {},
+            'slots_count': course.slots_count(speaker_id=user_id),
+            'n_places': course.free_seats(speaker_id=user_id),
+            'published_slots_count': course.published_slots_count(speaker_id=user_id),
+            # f'{course.published_slots_count(speaker_id=user_id)} / {course.slots_count(speaker_id=user_id)}',
+            'registered_students_count': course.registrations_count(speaker_id=user_id),
+            # f'{course.registrations_count(speaker_id=user_id)} / {course.free_seats(speaker_id=user_id)}',
             'alerts_count': course.get_alerts_count(),
             # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
         }
 
-        for teacher in course.teachers.all().order_by('last_name', 'first_name'):
-            course_data['teachers'].update([("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],)
+        for speaker in course.speakers.all().order_by('last_name', 'first_name'):
+            course_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
 
         response['data'].append(course_data.copy())
 
@@ -389,7 +414,7 @@ def ajax_get_my_courses(request, user_id=None):
 
 
 @is_ajax_request
-@groups_required('ENS-CH')
+@groups_required('INTER')
 def ajax_get_my_slots(request, user_id=None):
     response = {'msg': '', 'data': []}
     can_update_attendances = False
@@ -409,18 +434,18 @@ def ajax_get_my_slots(request, user_id=None):
 
     if past_slots:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
-            .filter(teachers=user_id)
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
+            .filter(speakers=user_id)
             .exclude(date__lt=today.date(), immersions__isnull=True)
         ).distinct()
     else:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__component', 'teachers', 'immersions')
+            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
             .filter(
                 Q(date__gte=today.date())
                 | Q(date=today.date(), end_time__gte=today.time())
                 | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
-                teachers=user_id,
+                speakers=user_id,
             )
             .distinct()
         )
@@ -433,7 +458,7 @@ def ajax_get_my_slots(request, user_id=None):
         slot_data = {
             'id': slot.id,
             'published': slot.published,
-            'component': slot.course.component.code,
+            'structure': slot.course.structure.code,
             'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
             'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
             'location': {'campus': campus, 'room': slot.room, },
@@ -451,7 +476,7 @@ def ajax_get_my_slots(request, user_id=None):
             'start_time': slot.start_time.strftime("%H:%M"),
             'end_time': slot.end_time.strftime("%H:%M"),
             'label': slot.course.label,
-            'teachers': {},
+            'speakers': {},
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(), },
             'additional_information': slot.additional_information,
@@ -478,8 +503,8 @@ def ajax_get_my_slots(request, user_id=None):
         else:
             slot_data['attendances_status'] = gettext("Future slot")
 
-        for teacher in slot.teachers.all().order_by('last_name', 'first_name'):
-            slot_data['teachers'].update([("%s %s" % (teacher.last_name, teacher.first_name), teacher.email,)],)
+        for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
+            slot_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
 
         response['data'].append(slot_data.copy())
 
@@ -499,7 +524,7 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -534,7 +559,7 @@ def ajax_check_date_between_vacation(request):
 
 @is_post_request
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC')
 def ajax_get_student_records(request):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
@@ -578,7 +603,7 @@ def ajax_get_student_records(request):
 
 # REJECT / VALIDATE STUDENT
 @is_ajax_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
@@ -590,7 +615,7 @@ def ajax_validate_reject_student(request, validate):
     student_record_id = request.POST.get('student_record_id')
     if student_record_id:
         hs = None
-        if request.user.is_scuio_ip_manager():
+        if request.user.is_establishment_manager():
             hs = HighSchool.objects.all()
         else:
             hs = HighSchool.objects.filter(id=request.user.highschool.id)
@@ -620,7 +645,7 @@ def ajax_validate_reject_student(request, validate):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_validate_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=True)
@@ -628,15 +653,14 @@ def ajax_validate_student(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
 
 
 @is_ajax_request
-@is_post_request
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC', 'REF-ETAB')
 def ajax_check_course_publication(request, course_id):
     from immersionlyceens.apps.core.models import Course
 
@@ -650,42 +674,66 @@ def ajax_check_course_publication(request, course_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB', 'REF-LYC')
 def ajax_delete_account(request):
     """
     Completely destroy a student account and all data
     """
-    student_id = request.POST.get('student_id')
+    account_id = request.POST.get('account_id')
     send_mail = request.POST.get('send_email', False) == "true"
 
-    if student_id:
-        try:
-            student = ImmersionUser.objects.get(id=student_id, groups__name__in=['LYC', 'ETU'])
+    if not account_id:
+        response = {'error': True, 'msg': gettext("Missing parameter")}
+        return JsonResponse(response, safe=False)
 
-            if send_mail:
-                student.send_message(request, 'CPT_DELETE')
+    try:
+        account = ImmersionUser.objects.get(id=account_id) # , groups__name__in=['LYC', 'ETU'])
+    except ImmersionUser.DoesNotExist:
+        response = {'error': True, 'msg': gettext("Account not found")}
+        return JsonResponse(response, safe=False)
 
-            response = {'error': False, 'msg': gettext("Account deleted")}
+    if send_mail and account.groups.filter(name__in=['LYC', 'ETU']):
+        account.send_message(request, 'CPT_DELETE')
 
-            if student.is_high_school_student():
-                record = student.get_high_school_student_record()
-                if record:
-                    HighSchoolStudentRecord.clear_duplicate(record.id)
+    if not request.user.is_superuser:
+        if account.is_speaker():
+            if account.slots.exists():
+                response = {'error': True, 'msg': gettext("You can't delete this account (this user has slots)")}
+                return JsonResponse(response, safe=False)
 
-            student.delete()
+            if request.user.is_high_school_manager():
+                if not request.user.highschool or request.user.highschool != account.highschool:
+                    response = {'error': True, 'msg': gettext("You can't delete this account (insufficient privileges)")}
+                    return JsonResponse(response, safe=False)
 
-            messages.success(request, _("User deleted successfully"))
-        except ImmersionUser.DoesNotExist:
-            response = {'error': True, 'msg': gettext("User not found")}
-    else:
-        response = {'error': True, 'msg': gettext("User not found")}
+            if request.user.is_establishment_manager():
+                if not request.user.establishment or request.user.establishment != account.establishment:
+                    response = {'error': True, 'msg': gettext("You can't delete this account (insufficient privileges)")}
+                    return JsonResponse(response, safe=False)
 
+        elif account.is_high_school_student():
+            record = account.get_high_school_student_record()
+            if record:
+                HighSchoolStudentRecord.clear_duplicate(record.id)
+
+        elif account.is_student():
+            pass
+
+        else:
+            response = {'error': True, 'msg': gettext("You can't delete this account (invalid group)")}
+            return JsonResponse(response, safe=False)
+
+    account.delete()
+
+    messages.success(request, _("User deleted successfully"))
+
+    response = {'error': False, 'msg': gettext("Account deleted")}
     return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU')
+@groups_required('REF-ETAB', 'LYC', 'ETU')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -719,7 +767,7 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-LYC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
     Get (high-school or not) students immersions
@@ -735,7 +783,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         return JsonResponse(response, safe=False)
 
     if (
-        not request.user.is_scuio_ip_manager()
+        not request.user.is_establishment_manager()
         and not request.user.is_high_school_manager()
         and request.user.id != user_id
     ):
@@ -760,7 +808,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
 
     immersions = Immersion.objects.prefetch_related(
-        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
+        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
     ).filter(student_id=user_id)
 
     if immersion_type == "future":
@@ -803,7 +851,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'date': date_format(immersion.slot.date),
             'start_time': immersion.slot.start_time.strftime("%-Hh%M"),
             'end_time': immersion.slot.end_time.strftime("%-Hh%M"),
-            'teachers': [],
+            'speakers': [],
             'info': immersion.slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
@@ -830,8 +878,8 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
                 if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
                     immersion_data['can_register'] = True
 
-        for teacher in immersion.slot.teachers.all().order_by('last_name', 'first_name'):
-            immersion_data['teachers'].append("%s %s" % (teacher.last_name, teacher.first_name))
+        for speaker in immersion.slot.speakers.all().order_by('last_name', 'first_name'):
+            immersion_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
 
         response['data'].append(immersion_data.copy())
 
@@ -872,7 +920,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}
@@ -923,7 +971,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -966,7 +1014,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('SCUIO-IP', 'LYC', 'ETU', 'REF-CMP')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -981,9 +1029,9 @@ def ajax_slot_registration(request):
     # Should we force registering ?
     # warning js boolean not python one
     force = request.POST.get('force', False)
-    cmp = request.POST.get('cmp', False)
+    structure = request.POST.get('structure', False)
     calendar, slot, student = None, None, None
-    can_force_reg = request.user.is_scuio_ip_manager()
+    can_force_reg = request.user.is_establishment_manager()
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
 
@@ -1013,8 +1061,8 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # Check slot is published for no scuio-ip user
-    if not request.user.is_scuio_ip_manager() and not slot.published:
+    # Check slot is published for no ref-etab user
+    if not request.user.is_establishment_manager() and not slot.published:
         response = {'error': True, 'msg': _("Registering an unpublished slot is forbidden")}
         return JsonResponse(response, safe=False)
 
@@ -1037,7 +1085,7 @@ def ajax_slot_registration(request):
 
     # Check current student immersions and valid dates
     if student.immersions.filter(slot=slot, cancellation_type__isnull=True).exists():
-        if not cmp:
+        if not structure:
             msg = _("Already registered to this slot")
         else:
             msg = _("Student already registered for selected slot")
@@ -1071,8 +1119,8 @@ def ajax_slot_registration(request):
                         ),
                     }
                     return JsonResponse(response, safe=False)
-                # ref cmp request & no more remaining registration count for student
-                elif request.user.is_component_manager and remaining_regs_count['annually'] <= 0:
+                # ref str request & no more remaining registration count for student
+                elif request.user.is_structure_manager and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _("This student has no more remaining slots to register to"),
@@ -1105,8 +1153,8 @@ def ajax_slot_registration(request):
                             ),
                         }
                         return JsonResponse(response, safe=False)
-                    # ref cmp request & no more remaining registration count for student
-                    elif request.user.is_component_manager and remaining_regs_count['semester1'] <= 0:
+                    # ref str request & no more remaining registration count for student
+                    elif request.user.is_structure_manager and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1137,8 +1185,8 @@ def ajax_slot_registration(request):
                             ),
                         }
                         return JsonResponse(response, safe=False)
-                    # ref cmp request & no more remaining registration count for student
-                    elif request.user.is_component_manager and remaining_regs_count['semester2'] <= 0:
+                    # ref str request & no more remaining registration count for student
+                    elif request.user.is_structure_manager and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1173,7 +1221,7 @@ def ajax_slot_registration(request):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_get_available_students(request, slot_id):
     """
     Get students list for manual slot registration
@@ -1218,23 +1266,23 @@ def ajax_get_available_students(request, slot_id):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'REF-CMP', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC')
 def ajax_get_highschool_students(request, highschool_id=None):
     """
-    Retrieve students from a highschool or all students if user is scuio-ip manager
+    Retrieve students from a highschool or all students if user is ref-etab manager
     and no highschool id is specified
     """
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    if request.user.is_scuio_ip_manager():
+    if request.user.is_establishment_manager():
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            if not request.user.is_scuio_ip_manager():
+            if not request.user.is_establishment_manager():
                 response = {'data': [], 'msg': _('Invalid parameters')}
                 return JsonResponse(response, safe=False)
 
@@ -1308,7 +1356,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-COMP', 'ENS-CH')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1349,7 +1397,7 @@ def ajax_send_email(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-STR')
 def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
@@ -1395,13 +1443,13 @@ def ajax_batch_cancel_registration(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required('REF-CMP')
-def get_csv_components(request, component_id):
+@groups_required('REF-STR')
+def get_csv_structures(request, structure_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    component = Component.objects.get(id=component_id).label.replace(' ', '_')
-    response['Content-Disposition'] = f'attachment; filename="{component}_{today}.csv"'
-    slots = Slot.objects.filter(course__component_id=component_id, published=True)
+    structure = Structure.objects.get(id=structure_id).label.replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="{structure}_{today}.csv"'
+    slots = Slot.objects.filter(course__structure_id=structure_id, published=True)
 
     infield_separator = '|'
 
@@ -1417,7 +1465,7 @@ def get_csv_components(request, component_id):
         _('campus'),
         _('building'),
         _('room'),
-        _('teachers'),
+        _('speakers'),
         _('registration number'),
         _('place number'),
         _('additional information'),
@@ -1438,7 +1486,7 @@ def get_csv_components(request, component_id):
             slot.campus.label,
             slot.building.label,
             slot.room,
-            '|'.join([f'{t.first_name} {t.last_name}' for t in slot.teachers.all()]),
+            '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
             slot.registered_students(),
             slot.n_places,
             slot.additional_information,
@@ -1517,7 +1565,7 @@ def get_csv_highschool(request, high_school_id):
     return response
 
 
-@groups_required('SCUIO-IP',)
+@groups_required('REF-ETAB',)
 def get_csv_anonymous_immersion(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -1527,7 +1575,7 @@ def get_csv_anonymous_immersion(request):
     infield_separator = '|'
 
     header = [
-        _('component'),
+        _('structure'),
         _('training domain'),
         _('training subdomain'),
         _('training'),
@@ -1577,7 +1625,7 @@ def get_csv_anonymous_immersion(request):
                 if record:
                     content.append(
                         [
-                            slot.course.component.label,
+                            slot.course.structure.label,
                             infield_separator.join(
                                 [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                             ),
@@ -1604,7 +1652,7 @@ def get_csv_anonymous_immersion(request):
         else:
             content.append(
                 [
-                    slot.course.component.label,
+                    slot.course.structure.label,
                     infield_separator.join(
                         [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                     ),
@@ -1648,9 +1696,9 @@ def ajax_send_email_contact_us(request):
     notify_user = False
 
     try:
-        recipient = get_general_setting('MAIL_CONTACT_SCUIO_IP')
+        recipient = get_general_setting('MAIL_CONTACT_REF_ETAB')
     except (NameError, ValueError):
-        logger.error('MAIL_CONTACT_SCUIO_IP not configured properly in settings')
+        logger.error('MAIL_CONTACT_REF_ETAB not configured properly in settings')
         response = {'error': True, 'msg': gettext("Config parameter not found")}
         return JsonResponse(response, safe=False)
 
@@ -1660,7 +1708,7 @@ def ajax_send_email_contact_us(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # Scuio-ip mail sending
+    # ref-etab mail sending
     try:
         send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
     except Exception as e:
@@ -1692,7 +1740,7 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('SCUIO-IP', 'SRV-JUR')
+@groups_required('REF-ETAB', 'SRV-JUR')
 def ajax_get_student_presence(request, date_from=None, date_until=None):
     response = {'data': [], 'msg': ''}
 
@@ -1847,7 +1895,7 @@ def ajax_cancel_alert(request):
 
 
 @is_ajax_request
-@groups_required("SCUIO-IP")
+@groups_required("REF-ETAB")
 def ajax_get_duplicates(request):
     """
     Get duplicates lists
@@ -1884,7 +1932,7 @@ def ajax_get_duplicates(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB')
 def ajax_keep_entries(request):
     """
     Remove duplicates ids from high school student records
@@ -1915,3 +1963,73 @@ def ajax_keep_entries(request):
     response['msg'] = gettext("Duplicates data cleared")
 
     return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('REF-LYC')
+def ajax_get_highschool_speakers(request, highschool_id=None):
+    """
+    get highschool speakers
+    """
+    response = {'data': [], 'msg': '', 'error': ''}
+
+    if request.user.highschool and highschool_id and request.user.highschool.id == highschool_id:
+        for speaker in ImmersionUser.objects.filter(groups__name='INTER', highschool=request.user.highschool):
+            has_slots = speaker.slots.exists()
+
+            response["data"].append({
+                'id': speaker.id,
+                'last_name': speaker.last_name,
+                'first_name': speaker.first_name,
+                'email': speaker.email,
+                'is_active': _("Yes") if speaker.is_active else _("No"),
+                'has_slots': _("Yes") if has_slots else _("No"),
+                'can_delete': not has_slots
+            })
+
+    return JsonResponse(response, safe=False)
+
+
+class CampusList(generics.ListAPIView):
+    """
+    Campus list
+    """
+    serializer_class = CampusSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['establishment', ]
+
+    def get_queryset(self):
+        queryset = Campus.objects.filter(active=True).order_by('label')
+        user = self.request.user
+
+        if not user.is_superuser and user.is_establishment_manager():
+            queryset = queryset.filter(establishment=user.establishment)
+
+        return queryset
+
+
+class EstablishmentList(generics.ListAPIView):
+    """
+    Establishments list
+    """
+    serializer_class = EstablishmentSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+
+    def get_queryset(self):
+        queryset = Establishment.objects.filter(active=True).order_by('label')
+        user = self.request.user
+
+        if not user.is_superuser and user.is_establishment_manager():
+            queryset = queryset.filter(id=user.establishment.id)
+
+        return queryset
+
+
+class GetEstablishment(generics.RetrieveAPIView):
+    """
+    Single establishment
+    """
+    serializer_class = EstablishmentSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    queryset = Establishment.objects.all()
+    lookup_field = "id"

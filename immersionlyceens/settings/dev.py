@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import socket
 from os import environ
 from os.path import normpath
-import socket
 
 from .base import *
 
@@ -59,7 +59,7 @@ ALLOWED_HOSTS = [
 #####################
 
 LOGGING['handlers']['file']['filename'] = environ.get('LOG_DIR',
-        normpath(join('/tmp', '%s.log' % SITE_NAME)))
+                                                      normpath(join('/tmp', '%s.log' % SITE_NAME)))
 LOGGING['handlers']['file']['level'] = 'DEBUG'
 
 for logger in LOGGING['loggers']:
@@ -86,32 +86,10 @@ MIDDLEWARE += [
 ]
 INTERNAL_IPS = ['127.0.0.1', '0.0.0.0']
 
-#################
-# APIs settings #
-#################
 
-ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
-
-
-#####################
-# LDAP API settings #
-#####################
-
-# Server
-LDAP_API_HOST = environ.get('LDAP_API_HOST', '')
-LDAP_API_PORT = environ.get('LDAP_API_PORT', '')
-LDAP_API_DN = environ.get('LDAP_API_DN', '')
-LDAP_API_PASSWORD = environ.get('LDAP_API_PASSWORD', '')
-LDAP_API_BASE_DN = environ.get('LDAP_API_BASE_DN', '')
-
-# Filters and attributes
-LDAP_API_ACCOUNTS_FILTER = environ.get('LDAP_API_ACCOUNTS_FILTER', '')
-LDAP_API_SEARCH_ATTR = environ.get('LDAP_API_SEARCH_ATTR', '')
-LDAP_API_DISPLAY_ATTR = environ.get('LDAP_API_DISPLAY_ATTR', '')
-LDAP_API_EMAIL_ATTR = environ.get('LDAP_API_EMAIL_ATTR', '')
-LDAP_API_USERNAME_ATTR = environ.get('LDAP_API_USERNAME_ATTR', '')
-LDAP_API_LASTNAME_ATTR = environ.get('LDAP_API_LASTNAME_ATTR', '')
-LDAP_API_FIRSTNAME_ATTR = environ.get('LDAP_API_FIRSTNAME_ATTR', '')
+################
+# API settings #
+################
 
 WITH_HOLIDAY_API = True
 HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'
@@ -129,91 +107,6 @@ EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.ConsoleBackend'
 # FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
-
-# SUMMER NOTE
-BASE_DIR = os.getcwd()
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {
-        'lang': 'fr-FR',
-    },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
-    'toolbar': [
-        [
-            'style',
-            [
-                'style',
-                'bold',
-                'italic',
-                'underline',
-                'strikethrough',
-                'superscript',
-                'subscript',
-                'clear',
-            ]
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ]
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
-            ],
-        ],
-        [
-            'others',
-            [
-                'link',
-                'table',
-                'hr'
-            ],
-        ],
-        [
-            'view',
-            [
-                'codeview',
-                'undo',
-                'redo',
-                'fullscreen'
-            ],
-        ],
-    ],
-    'popover': {
-        'link': ['link', ['linkDialogShow', 'unlink']],
-        'table': [
-            [
-                'add',
-                [
-                    'addRowDown',
-                    'addRowUp',
-                    'addColLeft',
-                    'addColRight'
-                ]
-            ],
-            [
-                'delete',
-                [
-                    'deleteRow',
-                    'deleteCol',
-                    'deleteTable'
-                ]
-            ],
-        ],
-    }
-}
 
 # Mailing list subscriber files directory
 BASE_FILES_DIR = "/tmp"

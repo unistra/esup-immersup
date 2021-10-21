@@ -3,29 +3,36 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.db.models import Q
+from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
-
+from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
-from hijack_admin.admin import HijackUserAdminMixin
-
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
+from django_admin_listfilter_dropdown.filters import (
+    DropdownFilter, RelatedDropdownFilter,
+)
+
 from .admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    CertificateLogoForm, CertificateSignatureForm, ComponentForm, CourseTypeForm, EvaluationFormLinkForm,
-    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm, HolidayForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, InformationTextForm, MailTemplateForm, PublicDocumentForm,
-    PublicTypeForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
+    CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
+    HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
+    PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm, OffOfferEventTypeForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
-    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature, Component, Course,
-    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, GeneralSettings,
-    HighSchool, Holiday, Immersion, ImmersionUser, InformationText, MailTemplate, PublicDocument,
-    PublicType, Slot, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
+    Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
+    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
+    Slot, Structure, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation, OffOfferEventType,
 )
 
 
@@ -106,7 +113,7 @@ class ActivationFilter(admin.SimpleListFilter):
             return queryset.filter(groups__name__in=['LYC', 'ETU'], validation_string__isnull=False)
 
 
-class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
+class CustomUserAdmin(AdminWithRequest, UserAdmin):
     form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
 
@@ -139,14 +146,15 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
     get_activated_account.short_description = _('Activated account')
     get_groups_list.short_description = _('Groups')
 
-    filter_horizontal = ('components', 'groups', 'user_permissions')
+    filter_horizontal = ('structures', 'groups', 'user_permissions')
 
     add_fieldsets = (
         (
             None,
             {
                 'classes': ('wide',),
-                'fields': ('username', 'password1', 'password2', 'email', 'first_name', 'last_name',),
+                'fields': ('establishment', 'search', 'username', 'password1', 'password2', 'email', 'first_name',
+                           'last_name',),
             },
         ),
     )
@@ -164,6 +172,18 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
             pass
         return actions
 
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_high_school_manager():
+            return qs.filter(groups__name__in=['INTER'], highschool=request.user.highschool)
+
+        return qs
+
     def has_delete_permission(self, request, obj=None):
         no_delete_msg = _("You don't have enough privileges to delete this account")
 
@@ -174,14 +194,32 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
                 messages.warning(request, no_delete_msg)
                 return False
 
+            if request.user.is_master_establishment_manager():
+                return obj.groups.filter(name__in=('REF-ETAB', 'REF-STR')).exists()
+
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
-            if request.user.is_scuio_ip_manager():
+            if request.user.is_establishment_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
-                rights = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP')
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
+                establishment_condition = obj.establishment == request.user.establishment
 
-                if not (set(x for x in user_groups) - set(rights)):
-                    return True
+                if not establishment_condition:
+                    messages.warning(request, no_delete_msg)
+                    return False
+
+                return not (set(x for x in user_groups) - set(rights))
+
+            if request.user.is_high_school_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
+                highschool_condition = obj.highschool == request.user.highschool
+
+                if not highschool_condition:
+                    messages.warning(request, no_delete_msg)
+                    return False
+
+                return not (set(x for x in user_groups) - set(rights))
 
             messages.warning(request, no_delete_msg)
 
@@ -194,28 +232,48 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
             elif obj.is_superuser:
                 return False
 
+            # When creating a user, the group is not here yet
+            if request.user.is_master_establishment_manager():
+                return obj.establishment and not obj.establishment.master
+
             # A user can only be updated if not superuser and the authenticated user has
             # rights on ALL his groups
-            if request.user.is_scuio_ip_manager():
+            if request.user.is_establishment_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
-                rights = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP')
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
 
                 if not (set(x for x in user_groups) - set(rights)):
                     return True
+
+            if request.user.is_high_school_manager():
+                user_groups = obj.groups.all().values_list('name', flat=True)
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
+                highschool_condition = obj.highschool == request.user.highschool
+
+                return highschool_condition and not (set(x for x in user_groups) - set(rights))
 
             return False
 
         return True
 
-    def get_list_display(self, request):
-        # add hijack button for admin users
-        if request.user.is_superuser and 'hijack_field' not in self.list_display:
-            self.list_display.append('hijack_field')
+    def has_add_permission(self, request):
+        has_permission = [
+            request.user.is_superuser,
+            request.user.is_establishment_manager(),
+            request.user.is_master_establishment_manager()
+        ]
 
-        return self.list_display
+        if any(has_permission):
+            return True
+
+        if request.user.is_high_school_manager():
+            if request.user.highschool and request.user.highschool.postbac_immersion:
+                return True
+
+        return False
 
     def get_fieldsets(self, request, obj=None):
-        # On user change, add Components in permissions fieldset
+        # On user change, add structures in permissions fieldset
         # after Group selection
         if not obj:
             return super().get_fieldsets(request, obj)
@@ -223,11 +281,12 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
             lst = list(UserAdmin.fieldsets)
             permissions_fields = list(lst[2])
             permissions_fields_list = list(permissions_fields[1]['fields'])
-            permissions_fields_list.insert(4, 'components')
-            permissions_fields_list.insert(5, 'highschool')
+            permissions_fields_list.insert(4, 'establishment')
+            permissions_fields_list.insert(5, 'structures')
+            permissions_fields_list.insert(6, 'highschool')
 
             if not request.user.is_superuser:
-                # Remove components widget for non superusers
+                # Remove structures widget for non superusers
                 try:
                     permissions_fields_list.remove('user_permissions')
                 except ValueError:
@@ -240,14 +299,18 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin, HijackUserAdminMixin):
         return fieldsets
 
     class Media:
-        js = ('js/immersion_user.js',)  # implements user search
-        css = {'all': ('css/immersionlyceens.css',)}
+        js = (
+            'js/vendor/jquery/jquery-3.4.1.min.js',
+            'js/immersion_user.min.js',
+        )
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingDomainForm
     list_display = ('label', 'active')
-    list_filter = ('active',)
+    list_filter = ('active', )
+
     ordering = ('label',)
     search_fields = ('label',)
 
@@ -261,7 +324,7 @@ class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and TrainingSubdomain.objects.filter(training_domain=obj).exists():
@@ -295,7 +358,7 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and Training.objects.filter(training_subdomains=obj).exists():
@@ -309,8 +372,11 @@ class TrainingSubdomainAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CampusForm
-    list_display = ('label', 'active')
-    list_filter = ('active',)
+    list_display = ('label', 'establishment', 'active')
+    list_filter = (
+        'active',
+        ('establishment', RelatedDropdownFilter),
+    )
     ordering = ('label',)
     search_fields = ('label',)
 
@@ -324,8 +390,20 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_establishment_manager():
+            return qs.filter(Q(establishment__isnull=True)|Q(establishment=request.user.establishment))
+
+        return qs
+
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Building.objects.filter(campus=obj).exists():
@@ -337,13 +415,23 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BuildingForm
-    list_display = ('label', 'campus', 'url', 'active')
-    list_filter = ('campus', 'active')
+    list_display = ('label', 'campus', 'get_establishment', 'url', 'active')
+    list_filter = (
+        ('campus', RelatedDropdownFilter),
+        ('campus__establishment', RelatedDropdownFilter),
+        'active'
+    )
     ordering = (
+        'campus__establishment',
         'campus',
         'label',
     )
     search_fields = ('label',)
+
+    def get_establishment(self, obj):
+        return obj.campus.establishment
+
+    get_establishment.short_description = _('Establishments')
 
     def get_actions(self, request):
         # Disable delete
@@ -355,8 +443,20 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_establishment_manager():
+            return qs.filter(Q(campus__establishment__isnull=True)|Q(campus__establishment=request.user.establishment))
+
+        return qs
+
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_establishment_manager():
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
@@ -365,6 +465,12 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return True
 
+    class Media:
+        js = (
+            'js/jquery-3.4.1.slim.min.js',
+            'js/admin_building.min.js',
+        )
+
 
 class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     form = BachelorMentionForm
@@ -372,7 +478,7 @@ class BachelorMentionAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and HighSchoolStudentRecord.objects.filter(technological_bachelor_mention=obj).exists():
@@ -396,7 +502,7 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and HighSchoolStudentRecord.objects.filter(general_bachelor_teachings=obj).exists():
@@ -409,10 +515,50 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
-class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = ComponentForm
-    list_display = ('code', 'label', 'active', 'mailing_list')
+class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = EstablishmentForm
+    list_display = ('code', 'label', 'master', 'active', )
     list_filter = ('active',)
+    ordering = ('master', 'label', )
+    search_fields = ('label',)
+
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget(options={ 'mode': 'form' })},
+    }
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super().get_actions(request)
+        # Manage KeyError if rights for groups don't include delete !
+        try:
+            del actions['delete_selected']
+        except KeyError:
+            pass
+        return actions
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_superuser:
+            return False
+
+        # Test existing data before deletion (see US 160)
+        if obj and Structure.objects.filter(establishment=obj).exists():
+            messages.warning(request, _("This establishment can't be deleted (linked structures)"))
+            return False
+
+        return True
+
+
+class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = StructureForm
+    list_display = ('code', 'label', 'establishment', 'active', 'mailing_list')
+    list_filter = (
+        'active',
+        ('establishment', RelatedDropdownFilter),
+    )
     ordering = ('label',)
     search_fields = ('label',)
 
@@ -426,12 +572,38 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
-    def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
-            return False
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
 
-        if obj and Training.objects.filter(components=obj).exists():
-            messages.warning(request, _("This component can't be deleted because it is used by a training"))
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_establishment_manager():
+            return qs.filter(Q(establishment__isnull=True)|Q(establishment=request.user.establishment))
+
+        return qs
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser or request.user.is_master_establishment_manager():
+            return True
+
+        if obj and request.user.is_establishment_manager() and obj.establishment == request.user.establishment:
+            return True
+
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_superuser:
+            if not request.user.is_establishment_manager() and not request.user.is_master_establishment_manager():
+                return False
+
+            # Own establishment structure only
+            if obj and request.user.is_establishment_manager() and obj.establishment != request.user.establishment:
+                return False
+
+        if obj and Training.objects.filter(structures=obj).exists():
+            messages.warning(request, _("This structure can't be deleted because it is used by a training"))
             return False
 
         return True
@@ -439,14 +611,48 @@ class ComponentAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
-    filter_horizontal = ('components', 'training_subdomains')
-    list_display = ('label', 'active')
-    list_filter = ('active',)
+    filter_horizontal = ('structures', 'training_subdomains')
+    list_display = ('label', 'get_structures_list', 'get_subdomains_list', 'active')
+
+    list_filter = (
+        'active',
+        ('structures', RelatedDropdownFilter),
+        ('training_subdomains', RelatedDropdownFilter),
+    )
+
     ordering = ('label',)
     search_fields = ('label',)
 
+    def get_structures_list(self, obj):
+        return ["%s (%s)" % (s.code, s.establishment.code if s.establishment else '-')
+            for s in obj.structures.all().order_by('code')
+        ]
+
+    get_structures_list.short_description = _('Structures')
+
+    def get_subdomains_list(self, obj):
+        return [sub.label for sub in obj.training_subdomains.all().order_by('label')]
+
+    get_structures_list.short_description = _('Structures')
+    get_subdomains_list.short_description = _('Training subdomains')
+
+    def get_queryset(self, request):
+        # Other groups has no "Can view structure" permission
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+
+        if request.user.is_establishment_manager():
+            return qs.filter(
+                Q(structures__establishment__isnull=True)
+                |Q(structures__establishment=request.user.establishment)
+            )
+
+        return qs
+
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and Course.objects.filter(training=obj).exists():
@@ -464,7 +670,7 @@ class CancelTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and Immersion.objects.filter(cancellation_type=obj).exists():
@@ -482,7 +688,7 @@ class CourseTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and Slot.objects.filter(course_type=obj).exists():
@@ -500,7 +706,7 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj and AccompanyingDocument.objects.filter(public_type=obj).exists():
@@ -539,7 +745,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
     #     return actions
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj:
@@ -659,6 +865,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
         'label',
         'start_date',
         'end_date',
+        'purge_date',
         'active',
     )
     list_filter = ('active',)
@@ -684,7 +891,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
-        elif request.user.is_scuio_ip_manager():
+        elif request.user.is_master_establishment_manager():
             return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
         else:
             return False
@@ -693,18 +900,18 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if request.user.is_superuser:
             return True
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj:
-            if obj.start_date <= datetime.today().date():
+            if obj.start_date <= datetime.today().date() <= obj.end_date:
                 messages.warning(
                     request,
-                    _("""This component can't be deleted """ """because university year has already started"""),
+                    _("""This university year can't be deleted """ """because university year has already started"""),
                 )
                 return False
             elif obj.purge_date is not None:
-                messages.warning(request, _("This component can't be deleted because a purge date is defined"))
+                messages.warning(request, _("This university year can't be deleted because a purge date is defined"))
                 return False
 
         return True
@@ -777,7 +984,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         """Singleton"""
-        return not Calendar.objects.exists()
+        return request.user.is_master_establishment_manager() and not Calendar.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -786,7 +993,7 @@ class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
         # TODO: check why I can't use django.jquery stuff !!!!!
         js = (
             'js/jquery-3.4.1.slim.min.js',
-            'js/admin_calendar.js',
+            'js/admin_calendar.min.js',
         )
 
 
@@ -833,7 +1040,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         if settings.USE_GEOAPI:
             js = (
                 'js/jquery-3.4.1.slim.min.js',
-                'js/admin_highschool.js',
+                'js/admin_highschool.min.js',
             )
 
 
@@ -864,7 +1071,7 @@ class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
     class Media:
         css = {
             'all': (
-                'css/immersionlyceens.css',
+                'css/immersionlyceens.min.css',
                 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
                 'js/vendor/datatables/datatables.min.css',
                 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',
@@ -873,7 +1080,7 @@ class InformationTextAdmin(AdminWithRequest, admin.ModelAdmin):
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
             'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-            'js/admin_information_text.js',
+            'js/admin_information_text.min.js',
             'js/vendor/datatables/datatables.min.js',
             'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
         )
@@ -892,6 +1099,13 @@ class AccompanyingDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         file_url.short_description = _('Address')
         return ('label', 'description', 'get_types', file_url, 'active')
+
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager():
+            return False
+
+        return True
 
 
 class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -931,7 +1145,7 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
         return ('label', file_url, doc_used_in, 'active', 'published')
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_scuio_ip_manager():
+        if not request.user.is_master_establishment_manager():
             return False
 
         if obj:
@@ -957,7 +1171,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     class Media:
         css = {
             'all': (
-                'css/immersionlyceens.css',
+                'css/immersionlyceens.min.css',
                 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css',
                 'js/vendor/datatables/datatables.min.css',
                 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css',
@@ -966,7 +1180,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
             'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-            'js/immersion_mail_templates.js',
+            'js/immersion_mail_templates.min.js',
             'js/vendor/datatables/datatables.min.js',
             'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
         )
@@ -995,9 +1209,44 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
+    def setting_type(self, obj):
+        if 'type' not in obj.parameters:
+            return ""
+
+        if obj.parameters['type'] == 'boolean':
+            return _('boolean')
+        elif obj.parameters['type'] == 'text':
+            return _('text')
+        else:
+            #TODO: hope to have localized type in i18n files ?
+            return _(obj.parameters['type'])
+
+    def setting_value(self, obj):
+        if 'type' not in obj.parameters:
+            return None
+
+        if obj.parameters['type'] == 'boolean':
+            return _('Yes') if obj.parameters['value'] == True else _('No')
+        else:
+            return obj.parameters['value']
+
+    def setting_description(self, obj):
+        return obj.parameters.get('description', '')
+
     form = GeneralSettingsForm
-    list_display = ('setting', 'value', 'description')
+    list_display = ('setting', 'setting_value', 'setting_type', 'setting_description')
     ordering = ('setting',)
+
+    formfield_overrides = {
+        JSONField: {
+            'widget': JSONEditorWidget(options={ 'mode': 'form' }),
+        },
+    }
+
+    setting_type.short_description = _('Setting type')
+    setting_value.short_description = _('Setting value')
+    setting_description.short_description = _('Setting description')
+
 
 class AnnualStatisticsAdmin(admin.ModelAdmin):
     list_display_links = None
@@ -1009,7 +1258,7 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
         'participants_one_immersion',
         'participants_multiple_immersions',
         'immersion_registrations',
-        'components_count',
+        'structures_count',
         'trainings_one_slot_count',
         'courses_one_slot_count',
         'total_slots_count',
@@ -1028,10 +1277,11 @@ class AnnualStatisticsAdmin(admin.ModelAdmin):
     class Media:
         css = {
             'all': (
-                'css/immersionlyceens.css',
-                'css/admin_annual_stats.css',
+                'css/immersionlyceens.min.css',
+                'css/admin_annual_stats.min.css',
             )
         }
+
 
 class CertificateLogoAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CertificateLogoForm
@@ -1059,13 +1309,42 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     show_signature.short_description = _('Certificate signature')
 
 
+class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = OffOfferEventTypeForm
+    list_display = ('label', 'full_label', 'active')
+    ordering = ('label',)
+
+    def has_module_permission(self, request):
+        return request.user.is_master_establishment_manager()
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager():
+            return False
+
+        # todo: implement off offer event type in slot
+        # if obj and Slot.objects.filter(course_type=obj).exists():
+        #     messages.warning(
+        #         request, _("This off offer event type can't be deleted because it is used by some slots"),
+        #     )
+        #     return False
+
+        return True
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
 admin.site.register(TrainingDomain, TrainingDomainAdmin)
 admin.site.register(TrainingSubdomain, TrainingSubdomainAdmin)
 admin.site.register(Training, TrainingAdmin)
-admin.site.register(Component, ComponentAdmin)
+admin.site.register(Establishment, EstablishmentAdmin)
+admin.site.register(Structure, StructureAdmin)
 admin.site.register(BachelorMention, BachelorMentionAdmin)
 admin.site.register(Campus, CampusAdmin)
 admin.site.register(Building, BuildingAdmin)
@@ -1088,3 +1367,4 @@ admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
+admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)

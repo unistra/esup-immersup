@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
@@ -11,7 +11,7 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
 {% trans "Courses list" %}
@@ -37,12 +37,12 @@
         </div>
       </div>
       {% endif %}
-      <div id="cmp_filter" style="padding-bottom:10px; padding-top:20px;">
-        <label for="cmps">{% trans 'Select a component' %} :</label>
-        <select id="cmps">
-          {% for component in components %}
-            <option value="{{ component.id }}" {% if component.id == component_id %}selected="True"{% endif %}>
-              {{ component.code }} - {{ component.label }}
+      <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
+        <label for="strs">{% trans 'Select a structure' %} :</label>
+        <select id="strs">
+          {% for structure in structures %}
+            <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+              {{ structure.code }} - {{ structure.label }}
             </option>
           {% endfor %}
         </select>
@@ -55,7 +55,7 @@
             <th><span id="training_filter">{% trans 'Training' %}</span></th>
             <th><span id="managed_by_filter">{% trans 'Managed by' %}</span></th>
             <th><span id="label_filter">{% trans 'Label' %}</span></th>
-            <th class="align-top">{% trans 'Teachers' %}</th>
+            <th class="align-top">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %}</th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th><span id="alerts_filter">{% trans 'Alerts' %}</span></th>
@@ -84,7 +84,7 @@
   var dt;
   var updatable = "{{ can_update_courses }}";
   var feedback;
-  var current_component_id;
+  var current_structure_id;
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var conformDialog;
@@ -114,7 +114,7 @@
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
-        dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
+        dt.ajax.url("/api/get_courses/" + $('#strs option:selected').val() + "/").load();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -127,7 +127,7 @@
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
-    current_component_id = $('#cmps option:selected').val();
+    current_structure_id = $('#strs option:selected').val();
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
@@ -167,7 +167,7 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_courses/" + $('#cmps option:selected').val() + "/",
+        url: "/api/get_courses/" + $('#strs option:selected').val() + "/",
         dataSrc: function (json) {
           if (json['data'] != undefined) {
             return json['data'];
@@ -192,10 +192,10 @@
             },
           },
           { "data": "training_label"},
-          { "data": "component_code" },
+          { "data": "structure_code" },
           { "data": "label",
             "render": function (data, type, row) {
-              if(updatable == "True" && row.component_id == current_component_id) {
+              if(updatable == "True" && row.structure_id == current_structure_id) {
                 return "<a href='/core/course/" + row.id + "'>"+data+"</a>";
               }
               else {
@@ -203,7 +203,7 @@
               }
             },
           },
-          { "data": "teachers",
+          { "data": "speakers",
             "render": function (data) {
               let txt = "";
               $.each(data, function(index, value) {
@@ -240,7 +240,7 @@
           { "data": "",
             "render": function (data, type, row) {
               var icons = "";
-              if(row.component_id == current_component_id) {
+              if(row.structure_id == current_structure_id) {
                 icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                          "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                          "</a>\n";
@@ -267,10 +267,10 @@
         },
       ],
     });
-    // Reload the table when component changes in selectbox
-    $('#cmps').change( function() {
-      dt.ajax.url("/api/get_courses/" + $('#cmps option:selected').val() + "/").load();
-      current_component_id = $('#cmps option:selected').val();
+    // Reload the table when structure changes in selectbox
+    $('#strs').change( function() {
+      dt.ajax.url("/api/get_courses/" + $('#strs option:selected').val() + "/").load();
+      current_structure_id = $('#strs option:selected').val();
     });
 
     // Filters init

@@ -1,4 +1,4 @@
-{% load immersionlyceens_tags i18n static staticfiles %}
+{% load immersionlyceens_tags i18n static %}
 {% authorized_groups request.user %}
 <!-- Modal -->
 <div class="modal fade" id="modal_student_details" tabindex="-1" role="dialog" aria-labelledby="modal_student_details_title" aria-hidden="true">
@@ -22,7 +22,7 @@
                   <th>{% trans 'Type' %}</th>
                   <th>{% trans 'Place' %}</th>
                   <th>{% trans 'Date and time' %}</th>
-                  <th>{% trans 'Teachers' %}</th>
+                  <th>{% trans 'Speakers' %}</th>
                   <th>{% trans 'Additional info' %}</th>
                   <th>{% trans 'Cancellation type' %}</th>
                   <th>{% trans 'Attendance' %}</th>
@@ -99,7 +99,7 @@ dtr = $('#immersions_table').DataTable({
         return data;
       },
     },
-    { "data": "teachers",
+    { "data": "speakers",
       "render": function (data) {
         let txt = "";
         $.each(data, function(index, value) {

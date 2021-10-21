@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
@@ -18,7 +18,7 @@
 
 {% block section_title %}
     <h3 class="ml-2">
-      {% trans "Registrations statistics by trainings" %}{% if high_school_name %} - {{ high_school_name }}{% endif %}
+      {% trans "Highschools statistics - registrations by trainings" %}{% if high_school_name %} - {{ high_school_name }}{% endif %}
     </h3>
 {% endblock %}
 

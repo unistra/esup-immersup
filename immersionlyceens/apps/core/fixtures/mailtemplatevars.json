@@ -42,8 +42,8 @@
     "model": "core.mailtemplatevars",
     "pk": 6,
     "fields": {
-      "code": "${creneau.composante}",
-      "description": "Cr\u00e9neau : composante"
+      "code": "${creneau.structure}",
+      "description": "Cr\u00e9neau : structure"
     }
   },
   {
@@ -66,8 +66,8 @@
     "model": "core.mailtemplatevars",
     "pk": 9,
     "fields": {
-      "code": "${creneau.enseignants}",
-      "description": "Liste des enseignants du cr\u00e9neau"
+      "code": "${creneau.intervenants}",
+      "description": "Liste des intervenants du cr\u00e9neau"
     }
   },
   {
@@ -122,16 +122,16 @@
     "model": "core.mailtemplatevars",
     "pk": 16,
     "fields": {
-      "code": "${ens.nom}",
-      "description": "Nom de l'enseignant"
+      "code": "${int.nom}",
+      "description": "Nom de l'intervenant"
     }
   },
   {
     "model": "core.mailtemplatevars",
     "pk": 17,
     "fields": {
-      "code": "${ens.prenom}",
-      "description": "Pr\u00e9nom de l'enseignant"
+      "code": "${int.prenom}",
+      "description": "Pr\u00e9nom de l'intervenant"
     }
   },
   {

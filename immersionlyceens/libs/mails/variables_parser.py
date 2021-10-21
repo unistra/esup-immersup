@@ -72,10 +72,10 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         vars += [
             ('${creneau.batiment}', slot.building.label),
             ('${creneau.campus}', slot.campus.label),
-            ('${creneau.composante}', slot.course.component.label),
+            ('${creneau.structure}', slot.course.structure.label),
             ('${creneau.cours}', slot.course.label),
             ('${creneau.date}', date_format(slot.date)),
-            ('${creneau.enseignants}', ','.join(["%s %s" % (t.first_name, t.last_name) for t in slot.teachers.all()])),
+            ('${creneau.intervenants}', ','.join(["%s %s" % (t.first_name, t.last_name) for t in slot.speakers.all()])),
             ('${creneau.formation}', slot.course.training.label),
             ('${creneau.heuredebut}', slot.start_time.strftime("%-Hh%M")),
             ('${creneau.heurefin}', slot.end_time.strftime("%-Hh%M")),
@@ -112,8 +112,8 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         vars += [
             ('${nom}', user.last_name),
             ('${prenom}', user.first_name),
-            ('${ens.nom}', user.last_name),  # ! doublon
-            ('${ens.prenom}', user.first_name),  # ! doublon
+            ('${int.nom}', user.last_name),  # ! doublon
+            ('${int.prenom}', user.first_name),  # ! doublon
             ('${referentlycee.nom}', user.last_name),  # ! doublon
             ('${referentlycee.prenom}', user.first_name),  # ! doublon
             ('${identifiant}', user.get_cleaned_username()),
@@ -182,7 +182,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
                 s.course_type.label,
                 s.building,
                 s.room,
-                ','.join(["%s %s" % (t.first_name, t.last_name) for t in s.teachers.all()]),
+                ','.join(["%s %s" % (t.first_name, t.last_name) for t in s.speakers.all()]),
             )
             for s in slot_list
         ]

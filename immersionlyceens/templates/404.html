@@ -1,7 +1,16 @@
 {% extends "base.html" %}
-
 {% load i18n %}
-
+{% block title %}404: {% trans "Page not found" %}{% endblock %}
 {% block content %}
-{% trans "Page not found" %}
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'Page not found' %}</h1>
+        <p class="text-center">{% trans "The page you are looking for might have been removed, had its name changed or is temporarily unavailable." %}</p>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
-<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
 {% endblock %}
 {% block title %}{% trans "Student record" %}
@@ -129,7 +129,7 @@ ul
           <div id="id_technological_bachelor_data" style="display:none">
             <div class="form-group row">
               <label for="id_technological_bachelor_mention" class="col-sm-3 col-md-4 col-form-label">
-                {% trans 'Technological bachelor mention' %} * :
+                {% trans 'Technological bachelor series' %} * :
               </label>
               <div class="col-sm-6 col-md-6">{{ record_form.technological_bachelor_mention }}</div>
               <div class="col-sm-3 col-md-2">{{ record_form.technological_bachelor_mention.errors }}</div>
@@ -223,7 +223,7 @@ ul
         <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
 
-      {% if authorized_groups|in_groups:"SCUIO-IP" %}
+      {% if authorized_groups|in_groups:"REF-ETAB" %}
 
         <input type="button" class="btn btn-primary btn-sm ml-4" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
 

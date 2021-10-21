@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
-<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}{% trans "My immersions" %}{% endblock %}
 
@@ -73,7 +73,7 @@
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
                 <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Teachers' %}</th>
+                <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Additional info' %}</th>
                 <th></th>
               </tr>
@@ -118,7 +118,7 @@
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
                 <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Teachers' %}</th>
+                <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Attendance status' %}</th>
                 <th></th>
               </tr>
@@ -163,7 +163,7 @@
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
                 <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Teachers' %}</th>
+                <th>{% trans 'Speakers' %}</th>
                 <th>{% trans 'Cancellation type' %}</th>
               </tr>
             </thead>
@@ -279,7 +279,7 @@
             return data;
           },
         },
-        { "data": "teachers",
+        { "data": "speakers",
           "render": function (data) {
             let txt = "";
             $.each(data, function(index, value) {
@@ -354,7 +354,7 @@
             return data;
           },
         },
-        { "data": "teachers",
+        { "data": "speakers",
           "render": function (data) {
             let txt = "";
             $.each(data, function(index, value) {
@@ -426,7 +426,7 @@
             return data;
           },
         },
-        { "data": "teachers",
+        { "data": "speakers",
           "render": function (data) {
             let txt = "";
             $.each(data, function(index, value) {

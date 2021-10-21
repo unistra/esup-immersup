@@ -10,7 +10,7 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ..immersion.forms import StudentRecordForm
 from .admin_forms import HighSchoolForm
 from .models import (
-    Building, Calendar, Campus, Component, Course, CourseType,
+    Building, Calendar, Campus, Structure, Course, CourseType,
     HighSchool, ImmersionUser, Slot, Training, UniversityYear,
 )
 
@@ -26,17 +26,17 @@ class CourseForm(forms.ModelForm):
                 field.widget.attrs.update({'class': 'form-control'})
 
         if self.request:
-            allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
-            self.fields["component"].queryset = allowed_comps.order_by('code', 'label')
+            allowed_structs = Structure.activated.user_strs(self.request.user, 'REF-ETAB')
+            self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
 
-            if allowed_comps.count() == 1:
-                self.fields["component"].initial = allowed_comps.first().id
+            if allowed_structs.count() == 1:
+                self.fields["structure"].initial = allowed_structs.first().id
 
             if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
                 for field in self.fields:
                     self.fields[field].disabled = True
         else:
-            self.fields["component"].queryset = self.fields["component"].queryset.order_by('code', 'label')
+            self.fields["structure"].queryset = self.fields["structure"].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -58,18 +58,18 @@ class CourseForm(forms.ModelForm):
 
         # Check user rights
         if self.request:
-            allowed_comps = Component.activated.user_cmps(self.request.user, 'SCUIO-IP')
+            allowed_structs = Structure.activated.user_strs(self.request.user, 'REF-ETAB')
             training = cleaned_data['training']
-            course_comps = training.components.all()
+            course_structs = training.structures.all()
 
-            if not (course_comps & allowed_comps).exists():
+            if not (course_structs & allowed_structs).exists():
                 raise forms.ValidationError(_("You don't have enough privileges to update this course"))
 
         return cleaned_data
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'training', 'component')
+        fields = ('id', 'label', 'url', 'published', 'training', 'structure')
 
 
 class SlotForm(forms.ModelForm):
@@ -188,6 +188,9 @@ class MyHighSchoolForm(HighSchoolForm):
             'email',
             'phone_number',
             'head_teacher_name',
+            'postbac_immersion',
+            'mailing_list'
+
         ]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
@@ -205,6 +208,8 @@ class MyHighSchoolForm(HighSchoolForm):
             'email',
             'phone_number',
             'head_teacher_name',
+            'postbac_immersion',
+            'mailing_list'
         ]
 
 
@@ -247,14 +252,14 @@ class ContactForm(forms.Form):
         self.fields['subject'].widget.attrs['class'] = 'form-control'
 
 
-class ComponentForm(forms.ModelForm):
+class StructureForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.fields['mailing_list'].widget.attrs['class'] = 'form-control'
 
     class Meta:
-        model = Component
+        model = Structure
         fields = [
             'mailing_list',
         ]

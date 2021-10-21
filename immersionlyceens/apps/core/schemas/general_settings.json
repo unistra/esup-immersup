@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": [
+        "boolean",
+        "string"
+      ],
+      "minLength": 1
+    }
+  },
+  "required": [
+    "description",
+    "type",
+    "value"
+  ]
+}

@@ -11,7 +11,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
-    Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
+    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
@@ -47,47 +47,47 @@ class FormTestCase(TestCase):
             first_name='high',
             last_name='SCHOOL',
         )
-        self.teacher1 = get_user_model().objects.create_user(
-            username='teacher1',
+        self.speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
             password='pass',
-            email='teacher-immersion@no-reply.com',
-            first_name='teach',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
             last_name='HER',
         )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='teacher-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
         )
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
-            email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            email='ref_etab@no-reply.com',
+            first_name='ref_etab',
+            last_name='ref_etab',
         )
 
         self.client = Client()
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
 
-        Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
 
         self.today = datetime.datetime.today()
-        self.component = Component.objects.create(label="test component")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
-        self.course.teachers.add(self.teacher1)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
+        self.course.speakers.add(self.speaker1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM')
@@ -96,7 +96,7 @@ class FormTestCase(TestCase):
             building=self.building, room='room 1', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.teachers.add(self.teacher1),
+        self.slot.speakers.add(self.speaker1),
         self.high_school = HighSchool.objects.create(label='HS1', address='here',
                          department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
                          email='a@b.c', head_teacher_name='M. A B')
@@ -115,7 +115,7 @@ class FormTestCase(TestCase):
 
     def test_HighSchoolStudentRecordManagerForm(self):
         """
-        Test Evaluation form link creation
+        Test High school student record manager form
         """
         data = {
             'highschool': self.high_school,
@@ -125,7 +125,4 @@ class FormTestCase(TestCase):
             'student': self.high_school.id
         }
         form = HighSchoolStudentRecordManagerForm(data=data, instance=self.hs_record)
-        # print(form.is_valid())
-        # print(form.errors)
-
         self.assertTrue(form.is_valid())

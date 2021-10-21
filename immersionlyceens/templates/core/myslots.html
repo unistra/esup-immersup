@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
@@ -48,12 +48,12 @@
           <thead>
             <tr>
               <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
-              <th id="component_filter" class="align-top">{% trans 'Comp.' %}</th>
+              <th id="structure_filter" class="align-top">{% trans 'Struct.' %}</th>
               <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
               <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
               <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
               <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
-              <th id="teacher_filter" class="align-top">{% trans 'Teachers' %}</th>
+              <th id="speaker_filter" class="align-top">{% trans 'Speakers' %}</th>
               <th class="align-top">{% trans 'Registered students' %}</th>
               <th id="attendances_filter" class="align-top">{% trans 'Attendance' %}</th>
               <th id="additionnals_info"></th>
@@ -111,7 +111,7 @@
       'pageLength': 15,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
-      'responsive': true,
+      'responsive': false,
       'ajax': {
         url: "/api/get_my_slots/" + user_id + "/",
         dataSrc: function (json) {
@@ -138,7 +138,7 @@
         return txt;
       },
     },
-    { "data": "component" },
+    { "data": "structure" },
     { "data": "training_label" },
     { "data": "label" },
     {
@@ -158,7 +158,7 @@
       }
     },
     {
-      "data": "teachers",
+      "data": "speakers",
       "render": function (data) {
         let txt = "";
         $.each(data, function (name, email) {
@@ -169,8 +169,21 @@
     },
     {
       "data": "registered_students_count",
-      "render": function (data) {
-          return data.students_count + '/' + data.capacity + ' <meter min="0" max="'+ data.capacity +'" value="'+ data.students_count+'"></meter>';
+      render: function(data, type, row) {
+        let current = data.students_count;
+        let n = data.capacity;
+        element = '<span>' + current + '/' + n + '</span>' +
+            '<div class="progress">' +
+            '    <div' +
+            '       class="progress-bar"' +
+            '       role="progressbar"' +
+            '       aria-valuenow="' + current + '"' +
+            '       aria-valuemin="0"' +
+            '       aria-valuemax="' + n + '"' +
+            '       style="width: ' + Math.round(current/n * 100) + '%"' +
+            '></div>' +
+            '</div>';
+        return element;
       }
     },
     { "data": "attendances_status",
@@ -240,7 +253,7 @@
   }, {
     column_number: 1,
     filter_default_label: "",
-    filter_container_id: "component_filter",
+    filter_container_id: "structure_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   }, {
@@ -260,7 +273,7 @@
     filter_type: "text",
     filter_default_label: "",
     style_class: "form-control form-control-sm",
-    filter_container_id: "teacher_filter",
+    filter_container_id: "speaker_filter",
     filter_reset_button_text: false,
   }, {
     column_number: 8,

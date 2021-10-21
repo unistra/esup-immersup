@@ -13,17 +13,17 @@ class ActiveManager(models.Manager):
         return super().get_queryset().filter(active=True)
 
 
-class ComponentQuerySet(models.QuerySet):
+class StructureQuerySet(models.QuerySet):
     """
     """
 
-    def user_cmps(self, user, *groups):
-        cmp_filter = {'referents': user}
-        # Check if the user is in a group authorized to manage all the components
+    def user_strs(self, user, *groups):
+        str_filter = {'referents': user}
+        # Check if the user is in a group authorized to manage all structures
         if user.has_groups(*groups):
-            cmp_filter = {}
+            str_filter = {}
 
-        return self.filter(**cmp_filter)
+        return self.filter(**str_filter)
 
 
 class HighSchoolAgreedManager(models.Manager):

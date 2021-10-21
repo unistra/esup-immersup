@@ -31,7 +31,7 @@ libraries, dependency_links = [], []
 recursive_requirements('requirements.txt', libraries, dependency_links)
 
 setup(
-    name='immersionlyceens',
+    name='ImmerSup',
     version=__import__('immersionlyceens').get_version(),
     packages=find_packages(),
     install_requires=libraries,

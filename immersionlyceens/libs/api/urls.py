@@ -24,17 +24,16 @@ urlpatterns = [
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),
     path('get_available_vars/<int:template_id>', views.ajax_get_available_vars, name='GetAvailableVars',),
     path('get_buildings/<int:campus_id>', views.ajax_get_buildings, name='get_buildings',),
-    path('get_course_teachers/<int:course_id>', views.ajax_get_course_teachers, name='get_course_teachers',),
+    path('get_course_speakers/<int:course_id>', views.ajax_get_course_speakers, name='get_course_speakers',),
     path(
-        'get_courses_by_training/<int:component_id>/<int:training_id>',
+        'get_courses_by_training/<int:structure_id>/<int:training_id>',
         views.ajax_get_courses_by_training,
         name='get_courses_training',
     ),
     path('get_courses_by_training/<int:training_id>', views.ajax_get_courses_by_training, name='get_courses_training',),
-    path('get_courses/<int:component_id>/', views.ajax_get_courses, name='GetCourses'),
-    path('get_courses/<int:component_id>/', views.ajax_get_courses, name='GetCourses'),
+    path('get_courses/<int:structure_id>/', views.ajax_get_courses, name='GetCourses'),
     path('get_csv_anonymous_immersion/', views.get_csv_anonymous_immersion, name='get_csv_anonymous_immersion'),
-    path('get_csv_components/<int:component_id>', views.get_csv_components, name='get_csv_components'),
+    path('get_csv_structures/<int:structure_id>', views.get_csv_structures, name='get_csv_structures'),
     path('get_csv_highschool/<int:high_school_id>', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_duplicates', views.ajax_get_duplicates, name='get_duplicates'),
     path('get_highschool_students/', views.ajax_get_highschool_students, name='get_all_students'),
@@ -69,4 +68,10 @@ urlpatterns = [
     path('set_attendance', views.ajax_set_attendance, name='SetAttendance'),
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
+
+    path('campuses/', views.CampusList.as_view(), name='campus_list'),
+    path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),
+    path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_list'),
+
+    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
 ]

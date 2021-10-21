@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
 {% if duplicate %}
@@ -32,15 +32,15 @@
       {% csrf_token %}
         {{ course_form.id }}
         <div class="form-group row">
-          <label for="id_component" class="col-sm-3 col-form-label">
+          <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% trans 'Component' %} :
+            {% trans 'Structure' %} :
           </label>
           <div class="col-sm-3">
-            {{ course_form.component }}
+            {{ course_form.structure }}
           </div>
           <div class="col-sm-6">
-            {{ course_form.component.errors }}
+            {{ course_form.structure.errors }}
           </div>
         </div>
         <div class="form-group row">
@@ -88,7 +88,7 @@
         <div class="form-group row">
           <label for="person_search" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% trans 'Teachers' %} :
+            {% trans 'Speakers' %} :
           </label>
           <div class="col-sm-9">
             <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
@@ -96,9 +96,9 @@
             <select id='live_select' style='display:none;'></select>
             <a class="btn btn-secondary btn-sm" href="#" role="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</a>
             <label id='ws_message' style='display:none; width:300px;'></label>
-            <ul id="id_teachers" class="mt-4"></ul>
-            {{ course_form.teachers.errors }}
-            <input type="hidden" value="" name="teachers_list" id="id_teachers_list">
+            <ul id="id_speakers" class="mt-4"></ul>
+            {{ course_form.speakers.errors }}
+            <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
           </div>
         </div>
         {% if can_update_courses %}
@@ -123,7 +123,7 @@
   var can_update = "{{ update_rights }}";
 
   {% autoescape on %}
-  var teachers_array = {{ teachers|safe }};
+  var speakers_array = {{ speakers|safe }};
   {% endautoescape %}
 
   function set_trainings(cmp_id) {
@@ -131,7 +131,7 @@
       url: "{% url 'GetTrainings' %}",
       type: 'POST',
       data: {
-        'component_id': cmp_id,
+        'structure_id': cmp_id,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
@@ -168,13 +168,13 @@
     })
   }
 
-  function refresh_teachers_list() {
-    $("#id_teachers").empty();
-    $.each(teachers_array, function(i, item) {
+  function refresh_speakers_list() {
+    $("#id_speakers").empty();
+    $.each(speakers_array, function(i, item) {
       let txt = "<li>";
 
       if(can_update == "True" && (item["is_removable"] == true || item["is_removable"] == undefined)) {
-        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_teacher('"+item['username']+"')\">X</button> ";
+        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_speaker('"+item['username']+"')\">X</button> ";
       }
       else {
         txt += "<button type=\"button\" class=\"btn btn-danger btn-sm\">X</button> ";
@@ -182,22 +182,22 @@
 
       txt += item['display_name'] + " (" + item['email'] + ")</li>";
 
-      $("#id_teachers").append(txt);
+      $("#id_speakers").append(txt);
     });
 
-    $('#id_teachers_list').val(JSON.stringify(teachers_array));
+    $('#id_speakers_list').val(JSON.stringify(speakers_array));
   }
 
-  function remove_teacher(username) {
-    teachers_array = $.grep(teachers_array, function(value) {
+  function remove_speaker(username) {
+    speakers_array = $.grep(speakers_array, function(value) {
       return value["username"] != username;
     });
 
-    refresh_teachers_list();
+    refresh_speakers_list();
   };
 
-  $('#id_component').change( function() {
-    let cmp_id = $('#id_component option:selected').val();
+  $('#id_structure').change( function() {
+    let cmp_id = $('#id_structure option:selected').val();
     set_trainings(cmp_id);
   });
 
@@ -215,11 +215,11 @@
   $('#id_add_button').click(function() {
     let json_index = $('#live_select option:selected').val();
 
-    if($.inArray(json_results[json_index], teachers_array) == -1) {
-      teachers_array.push(json_results[json_index]);
+    if($.inArray(json_results[json_index], speakers_array) == -1) {
+      speakers_array.push(json_results[json_index]);
     }
 
-    refresh_teachers_list();
+    refresh_speakers_list();
   });
 
   $('#person_search').on('input', function() {
@@ -236,6 +236,7 @@
         type: "POST",
         data: {
           username: this.value,
+          establishment_id: establishment_id,
           query_order: query_order
         },
 
@@ -280,10 +281,10 @@
   });
 
   $(document).ready(function() {
-    set_trainings($('#id_component option:selected').val());
+    set_trainings($('#id_structure option:selected').val());
 
-    if (teachers_array) {
-      refresh_teachers_list();
+    if (speakers_array) {
+      refresh_speakers_list();
     }
 
     if (can_update == "False") {

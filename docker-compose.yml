@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  web:
+    container_name: immersup-app
+    networks:
+      - immersup-net
+    build:
+      context: ./
+      dockerfile: ./deploy/docker/app/Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./:/usr/src/app/
+    ports:
+      - 8000:8000
+    restart: always
+    env_file:
+      - ./deploy/docker/.env.dev
+    depends_on:
+      - db
+
+  db:
+    image: postgres:12
+    container_name: immersup-db
+    networks:
+      - immersup-net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=immersup
+      - POSTGRES_PASSWORD=immersup
+      - POSTGRES_DB=immersup
+    ports:
+      - 5432:5432
+    restart: always
+    # healthcheck:
+    #   test: "pg_isready --username=immersup && psql --username=immersup --list"
+    #   timeout: 30s
+    #   retries: 20
+
+volumes:
+  postgres_data:
+
+networks:
+  immersup-net:

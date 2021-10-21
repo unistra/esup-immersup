@@ -1,27 +1,30 @@
+import importlib
 import mimetypes
 import re
 from datetime import datetime
 
 from django import forms
 from django.conf import settings
-from django.contrib import admin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import UploadedFile
+from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
-from ...libs.geoapi.utils import get_cities, get_zipcodes
+from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
 from .models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, CertificateLogo,
-    CertificateSignature, Component, CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    CancelType, CertificateLogo, CertificateSignature, CourseType,
+    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
+    MailTemplate, MailTemplateVars, PublicDocument, PublicType, Structure,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, OffOfferEventType,
 )
 
 
-class BachelorMentionForm(forms.ModelForm):
+class TypeFormMixin(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -32,7 +35,7 @@ class BachelorMentionForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -41,6 +44,8 @@ class BachelorMentionForm(forms.ModelForm):
 
         return cleaned_data
 
+
+class BachelorMentionForm(TypeFormMixin):
     class Meta:
         model = BachelorMention
         fields = '__all__'
@@ -51,18 +56,46 @@ class CampusForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        if self.fields.get("establishment") and not self.request.user.is_superuser \
+                and self.request.user.is_establishment_manager():
+            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
+
     def clean(self):
         cleaned_data = super().clean()
+        establishment = cleaned_data.get("establishment")
         valid_user = False
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
         except AttributeError:
             pass
 
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            if establishment and establishment != self.request.user.establishment:
+                msg = _("You must select your own establishment")
+                if not self._errors.get("establishment"):
+                    self._errors["establishment"] = forms.utils.ErrorList()
+                self._errors['establishment'].append(self.error_class([msg]))
+
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+        # Check label uniqueness within the same establishment
+        excludes = {}
+        if self.instance:
+            excludes['id'] = self.instance.id
+
+        campus_queryset = Campus.objects.exclude(**excludes).filter(
+            label__iexact=cleaned_data.get("label"),
+            establishment=establishment
+        )
+
+        if campus_queryset.exists():
+            msg = _("A campus with this label already exists within the same establishment")
+            if not self._errors.get("label"):
+                self._errors["label"] = forms.utils.ErrorList()
+            self._errors['label'].append(self.error_class([msg]))
 
         return cleaned_data
 
@@ -71,76 +104,19 @@ class CampusForm(forms.ModelForm):
         fields = '__all__'
 
 
-class CancelTypeForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class CancelTypeForm(TypeFormMixin):
     class Meta:
         model = CancelType
         fields = '__all__'
 
 
-class CourseTypeForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class CourseTypeForm(TypeFormMixin):
     class Meta:
         model = CourseType
         fields = '__all__'
 
 
-class TrainingDomainForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class TrainingDomainForm(TypeFormMixin):
     class Meta:
         model = TrainingDomain
         fields = '__all__'
@@ -151,7 +127,8 @@ class TrainingSubdomainForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['training_domain'].queryset = self.fields['training_domain'].queryset.order_by('label')
+        if self.fields.get('training_domain'):
+            self.fields['training_domain'].queryset = self.fields['training_domain'].queryset.order_by('label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -159,7 +136,7 @@ class TrainingSubdomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -174,10 +151,27 @@ class TrainingSubdomainForm(forms.ModelForm):
 
 
 class BuildingForm(forms.ModelForm):
+    establishment = forms.TypedChoiceField()
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         self.fields['campus'].queryset = Campus.objects.order_by('label')
+
+        establishment_choices = [('', '---------'), ]
+
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            user_establishment = self.request.user.establishment
+
+            establishment_choices.append((user_establishment.id, user_establishment))
+            self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
+        else:
+            establishment_choices += [(e.id, e) for e in Establishment.objects.filter(active=True)]
+            self.fields['campus'].queryset = Campus.objects.filter(active=True)
+
+        self.fields['establishment'] = forms.TypedChoiceField(
+            label=_("Establishment"), widget=forms.Select(), choices=establishment_choices, required=False
+        )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -185,7 +179,7 @@ class BuildingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -196,7 +190,8 @@ class BuildingForm(forms.ModelForm):
 
     class Meta:
         model = Building
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ('label', 'establishment', 'campus', 'url', 'active')
 
 
 class TrainingForm(forms.ModelForm):
@@ -210,7 +205,12 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
-        self.fields['components'].queryset = self.fields['components'].queryset.order_by('code', 'label')
+        if self.request.user.is_establishment_manager():
+            self.fields['structures'].queryset = self.fields['structures'].queryset\
+                .filter(establishment=self.request.user.establishment)\
+                .order_by('code', 'label')
+        else:
+            self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -218,9 +218,26 @@ class TrainingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_establishment_manager()
         except AttributeError:
             pass
+
+        # Check label uniqueness within the same establishment
+        excludes = {}
+        if self.instance:
+            excludes['id'] = self.instance.id
+
+        structure_establishments = [structure.establishment.id for structure in cleaned_data.get("structures", [])]
+
+        tr_queryset = Training.objects.exclude(**excludes).filter(
+            label__iexact=cleaned_data.get("label"),
+            structures__establishment__in=structure_establishments)
+
+        if tr_queryset.exists():
+            msg = _("A training with this label already exists within the same establishment")
+            if not self._errors.get("label"):
+                self._errors["label"] = forms.utils.ErrorList()
+            self._errors['label'].append(self.error_class([msg]))
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
@@ -232,28 +249,135 @@ class TrainingForm(forms.ModelForm):
         fields = '__all__'
 
 
-class ComponentForm(forms.ModelForm):
+class EstablishmentForm(forms.ModelForm):
     """
-    Component form class
+    Establishment form class
     """
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
-        # Disable code field if it already exists
-        if self.initial:
-            self.fields["code"].disabled = True
+        if self.fields:
+            self.fields["active"].initial = True
+
+            # First establishment is always 'master'
+            if not Establishment.objects.exists():
+                self.fields["master"].initial = True
+            # Next ones can't
+            elif Establishment.objects.filter(master=True).exists():
+                self.fields["master"].initial = False
+                self.fields["master"].disabled = True
+                self.fields["master"].help_text = _("A 'master' establishment already exists")
+
+            # The 'master' flag can't be updated
+            if self.instance:
+                self.fields["master"].disabled = True
+                self.fields["master"].help_text = _("This attribute cannot be updated")
+
+        # Plugins
+        # self.fields["data_source_plugins"] = forms.ChoiceField(choices=settings.AVAILABLE_ACCOUNTS_PLUGINS)
 
     def clean(self):
         cleaned_data = super().clean()
         valid_user = False
 
+        code = cleaned_data.get('code')
+        label = cleaned_data.get('label')
+        short_label = cleaned_data.get('short_label')
+
+        data_source_plugin = cleaned_data.get('data_source_plugin')
+        data_source_settings = cleaned_data.get('data_source_settings')
+
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_superuser
         except AttributeError:
             pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        if not data_source_plugin:
+            cleaned_data['data_source_settings'] = None
+        elif not data_source_settings:
+            cleaned_data['data_source_settings'] = {}
+            try:
+                module_name = settings.ACCOUNTS_PLUGINS[data_source_plugin]
+                source = importlib.import_module(module_name, package=None)
+
+                for attr in source.AccountAPI.get_plugin_attrs():
+                    cleaned_data['data_source_settings'][attr] = ""
+
+            except KeyError:
+                pass
+
+        exclude_filter = {'id': self.instance.id} if self.instance else {}
+
+        if not Establishment.objects.exists():
+            cleaned_data["master"] = True
+        elif Establishment.objects.filter(master=True).exclude(**exclude_filter).exists():
+            cleaned_data["master"] = False
+
+        if Establishment.objects.filter(code__iexact=code).exclude(**exclude_filter).exists():
+            raise forms.ValidationError(_("This code already exists"))
+
+        if Establishment.objects.filter(label__iexact=label).exclude(**exclude_filter).exists():
+            raise forms.ValidationError(_("This label already exists"))
+
+        if Establishment.objects.filter(short_label__iexact=short_label).exclude(**exclude_filter).exists():
+            raise forms.ValidationError(_("This short label already exists"))
+
+        # TODO : run selected plugin settings selftests when available
+
+        return cleaned_data
+
+    class Meta:
+        model = Establishment
+        fields = '__all__'
+        widgets = {
+            'badge_html_color': TextInput(attrs={'type': 'color'}),
+        }
+
+
+class StructureForm(forms.ModelForm):
+    """
+    Structure form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        # Disable code and structure fields if it already exists
+        if self.initial:
+            self.fields["code"].disabled = True
+            self.fields["establishment"].disabled = True
+            self.fields["establishment"].help_text = _("The establishement cannot be updated")
+
+        if self.fields.get("establishment") and not self.request.user.is_superuser \
+                and self.request.user.is_establishment_manager():
+            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        establishment = cleaned_data.get("establishment")
+
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
+        except AttributeError:
+            pass
+
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            if establishment and establishment != self.request.user.establishment:
+                msg = _("You must select your own establishment")
+                if not self._errors.get("establishment"):
+                    self._errors["establishment"] = forms.utils.ErrorList()
+                self._errors['establishment'].append(self.error_class([msg]))
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
@@ -261,59 +385,18 @@ class ComponentForm(forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = Component
+        model = Structure
         fields = '__all__'
 
 
-class GeneralBachelorTeachingForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class GeneralBachelorTeachingForm(TypeFormMixin):
     class Meta:
         model = GeneralBachelorTeaching
         fields = '__all__'
 
 
-class PublicTypeForm(forms.ModelForm):
-    """
-    public type form class
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class PublicTypeForm(TypeFormMixin):
+    """public type form class"""
     class Meta:
         model = PublicType
         fields = '__all__'
@@ -338,7 +421,7 @@ class UniversityYearForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -355,9 +438,13 @@ class UniversityYearForm(forms.ModelForm):
             raise forms.ValidationError(_("Start of registration date must be set between start and end date"))
 
         if start_date and end_date:
-            all_univ_year = UniversityYear.objects.exclude(label=label)
+            if self.instance:
+                all_univ_year = UniversityYear.objects.exclude(pk=self.instance.pk)
+            else:
+                all_univ_year = UniversityYear.objects.all()
+
             for uy in all_univ_year:
-                if uy.active:
+                if uy.active and not uy.purge_date:
                     raise forms.ValidationError(_("All university years are not purged. you can't create a new one"))
                 if uy.date_is_between(start_date):
                     raise forms.ValidationError(_("University year starts inside another university year"))
@@ -367,6 +454,12 @@ class UniversityYearForm(forms.ModelForm):
                     raise forms.ValidationError(_("University year contains another"))
                 if start_date <= uy.end_date <= end_date:
                     raise forms.ValidationError(_("University year contains another"))
+
+                if uy.active and uy.purge_date:
+                    uy.active = False
+                    uy.save()
+
+        cleaned_data['active'] = True
 
         return cleaned_data
 
@@ -394,7 +487,7 @@ class HolidayForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -444,7 +537,7 @@ class VacationForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -512,7 +605,7 @@ class CalendarForm(forms.ModelForm):
         # Test user group
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
         if not valid_user:
@@ -594,6 +687,13 @@ class CalendarForm(forms.ModelForm):
 
 
 class ImmersionUserCreationForm(UserCreationForm):
+    search = forms.CharField(
+        max_length=150,
+        label=_("User search"),
+        required=False,
+        help_text=_("This field is only useful if the selected establishment has a source plugin set")
+    )
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -604,10 +704,72 @@ class ImmersionUserCreationForm(UserCreationForm):
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
+        self.fields["email"].help_text = _("The user email will be used as username")
+
+        self.fields["username"].required = False
+        self.fields["username"].disabled = True
+
+        # Establishment
+        self.fields["establishment"].required = False
+
+        self.fields["search"].widget.attrs["class"] = "vTextField"
+
+        if not self.request.user.is_superuser:
+            # Master establishment manager has only access to the other establishments
+            if self.request.user.is_master_establishment_manager():
+                self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
+
+            # A regular establishment manager has only access to his own establishment
+            elif self.request.user.is_establishment_manager():
+                self.fields["establishment"].queryset = Establishment.objects.filter(
+                    pk=self.request.user.establishment.pk
+                )
+
+            elif self.request.user.is_high_school_manager():
+                self.fields["establishment"].disabled = True
+                self.fields["establishment"].help_text = _("You can't select the establishment")
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get("email")
+
+        # A high-school manager can only create high-school speakers
+        # For them, the login in always the email address
+
+        establishment = cleaned_data.get("establishment")
+
+        if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            self.add_error('email', _("This email address is already used"))
+            return cleaned_data
+
+        # Override username
+        if not establishment or (establishment and establishment.data_source_plugin is None):
+            cleaned_data["username"] = email
+
+        # Override high school when a high school manager creates an account
+        if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
+            self.instance.highschool = self.request.user.highschool
+
+        return cleaned_data
+
+
+    def save(self, *args, **kwargs):
+        obj = super().save(*args, **kwargs)
+
+        if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
+            obj.highschool = self.request.user.highschool
+            obj.save()
+            Group.objects.get(name='INTER').user_set.add(obj)
+
+        return obj
+
 
     class Meta(UserCreationForm.Meta):
         model = ImmersionUser
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ("establishment", "username", "search", "password1", "password2", "email",
+                  "first_name", "last_name", "is_active")
 
 
 class ImmersionUserChangeForm(UserChangeForm):
@@ -616,6 +778,11 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
+            # Disable establishement modification
+            if self.instance.id and self.fields.get('establishment'):
+                self.fields["establishment"].disabled = True
+                self.fields["establishment"].help_text = _("The establishement cannot be updated once the user created")
+
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
                     self.fields[field].required = True
@@ -626,56 +793,128 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             if self.request.user.id == self.instance.id:
                 self.fields["groups"].disabled = True
-                self.fields["components"].disabled = True
+                self.fields["structures"].disabled = True
                 self.fields["highschool"].disabled = True
+
+            if self.fields.get('groups'):
+                self.fields["groups"].queryset = Group.objects.none()
+
+            # Restrictions on group / structures selection depending on current user group
+            if self.request.user.is_master_establishment_manager():
+                self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+
+            if self.request.user.is_establishment_manager():
+                user_establishment = self.request.user.establishment
+
+                if self.fields.get('groups'):
+                    self.fields["groups"].queryset = Group.objects.filter(
+                        name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB']
+                    ).order_by('name')
+
+                if self.fields.get('structures'):
+                    self.fields["structures"].queryset = Structure.objects.filter(establishment=user_establishment)
+
+                if self.fields.get('establishment'):
+                    self.fields["establishment"].queryset = Establishment.objects.filter(pk=user_establishment.id)
+
+            if self.request.user.is_high_school_manager():
+                user_highschool = self.request.user.highschool
+
+                if self.fields.get("username"):
+                    self.fields["username"].widget.attrs['readonly'] = 'readonly'
+
+                if self.fields.get("structures"):
+                    self.fields["structures"].disabled = True
+
+                if self.fields.get("groups"):
+                    self.fields["groups"].queryset = Group.objects.filter(
+                        name__in=['INTER']
+                    )
+                    self.fields["groups"].disabled = True
+
+                if self.fields.get('highschool'):
+                    self.fields["highschool"].empty_label = None
+                    self.fields["highschool"].queryset = HighSchool.objects.filter(pk=user_highschool.id)
 
     def clean(self):
         cleaned_data = super().clean()
         groups = cleaned_data['groups']
-        components = cleaned_data['components']
+        structures = cleaned_data['structures']
+        establishment = cleaned_data['establishment']
         highschool = cleaned_data['highschool']
         forbidden_msg = _("Forbidden")
 
         is_own_account = self.request.user.id == self.instance.id
 
-        if groups.filter(name='SCUIO-IP').exists():
+        if groups.filter(name='REF-ETAB').exists():
+            if establishment is None or establishment.master:
+                msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
+                self._errors['establishment'] = self.error_class([msg])
+                del cleaned_data["establishment"]
+
+        if groups.filter(name='REF-ETAB-MAITRE').exists():
             cleaned_data['is_staff'] = True
+            if establishment is None or not establishment.master:
+                msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
+                self._errors['establishment'] = self.error_class([msg])
+                del cleaned_data["establishment"]
 
-        if groups.filter(name='REF-CMP').exists() and not components.count():
-            msg = _("This field is mandatory for a user belonging to 'REF-CMP' group")
-            self._errors['components'] = self.error_class([msg])
-            del cleaned_data["components"]
+        """
+        # FIXME / TODO : check these potential restrictions
+        
+        if establishment and establishment.master and not groups.filter(name='REF-ETAB-MAITRE').exists():
+            msg = _("The group 'REF-ETAB-MAITRE' is mandatory when you select a master establishment")
+            if not self._errors.get("groups"):
+                self._errors["groups"] = forms.utils.ErrorList()
+            self._errors['groups'].append(self.error_class([msg]))
 
-        if components.count() and not groups.filter(name='REF-CMP').exists():
-            msg = _("The group 'REF-CMP' is mandatory when you add a component")
+        if establishment and not establishment.master and not groups.filter(name='REF-ETAB').exists():
+            msg = _("The group 'REF-ETAB' is mandatory when you select a non-master establishment")
+            if not self._errors.get("groups"):
+                self._errors["groups"] = forms.utils.ErrorList()
+            self._errors['groups'].append(self.error_class([msg]))
+        """
+
+        if groups.filter(name='REF-STR').exists() and not structures.count():
+            msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
+            self._errors['structures'] = self.error_class([msg])
+            del cleaned_data["structures"]
+
+        if structures.count() and not groups.filter(name='REF-STR').exists():
+            msg = _("The group 'REF-STR' is mandatory when you add a structure")
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
             self._errors['groups'].append(self.error_class([msg]))
 
         if groups.filter(name='REF-LYC').exists() and not highschool:
-            msg = _("This field is mandatory for a user belong to 'REF-LYC' group")
+            msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
             self._errors["highschool"] = self.error_class([msg])
             del cleaned_data["highschool"]
 
-        if highschool and not groups.filter(name='REF-LYC').exists():
-            msg = _("The group 'REF-LYC' is mandatory when you add a highschool")
+        if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
+            msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
             if not self._errors.get("groups"):
                 self._errors["groups"] = forms.utils.ErrorList()
             self._errors['groups'].append(self.error_class([msg]))
 
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
-            # a member of SCUIO-IP group
+            # a member of REF-ETAB group
             if is_own_account:
                 del cleaned_data['groups']
-                del cleaned_data['components']
+                del cleaned_data['structures']
 
-            elif self.request.user.has_groups('SCUIO-IP'):
-                if self.instance.is_scuio_ip_manager():
+
+            elif self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
+                if (self.request.user.has_groups('REF-ETAB') and self.instance.is_establishment_manager()) or \
+                   (self.request.user.has_groups('REF-ETAB-MAITRE') and self.instance.is_master_establishment_manager()):
                     raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
 
                 # Add groups to this list when needed
-                can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('SCUIO-IP',)
+                if self.request.user.has_groups('REF-ETAB'):
+                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB',)
+                elif self.request.user.has_groups('REF-ETAB-MAITRE'):
+                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE', )
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
                 new_groups = set(groups.all().values_list('name', flat=True))
@@ -738,6 +977,7 @@ class HighSchoolForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+
         if settings.USE_GEOAPI:
             city_choices = [
                 ('', '---------'),
@@ -746,26 +986,41 @@ class HighSchoolForm(forms.ModelForm):
                 ('', '---------'),
             ]
 
-            # Put datas in choices fields if form instance
-            if self.instance.department:
-                city_choices = get_cities(self.instance.department)
+            department_choices = get_departments()
 
-            if self.instance.city:
-                zip_choices = get_zipcodes(self.instance.department, self.instance.city)
+            # if this test fails, it's probably an API error or timeout => switch to manual form
+            if department_choices:
+                # Put datas in choices fields if form instance
+                if self.instance.department:
+                    city_choices = get_cities(self.instance.department)
 
-            # Put datas in choices fields if form data
-            if 'department' in self.data:
-                city_choices = get_cities(self.data.get('department'))
+                if self.instance.city:
+                    zip_choices = get_zipcodes(self.instance.department, self.instance.city)
 
-            if 'city' in self.data:
-                zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
+                # Put datas in choices fields if form data
+                if 'department' in self.data:
+                    city_choices = get_cities(self.data.get('department'))
 
-            self.fields['city'] = forms.TypedChoiceField(
-                label=_("City"), widget=forms.Select(), choices=city_choices, required=True
-            )
-            self.fields['zip_code'] = forms.TypedChoiceField(
-                label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
-            )
+                if 'city' in self.data:
+                    zip_choices = get_zipcodes(self.data.get('department'), self.data.get('city'))
+
+                self.fields['department'] = forms.TypedChoiceField(
+                    label=_("Department"), widget=forms.Select(), choices=department_choices, required=True
+                )
+                self.fields['city'] = forms.TypedChoiceField(
+                    label=_("City"), widget=forms.Select(), choices=city_choices, required=True
+                )
+                self.fields['zip_code'] = forms.TypedChoiceField(
+                    label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
+                )
+
+
+        if not self.instance or (self.instance and not self.instance.postbac_immersion):
+            self.fields["mailing_list"].disabled = True
+
+        self.fields["mailing_list"].help_text = \
+            _("This field is available when 'Offer post-bachelor immersions is enabled")
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -773,7 +1028,7 @@ class HighSchoolForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager() or user.is_high_school_manager()
+            valid_user = user.is_master_establishment_manager() or (user.is_high_school_manager() and user.highschool)
         except AttributeError as exc:
             pass
 
@@ -793,16 +1048,21 @@ class MailTemplateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         for field in ('label', 'description'):
-            self.fields[field].widget.attrs['class'] = 'form-control'
-            self.fields[field].widget.attrs['size'] = 80
+            if self.fields.get(field):
+                self.fields[field].widget.attrs['class'] = 'form-control'
+                self.fields[field].widget.attrs['size'] = 80
 
-        if not self.request.user.is_superuser:
-            self.fields['available_vars'].widget = forms.MultipleHiddenInput()
-            self.fields['description'].disabled = True
-            self.fields['label'].disabled = True
-            self.fields['code'].disabled = True
-        else:
-            self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
+        if self.fields:
+            if not self.request.user.is_master_establishment_manager():
+                self.fields['available_vars'].widget = forms.MultipleHiddenInput()
+                self.fields['description'].disabled = True
+                self.fields['label'].disabled = True
+                self.fields['code'].disabled = True
+            else:
+                self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
+
+            self.fields['available_vars'].required = False
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -814,7 +1074,7 @@ class MailTemplateForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -852,7 +1112,7 @@ class MailTemplateForm(forms.ModelForm):
         model = MailTemplate
         fields = '__all__'
         widgets = {
-            'body': SummernoteInplaceWidget(),
+            'body': SummernoteWidget(),
         }
 
 
@@ -892,7 +1152,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -914,6 +1174,24 @@ class InformationTextForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_master_establishment_manager()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
 
     class Meta:
         model = InformationText
@@ -952,7 +1230,7 @@ class PublicDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -991,26 +1269,7 @@ class EvaluationTypeForm(forms.ModelForm):
         fields = '__all__'
 
 
-class EvaluationFormLinkForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        valid_user = False
-
-        try:
-            user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
-        except AttributeError:
-            pass
-
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
-
-        return cleaned_data
-
+class EvaluationFormLinkForm(TypeFormMixin):
     class Meta:
         model = EvaluationFormLink
         fields = '__all__'
@@ -1027,12 +1286,14 @@ class GeneralSettingsForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_superuser
         except AttributeError:
             pass
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+
 
         return cleaned_data
 
@@ -1068,7 +1329,7 @@ class CertificateLogoForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1109,7 +1370,7 @@ class CertificateSignatureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_scuio_ip_manager()
+            valid_user = user.is_establishment_manager()
         except AttributeError:
             pass
 
@@ -1120,4 +1381,11 @@ class CertificateSignatureForm(forms.ModelForm):
 
     class Meta:
         model = CertificateSignature
+        fields = '__all__'
+
+
+class OffOfferEventTypeForm(TypeFormMixin):
+    """Off over event type form"""
+    class Meta:
+        model = OffOfferEventType
         fields = '__all__'

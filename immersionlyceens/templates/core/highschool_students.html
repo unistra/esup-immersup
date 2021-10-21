@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
@@ -23,14 +23,14 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% if request.user.is_scuio_ip_manager %}
+      {% if request.user.is_establishment_manager %}
         {% trans "All registered students" %}
       {% else %}
-        {% trans "Students from my high school" %}
+        {% trans "Student profiles" %}
       {% endif %}
     </div>
     <div class="card-body">
-      {% if request.user.is_scuio_ip_manager %}
+      {% if request.user.is_establishment_manager %}
       <form class="form-inline">
         <div class="form-group">
           <div class="form-group form-check mx-sm-3 mb-2">
@@ -44,26 +44,26 @@
         <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
             <tr>
-              {% if request.user.is_scuio_ip_manager %}
-              <th id="type_filter" class="align-top">{% trans 'Type' %}</th>
+              {% if request.user.is_establishment_manager %}
+              <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
               {% endif %}
               <th class="align-top">{% trans 'Name' %}</th>
               <th class="align-top">{% trans 'Birth date' %}</th>
-              {% if request.user.is_scuio_ip_manager %}
+              {% if request.user.is_establishment_manager %}
               <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
               {% endif %}
               <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
               <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
               <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
-              {% if request.user.is_scuio_ip_manager %}
+              {% if request.user.is_establishment_manager %}
               <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
               {% endif %}
-              <th id="registered_filter" class="align-top">{% trans 'Registrations >= 1' %}</th>
+              <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              {% if request.user.is_scuio_ip_manager %}
+              {% if request.user.is_establishment_manager %}
               <td></td>
               <td></td>
               <td></td>
@@ -85,7 +85,7 @@
   var dt;
   var highschool_id = "{{ request.user.highschool.id }}";
   var current_student_id;
-  let is_scuio_ip = "{{ is_scuio_ip_manager }}" === "True";
+  let is_ref_etab = "{{ is_establishment_manager }}" === "True";
   let order = [[0, "asc"],];
 
   function open_modal(student_id) {
@@ -93,7 +93,7 @@
     $('#modal_student_details').modal('show');
   }
 
-  if(is_scuio_ip) {
+  if(is_ref_etab) {
     order = [[3, "asc"], [1, "asc"], ];
   }
 
@@ -119,12 +119,12 @@
         url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
     },
     'columns': [
-    {% if is_scuio_ip_manager %}
+    {% if is_establishment_manager %}
     { "data": "student_type" },
     {% endif %}
     { "data": "name",
       "render": function(data, type, row) {
-        if(is_scuio_ip && row.record_link !== '') {
+        if(is_ref_etab && row.record_link !== '') {
           return "<a href='"+row.record_link+"'>"+data+"</a>";
         }
         else {
@@ -133,13 +133,13 @@
       }
     },
     { "data": "birthdate" },
-    {% if is_scuio_ip_manager %}
+    {% if is_establishment_manager %}
     { "data": "institution" },
     {% endif %}
     { "data": "level" },
     { "data": "class" },
     { "data": "bachelor" },
-    {% if is_scuio_ip_manager %}
+    {% if is_establishment_manager %}
     { "data": "post_bachelor_level" },
     {% endif %}
     { "data": "registered",
@@ -171,7 +171,7 @@
   });
 
   // Filters init
-  if (is_scuio_ip) {
+  if (is_ref_etab) {
     yadcf.init(dt, [
       {
         column_number: 0,

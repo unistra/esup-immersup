@@ -2,21 +2,21 @@
     "model": "auth.group",
     "pk": 1,
     "fields": {
-      "name": "SCUIO-IP"
+      "name": "REF-ETAB"
     }
   },
   {
     "model": "auth.group",
     "pk": 2,
     "fields": {
-      "name": "ENS-CH"
+      "name": "INTER"
     }
   },
   {
     "model": "auth.group",
     "pk": 3,
     "fields": {
-      "name": "REF-CMP"
+      "name": "REF-STR"
     }
   },
   {
@@ -45,6 +45,13 @@
     "pk": 7,
     "fields": {
       "name": "LYC"
+    }
+  },
+  {
+    "model": "auth.group",
+    "pk": 8,
+    "fields": {
+      "name": "REF-ETAB-MAITRE"
     }
   }
 ]

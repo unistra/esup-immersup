@@ -1,4 +1,3 @@
-// (function($) {
 $(document).on('change', 'select#id_department', function() {
   $.ajax({
     url: `/geoapi/cities/${$(this).val()}`,
@@ -12,7 +11,8 @@ $(document).on('change', 'select#id_department', function() {
     },
   })
   $('select#id_zip_code').html('<option value="">---------</option>')
-});
+})
+
 $(document).on('change', 'select#id_city', () => {
   $.ajax({
     url: `/geoapi/zipcodes/${$('select#id_department').val()}/${$('select#id_city').val()}`,
@@ -31,5 +31,14 @@ $(document).on('change', 'select#id_city', () => {
       $('select#id_zip_code').html(options)
     },
   })
-});
-// })(django.jQuery);
+})
+
+$(document).ready(function() {
+  $("#id_postbac_immersion").change(function () {
+    if ($("#id_postbac_immersion").is(':checked')) {
+      $("#id_mailing_list").attr("disabled", false)
+    } else {
+      $("#id_mailing_list").attr("disabled", true)
+    }
+  })
+})

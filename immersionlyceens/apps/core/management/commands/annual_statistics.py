@@ -12,7 +12,7 @@ from django.db.models import Count, Q, Sum
 from django.utils.translation import ugettext_lazy as _
 
 from ...models import (
-    AnnualStatistics, Component, Course, HighSchool, Immersion, ImmersionUser, Slot, Training, UniversityYear,
+    AnnualStatistics, Structure, Course, HighSchool, Immersion, ImmersionUser, Slot, Training, UniversityYear,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,10 +73,10 @@ class Command(BaseCommand):
 
         # Number of offered seats
         annual_stats.seats_count = Slot.objects.filter(published=True).aggregate(
-            seats_count=Sum('n_places'))['seats_count']
+            seats_count=Sum('n_places'))['seats_count'] or 0
 
-        # Participating components
-        annual_stats.components_count = Component.objects.annotate(
+        # Participating structures
+        annual_stats.strucures_count = Structure.objects.annotate(
             slot_nb=Count('courses__slots', filter=Q(courses__slots__published=True)))\
             .filter(slot_nb__gt=0).count()
 

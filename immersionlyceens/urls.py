@@ -3,11 +3,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
+
 from immersionlyceens.apps.immersion.views import shibbolethLogin
 
 from .apps.core import views as core_views
 from .views import (
-    accompanying, home, offer, offer_subdomain, procedure, serve_accompanying_document, serve_public_document,
+    accompanying, home, offer, offer_subdomain, procedure,
+    serve_accompanying_document, serve_public_document,
 )
 
 admin.autodiscover()
@@ -17,8 +19,8 @@ urlpatterns = [
     path('', home, name='home'),
     path('accompanying', accompanying, name='accompanying'),
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
-    path('admin/', admin.site.urls),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
+    path('admin/', admin.site.urls),
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('charts/', include('immersionlyceens.apps.charts.urls', namespace='charts')),
     path('core/', include('immersionlyceens.apps.core.urls')),
@@ -35,6 +37,7 @@ urlpatterns = [
     path('shib/', shibbolethLogin, name='shibboleth_login'),
     path('summernote/', include('django_summernote.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 # debug toolbar for dev
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     import debug_toolbar
@@ -47,3 +50,5 @@ if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
 admin.site.site_header = settings.ADMIN_SITE_HEADER
 admin.site.site_title = settings.ADMIN_SITE_TITLE
 admin.site.index_title = settings.ADMIN_SITE_INDEX_TITLE
+
+handler500 = 'immersionlyceens.views.error_500'

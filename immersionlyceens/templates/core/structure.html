@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block content %}
@@ -18,7 +18,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Update components settings" %}</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Update structures settings" %}</li>
       </ol>
     </nav>
   </div>
@@ -26,24 +26,24 @@
 <div class="container">
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
-      {% if components %}
-        {% trans 'Select a component to update' %}
+      {% if structures %}
+        {% trans 'Select a structure to update' %}
       {% else %}
-        {% trans 'Settings for component' %} : {{ component.label }}
+        {% trans 'Settings for structure' %} : {{ structure.label }}
       {% endif %}
     </div>
     <div class="card-body">
-      {% if components %}
+      {% if structures %}
         <ul>
-        {% for component in components %}
-          <li class="mb-3"><a href="{% url 'update_component' component_code=component.code %}">{{ component.label }}</a><br />
-            {% trans 'Mailing list' %} : {{ component.mailing_list|default_if_none:"-" }}</li>
+        {% for structure in structures %}
+          <li class="mb-3"><a href="{% url 'update_structure' structure_code=structure.code %}">{{ structure.label }}</a><br />
+            {% trans 'Mailing list' %} : {{ structure.mailing_list|default_if_none:"-" }}</li>
         {% endfor %}
         </ul>
       {% else %}
       <form method="post">
         {% csrf_token %}
-        <input type="hidden" name="code" value="{{ component.code }}">
+        <input type="hidden" name="code" value="{{ structure.code }}">
         <div class="form-group row">
           <label for="id_mailing_list" class="col-sm-3 col-form-label">{% trans 'Mailing list email address' %} :</label>
           <div class="col-sm-4">

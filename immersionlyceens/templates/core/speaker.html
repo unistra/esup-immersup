@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+    {{ high_school.label }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px; width:70%;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+        {% trans "My high school" %} - {{ high_school.label }}
+    </div>
+    <div class="card-body">
+      <form class="" role="form" action="/core/speaker" method="POST">
+      {% csrf_token %}
+        <div class="card">
+          <div class="card-title card-header">
+            {% trans "Speaker data" %}
+          </div>
+          <div class="card-body">
+            <input type="hidden" name="id" value="{{ speaker.id }}">
+            <div class="form-group row">
+              <label class="col-sm-3" for="id_last_name"><strong>{% trans "Last name" %}*</strong></label>
+              <div class="col-sm-6">
+                {{ speaker_form.last_name }}
+              </div>
+              {% if speaker_form.last_name.errors %}
+              <div class="col-sm-3 alert alert-danger">
+                {{ speaker_form.last_name.errors }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3" for="id_first_name"><strong>{% trans "First name" %}*</strong></label>
+              <div class="col-sm-6">
+                {{ speaker_form.first_name }}
+              </div>
+              {% if speaker_form.first_name.errors %}
+              <div class="col-sm-3 alert alert-danger">
+                {{ speaker_form.first_name.errors }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3" for="id_email"><strong>{% trans "Email" %}*</strong></label>
+              <div class="col-sm-6">
+                {{ speaker_form.email }}
+              </div>
+              {% if speaker_form.email.errors3 %}
+              <div class="col-sm-3 alert alert-danger">
+                {{ speaker_form.email.errors3 }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-3" for="id_is_active"><strong>{% trans "Active" %}*</strong></label>
+              <div class="col-sm-6">
+                {{ speaker_form.is_active }}
+              </div>
+              {% if speaker_form.is_active.errors %}
+              <div class="col-sm-3 alert alert-danger">
+                {{ speaker_form.is_active.errors }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <br>
+        <br>
+        <div class="form-group">
+          <a href="{% url 'my_high_school_speakers' high_school_id=high_school.id %}" class="btn btn-primary">{% trans "Back" %}</a>
+          <button class="btn btn-primary">{% trans "Submit" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
