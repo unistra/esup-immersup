@@ -46,3 +46,13 @@ class CustomDeleteManager(models.Manager):
     def delete(self):
         for obj in self.get_queryset():
             obj.delete()
+
+
+
+class PostBacImmersionManager(models.Manager):
+    """
+    Get high schools offering immersions
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().filter(postbac_immersion=True)

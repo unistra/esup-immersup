@@ -6,11 +6,10 @@ import datetime
 import importlib
 import json
 import logging
-import django_filters.rest_framework
-
 from functools import reduce
-from itertools import permutations
+from itertools import chain, permutations
 
+import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -22,10 +21,9 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext, pgettext
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext, pgettext, ugettext_lazy as _
 from rest_framework import generics, status
+
 """
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -33,15 +31,20 @@ from rest_framework.exceptions import NotFound
 """
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, Campus, CancelType, Structure, Course, Establishment, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation
+    Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
+    Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
+    PublicDocument, Slot, Structure, Training, TrainingDomain, UniversityYear,
+    UserCourseAlert, Vacation,
 )
-
-from immersionlyceens.apps.core.serializers import CampusSerializer, EstablishmentSerializer
-
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
+from immersionlyceens.apps.core.serializers import (
+    CampusSerializer, EstablishmentSerializer,
+)
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
+from immersionlyceens.decorators import (
+    groups_required, is_ajax_request, is_post_request,
+)
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.mails.variables_parser import multisub
 from immersionlyceens.libs.utils import get_general_setting
@@ -2033,3 +2036,17 @@ class GetEstablishment(generics.RetrieveAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     queryset = Establishment.objects.all()
     lookup_field = "id"
+
+@is_ajax_request
+def ajax_get_immersions_proposal_establishments(request):
+    response = {'msg': '', 'data': []}
+    try:
+        establishments=Establishment.activated.all().values('city', 'label', 'email')
+        highschools=HighSchool.immersions_proposal.all().values('city', 'label', 'email')
+        results = list(establishments.union(highschools).order_by('city'))
+        response['data'].append(results)
+    except:
+        # Bouhhhh
+        pass
+
+    return JsonResponse(response, safe=False)

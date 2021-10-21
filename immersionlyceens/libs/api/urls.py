@@ -19,6 +19,7 @@ urlpatterns = [
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
     path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
     path('get_agreed_highschools', views.ajax_get_agreed_highschools, name='GetAgreedHighSchools'),
+    path('get_immersions_proposal_establishments', views.ajax_get_immersions_proposal_establishments, name='GetImmersionsProposalEstablishments'),
     path('get_alerts', views.ajax_get_alerts, name='get_alerts'),
     path('get_available_documents/', views.ajax_get_documents, name='get_available_documents'),
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),

@@ -13,6 +13,7 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date
 from django.utils.translation import pgettext, ugettext_lazy as _
+from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.validators import JsonSchemaValidator
@@ -38,6 +39,14 @@ class Establishment(models.Model):
     establishment_type = models.CharField(_("Type"), max_length=24, choices=TYPES, blank=False, null=False)
     label = models.CharField(_("Label"), max_length=256, unique=True)
     short_label = models.CharField(_("Short label"), max_length=64, unique=True)
+    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
+    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
+    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
+    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
+    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     email = models.EmailField(_('Email'))
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
@@ -46,7 +55,8 @@ class Establishment(models.Model):
         choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
     )
     data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
-
+    objects = models.Manager()  # default manager
+    activated = ActiveManager()
 
     def __str__(self):
         return "%s : %s%s" % (self.code, self.label, _(" (master)") if self.master else "")
@@ -116,6 +126,7 @@ class HighSchool(models.Model):
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
 
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
+    immersions_proposal = PostBacImmersionManager()
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
 
 
