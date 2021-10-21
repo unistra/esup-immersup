@@ -11,20 +11,26 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 
-from ..admin import CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin, TrainingAdmin, StructureAdmin
-
+from ..admin import (
+    CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin,
+    StructureAdmin, TrainingAdmin,
+)
 from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm, CancelTypeForm,
-    ImmersionUserChangeForm, ImmersionUserCreationForm, StructureForm, CourseTypeForm, EstablishmentForm,
-    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm,
-    InformationTextForm, MailTemplateForm, PublicDocumentForm, PublicTypeForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    CampusForm, CancelTypeForm, CourseTypeForm, EstablishmentForm,
+    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
+    HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
+    PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, CourseType,
-    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, InformationText, MailTemplate, MailTemplateVars, PublicDocument, PublicType, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    CancelType, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
+    InformationText, MailTemplate, MailTemplateVars, PublicDocument,
+    PublicType, Structure, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -1324,7 +1330,12 @@ class AdminFormsTestCase(TestCase):
             'short_label': 'Eta 1',
             'badge_html_color': '#112233',
             'email': 'test@test.com',
-            'active': True
+            'active': True,
+            'address': 'address',
+            'department': 'departmeent',
+            'city': 'city',
+            'zip_code': 'zip_code',
+            'phone_number': '+33666'
         }
 
         request.user = self.ref_etab_user

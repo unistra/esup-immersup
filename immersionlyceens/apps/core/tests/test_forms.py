@@ -8,21 +8,27 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, TestCase, Client
+from django.test import Client, RequestFactory, TestCase
 
-from ..admin_forms import (
-    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm, CampusForm,
-    CancelTypeForm, StructureForm, CourseTypeForm, EvaluationFormLinkForm, EvaluationTypeForm,
-    GeneralBachelorTeachingForm, HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
-    TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
-)
-from ..forms import SlotForm, MyHighSchoolForm, HighSchoolStudentImmersionUserForm
-from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Establishment, Structure,
-    CourseType, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
-    PublicDocument, PublicType, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    Training, Slot, Course)
 from ...immersion.models import HighSchoolStudentRecord
+from ..admin_forms import (
+    AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
+    CampusForm, CancelTypeForm, CourseTypeForm, EvaluationFormLinkForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
+    HolidayForm, PublicDocumentForm, PublicTypeForm, StructureForm,
+    TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm,
+    VacationForm,
+)
+from ..forms import (
+    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm,
+)
+from ..models import (
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    CancelType, Course, CourseType, Establishment, EvaluationFormLink,
+    EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
+    PublicDocument, PublicType, Slot, Structure, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
+)
 
 
 class MockRequest:
@@ -49,12 +55,14 @@ class FormTestCase(TestCase):
         """
         self.master_establishment = Establishment.objects.create(
             code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test1@test.com',
-            establishment_type='HIGHER_INST'
+            establishment_type='HIGHER_INST', address= 'address', department='departmeent', city='city',
+            zip_code= 'zip_code', phone_number= '+33666'
         )
 
         self.establishment = Establishment.objects.create(
             code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False,
-            email='test2@test.com',
+            email='test2@test.com',address= 'address2', department='departmeent2', city='city2',
+            zip_code= 'zip_code2', phone_number= '+33666666',
             establishment_type='HIGHER_INST'
         )
 

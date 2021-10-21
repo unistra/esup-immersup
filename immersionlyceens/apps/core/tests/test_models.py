@@ -7,9 +7,10 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ..models import (
-    AccompanyingDocument, BachelorMention, Building, Calendar, Campus, CancelType, Structure, Course, CourseType,
-    Establishment, EvaluationFormLink, EvaluationType, Holiday, PublicDocument, PublicType, Slot, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
+    CancelType, Course, CourseType, Establishment, EvaluationFormLink,
+    EvaluationType, Holiday, PublicDocument, PublicType, Slot, Structure,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -21,7 +22,8 @@ class CampusTestCase(TestCase):
 
         establishment = Establishment.objects.create(
             code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
-            establishment_type='HIGHER_INST'
+            establishment_type='HIGHER_INST', address= 'address', department='departmeent', city='city',
+            zip_code= 'zip_code', phone_number= '+33666'
         )
 
         test_campus.establishment = establishment
