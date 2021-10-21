@@ -776,8 +776,9 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if not self.request.user.is_superuser:
             # Disable establishment modification
-            if self.instance.id and self.fields.get('establishment'):
-                self.fields["establishment"].disabled = True
+            if self.instance.id and self.instance.establishment and self.fields.get('establishment'):
+                self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
+                self.fields["establishment"].empty_label = None
                 self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
             for field in ["last_name", "first_name", "email"]:
@@ -787,14 +788,6 @@ class ImmersionUserChangeForm(UserChangeForm):
             for field in ["is_staff", "is_superuser", "username"]:
                 if self.fields.get(field):
                     self.fields[field].disabled = True
-
-            if self.request.user.id == self.instance.id:
-                self.fields["groups"].disabled = True
-                self.fields["structures"].disabled = True
-                self.fields["highschool"].disabled = True
-
-            if self.fields.get('groups'):
-                self.fields["groups"].queryset = Group.objects.none()
 
             # Restrictions on group / structures selection depending on current user group
             if self.request.user.is_master_establishment_manager():
@@ -835,14 +828,11 @@ class ImmersionUserChangeForm(UserChangeForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print(cleaned_data)
         groups = cleaned_data.get('groups')
         structures = cleaned_data.get('structures')
         establishment = cleaned_data.get('establishment')
         highschool = cleaned_data.get('highschool')
         forbidden_msg = _("Forbidden")
-
-        is_own_account = self.request.user.id == self.instance.id
 
         if groups:
             if groups and groups.filter(name='REF-ETAB').exists():
@@ -857,22 +847,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                     msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
                     self._errors['establishment'] = self.error_class([msg])
                     del cleaned_data["establishment"]
-
-            """
-            # FIXME / TODO : check these potential restrictions
-            
-            if establishment and establishment.master and not groups.filter(name='REF-ETAB-MAITRE').exists():
-                msg = _("The group 'REF-ETAB-MAITRE' is mandatory when you select a master establishment")
-                if not self._errors.get("groups"):
-                    self._errors["groups"] = forms.utils.ErrorList()
-                self._errors['groups'].append(self.error_class([msg]))
-    
-            if establishment and not establishment.master and not groups.filter(name='REF-ETAB').exists():
-                msg = _("The group 'REF-ETAB' is mandatory when you select a non-master establishment")
-                if not self._errors.get("groups"):
-                    self._errors["groups"] = forms.utils.ErrorList()
-                self._errors['groups'].append(self.error_class([msg]))
-            """
 
             if groups.filter(name='REF-STR').exists() and not structures.count():
                 msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
@@ -899,10 +873,7 @@ class ImmersionUserChangeForm(UserChangeForm):
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
             # a member of REF-ETAB group
-            if is_own_account:
-                cleaned_data.pop('groups', None)
-                cleaned_data.pop('structures', None)
-            elif self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
+            if self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
                 if (self.request.user.has_groups('REF-ETAB') and self.instance.is_establishment_manager()) or \
                    (self.request.user.has_groups('REF-ETAB-MAITRE') and self.instance.is_master_establishment_manager()):
                     raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
@@ -914,7 +885,11 @@ class ImmersionUserChangeForm(UserChangeForm):
                     can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE', )
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
-                new_groups = set(groups.all().values_list('name', flat=True))
+
+                if groups:
+                    new_groups = set(groups.all().values_list('name', flat=True))
+                else:
+                    new_groups = set()
 
                 forbidden_groups = [
                     g for g in current_groups.symmetric_difference(new_groups) if g not in can_change_groups
@@ -941,8 +916,10 @@ class ImmersionUserChangeForm(UserChangeForm):
         # If REF-LYC is in new groups, send a mail to choose a password
         # if no password has been set yet
         ref_lyc_group = None
+        inter_group = None
         try:
             ref_lyc_group = Group.objects.get(name='REF-LYC')
+            inter_group = Group.objects.get(name='INTER')
         except Group.DoesNotExist:
             pass
 
@@ -953,6 +930,14 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         new_groups = set(self.data.get('groups', []))
 
+        if inter_group:
+            if self.request.user.is_high_school_manager():
+                if not self.instance.groups.filter(name='INTER').exists():
+                    new_groups.add(str(inter_group.id))
+
+                self.instance.username = self.instance.email
+                # TODO: send CPT_CREATE_INTER in case of a new user
+
         if ref_lyc_group and str(ref_lyc_group.id) in new_groups - current_groups:
             # REF-LYC group spotted : if the password is not set, send an email to the user
             user = self.instance
@@ -961,6 +946,10 @@ class ImmersionUserChangeForm(UserChangeForm):
                 user.send_message(self.request, "CPT_CREATE_LYCEE")
 
         self.instance = super().save(*args, **kwargs)
+
+        if self.request.user.is_high_school_manager():
+            if not self.instance.groups.filter(name='INTER').exists():
+                self.instance.groups.add(inter_group)
 
         return self.instance
 

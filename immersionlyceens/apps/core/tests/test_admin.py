@@ -110,6 +110,7 @@ class AdminFormsTestCase(TestCase):
             first_name='ref_master_etab',
             last_name='ref_master_etab',
             establishment=self.master_establishment,
+            is_staff=True,
             date_joined=timezone.now()
         )
 
@@ -120,6 +121,7 @@ class AdminFormsTestCase(TestCase):
             first_name='ref_etab',
             last_name='ref_etab',
             establishment=self.establishment,
+            is_staff=True,
             date_joined=timezone.now()
         )
 
@@ -1592,11 +1594,11 @@ class AdminFormsTestCase(TestCase):
         structure_2 = Structure.objects.create(**structure_2_data)
 
         self.ref_str_user.establishment = self.establishment
-        self.ref_str_user.structure = structure_2
+        self.ref_str_user.structures.add(structure_2)
         self.ref_str_user.save()
 
         self.ref_str_user_2.establishment = self.master_establishment
-        self.ref_str_user_2.structure = structure_1
+        self.ref_str_user_2.structures.add(structure_1)
         self.ref_str_user_2.save()
 
         request.user = self.ref_master_etab_user
@@ -1604,38 +1606,98 @@ class AdminFormsTestCase(TestCase):
         # Try an establishment update : forbidden
         self.assertEqual(self.ref_etab_user.establishment, self.establishment)
         data = {
-            'establishment': self.master_establishment,
-            'username': self.ref_etab_user.username,
-            'email': self.ref_etab_user.email,
-            'first_name': self.ref_etab_user.first_name,
-            'last_name': self.ref_etab_user.last_name,
-            'date_joined': self.ref_etab_user.date_joined
+            'establishment': self.master_establishment
         }
 
         form = ImmersionUserChangeForm(data, instance=self.ref_etab_user, request=request)
-        self.assertTrue(form.is_valid())
-        form.save()
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Select a valid choice. That choice is not one of the available choices.",
+            form.errors["establishment"]
+        )
 
-        self.ref_etab_user.refresh_from_db()
-        self.assertEqual(self.ref_etab_user.establishment, self.establishment)
-
-        # Self user tests
-        request.user = self.ref_lyc_user
+        # Bad structure choice
+        request.user = self.ref_etab_user
 
         data = {
-            'establishment': self.master_establishment,
-            'username': self.ref_lyc_user.username,
-            'email': self.ref_lyc_user.email,
-            'first_name': self.ref_lyc_user.first_name,
-            'last_name': self.ref_lyc_user.last_name,
-            'date_joined': self.ref_lyc_user.date_joined,
             'structures': [structure_1],
-            'groups': [Group.objects.get(name='REF-STR').id]
         }
 
-        form = ImmersionUserChangeForm(data, instance=self.ref_lyc_user, request=request)
+        form = ImmersionUserChangeForm(data, instance=self.ref_str_user, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Select a valid choice. 4 is not one of the available choices.", form.errors["groups"])
+        self.assertIn(
+            f"Select a valid choice. {structure_1.id} is not one of the available choices.",
+            form.errors["structures"]
+        )
 
-        print(form.errors)
+        # Bad group choice
+        self.ref_str_user.refresh_from_db()
 
+        etu_group = Group.objects.get(name="ETU")
+        data["structures"] = [structure_2]
+        data["groups"] = [etu_group]
+
+        form = ImmersionUserChangeForm(data, instance=self.ref_str_user, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn(
+            f"Select a valid choice. {etu_group.id} is not one of the available choices.",
+            form.errors["groups"]
+        )
+
+        # Success
+        self.ref_str_user.refresh_from_db()
+        data = {
+            "establishment": self.ref_str_user.establishment,
+            "username": self.ref_str_user.username,
+            "is_staff": True,
+            "is_active": True,
+            "first_name": "first",
+            "last_name": "last",
+            "email": "new_email@test.com",
+            "groups": [Group.objects.get(name='REF-STR')],
+            "structures": [structure_2]
+        }
+        form = ImmersionUserChangeForm(data, instance=self.ref_str_user, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.ref_str_user.refresh_from_db()
+        self.assertEqual(self.ref_str_user.first_name, "first")
+        self.assertEqual(self.ref_str_user.last_name, "last")
+        self.assertEqual(self.ref_str_user.email, "new_email@test.com")
+        self.assertTrue(self.ref_str_user.is_active)
+        self.assertFalse(self.ref_str_user.is_staff) # No change
+
+
+        # As High school manager
+        request.user = self.ref_lyc_user
+        new_user = ImmersionUser.objects.create(
+            username='inter@test.com',
+            last_name='new',
+            first_name='new',
+            email='inter@test.com',
+            highschool=self.ref_lyc_user.highschool
+        )
+
+        # Success : bad group and structure ignored
+        ref_lyc_group = Group.objects.get(name='REF-LYC')
+        inter_group = Group.objects.get(name='INTER')
+        data = {
+            "username": new_user.username,
+            "is_staff": True,
+            "is_active": True,
+            "first_name": "new",
+            "last_name": "new",
+            "email": "new_inter@test.com",
+            "groups": [ref_lyc_group],
+            "structures": [structure_2],
+            "highschool": self.ref_lyc_user.highschool
+        }
+        form = ImmersionUserChangeForm(data, instance=new_user, request=request)
+        self.assertTrue(form.is_valid())
+        new_user = form.save()
+        self.assertTrue(new_user.is_active)
+        self.assertTrue(new_user.groups.filter(name='INTER').exists())
+        self.assertFalse(new_user.structures.exists())
+        self.assertEqual(new_user.username, new_user.email)
+        self.assertFalse(new_user.is_staff)

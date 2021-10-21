@@ -189,6 +189,16 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_superuser:
             return qs
 
+        # Users are not allowed to modify their own account
+        qs = qs.exclude(id=request.user.id)
+
+        if request.user.is_establishment_manager():
+            es = request.user.establishment
+            return qs.filter(
+                Q(structures__establishment=es)|Q(establishment=es),
+                groups__name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB']
+            )
+
         if request.user.is_high_school_manager():
             return qs.filter(groups__name__in=['INTER'], highschool=request.user.highschool)
 
