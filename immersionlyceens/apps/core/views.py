@@ -86,7 +86,7 @@ def slots_list(request, str_id=None, train_id=None):
     Get slots list
     get filters : structure and trainings
     """
-    template = 'slots/list_slots.html'
+    template = 'core/slots_list.html'
 
     if request.user.is_superuser or request.user.is_establishment_manager():
         structures = Structure.activated.all().order_by("code")
@@ -128,6 +128,113 @@ def slots_list(request, str_id=None, train_id=None):
     return render(request, template, context=context)
 
 
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+def slot(request, slot_id=None, duplicate=False):
+    slot = None
+    speakers_idx = None
+
+    if slot_id:
+        try:
+            slot = Slot.objects.get(id=slot_id)
+            speakers_idx = [t.id for t in slot.speakers.all()]
+            if duplicate:
+                slot.id = None
+
+            if slot.course.structure not in request.user.get_authorized_structures():
+                messages.error(request, _("This slot belongs to another structure"))
+                return redirect('/core/slots/')
+
+        except Slot.DoesNotExist:  # id not found : make an empty slot
+            messages.warning(request, _("This slot id does not exist"))
+            return redirect('/core/slots/')
+
+    structures = request.user.get_authorized_structures().order_by('code')
+
+    if request.method == 'POST' and any(
+        [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
+    ):
+        slot_form = SlotForm(request.POST, instance=slot, request=request)
+        speakers = []
+        speaker_prefix = 'speaker_'
+        for speaker_id in [e.replace(speaker_prefix, '') for e in request.POST if speaker_prefix in e]:
+            speakers.append(speaker_id)
+
+        # if published, speakers count must be > 0
+        # else no speaker needed
+        published = request.POST.get('published') == 'on'
+
+        if slot_form.is_valid() and (not published or len(speakers) > 0):
+            slot_form.save()
+            for speaker in speakers:
+                slot_form.instance.speakers.add(speaker)
+            if slot and slot.id:
+                messages.success(request, _("Slot successfully updated"))
+            else:
+                messages.success(request, _("Slot successfully added"))
+
+            if published:
+                course = Course.objects.get(id=request.POST.get('course'))
+                if course and course.published:
+                    messages.success(request, _("Course published"))
+        else:
+            context = {
+                "campus": Campus.objects.filter(active=True).order_by('label'),
+                "course": Course.objects.get(id=request.POST.get('course', None)),
+                "structures": structures,
+                "slot_form": slot_form,
+                "ready_load": True,
+                "errors": slot_form.errors,
+                "speaker_error": len(speakers) < 1,
+                "speakers_idx": [int(t) for t in speakers],
+            }
+            return render(request, 'core/slot.html', context=context)
+
+        # Student notification on slot update
+        if request.POST.get('notify_student') == 'on':
+            sent_msg = 0
+            immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
+            for immersion in immersions:
+                if not immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF', immersion=immersion,
+                                                      slot=slot):
+                    sent_msg += 1
+
+            if sent_msg:
+                messages.success(request, _("Notifications have been sent (%s)") % sent_msg)
+
+        if request.POST.get('save'):
+            return HttpResponseRedirect(
+                reverse(
+                    'slots_list',
+                    kwargs={
+                        'str_id': request.POST.get('structure', ''),
+                        'train_id': request.POST.get('training', '')
+                    }
+                )
+            )
+        elif request.POST.get('save_add'):
+            return redirect('slot')
+        elif request.POST.get('duplicate'):
+            return redirect('duplicate_slot', slot_id=slot_form.instance.id, duplicate=1)
+        else:
+            return redirect('/')
+    elif slot:
+        slot_form = SlotForm(instance=slot, request=request)
+    else:
+        slot_form = SlotForm(request=request)
+
+    context = {
+        "campus": Campus.objects.filter(active=True).order_by('label'),
+        "slot_form": slot_form,
+        "ready_load": True,
+    }
+    if slot:
+        context['slot'] = slot
+        context['course'] = slot.course
+        context['speakers_idx'] = speakers_idx
+
+    return render(request, 'core/slot.html', context=context)
+
+"""
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def add_slot(request, slot_id=None):
     slot = None
@@ -195,7 +302,7 @@ def add_slot(request, slot_id=None):
                 )
             )
         elif request.POST.get('save_add'):
-            return redirect('add_slot')
+            return redirect('slot')
         elif request.POST.get('duplicate'):
             return redirect('duplicate_slot', slot_id=slot_form.instance.id)
         else:
@@ -221,9 +328,8 @@ def add_slot(request, slot_id=None):
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def modify_slot(request, slot_id):
-    """
-    Update a slot
-    """
+    # Update a slot
+
     try:
         slot = Slot.objects.get(id=slot_id)
     except Slot.DoesNotExist:
@@ -235,7 +341,7 @@ def modify_slot(request, slot_id):
         messages.error(request, _("This slot belongs to another structure"))
         return redirect('/core/slots/')
 
-    slot_form = SlotForm(instance=slot)
+    slot_form = SlotForm(instance=slot, request=request)
     # get structures
     structures = []
     if request.user.is_superuser or request.user.is_establishment_manager():
@@ -246,7 +352,7 @@ def modify_slot(request, slot_id):
     if request.method == 'POST' and any(
         [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
     ):
-        slot_form = SlotForm(request.POST, instance=slot)
+        slot_form = SlotForm(request.POST, instance=slot, request=request)
         speakers = []
         speaker_prefix = 'speaker_'
         for speaker_id in [e.replace(speaker_prefix, '') for e in request.POST if speaker_prefix in e]:
@@ -326,7 +432,7 @@ def modify_slot(request, slot_id):
         "speakers_idx": [t.id for t in slot.speakers.all()],
     }
     return render(request, 'slots/add_slot.html', context=context)
-
+"""
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def del_slot(request, slot_id):

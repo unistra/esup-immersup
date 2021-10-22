@@ -167,7 +167,7 @@ class FormTestCase(TestCase):
         # Success #
         ###########
         # Unpublished slot
-        form = SlotForm(data=data)
+        form = SlotForm(data=data, request=request)
         self.assertTrue(form.is_valid())
 
         # Published slot
@@ -183,14 +183,14 @@ class FormTestCase(TestCase):
             'n_places': 10,
             'published': True,
         }
-        form = SlotForm(data=valid_data)
+        form = SlotForm(data=valid_data, request=request)
         self.assertTrue(form.is_valid())
 
         # Published slot with an unpublished course
         self.course.published = False
         self.course.save()
 
-        form = SlotForm(data=data)
+        form = SlotForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         slot = form.save()
         self.assertFalse(slot.published)
@@ -212,7 +212,7 @@ class FormTestCase(TestCase):
             'published': True,
         }
         # Fail : Not between calendar dates
-        form = SlotForm(data=invalid_data)
+        form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
 
@@ -220,19 +220,19 @@ class FormTestCase(TestCase):
         invalid_data["date"] = self.today + datetime.timedelta(days=10)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)
-        form = SlotForm(data=invalid_data)
+        form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Error: Start time must be set before end time", form.errors["start_time"])
 
         # Fail : missing fields for a published Slot
         data["published"] = True
-        form = SlotForm(data=data)
+        form = SlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Required fields are not filled in", form.errors["__all__"])
 
         # Fail : no calendar
         self.calendar.delete()
-        form = SlotForm(data=data)
+        form = SlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Error: A calendar is required to set a slot.", form.errors["__all__"])
 

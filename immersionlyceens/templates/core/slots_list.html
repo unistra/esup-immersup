@@ -42,7 +42,7 @@
     </div>
     <div class="card-body">
       <div>
-        <a href="{% url 'add_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
+        <a href="{% url 'slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
       </div>
         <div>
           <div class="form-group row">
@@ -51,11 +51,11 @@
               <select name="structure" id="structure" class="form-control">
                 <option value="" selected>-------------</option>
                 {% for str in structures %}
-                    {% if structures|length == 1 %}
+                  {% if structures|length == 1 %}
                     <option value="{{ str.id }}" selected>{{ str.code }} - {{ str.label }}</option>
-                    {% else %}
+                  {% else %}
                     <option value="{{ str.id }}">{{ str.code }} - {{ str.label }}</option>
-                    {% endif %}
+                  {% endif %}
                 {% endfor %}
               </select>
             </div>
@@ -331,11 +331,11 @@ $(document).ready(function(){
               render: function(data, type, row) {
                 if ( row['structure']['managed_by_me'] ) {
                   let element =
-                '        <a href="{% url 'add_slot' %}/'+ data + '" class="btn btn-light btn-sm mr-1" ' +
+                '        <a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
                 '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
 
                   if(row.is_past === false) {
-                    element += '<a href="/core/slot/modify/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
+                    element += '<a href="/core/slot/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
                   }
                   if(row.n_register === 0 && row.is_past === false) {
                     element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
