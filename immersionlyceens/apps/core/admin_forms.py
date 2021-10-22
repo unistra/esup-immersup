@@ -790,7 +790,8 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields[field].disabled = True
 
             # Restrictions on group / structures selection depending on current user group
-            if self.request.user.is_master_establishment_manager():
+            if self.request.user.is_master_establishment_manager() \
+                and not self.instance.is_master_establishment_manager():
                 self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
 
             if self.request.user.is_establishment_manager():
@@ -836,6 +837,7 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if groups:
             if groups and groups.filter(name='REF-ETAB').exists():
+                cleaned_data['is_staff'] = True
                 if establishment is None or establishment.master:
                     msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
                     self._errors['establishment'] = self.error_class([msg])
@@ -859,10 +861,15 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self._errors["groups"] = forms.utils.ErrorList()
                 self._errors['groups'].append(self.error_class([msg]))
 
-            if groups.filter(name='REF-LYC').exists() and not highschool:
-                msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
-                self._errors["highschool"] = self.error_class([msg])
-                del cleaned_data["highschool"]
+            if groups.filter(name='REF-LYC').exists():
+                
+                if not highschool:
+                    msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
+                    self._errors["highschool"] = self.error_class([msg])
+                    del cleaned_data["highschool"]
+                elif highschool.postbac_immersion:
+                    cleaned_data['is_staff'] = True
+                
 
             if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
                 msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
