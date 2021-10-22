@@ -55,15 +55,14 @@ class FormTestCase(TestCase):
         """
         self.master_establishment = Establishment.objects.create(
             code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test1@test.com',
-            establishment_type='HIGHER_INST', address= 'address', department='departmeent', city='city',
+            address= 'address', department='departmeent', city='city',
             zip_code= 'zip_code', phone_number= '+33666'
         )
 
         self.establishment = Establishment.objects.create(
             code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False,
             email='test2@test.com',address= 'address2', department='departmeent2', city='city2',
-            zip_code= 'zip_code2', phone_number= '+33666666',
-            establishment_type='HIGHER_INST'
+            zip_code= 'zip_code2', phone_number= '+33666666'
         )
 
         self.highschool_user = get_user_model().objects.create_user(

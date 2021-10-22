@@ -38,8 +38,7 @@ class CoreViewsTestCase(TestCase):
             short_label='Eta 1',
             active=True,
             master=True,
-            email='test1@test.com',
-            establishment_type='HIGHER_INST'
+            email='test1@test.com'
         )
 
         self.establishment = Establishment.objects.create(
@@ -48,8 +47,7 @@ class CoreViewsTestCase(TestCase):
             short_label='Eta 2',
             active=True,
             master=False,
-            email='test2@test.com',
-            establishment_type='HIGHER_INST'
+            email='test2@test.com'
         )
         
         self.high_school = HighSchool.objects.create(

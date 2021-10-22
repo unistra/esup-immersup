@@ -22,8 +22,7 @@ class CampusTestCase(TestCase):
 
         establishment = Establishment.objects.create(
             code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
-            establishment_type='HIGHER_INST', address= 'address', department='departmeent', city='city',
-            zip_code= 'zip_code', phone_number= '+33666'
+            address= 'address', department='departmeent', city='city', zip_code= 'zip_code', phone_number= '+33666'
         )
 
         test_campus.establishment = establishment
