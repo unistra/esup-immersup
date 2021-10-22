@@ -481,6 +481,16 @@ class Training(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A training with this label already exists'))
 
+    @property
+    def is_highschool(self) -> bool:
+        """Return True if highschool is set"""
+        return self.highschool is not None
+
+    @property
+    def is_structure(self) -> bool:
+        """Return True if structure is set"""
+        return self.structures.count() > 0
+
     class Meta:
         verbose_name = _('Training')
         verbose_name_plural = _('Trainings')
