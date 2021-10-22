@@ -37,7 +37,7 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.core.serializers import (
-    CampusSerializer, EstablishmentSerializer, StructureSerializer
+    BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -2096,6 +2096,48 @@ class StructureList(generics.ListAPIView):
         return queryset
 
 
+class CourseList(generics.ListAPIView):
+    """
+    Courses list
+    """
+    serializer_class = CourseSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['training', 'structure', ]
+
+    def get_queryset(self):
+        queryset = Course.objects.filter(published=True).order_by('label')
+        user = self.request.user
+
+        if not user.is_superuser:
+            if user.is_structure_manager():
+                return user.structures.order_by('label')
+            if user.is_establishment_manager() and user.establishment:
+                return Course.objects.filter(structure__in=user.establishment.structures.all()).order_by('label')
+
+        return queryset
+
+
+class BuildingList(generics.ListAPIView):
+    """
+    Buildings list
+    """
+    serializer_class = BuildingSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['campus', ]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Building.objects.order_by('label')
+
+        if not user.is_superuser:
+            if user.is_structure_manager():
+                return queryset.filter(campus__establishment__structures__in=user.structures.all())
+
+            if user.is_establishment_manager() and user.establishment:
+                return queryset.filter(campus__establishment=user.establishment)
+
+        return queryset
+
 class GetEstablishment(generics.RetrieveAPIView):
     """
     Single establishment
@@ -2104,6 +2146,7 @@ class GetEstablishment(generics.RetrieveAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     queryset = Establishment.objects.all()
     lookup_field = "id"
+
 
 @is_ajax_request
 def ajax_get_immersions_proposal_establishments(request):

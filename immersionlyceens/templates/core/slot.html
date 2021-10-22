@@ -1,0 +1,772 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head-css %}
+    <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.jqueryui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/vendor/datatables/datatables.min.css' %}">
+{% endblock %}
+
+{% block head-javascript %}
+    <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="feedback" class="container"></div>
+<div class="container-fluid" style="padding-top: 20px; width: 70%;">
+  <div id="date-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot creation" %}'>
+    <span>
+      {% trans 'This date is inside a vacation or a holiday. Are you sure that you want a slot with this date ?' %}
+    </span>
+  </div>
+
+  <div id="course-dialog-form" style='z-index:3000;' title='{% trans "Confirm course" %}'>
+    <span>
+      {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
+    </span>
+  </div>
+
+  <div id="cancel-dialog-form" style='z-index:3000;' title='{% trans "Cancel" %}'>
+    <span>
+      {% if slot %}
+        {% if slot.id %}
+          {% trans 'Do you really want to cancel this modification?' %}
+        {% else %}
+          {% trans 'Do you really want to cancel this duplication?' %}
+        {% endif %}
+      {% else %}
+        {% trans 'Do you really want to cancel this creation?' %}
+      {% endif %}
+    </span>
+  </div>
+
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% if slot %}
+        {% if slot.id %}
+          {% trans 'modify slot' %}
+        {% else %}
+          {% trans 'duplicate slot' %}
+        {% endif %}
+      {% else %}
+        {% trans 'Add a new slot' %}
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <form method="POST" class="form-group" role="form" id="add_slot">
+        {% csrf_token %}
+        {{ slot_form.id }}
+        <div class="form-group row">
+          <label for="id_establishment" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Establishment' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ slot_form.establishment }}
+          </div>
+          <div class="col-sm-6">
+            {{ slot_form.establishment.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_structure" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Structure' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ slot_form.structure }}
+          </div>
+          <div class="col-sm-6">
+            {{ slot_form.structure.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_training" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Training' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ slot_form.training }}
+          </div>
+          <div class="col-sm-6">
+            {{ slot_form.training.errors }}
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="course" class="col-form-label col-sm-3">{% trans 'Course' %}</label>
+          <div class="col-sm-6">
+            {{ slot_form.course }}
+          </div>
+          {% if slot_form.course.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.course.errors }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="form-group row">
+          <label for="course_type" class="col-form-label col-sm-3">{% trans 'Course type' %}</label>
+          <div class="col-sm-6">
+            {{ slot_form.course_type }}
+          </div>
+          {% if slot_form.course_type.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.course_type.errors }}
+            </div>
+          {% endif %}
+
+        </div>
+
+        <div class="form-group row">
+          <label for="campus" class="col-form-label col-sm-3">{% trans 'Campus' %}</label>
+          <div class="col-sm-6">
+            {% if slot %}
+                <select name="campus" id="id_campus" class="form-control">
+                    <option value="" selected>--------</option>
+                    {% for c in campus %}
+                        <option value="{{ c.id }}">{{ c.label }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                {{ slot_form.campus }}
+            {% endif %}
+          </div>
+          {% if slot_form.campus.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.campus.errors }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="form-group row">
+          <label for="building" class="col-form-label col-sm-3">{% trans 'Building' %}</label>
+          <div class="col-sm-6">
+            {{ slot_form.building }}
+          </div>
+          {% if slot_form.building.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.building.errors }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="form-group row">
+          <label for="room" class="col-form-label col-sm-3">{% trans 'Room' %}</label>
+          <div class="col-sm-6">
+            {{ slot_form.room }}
+          </div>
+          {% if slot_form.room.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.room.errors }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="form-group row">
+            <label for="date" class="col-form-label col-sm-3">{% trans 'Date' %}</label>
+            <div class="col-sm-6">
+                {{ slot_form.date }}
+            </div>
+            {% if slot_form.date.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.date.errors }}
+            </div>
+            {% endif %}
+        </div>
+        <div class="form-group row">
+            <label for="start_time" class="col-form-label col-sm-3">{% trans 'Start time' %}</label>
+            <div class="col-sm-6">
+                {{ slot_form.start_time }}
+            </div>
+            {% if slot_form.start_time.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.start_time.errors }}
+            </div>
+            {% endif %}
+        </div>
+        <div class="form-group row">
+          <label for="end_time" class="col-form-label col-sm-3">{% trans 'End time' %}</label>
+          <div class="col-sm-6">
+            {{ slot_form.end_time }}
+          </div>
+          {% if slot_form.end_time.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.end_time.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row">
+          <label class="col-sm-3">{% trans 'Speakers' %}</label>
+          <div class="form-group col-sm-6 row">
+            <div class="form-check" id="id_speakers">
+              {% if slot %}
+                {% for t in slot.course.speakers.all %}
+                  <div class="custom-control custom-checkbox">
+                    {% if t.id in speakers_idx %}
+                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}" checked>
+                    {% else %}
+                        <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}">
+                    {% endif %}
+                    <label for="speaker_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                  </div>
+                {% endfor %}
+              {% elif course %}
+                {% for t in course.speakers.all %}
+                  <div class="custom-control custom-checkbox">
+                    {% if t.id in speakers_idx %}
+                      <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}" checked>
+                    {% else %}
+                      <input type="checkbox" value="{{ t.id }}" name="speaker_{{ t.id }}">
+                    {% endif %}
+                    <label for="speaker_{{ t.id }}" class="">{{ t.first_name }} {{ t.last_name|upper }}</label>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+          {% if slot_form.speakers.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.speakers.errors }}
+            </div>
+          {% elif speaker_error %}
+            <div class="alert alert-danger">
+              {% if speaker_error %}
+                <ul>
+                  <li>{% trans "Speakers" %}
+                    <ul><li>{% trans "You have to select one or more speakers" %}</li></ul>
+                  </li>
+                </ul>
+             {% endif %}
+           </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row">
+          <label for="n_places" class="col-form-label col-sm-3">{% trans 'Number of places' %}</label>
+          <div class="col-sm-6">
+            {{ slot_form.n_places }}
+          </div>
+          {% if slot_form.n_places.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.n_places.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row">
+          <label for="additional_information" class="col-form-label col-sm-3">{% trans 'Additional information' %}</label>
+          <div class="col-sm-6">
+            {{ slot_form.additional_information }}
+          </div>
+          {% if slot_form.additional_information.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.additional_information.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row">
+          <label for="published" class="col-form-label col-sm-3">{% trans 'Published' %}</label>
+          <div class="col-sm-1">
+            {{ slot_form.published }}
+          </div>
+          {% if slot_form.published.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.published.errors }}
+            </div>
+          {% endif %}
+        </div>
+        <input type="hidden" name="modify">
+        {% if slot and slot.id %}
+          <div class="form-group row">
+            <label for="notify_student" class="col-form-label col-sm-3">{% trans "Notify registrants of these changes?" %}</label>
+            <div class="col-sm-1">
+              <input type="checkbox" name="notify_student" checked>
+            </div>
+          </div>
+        {% endif %}
+        <br>
+        {% include 'core/slot__controls.html' %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block foot-javascript %}
+  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+{% comment "" %}
+  TODO: add here other languages for jquery-ui !!
+{% endcomment %}
+
+{% if LANGUAGE_CODE == 'fr-FR' %}
+  <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-fr-FR.js' %}"></script>
+{% endif %}
+
+
+<script>
+  var course_first = true;
+  var building_first = true;
+  var dateDialog;
+  var courseDialog;
+  var cancelDialog;
+  var training_id = "{{ slot_form.training.value }}";
+  var structure_id = "{{ slot_form.structure.value }}";
+  var course_id = "{{ slot_form.course.value }}";
+  var campus_id = "{{ slot_form.campus.value }}";
+  var building_id = "{{ slot_form.building.value }}";
+  var establishment_id;
+  var str_id;
+  var courses = Array();
+
+  $('#id_establishment').change( function() {
+    establishment_id = $('#id_establishment option:selected').val();
+    set_structures(establishment_id);
+    set_campuses(establishment_id);
+  });
+
+  $('#id_structure').change( function() {
+    str_id = $('#id_structure option:selected').val();
+    set_trainings(str_id);
+  });
+
+  $('#id_training').change( function() {
+    training_id = $('#id_training option:selected').val();
+    set_courses(str_id, training_id);
+  });
+
+  $('#id_course').change( function() {
+    course_id = $('#id_course option:selected').val();
+    if(course_id !== '' && courses[course_id]['published'] == false) {
+      courseDialog.dialog('open');
+    }
+    load_speakers(course_id);
+  });
+
+  $('#id_campus').change( function() {
+    campus_id = $('#id_campus option:selected').val();
+    set_buildings(campus_id);
+  });
+
+  function set_structures(establishment_id) {
+    $.ajax({
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': establishment_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+        for (let i = 0; i < json.length; i++) {
+          options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
+        }
+        $('select#id_structure').html(options)
+
+        if(structure_id) {
+          $("#id_structure").val(structure_id);
+        }
+        else {
+          $("#id_structure").val($("#id_structure option:first").val());
+        }
+      }
+    })
+  }
+
+  function set_trainings(str_id) {
+    $.ajax({
+      url: "{% url 'GetTrainings' %}",
+      type: 'POST',
+      data: {
+        'structure_id': str_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+        for (let i = 0; i < json['data'].length; i++) {
+          let selected = json['data'][i]['id'] === parseInt(training_id) ? "selected='selected'" : ""
+          options += `<option ${selected} value="${json['data'][i]['id']}">${json['data'][i]['label']}</option>`
+        }
+
+        $('select#id_training').html(options)
+
+        if(training_id) {
+          $("#id_training").val(training_id);
+        }
+        else {
+          $("#id_training").val($("#id_training option:first").val());
+        }
+      }
+    })
+  }
+
+  function set_courses(str_id, training_id) {
+    $.ajax({
+      url: "{% url 'course_list' %}",
+      type: 'GET',
+      data: {
+        'structure': str_id,
+        'training': training_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        courses = Array()
+        let options = ""
+
+        if(json.length>0) {
+          options = '<option value="">---------</option>'
+          for (let i = 0; i < json.length; i++) {
+            options += `<option value="${json[i]['id']}">${json[i]['label']}</option>`
+            courses[json[i]['id']] = json[i]
+          }
+        }
+        else {
+            options = '<option value="">{% trans 'No course available' %}</option>'
+        }
+
+        $('select#id_course').html(options)
+
+        if(course_id) {
+          $("#id_course").val(course_id);
+        }
+        else {
+          $("#id_course").val($("#id_course option:first").val());
+        }
+      }
+    })
+  }
+
+  function set_campuses(establishment_id) {
+    $.ajax({
+      url: "{% url 'campus_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': establishment_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = ""
+
+        if(json.length>0) {
+          options = '<option value="">---------</option>'
+          for (let i = 0; i < json.length; i++) {
+            options += `<option value="${json[i]['id']}">${json[i]['label']}</option>`
+          }
+        }
+        else {
+          options = '<option value="">{% trans 'No campus available' %}</option>'
+        }
+
+        $('select#id_campus').html(options)
+
+        if(campus_id) {
+          $("#id_campus").val(campus_id);
+        }
+        else {
+          $("#id_campus").val($("#id_campus option:first").val());
+        }
+      }
+    })
+  }
+
+  function set_buildings(campus_id) {
+    $.ajax({
+      url: "{% url 'building_list' %}",
+      type: 'GET',
+      data: {
+        'campus': campus_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = ""
+
+        if(json.length>0) {
+          options = '<option value="">---------</option>'
+          for (let i = 0; i < json.length; i++) {
+            options += `<option value="${json[i]['id']}">${json[i]['label']}</option>`
+          }
+        }
+        else {
+          options = '<option value="">{% trans 'No building available' %}</option>'
+        }
+
+        $('select#id_building').html(options)
+
+        if(building_id) {
+          $("#id_building").val(building_id);
+        }
+        else {
+          $("#id_building").val($("#id_building option:first").val());
+        }
+      }
+    })
+  }
+
+  function load_speakers(value) {
+    $.ajax({
+      url: '/api/get_course_speakers/' + value,
+      success: function(data) {
+        if ( data['data'] ) {
+          $('#id_speakers').html('');
+          data['data'].forEach(function(e){
+            let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
+            element = '<div class="custom-checkbox custom-control">';
+            element += '<input type="checkbox" name="speaker_' + e['id'] + '" value="' + e['id'] + '">';
+            element += '<label for="speaker_' + e['id'] + '">' + name +'</label>';
+            element += '</div>';
+            $('#id_speakers').append(element);
+          });
+        }
+      },
+      error: function() {$('#id_speakers').html('');}
+    });
+  }
+
+$(document).ready(function(){
+  establishment_id = $('#id_establishment option:selected').val()
+  str_id = $('#id_structure option:selected').val()
+  course_id = $('#id_course option:selected').val()
+  training_id = $('#id_training option:selected').val()
+  set_structures(establishment_id);
+  set_campuses(establishment_id);
+  set_trainings(str_id);
+  set_courses(str_id, training_id);
+
+  initFeedback();
+  // reset feedback
+  setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+
+  dateDialog = $("#date-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          dateDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          $('#id_date').val('');
+          dateDialog.dialog("close");
+        },
+      }],
+  });
+
+  courseDialog = $("#course-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          courseDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          $('#id_course').val('');
+          courseDialog.dialog("close");
+        },
+      }],
+  });
+
+  cancelDialog = $("#cancel-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          let url = "/core/slots"
+          let str_id = $('#structure').val();
+          let train_id = $('#training').val();
+
+          if(str_id) url += "/"+str_id
+          if(train_id) url += "/"+train_id
+
+          window.location = url;
+          cancelDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          cancelDialog.dialog("close");
+        },
+      }],
+  });
+
+  /*
+  $('#id_course').change(function(event){
+    if(courses[event.target.value]['published'] == false) {
+      courseDialog.dialog('open');
+    }
+  });
+  */
+
+  function check_date() {
+    $.ajax({
+      url: '/api/check_vacations',
+      data: {
+        date: $('#id_date').val(),
+      },
+      success: function(data) {
+        if ( data['data'] ) {
+          if (data['data']['is_between']) {
+            dateDialog.dialog('open');
+          }
+        }
+      },
+    });
+  }
+
+  function toggle_required_fields () {
+    let published = $('#id_published').prop('checked');
+    if (published) {
+      let mandatory = [
+        'course', 'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time',
+        'speakers', 'n_places'
+      ];
+      mandatory.forEach(function(e){
+        $('#id_' + e).attr('required', 'sfdgsg');
+      });
+    }
+    else {
+      let not_mandatory = [
+        'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+      ];
+      let mandatory = ['training', 'course'];
+
+      not_mandatory.forEach(function(e){
+        $('#id_' + e).removeAttr('required');
+      });
+
+      mandatory.forEach(function(e){
+        $('#id_' + e).attr('required', 'sfdgsg');
+      });
+    }
+  }
+
+  // Change input type
+  $('#id_start_time').get(0).type = 'time';
+  $('#id_end_time').get(0).type = 'time';
+
+  // Date check
+  $('#id_date').on('change', function() {
+    check_date();
+  });
+
+  // Back button + confirm
+  $('.back_btn').click(function (event) {
+    cancelDialog.dialog('open');
+  });
+
+  $(".datepicker").datepicker({
+    dateFormat: 'dd/mm/yy',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "2020:2100",
+  });
+
+    /*
+    {% if not slot %}
+
+        {% if not request.POST.structure %}
+            load_trainings($('#structure').val());
+        {% endif %}
+        {% if not request.POST.structure and not request.POST.training %}
+        load_course(
+            $('#structure').val(),
+            $('#training').val()
+        );
+        {% endif %}
+
+        {% if not slot_form.campus.value %}
+            load_buildings($('#id_campus').val());
+        {% endif %}
+        {% if not slot_form.course.value %}
+            id_course = $('#id_course').val();
+            if (id_course) {
+              load_speakers(id_course);
+            }
+        {% endif %}
+
+    {% endif %}
+    */
+    // toggle
+    toggle_required_fields();
+
+    // add change handler
+    /*
+    $('#structure').change(function(event){ load_trainings(event.target.value); });
+    $('#training').change(function(event){ load_course($('#structure').val(), event.target.value); });
+    $('#id_campus').change(function(event){ load_buildings(event.target.value); });
+    */
+
+    $('#id_published').on('change', function(){ toggle_required_fields(); });
+
+    {% if slot or request.POST.structure %}
+        {% if slot %}
+        setTimeout(function(){
+                $('#ok_modify').fadeOut(1000, function(){
+                    $('#ok_modify').hide();
+                });
+            },
+            {%  settings_get 'MESSAGES_TIMEOUT' %}
+        );
+        {% endif %}
+
+    /*
+    $('#structure option').each(function(i, e) {
+        {% if request.POST.structure %}
+        if ( $(e).val() == '{{ request.POST.structure }}' )
+        {% elif slot %}
+        if ( $(e).val() == '{{ slot.course.structure.id }}' )
+        {% endif %}
+        {
+            e.selected = true;
+            load_trainings($(e).val(), true);
+        }
+    });
+    */
+
+    // $('#id_campus option[value="{{ slot.campus.id }}"]').attr('selected', '');
+    // $('#id_campus option[value="{{ slot_form.campus.value }}"]').attr('selected', '');
+    // load_buildings($('#id_campus').val());
+
+    /*
+    $('#id_course').html('');
+    $('#id_course').append(
+        // '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
+        '<option selected value="{{ slot_form.course.value }}">{{ slot.course.label }}</option>'
+    );
+    */
+    {% endif %}
+});
+</script>
+{% endblock %}

@@ -33,6 +33,7 @@ urlpatterns = [
     ),
     path('get_courses_by_training/<int:training_id>', views.ajax_get_courses_by_training, name='get_courses_training',),
     path('get_courses/<int:structure_id>/', views.ajax_get_courses, name='GetCourses'),
+
     path('get_csv_anonymous_immersion/', views.get_csv_anonymous_immersion, name='get_csv_anonymous_immersion'),
     path('get_csv_structures/<int:structure_id>', views.get_csv_structures, name='get_csv_structures'),
     path('get_csv_highschool/<int:high_school_id>', views.get_csv_highschool, name='get_csv_highschool'),
@@ -70,11 +71,14 @@ urlpatterns = [
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
 
+    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
+
+    # DRF
     path('campuses/', views.CampusList.as_view(), name='campus_list'),
     path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),
     path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_list'),
 
     path('structures/', views.StructureList.as_view(), name='structure_list'),
-
-    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
+    path('courses/', views.CourseList.as_view(), name='course_list'),
+    path('buildings/', views.BuildingList.as_view(), name='building_list'),
 ]

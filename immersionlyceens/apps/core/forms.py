@@ -41,16 +41,16 @@ class CourseForm(forms.ModelForm):
             else:
                 allowed_establishments = Establishment.objects.none()
 
-            self.fields["structure"].queryset = Structure.objects.none()
-
             allowed_structs = self.request.user.get_authorized_structures()
             self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
 
             if allowed_establishments.count() == 1:
                 self.fields["establishment"].initial = allowed_establishments.first().id
+                self.fields["establishment"].empty_label = None
 
             if allowed_structs.count() == 1:
                 self.fields["structure"].initial = allowed_structs.first().id
+                self.fields["structure"].empty_label = None
 
             if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
                 for field in self.fields:
@@ -94,13 +94,20 @@ class CourseForm(forms.ModelForm):
 
 
 class SlotForm(forms.ModelForm):
+    establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
+    structure = forms.ModelChoiceField(queryset=Structure.objects.none(), required=False)
+    training = forms.ModelChoiceField(queryset=Training.objects.none(), required=False)
+    highschool = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
+
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         instance = kwargs.get('instance', None)
 
-        # self.fields["training"].queryset = self.fields["training"].queryset.filter(active=True)
-
         for elem in [
+            'establishment',
+            'structure',
+            'training',
             'course',
             'course_type',
             'campus',
@@ -113,6 +120,39 @@ class SlotForm(forms.ModelForm):
             #'published',
         ]:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
+
+        can_choose_establishment = any([
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_structure_manager()
+        ])
+
+        if can_choose_establishment:
+            allowed_establishments = Establishment.activated.user_establishments(self.request.user)
+            self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
+        else:
+            allowed_establishments = Establishment.objects.none()
+
+        if allowed_establishments.count() == 1:
+            self.fields["establishment"].initial = allowed_establishments.first().id
+            self.fields["establishment"].empty_label = None
+            allowed_structs = self.request.user.get_authorized_structures()
+            self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
+
+            if allowed_structs.count() == 1:
+                self.fields["structure"].initial = allowed_structs.first().id
+                self.fields["structure"].empty_label = None
+
+        # Update valid choices (useful when validating the form)
+        structure = self.data.get("structure") or\
+                    (self.instance and self.instance.course_id and self.instance.course.structure)
+        if structure:
+            self.fields["training"].queryset = Training.objects.filter(structures=structure)
+
+        course = self.instance.course if self.instance and self.instance.course_id else None
+        if course:
+            self.fields["structure"].initial = course.structure.id
+            self.fields["training"].initial = course.training.id
 
         # course type filter
         self.fields['course_type'].queryset = CourseType.objects.filter(active=True).order_by('label')
@@ -127,24 +167,23 @@ class SlotForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         course = cleaned_data.get('course')
+        structure = cleaned_data.get('structure')
         pub = cleaned_data.get('published', None)
 
         cals = Calendar.objects.all()
-        cal = None
-        if cals.count() > 0:
-            cal = cals[0]
-        if not cal:
+
+        if cals.exists():
+            cal = cals.first()
+        else:
             raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
 
-        pub = cleaned_data.get('published')
-        if pub is not None:
-            if pub:
-                # Mandatory fields
-                if not all(
-                    cleaned_data.get(e)
-                    for e in ['course', 'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time',]
-                ):
-                    raise forms.ValidationError(_('Required fields are not filled in'))
+        if pub is True:
+            # Mandatory fields
+            if not all(
+                cleaned_data.get(e)
+                for e in ['course', 'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time',]
+            ):
+                raise forms.ValidationError(_('Required fields are not filled in'))
 
         _date = cleaned_data.get('date')
         if _date and not cal.date_is_between(_date):
@@ -167,6 +206,9 @@ class SlotForm(forms.ModelForm):
         model = Slot
         fields = (
             'id',
+            'establishment',
+            'structure',
+            'training',
             'course',
             'course_type',
             'campus',
