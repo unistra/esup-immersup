@@ -126,7 +126,6 @@ class HighSchool(models.Model):
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
 
-
     def __str__(self):
         return "%s - %s" % (self.city, self.label)
 
@@ -465,13 +464,16 @@ class Training(models.Model):
     training_subdomains = models.ManyToManyField(
         TrainingSubdomain, verbose_name=_("Training subdomains"), blank=False, related_name='Trainings',
     )
-    structures = models.ManyToManyField(Structure, verbose_name=_("Structures"), blank=False, related_name='Trainings')
+    structures = models.ManyToManyField(Structure, verbose_name=_("Structures"), blank=True, related_name='Trainings')
+    highschool = models.ForeignKey(
+        HighSchool,  verbose_name=_('High school'), null=True, blank=True,
+        on_delete=models.CASCADE, related_name="highschool_training",
+    )
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
     def __str__(self):
         return self.label
-
 
     def validate_unique(self, exclude=None):
         try:
