@@ -32,6 +32,18 @@
       {% csrf_token %}
         {{ course_form.id }}
         <div class="form-group row">
+          <label for="id_establishment" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Establishment' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ course_form.establishment }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.establishment.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
             {% trans 'Structure' %} :
@@ -120,18 +132,46 @@
   var json_results;
   var query_order = 0;
   var training_id = "{{ course_form.training.value }}";
+  var structure_id = "{{ course_form.structure.value }}";
   var can_update = "{{ update_rights }}";
+  var establishment_id;
+  var str_id;
 
   {% autoescape on %}
   var speakers_array = {{ speakers|safe }};
   {% endautoescape %}
 
-  function set_trainings(cmp_id) {
+  function set_structures(establishment_id) {
+    $.ajax({
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': establishment_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+        for (let i = 0; i < json.length; i++) {
+          options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
+        }
+        $('select#id_structure').html(options)
+
+        if(structure_id) {
+          $("#id_structure").val(structure_id);
+        }
+        else {
+          $("#id_structure").val($("#id_structure option:first").val());
+        }
+      }
+    })
+  }
+
+  function set_trainings(str_id) {
     $.ajax({
       url: "{% url 'GetTrainings' %}",
       type: 'POST',
       data: {
-        'structure_id': cmp_id,
+        'structure_id': str_id,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
@@ -196,9 +236,14 @@
     refresh_speakers_list();
   };
 
+  $('#id_establishment').change( function() {
+    establishment_id = $('#id_establishment option:selected').val();
+    set_structures(establishment_id);
+  });
+
   $('#id_structure').change( function() {
-    let cmp_id = $('#id_structure option:selected').val();
-    set_trainings(cmp_id);
+    str_id = $('#id_structure option:selected').val();
+    set_trainings(str_id);
   });
 
   $('#live_select').change(function () {
@@ -237,6 +282,7 @@
         data: {
           username: this.value,
           establishment_id: establishment_id,
+          structure_id: str_id,
           query_order: query_order
         },
 
@@ -258,8 +304,11 @@
 
             if (json['data'].length <= 1) {
               $('#live_select').empty();
-            } else {
+            }
+            else {
               json_results = json['data'];
+
+              console.log(json_results)
 
               $('#live_select').empty().append(
                   "<option value='' disabled>" + "{% trans 'Select a person' %} ..." + "</option>"
@@ -281,7 +330,10 @@
   });
 
   $(document).ready(function() {
-    set_trainings($('#id_structure option:selected').val());
+    establishment_id = $('#id_establishment option:selected').val()
+    str_id = $('#id_structure option:selected').val()
+    set_structures(establishment_id);
+    set_trainings(str_id);
 
     if (speakers_array) {
       refresh_speakers_list();

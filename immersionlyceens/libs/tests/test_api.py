@@ -837,12 +837,12 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], "Search string is empty")
         self.assertEqual(content['data'], [])
 
-        # Establishment has no source plugin configured
+        # Establishment has no source plugin configured : look for 'local' speakers
         data["username"] = "whatever"
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], "No source plugin configured")
+        self.assertEqual(content['msg'], "")
         self.assertEqual(content['data'], [])
 
 

@@ -25,8 +25,8 @@
         <div class="nav-item">
         <a class="nav-link" href="{% url 'accompanying' %}">{% trans 'Accompanying' %}</a>
         </div>
-        {# ref-etab or ref-str #}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR" %}
+        {# ref-etab or ref-str o ref-etab-maitre #}
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownCourses" role="button" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
@@ -90,12 +90,12 @@
         {% endif %}
 
         {% if not user.is_superuser %}
-          {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,SRV-JUR" %}
+          {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,SRV-JUR,REF-ETAB-MAITRE" %}
             <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHighSchool" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                   {% trans 'High school' %}
-                {% elif authorized_groups|in_groups:"REF-ETAB,SRV-JUR" %}
+                {% elif authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE,SRV-JUR" %}
                   {% trans 'Registered users' %}
                 {% endif %}
               </a>
@@ -108,13 +108,13 @@
                   <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View all registrants' %}</a>
                   <a class="dropdown-item" href="{% url 'student_validation' user.highschool.id %}">{% trans 'Validate student profiles' %}</a>
                 {% endif %}
-                {% if authorized_groups|in_groups:"REF-ETAB" %}
+                {% if authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE" %}
                   <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View all students' %}</a>
                 {% endif %}
-                {% if authorized_groups|in_groups:"REF-ETAB,SRV-JUR" %}
+                {% if authorized_groups|in_groups:"REF-ETAB,SRV-JUR,REF-ETAB-MAITRE" %}
                   <a class="dropdown-item" href="{% url 'students_presence' %}">{% trans 'View students by date' %}</a>
                 {% endif %}
-                {% if authorized_groups|in_groups:"REF-ETAB" %}
+                {% if authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE" %}
                   <a class="dropdown-item" href="{% url 'duplicates' %}">{% trans 'View potential duplicates' %}</a>
                   <a class="dropdown-item" href="{% url 'student_validation_global' %}">{% trans 'Validate student profiles' %}</a>
                 {% endif %}
@@ -124,7 +124,7 @@
           {% endif %}
         {% endif %}
         {# charts #}
-        {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB" %}
+        {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-ETAB-MAITRE" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownStats" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Charts' %}
@@ -133,7 +133,7 @@
               <a class="dropdown-item" href="{% url 'charts:highschool_charts' %}">{% trans 'Highschool registrations/participations' %}</a>
               <a class="dropdown-item" href="{% url 'charts:highschool_domains_charts' %}">{% trans 'By domains registrations' %}</a>
               <a class="dropdown-item" href="{% url 'charts:trainings_charts' %}">{% trans 'Highshcool - registrations by trainings' %}</a>
-              {% if authorized_groups|in_groups:"REF-ETAB" %}
+              {% if authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE" %}
               <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'Registrations and participation' %}</a>
               <a class="dropdown-item" href="{% url 'charts:global_domains_charts' %}">{% trans 'Hosts - registrations by domains' %}</a>
               <a class="dropdown-item" href="{% url 'charts:global_slots_charts' %}">{% trans 'Hosts - registrations by structures' %}</a>
@@ -142,7 +142,7 @@
           </div>
         {% endif %}
         {# stats #}
-        {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-STR" %}
+        {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-STR,REF-ETAB-MAITRE" %}
         <div class="nav-item">
           <a class="nav-link" href="{% url 'stats' %}">{% trans 'Extractions' %}</a>
         </div>

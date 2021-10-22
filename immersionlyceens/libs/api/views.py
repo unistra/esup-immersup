@@ -37,7 +37,7 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.core.serializers import (
-    CampusSerializer, EstablishmentSerializer,
+    CampusSerializer, EstablishmentSerializer, StructureSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -53,54 +53,101 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
-@groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR")
+@groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR", "REF-LYC")
 def ajax_get_person(request):
     response = {'msg': '', 'data': []}
     search_str = request.POST.get("username", None)
     query_order = request.POST.get("query_order")
     establishment_id = request.POST.get('establishment_id', None)
+    structure_id = request.POST.get('structure_id', None)
+    highschool_id = request.POST.get('highschool_id', None)
+
+    users_queryset = None
+    establishment = None
+    highschool = None
 
     if not search_str:
         response['msg'] = gettext("Search string is empty")
         return JsonResponse(response, safe=False)
 
-    if establishment_id is None:
-        response['msg'] = gettext("Please select an establishment first")
-        return JsonResponse(response, safe=False)
-
     try:
-        establishment = Establishment.objects.get(pk=establishment_id)
-    except Establishment.DoesNotExist:
+        structure_id = int(structure_id)
+    except TypeError:
+        structure_id = None
+
+    if establishment_id is None and highschool_id is None:
+        response['msg'] = gettext("Please select an establishment or a high school first")
         return JsonResponse(response, safe=False)
 
-    if establishment.data_source_plugin:
+    if establishment_id:
         try:
-            module_name = settings.ACCOUNTS_PLUGINS[establishment.data_source_plugin]
-            source = importlib.import_module(module_name, package=None)
-            account_api = source.AccountAPI(establishment)
+            establishment = Establishment.objects.get(pk=establishment_id)
+        except Establishment.DoesNotExist:
+            response['msg'] = gettext("Sorry, establishment not found")
+            return JsonResponse(response, safe=False)
+    elif highschool_id:
+        try:
+            highschool = HighSchool.objects.get(pk=highschool_id)
+        except HighSchool.DoesNotExist:
+            response['msg'] = gettext("Sorry, high school not found")
+            return JsonResponse(response, safe=False)
 
-            persons_list = [query_order]
+    if establishment:
+        if establishment.data_source_plugin:
+            try:
+                module_name = settings.ACCOUNTS_PLUGINS[establishment.data_source_plugin]
+                source = importlib.import_module(module_name, package=None)
+                account_api = source.AccountAPI(establishment)
 
-            users = account_api.search_user(search_str)
+                persons_list = [query_order]
 
-            if users != False:
-                users = sorted(users, key=lambda u: [u['lastname'], u['firstname']])
-                response['data'] = persons_list + users
+                users = account_api.search_user(search_str)
+
+                if users != False:
+                    users = sorted(users, key=lambda u: [u['lastname'], u['firstname']])
+                    response['data'] = persons_list + users
+                else:
+                    response['msg'] = gettext("Error : can't query establishment accounts data source")
+
+            except KeyError:
+                pass
+            except Exception as e:
+                response['msg'] = gettext("Error : %s" % e)
+        else:
+            filters = {
+                'groups__name': 'INTER',
+                'last_name__istartswith': search_str
+            }
+
+            if structure_id is not None:
+                Q_filter = Q(establishment=establishment)|Q(structures=structure_id)
             else:
-                response['msg'] = gettext("Error : can't query establishment accounts data source")
+                Q_filter = Q(establishment=establishment)
+                filters["establishment"] = establishment
 
-        except KeyError:
-            pass
-        except Exception as e:
-            response['msg'] = gettext("Error : %s" % e)
-    else:
-        response['msg'] = gettext("No source plugin configured")
+            users_queryset = ImmersionUser.objects.filter(Q_filter, **filters)
+
+    elif highschool:
+        users_queryset = ImmersionUser.objects.filter(
+            highschool=highschool,
+            groups__name='INTER',
+            last_name__istartswith=search_str
+        )
+
+    if users_queryset:
+        response['data'] = [query_order] + [{
+            'username': user.username,
+            'firstname': user.first_name,
+            'lastname': user.last_name,
+            'email': user.email,
+            'display_name': f"{user.last_name} {user.first_name}"
+        } for user in users_queryset]
 
     return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", 'REF-ETAB-MAITRE')
 def ajax_get_available_vars(request, template_id=None):
     response = {'msg': '', 'data': []}
 
@@ -114,7 +161,7 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_courses(request, structure_id=None):
     response = {'msg': '', 'data': []}
 
@@ -150,7 +197,7 @@ def ajax_get_courses(request, structure_id=None):
 
 @is_post_request
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-STR")
+@groups_required("REF-ETAB", "REF-STR", 'REF-ETAB-MAITRE')
 def ajax_get_trainings(request):
     response = {'msg': '', 'data': []}
 
@@ -179,7 +226,7 @@ def ajax_get_trainings(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_documents(request):
     response = {'msg': '', 'data': []}
 
@@ -198,7 +245,7 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_slots(request, structure=None):
     can_update_attendances = False
 
@@ -312,7 +359,7 @@ def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
@@ -332,7 +379,7 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_course_speakers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
@@ -353,7 +400,7 @@ def ajax_get_course_speakers(request, course_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.POST.get('course_id')
@@ -527,7 +574,7 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -562,7 +609,7 @@ def ajax_check_date_between_vacation(request):
 
 @is_post_request
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_get_student_records(request):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
@@ -606,7 +653,7 @@ def ajax_get_student_records(request):
 
 # REJECT / VALIDATE STUDENT
 @is_ajax_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
@@ -648,7 +695,7 @@ def ajax_validate_reject_student(request, validate):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_validate_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=True)
@@ -656,14 +703,14 @@ def ajax_validate_student(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
 
 
 @is_ajax_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_check_course_publication(request, course_id):
     from immersionlyceens.apps.core.models import Course
 
@@ -677,7 +724,7 @@ def ajax_check_course_publication(request, course_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_delete_account(request):
     """
     Completely destroy a student account and all data
@@ -736,7 +783,7 @@ def ajax_delete_account(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -770,7 +817,7 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
     Get (high-school or not) students immersions
@@ -923,7 +970,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}
@@ -974,7 +1021,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -1017,7 +1064,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -1224,7 +1271,7 @@ def ajax_slot_registration(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_available_students(request, slot_id):
     """
     Get students list for manual slot registration
@@ -1269,7 +1316,7 @@ def ajax_get_available_students(request, slot_id):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_get_highschool_students(request, highschool_id=None):
     """
     Retrieve students from a highschool or all students if user is ref-etab manager
@@ -1359,7 +1406,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1400,7 +1447,7 @@ def ajax_send_email(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
@@ -1568,7 +1615,7 @@ def get_csv_highschool(request, high_school_id):
     return response
 
 
-@groups_required('REF-ETAB',)
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE')
 def get_csv_anonymous_immersion(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -1743,7 +1790,7 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'SRV-JUR')
+@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE')
 def ajax_get_student_presence(request, date_from=None, date_until=None):
     response = {'data': [], 'msg': ''}
 
@@ -1898,7 +1945,7 @@ def ajax_cancel_alert(request):
 
 
 @is_ajax_request
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", 'REF-ETAB-MAITRE')
 def ajax_get_duplicates(request):
     """
     Get duplicates lists
@@ -1935,7 +1982,7 @@ def ajax_get_duplicates(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_keep_entries(request):
     """
     Remove duplicates ids from high school student records
@@ -2019,11 +2066,32 @@ class EstablishmentList(generics.ListAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
 
     def get_queryset(self):
-        queryset = Establishment.objects.filter(active=True).order_by('label')
+        queryset = Establishment.activated.order_by('label')
         user = self.request.user
 
         if not user.is_superuser and user.is_establishment_manager():
             queryset = queryset.filter(id=user.establishment.id)
+
+        return queryset
+
+
+class StructureList(generics.ListAPIView):
+    """
+    Structures list
+    """
+    serializer_class = StructureSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['establishment', ]
+
+    def get_queryset(self):
+        queryset = Structure.activated.order_by('code', 'label')
+        user = self.request.user
+
+        if not user.is_superuser:
+            if user.is_structure_manager():
+                return user.structures.order_by('code', 'label')
+            if user.is_establishment_manager() and user.establishment:
+                return user.establishment.structures.order_by('code', 'label')
 
         return queryset
 

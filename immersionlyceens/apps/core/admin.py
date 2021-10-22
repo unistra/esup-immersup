@@ -195,8 +195,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_establishment_manager():
             es = request.user.establishment
             return qs.filter(
-                Q(structures__establishment=es)|Q(establishment=es),
-                groups__name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB']
+                Q(structures__establishment=es)|Q(establishment=es)
             )
 
         if request.user.is_high_school_manager():

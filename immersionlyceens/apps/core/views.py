@@ -29,7 +29,7 @@ from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday,
 logger = logging.getLogger(__name__)
 
 
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB-MAITRE')
 def import_holidays(request):
     """
     Import holidays from API if it has been configured
@@ -37,14 +37,11 @@ def import_holidays(request):
 
     redirect_url = '/admin/core/holiday/'
 
-    if all(
-        [
-            settings.WITH_HOLIDAY_API,
-            settings.HOLIDAY_API_URL,
-            settings.HOLIDAY_API_MAP,
-            settings.HOLIDAY_API_DATE_FORMAT,
-        ]
-    ):
+    if all([
+        settings.WITH_HOLIDAY_API,
+        settings.HOLIDAY_API_URL,
+        settings.HOLIDAY_API_MAP,
+        settings.HOLIDAY_API_DATE_FORMAT]):
         url = settings.HOLIDAY_API_URL
 
         # get holidays data
@@ -83,7 +80,7 @@ def import_holidays(request):
     return redirect(redirect_url)
 
 
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def slots_list(request, str_id=None, train_id=None):
     """
     Get slots list
@@ -131,7 +128,7 @@ def slots_list(request, str_id=None, train_id=None):
     return render(request, template, context=context)
 
 
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def add_slot(request, slot_id=None):
     slot = None
     speakers_idx = None
@@ -222,7 +219,7 @@ def add_slot(request, slot_id=None):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def modify_slot(request, slot_id):
     """
     Update a slot
@@ -331,7 +328,7 @@ def modify_slot(request, slot_id):
     return render(request, 'slots/add_slot.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
@@ -345,10 +342,10 @@ def del_slot(request, slot_id):
     return HttpResponse('ok')
 
 
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE')
 def courses_list(request):
     can_update_courses = False
-    allowed_strs = Structure.activated.user_strs(request.user, 'REF-ETAB').order_by("code", "label")
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
 
     if allowed_strs.count() == 1:
         structure_id = allowed_strs.first().id
@@ -373,12 +370,16 @@ def courses_list(request):
             ),
         )
 
-    context = {"structures": allowed_strs, "structure_id": structure_id, "can_update_courses": can_update_courses}
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id,
+        "can_update_courses": can_update_courses
+    }
 
     return render(request, 'core/courses_list.html', context)
 
 
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def course(request, course_id=None, duplicate=False):
     """
     Course creation / update / deletion
@@ -389,7 +390,7 @@ def course(request, course_id=None, duplicate=False):
     course_form = None
     update_rights = True
     can_update_courses = False
-    allowed_strs = Structure.activated.user_strs(request.user, 'REF-ETAB').order_by("code", "label")
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
 
     # Check if we can add/update courses
     try:
@@ -554,12 +555,15 @@ def course(request, course_id=None, duplicate=False):
 def mycourses(request):
 
     structure_id = None
-    allowed_strs = Structure.activated.user_strs(request.user, 'REF-ETAB')
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
 
     if allowed_strs.count() == 1:
         structure_id = allowed_strs.first().id
 
-    context = {"structures": allowed_strs, "structure_id": structure_id}
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id
+    }
 
     return render(request, 'core/mycourses.html', context)
 
@@ -682,7 +686,7 @@ def speaker(request, id=None):
     return render(request, 'core/speaker.html', context)
 
 
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def my_students(request):
     highschool = None
 
@@ -699,7 +703,7 @@ def my_students(request):
     return render(request, 'core/highschool_students.html', context)
 
 
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def student_validation(request, high_school_id=None):
     if request.user.is_high_school_manager() and request.user.highschool:
         try:
@@ -728,7 +732,7 @@ def student_validation(request, high_school_id=None):
     return render(request, 'core/student_validation.html', context)
 
 
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def highschool_student_record_form_manager(request, hs_record_id):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
     from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
@@ -825,7 +829,7 @@ def structure(request, structure_code=None):
 
 
 @groups_required(
-    'REF-STR', 'REF-ETAB', 'REF-LYC',
+    'REF-STR', 'REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE'
 )
 def stats(request):
     template = 'core/stats.html'
@@ -847,7 +851,7 @@ def stats(request):
 
 
 @login_required
-@groups_required('SRV-JUR', 'REF-ETAB')
+@groups_required('SRV-JUR', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def students_presence(request):
     """
     Displays a list of students registered to slots between min_date and max_date
@@ -869,7 +873,7 @@ def students_presence(request):
 
 
 @login_required
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE')
 def duplicated_accounts(request):
     """
     Manage duplicated accounts
