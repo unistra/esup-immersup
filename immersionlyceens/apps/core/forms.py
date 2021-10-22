@@ -10,12 +10,15 @@ from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from ..immersion.forms import StudentRecordForm
 from .admin_forms import HighSchoolForm
 from .models import (
-    Building, Calendar, Campus, Structure, Course, CourseType,
+    Building, Calendar, Campus, Structure, Course, CourseType, Establishment,
     HighSchool, ImmersionUser, Slot, Training, UniversityYear,
 )
 
 
 class CourseForm(forms.ModelForm):
+    establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
+    highschool = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
@@ -26,8 +29,25 @@ class CourseForm(forms.ModelForm):
                 field.widget.attrs.update({'class': 'form-control'})
 
         if self.request:
-            allowed_structs = Structure.activated.user_strs(self.request.user, 'REF-ETAB')
+            can_choose_establishment = any([
+                self.request.user.is_establishment_manager(),
+                self.request.user.is_master_establishment_manager(),
+                self.request.user.is_structure_manager()
+            ])
+
+            if can_choose_establishment:
+                allowed_establishments = Establishment.activated.user_establishments(self.request.user)
+                self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
+            else:
+                allowed_establishments = Establishment.objects.none()
+
+            self.fields["structure"].queryset = Structure.objects.none()
+
+            allowed_structs = self.request.user.get_authorized_structures()
             self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
+
+            if allowed_establishments.count() == 1:
+                self.fields["establishment"].initial = allowed_establishments.first().id
 
             if allowed_structs.count() == 1:
                 self.fields["structure"].initial = allowed_structs.first().id
@@ -37,6 +57,7 @@ class CourseForm(forms.ModelForm):
                     self.fields[field].disabled = True
         else:
             self.fields["structure"].queryset = self.fields["structure"].queryset.order_by('code', 'label')
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -58,7 +79,7 @@ class CourseForm(forms.ModelForm):
 
         # Check user rights
         if self.request:
-            allowed_structs = Structure.activated.user_strs(self.request.user, 'REF-ETAB')
+            allowed_structs = self.request.user.get_authorized_structures()
             training = cleaned_data['training']
             course_structs = training.structures.all()
 
@@ -69,7 +90,7 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'training', 'structure')
+        fields = ('id', 'label', 'url', 'published', 'training', 'structure', 'establishment')
 
 
 class SlotForm(forms.ModelForm):

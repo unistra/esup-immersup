@@ -20,7 +20,7 @@ from immersionlyceens.libs.validators import JsonSchemaValidator
 
 from .managers import (
     ActiveManager, CustomDeleteManager, HighSchoolAgreedManager,
-    StructureQuerySet,
+    StructureQuerySet, EstablishmentQuerySet
 )
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class Establishment(models.Model):
     )
     data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
     objects = models.Manager()  # default manager
-    activated = ActiveManager()
+    activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
     def __str__(self):
         return "%s : %s%s" % (self.code, self.label, _(" (master)") if self.master else "")
@@ -82,7 +82,7 @@ class Structure(models.Model):
     activated = ActiveManager.from_queryset(StructureQuerySet)()  # returns only activated structures
 
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
-        blank=False, null=True)
+        blank=False, null=True, related_name='structures')
 
     def __str__(self):
         return "%s : %s" % (self.code, self.label)
@@ -289,6 +289,16 @@ class ImmersionUser(AbstractUser):
             return self.student_record
         except ObjectDoesNotExist:
             return None
+
+    def get_authorized_structures(self):
+        if self.is_master_establishment_manager():
+            return Structure.activated.all()
+        if self.is_establishment_manager() and self.establishment:
+            return Structure.activated.filter(establishment=self.establishment)
+        if self.is_structure_manager():
+            return self.structures.all()
+
+        return Structure.objects.none()
 
     def set_validation_string(self):
         """

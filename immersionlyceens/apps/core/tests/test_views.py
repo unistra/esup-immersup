@@ -14,7 +14,7 @@ from django.urls import reverse
 from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday
+    Immersion, Holiday, Establishment
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -31,6 +31,26 @@ class CoreViewsTestCase(TestCase):
         @TODO : this is a copy/paste from immersion app setup, it may need to be cleaned a little
         """
         self.today = datetime.datetime.today()
+
+        self.master_establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test1@test.com',
+            establishment_type='HIGHER_INST'
+        )
+
+        self.establishment = Establishment.objects.create(
+            code='ETA2',
+            label='Etablissement 2',
+            short_label='Eta 2',
+            active=True,
+            master=False,
+            email='test2@test.com',
+            establishment_type='HIGHER_INST'
+        )
         
         self.high_school = HighSchool.objects.create(
             label='HS1',
@@ -123,7 +143,8 @@ class CoreViewsTestCase(TestCase):
             email='lycref@no-reply.com',
             first_name='lyc',
             last_name='REF',
-            highschool=self.high_school
+            highschool=self.high_school,
+            is_staff=True
         )
 
         self.lyc_ref.set_password('pass')
@@ -135,13 +156,36 @@ class CoreViewsTestCase(TestCase):
             email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
+            establishment=self.establishment,
+            is_staff=True,
         )
 
         self.ref_etab_user.set_password('pass')
         self.ref_etab_user.save()
 
-        self.structure = Structure.objects.create(code='C1', label="test structure")
-        self.structure2 = Structure.objects.create(code='C2', label="Second test structure")
+        self.ref_master_etab_user = get_user_model().objects.create_user(
+            username='ref_master_etab',
+            password='pass',
+            email='ref_master_etab@no-reply.com',
+            first_name='ref_master_etab',
+            last_name='ref_master_etab',
+            establishment=self.master_establishment,
+            is_staff=True
+        )
+
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
+
+        self.structure = Structure.objects.create(
+            code='C1',
+            label="test structure",
+            establishment=self.establishment
+        )
+        self.structure2 = Structure.objects.create(
+            code='C2',
+            label="Second test structure",
+            establishment=self.establishment
+        )
 
         self.ref_str_user = get_user_model().objects.create_user(
             username='ref_str',
@@ -164,6 +208,7 @@ class CoreViewsTestCase(TestCase):
         Group.objects.get(name='ETU').user_set.add(self.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
 
         BachelorMention.objects.create(
@@ -246,11 +291,16 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_import_holidays(self):
-        self.ref_etab_user.is_staff = True
-        self.ref_etab_user.save()
-
         self.assertFalse(Holiday.objects.all().exists())
+
+        # No access
         self.client.login(username='ref_etab', password='pass')
+        response = self.client.get("/admin/holiday/import", follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Holiday.objects.all().exists())
+
+        # As master establishment manager
+        self.client.login(username='ref_master_etab', password='pass')
         response = self.client.get("/admin/holiday/import", follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Holiday.objects.all().exists())
