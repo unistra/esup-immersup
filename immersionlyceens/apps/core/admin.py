@@ -1193,6 +1193,9 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     filter_horizontal = ('available_vars',)
     summernote_fields = ('body',)
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
     def has_delete_permission(self, request, obj=None):
         # Only a superuser can delete a template
         return request.user.is_superuser

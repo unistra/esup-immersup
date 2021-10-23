@@ -1053,11 +1053,13 @@ class MailTemplateForm(forms.ModelForm):
                 self.fields[field].widget.attrs['size'] = 80
 
         if self.fields:
+            if self.instance.id:
+                self.fields['code'].disabled = True
+
             if not self.request.user.is_master_establishment_manager():
                 self.fields['available_vars'].widget = forms.MultipleHiddenInput()
                 self.fields['description'].disabled = True
                 self.fields['label'].disabled = True
-                self.fields['code'].disabled = True
             else:
                 self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
 
