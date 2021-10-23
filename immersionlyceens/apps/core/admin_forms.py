@@ -60,6 +60,12 @@ class CampusForm(forms.ModelForm):
                 and self.request.user.is_establishment_manager():
             self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
 
+        try:
+            if self.instance.establishment.id:
+                self.fields["establishment"].disabled = True
+        except (AttributeError, Establishment.DoesNotExist):
+            pass
+
     def clean(self):
         cleaned_data = super().clean()
         establishment = cleaned_data.get("establishment")
