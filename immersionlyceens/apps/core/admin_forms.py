@@ -151,27 +151,26 @@ class TrainingSubdomainForm(forms.ModelForm):
 
 
 class BuildingForm(forms.ModelForm):
-    establishment = forms.TypedChoiceField()
+    establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=True)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         self.fields['campus'].queryset = Campus.objects.order_by('label')
 
-        establishment_choices = [('', '---------'), ]
-
         if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
             user_establishment = self.request.user.establishment
-
-            establishment_choices.append((user_establishment.id, user_establishment))
+            self.fields['establishment'].queryset = Establishment.objects.filter(pk=user_establishment.id)
             self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
         else:
-            establishment_choices += [(e.id, e) for e in Establishment.objects.filter(active=True)]
+            self.fields['establishment'].queryset = Establishment.objects.all()
             self.fields['campus'].queryset = Campus.objects.filter(active=True)
 
-        self.fields['establishment'] = forms.TypedChoiceField(
-            label=_("Establishment"), widget=forms.Select(), choices=establishment_choices, required=False
-        )
+        try:
+            self.fields['establishment'].initial = self.instance.campus.establishment
+        except (Campus.DoesNotExist, Establishment.DoesNotExist):
+            # No initial value
+            pass
 
     def clean(self):
         cleaned_data = super().clean()

@@ -327,6 +327,7 @@ class AdminFormsTestCase(TestCase):
         data = {
             'label': 'testBuilding',
             'campus': testCampus.pk,
+            'establishment': self.establishment,
             'url': 'https://www.building.com',
             'active': True,
         }
