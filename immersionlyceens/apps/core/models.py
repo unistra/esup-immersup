@@ -30,13 +30,7 @@ class Establishment(models.Model):
     """
     Establishment class : highest structure level
     """
-    TYPES = [
-        ('HIGHER_INST', _('Higher educational institution')),
-        ('HIGH_SCHOOL', _('High school')),
-    ]
-
     code = models.CharField(_("Code"), max_length=16, unique=True)
-    establishment_type = models.CharField(_("Type"), max_length=24, choices=TYPES, blank=False, null=False)
     label = models.CharField(_("Label"), max_length=256, unique=True)
     short_label = models.CharField(_("Short label"), max_length=64, unique=True)
     address = models.CharField(_("Address"), max_length=255, blank=False, null=False)

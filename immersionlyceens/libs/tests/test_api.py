@@ -52,8 +52,7 @@ class APITestCase(TestCase):
             short_label='Eta 1',
             active=True,
             master=True,
-            email='test@test.com',
-            establishment_type='HIGHER_INST'
+            email='test@test.com'
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
