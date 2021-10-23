@@ -1017,8 +1017,9 @@ class HighSchoolForm(forms.ModelForm):
         if not self.instance or (self.instance and not self.instance.postbac_immersion):
             self.fields["mailing_list"].disabled = True
 
-        self.fields["mailing_list"].help_text = \
-            _("This field is available when 'Offer post-bachelor immersions is enabled")
+        if self.fields.get('mailing_list'):
+            self.fields["mailing_list"].help_text = \
+                _("This field is available when 'Offer post-bachelor immersions is enabled")
 
 
     def clean(self):

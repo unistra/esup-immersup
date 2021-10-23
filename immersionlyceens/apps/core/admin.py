@@ -1033,7 +1033,11 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'convention_start_date',
         'convention_end_date',
     )
-    list_filter = ('city',)
+    list_filter = (
+        'postbac_immersion',
+        ('city', DropdownFilter),
+    )
+
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name')
 
