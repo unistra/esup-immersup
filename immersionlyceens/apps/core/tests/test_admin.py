@@ -1323,10 +1323,15 @@ class AdminFormsTestCase(TestCase):
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertFalse(EvaluationFormLink.objects.filter(url=data['url']).exists())
 
-        # Success
-        data = {'evaluation_type': type.pk, 'url': 'http://google.fr'}
         request.user = self.ref_master_etab_user
+        form = EvaluationFormLinkForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You are not allowed to create a new Evaluation Form Link", form.errors["__all__"])
+        self.assertFalse(EvaluationFormLink.objects.filter(url=data['url']).exists())
 
+        # Success
+        request.user = self.superuser
+        data = {'evaluation_type': type.pk, 'url': 'http://google.fr'}
         form = EvaluationFormLinkForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()

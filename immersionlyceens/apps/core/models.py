@@ -1283,7 +1283,6 @@ class EvaluationFormLink(models.Model):
     url = models.URLField(_("Link"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=False)
 
-
     def __str__(self):
         """str"""
         return f'{self.evaluation_type.label} : {self.url}'

@@ -1232,6 +1232,12 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
     )
     ordering = ('evaluation_type',)
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             return [

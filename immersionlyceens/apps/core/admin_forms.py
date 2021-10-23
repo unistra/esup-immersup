@@ -35,7 +35,7 @@ class TypeFormMixin(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_superuser or user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -1272,6 +1272,22 @@ class EvaluationTypeForm(forms.ModelForm):
 
 
 class EvaluationFormLinkForm(TypeFormMixin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        try:
+            if self.instance.evaluation_type:
+                self.fields["evaluation_type"].disabled = True
+        except AttributeError:
+            pass
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.request.user.is_superuser and not self.instance.pk:
+            raise forms.ValidationError(_("You are not allowed to create a new Evaluation Form Link"))
+
+        return cleaned_data
+
     class Meta:
         model = EvaluationFormLink
         fields = '__all__'
@@ -1294,8 +1310,6 @@ class GeneralSettingsForm(forms.ModelForm):
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
-
-
 
         return cleaned_data
 
