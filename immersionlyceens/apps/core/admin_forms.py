@@ -157,20 +157,27 @@ class TrainingSubdomainForm(forms.ModelForm):
 
 
 class BuildingForm(forms.ModelForm):
-    establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=True)
+    establishment = forms.ModelChoiceField(
+        label=_("Establishment"),
+        queryset=Establishment.objects.none(),
+        required=True
+    )
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        self.fields['campus'].queryset = Campus.objects.order_by('label')
+        self.fields['campus'].queryset = Campus.objects.filter(active=True).order_by('label')
 
-        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
-            user_establishment = self.request.user.establishment
-            self.fields['establishment'].queryset = Establishment.objects.filter(pk=user_establishment.id)
-            self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
-        else:
-            self.fields['establishment'].queryset = Establishment.objects.all()
-            self.fields['campus'].queryset = Campus.objects.filter(active=True)
+        if not self.request.user.is_superuser:
+            if self.request.user.is_establishment_manager():
+                user_establishment = self.request.user.establishment
+                self.fields['establishment'].queryset = Establishment.objects.filter(pk=user_establishment.id)
+                self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
+
+                if self.instance and self.instance.pk and self.instance.campus and self.instance.campus.establishment:
+                    self.fields['establishment'].disabled = True
+            elif self.request.user.is_master_establishment_manager():
+                self.fields['establishment'].queryset = Establishment.objects.all()
 
         try:
             self.fields['establishment'].initial = self.instance.campus.establishment
