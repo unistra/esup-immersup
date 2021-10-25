@@ -731,6 +731,9 @@ class ImmersionUserCreationForm(UserCreationForm):
                     pk=self.request.user.establishment.pk
                 )
 
+            if self.request.user.is_high_school_manager():
+                self.fields["username"].required = False
+
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
