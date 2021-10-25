@@ -427,13 +427,17 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return qs
 
+
     def has_delete_permission(self, request, obj=None):
+        if not any([request.user.is_superuser,request.user.is_establishment_manager(),
+                    request.user.is_master_establishment_manager()]):
+            return False
 
-        if  obj and request.user.establishment and request.user.is_establishment_manager() \
-                and request.user.establishment == obj.establishment and not Building.objects.filter(campus=obj).exists():
-            return True
+        if obj and request.user.establishment and request.user.is_establishment_manager() and not \
+                request.user.establishment == obj.establishment:
+            return False
 
-        elif obj and Building.objects.filter(campus=obj).exists():
+        if obj and Building.objects.filter(campus=obj).exists():
             messages.warning(request, _("This campus can't be deleted because it is used by a building"))
             return False
 
