@@ -1276,7 +1276,7 @@ class EvaluationFormLinkForm(TypeFormMixin):
         super().__init__(*args, **kwargs)
 
         try:
-            if self.instance.evaluation_type:
+            if self.fields.get("evaluation_type") and self.instance.evaluation_type:
                 self.fields["evaluation_type"].disabled = True
         except AttributeError:
             pass
