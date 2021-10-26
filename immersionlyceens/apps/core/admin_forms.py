@@ -217,12 +217,7 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
-        if self.request.user.is_establishment_manager():
-            self.fields['structures'].queryset = self.fields['structures'].queryset\
-                .filter(establishment=self.request.user.establishment)\
-                .order_by('code', 'label')
-        else:
-            self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
+        self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -233,6 +228,9 @@ class TrainingForm(forms.ModelForm):
             valid_user = user.is_master_establishment_manager() or user.is_establishment_manager()
         except AttributeError:
             pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
 
         # Check label uniqueness within the same establishment
         excludes = {}
@@ -251,8 +249,14 @@ class TrainingForm(forms.ModelForm):
                 self._errors["label"] = forms.utils.ErrorList()
             self._errors['label'].append(self.error_class([msg]))
 
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
+        # Check structures : if user = establishment manager, we should have at least one
+        # structure from its establishment
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            if not Establishment.objects.filter(
+                pk=self.request.user.establishment.id,
+                structures__in=cleaned_data.get("structures")
+            ).exists():
+                self.add_error('structures', _("At least one structure has to belong to your own establishment"))
 
         return cleaned_data
 
