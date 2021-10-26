@@ -927,11 +927,6 @@ class ImmersionUserChangeForm(UserChangeForm):
 
                 raise forms.ValidationError(_("You can't modify the superuser status"))
 
-            if self.instance.is_staff != cleaned_data["is_staff"]:
-                self._errors['is_staff'] = self.error_class([forbidden_msg])
-
-                raise forms.ValidationError(_("You can't modify the staff status"))
-
         return cleaned_data
 
     def save(self, *args, **kwargs):
