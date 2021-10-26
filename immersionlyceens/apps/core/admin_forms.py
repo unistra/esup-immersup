@@ -173,11 +173,11 @@ class BuildingForm(forms.ModelForm):
                 user_establishment = self.request.user.establishment
                 self.fields['establishment'].queryset = Establishment.objects.filter(pk=user_establishment.id)
                 self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
-
-                if self.instance and self.instance.pk and self.instance.campus and self.instance.campus.establishment:
-                    self.fields['establishment'].disabled = True
             elif self.request.user.is_master_establishment_manager():
                 self.fields['establishment'].queryset = Establishment.objects.all()
+
+            if self.instance and self.instance.pk and self.instance.campus and self.instance.campus.establishment:
+                self.fields['establishment'].disabled = True
 
         try:
             self.fields['establishment'].initial = self.instance.campus.establishment
