@@ -647,6 +647,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
 
     list_filter = (
         'active',
+        ('structures__establishment', RelatedDropdownFilter),
         ('structures', RelatedDropdownFilter),
         ('training_subdomains', RelatedDropdownFilter),
     )
