@@ -2,11 +2,13 @@ import importlib
 import mimetypes
 import re
 from datetime import datetime
+from typing import Any, Dict
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
@@ -209,8 +211,21 @@ class TrainingForm(forms.ModelForm):
             self.fields['structures'].queryset = self.fields['structures'].queryset\
                 .filter(establishment=self.request.user.establishment)\
                 .order_by('code', 'label')
+            self.fields["highschool"].queryset = self.fields["highschool"].queryset\
+                .filter(postbac_immersion=True)
         else:
             self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
+            self.fields["highschool"].queryset = self.fields["highschool"].queryset\
+                .filter(id=self.request.user.highschool.id, postbac_immersion=True)
+
+    @staticmethod
+    def clean_highscool_or_structure(cleaned_data: Dict[str, Any]):
+        high_school = cleaned_data["highschool"]
+        struct = cleaned_data["structures"]
+        if high_school is not None and struct.count() > 0:
+            raise ValidationError(_("High school and structure can't be set together. Please choose one."))
+        elif high_school is None and struct.count() <= 0:
+            raise ValidationError(_("Neither high school and structures are set. Please choose one."))
 
     def clean(self):
         cleaned_data = super().clean()
@@ -221,6 +236,8 @@ class TrainingForm(forms.ModelForm):
             valid_user = user.is_master_establishment_manager() or user.is_establishment_manager()
         except AttributeError:
             pass
+
+        self.clean_highscool_or_structure(cleaned_data)
 
         # Check label uniqueness within the same establishment
         excludes = {}

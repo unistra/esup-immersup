@@ -481,12 +481,10 @@ class Training(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A training with this label already exists'))
 
-    @property
     def is_highschool(self) -> bool:
         """Return True if highschool is set"""
         return self.highschool is not None
 
-    @property
     def is_structure(self) -> bool:
         """Return True if structure is set"""
         return self.structures.count() > 0
@@ -1184,11 +1182,9 @@ class PublicDocument(models.Model):
 
     objects = CustomDeleteManager()
 
-
     def __str__(self):
         """str"""
         return self.label
-
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
@@ -1197,12 +1193,10 @@ class PublicDocument(models.Model):
         except ValidationError as e:
             raise ValidationError(_('A public document with this label already exists'))
 
-
     def delete(self, using=None, keep_parents=False):
         """Delete file uploaded from document Filefield"""
         self.document.storage.delete(self.document.name)
         super().delete()
-
 
     def get_all_texts_id(cls):
         texts = InformationText.objects.all()
