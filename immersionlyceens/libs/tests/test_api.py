@@ -848,8 +848,8 @@ class APITestCase(TestCase):
     def test_API_get_courses(self):
         request.user = self.ref_etab_user
 
-        url = f"/api/get_courses/{self.structure.id}/"
-        
+        url = f"/api/get_courses/?structure={self.structure.id}"
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 

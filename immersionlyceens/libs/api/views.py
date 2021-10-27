@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from django.core.exceptions import FieldError
 from django.core.validators import validate_email
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -161,14 +162,37 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
-def ajax_get_courses(request, structure_id=None):
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+def ajax_get_courses(request):
+    courses = Course.objects.none()
     response = {'msg': '', 'data': []}
 
-    if not structure_id:
-        response['msg'] = gettext("Error : a valid structure must be selected")
+    structure_id = request.GET.get('structure')
+    highschool_id = request.GET.get('highschool')
 
-    courses = Course.objects.prefetch_related('training', 'structure').filter(training__structures=structure_id)
+    try:
+        int(structure_id)
+    except (TypeError, ValueError):
+        structure_id = None
+
+    try:
+        int(highschool_id)
+    except (TypeError, ValueError):
+        highschool_id = None
+
+    if not structure_id and not highschool_id:
+        response['msg'] = gettext("Error : a valid structure or highschool must be selected")
+
+    if structure_id:
+        courses = Course.objects.prefetch_related('training', 'structure')\
+            .filter(training__structures=structure_id)
+    elif highschool_id:
+        try:
+            courses = Course.objects.prefetch_related('training', 'highschool', 'structure') \
+                .filter(training__highschool=structure_id)
+        except FieldError:
+            # NotImplemented (yet) : see #194
+            pass
 
     for course in courses:
         course_data = {
@@ -176,8 +200,9 @@ def ajax_get_courses(request, structure_id=None):
             'published': course.published,
             'training_label': course.training.label,
             'label': course.label,
-            'structure_code': course.structure.code,
-            'structure_id': course.structure.id,
+            'structure_code': course.structure.code if course.structure else None,
+            'structure_id': course.structure.id if course.structure else None,
+            'highschool_id': course.highschool.id if course.highschool else None,
             'speakers': [],
             'slots_count': course.slots_count(),
             'n_places': course.free_seats(),

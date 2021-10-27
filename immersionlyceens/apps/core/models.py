@@ -934,8 +934,17 @@ class Course(models.Model):
     structure = models.ForeignKey(
         Structure,
         verbose_name=_("Structure"),
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="courses",
+    )
+
+    highschool = models.ForeignKey(
+        HighSchool,
+        verbose_name=_("High school"),
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="courses",
     )

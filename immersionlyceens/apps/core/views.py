@@ -24,7 +24,7 @@ from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, Sl
 from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm
 
 from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
-    Training, UniversityYear)
+    Training, UniversityYear, Establishment)
 
 logger = logging.getLogger(__name__)
 
@@ -448,10 +448,40 @@ def del_slot(request, slot_id):
     return HttpResponse('ok')
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE', 'REF-LYC')
 def courses_list(request):
+
+    if request.user.is_high_school_manager() and request.user.highschool \
+        and not request.user.highschool.postbac_immersion:
+        return HttpResponseRedirect("/")
+
     can_update_courses = False
-    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+
+    allowed_highschools = HighSchool.objects.none()
+    allowed_establishments = Establishment.objects.none()
+    allowed_strs = Structure.objects.none()
+
+    if request.user.is_master_establishment_manager():
+        allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
+        allowed_establishments = Establishment.activated.all()
+        allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+    elif request.user.is_establishment_manager():
+        allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
+        allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+    elif request.user.is_structure_manager():
+        allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+    elif request.user.is_high_school_manager():
+        allowed_highschools = HighSchool.objects.filter(pk=request.user.highschool.id)
+
+    if allowed_establishments.count() == 1:
+        establishment_id = allowed_establishments.first().id
+    else:
+        establishment_id = request.session.get("current_establishment_id", None)
+
+    if request.user.is_high_school_manager() and allowed_highschools.count() == 1:
+        highschool_id = allowed_highschools.first().id
+    else:
+        highschool_id = request.session.get("current_highschool_id", None)
 
     if allowed_strs.count() == 1:
         structure_id = allowed_strs.first().id
@@ -478,7 +508,11 @@ def courses_list(request):
 
     context = {
         "structures": allowed_strs,
+        "establishments": allowed_establishments,
+        "highschools": allowed_highschools,
         "structure_id": structure_id,
+        "establishment_id": establishment_id,
+        "highschool_id": highschool_id,
         "can_update_courses": can_update_courses
     }
 
