@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
-from django.template.defaultfilters import date as _date
+from django.template.defaultfilters import filesizeformat, date as _date
 from django.utils.translation import pgettext, ugettext_lazy as _
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
@@ -1142,8 +1142,11 @@ class AccompanyingDocument(models.Model):
         upload_to='uploads/accompanyingdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%(authorized_types)s)')
-        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
     )
 
 
@@ -1192,8 +1195,11 @@ class PublicDocument(models.Model):
         upload_to='uploads/publicdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%(authorized_types)s)')
-        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                   % {
+                        'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                        'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                   },
     )
     published = models.BooleanField(_("Published"), default=False)
 
