@@ -1227,10 +1227,12 @@ class PublicDocumentForm(forms.ModelForm):
 
             if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
-                    _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
-                        'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
-                        'current_size': filesizeformat(document.size),
-                    }
+                    raise forms.ValidationError(
+                        _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
+                            'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                            'current_size': filesizeformat(document.size),
+                        }
+                    )
             else:
                 raise forms.ValidationError(_('File type is not allowed'))
         return document
