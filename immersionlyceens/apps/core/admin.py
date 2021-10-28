@@ -129,7 +129,13 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         'destruction_date',
     ]
 
-    list_filter = ('is_staff', 'is_superuser', ActivationFilter, 'groups')
+    list_filter = (
+        'is_staff',
+        'is_superuser',
+        ActivationFilter,
+        ('groups', RelatedDropdownFilter),
+        ('establishment', RelatedDropdownFilter),
+    )
 
     def get_activated_account(self, obj):
         if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student()):
@@ -195,7 +201,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_establishment_manager():
             es = request.user.establishment
             return qs.filter(
-                Q(structures__establishment=es)|Q(establishment=es)
+                Q(structures__establishment=es)|Q(establishment=es)|Q(establishment__isnull=True)
             )
 
         if request.user.is_high_school_manager():
