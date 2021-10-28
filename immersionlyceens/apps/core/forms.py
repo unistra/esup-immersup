@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Dict, Any
 
 from django import forms
 from django.conf import settings
@@ -6,9 +7,10 @@ from django.forms.widgets import DateInput, TimeInput
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
+from rest_framework.exceptions import ValidationError
 
 from ..immersion.forms import StudentRecordForm
-from .admin_forms import HighSchoolForm
+from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
     Building, Calendar, Campus, Structure, Course, CourseType,
     HighSchool, ImmersionUser, Slot, Training, UniversityYear,
@@ -263,3 +265,19 @@ class StructureForm(forms.ModelForm):
         fields = [
             'mailing_list',
         ]
+
+
+class TrainingFormHighSchool(TrainingForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_name in ["training_subdomains", "label", "highschool", "url"]:
+            self.fields[field_name].widget.attrs.setdefault("class", "")
+            self.fields[field_name].widget.attrs["class"] += " form-control"
+
+        self.fields["highschool"].widget.attrs["required"] = ""
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        print(cleaned_data)

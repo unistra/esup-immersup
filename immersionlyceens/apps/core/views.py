@@ -1,27 +1,36 @@
+# pylint: disable=E1101
+"""
+Views file
+
+pylint ignore:
+- E1101: object has no member "XX". ignore because of models object query
+"""
 import json
 import logging
 from datetime import datetime
+from typing import Any, Dict
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.utils.translation import gettext
 from django.utils.translation import ugettext_lazy as _
+from django.views import generic
 
 import requests
 
 from immersionlyceens.decorators import groups_required
 
 from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
-    HighSchoolStudentImmersionUserForm)
+    HighSchoolStudentImmersionUserForm, TrainingFormHighSchool)
 
-from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm
+from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm, TrainingForm
 
 from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
     Training, UniversityYear)
@@ -878,3 +887,39 @@ def duplicated_accounts(request):
     context = {}
 
     return render(request, 'core/duplicated_accounts.html', context)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+class TrainingList(generic.TemplateView):
+    template_name = "core/training/list.html"
+
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        print(self.request.user)
+        context["can_update"] = self.request.user.is_master_establishment_manager()\
+                    or self.request.user.is_establishment_manager()\
+                    or self.request.user.is_superuser()
+
+        return context
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+class TrainingAdd(generic.CreateView):
+    form_class = TrainingFormHighSchool
+    template_name: str = "core/training/training.html"
+
+    def get_success_url(self) ->  str:
+        return reverse("training_list")
+
+    def get_form_kwargs(self) -> Dict[str, Any]:
+        kw: Dict[str, Any] = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Training %s created.") % "")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Training not created."))
+        return super().form_invalid(form)
