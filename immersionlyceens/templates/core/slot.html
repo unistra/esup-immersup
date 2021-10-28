@@ -379,9 +379,9 @@
   function set_trainings(str_id) {
     $.ajax({
       url: "{% url 'GetTrainings' %}",
-      type: 'POST',
       data: {
-        'structure_id': str_id,
+        'type': 'structure',
+        'object_id': str_id,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {

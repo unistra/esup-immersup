@@ -179,9 +179,12 @@ $(document).ready(function(){
     initFeedback();
 
     function load_trainings( str_id, first=false ) {
-        $.post({
+        $.get({
           url: '/api/get_trainings',
-          data: {structure_id: str_id},
+          data: {
+              type: 'structure',
+              object_id: str_id
+          },
           success: function (data) {
               if ( data['data'] ) {
                 $('#training').html('');

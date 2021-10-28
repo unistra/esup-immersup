@@ -88,10 +88,12 @@ def slots_list(request, str_id=None, train_id=None):
     """
     template = 'core/slots_list.html'
 
-    if request.user.is_superuser or request.user.is_establishment_manager():
-        structures = Structure.activated.all().order_by("code")
+    if request.user.is_superuser or request.user.is_master_establishment_manager():
+        structures = Structure.activated.all()
+    elif request.user.is_establishment_manager():
+        structures = request.user.establishment.structures.all()
     elif request.user.is_structure_manager():
-        structures = request.user.structures.all().order_by("code")
+        structures = request.user.structures.all()
     else:
         return render(request, 'base.html')
 
@@ -519,7 +521,7 @@ def courses_list(request):
     return render(request, 'core/courses_list.html', context)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def course(request, course_id=None, duplicate=False):
     """
     Course creation / update / deletion
@@ -555,17 +557,16 @@ def course(request, course_id=None, duplicate=False):
         try:
             course = Course.objects.get(pk=course_id)
             request.session["current_structure_id"] = course.structure_id
-            speakers_list = [
-                {
-                    "username": t.username,
-                    "lastname": t.last_name,
-                    "firstname": t.first_name,
-                    "email": t.email,
-                    "display_name": "%s %s" % (t.last_name, t.first_name),
-                    "is_removable": not t.slots.filter(course=course_id).exists(),
-                }
-                for t in course.speakers.all()
-            ]
+            request.session["current_highschool_id"] = course.highschool_id
+            request.session["current_establishment_id"] = course.structure.establishment.id
+            speakers_list = [{
+                "username": t.username,
+                "lastname": t.last_name,
+                "firstname": t.first_name,
+                "email": t.email,
+                "display_name": "%s %s" % (t.last_name, t.first_name),
+                "is_removable": not t.slots.filter(course=course_id).exists(),
+            } for t in course.speakers.all()]
 
             if duplicate:
                 data = {
