@@ -921,5 +921,6 @@ class TrainingAdd(generic.CreateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
+        print(form.errors)
         messages.error(self.request, _("Training not created."))
         return super().form_invalid(form)
