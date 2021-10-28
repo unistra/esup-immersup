@@ -203,18 +203,23 @@ class ImmersionUser(AbstractUser):
         :param course_id: Course id
         :return: boolean
         """
-        if self.is_superuser or self.has_groups('REF-STR', 'REF-ETAB'):
+        if self.is_superuser or self.has_groups('REF-ETAB-MAITRE'):
             return True
 
         try:
             course = Course.objects.get(pk=course_id)
             course_structures = course.training.structures.all()
-
-            if course_structures & self.structures.all():
-                return True
-
         except Course.DoesNotExist:
             return False
+
+        valid_conditions = [
+            self.is_establishment_manager() and course_structures & self.establishment.structures.all(),
+            self.is_structure_manager() and course_structures & self.structures.all(),
+            self.is_high_school_manager() and self.highschool and self.highschool == course.highschool
+        ]
+
+        if any(valid_conditions):
+            return True
 
         return False
 

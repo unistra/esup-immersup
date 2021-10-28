@@ -220,23 +220,42 @@ def ajax_get_courses(request):
     return JsonResponse(response, safe=False)
 
 
-@is_post_request
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-STR", 'REF-ETAB-MAITRE')
+@groups_required("REF-ETAB", "REF-STR", 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_trainings(request):
+    """
+    Get trainings linked to a structure or a highschool
+    GET params :
+    - 'type' : 'highschool' or 'structure'
+    - 'object_id' : highschool or structure id
+    """
+
     response = {'msg': '', 'data': []}
 
-    structure_id = request.POST.get("structure_id")
+    object_type = request.GET.get("type")
+    object_id = request.GET.get("object_id")
 
-    if not structure_id:
-        response['msg'] = gettext("Error : a valid structure must be selected")
+    if object_type == 'structure':
+        filters = {'structures': object_id, 'active':True}
+    elif object_type == 'highschool':
+        filters = {'highschool': object_id, 'active': True}
+    else:
+        response['msg'] = gettext("Error : invalid parameter 'object_type' value")
         return JsonResponse(response, safe=False)
 
-    trainings = (
-        Training.objects.prefetch_related('training_subdomains')
-        .filter(structures=structure_id, active=True)
-        .order_by('label')
-    )
+    if not object_id:
+        response['msg'] = gettext("Error : a valid structure or high school must be selected")
+        return JsonResponse(response, safe=False)
+
+    try:
+        trainings = (
+            Training.objects.prefetch_related('training_subdomains')
+            .filter(**filters)
+            .order_by('label')
+        )
+    except FieldError:
+        # Not implemented yet
+        trainings = Training.objects.none()
 
     for training in trainings:
         training_data = {

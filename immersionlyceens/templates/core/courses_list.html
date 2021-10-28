@@ -125,9 +125,9 @@
   var dt;
   var updatable = "{{ can_update_courses }}";
   var feedback;
-  var current_structure_id;
-  var current_establishment_id;
-  var current_highschool_id;
+  var current_structure_id = "{{ structure_id }}";
+  var current_establishment_id = "{{ establishment_id }}";
+  var current_highschool_id = "{{ highschool_id }}";
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var conformDialog;
@@ -255,9 +255,25 @@
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
-    current_establishment_id = $('#establishments option:selected').val();
-    current_highschool_id = $('#highschools option:selected').val();
-    current_structure_id = $('#strs option:selected').val();
+
+    if(current_highschool_id === 'None' || current_highschool_id === "") {
+      current_highschool_id = $("#highschools").val()
+    }
+
+    if(current_establishment_id === 'None' || current_establishment_id === "") {
+      current_establishment_id = $("#establishments").val()
+    }
+    else {
+        $("#establishments").val(current_establishment_id)
+    }
+
+    if(current_structure_id === 'None' || current_structure_id === "") {
+      current_structure_id = $("#strs").val()
+    }
+
+    if(current_establishment_id) {
+        set_structures(current_establishment_id)
+    }
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
