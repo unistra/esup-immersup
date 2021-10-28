@@ -278,6 +278,14 @@ class TrainingFormHighSchool(TrainingForm):
         self.fields["highschool"].widget.attrs["required"] = ""
 
     def clean(self):
-        cleaned_data = super().clean()
+        cleaned_data = super(forms.ModelForm, self).clean()
 
-        print(cleaned_data)
+        highschool = cleaned_data.get("highschool", None)
+        if highschool is None:
+            self.add_error("highschool", _("This field is required."))
+            return cleaned_data
+        elif self.request.user.is_establishment_manager() and self.request.user.highschool.id != highschool.id:
+            self.add_error("highschool", _("You don't have access to this highchool."))
+            return cleaned_data
+
+        return super().clean()
