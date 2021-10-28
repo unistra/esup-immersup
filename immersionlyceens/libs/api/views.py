@@ -73,8 +73,13 @@ def ajax_get_person(request):
 
     try:
         structure_id = int(structure_id)
-    except TypeError:
+    except (ValueError, TypeError):
         structure_id = None
+
+    try:
+        highschool_id = int(highschool_id)
+    except (ValueError, TypeError):
+        highschool_id = None
 
     if establishment_id is None and highschool_id is None:
         response['msg'] = gettext("Please select an establishment or a high school first")
@@ -182,14 +187,16 @@ def ajax_get_courses(request):
 
     if not structure_id and not highschool_id:
         response['msg'] = gettext("Error : a valid structure or highschool must be selected")
+        return JsonResponse(response, safe=False)
 
     if structure_id:
         courses = Course.objects.prefetch_related('training', 'structure')\
             .filter(training__structures=structure_id)
     elif highschool_id:
+        print("POF")
         try:
             courses = Course.objects.prefetch_related('training', 'highschool', 'structure') \
-                .filter(training__highschool=structure_id)
+                .filter(training__highschool=highschool_id)
         except FieldError:
             # NotImplemented (yet) : see #194
             pass
@@ -290,52 +297,71 @@ def ajax_get_documents(request):
 
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
-def ajax_get_slots(request, structure=None):
+def ajax_get_slots(request):
+    response = {'msg': '', 'data': []}
     can_update_attendances = False
-
     today = datetime.datetime.today().date()
+    slots = []
+
     try:
         year = UniversityYear.objects.get(active=True)
         can_update_attendances = today <= year.end_date
     except UniversityYear.DoesNotExist:
         pass
 
-    str_id = request.GET.get('structure_id')
-    train_id = request.GET.get('training_id')
+    training_id = request.GET.get('training_id')
+    structure_id = request.GET.get('structure')
+    highschool_id = request.GET.get('highschool')
 
-    response = {'msg': '', 'data': []}
-    slots = []
-    if train_id:  # and train_id[0] is not '':
-        slots = Slot.objects.prefetch_related('course__training', 'speakers', 'immersions').filter(
-            course__training__id=train_id
-        )
-    elif str_id:
-        slots = Slot.objects.prefetch_related('course__training__structures', 'speakers', 'immersions').filter(
-            course__training__structures__id=str_id
-        )
+    try:
+        int(structure_id)
+    except (TypeError, ValueError):
+        structure_id = None
+
+    try:
+        int(highschool_id)
+    except (TypeError, ValueError):
+        highschool_id = None
+
+    if not structure_id and not highschool_id:
+        response['msg'] = gettext("Error : a valid structure or highschool must be selected")
+        return JsonResponse(response, safe=False)
+
+    if training_id is not None:
+        filters = {'course__training__id' : training_id}
+    elif structure_id is not None:
+        filters = {'course__training__structures__id': structure_id}
+    elif highschool_id is not None:
+        filters = {'course__training__highschool__id': highschool_id}
+
+    slots = Slot.objects.prefetch_related(
+        'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
+        .filter(**filters)
 
     all_data = []
-    my_structures = []
-    if request.user.is_establishment_manager():
-        my_structures = Structure.objects.all()
-    elif request.user.is_structure_manager():
-        my_structures = request.user.structures.all()
+    allowed_structures = request.user.get_authorized_structures()
 
     for slot in slots:
         data = {
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'structure': {'code': slot.course.structure.code, 'managed_by_me': slot.course.structure in my_structures, },
+            'structure': {
+                'code': slot.course.structure.code if slot.course.structure else None,
+                'managed_by_me': slot.course.structure in allowed_structures if slot.course.structure else False,
+            },
+            'highschool': {
+                'label': f"{slot.course.highschool.city} - {slot.course.highschool.label}"
+                    if slot.course.highschool else "",
+                'managed_by_me': slot.course.highschool == request.user.highschool if request.user.highschool else False,
+            },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
-            )
-            if slot.date
-            else None,
+            ) if slot.date else None,
             'date': _date(slot.date, 'l d/m/Y'),
             'time': {
                 'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',

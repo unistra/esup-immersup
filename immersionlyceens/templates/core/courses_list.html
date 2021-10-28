@@ -42,7 +42,7 @@
           <div class="col-md-3">
             <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="highschools">{% trans 'Select a high school' %} :</label>
-              <select id="highschools">
+              <select id="highschools" class="form-control">
                 <option value="">------------</option>
                 {% for highschool in highschools %}
                   <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
@@ -60,7 +60,7 @@
           <div class="col-md-3">
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
-              <select id="establishments">
+              <select id="establishments" class="form-control">
                 <option value="">------------</option>
                 {% for establishment in establishments %}
                   <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
@@ -75,7 +75,7 @@
           <div class="col-md-5" id="id_div_structures">
             <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="strs">{% trans 'Select a structure' %} :</label>
-              <select id="strs">
+              <select id="strs" class="form-control">
                 <option value="">------------</option>
                 {% for structure in structures %}
                   <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
