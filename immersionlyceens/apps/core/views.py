@@ -593,9 +593,10 @@ def course(request, course_id=None, duplicate=False):
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
-            request.session["current_structure_id"] = course.structure_id
-            request.session["current_highschool_id"] = course.highschool_id
-            request.session["current_establishment_id"] = course.structure.establishment.id
+            request.session["current_structure_id"] = course.structure.id if course.structure else None
+            request.session["current_highschool_id"] = course.highschool.id if course.highschool else None
+            request.session["current_establishment_id"] = \
+                course.structure.establishment.id if course.structure else None
 
             speakers_list = [{
                 "username": t.username,
@@ -622,7 +623,12 @@ def course(request, course_id=None, duplicate=False):
             course_form = CourseForm(request=request)
 
         # check user rights
-        if course and not (course.get_structures_queryset() & allowed_strs).exists():
+        update_conditions = [
+            not (course.get_structures_queryset() & allowed_strs).exists(),
+            course.highschool and (course.highschool != request.user.highschool)
+        ]
+
+        if course and all(update_conditions):
             if request.method == 'POST':
                 return HttpResponseRedirect("/core/courses_list")
             update_rights = False
