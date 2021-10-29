@@ -456,7 +456,8 @@
 
   $('#id_course').change( function() {
     course_id = $('#id_course option:selected').val();
-    if(course_id !== '' && courses[course_id]['published'] == false) {
+
+    if(course_id !== '' && courses[course_id]['published'] === false) {
       courseDialog.dialog('open');
     }
     load_speakers(course_id);
@@ -642,10 +643,16 @@ $(document).ready(function(){
     structure_id = $("#id_structure").val()
   }
 
+  if(training_id === 'None' || training_id === "") {
+    training_id = $("#id_training").val()
+  }
+  else {
+      $("#id_training").val(training_id)
+  }
+
   if(establishment_id === "" || establishment_id === undefined) {
     structure_id = ""
     empty_structures()
-    empty_trainings()
     $("#id_div_highschool").show()
   } else {
     highschool_id = ""
@@ -658,6 +665,8 @@ $(document).ready(function(){
   if(highschool_id !== 'None' && highschool_id !== '' && highschool_id !== undefined) {
     set_trainings('highschool', highschool_id)
     set_courses('highschool', highschool_id, training_id);
+    $("#id_div_campus").hide()
+    $("#id_div_building").hide()
   }
   else if (structure_id !== 'None' && structure_id !== '' && structure_id !== undefined) {
     set_trainings('structure', structure_id)

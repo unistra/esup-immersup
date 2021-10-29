@@ -403,7 +403,7 @@ $(document).ready(function(){
             { data: 'course_type' },
             { data: 'datetime',
               render: function(data, type, row) {
-                if(type == "display" || type == "filter") {
+                if(type === "display" || type === "filter") {
                   return "<span>" + row.date + "</span><br><span>" + row.time['start'] + " - " + row.time['end'] + "</span>";
                 }
 
@@ -420,7 +420,7 @@ $(document).ready(function(){
               render: function(data) {
                 let element = '';
                 $.each(data, function(name, email) {
-                    element += '<a href="mailto:' + email + '">' + name + '</a><br>'
+                  element += '<a href="mailto:' + email + '">' + name + '</a><br>'
                 });
                 return element;
               }
@@ -454,7 +454,7 @@ $(document).ready(function(){
             },
             { data: 'id',
               render: function(data, type, row) {
-                if ( row['structure']['managed_by_me'] ) {
+                if ( row['structure']['managed_by_me'] || row['highschool']['managed_by_me']) {
                   let element =
                 '        <a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
                 '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';

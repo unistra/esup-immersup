@@ -169,7 +169,7 @@ def slots_list(request, str_id=None, train_id=None):
     return render(request, template, context=context)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def slot(request, slot_id=None, duplicate=False):
     slot = None
     speakers_idx = None
@@ -178,10 +178,16 @@ def slot(request, slot_id=None, duplicate=False):
         try:
             slot = Slot.objects.get(id=slot_id)
             speakers_idx = [t.id for t in slot.speakers.all()]
+
             if duplicate:
                 slot.id = None
 
-            if slot.course.structure not in request.user.get_authorized_structures():
+            update_conditions = [
+                slot.course.structure and slot.course.structure in request.user.get_authorized_structures(),
+                slot.course.highschool and slot.course.highschool == request.user.highschool
+            ]
+
+            if not any(update_conditions):
                 messages.error(request, _("This slot belongs to another structure"))
                 return redirect('/core/slots/')
 
@@ -208,10 +214,11 @@ def slot(request, slot_id=None, duplicate=False):
             new_slot = slot_form.save()
             for speaker in speakers:
                 new_slot.speakers.add(speaker)
-            if slot and slot.id:
-                messages.success(request, _("Slot successfully updated"))
-            else:
+
+            if duplicate or not slot:
                 messages.success(request, _("Slot successfully added"))
+            elif slot and slot.id:
+                messages.success(request, _("Slot successfully updated"))
 
             if published:
                 course = Course.objects.get(id=request.POST.get('course'))
@@ -474,7 +481,7 @@ def modify_slot(request, slot_id):
     return render(request, 'slots/add_slot.html', context=context)
 """
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
@@ -623,12 +630,13 @@ def course(request, course_id=None, duplicate=False):
             course_form = CourseForm(request=request)
 
         # check user rights
-        update_conditions = [
-            not (course.get_structures_queryset() & allowed_strs).exists(),
-            course.highschool and (course.highschool != request.user.highschool)
+        cannot_update_conditions = [
+            not course,
+            course and not (course.get_structures_queryset() & allowed_strs).exists(),
+            course and course.highschool and course.highschool != request.user.highschool
         ]
 
-        if course and all(update_conditions):
+        if any(cannot_update_conditions):
             if request.method == 'POST':
                 return HttpResponseRedirect("/core/courses_list")
             update_rights = False

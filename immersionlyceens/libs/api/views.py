@@ -453,7 +453,7 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_course_speakers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
@@ -474,7 +474,7 @@ def ajax_get_course_speakers(request, course_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.POST.get('course_id')
