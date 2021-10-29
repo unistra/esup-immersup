@@ -102,7 +102,7 @@ class CourseForm(forms.ModelForm):
                         raise forms.ValidationError(_("You don't have enough privileges to update this course"))
                 if self.request.user.is_high_school_manager() and self.request.user.highschool:
                     allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
-                    if not allowed_highschools.filter(pk=highschool).exists():
+                    if not allowed_highschools.filter(pk=highschool.id).exists():
                         raise forms.ValidationError(_("You don't have enough privileges to update this course"))
 
         return cleaned_data
@@ -116,7 +116,7 @@ class SlotForm(forms.ModelForm):
     establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
     structure = forms.ModelChoiceField(queryset=Structure.objects.all(), required=False)
     training = forms.ModelChoiceField(queryset=Training.objects.all(), required=False)
-    highschool = forms.ModelChoiceField(queryset=Establishment.objects.all(), required=False)
+    highschool = forms.ModelChoiceField(queryset=HighSchool.agreed.filter(postbac_immersion=True), required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
