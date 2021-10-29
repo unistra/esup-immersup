@@ -48,7 +48,7 @@
         </select>
       </div>
       <div class="table-responsive">
-        <table id="courses_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+        <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
           <tr>
             <th><span id="published_filter">{% trans 'Label' %}</span></th>
@@ -76,6 +76,138 @@
 
 
 <script type="text/javascript">
+  let dt;
+  let updatable = "{{ can_update_courses }}";
+  let feedback;
+  let current_structure_id;
+  let duplicate_text = "{% trans 'Duplicate' %}";
+  let delete_text = "{% trans 'Delete' %}";
+  let conformDialog;
+
+
+  function delete_training(training_id) {
+    var csrftoken = getCookie('csrftoken');
+
+    $.ajax({
+      beforeSend: function (request) {
+        request.setRequestHeader("X-CSRFToken", csrftoken);
+      },
+
+      url: "/api/training/" + training_id + "/delete",
+      type: "DELETE",
+      data: {
+        course_id: course_id,
+      },
+
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error != '') {
+          feedback.trigger("showFeedback", [[error, "danger"]]);
+        }
+        else if(msg != '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+
+        // todo:
+        // dt.ajax.url("/api/get_courses/" + $('#strs option:selected').val() + "/").load();
+      },
+      error: function (e) {
+        obj = JSON.stringify(e);
+        console.log("Error : " + obj);
+      }
+    });
+  }
+
+  $(document).ready(() => {
+     initFeedback();
+    feedback = $("#feedback");
+    // current_structure_id = $('#strs option:selected').val();
+
+
+    confirmDialog = $("#confirm-dialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            // todo:
+            // delete_course($("#confirm-dialog-form").data('course_id'));
+            confirmDialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            confirmDialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+
+    dt = $('#training_table').DataTable({
+      'processing': false,
+      // 'order': [
+      //     [1, "asc"],
+      //     [2, "asc"]
+      //  ],
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': false,
+      'ajax': {
+          url: "/api/trainings/highschool",
+          dataSrc: (json) => { return json },
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+      },
+      'columns': [
+          { "data": "label" },
+          { "data": "training_subdomains",
+            "render": function (data, type, row) {
+              return "<ul>" + data.map(({label}) => "<li>" + label + "</li>").join("") + "</ul>"
+            },
+          },
+          { "data": "highschool",
+            "render": (data, type, row) => {
+              return "" + data.label
+            },
+          },
+          {
+              "data": "active",
+              "render": (data, type, row) => {
+                  return  data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+              }
+          },
+          {
+              "data": "",
+              "render": function (data, type, row) {
+                  return "CC"
+              }
+          }
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+      ],
+    });
+
+  })
+
 </script>
 
 {% endblock %}
