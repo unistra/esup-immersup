@@ -632,7 +632,7 @@ def course(request, course_id=None, duplicate=False):
         # check user rights
         cannot_update_conditions = [
             not course,
-            course and not (course.get_structures_queryset() & allowed_strs).exists(),
+            course and course.structure and not (course.get_structures_queryset() & allowed_strs).exists(),
             course and course.highschool and course.highschool != request.user.highschool
         ]
 

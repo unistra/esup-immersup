@@ -477,9 +477,15 @@ def ajax_get_course_speakers(request, course_id=None):
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
-    course_id = request.POST.get('course_id')
+    course_id = request.GET.get('course_id')
 
-    if not course_id:
+    if course_id is None:
+        response['error'] = gettext("Error : a valid course must be selected")
+        return JsonResponse(response, safe=False)
+
+    try:
+        course = Course.objects.get(pk=course_id)
+    except Course.DoesNotExist:
         response['error'] = gettext("Error : a valid course must be selected")
         return JsonResponse(response, safe=False)
 
@@ -488,15 +494,12 @@ def ajax_delete_course(request):
         response['error'] = gettext("Error : you can't delete this course")
         return JsonResponse(response, safe=False)
 
-    try:
-        course = Course.objects.get(pk=course_id)
-        if not course.slots.exists():
-            course.delete()
-            response['msg'] = gettext("Course successfully deleted")
-        else:
-            response['error'] = gettext("Error : slots are linked to this course")
-    except Course.DoesNotExist:
-        pass
+    course = Course.objects.get(pk=course_id)
+    if not course.slots.exists():
+        course.delete()
+        response['msg'] = gettext("Course successfully deleted")
+    else:
+        response['error'] = gettext("Error : slots are linked to this course")
 
     return JsonResponse(response, safe=False)
 
@@ -1056,7 +1059,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}

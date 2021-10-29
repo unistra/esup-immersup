@@ -934,7 +934,7 @@ class APITestCase(TestCase):
 
         # No data
         data = {}
-        response = self.client.post(url, data, **self.header)
+        response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['error'], "Error : a valid course must be selected")
@@ -944,9 +944,9 @@ class APITestCase(TestCase):
         data = {
             'course_id': 0
         }
-        response = self.client.post(url, data, **self.header)
+        response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
-        self.assertEqual(content['error'], "Error : you can't delete this course")
+        self.assertEqual(content['error'], "Error : a valid course must be selected")
         self.assertEqual(content['msg'], '')
 
         # With linked slots
@@ -954,7 +954,7 @@ class APITestCase(TestCase):
             'course_id': self.course.id
         }
 
-        response = self.client.post(url, data, **self.header)
+        response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['error'], "Error : slots are linked to this course")
@@ -970,7 +970,7 @@ class APITestCase(TestCase):
         self.past_slot.delete()
         self.unpublished_slot.delete()
 
-        response = self.client.post(url, data, **self.header)
+        response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
 
         self.assertEqual(len(content['error']), 0)
