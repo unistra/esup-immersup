@@ -17,7 +17,6 @@ from .models import (
 
 class CourseForm(forms.ModelForm):
     establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
-    highschool = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
@@ -47,10 +46,23 @@ class CourseForm(forms.ModelForm):
             if allowed_establishments.count() == 1:
                 self.fields["establishment"].initial = allowed_establishments.first().id
                 self.fields["establishment"].empty_label = None
+            elif self.instance.structure:
+                self.fields["establishment"].initial = self.instance.structure.establishment.id
 
             if allowed_structs.count() == 1:
                 self.fields["structure"].initial = allowed_structs.first().id
                 self.fields["structure"].empty_label = None
+
+            allowed_highschools = HighSchool.objects.none()
+
+            if self.request.user.is_high_school_manager() and self.request.user.highschool \
+                and self.request.user.highschool.postbac_immersion:
+                allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
+                self.fields['highschool'].empty_label = None
+            elif self.request.user.is_master_establishment_manager():
+                allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
+
+            self.fields["highschool"].queryset = allowed_highschools.order_by('city', 'label')
 
             if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
                 for field in self.fields:
@@ -79,33 +91,43 @@ class CourseForm(forms.ModelForm):
 
         # Check user rights
         if self.request:
-            allowed_structs = self.request.user.get_authorized_structures()
+            highschool = cleaned_data.get("highschool")
             training = cleaned_data['training']
             course_structs = training.structures.all()
 
-            if not (course_structs & allowed_structs).exists():
-                raise forms.ValidationError(_("You don't have enough privileges to update this course"))
+            if not self.request.user.is_superuser:
+                if self.request.user.is_establishment_manager():
+                    allowed_structs = self.request.user.get_authorized_structures()
+                    if not (course_structs & allowed_structs).exists():
+                        raise forms.ValidationError(_("You don't have enough privileges to update this course"))
+                if self.request.user.is_high_school_manager() and self.request.user.highschool:
+                    allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
+                    if not allowed_highschools.filter(pk=highschool).exists():
+                        raise forms.ValidationError(_("You don't have enough privileges to update this course"))
 
         return cleaned_data
 
     class Meta:
         model = Course
-        fields = ('id', 'label', 'url', 'published', 'training', 'structure', 'establishment')
+        fields = ('id', 'label', 'url', 'published', 'training', 'structure', 'establishment', 'highschool')
 
 
 class SlotForm(forms.ModelForm):
     establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
-    structure = forms.ModelChoiceField(queryset=Structure.objects.none(), required=False)
-    training = forms.ModelChoiceField(queryset=Training.objects.none(), required=False)
-    highschool = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
+    structure = forms.ModelChoiceField(queryset=Structure.objects.all(), required=False)
+    training = forms.ModelChoiceField(queryset=Training.objects.all(), required=False)
+    highschool = forms.ModelChoiceField(queryset=Establishment.objects.all(), required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         instance = kwargs.get('instance', None)
 
+        course = self.instance.course if self.instance and self.instance.course_id else None
+
         for elem in [
             'establishment',
+            'highschool',
             'structure',
             'training',
             'course',
@@ -136,23 +158,40 @@ class SlotForm(forms.ModelForm):
         if allowed_establishments.count() == 1:
             self.fields["establishment"].initial = allowed_establishments.first().id
             self.fields["establishment"].empty_label = None
-            allowed_structs = self.request.user.get_authorized_structures()
-            self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
 
-            if allowed_structs.count() == 1:
-                self.fields["structure"].initial = allowed_structs.first().id
-                self.fields["structure"].empty_label = None
+        if allowed_establishments.count() == 1:
+            self.fields["establishment"].initial = allowed_establishments.first().id
+            self.fields["establishment"].empty_label = None
+        elif course and course.structure:
+            self.fields["establishment"].initial = course.structure.establishment.id
+
+        allowed_structs = self.request.user.get_authorized_structures()
+        self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
+
+        if allowed_structs.count() == 1:
+            self.fields["structure"].initial = allowed_structs.first().id
+            self.fields["structure"].empty_label = None
 
         # Update valid choices (useful when validating the form)
-        structure = self.data.get("structure") or\
-                    (self.instance and self.instance.course_id and self.instance.course.structure)
+        structure = self.data.get("structure") or (self.instance and self.instance.course_id and course.structure)
         if structure:
             self.fields["training"].queryset = Training.objects.filter(structures=structure)
 
-        course = self.instance.course if self.instance and self.instance.course_id else None
         if course:
-            self.fields["structure"].initial = course.structure.id
+            self.fields["structure"].initial = course.structure.id if course.structure else None
+            self.fields["highschool"].initial = course.highschool.id if course.highschool else None
             self.fields["training"].initial = course.training.id
+
+        allowed_highschools = HighSchool.objects.none()
+
+        if self.request.user.is_high_school_manager() and self.request.user.highschool \
+                and self.request.user.highschool.postbac_immersion:
+            allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
+            self.fields['highschool'].empty_label = None
+        elif self.request.user.is_master_establishment_manager():
+            allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
+
+        self.fields["highschool"].queryset = allowed_highschools.order_by('city', 'label')
 
         # course type filter
         self.fields['course_type'].queryset = CourseType.objects.filter(active=True).order_by('label')
@@ -168,6 +207,7 @@ class SlotForm(forms.ModelForm):
         cleaned_data = super().clean()
         course = cleaned_data.get('course')
         structure = cleaned_data.get('structure')
+        highschool = cleaned_data.get('highschool')
         pub = cleaned_data.get('published', None)
 
         cals = Calendar.objects.all()
@@ -178,11 +218,13 @@ class SlotForm(forms.ModelForm):
             raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
 
         if pub is True:
-            # Mandatory fields
-            if not all(
-                cleaned_data.get(e)
-                for e in ['course', 'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time',]
-            ):
+            # Mandatory fields, depending on high school / structure slot
+            m_fields = ['course', 'course_type', 'room', 'date', 'start_time', 'end_time']
+
+            if structure:
+                m_fields += ['campus', 'building']
+
+            if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
         _date = cleaned_data.get('date')
@@ -208,6 +250,7 @@ class SlotForm(forms.ModelForm):
             'id',
             'establishment',
             'structure',
+            'highschool',
             'training',
             'course',
             'course_type',

@@ -62,8 +62,6 @@ class APITestCase(TestCase):
             first_name='ref_etab',
             last_name='ref_etab',
             establishment=self.establishment
-
-
         )
         self.ref_etab_user.set_password('pass')
         self.ref_etab_user.save()
@@ -162,7 +160,10 @@ class APITestCase(TestCase):
             start_date=self.today - timedelta(days=2),
             end_date=self.today + timedelta(days=2)
         )
-        self.structure = Structure.objects.create(label="test structure")
+        self.structure = Structure.objects.create(
+            label="test structure",
+            establishment=self.establishment
+        )
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
@@ -437,7 +438,10 @@ class APITestCase(TestCase):
     def test_API_get_ajax_slots(self):
         request.user = self.ref_etab_user
         url = "/api/get_slots"
-        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
+        data = {
+            'structure_id': self.structure.id,
+            'training_id': self.training.id
+        }
         response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
 
@@ -495,9 +499,12 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = "/api/get_trainings"
         
-        data = {'structure_id': self.structure.id}
+        data = {
+            'type': 'structure',
+            'object_id': self.structure.id
+        }
 
-        response = self.client.post(url, data, **self.header)
+        response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(len(content['data']), 2)
         t1 = content['data'][0]
@@ -893,7 +900,7 @@ class APITestCase(TestCase):
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
-        self.assertEqual(len(content['error']), 0)
+        self.assertEqual(content['error'], "Error : you can't delete this course")
         self.assertEqual(content['msg'], '')
 
         # With linked slots

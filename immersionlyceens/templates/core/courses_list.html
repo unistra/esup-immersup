@@ -42,7 +42,7 @@
           <div class="col-md-3">
             <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="highschools">{% trans 'Select a high school' %} :</label>
-              <select id="highschools">
+              <select id="highschools" class="form-control">
                 <option value="">------------</option>
                 {% for highschool in highschools %}
                   <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
@@ -60,7 +60,7 @@
           <div class="col-md-3">
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
-              <select id="establishments">
+              <select id="establishments" class="form-control">
                 <option value="">------------</option>
                 {% for establishment in establishments %}
                   <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
@@ -75,7 +75,7 @@
           <div class="col-md-5" id="id_div_structures">
             <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="strs">{% trans 'Select a structure' %} :</label>
-              <select id="strs">
+              <select id="strs" class="form-control">
                 <option value="">------------</option>
                 {% for structure in structures %}
                   <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
@@ -125,9 +125,9 @@
   var dt;
   var updatable = "{{ can_update_courses }}";
   var feedback;
-  var current_structure_id;
-  var current_establishment_id;
-  var current_highschool_id;
+  var current_structure_id = "{{ structure_id }}";
+  var current_establishment_id = "{{ establishment_id }}";
+  var current_highschool_id = "{{ highschool_id }}";
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var conformDialog;
@@ -255,9 +255,25 @@
   $(document).ready(function() {
     initFeedback();
     feedback = $("#feedback");
-    current_establishment_id = $('#establishments option:selected').val();
-    current_highschool_id = $('#highschools option:selected').val();
-    current_structure_id = $('#strs option:selected').val();
+
+    if(current_highschool_id === 'None' || current_highschool_id === "") {
+      current_highschool_id = $("#highschools").val()
+    }
+
+    if(current_establishment_id === 'None' || current_establishment_id === "") {
+      current_establishment_id = $("#establishments").val()
+    }
+    else {
+        $("#establishments").val(current_establishment_id)
+    }
+
+    if(current_structure_id === 'None' || current_structure_id === "") {
+      current_structure_id = $("#strs").val()
+    }
+
+    if(current_establishment_id) {
+        set_structures(current_establishment_id)
+    }
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,

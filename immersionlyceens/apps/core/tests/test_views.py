@@ -387,7 +387,7 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Slot successfully added", response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request['PATH_INFO'], f'/core/slots/{self.structure.id}/{self.training.id}')
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
 
         # get slot form with an existing slot
         self.client.login(username='ref_etab', password='pass')
@@ -499,10 +499,7 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.request['PATH_INFO'],
-            f'/core/slots/{self.slot.course.structure.id}/{self.slot.course.training.id}'
-        )
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
 
         # TODO : test save_add and duplicate
 

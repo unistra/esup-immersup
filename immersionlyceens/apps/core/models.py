@@ -203,18 +203,23 @@ class ImmersionUser(AbstractUser):
         :param course_id: Course id
         :return: boolean
         """
-        if self.is_superuser or self.has_groups('REF-STR', 'REF-ETAB'):
+        if self.is_superuser or self.has_groups('REF-ETAB-MAITRE'):
             return True
 
         try:
             course = Course.objects.get(pk=course_id)
             course_structures = course.training.structures.all()
-
-            if course_structures & self.structures.all():
-                return True
-
         except Course.DoesNotExist:
             return False
+
+        valid_conditions = [
+            self.is_establishment_manager() and course_structures & self.establishment.structures.all(),
+            self.is_structure_manager() and course_structures & self.structures.all(),
+            self.is_high_school_manager() and self.highschool and self.highschool == course.highschool
+        ]
+
+        if any(valid_conditions):
+            return True
 
         return False
 
@@ -285,7 +290,7 @@ class ImmersionUser(AbstractUser):
             return None
 
     def get_authorized_structures(self):
-        if self.is_master_establishment_manager():
+        if self.is_superuser or self.is_master_establishment_manager():
             return Structure.activated.all()
         if self.is_establishment_manager() and self.establishment:
             return Structure.activated.filter(establishment=self.establishment)
@@ -474,10 +479,13 @@ class Training(models.Model):
     training_subdomains = models.ManyToManyField(
         TrainingSubdomain, verbose_name=_("Training subdomains"), blank=False, related_name='Trainings',
     )
-    structures = models.ManyToManyField(Structure, verbose_name=_("Structures"), blank=False, related_name='Trainings')
+    structures = models.ManyToManyField(Structure, verbose_name=_("Structures"), blank=True, related_name='Trainings')
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
 
+    highschool = models.ForeignKey(HighSchool, verbose_name=_("High school"), blank=True, null=True,
+        on_delete=models.SET_NULL, related_name='trainings'
+    )
 
     def __str__(self):
         return self.label
