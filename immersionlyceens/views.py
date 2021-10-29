@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import mimetypes
 import os
@@ -134,7 +133,7 @@ def serve_accompanying_document(request, accompanying_document_id):
         chunk_size = 8192
         response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
         response['Content-Length'] = os.path.getsize(_file)
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(os.path.basename(_file))
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(_file)}"'
 
     except Exception as e:
         return HttpResponseNotFound()
@@ -153,7 +152,7 @@ def serve_public_document(request, public_document_id):
         chunk_size = 8192
         response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
         response['Content-Length'] = os.path.getsize(_file)
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(os.path.basename(_file))
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(_file)}"'
 
     except Exception as e:
         return HttpResponseNotFound()

@@ -75,7 +75,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
             ('${creneau.structure}', slot.course.structure.label),
             ('${creneau.cours}', slot.course.label),
             ('${creneau.date}', date_format(slot.date)),
-            ('${creneau.intervenants}', ','.join(["%s %s" % (t.first_name, t.last_name) for t in slot.speakers.all()])),
+            ('${creneau.intervenants}', ','.join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()])),
             ('${creneau.formation}', slot.course.training.label),
             ('${creneau.heuredebut}', slot.start_time.strftime("%-Hh%M")),
             ('${creneau.heurefin}', slot.end_time.strftime("%-Hh%M")),
@@ -100,7 +100,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
                     institution_label = institution.label if institution else uai_code
 
             registered_students.append(
-                "%s %s - %s" % (registration.student.last_name, registration.student.first_name, institution_label)
+                f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
             )
 
         vars += [('${listeInscrits}', '<br />'.join(sorted(registered_students)))]
@@ -182,7 +182,7 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
                 s.course_type.label,
                 s.building,
                 s.room,
-                ','.join(["%s %s" % (t.first_name, t.last_name) for t in s.speakers.all()]),
+                ','.join([f"{t.first_name} {t.last_name}" for t in s.speakers.all()]),
             )
             for s in slot_list
         ]

@@ -25,7 +25,7 @@ def redify(value, redvalue):
 @register.filter
 def redorgreenify(value, redvalue):
     color = "green" if value == _(redvalue) else "red"
-    return '<span class="%s">%s</span>' % (color, value)
+    return f'<span class="{color}">{value}</span>'
 
 
 @register.simple_tag

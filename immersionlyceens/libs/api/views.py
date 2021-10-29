@@ -213,7 +213,7 @@ def ajax_get_courses(request):
         }
 
         for speaker in course.speakers.all().order_by('last_name', 'first_name'):
-            course_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
+            course_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
         response['data'].append(course_data.copy())
 
@@ -481,7 +481,7 @@ def ajax_get_my_courses(request, user_id=None):
         }
 
         for speaker in course.speakers.all().order_by('last_name', 'first_name'):
-            course_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
+            course_data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
 
         response['data'].append(course_data.copy())
 
@@ -579,7 +579,7 @@ def ajax_get_my_slots(request, user_id=None):
             slot_data['attendances_status'] = gettext("Future slot")
 
         for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
-            slot_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
+            slot_data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
 
         response['data'].append(slot_data.copy())
 
@@ -880,7 +880,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         response['msg'] = gettext("Error : no such user")
         return JsonResponse(response, safe=False)
 
-    time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
+    time = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
 
     immersions = Immersion.objects.prefetch_related(
         'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
@@ -954,7 +954,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
                     immersion_data['can_register'] = True
 
         for speaker in immersion.slot.speakers.all().order_by('last_name', 'first_name'):
-            immersion_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
+            immersion_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
         response['data'].append(immersion_data.copy())
 
@@ -984,7 +984,7 @@ def ajax_get_other_registrants(request, immersion_id):
         )
 
         for student in students:
-            student_data = {'name': "%s %s" % (student.last_name, student.first_name), 'email': ""}
+            student_data = {'name': f"{student.last_name} {student.first_name}", 'email': ""}
 
             if student.high_school_student_record.visible_email:
                 student_data["email"] = student.email
@@ -1395,7 +1395,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
         student_data = {
             'id': student.pk,
-            'name': "%s %s" % (student.last_name, student.first_name),
+            'name': f"{student.last_name} {student.first_name}",
             'birthdate': date_format(record.birth_date) if record else '-',
             'institution': '',
             'level': record.get_level_display() if record else '-',
@@ -1459,7 +1459,7 @@ def ajax_send_email(request):
 
     # Send a copy to the sender if requested - append "(copy)" to the subject
     if send_copy:
-        subject = "%s (%s)" % (subject, _("copy"))
+        subject = "{} ({})".format(subject, _("copy"))
         recipient = request.user.email
         try:
             send_email(recipient, subject, body)
@@ -1861,7 +1861,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             )
             if immersion.slot.date
             else None,
-            'name': "%s %s" % (immersion.student.last_name, immersion.student.first_name),
+            'name': f"{immersion.student.last_name} {immersion.student.first_name}",
             'institution': institution,
             'phone': record.phone if record and record.phone else '',
             'email': immersion.student.email,
@@ -1993,7 +1993,7 @@ def ajax_get_duplicates(request):
                 "record_ids": [r.id for r in records],
                 'names': [str(r.student) for r in records],
                 'birthdates': [_date(r.birth_date) for r in records],
-                "highschools": ["%s, %s" % (r.highschool.label, r.class_name) for r in records],
+                "highschools": [f"{r.highschool.label}, {r.class_name}" for r in records],
                 "emails": [r.student.email for r in records],
                 "record_links": [reverse('immersion:modify_hs_record', kwargs={'record_id': r.id}) for r in records],
             }

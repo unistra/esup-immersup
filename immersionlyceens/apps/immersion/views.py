@@ -123,7 +123,7 @@ def shibbolethLogin(request, profile=None):
         try:
             Group.objects.get(name='ETU').user_set.add(new_user)
         except Exception:
-            logger.exception("Cannot add 'ETU' group to user {}".format(new_user))
+            logger.exception(f"Cannot add 'ETU' group to user {new_user}")
             messages.error(request, _("Group error"))
 
         try:
@@ -180,7 +180,7 @@ def register(request):
             try:
                 Group.objects.get(name='LYC').user_set.add(new_user)
             except Exception:
-                logger.exception("Cannot add 'LYC' group to user {}".format(new_user))
+                logger.exception(f"Cannot add 'LYC' group to user {new_user}")
                 messages.error(request, _("Group error"))
 
             try:

@@ -176,7 +176,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     )
 
     def __init__(self, model, admin_site):
-        super(CustomUserAdmin, self).__init__(model, admin_site)
+        super().__init__(model, admin_site)
         self.form.admin_site = admin_site
 
     def get_actions(self, request):
@@ -233,7 +233,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not (set(x for x in user_groups) - set(rights))
+                return not ({x for x in user_groups} - set(rights))
 
             if request.user.is_high_school_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
@@ -244,7 +244,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not (set(x for x in user_groups) - set(rights))
+                return not ({x for x in user_groups} - set(rights))
 
             messages.warning(request, no_delete_msg)
 
@@ -268,7 +268,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
 
-                if not (set(x for x in user_groups) - set(rights)):
+                if not ({x for x in user_groups} - set(rights)):
                     return True
 
             if request.user.is_high_school_manager():
@@ -276,7 +276,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
                 highschool_condition = obj.highschool == request.user.highschool
 
-                return highschool_condition and not (set(x for x in user_groups) - set(rights))
+                return highschool_condition and not ({x for x in user_groups} - set(rights))
 
             return False
 
@@ -662,7 +662,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def get_structures_list(self, obj):
-        return ["%s (%s)" % (s.code, s.establishment.code if s.establishment else '-')
+        return ["{} ({})".format(s.code, s.establishment.code if s.establishment else '-')
             for s in obj.structures.all().order_by('code')
         ]
 
@@ -1056,7 +1056,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def referents_list(self, obj):
         return [
-            "%s %s" % (user.last_name, user.first_name)
+            f"{user.last_name} {user.first_name}"
             for user in obj.highschool_referent.all().order_by('last_name', 'first_name')
         ]
 
@@ -1174,7 +1174,7 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
                 '<a href="{}">{}</a><br>',
                 (
                     (
-                        reverse('admin:{}_{}_change'.format(doc._meta.app_label, doc._meta.model_name), args=(doc.pk,)),
+                        reverse(f'admin:{doc._meta.app_label}_{doc._meta.model_name}_change', args=(doc.pk,)),
                         doc.label,
                     )
                     for doc in docs

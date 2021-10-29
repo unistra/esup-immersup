@@ -52,7 +52,7 @@ def send_email(address, subject, body, from_addr=None):
         mail_backend().send_message(msg)
     except Exception as e:
         logger.error(
-            "Cannot send message to {} : unexpected error: {} - {}".format(recipient, e, sys.exc_info()[0]),
+            f"Cannot send message to {recipient} : unexpected error: {e} - {sys.exc_info()[0]}",
             extra={'locals': locals()},
         )
     else:

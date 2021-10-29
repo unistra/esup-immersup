@@ -31,10 +31,10 @@ def process_request_filters(request):
             higher = {h.uai_code:h for h in HigherEducationInstitution.objects.all()}
 
             highschools = sorted(
-                [ "%s - %s" % (hs[inst[1]].city.title(), hs[inst[1]].label) for inst in insts if inst[0] == 0 ]
+                 f"{hs[inst[1]].city.title()} - {hs[inst[1]].label}" for inst in insts if inst[0] == 0 
             )
             higher_institutions = sorted(
-                [ "%s - %s" % (higher[inst[1]].city.title(), higher[inst[1]].label) for inst in insts if inst[0] == 1 ]
+                 f"{higher[inst[1]].city.title()} - {higher[inst[1]].label}" for inst in insts if inst[0] == 1 
             )
 
             highschools_ids = [ inst[1] for inst in insts if inst[0]==0 ]

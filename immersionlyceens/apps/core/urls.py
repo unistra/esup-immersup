@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Url configuration for the core application API
 """

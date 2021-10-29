@@ -53,7 +53,7 @@ class Establishment(models.Model):
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
     def __str__(self):
-        return "%s : %s%s" % (self.code, self.label, _(" (master)") if self.master else "")
+        return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
 
 
     class Meta:
@@ -79,7 +79,7 @@ class Structure(models.Model):
         blank=False, null=True, related_name='structures')
 
     def __str__(self):
-        return "%s : %s" % (self.code, self.label)
+        return f"{self.code} : {self.label}"
 
 
     def validate_unique(self, exclude=None):
@@ -125,7 +125,7 @@ class HighSchool(models.Model):
 
 
     def __str__(self):
-        return "%s - %s" % (self.city, self.label)
+        return f"{self.city} - {self.label}"
 
 
     class Meta:
@@ -183,7 +183,7 @@ class ImmersionUser(AbstractUser):
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
 
     def __str__(self):
-        return "%s %s" % (self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
+        return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
 
     def has_groups(self, *groups, negated=False):
         """
@@ -450,7 +450,7 @@ class TrainingSubdomain(models.Model):
 
     def __str__(self):
         domain = self.training_domain or _("No domain")
-        return "%s - %s" % (domain, self.label)
+        return f"{domain} - {self.label}"
 
 
     def validate_unique(self, exclude=None):
@@ -532,7 +532,7 @@ class BachelorMention(models.Model):
 
     def validate_unique(self, exclude=None):
         try:
-            super(BachelorMention, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A bachelor mention with this label already exists'))
 
@@ -563,7 +563,7 @@ class Building(models.Model):
 
     def validate_unique(self, exclude=None):
         try:
-            super(Building, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A building with this label for the same campus already exists'))
 
@@ -592,7 +592,7 @@ class CancelType(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(CancelType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A cancel type with this label already exists'))
 
@@ -616,13 +616,13 @@ class CourseType(models.Model):
 
     def __str__(self):
         """str"""
-        return "%s (%s)" % (self.full_label, self.label)
+        return f"{self.full_label} ({self.label})"
 
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(CourseType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A course type with this label already exists'))
 
@@ -681,7 +681,7 @@ class PublicType(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(PublicType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A public type with this label already exists'))
 
@@ -714,7 +714,7 @@ class UniversityYear(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(UniversityYear, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A university year with this label already exists'))
 
@@ -723,7 +723,7 @@ class UniversityYear(models.Model):
         if not UniversityYear.objects.filter(active=True).exists():
             self.active = True
 
-        super(UniversityYear, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
     def date_is_between(self, _date):
@@ -753,7 +753,7 @@ class Holiday(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(Holiday, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A holiday with this label already exists'))
 
@@ -787,7 +787,7 @@ class Vacation(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(Vacation, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A vacation with this label already exists'))
 
@@ -871,7 +871,7 @@ class Calendar(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(Calendar, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A calendar with this label already exists'))
 
@@ -1034,7 +1034,7 @@ class MailTemplateVars(models.Model):
 
 
     def __str__(self):
-        return "%s : %s" % (self.code, self.description)
+        return f"{self.code} : {self.description}"
 
 
     class Meta:
@@ -1061,7 +1061,7 @@ class MailTemplate(models.Model):
 
 
     def __str__(self):
-        return "%s : %s" % (self.code, self.label)
+        return f"{self.code} : {self.label}"
 
 
     def parse_vars(self, user, request, **kwargs):
@@ -1167,7 +1167,7 @@ class AccompanyingDocument(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(AccompanyingDocument, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('An accompanying document with this label already exists'))
 
@@ -1223,7 +1223,7 @@ class PublicDocument(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(PublicDocument, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A public document with this label already exists'))
 
@@ -1611,7 +1611,7 @@ class OffOfferEventType(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(OffOfferEventType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('An off offer event type with this label already exists'))
 

@@ -34,47 +34,47 @@ class Command(BaseCommand):
         # Delete user alerts
         deleted = UserCourseAlert.objects.all().delete()
         if deleted[0]:
-            logger.info(_("{} user alert(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} user alert(s) deleted"))
         else:
             logger.info(_("No user alert to delete"))
 
         # Delete immersion
         deleted = Immersion.objects.all().delete()
         if deleted[0]:
-            logger.info(_("{} immersion(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} immersion(s) deleted"))
         else:
             logger.info(_("No immersion to delete"))
 
         # Delete slot
         deleted = Slot.objects.all().delete()
         if deleted[0]:
-            logger.info(_("{} slot(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} slot(s) deleted"))
         else:
             logger.info(_("No slot to delete"))
 
         # Delete ENS, LYC, ETU ImmersionUser
         deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'ENS']).delete()
         if deleted[0]:
-            logger.info(_("{} account(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} account(s) deleted"))
         else:
             logger.info(_("No account to delete"))
 
         # Delete calendar, vacations and holidays
         deleted = Calendar.objects.all().delete()
         if deleted[0]:
-            logger.info(_("{} calendar(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} calendar(s) deleted"))
         else:
             logger.info(_("No calendar to delete"))
             
         deleted = Holiday.objects.all().delete()
         if deleted[0]:
-            logger.info(_("{} holiday record(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} holiday record(s) deleted"))
         else:
             logger.info(_("No holiday record to delete"))
 
         deleted = Vacation.objects.all().delete()
         if deleted[0]:
-            logger.info(_("{} vacation record(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} vacation record(s) deleted"))
         else:
             logger.info(_("No vacation record to delete"))
 
@@ -90,5 +90,5 @@ class Command(BaseCommand):
         if updated == 0:
             logger.info(_('No course to update'))
         else:
-            logger.info(_('{} course(s) updated'.format(updated)))
+            logger.info(_(f'{updated} course(s) updated'))
 

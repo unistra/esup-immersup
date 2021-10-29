@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import re
 from os.path import abspath, basename, dirname, join, normpath

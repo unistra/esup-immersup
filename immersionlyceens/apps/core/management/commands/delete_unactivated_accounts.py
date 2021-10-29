@@ -23,6 +23,6 @@ class Command(BaseCommand):
             destruction_date__lt=today).delete()
 
         if deleted[0]:
-            logger.info(_("{} account(s) deleted".format(deleted[0])))
+            logger.info(_(f"{deleted[0]} account(s) deleted"))
         else:
             logger.info(_("No account to delete"))

@@ -945,7 +945,7 @@ class ImmersionUserChangeForm(UserChangeForm):
             pass
 
         try:
-            current_groups = set([str(g.id) for g in self.instance.groups.all()])
+            current_groups = {str(g.id) for g in self.instance.groups.all()}
         except Exception:
             current_groups = set()
 

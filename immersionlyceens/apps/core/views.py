@@ -561,7 +561,7 @@ def course(request, course_id=None, duplicate=False):
                     "lastname": t.last_name,
                     "firstname": t.first_name,
                     "email": t.email,
-                    "display_name": "%s %s" % (t.last_name, t.first_name),
+                    "display_name": f"{t.last_name} {t.first_name}",
                     "is_removable": not t.slots.filter(course=course_id).exists(),
                 }
                 for t in course.speakers.all()
