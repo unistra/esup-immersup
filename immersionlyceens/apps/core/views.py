@@ -205,9 +205,9 @@ def slot(request, slot_id=None, duplicate=False):
         published = request.POST.get('published') == 'on'
 
         if slot_form.is_valid() and (not published or len(speakers) > 0):
-            slot_form.save()
+            new_slot = slot_form.save()
             for speaker in speakers:
-                slot_form.instance.speakers.add(speaker)
+                new_slot.speakers.add(speaker)
             if slot and slot.id:
                 messages.success(request, _("Slot successfully updated"))
             else:
@@ -243,15 +243,14 @@ def slot(request, slot_id=None, duplicate=False):
                 messages.success(request, _("Notifications have been sent (%s)") % sent_msg)
 
         if request.POST.get('save'):
-            return HttpResponseRedirect(
-                reverse(
-                    'slots_list',
-                    kwargs={
-                        'str_id': request.POST.get('structure', ''),
-                        'train_id': request.POST.get('training', '')
-                    }
-                )
-            )
+            structure = new_slot.course.structure if new_slot.course.structure else None
+            highschool = new_slot.course.highschool if new_slot.course.highschool else None
+
+            request.session["current_structure_id"] = structure.id if structure else None
+            request.session["current_establishment_id"] = structure.establishment.id if structure else None
+            request.session["current_highschool_id"] = highschool.id if highschool else None
+
+            return HttpResponseRedirect(reverse('slots_list'))
         elif request.POST.get('save_add'):
             return redirect('slot')
         elif request.POST.get('duplicate'):

@@ -438,7 +438,10 @@ class APITestCase(TestCase):
     def test_API_get_ajax_slots(self):
         request.user = self.ref_etab_user
         url = "/api/get_slots"
-        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
+        data = {
+            'structure_id': self.structure.id,
+            'training_id': self.training.id
+        }
         response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
 

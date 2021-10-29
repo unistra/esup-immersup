@@ -193,7 +193,7 @@
       let options = '<option value="">---------</option>'
       $('select#id_structure').html(options)
       structure_id = ''
-      $("#id_div_structures").hide()
+      $("#id_div_structure").hide()
   }
 
   function empty_trainings() {
@@ -257,7 +257,7 @@
 
     if (establishment_id !== "") {
         highschool_id = ""
-        $('#id_highshool').val("")
+        $('#id_highschool').val("")
         set_structures(establishment_id);
     }
     else {
@@ -286,7 +286,6 @@
         $('#id_structure').val("")
 
         $("#id_div_establishment").hide()
-        $("#id_div_structure").hide()
     } else {
         $("#id_div_establishment").show()
     }
@@ -397,7 +396,6 @@
       empty_structures()
       empty_trainings()
       $("#id_div_highschool").show()
-      $("#id_div_structure").hide()
     } else {
       highschool_id = ""
       set_structures($("#id_establishment").val())

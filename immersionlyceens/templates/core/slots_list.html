@@ -205,6 +205,7 @@
 
     if (current_establishment_id !== "") {
         set_structures(current_establishment_id);
+        dt.clear().draw()
     }
     else {
         empty_structures()
@@ -355,10 +356,10 @@ $(document).ready(function(){
               d.training_id = $('#training').val();
 
               if($('#structure').val()) {
-                d.structure = $('#structure').val();
+                d.structure_id = $('#structure').val();
               }
               else if($('#highschools').val()) {
-                d.highschool = $('#highschools').val();
+                d.highschool_id = $('#highschools').val();
               }
               return d
           },
@@ -389,8 +390,15 @@ $(document).ready(function(){
             { data: 'course_label' },
             { data: 'structure',
               render: function(data, type, row) {
-                return data['code'];
-               },
+                if(row.structure.code) {
+                    return row.structure.code;
+                }
+                else if (row.highschool.label) {
+                    return row.highschool.label;
+                }
+
+                return ""
+              },
             },
             { data: 'course_type' },
             { data: 'datetime',

@@ -193,7 +193,6 @@ def ajax_get_courses(request):
         courses = Course.objects.prefetch_related('training', 'structure')\
             .filter(training__structures=structure_id)
     elif highschool_id:
-        print("POF")
         try:
             courses = Course.objects.prefetch_related('training', 'highschool', 'structure') \
                 .filter(training__highschool=highschool_id)
@@ -296,7 +295,7 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_slots(request):
     response = {'msg': '', 'data': []}
     can_update_attendances = False
@@ -310,8 +309,8 @@ def ajax_get_slots(request):
         pass
 
     training_id = request.GET.get('training_id')
-    structure_id = request.GET.get('structure')
-    highschool_id = request.GET.get('highschool')
+    structure_id = request.GET.get('structure_id')
+    highschool_id = request.GET.get('highschool_id')
 
     try:
         int(structure_id)
@@ -322,6 +321,11 @@ def ajax_get_slots(request):
         int(highschool_id)
     except (TypeError, ValueError):
         highschool_id = None
+
+    try:
+        int(training_id)
+    except (TypeError, ValueError):
+        training_id = None
 
     if not structure_id and not highschool_id:
         response['msg'] = gettext("Error : a valid structure or highschool must be selected")
@@ -2172,7 +2176,7 @@ class CourseList(generics.ListAPIView):
     """
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['training', 'structure', ]
+    filterset_fields = ['training', 'structure', 'highschool']
 
     def get_queryset(self):
         queryset = Course.objects.filter(published=True).order_by('label')
