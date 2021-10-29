@@ -48,7 +48,13 @@
           <thead>
             <tr>
               <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
-              <th id="structure_filter" class="align-top">{% trans 'Struct.' %}</th>
+              <th id="structure_filter" class="align-top">
+                  {% if request.user.highschool %}
+                    {% trans 'Highschool' %}
+                {% else %}
+                    {% trans 'Struct.' %}
+                {% endif %}
+              </th>
               <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
               <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
               <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
@@ -79,7 +85,6 @@
   </div>
 </div>
 <script type="text/javascript">
-  var user_id = {{ request.user.id }};
   var can_update_attendances = false;
   var current_slot_id;
   var slot_places = 0;
@@ -113,9 +118,9 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_my_slots/" + user_id + "/",
+        url: "/api/get_my_slots",
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -128,6 +133,8 @@
     {
       "data": "published",
       "render": function (data) {
+        let txt
+
         if (data) {
           txt = "{% trans 'Yes' %}";
         }
@@ -138,13 +145,13 @@
         return txt;
       },
     },
-    { "data": "structure" },
+    { "data": "managed_by" },
     { "data": "training_label" },
     { "data": "label" },
     {
       "data": "datetime",
       "render": function (data, type, row) {
-        if(type == "display" || type == "filter") {
+        if(type === "display" || type === "filter") {
           return "<span>" + row.schedules.date + "</span><br><span>" + row.schedules.time + "</span>";
         }
 
@@ -154,7 +161,12 @@
     {
       "data": "location",
       "render": function (data) {
-        return "<span>" + data.campus + "</span><br><span>" + data.room + "</span>";
+        let txt = "<span>"
+
+        if(data.campus) {
+            txt += data.campus + "</span><br><span>"
+        }
+        return txt + data.room + "</span>";
       }
     },
     {
@@ -233,11 +245,13 @@
   });
 
   $('#filter_past_slots').click(function () {
+    let u = ""
+
     if ($('#filter_past_slots').is(':checked')){
-      u = "/api/get_my_slots/all/" + user_id + "/";
+      u = "/api/get_my_slots/all";
     }
     else {
-      u = "/api/get_my_slots/" + user_id + "/";
+      u = "/api/get_my_slots";
     }
     dt.ajax.url(u);
     dt.ajax.reload();

@@ -135,6 +135,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         ActivationFilter,
         ('groups', RelatedDropdownFilter),
         ('establishment', RelatedDropdownFilter),
+        ('highschool', RelatedDropdownFilter),
     )
 
     def get_activated_account(self, obj):

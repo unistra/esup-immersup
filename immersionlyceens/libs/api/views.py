@@ -503,30 +503,33 @@ def ajax_delete_course(request):
 
 @is_ajax_request
 @groups_required('INTER')
-def ajax_get_my_courses(request, user_id=None):
+def ajax_get_my_courses(request):
+    managed_by = ""
     response = {'msg': '', 'data': []}
 
-    if not user_id:
-        response['msg'] = gettext("Error : a valid user must be passed")
+    if not request.user:
+        response['msg'] = gettext("Error : a valid user is required")
 
-    courses = Course.objects.prefetch_related('training').filter(speakers=user_id)
+    courses = Course.objects.prefetch_related('training').filter(speakers=request.user)
 
     for course in courses:
+        if course.structure:
+            managed_by = course.structure.code
+        elif course.highschool:
+            managed_by = f"{course.highschool.city} - {course.highschool.label}"
+
         course_data = {
             'id': course.id,
             'published': course.published,
-            'structure': course.structure.code,
+            'managed_by': managed_by,
             'training_label': course.training.label,
             'label': course.label,
             'speakers': {},
-            'slots_count': course.slots_count(speaker_id=user_id),
-            'n_places': course.free_seats(speaker_id=user_id),
-            'published_slots_count': course.published_slots_count(speaker_id=user_id),
-            # f'{course.published_slots_count(speaker_id=user_id)} / {course.slots_count(speaker_id=user_id)}',
-            'registered_students_count': course.registrations_count(speaker_id=user_id),
-            # f'{course.registrations_count(speaker_id=user_id)} / {course.free_seats(speaker_id=user_id)}',
+            'slots_count': course.slots_count(speaker_id=request.user.id),
+            'n_places': course.free_seats(speaker_id=request.user.id),
+            'published_slots_count': course.published_slots_count(speaker_id=request.user.id),
+            'registered_students_count': course.registrations_count(speaker_id=request.user.id),
             'alerts_count': course.get_alerts_count(),
-            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
         }
 
         for speaker in course.speakers.all().order_by('last_name', 'first_name'):
@@ -539,7 +542,7 @@ def ajax_get_my_courses(request, user_id=None):
 
 @is_ajax_request
 @groups_required('INTER')
-def ajax_get_my_slots(request, user_id=None):
+def ajax_get_my_slots(request):
     response = {'msg': '', 'data': []}
     can_update_attendances = False
 
@@ -553,36 +556,47 @@ def ajax_get_my_slots(request, user_id=None):
     # TODO: filter on emargement which should be set !
     past_slots = resolve(request.path_info).url_name == 'GetMySlotsAll'
 
-    if not user_id:
-        response['msg'] = gettext("Error : a valid user must be passed")
+    if not request.user:
+        response['msg'] = gettext("Error : a valid user is required")
 
     if past_slots:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
-            .filter(speakers=user_id)
+            Slot.objects.prefetch_related(
+                'course__training', 'course__structure', 'course__highschool', 'speakers', 'immersions'
+            )
+            .filter(speakers=request.user.id)
             .exclude(date__lt=today.date(), immersions__isnull=True)
         ).distinct()
     else:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
+            Slot.objects.prefetch_related(
+                'course__training', 'course__structure', 'course__highschool', 'speakers', 'immersions'
+            )
             .filter(
                 Q(date__gte=today.date())
                 | Q(date=today.date(), end_time__gte=today.time())
                 | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
-                speakers=user_id,
+                speakers=request.user.id,
             )
             .distinct()
         )
 
     for slot in slots:
         campus = ""
+        managed_by = ""
+
         if slot.campus and slot.building:
             campus = f'{slot.campus.label} - {slot.building.label}'
+
+        if slot.course.structure:
+            managed_by = slot.course.structure.code
+        elif slot.course.highschool:
+            managed_by = f"{slot.course.highschool.city} - {slot.course.highschool.label}"
 
         slot_data = {
             'id': slot.id,
             'published': slot.published,
-            'structure': slot.course.structure.code,
+            'managed_by': managed_by,
             'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
             'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
             'location': {'campus': campus, 'room': slot.room, },
@@ -594,9 +608,7 @@ def ajax_get_my_slots(request, user_id=None):
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
-            )
-            if slot.date
-            else None,
+            ) if slot.date else None,
             'start_time': slot.start_time.strftime("%H:%M"),
             'end_time': slot.end_time.strftime("%H:%M"),
             'label': slot.course.label,
@@ -1699,7 +1711,7 @@ def get_csv_anonymous_immersion(request):
     infield_separator = '|'
 
     header = [
-        _('structure'),
+        _('structure')+ " / " + _("highschool"),
         _('training domain'),
         _('training subdomain'),
         _('training'),
@@ -1723,6 +1735,12 @@ def get_csv_anonymous_immersion(request):
 
     slots = Slot.objects.filter(published=True)
     for slot in slots:
+        managed_by = ""
+        if slot.course.structure:
+            managed_by = slot.course.structure.label
+        elif slot.course.highschool:
+            managed_by = f"{slot.course.highschool.city} - {slot.course.highschool.label}"
+
         immersions = Immersion.objects.prefetch_related('slot').filter(slot=slot, cancellation_type__isnull=True)
         if immersions.count() > 0:
             for imm in immersions:
@@ -1747,54 +1765,50 @@ def get_csv_anonymous_immersion(request):
                         pass
 
                 if record:
-                    content.append(
-                        [
-                            slot.course.structure.label,
-                            infield_separator.join(
-                                [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                            ),
-                            infield_separator.join(
-                                [sub.label for sub in slot.course.training.training_subdomains.all()]
-                            ),
-                            slot.course.training.label,
-                            slot.course.label,
-                            slot.course_type.label,
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
-                            slot.campus.label,
-                            slot.building.label,
-                            slot.room,
-                            slot.registered_students(),
-                            slot.n_places,
-                            slot.additional_information,
-                            institution,
-                            level,
-                            imm.get_attendance_status(),
-                        ]
-                    )
+                    content.append([
+                        managed_by,
+                        infield_separator.join(
+                            [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                        ),
+                        infield_separator.join(
+                            [sub.label for sub in slot.course.training.training_subdomains.all()]
+                        ),
+                        slot.course.training.label,
+                        slot.course.label,
+                        slot.course_type.label,
+                        _date(slot.date, 'd/m/Y'),
+                        slot.start_time.strftime('%H:%M'),
+                        slot.end_time.strftime('%H:%M'),
+                        slot.campus.label if slot.campus else None,
+                        slot.building.label if slot.building else None,
+                        slot.room,
+                        slot.registered_students(),
+                        slot.n_places,
+                        slot.additional_information,
+                        institution,
+                        level,
+                        imm.get_attendance_status(),
+                    ])
         else:
-            content.append(
-                [
-                    slot.course.structure.label,
-                    infield_separator.join(
-                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                    ),
-                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                    slot.course.training.label,
-                    slot.course.label,
-                    slot.course_type.label,
-                    _date(slot.date, 'd/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    slot.campus.label,
-                    slot.building.label,
-                    slot.room,
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-            )
+            content.append([
+                managed_by,
+                infield_separator.join(
+                    [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                ),
+                infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                slot.course.training.label,
+                slot.course.label,
+                slot.course_type.label,
+                _date(slot.date, 'd/m/Y'),
+                slot.start_time.strftime('%H:%M'),
+                slot.end_time.strftime('%H:%M'),
+                slot.campus.label if slot.campus else None,
+                slot.building.label if slot.building else None,
+                slot.room,
+                slot.registered_students(),
+                slot.n_places,
+                slot.additional_information,
+            ])
 
     writer = csv.writer(response)
     writer.writerow(header)

@@ -43,6 +43,7 @@ class APITestCase(TestCase):
             description='REF-ETAB email'
         )
         """
+        self.today = datetime.today()
 
         # TODO : put all these objects in test fixtures
 
@@ -53,6 +54,20 @@ class APITestCase(TestCase):
             active=True,
             master=True,
             email='test@test.com'
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - timedelta(days=10),
+            convention_end_date=self.today + timedelta(days=10),
+            postbac_immersion=True
         )
 
         self.ref_etab_user = get_user_model().objects.create_user(
@@ -109,6 +124,14 @@ class APITestCase(TestCase):
             first_name='speak',
             last_name='HER',
         )
+        self.highschool_speaker = get_user_model().objects.create_user(
+            username='highschool_speaker',
+            password='pass',
+            email='highschool_speaker@no-reply.com',
+            first_name='highschool_speaker',
+            last_name='highschool_speaker',
+            highschool=self.high_school
+        )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
@@ -136,6 +159,7 @@ class APITestCase(TestCase):
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
+        Group.objects.get(name='INTER').user_set.add(self.highschool_speaker)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
@@ -143,8 +167,6 @@ class APITestCase(TestCase):
         Group.objects.get(name='ETU').user_set.add(self.student)
         Group.objects.get(name='ETU').user_set.add(self.student2)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-
-        self.today = datetime.today()
 
         self.calendar = Calendar.objects.create(
             label="Calendrier1",
@@ -168,12 +190,23 @@ class APITestCase(TestCase):
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
+        self.highschool_training = Training.objects.create(
+            label="test highschool training",
+            highschool=self.high_school
+        )
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
+        self.highschool_training.training_subdomains.add(self.t_sub_domain)
         self.training.structures.add(self.structure)
         self.training2.structures.add(self.structure)
         self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
         self.course.speakers.add(self.speaker1)
+        self.highschool_course = Course.objects.create(
+            label="course 1",
+            training=self.highschool_training,
+            highschool=self.high_school
+        )
+        self.highschool_course.speakers.add(self.highschool_speaker)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM')
@@ -212,6 +245,16 @@ class APITestCase(TestCase):
             end_time=time(14, 0),
             n_places=20,
             additional_information="Hello there!"
+        )
+        self.highschool_slot = Slot.objects.create(
+            course=self.highschool_course,
+            course_type=self.course_type,
+            room='room 212',
+            date=self.today,
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="High school additional information"
         )
         self.full_slot = Slot.objects.create(
             course=self.course,
@@ -253,18 +296,8 @@ class APITestCase(TestCase):
         )
         self.slot.speakers.add(self.speaker1),
         self.slot2.speakers.add(self.speaker1),
-        self.high_school = HighSchool.objects.create(
-            label='HS1',
-            address='here',
-            department=67,
-            city='STRASBOURG',
-            zip_code=67000,
-            phone_number='0123456789',
-            email='a@b.c',
-            head_teacher_name='M. A B',
-            convention_start_date=self.today - timedelta(days=10),
-            convention_end_date=self.today + timedelta(days=10),
-        )
+        self.highschool_slot.speakers.add(self.highschool_speaker),
+
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
@@ -661,7 +694,7 @@ class APITestCase(TestCase):
         content = csv.reader(response.content.decode().split('\n'))
 
         headers = [
-            _('structure'),
+            _('structure') + " / " + _('highschool'),
             _('training domain'),
             _('training subdomain'),
             _('training'),
@@ -680,6 +713,7 @@ class APITestCase(TestCase):
             _('student level'),
         ]
         n = 0
+
         for row in content:
             # header check
             if n == 0:
@@ -706,6 +740,18 @@ class APITestCase(TestCase):
             elif n == 2:
                 self.assertEqual(self.student_record.uai_code, row[15])
                 self.assertEqual(StudentRecord.LEVELS[self.student_record.level - 1][1], row[16])
+            elif n == 5: # high school slot
+                self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", row[0])
+                self.assertEqual(self.highschool_training.label, row[3])
+                self.assertEqual(self.highschool_course.label, row[4])
+                self.assertIn(self.highschool_slot.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.highschool_slot.end_time.strftime("%H:%M"), row[8])
+                self.assertEqual("", row[9])
+                self.assertEqual("", row[10])
+                self.assertEqual(self.highschool_slot.room, row[11])
+                self.assertEqual(str(self.highschool_slot.registered_students()), row[12])
+                self.assertEqual(self.highschool_slot.additional_information, row[14])
+
             n += 1
 
 
@@ -937,11 +983,12 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_get_my_courses(self):
+        # As a 'structure' speaker
         request.user = self.speaker1
         client = Client()
         client.login(username='speaker1', password='pass')
 
-        url = f"/api/get_my_courses/{self.speaker1.id}/"
+        url = f"/api/get_my_courses"
         
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -951,7 +998,7 @@ class APITestCase(TestCase):
         c = content['data'][0]
         self.assertEqual(self.course.id, c['id'])
         self.assertEqual(self.course.published, c['published'])
-        self.assertEqual(self.course.structure.code, c['structure'])
+        self.assertEqual(self.course.structure.code, c['managed_by'])
         self.assertEqual(self.course.training.label, c['training_label'])
         self.assertEqual(self.course.label, c['label'])
         # speakers
@@ -963,14 +1010,64 @@ class APITestCase(TestCase):
         )
         self.assertEqual(self.course.get_alerts_count(), c['alerts_count'])
 
+        # as a high school speaker
+        client.login(username='highschool_speaker', password='pass')
+        response = client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertGreater(len(content['data']), 0)
+        c = content['data'][0]
+        self.assertEqual(self.highschool_course.id, c['id'])
+        self.assertEqual(self.highschool_course.published, c['published'])
+        self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", c['managed_by'])
+        self.assertEqual(self.highschool_course.training.label, c['training_label'])
+        self.assertEqual(self.highschool_course.label, c['label'])
+        # speakers
+        self.assertEqual(self.highschool_course.slots_count(speaker_id=self.highschool_speaker.id), c['slots_count'])
+        self.assertEqual(self.highschool_course.free_seats(speaker_id=self.highschool_speaker.id), c['n_places'])
+        self.assertEqual(
+            self.highschool_course.published_slots_count(speaker_id=self.highschool_speaker.id),
+            c['published_slots_count']
+        )
 
     def test_API_ajax_get_my_slots(self):
-        request.user = self.speaker1
         client = Client()
+        url = f"/api/get_my_slots"
+        # as a high school speaker
+        client.login(username='highschool_speaker', password='pass')
+
+        response = client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertGreater(len(content['data']), 0)
+        s = content['data'][0]
+        self.assertEqual(self.highschool_slot.id, s['id'])
+        self.assertEqual(self.highschool_slot.published, s['published'])
+        self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", s['managed_by'])
+        self.assertEqual(
+            f'{self.highschool_slot.course.training.label} ({self.highschool_slot.course_type.label})',
+            s['training_label']
+        )
+        self.assertEqual(
+            f'{self.highschool_slot.course.training.label} ({self.highschool_slot.course_type.full_label})',
+            s['training_label_full']
+        )
+        self.assertEqual("", s['location']['campus'])
+        self.assertEqual(self.highschool_slot.room, s['location']['room'])
+
+        sch = s['schedules']
+        self.assertEqual(_date(self.highschool_slot.date, 'l d/m/Y'), sch['date'])
+        self.assertEqual(
+            f'{self.highschool_slot.start_time.strftime("%H:%M")} - {self.highschool_slot.end_time.strftime("%H:%M")}',
+            sch['time']
+        )
+
+        # as a "structure" speaker
+        request.user = self.speaker1
         client.login(username='speaker1', password='pass')
 
-        url = f"/api/get_my_slots/{self.speaker1.id}/"
-        
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -979,7 +1076,7 @@ class APITestCase(TestCase):
         s = content['data'][0]
         self.assertEqual(self.slot.id, s['id'])
         self.assertEqual(self.slot.published, s['published'])
-        self.assertEqual(self.slot.course.structure.code, s['structure'])
+        self.assertEqual(self.slot.course.structure.code, s['managed_by'])
         self.assertEqual(
             f'{self.slot.course.training.label} ({self.slot.course_type.label})',
             s['training_label']
