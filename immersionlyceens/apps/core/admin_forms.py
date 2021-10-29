@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import UploadedFile
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes

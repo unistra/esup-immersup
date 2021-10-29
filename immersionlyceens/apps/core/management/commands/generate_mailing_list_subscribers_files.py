@@ -12,7 +12,7 @@ from os import W_OK, access, mkdir, path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from immersionlyceens.libs.utils import get_general_setting
 

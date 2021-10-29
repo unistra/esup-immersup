@@ -9,7 +9,7 @@ import sys
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Count, Q, Sum
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from ...models import (
     AnnualStatistics, Structure, Course, HighSchool, Immersion, ImmersionUser, Slot, Training, UniversityYear,

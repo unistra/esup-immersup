@@ -18,7 +18,7 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
@@ -383,7 +383,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             student = ImmersionUser.objects.get(pk=student_id)
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("Invalid student id"))
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+            return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
     if request.user.is_high_school_student():
         student = request.user
@@ -411,7 +411,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record = student.get_high_school_student_record()
             except ImmersionUser.DoesNotExist:
                 messages.error(request, _("Invalid student id"))
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+                return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
         current_email = student.email
         try:
@@ -480,7 +480,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     if error.get("message"):
                         messages.error(request, error.get("message"))
     else:
-        request.session['back'] = request.META.get('HTTP_REFERER')
+        request.session['back'] = request.headers.get('Referer')
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
 
@@ -532,7 +532,7 @@ def student_record(request, student_id=None, record_id=None):
             student = ImmersionUser.objects.get(pk=student_id)
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("Invalid student id"))
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+            return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
     if request.user.is_student():
         student = request.user
@@ -574,7 +574,7 @@ def student_record(request, student_id=None, record_id=None):
                 record = student.get_student_record()
             except ImmersionUser.DoesNotExist:
                 messages.error(request, _("Invalid student id"))
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+                return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
         current_email = student.email
         recordform = StudentRecordForm(request.POST, instance=record, request=request)
@@ -609,7 +609,7 @@ def student_record(request, student_id=None, record_id=None):
                     if error.get("message"):
                         messages.error(request, error.get("message"))
     else:
-        request.session['back'] = request.META.get('HTTP_REFERER')
+        request.session['back'] = request.headers.get('Referer')
         recordform = StudentRecordForm(request=request, instance=record)
         studentform = StudentForm(request=request, instance=student)
 

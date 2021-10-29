@@ -3,7 +3,7 @@ import logging
 import requests
 from datetime import datetime
 
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django.shortcuts import redirect, render
 from immersionlyceens.decorators import groups_required
 

@@ -4,10 +4,10 @@ from decimal import Decimal
 from django import template
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from immersionlyceens.libs.utils import get_general_setting, get_information_text
 

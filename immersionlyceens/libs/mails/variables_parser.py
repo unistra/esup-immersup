@@ -3,7 +3,7 @@ import re
 
 from django.urls import reverse
 from django.utils.formats import date_format
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from immersionlyceens.apps.core.models import EvaluationFormLink, EvaluationType, Immersion, UniversityYear
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord

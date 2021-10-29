@@ -22,7 +22,7 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext, pgettext, ugettext_lazy as _
+from django.utils.translation import gettext, pgettext, gettext_lazy as _
 from rest_framework import generics, status
 
 """

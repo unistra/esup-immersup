@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.db import models
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.apps.core import models as core_models
 
 logger = logging.getLogger(__name__)

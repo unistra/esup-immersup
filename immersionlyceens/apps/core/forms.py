@@ -3,8 +3,8 @@ from datetime import datetime
 from django import forms
 from django.conf import settings
 from django.forms.widgets import DateInput, TimeInput
-from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ungettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ..immersion.forms import StudentRecordForm

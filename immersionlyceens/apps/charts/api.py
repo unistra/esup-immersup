@@ -7,7 +7,7 @@ from functools import reduce
 from django.db.models import Q
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
