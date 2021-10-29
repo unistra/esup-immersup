@@ -1032,7 +1032,19 @@ class Course(models.Model):
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
-        unique_together = ('training', 'label')
+        # unique_together = ('training', 'label') # Obsolete and will soon be removed
+        constraints = [
+            models.UniqueConstraint(
+                fields=['highschool', 'training', 'label'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_highschool_course'
+            ),
+            models.UniqueConstraint(
+                fields=['structure', 'training', 'label'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_structure_course'
+            )
+        ]
         ordering = ['label', ]
 
 
