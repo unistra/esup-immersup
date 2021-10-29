@@ -6,26 +6,23 @@ import datetime
 import importlib
 import json
 import logging
+from itertools import permutations
 import django_filters.rest_framework
 
-from functools import reduce
-from itertools import permutations
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core import serializers
 from django.core.validators import validate_email
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.formats import date_format
-from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
 
-from rest_framework import generics, status
+from rest_framework import generics
 """
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -38,7 +35,8 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, Vacation
 )
 
-from immersionlyceens.apps.core.serializers import CampusSerializer, EstablishmentSerializer
+from immersionlyceens.apps.core.serializers import (CampusSerializer, EstablishmentSerializer,
+    TrainingHighSchoolSerializer)
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
@@ -2034,3 +2032,25 @@ class GetEstablishment(generics.RetrieveAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     queryset = Establishment.objects.all()
     lookup_field = "id"
+
+
+class TrainingHighSchoolList(generics.ListAPIView):
+    """Training highschool list"""
+    serializer_class = TrainingHighSchoolSerializer
+    filterset_fields = ("highschool",)
+
+    def get_queryset(self):
+        """
+        Return user highschool is you are a REF-ETAB,
+        if you are REF-ETAB-MAITRE you can get every HS or get a specified HS
+        :return:
+        """
+        if self.request.user.is_authenticated:
+            if self.request.user.is_master_establishment_manager():
+                pk: str = self.request.query_params.get("pk")
+                if pk is None:
+                    return Training.objects.filter(highschool__isnull=False)
+                else:
+                    return Training.objects.filter(highschool__in=pk)
+            elif self.request.user.is_establishment_manager():
+                return Training.objects.filter(highschool=self.request.user.highschool)
