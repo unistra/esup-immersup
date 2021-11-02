@@ -42,4 +42,5 @@ urlpatterns = [
 
     path("training", views.TrainingList.as_view(), name="training_list"),
     path("training/add", views.TrainingAdd.as_view(), name="training_add"),
+    path("training/<int:pk>/update", views.TrainingUpdate.as_view(), name="training_update"),
 ]

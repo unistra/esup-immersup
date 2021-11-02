@@ -917,10 +917,33 @@ class TrainingAdd(generic.CreateView):
         return kw
 
     def form_valid(self, form):
-        messages.success(self.request, _("Training %s created.") % "")
+        messages.success(self.request, _("Training %s created.") % str(form.instance))
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        print(form.errors)
         messages.error(self.request, _("Training not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+class TrainingUpdate(generic.UpdateView):
+    form_class = TrainingFormHighSchool
+    template_name: str = "core/training/training.html"
+
+    queryset = Training.objects.filter(highschool__isnull=False)
+
+    def get_success_url(self) -> str:
+        return reverse("training_list")
+
+    def get_form_kwargs(self) -> Dict[str, Any]:
+        kw: Dict[str, Any] = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Training \"%s\" updated.") % str(form.instance))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Training \"%s\" not updated.") % str(form.instance))
         return super().form_invalid(form)
