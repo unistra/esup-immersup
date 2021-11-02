@@ -77,39 +77,32 @@
 
 <script type="text/javascript">
   let dt;
-  let updatable = "{{ can_update_courses }}";
+  let updatable = "{{ can_update }}";
   let feedback;
   let current_structure_id;
   let duplicate_text = "{% trans 'Duplicate' %}";
   let delete_text = "{% trans 'Delete' %}";
   let conformDialog;
 
-
   function delete_training(training_id) {
     var csrftoken = getCookie('csrftoken');
 
     $.ajax({
-      beforeSend: function (request) {
-        request.setRequestHeader("X-CSRFToken", csrftoken);
-      },
+      beforeSend: (request) => { request.setRequestHeader("X-CSRFToken", csrftoken)},
 
-      url: "/api/training/" + training_id + "/delete",
+      url: "/api/training/" + training_id,
       type: "DELETE",
-      data: {
-        course_id: course_id,
-      },
 
-      success: function (json) {
+      success: (json) =>  {
         let msg = json['msg'];
         let error = json['error'];
 
         if(error != '') {
           feedback.trigger("showFeedback", [[error, "danger"]]);
-        }
-        else if(msg != '') {
+        } else if(msg != '') {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
-
+        
         // todo:
         // dt.ajax.url("/api/get_courses/" + $('#strs option:selected').val() + "/").load();
       },
@@ -140,7 +133,7 @@
           "class": 'dialog-button',
           click: function () {
             // todo:
-            // delete_course($("#confirm-dialog-form").data('course_id'));
+            delete_training($("#confirm-dialog-form").data('training_id'));
             confirmDialog.dialog("close");
           },
         },
@@ -174,28 +167,37 @@
           url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
       },
       'columns': [
-          { "data": "label" },
-          { "data": "training_subdomains",
-            "render": function (data, type, row) {
+          {
+              data: "label",
+              render: (data, type, row) => {
+                  return '<a href="/core/training/' + row.id + '/update">' + data + '</a>'
+              }
+          },
+          { data: "training_subdomains",
+            render: function (data, type, row) {
               return "<ul>" + data.map(({label}) => "<li>" + label + "</li>").join("") + "</ul>"
             },
           },
-          { "data": "highschool",
-            "render": (data, type, row) => {
+          { data: "highschool",
+            render: (data, type, row) => {
               return "" + data.label
             },
           },
           {
-              "data": "active",
-              "render": (data, type, row) => {
+              data: "active",
+              render: (data, type, row) => {
                   return  data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
               }
           },
           {
-              "data": "",
-              "render": function (data, type, row) {
-                  return "CC"
+              data: "",
+              render: function (data, type, row) {
+                  let icons = '<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data(\'training_id\', '+row.id+').dialog(\'open\')" title="{% trans 'Delete' %}">'+
+                       '<i class="fa fas fa-trash fa-2x"></i>' +
+                     '</button>'
+                return icons
               }
+
           }
       ],
       "columnDefs": [
