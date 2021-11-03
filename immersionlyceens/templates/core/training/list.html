@@ -37,16 +37,23 @@
         </div>
       </div>
       {% endif %}
-      <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
-        <label for="strs">{% trans 'Select a structure' %} :</label>
-        <select id="strs">
-          {% for structure in structures %}
-            <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
-              {{ structure.code }} - {{ structure.label }}
-            </option>
-          {% endfor %}
+
+      {% if user.is_master_establishment_manager %}
+
+        <div class="str_filter" style="padding-bottom:10px; padding-top:20px;">
+          <label for="hs">{% trans "Select an highschool" %} :</label>
+          <select name="highschool" id="hs">
+            {% for highschool in highschools %}
+              <option value="{{ highschool.id }}">{{ highschool }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% else %}
+        <select name="highschool" id="hs" hidden>
+          <option value="{{ user.highschool.id }}" SELECTED>{{ user.highschool }}</option>
         </select>
-      </div>
+      {% endif %}
+
       <div class="table-responsive">
         <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
@@ -97,14 +104,15 @@
         let msg = json['msg'];
         let error = json['error'];
 
+        console.log(json)
+
         if(error != '') {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         } else if(msg != '') {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
-        
-        // todo:
-        // dt.ajax.url("/api/get_courses/" + $('#strs option:selected').val() + "/").load();
+
+        dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
       },
       error: function (e) {
         obj = JSON.stringify(e);

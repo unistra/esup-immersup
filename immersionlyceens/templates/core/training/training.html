@@ -28,25 +28,30 @@
 
       <form class="" role="form" action="/core/training/{% if training %}{{ training.id }}/update{% else %}add{% endif %}" method="POST">
       {% csrf_token %}
-        {{ form.id }}
+      {{ form.id }}
 
-        <!-- highschool -->
-        {% if user.is_master_establishment_manager %}
-          <div class="form-group row">
-            <label for="highschool" class="col-sm-3 col-form-label">
-              <i class="fa fas fa-asterisk"></i>
-              {% trans 'Highschool' %} :
-            </label>
-            <div class="col-sm-3">
-              {{ form.highschool }}
-            </div>
-            <div class="col-sm-6">
-              {{ form.highschool.errors }}
-            </div>
+      <!-- highschool -->
+      {% if user.is_master_establishment_manager %}
+        <div class="form-group row">
+          <label for="highschool" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Highschool' %} :
+          </label>
+          <div class="col-sm-3">
+            <select name="highschool" id="id_highschool" class="form-control" required>
+              <option value="">-------------</option>
+              {% for hs in highschools %}
+                <option value="{{ hs.id }}">{{ hs }}</option>
+              {% endfor %}
+            </select>
           </div>
-        {% else %}
-          <input type="hidden" name="highschool" value="{{ user.highschool.id }}">
-        {% endif %}
+          <div class="col-sm-6">
+            {{ form.highschool.errors }}
+          </div>
+        </div>
+      {% else %}
+        <input type="hidden" name="highschool" id="id_highschool" value="{{ user.highschool.id }}" required>
+      {% endif %}
 
         <!-- label -->
         <div class="form-group row">
