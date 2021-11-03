@@ -18,6 +18,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
+from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, pgettext
 from django.utils.translation import ugettext_lazy as _
@@ -2054,3 +2055,26 @@ class TrainingHighSchoolList(generics.ListAPIView):
                     return Training.objects.filter(highschool__in=pk)
             elif self.request.user.is_establishment_manager():
                 return Training.objects.filter(highschool=self.request.user.highschool)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+class TrainingView(generics.DestroyAPIView):
+    """Training hs delete class"""
+    serializer_class = TrainingHighSchoolSerializer
+
+    def delete(self, request, *args, **kwargs):
+        a = super().delete(request, *args, **kwargs)
+
+        return JsonResponse(data={
+            "msg": _("Training #%s deleted") % kwargs["pk"],
+        })
+
+    def get_queryset(self):
+        if self.request.user.is_master_establishment_manager():
+            pk: str = self.request.query_params.get("pk")
+            if pk is None:
+                return Training.objects.filter(highschool__isnull=False)
+            else:
+                return Training.objects.filter(highschool__in=pk)
+        elif self.request.user.is_establishment_manager():
+            return Training.objects.filter(highschool=self.request.user.highschool)
