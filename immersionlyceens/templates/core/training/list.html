@@ -42,7 +42,7 @@
 
         <div class="str_filter" style="padding-bottom:10px; padding-top:20px;">
           <label for="hs">{% trans "Select an highschool" %} :</label>
-          <select name="highschool" id="hs">
+          <select name="highschool" id="hs" class="form-control col-xl-3 col-sm-6 col-md-6">
             <option value="" selected>----------</option>
             {% for highschool in highschools %}
               <option value="{{ highschool.id }}">{{ highschool }}</option>
@@ -59,10 +59,10 @@
         <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
           <tr>
-            <th><span id="published_filter">{% trans 'Label' %}</span></th>
-            <th><span id="training_filter">{% trans 'Subdomains' %}</span></th>
-            <th><span id="managed_by_filter">{% trans 'High school' %}</span></th>
-            <th><span id="label_filter">{% trans 'active' %}</span></th>
+            <th><span id="label_filter">{% trans 'Label' %}</span></th>
+            <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
+            <th><span id="hs_filter">{% trans 'High school' %}</span></th>
+            <th><span id="active_filter">{% trans 'active' %}</span></th>
             <th></th>
           </tr>
         </thead>
@@ -217,6 +217,41 @@
     $('#hs').change(() => {
       dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
     });
+
+
+
+    // Filters init
+    yadcf.init(dt, [{
+        column_number: 0,
+        filter_default_label: "",
+        filter_container_id: "label_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 1,
+        filter_default_label: "",
+        filter_container_id: "subdomain_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 2,
+        filter_default_label: "",
+        filter_container_id: "hs_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 3,
+        filter_default_label: "",
+        filter_container_id: "active_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+    ]);
+
+
   })
 
 </script>
