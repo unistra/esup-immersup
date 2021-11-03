@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -895,10 +895,12 @@ class TrainingList(generic.TemplateView):
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context: Dict[str, Any] = super().get_context_data(**kwargs)
-        print(self.request.user)
         context["can_update"] = self.request.user.is_master_establishment_manager()\
                     or self.request.user.is_establishment_manager()\
                     or self.request.user.is_superuser()
+
+        if self.request.user.is_master_establishment_manager():
+            context["highschools"] = HighSchool.objects.filter(postbac_immersion=True).order_by("city", "label")
 
         return context
 
@@ -910,6 +912,12 @@ class TrainingAdd(generic.CreateView):
 
     def get_success_url(self) ->  str:
         return reverse("training_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_master_establishment_manager():
+            context["highschools"] = HighSchool.objects.filter(postbac_immersion=True).order_by("city", "label")
+        return context
 
     def get_form_kwargs(self) -> Dict[str, Any]:
         kw: Dict[str, Any] = super().get_form_kwargs()
