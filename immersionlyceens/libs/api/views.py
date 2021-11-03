@@ -2048,11 +2048,13 @@ class TrainingHighSchoolList(generics.ListAPIView):
         """
         if self.request.user.is_authenticated:
             if self.request.user.is_master_establishment_manager():
-                pk: str = self.request.query_params.get("pk")
+                print(self.kwargs)
+                pk: str = self.kwargs.get("pk")
+                print(pk)
                 if pk is None:
                     return Training.objects.filter(highschool__isnull=False)
                 else:
-                    return Training.objects.filter(highschool__in=pk)
+                    return Training.objects.filter(highschool__id=pk)
             elif self.request.user.is_establishment_manager():
                 return Training.objects.filter(highschool=self.request.user.highschool)
 

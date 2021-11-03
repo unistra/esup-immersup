@@ -43,6 +43,7 @@
         <div class="str_filter" style="padding-bottom:10px; padding-top:20px;">
           <label for="hs">{% trans "Select an highschool" %} :</label>
           <select name="highschool" id="hs">
+            <option value="" selected>----------</option>
             {% for highschool in highschools %}
               <option value="{{ highschool.id }}">{{ highschool }}</option>
             {% endfor %}
@@ -104,8 +105,6 @@
         let msg = json['msg'];
         let error = json['error'];
 
-        console.log(json)
-
         if(error != '') {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         } else if(msg != '') {
@@ -122,10 +121,9 @@
   }
 
   $(document).ready(() => {
-     initFeedback();
+    initFeedback();
     feedback = $("#feedback");
     // current_structure_id = $('#strs option:selected').val();
-
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
@@ -140,7 +138,6 @@
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            // todo:
             delete_training($("#confirm-dialog-form").data('training_id'));
             confirmDialog.dialog("close");
           },
@@ -158,10 +155,10 @@
 
     dt = $('#training_table').DataTable({
       'processing': false,
-      // 'order': [
-      //     [1, "asc"],
-      //     [2, "asc"]
-      //  ],
+      'order': [
+          [0, "asc"], // label
+          [2, "asc"]  // high school label
+       ],
       'pageLength': 15,
       'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
@@ -200,10 +197,11 @@
           {
               data: "",
               render: function (data, type, row) {
-                  let icons = '<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data(\'training_id\', '+row.id+').dialog(\'open\')" title="{% trans 'Delete' %}">'+
+                  let delete_text = "{% trans 'Delete' %}"
+                  let icons = '<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data(\'training_id\', '+row.id+').dialog(\'open\')" title="'+ delete_text +'">'+
                        '<i class="fa fas fa-trash fa-2x"></i>' +
                      '</button>'
-                return icons
+                  return icons
               }
 
           }
@@ -216,6 +214,9 @@
       ],
     });
 
+    $('#hs').change(() => {
+      dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
+    });
   })
 
 </script>
