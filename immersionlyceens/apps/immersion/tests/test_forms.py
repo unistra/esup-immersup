@@ -115,7 +115,7 @@ class FormTestCase(TestCase):
 
     def test_HighSchoolStudentRecordManagerForm(self):
         """
-        Test Evaluation form link creation
+        Test High school student record manager form
         """
         data = {
             'highschool': self.high_school,
@@ -125,7 +125,4 @@ class FormTestCase(TestCase):
             'student': self.high_school.id
         }
         form = HighSchoolStudentRecordManagerForm(data=data, instance=self.hs_record)
-        # print(form.is_valid())
-        # print(form.errors)
-
         self.assertTrue(form.is_valid())

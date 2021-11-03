@@ -6,7 +6,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -129,7 +129,14 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         'destruction_date',
     ]
 
-    list_filter = ('is_staff', 'is_superuser', ActivationFilter, 'groups')
+    list_filter = (
+        'is_staff',
+        'is_superuser',
+        ActivationFilter,
+        ('groups', RelatedDropdownFilter),
+        ('establishment', RelatedDropdownFilter),
+        ('highschool', RelatedDropdownFilter),
+    )
 
     def get_activated_account(self, obj):
         if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student()):
@@ -159,8 +166,18 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         ),
     )
 
+    high_school_manager_add_fieldsets = (
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': ('email', 'first_name', 'last_name',),
+            },
+        ),
+    )
+
     def __init__(self, model, admin_site):
-        super(CustomUserAdmin, self).__init__(model, admin_site)
+        super().__init__(model, admin_site)
         self.form.admin_site = admin_site
 
     def get_actions(self, request):
@@ -178,6 +195,15 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
         if request.user.is_superuser:
             return qs
+
+        # Users are not allowed to modify their own account
+        qs = qs.exclude(id=request.user.id)
+
+        if request.user.is_establishment_manager():
+            es = request.user.establishment
+            return qs.filter(
+                Q(structures__establishment=es)|Q(establishment=es)|Q(establishment__isnull=True)
+            )
 
         if request.user.is_high_school_manager():
             return qs.filter(groups__name__in=['INTER'], highschool=request.user.highschool)
@@ -208,7 +234,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not (set(x for x in user_groups) - set(rights))
+                return not ({x for x in user_groups} - set(rights))
 
             if request.user.is_high_school_manager():
                 user_groups = obj.groups.all().values_list('name', flat=True)
@@ -219,22 +245,23 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                     messages.warning(request, no_delete_msg)
                     return False
 
-                return not (set(x for x in user_groups) - set(rights))
+                return not ({x for x in user_groups} - set(rights))
 
             messages.warning(request, no_delete_msg)
 
             return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
         if obj:
-            if request.user.is_superuser or request.user == obj:
-                return True
-            elif obj.is_superuser:
+            if obj.is_superuser:
                 return False
 
             # When creating a user, the group is not here yet
             if request.user.is_master_establishment_manager():
-                return obj.establishment and not obj.establishment.master
+                return not obj.is_master_establishment_manager()
 
             # A user can only be updated if not superuser and the authenticated user has
             # rights on ALL his groups
@@ -242,7 +269,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
 
-                if not (set(x for x in user_groups) - set(rights)):
+                if not ({x for x in user_groups} - set(rights)):
                     return True
 
             if request.user.is_high_school_manager():
@@ -250,7 +277,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
                 highschool_condition = obj.highschool == request.user.highschool
 
-                return highschool_condition and not (set(x for x in user_groups) - set(rights))
+                return highschool_condition and not ({x for x in user_groups} - set(rights))
 
             return False
 
@@ -276,10 +303,15 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         # On user change, add structures in permissions fieldset
         # after Group selection
         if not obj:
+            if not request.user.is_superuser:
+                if request.user.is_high_school_manager():
+                    return self.high_school_manager_add_fieldsets
+
             return super().get_fieldsets(request, obj)
         else:
             lst = list(UserAdmin.fieldsets)
             permissions_fields = list(lst[2])
+
             permissions_fields_list = list(permissions_fields[1]['fields'])
             permissions_fields_list.insert(4, 'establishment')
             permissions_fields_list.insert(5, 'structures')
@@ -402,8 +434,14 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return qs
 
+
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_establishment_manager():
+        if not any([request.user.is_superuser,request.user.is_establishment_manager(),
+                    request.user.is_master_establishment_manager()]):
+            return False
+
+        if obj and request.user.establishment and request.user.is_establishment_manager() and not \
+                request.user.establishment == obj.establishment:
             return False
 
         if obj and Building.objects.filter(campus=obj).exists():
@@ -616,6 +654,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
 
     list_filter = (
         'active',
+        ('structures__establishment', RelatedDropdownFilter),
         ('structures', RelatedDropdownFilter),
         ('training_subdomains', RelatedDropdownFilter),
     )
@@ -624,7 +663,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     search_fields = ('label',)
 
     def get_structures_list(self, obj):
-        return ["%s (%s)" % (s.code, s.establishment.code if s.establishment else '-')
+        return ["{} ({})".format(s.code, s.establishment.code if s.establishment else '-')
             for s in obj.structures.all().order_by('code')
         ]
 
@@ -1008,13 +1047,17 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'convention_start_date',
         'convention_end_date',
     )
-    list_filter = ('city',)
+    list_filter = (
+        'postbac_immersion',
+        ('city', DropdownFilter),
+    )
+
     ordering = ('label',)
     search_fields = ('label', 'city', 'head_teacher_name')
 
     def referents_list(self, obj):
         return [
-            "%s %s" % (user.last_name, user.first_name)
+            f"{user.last_name} {user.first_name}"
             for user in obj.highschool_referent.all().order_by('last_name', 'first_name')
         ]
 
@@ -1132,7 +1175,7 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
                 '<a href="{}">{}</a><br>',
                 (
                     (
-                        reverse('admin:{}_{}_change'.format(doc._meta.app_label, doc._meta.model_name), args=(doc.pk,)),
+                        reverse(f'admin:{doc._meta.app_label}_{doc._meta.model_name}_change', args=(doc.pk,)),
                         doc.label,
                     )
                     for doc in docs
@@ -1160,9 +1203,12 @@ class PublicDocumentAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     form = MailTemplateForm
-    list_display = ('code', 'label')
+    list_display = ('code', 'label', 'active')
     filter_horizontal = ('available_vars',)
     summernote_fields = ('body',)
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
 
     def has_delete_permission(self, request, obj=None):
         # Only a superuser can delete a template
@@ -1199,6 +1245,12 @@ class EvaluationFormLinkAdmin(AdminWithRequest, admin.ModelAdmin):
         "url",
     )
     ordering = ('evaluation_type',)
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:

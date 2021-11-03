@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Url configuration for the core application API
 """
@@ -24,10 +22,15 @@ urlpatterns = [
     path('my_students', views.my_students, name='my_students'),
     path('mycourses/', views.mycourses, name='mycourses'),
     path('myslots/', views.myslots, name='myslots'),
-    path('slot/add', views.add_slot, name='add_slot'),
-    path('slot/add/<int:slot_id>', views.add_slot, name='duplicate_slot'),
+
+    path('slot', views.slot, name='slot'),
+    path('slot/<int:slot_id>', views.slot, name='modify_slot'),
+    path('slot/<int:slot_id>/<int:duplicate>', views.slot, name='duplicate_slot'),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
-    path('slot/modify/<int:slot_id>', views.modify_slot, name='modify_slot'),
+
+    # path('slot/add', views.add_slot, name='add_slot'),
+    # path('slot/add/<int:slot_id>', views.add_slot, name='duplicate_slot'),
+    # path('slot/modify/<int:slot_id>', views.modify_slot, name='modify_slot'),
 
     path('slots/<int:str_id>/<int:train_id>', views.slots_list, name='slots_list'),
     path('slots/<int:str_id>', views.slots_list, name='slots_list'),

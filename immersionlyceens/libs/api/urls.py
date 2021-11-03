@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Url configuration for the core application API
 """
@@ -19,6 +17,7 @@ urlpatterns = [
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
     path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
     path('get_agreed_highschools', views.ajax_get_agreed_highschools, name='GetAgreedHighSchools'),
+    path('get_immersions_proposal_establishments', views.ajax_get_immersions_proposal_establishments, name='GetImmersionsProposalEstablishments'),
     path('get_alerts', views.ajax_get_alerts, name='get_alerts'),
     path('get_available_documents/', views.ajax_get_documents, name='get_available_documents'),
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),
@@ -31,8 +30,9 @@ urlpatterns = [
         name='get_courses_training',
     ),
     path('get_courses_by_training/<int:training_id>', views.ajax_get_courses_by_training, name='get_courses_training',),
-    path('get_courses/<int:structure_id>/', views.ajax_get_courses, name='GetCourses'),
-    path('get_courses/<int:structure_id>/', views.ajax_get_courses, name='GetCourses'),
+    # path('get_courses/<int:structure_id>/', views.ajax_get_courses, name='GetCourses'),
+    path('get_courses/', views.ajax_get_courses, name='GetCourses'),
+
     path('get_csv_anonymous_immersion/', views.get_csv_anonymous_immersion, name='get_csv_anonymous_immersion'),
     path('get_csv_structures/<int:structure_id>', views.get_csv_structures, name='get_csv_structures'),
     path('get_csv_highschool/<int:high_school_id>', views.get_csv_highschool, name='get_csv_highschool'),
@@ -46,9 +46,9 @@ urlpatterns = [
     path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
     path('get_immersions/<int:user_id>', views.ajax_get_immersions, name='get_immersions',),
     path('get_immersions/<int:user_id>/<immersion_type>', views.ajax_get_immersions, name='get_immersions',),
-    path('get_my_courses/<int:user_id>/', views.ajax_get_my_courses, name='GetMyCourses'),
-    path('get_my_slots/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlots'),
-    path('get_my_slots/all/<int:user_id>/', views.ajax_get_my_slots, name='GetMySlotsAll'),
+    path('get_my_courses', views.ajax_get_my_courses, name='GetMyCourses'),
+    path('get_my_slots', views.ajax_get_my_slots, name='GetMySlots'),
+    path('get_my_slots/all', views.ajax_get_my_slots, name='GetMySlotsAll'),
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),
@@ -75,10 +75,14 @@ urlpatterns = [
     path('set_course_alert', views.ajax_set_course_alert, name='set_course_alert'),
     path('validate_student/', views.ajax_validate_student, name='validateStudent'),
 
+    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
+
+    # DRF
     path('campuses/', views.CampusList.as_view(), name='campus_list'),
     path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),
     path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_list'),
 
-
-    path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
+    path('structures/', views.StructureList.as_view(), name='structure_list'),
+    path('courses/', views.CourseList.as_view(), name='course_list'),
+    path('buildings/', views.BuildingList.as_view(), name='building_list'),
 ]

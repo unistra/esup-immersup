@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import os
 import re
 from os.path import abspath, basename, dirname, join, normpath
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 ######################
 # Path configuration #
@@ -466,7 +464,7 @@ ADMIN_MODELS_ORDER = {
 # DO NOT EDIT
 HAS_RIGHTS_ON_GROUP = {
     'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
-    'REF-ETAB': ['REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
+    'REF-ETAB': ['REF-STR', 'SRV-JUR', 'INTER'],
     'REF-LYC': ['INTER']
 }
 

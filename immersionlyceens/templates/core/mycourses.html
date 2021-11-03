@@ -31,7 +31,13 @@
           <thead>
             <tr>
               <th id="published_filter" class="w-5">{% trans 'Published' %}</th>
-              <th id="structure_filter">{% trans 'Structure' %}</th>
+              <th id="structure_filter">
+                {% if request.user.highschool %}
+                    {% trans 'Highschool' %}
+                {% else %}
+                    {% trans 'Structure' %}
+                {% endif %}
+              </th>
               <th id="training_filter">{% trans 'Training' %}</th>
               <th id="label_filter">{% trans 'Label' %}</th>
               <th id="speaker_filter">{% trans 'Speakers' %}</th>
@@ -56,10 +62,8 @@
   </div>
 </div>
 <script type="text/javascript">
-  var user_id = "{{ request.user.id }}";
-
   $(document).ready(function () {
-    var dt = $('#courses_table').DataTable({
+    let dt = $('#courses_table').DataTable({
       'processing': false,
       'order': [
         [1, "asc"]
@@ -69,9 +73,9 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_my_courses/" + user_id + "/",
+        url: "/api/get_my_courses",
           dataSrc: function (json) {
-            if (json['data'] != undefined) {
+            if (json['data'] !== undefined) {
               return json['data'];
             }
           }
@@ -84,6 +88,7 @@
     {
       "data": "published",
       "render": function (data) {
+        let txt = ""
         if (data) {
           txt = "{% trans 'Yes' %}";
         }
@@ -94,7 +99,7 @@
         return txt;
       },
     },
-    { "data": "structure" },
+    { "data": "managed_by" },
     { "data": "training_label" },
     { "data": "label" },
     {

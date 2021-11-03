@@ -3,7 +3,7 @@ import sys
 import logging
 from ldap3 import Connection, Server, SUBTREE, ALL
 from django.conf import settings
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
 
 from immersionlyceens.apps.core.models import Establishment

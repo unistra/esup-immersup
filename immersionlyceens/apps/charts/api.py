@@ -7,7 +7,7 @@ from functools import reduce
 from django.db.models import Q
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 
@@ -260,7 +260,7 @@ def get_charts_filters_data(request):
             'institution_id': highschool.id,
             'type': _('Highschool'),
             'type_code': 0,
-            'city': "%s - %s" % (highschool.zip_code, highschool.city),
+            'city': f"{highschool.zip_code} - {highschool.city}",
             'department': "%s" % highschool.zip_code[0:2], # Todo add departments model somewhere
             'country': '',
         }
@@ -285,7 +285,7 @@ def get_charts_filters_data(request):
         institution = higher_institutions_uai.get(uai_code, None)
         if institution:
             institution_data['institution'] = institution.label
-            institution_data['city'] = "%s - %s" % (institution.zip_code, institution.city),
+            institution_data['city'] = f"{institution.zip_code} - {institution.city}",
             institution_data['department'] = institution.department,
             institution_data['country'] = institution.country,
         else:
@@ -578,7 +578,7 @@ def get_registration_charts_cats(request):
             hei = HigherEducationInstitution.objects.get(pk=uai_code)
             label = hei.label
         except HigherEducationInstitution.DoesNotExist:
-            label = "%s (%s)" % (uai_code, gettext("no name match yet"))
+            label = "{} ({})".format(uai_code, gettext("no name match yet"))
 
         dataset_pr = {'name': label}
         dataset_oi = {'name': label}

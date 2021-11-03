@@ -31,7 +31,37 @@
       <form class="" role="form" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
       {% csrf_token %}
         {{ course_form.id }}
-        <div class="form-group row">
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        <div class="form-group row" id="id_div_establishment">
+          <label for="id_establishment" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Establishment' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ course_form.establishment }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.establishment.errors }}
+          </div>
+        </div>
+        {% endif %}
+        <div class="form-group row" id="id_div_highschool">
+          <label for="id_highschool" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% if request.user.is_master_establishment_manager %}
+                <strong>{% trans 'or' %} </strong>
+            {% endif %}
+            {% trans 'high school' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ course_form.highschool }}
+          </div>
+          <div class="col-sm-6">
+            {{ course_form.highschool.errors }}
+          </div>
+        </div>
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
             {% trans 'Structure' %} :
@@ -43,6 +73,7 @@
             {{ course_form.structure.errors }}
           </div>
         </div>
+        {% endif %}
         <div class="form-group row">
           <label for="id_training" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -120,50 +151,73 @@
   var json_results;
   var query_order = 0;
   var training_id = "{{ course_form.training.value }}";
+  var structure_id = "{{ course_form.structure.value }}" ;
   var can_update = "{{ update_rights }}";
+  var establishment_id = "{{ course_form.establishment.initial }}";
+  var highschool_id = "{{ course_form.highschool.id }}";
 
   {% autoescape on %}
   var speakers_array = {{ speakers|safe }};
   {% endautoescape %}
 
-  function set_trainings(cmp_id) {
+  function set_structures(estab_id) {
     $.ajax({
-      url: "{% url 'GetTrainings' %}",
-      type: 'POST',
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
       data: {
-        'structure_id': cmp_id,
+        'establishment': estab_id,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        if(json["data"] != 'undefined') {
-          var trainings_list = [];
-          $.each(json["data"], function(i, item) {
-            trainings_list.push(item["id"]);
-          });
-
-          $("#id_training").children().each(function() {
-            var $this = $(this);
-            var opt_value = parseInt($this.val());
-
-            if($.inArray(opt_value, trainings_list) == -1) {
-              $this.hide();
-              // Forget the current training_id if it is hidden
-              if(training_id == opt_value) {
-                training_id = "";
-              }
-            }
-            else {
-              $this.show();
-            }
-          });
-
-          if(training_id) {
-            $("#id_training").val(training_id);
-          }
-          else {
-            $("#id_training").val($("#id_training option:first").val());
-          }
+        let options = '<option value="">---------</option>'
+        for (let i = 0; i < json.length; i++) {
+          let selected = json[i]['id'] === parseInt(structure_id) ? "selected='selected'" : ""
+          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['code']} - ${json[i]['label']}</option>`
         }
+        $('select#id_structure').html(options)
+
+        if(structure_id) {
+          $("#id_structure").val(structure_id);
+        }
+        else {
+          $("#id_structure").val($("#id_structure option:first").val());
+        }
+
+        $("#id_div_structure").show()
+        $("#id_div_highschool").hide()
+      }
+    })
+  }
+
+  function empty_structures() {
+      let options = '<option value="">---------</option>'
+      $('select#id_structure').html(options)
+      structure_id = ''
+      $("#id_div_structure").hide()
+  }
+
+  function empty_trainings() {
+      let options = '<option value="">---------</option>'
+      $('select#id_training').html(options)
+  }
+
+  function set_trainings(type, object_id) {
+    /* Type is either 'structure' or 'highschool' */
+    $.ajax({
+      url: "{% url 'GetTrainings' %}",
+      data: {
+        'type': type,
+        'object_id': object_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+        for (let i = 0; i < json['data'].length; i++) {
+          let selected = json['data'][i]['id'] === parseInt(training_id) ? "selected='selected'" : ""
+          options += `<option value="${json['data'][i]['id']}" ${selected}>${json['data'][i]['label']}</option>`
+        }
+
+        $('select#id_training').html(options)
       }
     })
   }
@@ -196,9 +250,46 @@
     refresh_speakers_list();
   };
 
+  $('#id_establishment').change( function() {
+    establishment_id = $('#id_establishment option:selected').val();
+    structure_id = ""
+
+    if (establishment_id !== "") {
+        highschool_id = ""
+        $('#id_highschool').val("")
+        set_structures(establishment_id);
+    }
+    else {
+        empty_structures()
+        $("#id_div_highschool").show()
+    }
+  });
+
   $('#id_structure').change( function() {
-    let cmp_id = $('#id_structure option:selected').val();
-    set_trainings(cmp_id);
+    structure_id = $('#id_structure option:selected').val()
+
+    if(structure_id !== '') {
+      set_trainings('structure', structure_id)
+    }
+    else {
+      empty_trainings()
+    }
+  });
+
+  $('#id_highschool').change( function() {
+    highschool_id = $('#id_highschool option:selected').val()
+
+    if (highschool_id !== "") {
+        empty_structures()
+        $('#id_establishment').val("")
+        $('#id_structure').val("")
+
+        $("#id_div_establishment").hide()
+    } else {
+        $("#id_div_establishment").show()
+    }
+
+    set_trainings('highschool', highschool_id)
   });
 
   $('#live_select').change(function () {
@@ -237,6 +328,8 @@
         data: {
           username: this.value,
           establishment_id: establishment_id,
+          structure_id: structure_id,
+          highschool_id: highschool_id,
           query_order: query_order
         },
 
@@ -258,9 +351,9 @@
 
             if (json['data'].length <= 1) {
               $('#live_select').empty();
-            } else {
+            }
+            else {
               json_results = json['data'];
-
               $('#live_select').empty().append(
                   "<option value='' disabled>" + "{% trans 'Select a person' %} ..." + "</option>"
               );
@@ -281,13 +374,62 @@
   });
 
   $(document).ready(function() {
-    set_trainings($('#id_structure option:selected').val());
+    // initialize base values
+    if(highschool_id === 'None' || highschool_id === "") {
+      highschool_id = $("#id_highschool").val()
+    }
+    else {
+        $("#id_highschool").val(highschool_id)
+    }
+
+    if(establishment_id === 'None' || establishment_id === "") {
+      establishment_id = $("#id_establishment").val()
+    }
+    else {
+        $("#id_establishment").val(establishment_id)
+    }
+
+    if(structure_id === 'None' || structure_id === "") {
+      structure_id = $("#id_structure").val()
+    }
+    else {
+        $("#id_structure").val(structure_id)
+    }
+
+    if(training_id === 'None' || training_id === "") {
+      training_id = $("#id_training").val()
+    }
+    else {
+        $("#id_training").val(training_id)
+    }
+
+    if(establishment_id === "" || establishment_id === undefined) {
+      structure_id = ""
+      empty_structures()
+      empty_trainings()
+      $("#id_div_highschool").show()
+    } else {
+      highschool_id = ""
+      set_structures($("#id_establishment").val())
+      $("#id_div_highschool").hide()
+    }
+
+    // Initialize trainings depending on structure / high school selection
+    if(highschool_id !== 'None' && highschool_id !== '' && highschool_id !== undefined) {
+      set_trainings('highschool', highschool_id)
+    }
+    else if (structure_id !== 'None' && structure_id !== '' && structure_id !== undefined) {
+      set_trainings('structure', structure_id)
+    }
+    else {
+      empty_trainings()
+    }
 
     if (speakers_array) {
       refresh_speakers_list();
     }
 
-    if (can_update == "False") {
+    if (can_update === "False") {
       $("#id_search_label").hide();
       $("#person_search").hide();
       $('input[name^="save"]').hide();

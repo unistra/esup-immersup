@@ -113,4 +113,16 @@ Docx file template:
 * slot_date   slot's date
 * start_time  slot's start time
 
+Remarque sur nginx:
+-------------------
+
+Si nginx est utilisé en frontal. On peut laisser l'application gêrer la taille maximale des fichiers en téléversement.
+Dans la directive server de la configuration du vhost:
+
+:code:`client_max_body_size 0;`
+
+Le paramètre pour la taille maximale (en octets) dans l'application se trouve dans settings/base.py:
+
+* MAX_UPLOAD_SIZE = 2621440
+
 

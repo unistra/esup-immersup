@@ -22,15 +22,16 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
-from django.template.defaultfilters import date as _date
-from django.utils.translation import pgettext, ugettext_lazy as _
+from django.template.defaultfilters import filesizeformat, date as _date
+from django.utils.translation import pgettext, gettext_lazy as _
+from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.validators import JsonSchemaValidator
 
 from .managers import (
     ActiveManager, CustomDeleteManager, HighSchoolAgreedManager,
-    StructureQuerySet,
+    StructureQuerySet, EstablishmentQuerySet
 )
 
 logger = logging.getLogger(__name__)
@@ -40,15 +41,17 @@ class Establishment(models.Model):
     """
     Establishment class : highest structure level
     """
-    TYPES = [
-        ('HIGHER_INST', _('Higher educational institution')),
-        ('HIGH_SCHOOL', _('High school')),
-    ]
-
     code = models.CharField(_("Code"), max_length=16, unique=True)
-    establishment_type = models.CharField(_("Type"), max_length=24, choices=TYPES, blank=False, null=False)
     label = models.CharField(_("Label"), max_length=256, unique=True)
     short_label = models.CharField(_("Short label"), max_length=64, unique=True)
+    address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
+    address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
+    address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)
+    department = models.CharField(_("Department"), max_length=128, blank=False, null=False)
+    city = UpperCharField(_("City"), max_length=255, blank=False, null=False)
+    zip_code = models.CharField(_("Zip code"), max_length=128, blank=False, null=False)
+    phone_number = models.CharField(_("Phone number"), max_length=20, null=False, blank=False)
+    fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     email = models.EmailField(_('Email'))
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
@@ -58,8 +61,12 @@ class Establishment(models.Model):
     )
     data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
 
+    objects = models.Manager()  # default manager
+    activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
+
     def __str__(self):
         return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
+
 
     class Meta:
         verbose_name = _('Establishment')
@@ -81,10 +88,10 @@ class Structure(models.Model):
     activated = ActiveManager.from_queryset(StructureQuerySet)()  # returns only activated structures
 
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
-        blank=False, null=True)
+        blank=False, null=True, related_name='structures')
 
     def __str__(self):
-        return "%s : %s" % (self.code, self.label)
+        return f"{self.code} : {self.label}"
 
 
     def validate_unique(self, exclude=None):
@@ -124,10 +131,11 @@ class HighSchool(models.Model):
     agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
 
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
+    immersions_proposal = PostBacImmersionManager()
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
 
     def __str__(self):
-        return "%s - %s" % (self.city, self.label)
+        return f"{self.city} - {self.label}"
 
     class Meta:
         verbose_name = _('High school')
@@ -184,7 +192,7 @@ class ImmersionUser(AbstractUser):
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
 
     def __str__(self):
-        return "%s %s" % (self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
+        return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
 
     def has_groups(self, *groups, negated=False):
         """
@@ -204,18 +212,23 @@ class ImmersionUser(AbstractUser):
         :param course_id: Course id
         :return: boolean
         """
-        if self.is_superuser or self.has_groups('REF-STR', 'REF-ETAB'):
+        if self.is_superuser or self.has_groups('REF-ETAB-MAITRE'):
             return True
 
         try:
             course = Course.objects.get(pk=course_id)
             course_structures = course.training.structures.all()
-
-            if course_structures & self.structures.all():
-                return True
-
         except Course.DoesNotExist:
             return False
+
+        valid_conditions = [
+            self.is_establishment_manager() and course_structures & self.establishment.structures.all(),
+            self.is_structure_manager() and course_structures & self.structures.all(),
+            self.is_high_school_manager() and self.highschool and self.highschool == course.highschool
+        ]
+
+        if any(valid_conditions):
+            return True
 
         return False
 
@@ -284,6 +297,16 @@ class ImmersionUser(AbstractUser):
             return self.student_record
         except ObjectDoesNotExist:
             return None
+
+    def get_authorized_structures(self):
+        if self.is_superuser or self.is_master_establishment_manager():
+            return Structure.activated.all()
+        if self.is_establishment_manager() and self.establishment:
+            return Structure.activated.filter(establishment=self.establishment)
+        if self.is_structure_manager():
+            return self.structures.all()
+
+        return Structure.objects.none()
 
     def set_validation_string(self):
         """
@@ -440,7 +463,7 @@ class TrainingSubdomain(models.Model):
 
     def __str__(self):
         domain = self.training_domain or _("No domain")
-        return "%s - %s" % (domain, self.label)
+        return f"{domain} - {self.label}"
 
 
     def validate_unique(self, exclude=None):
@@ -471,6 +494,10 @@ class Training(models.Model):
     )
     url = models.URLField(_("Website address"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
+
+    highschool = models.ForeignKey(HighSchool, verbose_name=_("High school"), blank=True, null=True,
+        on_delete=models.SET_NULL, related_name='trainings'
+    )
 
     def __str__(self):
         return self.label
@@ -530,7 +557,7 @@ class BachelorMention(models.Model):
 
     def validate_unique(self, exclude=None):
         try:
-            super(BachelorMention, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A bachelor mention with this label already exists'))
 
@@ -560,7 +587,7 @@ class Building(models.Model):
 
     def validate_unique(self, exclude=None):
         try:
-            super(Building, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A building with this label for the same campus already exists'))
 
@@ -588,7 +615,7 @@ class CancelType(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(CancelType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A cancel type with this label already exists'))
 
@@ -611,13 +638,13 @@ class CourseType(models.Model):
 
     def __str__(self):
         """str"""
-        return "%s (%s)" % (self.full_label, self.label)
+        return f"{self.full_label} ({self.label})"
 
 
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(CourseType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A course type with this label already exists'))
 
@@ -674,7 +701,7 @@ class PublicType(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(PublicType, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A public type with this label already exists'))
 
@@ -706,7 +733,7 @@ class UniversityYear(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(UniversityYear, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A university year with this label already exists'))
 
@@ -715,7 +742,7 @@ class UniversityYear(models.Model):
         if not UniversityYear.objects.filter(active=True).exists():
             self.active = True
 
-        super(UniversityYear, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
     def date_is_between(self, _date):
@@ -744,7 +771,7 @@ class Holiday(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(Holiday, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A holiday with this label already exists'))
 
@@ -777,7 +804,7 @@ class Vacation(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(Vacation, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A vacation with this label already exists'))
 
@@ -813,6 +840,7 @@ class Vacation(models.Model):
             return qs.first()
         else:
             return None
+
 
     class Meta:
         """Meta class"""
@@ -860,7 +888,7 @@ class Calendar(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(Calendar, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A calendar with this label already exists'))
 
@@ -922,8 +950,17 @@ class Course(models.Model):
     structure = models.ForeignKey(
         Structure,
         verbose_name=_("Structure"),
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="courses",
+    )
+
+    highschool = models.ForeignKey(
+        HighSchool,
+        verbose_name=_("High school"),
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="courses",
     )
@@ -1002,7 +1039,19 @@ class Course(models.Model):
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
-        unique_together = ('training', 'label')
+        # unique_together = ('training', 'label') # Obsolete and will soon be removed
+        constraints = [
+            models.UniqueConstraint(
+                fields=['highschool', 'training', 'label'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_highschool_course'
+            ),
+            models.UniqueConstraint(
+                fields=['structure', 'training', 'label'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_structure_course'
+            )
+        ]
         ordering = ['label', ]
 
 
@@ -1012,7 +1061,7 @@ class MailTemplateVars(models.Model):
 
 
     def __str__(self):
-        return "%s : %s" % (self.code, self.description)
+        return f"{self.code} : {self.description}"
 
     class Meta:
         verbose_name = _('Template variable')
@@ -1038,7 +1087,7 @@ class MailTemplate(models.Model):
 
 
     def __str__(self):
-        return "%s : %s" % (self.code, self.label)
+        return f"{self.code} : {self.label}"
 
 
     def parse_vars(self, user, request, **kwargs):
@@ -1126,8 +1175,11 @@ class AccompanyingDocument(models.Model):
         upload_to='uploads/accompanyingdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%(authorized_types)s)')
-        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
     )
 
 
@@ -1139,7 +1191,7 @@ class AccompanyingDocument(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(AccompanyingDocument, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('An accompanying document with this label already exists'))
 
@@ -1175,8 +1227,11 @@ class PublicDocument(models.Model):
         upload_to='uploads/publicdocs/%Y',
         blank=False,
         null=False,
-        help_text=_('Only files with type (%(authorized_types)s)')
-        % {'authorized_types': ','.join(settings.CONTENT_TYPES)},
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                   % {
+                        'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                        'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                   },
     )
     published = models.BooleanField(_("Published"), default=False)
 
@@ -1189,7 +1244,7 @@ class PublicDocument(models.Model):
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:
-            super(PublicDocument, self).validate_unique()
+            super().validate_unique()
         except ValidationError as e:
             raise ValidationError(_('A public document with this label already exists'))
 
@@ -1259,7 +1314,6 @@ class EvaluationFormLink(models.Model):
 
     url = models.URLField(_("Link"), max_length=256, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=False)
-
 
     def __str__(self):
         """str"""

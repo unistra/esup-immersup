@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 
 from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
@@ -37,7 +37,7 @@ class TypeFormMixin(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_superuser or user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -61,6 +61,12 @@ class CampusForm(forms.ModelForm):
         if self.fields.get("establishment") and not self.request.user.is_superuser \
                 and self.request.user.is_establishment_manager():
             self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.request.user.establishment.pk)
+
+        try:
+            if self.instance.establishment.id:
+                self.fields["establishment"].disabled = True
+        except (AttributeError, Establishment.DoesNotExist):
+            pass
 
     def clean(self):
         cleaned_data = super().clean()
@@ -103,7 +109,7 @@ class CampusForm(forms.ModelForm):
 
     class Meta:
         model = Campus
-        fields = '__all__'
+        fields = ('establishment', 'label', 'active')
 
 
 class CancelTypeForm(TypeFormMixin):
@@ -153,27 +159,33 @@ class TrainingSubdomainForm(forms.ModelForm):
 
 
 class BuildingForm(forms.ModelForm):
-    establishment = forms.TypedChoiceField()
+    establishment = forms.ModelChoiceField(
+        label=_("Establishment"),
+        queryset=Establishment.objects.none(),
+        required=True
+    )
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        self.fields['campus'].queryset = Campus.objects.order_by('label')
+        self.fields['campus'].queryset = Campus.objects.filter(active=True).order_by('label')
 
-        establishment_choices = [('', '---------'), ]
+        if not self.request.user.is_superuser:
+            if self.request.user.is_establishment_manager():
+                user_establishment = self.request.user.establishment
+                self.fields['establishment'].queryset = Establishment.objects.filter(pk=user_establishment.id)
+                self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
+            elif self.request.user.is_master_establishment_manager():
+                self.fields['establishment'].queryset = Establishment.objects.all()
 
-        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
-            user_establishment = self.request.user.establishment
+            if self.instance and self.instance.pk and self.instance.campus and self.instance.campus.establishment:
+                self.fields['establishment'].disabled = True
 
-            establishment_choices.append((user_establishment.id, user_establishment))
-            self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
-        else:
-            establishment_choices += [(e.id, e) for e in Establishment.objects.filter(active=True)]
-            self.fields['campus'].queryset = Campus.objects.filter(active=True)
-
-        self.fields['establishment'] = forms.TypedChoiceField(
-            label=_("Establishment"), widget=forms.Select(), choices=establishment_choices, required=False
-        )
+        try:
+            self.fields['establishment'].initial = self.instance.campus.establishment
+        except (Campus.DoesNotExist, Establishment.DoesNotExist):
+            # No initial value
+            pass
 
     def clean(self):
         cleaned_data = super().clean()
@@ -208,15 +220,13 @@ class TrainingForm(forms.ModelForm):
         )
 
         if self.request.user.is_establishment_manager():
-            self.fields['structures'].queryset = self.fields['structures'].queryset\
-                .filter(establishment=self.request.user.establishment)\
-                .order_by('code', 'label')
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
                 .filter(postbac_immersion=True)
-        else:
-            self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
+        elif self.request.user.is_establishment_manager():
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
                 .filter(id=self.request.user.highschool.id, postbac_immersion=True)
+
+        self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 
     @staticmethod
     def clean_highscool_or_structure(cleaned_data: Dict[str, Any]):
@@ -237,6 +247,9 @@ class TrainingForm(forms.ModelForm):
         except AttributeError:
             pass
 
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
         self.clean_highscool_or_structure(cleaned_data)
 
         # Check label uniqueness within the same establishment
@@ -256,8 +269,14 @@ class TrainingForm(forms.ModelForm):
                 self._errors["label"] = forms.utils.ErrorList()
             self._errors['label'].append(self.error_class([msg]))
 
-        if not valid_user:
-            raise forms.ValidationError(_("You don't have the required privileges"))
+        # Check structures : if user = establishment manager, we should have at least one
+        # structure from its establishment
+        if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
+            if not Establishment.objects.filter(
+                pk=self.request.user.establishment.id,
+                structures__in=cleaned_data.get("structures")
+            ).exists():
+                self.add_error('structures', _("At least one structure has to belong to your own establishment"))
 
         return cleaned_data
 
@@ -370,7 +389,7 @@ class StructureForm(forms.ModelForm):
         if self.initial:
             self.fields["code"].disabled = True
             self.fields["establishment"].disabled = True
-            self.fields["establishment"].help_text = _("The establishement cannot be updated")
+            self.fields["establishment"].help_text = _("The establishment cannot be updated")
 
         if self.fields.get("establishment") and not self.request.user.is_superuser \
                 and self.request.user.is_establishment_manager():
@@ -721,31 +740,30 @@ class ImmersionUserCreationForm(UserCreationForm):
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
-        self.fields["email"].help_text = _("The user email will be used as username")
 
-        self.fields["username"].required = False
-        self.fields["username"].disabled = True
+        if self.request.user.is_high_school_manager():
+            self.fields["email"].help_text = _("The user email will be used as username")
 
         # Establishment
-        self.fields["establishment"].required = False
+        if self.fields.get("establishment"):
+            self.fields["establishment"].required = False
 
-        self.fields["search"].widget.attrs["class"] = "vTextField"
+        if self.fields.get("search"):
+            self.fields["search"].widget.attrs["class"] = "vTextField"
 
         if not self.request.user.is_superuser:
-            # Master establishment manager has only access to the other establishments
-            if self.request.user.is_master_establishment_manager():
-                self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
+            # Master establishment manager has access to all establishments
+            #if self.request.user.is_master_establishment_manager():
+            #    self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
 
             # A regular establishment manager has only access to his own establishment
-            elif self.request.user.is_establishment_manager():
+            if self.request.user.is_establishment_manager():
                 self.fields["establishment"].queryset = Establishment.objects.filter(
                     pk=self.request.user.establishment.pk
                 )
 
-            elif self.request.user.is_high_school_manager():
-                self.fields["establishment"].disabled = True
-                self.fields["establishment"].help_text = _("You can't select the establishment")
-
+            if self.request.user.is_high_school_manager():
+                self.fields["username"].required = False
 
     def clean(self):
         cleaned_data = super().clean()
@@ -776,6 +794,7 @@ class ImmersionUserCreationForm(UserCreationForm):
 
         if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
             obj.highschool = self.request.user.highschool
+            obj.username = obj.email
             obj.save()
             Group.objects.get(name='INTER').user_set.add(obj)
 
@@ -795,10 +814,11 @@ class ImmersionUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
 
         if not self.request.user.is_superuser:
-            # Disable establishement modification
-            if self.instance.id and self.fields.get('establishment'):
-                self.fields["establishment"].disabled = True
-                self.fields["establishment"].help_text = _("The establishement cannot be updated once the user created")
+            # Disable establishment modification
+            if self.instance.id and self.instance.establishment and self.fields.get('establishment'):
+                self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
+                self.fields["establishment"].empty_label = None
+                self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
@@ -808,16 +828,9 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if self.fields.get(field):
                     self.fields[field].disabled = True
 
-            if self.request.user.id == self.instance.id:
-                self.fields["groups"].disabled = True
-                self.fields["structures"].disabled = True
-                self.fields["highschool"].disabled = True
-
-            if self.fields.get('groups'):
-                self.fields["groups"].queryset = Group.objects.none()
-
             # Restrictions on group / structures selection depending on current user group
-            if self.request.user.is_master_establishment_manager():
+            if self.request.user.is_master_establishment_manager() \
+                and not self.instance.is_master_establishment_manager():
                 self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
 
             if self.request.user.is_establishment_manager():
@@ -855,74 +868,58 @@ class ImmersionUserChangeForm(UserChangeForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        groups = cleaned_data['groups']
-        structures = cleaned_data['structures']
-        establishment = cleaned_data['establishment']
-        highschool = cleaned_data['highschool']
+        groups = cleaned_data.get('groups')
+        structures = cleaned_data.get('structures')
+        establishment = cleaned_data.get('establishment')
+        highschool = cleaned_data.get('highschool')
         forbidden_msg = _("Forbidden")
 
-        is_own_account = self.request.user.id == self.instance.id
+        if groups:
+            if groups and groups.filter(name='REF-ETAB').exists():
+                cleaned_data['is_staff'] = True
+                if establishment is None or establishment.master:
+                    msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
+                    self._errors['establishment'] = self.error_class([msg])
+                    del cleaned_data["establishment"]
 
-        if groups.filter(name='REF-ETAB').exists():
-            if establishment is None or establishment.master:
-                msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
-                self._errors['establishment'] = self.error_class([msg])
-                del cleaned_data["establishment"]
+            if groups and groups.filter(name='REF-ETAB-MAITRE').exists():
+                cleaned_data['is_staff'] = True
+                if establishment is None or not establishment.master:
+                    msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
+                    self._errors['establishment'] = self.error_class([msg])
+                    del cleaned_data["establishment"]
 
-        if groups.filter(name='REF-ETAB-MAITRE').exists():
-            cleaned_data['is_staff'] = True
-            if establishment is None or not establishment.master:
-                msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
-                self._errors['establishment'] = self.error_class([msg])
-                del cleaned_data["establishment"]
+            if groups.filter(name='REF-STR').exists() and not structures.count():
+                msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
+                self._errors['structures'] = self.error_class([msg])
+                del cleaned_data["structures"]
 
-        """
-        # FIXME / TODO : check these potential restrictions
-        
-        if establishment and establishment.master and not groups.filter(name='REF-ETAB-MAITRE').exists():
-            msg = _("The group 'REF-ETAB-MAITRE' is mandatory when you select a master establishment")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
+            if structures.count() and not groups.filter(name='REF-STR').exists():
+                msg = _("The group 'REF-STR' is mandatory when you add a structure")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
 
-        if establishment and not establishment.master and not groups.filter(name='REF-ETAB').exists():
-            msg = _("The group 'REF-ETAB' is mandatory when you select a non-master establishment")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
-        """
+            if groups.filter(name='REF-LYC').exists():
 
-        if groups.filter(name='REF-STR').exists() and not structures.count():
-            msg = _("This field is mandatory for a user belonging to 'REF-STR' group")
-            self._errors['structures'] = self.error_class([msg])
-            del cleaned_data["structures"]
+                if not highschool:
+                    msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
+                    self._errors["highschool"] = self.error_class([msg])
+                    del cleaned_data["highschool"]
+                elif highschool.postbac_immersion:
+                    cleaned_data['is_staff'] = True
 
-        if structures.count() and not groups.filter(name='REF-STR').exists():
-            msg = _("The group 'REF-STR' is mandatory when you add a structure")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
 
-        if groups.filter(name='REF-LYC').exists() and not highschool:
-            msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
-            self._errors["highschool"] = self.error_class([msg])
-            del cleaned_data["highschool"]
-
-        if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
-            msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
-            if not self._errors.get("groups"):
-                self._errors["groups"] = forms.utils.ErrorList()
-            self._errors['groups'].append(self.error_class([msg]))
+            if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
+                msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
+                if not self._errors.get("groups"):
+                    self._errors["groups"] = forms.utils.ErrorList()
+                self._errors['groups'].append(self.error_class([msg]))
 
         if not self.request.user.is_superuser:
             # Check and alter fields when authenticated user is
             # a member of REF-ETAB group
-            if is_own_account:
-                del cleaned_data['groups']
-                del cleaned_data['structures']
-
-
-            elif self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
+            if self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
                 if (self.request.user.has_groups('REF-ETAB') and self.instance.is_establishment_manager()) or \
                    (self.request.user.has_groups('REF-ETAB-MAITRE') and self.instance.is_master_establishment_manager()):
                     raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
@@ -934,7 +931,11 @@ class ImmersionUserChangeForm(UserChangeForm):
                     can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE', )
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
-                new_groups = set(groups.all().values_list('name', flat=True))
+
+                if groups:
+                    new_groups = set(groups.all().values_list('name', flat=True))
+                else:
+                    new_groups = set()
 
                 forbidden_groups = [
                     g for g in current_groups.symmetric_difference(new_groups) if g not in can_change_groups
@@ -950,28 +951,33 @@ class ImmersionUserChangeForm(UserChangeForm):
 
                 raise forms.ValidationError(_("You can't modify the superuser status"))
 
-            if self.instance.is_staff != cleaned_data["is_staff"]:
-                self._errors['is_staff'] = self.error_class([forbidden_msg])
-
-                raise forms.ValidationError(_("You can't modify the staff status"))
-
         return cleaned_data
 
     def save(self, *args, **kwargs):
         # If REF-LYC is in new groups, send a mail to choose a password
         # if no password has been set yet
         ref_lyc_group = None
+        inter_group = None
         try:
             ref_lyc_group = Group.objects.get(name='REF-LYC')
+            inter_group = Group.objects.get(name='INTER')
         except Group.DoesNotExist:
             pass
 
         try:
-            current_groups = set([str(g.id) for g in self.instance.groups.all()])
+            current_groups = {str(g.id) for g in self.instance.groups.all()}
         except Exception:
             current_groups = set()
 
         new_groups = set(self.data.get('groups', []))
+
+        if inter_group:
+            if self.request.user.is_high_school_manager():
+                if not self.instance.groups.filter(name='INTER').exists():
+                    new_groups.add(str(inter_group.id))
+
+                self.instance.username = self.instance.email
+                # TODO: send CPT_CREATE_INTER in case of a new user
 
         if ref_lyc_group and str(ref_lyc_group.id) in new_groups - current_groups:
             # REF-LYC group spotted : if the password is not set, send an email to the user
@@ -982,11 +988,16 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         self.instance = super().save(*args, **kwargs)
 
+        if self.request.user.is_high_school_manager():
+            if not self.instance.groups.filter(name='INTER').exists():
+                self.instance.groups.add(inter_group)
+
         return self.instance
 
-    class Meta(UserCreationForm.Meta):
+    class Meta(UserChangeForm.Meta):
         model = ImmersionUser
-        fields = '__all__'
+        fields = ("establishment", "username", "first_name", "last_name", "email", "is_active", "is_staff",
+                  "is_superuser", "groups", "structures", "highschool")
 
 
 class HighSchoolForm(forms.ModelForm):
@@ -1035,8 +1046,9 @@ class HighSchoolForm(forms.ModelForm):
         if not self.instance or (self.instance and not self.instance.postbac_immersion):
             self.fields["mailing_list"].disabled = True
 
-        self.fields["mailing_list"].help_text = \
-            _("This field is available when 'Offer post-bachelor immersions is enabled")
+        if self.fields.get('mailing_list'):
+            self.fields["mailing_list"].help_text = \
+                _("This field is available when 'Offer post-bachelor immersions is enabled")
 
 
     def clean(self):
@@ -1070,11 +1082,13 @@ class MailTemplateForm(forms.ModelForm):
                 self.fields[field].widget.attrs['size'] = 80
 
         if self.fields:
+            if self.instance.id:
+                self.fields['code'].disabled = True
+
             if not self.request.user.is_master_establishment_manager():
                 self.fields['available_vars'].widget = forms.MultipleHiddenInput()
                 self.fields['description'].disabled = True
                 self.fields['label'].disabled = True
-                self.fields['code'].disabled = True
             else:
                 self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
 
@@ -1233,10 +1247,12 @@ class PublicDocumentForm(forms.ModelForm):
 
             if document.content_type in allowed_content_type:
                 if document.size > int(settings.MAX_UPLOAD_SIZE):
-                    _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
-                        'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
-                        'current_size': filesizeformat(document.size),
-                    }
+                    raise forms.ValidationError(
+                        _('Please keep filesize under %(maxupload)s. Current filesize %(current_size)s') % {
+                            'maxupload': filesizeformat(settings.MAX_UPLOAD_SIZE),
+                            'current_size': filesizeformat(document.size),
+                        }
+                    )
             else:
                 raise forms.ValidationError(_('File type is not allowed'))
         return document
@@ -1287,6 +1303,22 @@ class EvaluationTypeForm(forms.ModelForm):
 
 
 class EvaluationFormLinkForm(TypeFormMixin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        try:
+            if self.fields.get("evaluation_type") and self.instance.evaluation_type:
+                self.fields["evaluation_type"].disabled = True
+        except AttributeError:
+            pass
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.request.user.is_superuser and not self.instance.pk:
+            raise forms.ValidationError(_("You are not allowed to create a new Evaluation Form Link"))
+
+        return cleaned_data
+
     class Meta:
         model = EvaluationFormLink
         fields = '__all__'
@@ -1309,8 +1341,6 @@ class GeneralSettingsForm(forms.ModelForm):
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
-
-
 
         return cleaned_data
 

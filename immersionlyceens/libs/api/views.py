@@ -6,13 +6,17 @@ import datetime
 import importlib
 import json
 import logging
-from itertools import permutations
+from itertools import chain, permutations
 import django_filters.rest_framework
+from functools import reduce
 
 
+import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core import serializers
+from django.core.exceptions import FieldError
 from django.core.validators import validate_email
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -20,10 +24,10 @@ from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
-from django.utils.translation import gettext, pgettext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.module_loading import import_string
+from django.utils.translation import gettext, pgettext, gettext_lazy as _
+from rest_framework import generics, status
 
-from rest_framework import generics
 """
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -31,13 +35,21 @@ from rest_framework.exceptions import NotFound
 """
 
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, Campus, CancelType, Structure, Course, Establishment, HighSchool, Holiday, Immersion,
-    ImmersionUser, MailTemplate, MailTemplateVars, PublicDocument, Slot, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation
+    Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
+    Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
+    PublicDocument, Slot, Structure, Training, TrainingDomain, UniversityYear,
+    UserCourseAlert, Vacation,
 )
-
-from immersionlyceens.apps.core.serializers import (CampusSerializer, EstablishmentSerializer,
-    TrainingHighSchoolSerializer)
+from immersionlyceens.apps.core.serializers import (
+    BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer,
+    TrainingHighSchoolSerializer
+)
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
+from immersionlyceens.decorators import (
+    groups_required, is_ajax_request, is_post_request,
+)
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
@@ -49,54 +61,106 @@ logger = logging.getLogger(__name__)
 
 
 @is_ajax_request
-@groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR")
+@groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-STR", "REF-LYC")
 def ajax_get_person(request):
     response = {'msg': '', 'data': []}
     search_str = request.POST.get("username", None)
     query_order = request.POST.get("query_order")
     establishment_id = request.POST.get('establishment_id', None)
+    structure_id = request.POST.get('structure_id', None)
+    highschool_id = request.POST.get('highschool_id', None)
+
+    users_queryset = None
+    establishment = None
+    highschool = None
 
     if not search_str:
         response['msg'] = gettext("Search string is empty")
         return JsonResponse(response, safe=False)
 
-    if establishment_id is None:
-        response['msg'] = gettext("Please select an establishment first")
-        return JsonResponse(response, safe=False)
+    try:
+        structure_id = int(structure_id)
+    except (ValueError, TypeError):
+        structure_id = None
 
     try:
-        establishment = Establishment.objects.get(pk=establishment_id)
-    except Establishment.DoesNotExist:
+        highschool_id = int(highschool_id)
+    except (ValueError, TypeError):
+        highschool_id = None
+
+    if establishment_id is None and highschool_id is None:
+        response['msg'] = gettext("Please select an establishment or a high school first")
         return JsonResponse(response, safe=False)
 
-    if establishment.data_source_plugin:
+    if establishment_id:
         try:
-            module_name = settings.ACCOUNTS_PLUGINS[establishment.data_source_plugin]
-            source = importlib.import_module(module_name, package=None)
-            account_api = source.AccountAPI(establishment)
+            establishment = Establishment.objects.get(pk=establishment_id)
+        except Establishment.DoesNotExist:
+            response['msg'] = gettext("Sorry, establishment not found")
+            return JsonResponse(response, safe=False)
+    elif highschool_id:
+        try:
+            highschool = HighSchool.objects.get(pk=highschool_id)
+        except HighSchool.DoesNotExist:
+            response['msg'] = gettext("Sorry, high school not found")
+            return JsonResponse(response, safe=False)
 
-            persons_list = [query_order]
+    if establishment:
+        if establishment.data_source_plugin:
+            try:
+                module_name = settings.ACCOUNTS_PLUGINS[establishment.data_source_plugin]
+                source = importlib.import_module(module_name, package=None)
+                account_api = source.AccountAPI(establishment)
 
-            users = account_api.search_user(search_str)
+                persons_list = [query_order]
 
-            if users != False:
-                users = sorted(users, key=lambda u: [u['lastname'], u['firstname']])
-                response['data'] = persons_list + users
+                users = account_api.search_user(search_str)
+
+                if users != False:
+                    users = sorted(users, key=lambda u: [u['lastname'], u['firstname']])
+                    response['data'] = persons_list + users
+                else:
+                    response['msg'] = gettext("Error : can't query establishment accounts data source")
+
+            except KeyError:
+                pass
+            except Exception as e:
+                response['msg'] = gettext("Error : %s" % e)
+        else:
+            filters = {
+                'groups__name': 'INTER',
+                'last_name__istartswith': search_str
+            }
+
+            if structure_id is not None:
+                Q_filter = Q(establishment=establishment)|Q(structures=structure_id)
             else:
-                response['msg'] = gettext("Error : can't query establishment accounts data source")
+                Q_filter = Q(establishment=establishment)
+                filters["establishment"] = establishment
 
-        except KeyError:
-            pass
-        except Exception as e:
-            response['msg'] = gettext("Error : %s" % e)
-    else:
-        response['msg'] = gettext("No source plugin configured")
+            users_queryset = ImmersionUser.objects.filter(Q_filter, **filters)
+
+    elif highschool:
+        users_queryset = ImmersionUser.objects.filter(
+            highschool=highschool,
+            groups__name='INTER',
+            last_name__istartswith=search_str
+        )
+
+    if users_queryset:
+        response['data'] = [query_order] + [{
+            'username': user.username,
+            'firstname': user.first_name,
+            'lastname': user.last_name,
+            'email': user.email,
+            'display_name': f"{user.last_name} {user.first_name}"
+        } for user in users_queryset]
 
     return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", 'REF-ETAB-MAITRE')
 def ajax_get_available_vars(request, template_id=None):
     response = {'msg': '', 'data': []}
 
@@ -110,14 +174,38 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
-def ajax_get_courses(request, structure_id=None):
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+def ajax_get_courses(request):
+    courses = Course.objects.none()
     response = {'msg': '', 'data': []}
 
-    if not structure_id:
-        response['msg'] = gettext("Error : a valid structure must be selected")
+    structure_id = request.GET.get('structure')
+    highschool_id = request.GET.get('highschool')
 
-    courses = Course.objects.prefetch_related('training', 'structure').filter(training__structures=structure_id)
+    try:
+        int(structure_id)
+    except (TypeError, ValueError):
+        structure_id = None
+
+    try:
+        int(highschool_id)
+    except (TypeError, ValueError):
+        highschool_id = None
+
+    if not structure_id and not highschool_id:
+        response['msg'] = gettext("Error : a valid structure or highschool must be selected")
+        return JsonResponse(response, safe=False)
+
+    if structure_id:
+        courses = Course.objects.prefetch_related('training', 'structure')\
+            .filter(training__structures=structure_id)
+    elif highschool_id:
+        try:
+            courses = Course.objects.prefetch_related('training', 'highschool', 'structure') \
+                .filter(training__highschool=highschool_id)
+        except FieldError:
+            # NotImplemented (yet) : see #194
+            pass
 
     for course in courses:
         course_data = {
@@ -125,8 +213,9 @@ def ajax_get_courses(request, structure_id=None):
             'published': course.published,
             'training_label': course.training.label,
             'label': course.label,
-            'structure_code': course.structure.code,
-            'structure_id': course.structure.id,
+            'structure_code': course.structure.code if course.structure else None,
+            'structure_id': course.structure.id if course.structure else None,
+            'highschool_id': course.highschool.id if course.highschool else None,
             'speakers': [],
             'slots_count': course.slots_count(),
             'n_places': course.free_seats(),
@@ -137,30 +226,49 @@ def ajax_get_courses(request, structure_id=None):
         }
 
         for speaker in course.speakers.all().order_by('last_name', 'first_name'):
-            course_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
+            course_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
         response['data'].append(course_data.copy())
 
     return JsonResponse(response, safe=False)
 
 
-@is_post_request
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-STR")
+@groups_required("REF-ETAB", "REF-STR", 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_trainings(request):
+    """
+    Get trainings linked to a structure or a highschool
+    GET params :
+    - 'type' : 'highschool' or 'structure'
+    - 'object_id' : highschool or structure id
+    """
+
     response = {'msg': '', 'data': []}
 
-    structure_id = request.POST.get("structure_id")
+    object_type = request.GET.get("type")
+    object_id = request.GET.get("object_id")
 
-    if not structure_id:
-        response['msg'] = gettext("Error : a valid structure must be selected")
+    if object_type == 'structure':
+        filters = {'structures': object_id, 'active':True}
+    elif object_type == 'highschool':
+        filters = {'highschool': object_id, 'active': True}
+    else:
+        response['msg'] = gettext("Error : invalid parameter 'object_type' value")
         return JsonResponse(response, safe=False)
 
-    trainings = (
-        Training.objects.prefetch_related('training_subdomains')
-        .filter(structures=structure_id, active=True)
-        .order_by('label')
-    )
+    if not object_id:
+        response['msg'] = gettext("Error : a valid structure or high school must be selected")
+        return JsonResponse(response, safe=False)
+
+    try:
+        trainings = (
+            Training.objects.prefetch_related('training_subdomains')
+            .filter(**filters)
+            .order_by('label')
+        )
+    except FieldError:
+        # Not implemented yet
+        trainings = Training.objects.none()
 
     for training in trainings:
         training_data = {
@@ -175,7 +283,7 @@ def ajax_get_trainings(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_documents(request):
     response = {'msg': '', 'data': []}
 
@@ -194,53 +302,77 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
-def ajax_get_slots(request, structure=None):
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+def ajax_get_slots(request):
+    response = {'msg': '', 'data': []}
     can_update_attendances = False
-
     today = datetime.datetime.today().date()
+    slots = []
+
     try:
         year = UniversityYear.objects.get(active=True)
         can_update_attendances = today <= year.end_date
     except UniversityYear.DoesNotExist:
         pass
 
-    str_id = request.GET.get('structure_id')
-    train_id = request.GET.get('training_id')
+    training_id = request.GET.get('training_id')
+    structure_id = request.GET.get('structure_id')
+    highschool_id = request.GET.get('highschool_id')
 
-    response = {'msg': '', 'data': []}
-    slots = []
-    if train_id:  # and train_id[0] is not '':
-        slots = Slot.objects.prefetch_related('course__training', 'speakers', 'immersions').filter(
-            course__training__id=train_id
-        )
-    elif str_id:
-        slots = Slot.objects.prefetch_related('course__training__structures', 'speakers', 'immersions').filter(
-            course__training__structures__id=str_id
-        )
+    try:
+        int(structure_id)
+    except (TypeError, ValueError):
+        structure_id = None
+
+    try:
+        int(highschool_id)
+    except (TypeError, ValueError):
+        highschool_id = None
+
+    try:
+        int(training_id)
+    except (TypeError, ValueError):
+        training_id = None
+
+    if not structure_id and not highschool_id:
+        response['msg'] = gettext("Error : a valid structure or highschool must be selected")
+        return JsonResponse(response, safe=False)
+
+    if training_id is not None:
+        filters = {'course__training__id' : training_id}
+    elif structure_id is not None:
+        filters = {'course__training__structures__id': structure_id}
+    elif highschool_id is not None:
+        filters = {'course__training__highschool__id': highschool_id}
+
+    slots = Slot.objects.prefetch_related(
+        'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
+        .filter(**filters)
 
     all_data = []
-    my_structures = []
-    if request.user.is_establishment_manager():
-        my_structures = Structure.objects.all()
-    elif request.user.is_structure_manager():
-        my_structures = request.user.structures.all()
+    allowed_structures = request.user.get_authorized_structures()
 
     for slot in slots:
         data = {
             'id': slot.id,
             'published': slot.published,
             'course_label': slot.course.label,
-            'structure': {'code': slot.course.structure.code, 'managed_by_me': slot.course.structure in my_structures, },
+            'structure': {
+                'code': slot.course.structure.code if slot.course.structure else None,
+                'managed_by_me': slot.course.structure in allowed_structures if slot.course.structure else False,
+            },
+            'highschool': {
+                'label': f"{slot.course.highschool.city} - {slot.course.highschool.label}"
+                    if slot.course.highschool else "",
+                'managed_by_me': slot.course.highschool == request.user.highschool if request.user.highschool else False,
+            },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
-            )
-            if slot.date
-            else None,
+            ) if slot.date else None,
             'date': _date(slot.date, 'l d/m/Y'),
             'time': {
                 'start': slot.start_time.strftime('%Hh%M') if slot.start_time else '',
@@ -308,7 +440,7 @@ def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
 
@@ -328,7 +460,7 @@ def ajax_get_buildings(request, campus_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_course_speakers(request, course_id=None):
     response = {'msg': '', 'data': []}
 
@@ -349,12 +481,18 @@ def ajax_get_course_speakers(request, course_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
-    course_id = request.POST.get('course_id')
+    course_id = request.GET.get('course_id')
 
-    if not course_id:
+    if course_id is None:
+        response['error'] = gettext("Error : a valid course must be selected")
+        return JsonResponse(response, safe=False)
+
+    try:
+        course = Course.objects.get(pk=course_id)
+    except Course.DoesNotExist:
         response['error'] = gettext("Error : a valid course must be selected")
         return JsonResponse(response, safe=False)
 
@@ -363,49 +501,49 @@ def ajax_delete_course(request):
         response['error'] = gettext("Error : you can't delete this course")
         return JsonResponse(response, safe=False)
 
-    try:
-        course = Course.objects.get(pk=course_id)
-        if not course.slots.exists():
-            course.delete()
-            response['msg'] = gettext("Course successfully deleted")
-        else:
-            response['error'] = gettext("Error : slots are linked to this course")
-    except Course.DoesNotExist:
-        pass
+    course = Course.objects.get(pk=course_id)
+    if not course.slots.exists():
+        course.delete()
+        response['msg'] = gettext("Course successfully deleted")
+    else:
+        response['error'] = gettext("Error : slots are linked to this course")
 
     return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
 @groups_required('INTER')
-def ajax_get_my_courses(request, user_id=None):
+def ajax_get_my_courses(request):
+    managed_by = ""
     response = {'msg': '', 'data': []}
 
-    if not user_id:
-        response['msg'] = gettext("Error : a valid user must be passed")
+    if not request.user:
+        response['msg'] = gettext("Error : a valid user is required")
 
-    courses = Course.objects.prefetch_related('training').filter(speakers=user_id)
+    courses = Course.objects.prefetch_related('training').filter(speakers=request.user)
 
     for course in courses:
+        if course.structure:
+            managed_by = course.structure.code
+        elif course.highschool:
+            managed_by = f"{course.highschool.city} - {course.highschool.label}"
+
         course_data = {
             'id': course.id,
             'published': course.published,
-            'structure': course.structure.code,
+            'managed_by': managed_by,
             'training_label': course.training.label,
             'label': course.label,
             'speakers': {},
-            'slots_count': course.slots_count(speaker_id=user_id),
-            'n_places': course.free_seats(speaker_id=user_id),
-            'published_slots_count': course.published_slots_count(speaker_id=user_id),
-            # f'{course.published_slots_count(speaker_id=user_id)} / {course.slots_count(speaker_id=user_id)}',
-            'registered_students_count': course.registrations_count(speaker_id=user_id),
-            # f'{course.registrations_count(speaker_id=user_id)} / {course.free_seats(speaker_id=user_id)}',
+            'slots_count': course.slots_count(speaker_id=request.user.id),
+            'n_places': course.free_seats(speaker_id=request.user.id),
+            'published_slots_count': course.published_slots_count(speaker_id=request.user.id),
+            'registered_students_count': course.registrations_count(speaker_id=request.user.id),
             'alerts_count': course.get_alerts_count(),
-            # 'alerts_count': UserCourseAlert.objects.filter(course=course, email_sent=False).count(),
         }
 
         for speaker in course.speakers.all().order_by('last_name', 'first_name'):
-            course_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
+            course_data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
 
         response['data'].append(course_data.copy())
 
@@ -414,7 +552,7 @@ def ajax_get_my_courses(request, user_id=None):
 
 @is_ajax_request
 @groups_required('INTER')
-def ajax_get_my_slots(request, user_id=None):
+def ajax_get_my_slots(request):
     response = {'msg': '', 'data': []}
     can_update_attendances = False
 
@@ -428,36 +566,47 @@ def ajax_get_my_slots(request, user_id=None):
     # TODO: filter on emargement which should be set !
     past_slots = resolve(request.path_info).url_name == 'GetMySlotsAll'
 
-    if not user_id:
-        response['msg'] = gettext("Error : a valid user must be passed")
+    if not request.user:
+        response['msg'] = gettext("Error : a valid user is required")
 
     if past_slots:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
-            .filter(speakers=user_id)
+            Slot.objects.prefetch_related(
+                'course__training', 'course__structure', 'course__highschool', 'speakers', 'immersions'
+            )
+            .filter(speakers=request.user.id)
             .exclude(date__lt=today.date(), immersions__isnull=True)
         ).distinct()
     else:
         slots = (
-            Slot.objects.prefetch_related('course__training', 'course__structure', 'speakers', 'immersions')
+            Slot.objects.prefetch_related(
+                'course__training', 'course__structure', 'course__highschool', 'speakers', 'immersions'
+            )
             .filter(
                 Q(date__gte=today.date())
                 | Q(date=today.date(), end_time__gte=today.time())
                 | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
-                speakers=user_id,
+                speakers=request.user.id,
             )
             .distinct()
         )
 
     for slot in slots:
         campus = ""
+        managed_by = ""
+
         if slot.campus and slot.building:
             campus = f'{slot.campus.label} - {slot.building.label}'
+
+        if slot.course.structure:
+            managed_by = slot.course.structure.code
+        elif slot.course.highschool:
+            managed_by = f"{slot.course.highschool.city} - {slot.course.highschool.label}"
 
         slot_data = {
             'id': slot.id,
             'published': slot.published,
-            'structure': slot.course.structure.code,
+            'managed_by': managed_by,
             'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
             'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
             'location': {'campus': campus, 'room': slot.room, },
@@ -469,9 +618,7 @@ def ajax_get_my_slots(request, user_id=None):
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
                 "%Y:%m:%d %H:%M",
-            )
-            if slot.date
-            else None,
+            ) if slot.date else None,
             'start_time': slot.start_time.strftime("%H:%M"),
             'end_time': slot.end_time.strftime("%H:%M"),
             'label': slot.course.label,
@@ -503,7 +650,7 @@ def ajax_get_my_slots(request, user_id=None):
             slot_data['attendances_status'] = gettext("Future slot")
 
         for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
-            slot_data['speakers'].update([("%s %s" % (speaker.last_name, speaker.first_name), speaker.email,)],)
+            slot_data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
 
         response['data'].append(slot_data.copy())
 
@@ -523,7 +670,7 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -558,7 +705,7 @@ def ajax_check_date_between_vacation(request):
 
 @is_post_request
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_get_student_records(request):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
@@ -602,7 +749,7 @@ def ajax_get_student_records(request):
 
 # REJECT / VALIDATE STUDENT
 @is_ajax_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_validate_reject_student(request, validate):
     """
     Validate or reject student
@@ -644,7 +791,7 @@ def ajax_validate_reject_student(request, validate):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_validate_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=True)
@@ -652,15 +799,14 @@ def ajax_validate_student(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
 
 
 @is_ajax_request
-@is_post_request
-@groups_required('REF-LYC', 'REF-ETAB')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_check_course_publication(request, course_id):
     from immersionlyceens.apps.core.models import Course
 
@@ -674,7 +820,7 @@ def ajax_check_course_publication(request, course_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_delete_account(request):
     """
     Completely destroy a student account and all data
@@ -733,7 +879,7 @@ def ajax_delete_account(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -767,7 +913,7 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
     Get (high-school or not) students immersions
@@ -805,7 +951,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         response['msg'] = gettext("Error : no such user")
         return JsonResponse(response, safe=False)
 
-    time = "%s:%s" % (datetime.datetime.now().hour, datetime.datetime.now().minute)
+    time = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
 
     immersions = Immersion.objects.prefetch_related(
         'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
@@ -879,7 +1025,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
                     immersion_data['can_register'] = True
 
         for speaker in immersion.slot.speakers.all().order_by('last_name', 'first_name'):
-            immersion_data['speakers'].append("%s %s" % (speaker.last_name, speaker.first_name))
+            immersion_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
         response['data'].append(immersion_data.copy())
 
@@ -909,7 +1055,7 @@ def ajax_get_other_registrants(request, immersion_id):
         )
 
         for student in students:
-            student_data = {'name': "%s %s" % (student.last_name, student.first_name), 'email': ""}
+            student_data = {'name': f"{student.last_name} {student.first_name}", 'email': ""}
 
             if student.high_school_student_record.visible_email:
                 student_data["email"] = student.email
@@ -920,7 +1066,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_slot_registrations(request, slot_id):
     slot = None
     response = {'msg': '', 'data': []}
@@ -971,7 +1117,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
@@ -1014,7 +1160,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -1221,7 +1367,7 @@ def ajax_slot_registration(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_get_available_students(request, slot_id):
     """
     Get students list for manual slot registration
@@ -1266,7 +1412,7 @@ def ajax_get_available_students(request, slot_id):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE')
 def ajax_get_highschool_students(request, highschool_id=None):
     """
     Retrieve students from a highschool or all students if user is ref-etab manager
@@ -1320,7 +1466,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
         student_data = {
             'id': student.pk,
-            'name': "%s %s" % (student.last_name, student.first_name),
+            'name': f"{student.last_name} {student.first_name}",
             'birthdate': date_format(record.birth_date) if record else '-',
             'institution': '',
             'level': record.get_level_display() if record else '-',
@@ -1356,7 +1502,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1384,7 +1530,7 @@ def ajax_send_email(request):
 
     # Send a copy to the sender if requested - append "(copy)" to the subject
     if send_copy:
-        subject = "%s (%s)" % (subject, _("copy"))
+        subject = "{} ({})".format(subject, _("copy"))
         recipient = request.user.email
         try:
             send_email(recipient, subject, body)
@@ -1397,7 +1543,7 @@ def ajax_send_email(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
@@ -1565,7 +1711,7 @@ def get_csv_highschool(request, high_school_id):
     return response
 
 
-@groups_required('REF-ETAB',)
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE')
 def get_csv_anonymous_immersion(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -1575,7 +1721,7 @@ def get_csv_anonymous_immersion(request):
     infield_separator = '|'
 
     header = [
-        _('structure'),
+        _('structure')+ " / " + _("highschool"),
         _('training domain'),
         _('training subdomain'),
         _('training'),
@@ -1599,6 +1745,12 @@ def get_csv_anonymous_immersion(request):
 
     slots = Slot.objects.filter(published=True)
     for slot in slots:
+        managed_by = ""
+        if slot.course.structure:
+            managed_by = slot.course.structure.label
+        elif slot.course.highschool:
+            managed_by = f"{slot.course.highschool.city} - {slot.course.highschool.label}"
+
         immersions = Immersion.objects.prefetch_related('slot').filter(slot=slot, cancellation_type__isnull=True)
         if immersions.count() > 0:
             for imm in immersions:
@@ -1623,54 +1775,50 @@ def get_csv_anonymous_immersion(request):
                         pass
 
                 if record:
-                    content.append(
-                        [
-                            slot.course.structure.label,
-                            infield_separator.join(
-                                [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                            ),
-                            infield_separator.join(
-                                [sub.label for sub in slot.course.training.training_subdomains.all()]
-                            ),
-                            slot.course.training.label,
-                            slot.course.label,
-                            slot.course_type.label,
-                            _date(slot.date, 'd/m/Y'),
-                            slot.start_time.strftime('%H:%M'),
-                            slot.end_time.strftime('%H:%M'),
-                            slot.campus.label,
-                            slot.building.label,
-                            slot.room,
-                            slot.registered_students(),
-                            slot.n_places,
-                            slot.additional_information,
-                            institution,
-                            level,
-                            imm.get_attendance_status(),
-                        ]
-                    )
+                    content.append([
+                        managed_by,
+                        infield_separator.join(
+                            [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                        ),
+                        infield_separator.join(
+                            [sub.label for sub in slot.course.training.training_subdomains.all()]
+                        ),
+                        slot.course.training.label,
+                        slot.course.label,
+                        slot.course_type.label,
+                        _date(slot.date, 'd/m/Y'),
+                        slot.start_time.strftime('%H:%M'),
+                        slot.end_time.strftime('%H:%M'),
+                        slot.campus.label if slot.campus else None,
+                        slot.building.label if slot.building else None,
+                        slot.room,
+                        slot.registered_students(),
+                        slot.n_places,
+                        slot.additional_information,
+                        institution,
+                        level,
+                        imm.get_attendance_status(),
+                    ])
         else:
-            content.append(
-                [
-                    slot.course.structure.label,
-                    infield_separator.join(
-                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-                    ),
-                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-                    slot.course.training.label,
-                    slot.course.label,
-                    slot.course_type.label,
-                    _date(slot.date, 'd/m/Y'),
-                    slot.start_time.strftime('%H:%M'),
-                    slot.end_time.strftime('%H:%M'),
-                    slot.campus.label,
-                    slot.building.label,
-                    slot.room,
-                    slot.registered_students(),
-                    slot.n_places,
-                    slot.additional_information,
-                ]
-            )
+            content.append([
+                managed_by,
+                infield_separator.join(
+                    [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                ),
+                infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                slot.course.training.label,
+                slot.course.label,
+                slot.course_type.label,
+                _date(slot.date, 'd/m/Y'),
+                slot.start_time.strftime('%H:%M'),
+                slot.end_time.strftime('%H:%M'),
+                slot.campus.label if slot.campus else None,
+                slot.building.label if slot.building else None,
+                slot.room,
+                slot.registered_students(),
+                slot.n_places,
+                slot.additional_information,
+            ])
 
     writer = csv.writer(response)
     writer.writerow(header)
@@ -1711,7 +1859,7 @@ def ajax_send_email_contact_us(request):
     # ref-etab mail sending
     try:
         send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
-    except Exception:
+    except Exception as e:
         response['error'] = True
         response['msg'] += _("%s : error") % recipient
 
@@ -1740,7 +1888,7 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'SRV-JUR')
+@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE')
 def ajax_get_student_presence(request, date_from=None, date_until=None):
     response = {'data': [], 'msg': ''}
 
@@ -1786,7 +1934,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             )
             if immersion.slot.date
             else None,
-            'name': "%s %s" % (immersion.student.last_name, immersion.student.first_name),
+            'name': f"{immersion.student.last_name} {immersion.student.first_name}",
             'institution': institution,
             'phone': record.phone if record and record.phone else '',
             'email': immersion.student.email,
@@ -1895,7 +2043,7 @@ def ajax_cancel_alert(request):
 
 
 @is_ajax_request
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", 'REF-ETAB-MAITRE')
 def ajax_get_duplicates(request):
     """
     Get duplicates lists
@@ -1918,7 +2066,7 @@ def ajax_get_duplicates(request):
                 "record_ids": [r.id for r in records],
                 'names': [str(r.student) for r in records],
                 'birthdates': [_date(r.birth_date) for r in records],
-                "highschools": ["%s, %s" % (r.highschool.label, r.class_name) for r in records],
+                "highschools": [f"{r.highschool.label}, {r.class_name}" for r in records],
                 "emails": [r.student.email for r in records],
                 "record_links": [reverse('immersion:modify_hs_record', kwargs={'record_id': r.id}) for r in records],
             }
@@ -1932,7 +2080,7 @@ def ajax_get_duplicates(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE')
 def ajax_keep_entries(request):
     """
     Remove duplicates ids from high school student records
@@ -2016,7 +2164,7 @@ class EstablishmentList(generics.ListAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
 
     def get_queryset(self):
-        queryset = Establishment.objects.filter(active=True).order_by('label')
+        queryset = Establishment.activated.order_by('label')
         user = self.request.user
 
         if not user.is_superuser and user.is_establishment_manager():
@@ -2024,6 +2172,69 @@ class EstablishmentList(generics.ListAPIView):
 
         return queryset
 
+
+class StructureList(generics.ListAPIView):
+    """
+    Structures list
+    """
+    serializer_class = StructureSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['establishment', ]
+
+    def get_queryset(self):
+        queryset = Structure.activated.order_by('code', 'label')
+        user = self.request.user
+
+        if not user.is_superuser:
+            if user.is_structure_manager():
+                return user.structures.order_by('code', 'label')
+            if user.is_establishment_manager() and user.establishment:
+                return user.establishment.structures.order_by('code', 'label')
+
+        return queryset
+
+
+class CourseList(generics.ListAPIView):
+    """
+    Courses list
+    """
+    serializer_class = CourseSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['training', 'structure', 'highschool']
+
+    def get_queryset(self):
+        queryset = Course.objects.filter(published=True).order_by('label')
+        user = self.request.user
+
+        if not user.is_superuser:
+            if user.is_structure_manager():
+                return user.structures.order_by('label')
+            if user.is_establishment_manager() and user.establishment:
+                return Course.objects.filter(structure__in=user.establishment.structures.all()).order_by('label')
+
+        return queryset
+
+
+class BuildingList(generics.ListAPIView):
+    """
+    Buildings list
+    """
+    serializer_class = BuildingSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['campus', ]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Building.objects.order_by('label')
+
+        if not user.is_superuser:
+            if user.is_structure_manager():
+                return queryset.filter(campus__establishment__structures__in=user.structures.all())
+
+            if user.is_establishment_manager() and user.establishment:
+                return queryset.filter(campus__establishment=user.establishment)
+
+        return queryset
 
 class GetEstablishment(generics.RetrieveAPIView):
     """
@@ -2080,3 +2291,18 @@ class TrainingView(generics.DestroyAPIView):
                 return Training.objects.filter(highschool__in=pk)
         elif self.request.user.is_establishment_manager():
             return Training.objects.filter(highschool=self.request.user.highschool)
+
+
+@is_ajax_request
+def ajax_get_immersions_proposal_establishments(request):
+    response = {'msg': '', 'data': []}
+    try:
+        establishments=Establishment.activated.all().values('city', 'label', 'email')
+        highschools=HighSchool.immersions_proposal.all().values('city', 'label', 'email')
+        results = list(establishments.union(highschools).order_by('city'))
+        response['data'].append(results)
+    except:
+        # Bouhhhh
+        pass
+
+    return JsonResponse(response, safe=False)

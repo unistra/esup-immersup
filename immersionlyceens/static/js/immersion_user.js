@@ -29,11 +29,9 @@ $(document).ready(function() {
     function refresh_search_field() {
       if(!has_plugin) {
         $(".field-search").hide()
-        $("#id_username").attr("disabled", false)
       }
       else {
         $(".field-search").show()
-        $("#id_username").attr("disabled", true)
       }
     }
 
@@ -86,7 +84,6 @@ $(document).ready(function() {
           success : function(json) {
             let msg = json['msg'] !== undefined ? json['msg'] : ""
             let query = json['data'] !== undefined ? json['data'][0] : ""
-            results = json['data'] !== undefined ? json['data'].slice(1) : null
 
             if(msg !== '') {
               document.getElementById('ws_message').innerHTML = msg
@@ -99,6 +96,7 @@ $(document).ready(function() {
 
             // Prevent previous (longer) query from erasing latest one
             if(query >= query_order) {
+              results = json['data'] !== undefined ? json['data'].slice(1) : null
               document.getElementById('livesearch_label').style.visibility = 'visible'
               document.getElementById('live_select').style.visibility = 'visible'
 

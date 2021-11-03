@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.db import models
-from django.utils.translation import gettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.apps.core import models as core_models
 
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class HighSchoolStudentRecord(models.Model):
     solved_duplicates = models.TextField(_("Solved duplicates list"), null=True, blank=True, default=None)
 
     def __str__(self):
-        return gettext("Record for {0} {1}".format(self.student.first_name, self.student.last_name))
+        return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
 
     def search_duplicates(self):
         """
@@ -145,8 +145,8 @@ class HighSchoolStudentRecord(models.Model):
                 other_ids_list = sorted([self.id] + [i for i in ids_list if i!=id])
                 try:
                     record = HighSchoolStudentRecord.objects.get(pk=id)
-                    solved_duplicates = set(
-                        [int(x) for x in record.solved_duplicates.split(',')]) if record.solved_duplicates else set()
+                    solved_duplicates = {
+                        int(x) for x in record.solved_duplicates.split(',')} if record.solved_duplicates else set()
                     record.duplicates = json.dumps(list(set(other_ids_list) - solved_duplicates))
                     record.save()
                 except HighSchoolStudentRecord.DoesNotExist:
@@ -296,7 +296,7 @@ class StudentRecord(models.Model):
         _("Number of allowed registrations for first semester"), null=True, blank=True)
 
     def __str__(self):
-        return gettext("Record for {0} {1}".format(self.student.first_name, self.student.last_name))
+        return gettext(f"Record for {self.student.first_name} {self.student.last_name}")
 
     def is_valid(self):
         return True

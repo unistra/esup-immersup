@@ -14,7 +14,7 @@ from django.urls import reverse
 from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday
+    Immersion, Holiday, Establishment
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -31,6 +31,24 @@ class CoreViewsTestCase(TestCase):
         @TODO : this is a copy/paste from immersion app setup, it may need to be cleaned a little
         """
         self.today = datetime.datetime.today()
+
+        self.master_establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test1@test.com'
+        )
+
+        self.establishment = Establishment.objects.create(
+            code='ETA2',
+            label='Etablissement 2',
+            short_label='Eta 2',
+            active=True,
+            master=False,
+            email='test2@test.com'
+        )
         
         self.high_school = HighSchool.objects.create(
             label='HS1',
@@ -123,7 +141,8 @@ class CoreViewsTestCase(TestCase):
             email='lycref@no-reply.com',
             first_name='lyc',
             last_name='REF',
-            highschool=self.high_school
+            highschool=self.high_school,
+            is_staff=True
         )
 
         self.lyc_ref.set_password('pass')
@@ -135,13 +154,36 @@ class CoreViewsTestCase(TestCase):
             email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
+            establishment=self.establishment,
+            is_staff=True,
         )
 
         self.ref_etab_user.set_password('pass')
         self.ref_etab_user.save()
 
-        self.structure = Structure.objects.create(code='C1', label="test structure")
-        self.structure2 = Structure.objects.create(code='C2', label="Second test structure")
+        self.ref_master_etab_user = get_user_model().objects.create_user(
+            username='ref_master_etab',
+            password='pass',
+            email='ref_master_etab@no-reply.com',
+            first_name='ref_master_etab',
+            last_name='ref_master_etab',
+            establishment=self.master_establishment,
+            is_staff=True
+        )
+
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
+
+        self.structure = Structure.objects.create(
+            code='C1',
+            label="test structure",
+            establishment=self.establishment
+        )
+        self.structure2 = Structure.objects.create(
+            code='C2',
+            label="Second test structure",
+            establishment=self.establishment
+        )
 
         self.ref_str_user = get_user_model().objects.create_user(
             username='ref_str',
@@ -164,6 +206,7 @@ class CoreViewsTestCase(TestCase):
         Group.objects.get(name='ETU').user_set.add(self.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
 
         BachelorMention.objects.create(
@@ -246,11 +289,16 @@ class CoreViewsTestCase(TestCase):
 
 
     def test_import_holidays(self):
-        self.ref_etab_user.is_staff = True
-        self.ref_etab_user.save()
-
         self.assertFalse(Holiday.objects.all().exists())
+
+        # No access
         self.client.login(username='ref_etab', password='pass')
+        response = self.client.get("/admin/holiday/import", follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Holiday.objects.all().exists())
+
+        # As master establishment manager
+        self.client.login(username='ref_master_etab', password='pass')
         response = self.client.get("/admin/holiday/import", follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Holiday.objects.all().exists())
@@ -267,7 +315,6 @@ class CoreViewsTestCase(TestCase):
         self.assertNotIn("train_id", response.context["structures"])
 
         # with parameters
-        # response = self.client.get("/core/slots/%s/%s" % (self.structure.id, self.training.id))
         response = self.client.get(reverse("slots_list", args=[self.structure.id, self.training.id]))
         self.assertEqual(self.structure.id, response.context["structure_id"])
         self.assertEqual(self.training.id, response.context["training_id"])
@@ -290,14 +337,14 @@ class CoreViewsTestCase(TestCase):
     def test_add_slot(self):
         # As any other user
         self.client.login(username='@EXTERNAL@_hs', password='pass')
-        response = self.client.get("/core/slot/add")
+        response = self.client.get("/core/slot")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/?next=/core/slot/add")
+        self.assertEqual(response.url, "/?next=/core/slot")
 
         # As ref_etab user
         self.client.login(username='ref_etab', password='pass')
-        response = self.client.get("/core/slot/add", follow=True)
-        self.assertIn(self.structure, response.context["structures"])
+        response = self.client.get("/core/slot", follow=True)
+        # self.assertIn(self.structure, response.context["structures"])
 
         data = {
             'structure': self.structure.id,
@@ -318,7 +365,7 @@ class CoreViewsTestCase(TestCase):
         }
 
         # Fail with date outside of calendar boundaries and missing field
-        response = self.client.post("/core/slot/add", data, follow=True)
+        response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn("Error: The date must be between the dates of the current calendar",
             response.content.decode('utf-8'))
@@ -328,23 +375,23 @@ class CoreViewsTestCase(TestCase):
 
         # Fail with missing field
         del(data['speaker_%s' % self.speaker1.id])
-        response = self.client.post("/core/slot/add", data, follow=True)
+        response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn("You have to select one or more speakers", response.content.decode('utf-8'))
 
         # Success
         data['speaker_%s' % self.speaker1.id] = 1
-        response = self.client.post("/core/slot/add", data, follow=True)
+        response = self.client.post("/core/slot", data, follow=True)
 
         self.assertTrue(Slot.objects.filter(room="212").exists())
         self.assertIn("Slot successfully added", response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request['PATH_INFO'], '/core/slots/%s/%s' % (self.structure.id, self.training.id))
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
 
-        # get add_slot form with an existing slot
+        # get slot form with an existing slot
         self.client.login(username='ref_etab', password='pass')
-        response = self.client.get("/core/slot/add/%s" % self.slot.id, follow=True)
+        response = self.client.get("/core/slot/%s" % self.slot.id, follow=True)
         self.assertEqual(response.context["slot"].course_id, self.course.id)
 
         # Save a slot and get back to add form
@@ -366,7 +413,7 @@ class CoreViewsTestCase(TestCase):
             'save_add': 1
         }
 
-        response = self.client.post("/core/slot/add", data, follow=True)
+        response = self.client.post("/core/slot", data, follow=True)
 
         self.assertTrue(Slot.objects.filter(room="S40").exists())
         self.assertIn("Slot successfully added", response.content.decode('utf-8'))
@@ -374,47 +421,41 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertFalse("slot" in response.context) # "Add new" form : no slot
-        self.assertEqual(response.request['PATH_INFO'], '/core/slot/add')
+        self.assertEqual(response.request['PATH_INFO'], '/core/slot')
 
         # Duplicate a slot : save, stay on form & keep data
         del(data["save_add"])
         data["duplicate"] = 1
         data["room"] = "S41"
-        response = self.client.post("/core/slot/add", data, follow=True)
+        response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Slot successfully added", response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertTrue(Slot.objects.filter(room="S41").exists())
         slot = Slot.objects.get(room="S41")
         self.assertEqual(response.context["slot"].course_id, self.course.id)  # empty slot
-        self.assertEqual(response.request['PATH_INFO'], '/core/slot/add/%s' % slot.id)
+        self.assertEqual(response.request['PATH_INFO'], '/core/slot/%s/1' % slot.id)
 
         # Get as structure referent
         self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/slot/add", follow=True)
-
-        # Check that we only get the structures the referent has access to
-        self.assertIn(self.structure, response.context["structures"])
-        self.assertEqual(response.context["structures"].count(), 1)
-        self.assertNotIn(self.structure2, response.context["structures"])
+        response = self.client.get("/core/slot", follow=True)
 
 
     def test_modify_slot(self):
         # As any other user
         self.client.login(username='@EXTERNAL@_hs', password='pass')
-        response = self.client.get("/core/slot/modify/%s" % self.slot.id)
+        response = self.client.get("/core/slot/%s" % self.slot.id)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/?next=/core/slot/modify/%s" % self.slot.id)
+        self.assertEqual(response.url, "/?next=/core/slot/%s" % self.slot.id)
 
         # As ref_etab user
         self.client.login(username='ref_etab', password='pass')
         # Fail with a non existing slot
-        response = self.client.get("/core/slot/modify/250", follow=True)
+        response = self.client.get("/core/slot/250", follow=True)
         self.assertIn("This slot id does not exist", response.content.decode('utf-8'))
 
         # Get an existing slot
-        response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
-        self.assertIn(self.structure, response.context["structures"])
+        response = self.client.get("/core/slot/%s" % self.slot.id, follow=True)
 
         # Get slot data and update a few fields
         data = {
@@ -437,13 +478,13 @@ class CoreViewsTestCase(TestCase):
         }
         # Fail with missing field
         del(data['speaker_%s' % self.speaker1.id])
-        response = self.client.post("/core/slot/modify/%s" % self.slot.id, data, follow=True)
+        response = self.client.post("/core/slot/%s" % self.slot.id, data, follow=True)
         self.assertFalse(Slot.objects.filter(room="New room").exists())
         self.assertIn("You have to select one or more speakers", response.content.decode('utf-8'))
 
         # Success
         data['speaker_%s' % self.speaker1.id] = 1
-        response = self.client.post("/core/slot/modify/%s" % self.slot.id, data, follow=True)
+        response = self.client.post("/core/slot/%s" % self.slot.id, data, follow=True)
         slot = Slot.objects.get(pk=self.slot.id)
 
         # Check updated fields
@@ -458,28 +499,20 @@ class CoreViewsTestCase(TestCase):
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.request['PATH_INFO'],
-            '/core/slots/%s/%s' % (self.slot.course.structure.id, self.slot.course.training.id)
-        )
+        self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
 
         # TODO : test save_add and duplicate
 
         # Get as structure referent
         self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/slot/modify/%s" % self.slot.id, follow=True)
-
-        # Check that we only get the structures the referent has access to
-        self.assertIn(self.structure, response.context["structures"])
-        self.assertEqual(response.context["structures"].count(), 1)
-        self.assertNotIn(self.structure2, response.context["structures"])
+        response = self.client.get("/core/slot/%s" % self.slot.id, follow=True)
 
         # Test with a slot the user doesn't have access to
-        response = self.client.get("/core/slot/modify/%s" % self.slot2.id)
+        response = self.client.get("/core/slot/%s" % self.slot2.id)
         self.assertTrue(response.status_code, 302)
         self.assertTrue(response.url, "/core/slots")
 
-        response = self.client.get("/core/slot/modify/%s" % self.slot2.id, follow=True)
+        response = self.client.get("/core/slot/%s" % self.slot2.id, follow=True)
         self.assertTrue(response.status_code, 200)
         self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
         self.assertIn("This slot belongs to another structure", response.content.decode('utf-8'))
