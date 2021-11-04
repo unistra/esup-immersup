@@ -249,7 +249,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_establishment_manager():
             es = request.user.establishment
             return qs.filter(
-                Q(structures__establishment=es)|Q(establishment=es)
+                Q(groups__name__in=['REF-LYC', 'LYC', 'ETU'])|Q(structures__establishment=es)|Q(establishment=es)
             )
 
         if request.user.is_high_school_manager():
