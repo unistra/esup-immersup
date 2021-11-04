@@ -8,6 +8,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.forms.widgets import TextInput
@@ -24,6 +25,11 @@ from .models import (
     MailTemplate, MailTemplateVars, PublicDocument, PublicType, Structure,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, OffOfferEventType,
 )
+
+
+class CustomStructureMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return f"{obj.establishment.code} - {str(obj)}"
 
 
 class TypeFormMixin(forms.ModelForm):
@@ -219,6 +225,20 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
+        if self.fields and self.fields.get("structures"):
+            self.fields["structures"] = CustomStructureMultipleChoiceField(
+                queryset=Structure.objects.all().order_by('establishment__code', 'label'),
+                widget=FilteredSelectMultiple(
+                    verbose_name=Structure._meta.verbose_name,
+                    is_stacked=False
+                )
+            )
+
+        if self.request.user.is_establishment_manager():
+            self.fields["structures"].queryset = self.fields["structures"].queryset.filter(
+                establishment=self.request.user.establishment
+            )
+
         if self.request.user.is_establishment_manager() or self.request.user.is_master_establishment_manager():
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
                 .filter(postbac_immersion=True)\
@@ -227,8 +247,6 @@ class TrainingForm(forms.ModelForm):
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
                 .filter(id=self.request.user.highschool.id, postbac_immersion=True)\
                 .order_by('city', 'label')
-
-        self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 
     @staticmethod
     def clean_highscool_or_structure(cleaned_data: Dict[str, Any]):
