@@ -829,6 +829,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HolidayForm
     list_display = ('label', 'date')
+    ordering = ('date',)
 
     def has_delete_permission(self, request, obj=None):
         now = datetime.now().date()
