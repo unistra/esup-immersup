@@ -112,6 +112,28 @@ class ActivationFilter(admin.SimpleListFilter):
         elif self.value() == 'False':
             return queryset.filter(groups__name__in=['LYC', 'ETU'], validation_string__isnull=False)
 
+"""
+class HighschoolListFilter(admin.RelatedFieldListFilter):
+    def field_choices(self, field, request, model_admin):
+        return field.get_choices(
+            include_blank=False,
+            limit_choices_to={'pk__in': HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')}
+        )
+"""
+
+class HighschoolListFilter(admin.SimpleListFilter):
+    title = _('High schools')
+    parameter_name = 'highschool'
+
+    def lookups(self, request, model_admin):
+        highschools = HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')
+        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(highschool=self.value())
+        else:
+            return queryset
 
 class CustomUserAdmin(AdminWithRequest, UserAdmin):
     form = ImmersionUserChangeForm
@@ -656,6 +678,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
         'active',
         ('structures__establishment', RelatedDropdownFilter),
         ('structures', RelatedDropdownFilter),
+        HighschoolListFilter,
         ('training_subdomains', RelatedDropdownFilter),
     )
 
