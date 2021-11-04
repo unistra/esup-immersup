@@ -80,7 +80,7 @@ def import_holidays(request):
                     _date_unformated = holiday[settings.HOLIDAY_API_MAP['date']]
                     _date = datetime.strptime(_date_unformated, settings.HOLIDAY_API_DATE_FORMAT)
                     _label = holiday[settings.HOLIDAY_API_MAP['label']] + ' ' + str(_date.year)
-                    if _date.date() <= year.end_date:
+                    if year.start_date <= _date.date() <= year.end_date:
                         Holiday.objects.create(label=_label, date=_date)
                 except ValueError as exc:
                     logger.error(str(exc))
