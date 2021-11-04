@@ -37,7 +37,7 @@ class BuildingSerializer(serializers.ModelSerializer):
 class HighSchoolViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = HighSchool
-        fields = ("id", "label")
+        fields = ("id", "city", "label")
 
 
 class TrainingSubdomainSerializer(serializers.ModelSerializer):
@@ -55,7 +55,7 @@ class TrainingHighSchoolSerializer(serializers.ModelSerializer):
     def get_training_subdomains(self, training):
         """get only active training subdomains"""
         query = training.training_subdomains.filter(active=True)
-        serializer = HighSchoolViewSerializer(instance=query, many=True)
+        serializer = TrainingSubdomainSerializer(instance=query, many=True)
         return serializer.data
 
     class Meta:
