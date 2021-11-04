@@ -376,6 +376,7 @@ class StructureForm(forms.ModelForm):
 class TrainingFormHighSchool(TrainingForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        del self.fields["structures"]
 
         for field_name in ["training_subdomains", "label", "highschool", "url"]:
             self.fields[field_name].widget.attrs.setdefault("class", "")
@@ -387,6 +388,7 @@ class TrainingFormHighSchool(TrainingForm):
         cleaned_data = super(forms.ModelForm, self).clean()
 
         highschool = cleaned_data.get("highschool", None)
+
         if highschool is None:
             self.add_error("highschool", _("This field is required."))
             return cleaned_data

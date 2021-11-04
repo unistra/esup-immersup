@@ -245,11 +245,12 @@ class TrainingForm(forms.ModelForm):
 
     @staticmethod
     def clean_highscool_or_structure(cleaned_data: Dict[str, Any]):
-        high_school = cleaned_data["highschool"]
-        struct = cleaned_data["structures"]
-        if high_school is not None and struct.count() > 0:
+        high_school = cleaned_data.get("highschool")
+        struct = cleaned_data.get("structures")
+
+        if high_school is not None and struct is not None and struct.count() > 0:
             raise ValidationError(_("High school and structure can't be set together. Please choose one."))
-        elif high_school is None and struct.count() <= 0:
+        elif high_school is None and (struct is None or struct.count() <= 0):
             raise ValidationError(_("Neither high school and structures are set. Please choose one."))
 
     def clean(self):
@@ -266,7 +267,6 @@ class TrainingForm(forms.ModelForm):
             raise forms.ValidationError(_("You don't have the required privileges"))
 
         self.clean_highscool_or_structure(cleaned_data)
-
         # Check label uniqueness within the same establishment
         excludes = {}
         if self.instance:
@@ -289,7 +289,7 @@ class TrainingForm(forms.ModelForm):
         if not self.request.user.is_superuser and self.request.user.is_establishment_manager():
             if not Establishment.objects.filter(
                 pk=self.request.user.establishment.id,
-                structures__in=cleaned_data.get("structures")
+                structures__in=cleaned_data.get("structures", [])
             ).exists():
                 self.add_error('structures', _("At least one structure has to belong to your own establishment"))
 
