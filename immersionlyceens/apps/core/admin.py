@@ -242,6 +242,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 messages.warning(request, no_delete_msg)
                 return False
 
+            if obj.courses.all().exists():
+                messages.warning(request, _("This user is linked to courses/events, he can't be deleted"))
+                return False
+
             if request.user.is_master_establishment_manager():
                 return obj.groups.filter(name__in=('REF-ETAB', 'REF-STR')).exists()
 
