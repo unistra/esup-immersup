@@ -140,7 +140,7 @@ class HighSchool(models.Model):
     class Meta:
         verbose_name = _('High school')
         unique_together = ('label', 'city')
-        ordering = ['label', ]
+        ordering = ['city', 'label', ]
 
 
 class ImmersionUser(AbstractUser):

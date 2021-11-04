@@ -112,21 +112,30 @@ class ActivationFilter(admin.SimpleListFilter):
         elif self.value() == 'False':
             return queryset.filter(groups__name__in=['LYC', 'ETU'], validation_string__isnull=False)
 
-"""
-class HighschoolListFilter(admin.RelatedFieldListFilter):
-    def field_choices(self, field, request, model_admin):
-        return field.get_choices(
-            include_blank=False,
-            limit_choices_to={'pk__in': HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')}
-        )
-"""
+
+class HighschoolWithImmersionsListFilter(admin.SimpleListFilter):
+    title = _('High schools')
+    parameter_name = 'highschool'
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
+
+    def lookups(self, request, model_admin):
+        highschools = HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')
+        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(highschool=self.value())
+        else:
+            return queryset
+
 
 class HighschoolListFilter(admin.SimpleListFilter):
     title = _('High schools')
     parameter_name = 'highschool'
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
 
     def lookups(self, request, model_admin):
-        highschools = HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')
+        highschools = HighSchool.objects.all().order_by('city', 'label')
         return [(h.id, f"{h.city} - {h.label}") for h in highschools]
 
     def queryset(self, request, queryset):
@@ -157,7 +166,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         ActivationFilter,
         ('groups', RelatedDropdownFilter),
         ('establishment', RelatedDropdownFilter),
-        ('highschool', RelatedDropdownFilter),
+        HighschoolListFilter,
     )
 
     def get_activated_account(self, obj):
@@ -682,7 +691,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
         'active',
         ('structures__establishment', RelatedDropdownFilter),
         ('structures', RelatedDropdownFilter),
-        HighschoolListFilter,
+        HighschoolWithImmersionsListFilter,
         ('training_subdomains', RelatedDropdownFilter),
     )
 
