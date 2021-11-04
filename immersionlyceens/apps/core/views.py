@@ -685,11 +685,14 @@ def course(request, course_id=None, duplicate=False):
                         try:
                             speaker_user = ImmersionUser.objects.get(username=speaker['username'])
                         except ImmersionUser.DoesNotExist:
+                            establishment = new_course.structure.establishment if new_course.structure else None
+
                             speaker_user = ImmersionUser.objects.create(
                                 username=speaker['username'],
                                 last_name=speaker['lastname'],
                                 first_name=speaker['firstname'],
                                 email=speaker['email'],
+                                establishment=establishment
                             )
 
                             messages.success(request, gettext("User '{}' created").format(speaker['username']))
