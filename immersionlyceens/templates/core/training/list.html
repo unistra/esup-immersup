@@ -36,8 +36,22 @@
           <a class="btn btn-secondary btn-sm" href="{% url 'training_add' %}">{% trans 'New training' %}</a>
         </div>
       </div>
-      <br>
       {% endif %}
+
+      {% if user.is_master_establishment_manager %}
+          <div class="col-md-5" id="id_div_hs">
+            <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
+              <label for="hs">{% trans 'Select a high school' %} :</label>
+              <select id="hs" name="hs" class="form-control">
+                <option value="" selected>------------</option>
+                  {% for hs in highschools %}
+                    <option value="{{ hs.id }}">{{ hs }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+          </div>
+      {% endif %}
+      <br>
 
       <div class="table-responsive">
         <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
@@ -95,7 +109,11 @@
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
-        dt.ajax.url("/api/trainings/highschool/").load();
+                else if(msg !== '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+
+        dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -108,6 +126,11 @@
     initFeedback();
     feedback = $("#feedback");
     // current_structure_id = $('#strs option:selected').val();
+
+    // Reload the table when structure changes in selectbox
+    $('#hs').change( function() {
+      dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
+    });
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,

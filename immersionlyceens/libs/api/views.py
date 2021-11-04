@@ -2253,7 +2253,7 @@ class GetEstablishment(generics.RetrieveAPIView):
     lookup_field = "id"
 
 
-@method_decorator(groups_required('REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE'), name="dispatch")
 class TrainingHighSchoolList(generics.ListAPIView):
     """Training highschool list"""
     serializer_class = TrainingHighSchoolSerializer
@@ -2265,7 +2265,13 @@ class TrainingHighSchoolList(generics.ListAPIView):
         :return:
         """
         if self.request.user.is_authenticated:
-            return Training.objects.filter(highschool=self.request.user.highschool)
+            if self.request.user.is_master_establishment_manager():
+                if "pk" in self.kwargs:
+                    return Training.objects.filter(highschool_id=self.kwargs.get("pk"))
+                else:
+                    return Training.objects.filter(highschool__isnull=False)
+            else:
+                return Training.objects.filter(highschool=self.request.user.highschool)
 
 
 @method_decorator(groups_required('REF-LYC'), name="dispatch")
@@ -2274,8 +2280,12 @@ class TrainingView(generics.DestroyAPIView):
     serializer_class = TrainingHighSchoolSerializer
 
     def delete(self, request, *args, **kwargs):
-        a = super().delete(request, *args, **kwargs)
+        if Course.objects.filter(training_id=kwargs.get("pk")).exists():
+            return JsonResponse(data={
+                "error": _("Some courses are attached to this training: delete not allowed")
+            })
 
+        super().delete(request, *args, **kwargs)
         return JsonResponse(data={
             "msg": _("Training #%s deleted") % kwargs["pk"],
         })

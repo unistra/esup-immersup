@@ -31,8 +31,24 @@
       {{ form.id }}
 
       <!-- highschool -->
-      <input type="hidden" name="highschool" id="id_highschool" value="{{ user.highschool.id }}" required>
+      {% if user.is_master_establishment_manager %}
 
+      <div class="form-group row">
+
+          <label for="highschool" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'High school' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ form.highschool }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.highschool.errors }}
+          </div>
+      </div>
+      {% else %}
+      <input type="hidden" name="highschool" id="id_highschool" value="{{ user.highschool.id }}" required>
+      {% endif %}
         <!-- label -->
         <div class="form-group row">
           <label for="label" class="col-sm-3 col-form-label">
