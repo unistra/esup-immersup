@@ -60,7 +60,7 @@
             {{ course_form.highschool.errors }}
           </div>
         </div>
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
