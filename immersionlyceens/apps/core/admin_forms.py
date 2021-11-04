@@ -234,11 +234,6 @@ class TrainingForm(forms.ModelForm):
                 )
             )
 
-        if self.request.user.is_establishment_manager():
-            self.fields["structures"].queryset = self.fields["structures"].queryset.filter(
-                establishment=self.request.user.establishment
-            )
-
         if self.request.user.is_establishment_manager() or self.request.user.is_master_establishment_manager():
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
                 .filter(postbac_immersion=True)\
