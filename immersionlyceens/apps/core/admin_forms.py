@@ -219,12 +219,14 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
-        if self.request.user.is_establishment_manager():
+        if self.request.user.is_establishment_manager() or self.request.user.is_master_establishment_manager():
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
-                .filter(postbac_immersion=True)
-        elif self.request.user.is_establishment_manager():
+                .filter(postbac_immersion=True)\
+                .order_by('city', 'label')
+        elif self.request.user.is_high_school_manager():
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
-                .filter(id=self.request.user.highschool.id, postbac_immersion=True)
+                .filter(id=self.request.user.highschool.id, postbac_immersion=True)\
+                .order_by('city', 'label')
 
         self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
 

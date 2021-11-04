@@ -650,7 +650,7 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
     filter_horizontal = ('structures', 'training_subdomains')
-    list_display = ('label', 'get_structures_list', 'get_subdomains_list', 'active')
+    list_display = ('label', 'get_structures_list', 'highschool', 'get_subdomains_list', 'active')
 
     list_filter = (
         'active',
