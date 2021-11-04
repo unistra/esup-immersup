@@ -231,7 +231,8 @@ class TrainingForm(forms.ModelForm):
                 widget=FilteredSelectMultiple(
                     verbose_name=Structure._meta.verbose_name,
                     is_stacked=False
-                )
+                ),
+                required=False
             )
 
         if self.request.user.is_establishment_manager() or self.request.user.is_master_establishment_manager():
@@ -257,9 +258,12 @@ class TrainingForm(forms.ModelForm):
         cleaned_data = super().clean()
         valid_user = False
 
+
+
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_establishment_manager() \
+                        or user.is_high_school_manager()
         except AttributeError:
             pass
 
