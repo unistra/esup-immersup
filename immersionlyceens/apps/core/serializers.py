@@ -1,6 +1,9 @@
+# pylint: disable=R0903,C0115,R0201
+"""Serializer"""
+
 from rest_framework import serializers
 
-from .models import Building, Campus, Establishment, Structure, Course
+from .models import Campus, Establishment, Training, TrainingSubdomain, HighSchool, Course, Structure, Building
 
 class CampusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,3 +33,31 @@ class BuildingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Building
         fields = "__all__"
+
+class HighSchoolViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HighSchool
+        fields = ("id", "label")
+
+
+class TrainingSubdomainSerializer(serializers.ModelSerializer):
+    """Training sub domains serializer"""
+    class Meta:
+        model = TrainingSubdomain
+        fields = ("id", "label", "active")
+
+
+class TrainingHighSchoolSerializer(serializers.ModelSerializer):
+    """Training serializer"""
+    training_subdomains = serializers.SerializerMethodField("get_training_subdomains")
+    highschool = HighSchoolViewSerializer()
+
+    def get_training_subdomains(self, training):
+        """get only active training subdomains"""
+        query = training.training_subdomains.filter(active=True)
+        serializer = HighSchoolViewSerializer(instance=query, many=True)
+        return serializer.data
+
+    class Meta:
+        model = Training
+        fields = ("id", "label", "training_subdomains", "highschool", "active")

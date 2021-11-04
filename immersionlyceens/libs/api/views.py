@@ -6,8 +6,10 @@ import datetime
 import importlib
 import json
 import logging
-from functools import reduce
 from itertools import chain, permutations
+import django_filters.rest_framework
+from functools import reduce
+
 
 import django_filters.rest_framework
 from django.conf import settings
@@ -20,6 +22,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
+from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, pgettext, gettext_lazy as _
@@ -38,7 +41,8 @@ from immersionlyceens.apps.core.models import (
     UserCourseAlert, Vacation,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer
+    BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer,
+    TrainingHighSchoolSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -46,6 +50,9 @@ from immersionlyceens.apps.immersion.models import (
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request,
 )
+
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.mails.variables_parser import multisub
 from immersionlyceens.libs.utils import get_general_setting
@@ -2237,6 +2244,51 @@ class GetEstablishment(generics.RetrieveAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     queryset = Establishment.objects.all()
     lookup_field = "id"
+
+
+class TrainingHighSchoolList(generics.ListAPIView):
+    """Training highschool list"""
+    serializer_class = TrainingHighSchoolSerializer
+    filterset_fields = ("highschool",)
+
+    def get_queryset(self):
+        """
+        Return user highschool is you are a REF-ETAB,
+        if you are REF-ETAB-MAITRE you can get every HS or get a specified HS
+        :return:
+        """
+        if self.request.user.is_authenticated:
+            if self.request.user.is_master_establishment_manager():
+                pk: str = self.kwargs.get("pk")
+                if pk is None:
+                    return Training.objects.filter(highschool__isnull=False)
+                else:
+                    return Training.objects.filter(highschool__id=pk)
+            elif self.request.user.is_establishment_manager():
+                return Training.objects.filter(highschool=self.request.user.highschool)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+class TrainingView(generics.DestroyAPIView):
+    """Training hs delete class"""
+    serializer_class = TrainingHighSchoolSerializer
+
+    def delete(self, request, *args, **kwargs):
+        a = super().delete(request, *args, **kwargs)
+
+        return JsonResponse(data={
+            "msg": _("Training #%s deleted") % kwargs["pk"],
+        })
+
+    def get_queryset(self):
+        if self.request.user.is_master_establishment_manager():
+            pk: str = self.request.query_params.get("pk")
+            if pk is None:
+                return Training.objects.filter(highschool__isnull=False)
+            else:
+                return Training.objects.filter(highschool__in=pk)
+        elif self.request.user.is_establishment_manager():
+            return Training.objects.filter(highschool=self.request.user.highschool)
 
 
 @is_ajax_request

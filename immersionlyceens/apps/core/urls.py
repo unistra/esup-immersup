@@ -42,4 +42,8 @@ urlpatterns = [
     path('students_presence', views.students_presence, name="students_presence"),
     path('speaker', views.speaker, name='speaker'),
     path('speaker/<int:id>', views.speaker, name='edit_speaker'),
+
+    path("training", views.TrainingList.as_view(), name="training_list"),
+    path("training/add", views.TrainingAdd.as_view(), name="training_add"),
+    path("training/<int:pk>/update", views.TrainingUpdate.as_view(), name="training_update"),
 ]

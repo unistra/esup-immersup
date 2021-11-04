@@ -61,6 +61,11 @@ urlpatterns = [
         name='ajax_get_student_presence_dates',
     ),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
+
+    path("trainings/highschool/", views.TrainingHighSchoolList.as_view(), name="get_trainings_highschool"),
+    path("trainings/highschool/<int:pk>", views.TrainingHighSchoolList.as_view(), name="get_training_highschool"),
+    path("training/<int:pk>", views.TrainingView.as_view(), name="training_api"),
+
     path('keep_entries', views.ajax_keep_entries, name='keep_entries'),
     path('register', views.ajax_slot_registration, name='SlotRegistration'),
     path('reject_student/', views.ajax_reject_student, name='rejectStudent'),

@@ -2,11 +2,13 @@ import importlib
 import mimetypes
 import re
 from datetime import datetime
+from typing import Any, Dict
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
@@ -217,7 +219,23 @@ class TrainingForm(forms.ModelForm):
             .order_by('training_domain__label', 'label')
         )
 
+        if self.request.user.is_establishment_manager():
+            self.fields["highschool"].queryset = self.fields["highschool"].queryset\
+                .filter(postbac_immersion=True)
+        elif self.request.user.is_establishment_manager():
+            self.fields["highschool"].queryset = self.fields["highschool"].queryset\
+                .filter(id=self.request.user.highschool.id, postbac_immersion=True)
+
         self.fields['structures'].queryset = self.fields['structures'].queryset.order_by('code', 'label')
+
+    @staticmethod
+    def clean_highscool_or_structure(cleaned_data: Dict[str, Any]):
+        high_school = cleaned_data["highschool"]
+        struct = cleaned_data["structures"]
+        if high_school is not None and struct.count() > 0:
+            raise ValidationError(_("High school and structure can't be set together. Please choose one."))
+        elif high_school is None and struct.count() <= 0:
+            raise ValidationError(_("Neither high school and structures are set. Please choose one."))
 
     def clean(self):
         cleaned_data = super().clean()
@@ -231,6 +249,8 @@ class TrainingForm(forms.ModelForm):
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
+
+        self.clean_highscool_or_structure(cleaned_data)
 
         # Check label uniqueness within the same establishment
         excludes = {}
@@ -881,14 +901,14 @@ class ImmersionUserChangeForm(UserChangeForm):
                 self._errors['groups'].append(self.error_class([msg]))
 
             if groups.filter(name='REF-LYC').exists():
-                
+
                 if not highschool:
                     msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
                     self._errors["highschool"] = self.error_class([msg])
                     del cleaned_data["highschool"]
                 elif highschool.postbac_immersion:
                     cleaned_data['is_staff'] = True
-                
+
 
             if highschool and not groups.filter(name__in=('REF-LYC', 'INTER')).exists():
                 msg = _("The groups 'REF-LYC' or 'INTER' is mandatory when you add a highschool")
