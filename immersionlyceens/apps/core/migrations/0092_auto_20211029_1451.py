@@ -11,11 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='training',
-            name='structures',
-            field=models.ManyToManyField(blank=True, related_name='Trainings', to='core.Structure', verbose_name='Structures'),
-        ),
         migrations.AlterUniqueTogether(
             name='course',
             unique_together=set(),
