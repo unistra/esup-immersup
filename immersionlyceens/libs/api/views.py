@@ -2259,9 +2259,7 @@ class TrainingHighSchoolList(generics.ListAPIView):
         """
         if self.request.user.is_authenticated:
             if self.request.user.is_master_establishment_manager():
-                print(self.kwargs)
                 pk: str = self.kwargs.get("pk")
-                print(pk)
                 if pk is None:
                     return Training.objects.filter(highschool__isnull=False)
                 else:
