@@ -90,7 +90,7 @@
             {{ slot_form.highschool.errors }}
           </div>
         </div>
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -142,7 +142,7 @@
         </div>
 
         <div class="form-group row" id="id_div_campus">
-          <label for="campus" class="col-form-label col-sm-3">{% trans 'Campus' %}</label>
+          <label for="id_campus" class="col-form-label col-sm-3">{% trans 'Campus' %}</label>
           <div class="col-sm-6">
             {% if slot %}
                 <select name="campus" id="id_campus" class="form-control">
@@ -337,9 +337,11 @@
   var course_id = "{{ slot_form.course.value }}";
   var campus_id = "{{ slot_form.campus.value }}";
   var building_id = "{{ slot_form.building.value }}";
-  var establishment_id = "{{ course_form.establishment.initial }}";
-  var highschool_id = "{{ course_form.highschool.id }}";
+  var establishment_id = "{{ slot_form.establishment.initial }}";
+  var highschool_id = "{{ slot_form.highschool.id }}";
   var courses = Array();
+
+  console.log(establishment_id)
 
   function empty_structures() {
       let options = '<option value="">---------</option>'
@@ -790,7 +792,7 @@ $(document).ready(function(){
   function toggle_required_fields () {
     let published = $('#id_published').prop('checked');
     if (published) {
-      let mandatory
+      let mandatory = Array()
       if(structure_id) {
           mandatory = [
               'course', 'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time',

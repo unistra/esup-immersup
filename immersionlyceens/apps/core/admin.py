@@ -113,6 +113,37 @@ class ActivationFilter(admin.SimpleListFilter):
             return queryset.filter(groups__name__in=['LYC', 'ETU'], validation_string__isnull=False)
 
 
+class HighschoolWithImmersionsListFilter(admin.SimpleListFilter):
+    title = _('High schools')
+    parameter_name = 'highschool'
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
+
+    def lookups(self, request, model_admin):
+        highschools = HighSchool.objects.filter(postbac_immersion=True).order_by('city', 'label')
+        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(highschool=self.value())
+        else:
+            return queryset
+
+
+class HighschoolListFilter(admin.SimpleListFilter):
+    title = _('High schools')
+    parameter_name = 'highschool'
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
+
+    def lookups(self, request, model_admin):
+        highschools = HighSchool.objects.all().order_by('city', 'label')
+        return [(h.id, f"{h.city} - {h.label}") for h in highschools]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(highschool=self.value())
+        else:
+            return queryset
+
 class CustomUserAdmin(AdminWithRequest, UserAdmin):
     form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
@@ -135,7 +166,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         ActivationFilter,
         ('groups', RelatedDropdownFilter),
         ('establishment', RelatedDropdownFilter),
-        ('highschool', RelatedDropdownFilter),
+        HighschoolListFilter,
     )
 
     def get_activated_account(self, obj):
@@ -218,6 +249,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return True
             elif obj.is_superuser:
                 messages.warning(request, no_delete_msg)
+                return False
+
+            if obj.courses.all().exists():
+                messages.warning(request, _("This user is linked to courses/events, he can't be deleted"))
                 return False
 
             if request.user.is_master_establishment_manager():
@@ -650,12 +685,13 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
 class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingForm
     filter_horizontal = ('structures', 'training_subdomains')
-    list_display = ('label', 'get_structures_list', 'get_subdomains_list', 'active')
+    list_display = ('label', 'get_structures_list', 'highschool', 'get_subdomains_list', 'active')
 
     list_filter = (
         'active',
         ('structures__establishment', RelatedDropdownFilter),
         ('structures', RelatedDropdownFilter),
+        HighschoolWithImmersionsListFilter,
         ('training_subdomains', RelatedDropdownFilter),
     )
 
@@ -806,6 +842,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HolidayForm
     list_display = ('label', 'date')
+    ordering = ('date',)
 
     def has_delete_permission(self, request, obj=None):
         now = datetime.now().date()
@@ -834,7 +871,7 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if request.user.is_superuser or request.user.is_master_establishment_manager():
             return True
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)

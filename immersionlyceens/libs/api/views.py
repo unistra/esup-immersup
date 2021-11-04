@@ -208,11 +208,17 @@ def ajax_get_courses(request):
             pass
 
     for course in courses:
+        if course.structure:
+            managed_by = course.structure.code
+        elif course.highschool:
+            managed_by = f"{course.highschool.city} - {course.highschool.label}"
+
         course_data = {
             'id': course.id,
             'published': course.published,
             'training_label': course.training.label,
             'label': course.label,
+            'managed_by': managed_by,
             'structure_code': course.structure.code if course.structure else None,
             'structure_id': course.structure.id if course.structure else None,
             'highschool_id': course.highschool.id if course.highschool else None,
@@ -2123,7 +2129,8 @@ def ajax_get_highschool_speakers(request, highschool_id=None):
 
     if request.user.highschool and highschool_id and request.user.highschool.id == highschool_id:
         for speaker in ImmersionUser.objects.filter(groups__name='INTER', highschool=request.user.highschool):
-            has_slots = speaker.slots.exists()
+            has_courses = speaker.courses.exists()
+            has_slots = speaker.slots.exists() # useless ?
 
             response["data"].append({
                 'id': speaker.id,
@@ -2131,8 +2138,8 @@ def ajax_get_highschool_speakers(request, highschool_id=None):
                 'first_name': speaker.first_name,
                 'email': speaker.email,
                 'is_active': _("Yes") if speaker.is_active else _("No"),
-                'has_slots': _("Yes") if has_slots else _("No"),
-                'can_delete': not has_slots
+                'has_courses': _("Yes") if has_courses else _("No"),
+                'can_delete': not has_courses
             })
 
     return JsonResponse(response, safe=False)
