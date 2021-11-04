@@ -390,8 +390,5 @@ class TrainingFormHighSchool(TrainingForm):
         if highschool is None:
             self.add_error("highschool", _("This field is required."))
             return cleaned_data
-        elif self.request.user.is_establishment_manager() and self.request.user.highschool.id != highschool.id:
-            self.add_error("highschool", _("You don't have access to this highchool."))
-            return cleaned_data
 
         return super().clean()

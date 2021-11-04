@@ -2246,6 +2246,7 @@ class GetEstablishment(generics.RetrieveAPIView):
     lookup_field = "id"
 
 
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingHighSchoolList(generics.ListAPIView):
     """Training highschool list"""
     serializer_class = TrainingHighSchoolSerializer
@@ -2253,22 +2254,14 @@ class TrainingHighSchoolList(generics.ListAPIView):
 
     def get_queryset(self):
         """
-        Return user highschool is you are a REF-ETAB,
-        if you are REF-ETAB-MAITRE you can get every HS or get a specified HS
+        Return user highschool is you are a REF-LYC,
         :return:
         """
         if self.request.user.is_authenticated:
-            if self.request.user.is_master_establishment_manager():
-                pk: str = self.kwargs.get("pk")
-                if pk is None:
-                    return Training.objects.filter(highschool__isnull=False)
-                else:
-                    return Training.objects.filter(highschool__id=pk)
-            elif self.request.user.is_establishment_manager():
-                return Training.objects.filter(highschool=self.request.user.highschool)
+            return Training.objects.filter(highschool=self.request.user.highschool)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingView(generics.DestroyAPIView):
     """Training hs delete class"""
     serializer_class = TrainingHighSchoolSerializer
@@ -2281,14 +2274,7 @@ class TrainingView(generics.DestroyAPIView):
         })
 
     def get_queryset(self):
-        if self.request.user.is_master_establishment_manager():
-            pk: str = self.request.query_params.get("pk")
-            if pk is None:
-                return Training.objects.filter(highschool__isnull=False)
-            else:
-                return Training.objects.filter(highschool__in=pk)
-        elif self.request.user.is_establishment_manager():
-            return Training.objects.filter(highschool=self.request.user.highschool)
+        return Training.objects.filter(highschool=self.request.user.highschool)
 
 
 @is_ajax_request

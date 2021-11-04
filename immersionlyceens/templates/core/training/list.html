@@ -36,23 +36,7 @@
           <a class="btn btn-secondary btn-sm" href="{% url 'training_add' %}">{% trans 'New training' %}</a>
         </div>
       </div>
-      {% endif %}
-
-      {% if user.is_master_establishment_manager %}
-
-        <div class="str_filter" style="padding-bottom:10px; padding-top:20px;">
-          <label for="hs">{% trans "Select an highschool" %} :</label>
-          <select name="highschool" id="hs" class="form-control col-xl-3 col-sm-6 col-md-6">
-            <option value="" selected>----------</option>
-            {% for highschool in highschools %}
-              <option value="{{ highschool.id }}">{{ highschool }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      {% else %}
-        <select name="highschool" id="hs" hidden>
-          <option value="{{ user.highschool.id }}" SELECTED>{{ user.highschool }}</option>
-        </select>
+      <br>
       {% endif %}
 
       <div class="table-responsive">
@@ -111,7 +95,7 @@
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
-        dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
+        dt.ajax.url("/api/trainings/highschool/").load();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -213,12 +197,6 @@
         },
       ],
     });
-
-    $('#hs').change(() => {
-      dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
-    });
-
-
 
     // Filters init
     yadcf.init(dt, [{

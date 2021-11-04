@@ -1086,23 +1086,20 @@ def duplicated_accounts(request):
     return render(request, 'core/duplicated_accounts.html', context)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingList(generic.TemplateView):
     template_name = "core/training/list.html"
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context: Dict[str, Any] = super().get_context_data(**kwargs)
-        context["can_update"] = self.request.user.is_master_establishment_manager()\
-                    or self.request.user.is_establishment_manager()\
-                    or self.request.user.is_superuser()
-
+        context["can_update"] = True
         if self.request.user.is_master_establishment_manager():
             context["highschools"] = HighSchool.objects.filter(postbac_immersion=True).order_by("city", "label")
 
         return context
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingAdd(generic.CreateView):
     form_class = TrainingFormHighSchool
     template_name: str = "core/training/training.html"
@@ -1112,8 +1109,6 @@ class TrainingAdd(generic.CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_master_establishment_manager():
-            context["highschools"] = HighSchool.objects.filter(postbac_immersion=True).order_by("city", "label")
         return context
 
     def get_form_kwargs(self) -> Dict[str, Any]:
@@ -1130,7 +1125,7 @@ class TrainingAdd(generic.CreateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingUpdate(generic.UpdateView):
     form_class = TrainingFormHighSchool
     template_name: str = "core/training/training.html"
