@@ -1419,11 +1419,14 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = ('label', 'full_label', 'active')
     ordering = ('label',)
 
-    def has_module_permission(self, request):
+    def has_add_permission(self, request):
         return request.user.is_master_establishment_manager()
 
+    def has_module_permission(self, request):
+        return request.user.is_master_establishment_manager() or request.user.is_establishment_manager()
+
     def has_view_permission(self, request, obj=None):
-        return request.user.is_master_establishment_manager()
+        return request.user.is_master_establishment_manager() or request.user.is_establishment_manager()
 
     def has_change_permission(self, request, obj=None):
         return request.user.is_master_establishment_manager()
