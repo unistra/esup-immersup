@@ -857,7 +857,7 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
     def has_add_permission(self, request, obj=None):
-        if request.user.is_superuser:
+        if request.user.is_superuser or request.user.is_master_establishment_manager:
             return True
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
