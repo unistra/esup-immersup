@@ -144,6 +144,22 @@ class HighschoolListFilter(admin.SimpleListFilter):
         else:
             return queryset
 
+
+class StructureListFilter(admin.SimpleListFilter):
+    title = _('Structures')
+    parameter_name = 'structures'
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
+
+    def lookups(self, request, model_admin):
+        structures = Structure.objects.all().order_by('establishment__code', 'label')
+        return [(s.id, f"{s.establishment.code} - {s.label}") for s in structures]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(structures=self.value())
+        else:
+            return queryset
+
 class CustomUserAdmin(AdminWithRequest, UserAdmin):
     form = ImmersionUserChangeForm
     add_form = ImmersionUserCreationForm
@@ -233,7 +249,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         if request.user.is_establishment_manager():
             es = request.user.establishment
             return qs.filter(
-                Q(structures__establishment=es)|Q(establishment=es)|Q(establishment__isnull=True)
+                Q(structures__establishment=es)|Q(establishment=es)
             )
 
         if request.user.is_high_school_manager():
@@ -690,7 +706,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = (
         'active',
         ('structures__establishment', RelatedDropdownFilter),
-        ('structures', RelatedDropdownFilter),
+        StructureListFilter,
         HighschoolWithImmersionsListFilter,
         ('training_subdomains', RelatedDropdownFilter),
     )
