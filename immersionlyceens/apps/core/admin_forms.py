@@ -833,6 +833,16 @@ class ImmersionUserChangeForm(UserChangeForm):
         if self.fields and self.fields.get('highschool'):
             self.fields["highschool"].queryset = HighSchool.objects.all().order_by("city", "label")
 
+        if self.fields and self.fields.get('structures'):
+            self.fields["structures"] = CustomStructureMultipleChoiceField(
+                queryset=Structure.objects.all().order_by('establishment__code', 'label'),
+                widget=FilteredSelectMultiple(
+                    verbose_name=Structure._meta.verbose_name,
+                    is_stacked=False
+                ),
+                required=False
+            )
+
         if not self.request.user.is_superuser:
             # Disable establishment modification
             if self.instance.id and self.instance.establishment and self.fields.get('establishment'):
