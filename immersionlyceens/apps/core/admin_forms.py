@@ -845,10 +845,13 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if not self.request.user.is_superuser:
             # Disable establishment modification
-            if self.instance.id and self.instance.establishment and self.fields.get('establishment'):
+            if self.fields.get('establishment') and self.instance.establishment:
                 self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
                 self.fields["establishment"].empty_label = None
-                self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
+            else:
+                self.fields["establishment"].queryset = Establishment.objects.none()
+
+            self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
@@ -863,10 +866,13 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.is_master_establishment_manager():
                     self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
 
-                if self.fields.get('structures') and self.instance.establishment:
-                    self.fields["structures"].queryset = Structure.objects.filter(
-                        establishment=self.instance.establishment
-                    )
+                if self.fields.get('structures'):
+                    if self.instance.establishment:
+                        self.fields["structures"].queryset = Structure.objects.filter(
+                            establishment=self.instance.establishment
+                        )
+                    else:
+                        self.fields["structures"].queryset = Structure.objects.none()
 
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment
