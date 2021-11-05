@@ -858,6 +858,8 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["first_name"].disabled = True
                     self.fields["last_name"].disabled = True
 
+                self.fields["groups"].queryset = \
+                    self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC'])
             else:
                 self.fields["establishment"].queryset = Establishment.objects.none()
 
@@ -874,7 +876,8 @@ class ImmersionUserChangeForm(UserChangeForm):
             # Restrictions on group / structures selection depending on current user group
             if self.request.user.is_master_establishment_manager():
                 if not self.instance.is_master_establishment_manager():
-                    self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+                    self.fields["groups"].queryset = \
+                        self.fields["groups"].queryset.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
 
                 if self.fields.get('structures'):
                     if self.instance.establishment:
@@ -888,7 +891,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 user_establishment = self.request.user.establishment
 
                 if self.fields.get('groups'):
-                    self.fields["groups"].queryset = Group.objects.filter(
+                    self.fields["groups"].queryset = self.fields["groups"].queryset.filter(
                         name__in=settings.HAS_RIGHTS_ON_GROUP['REF-ETAB']
                     ).order_by('name')
 
@@ -908,7 +911,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["structures"].disabled = True
 
                 if self.fields.get("groups"):
-                    self.fields["groups"].queryset = Group.objects.filter(
+                    self.fields["groups"].queryset = self.fields["groups"].queryset.filter(
                         name__in=['INTER']
                     )
                     self.fields["groups"].disabled = True
