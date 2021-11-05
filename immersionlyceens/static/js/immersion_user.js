@@ -43,7 +43,7 @@ $(document).ready(function() {
       }
     }
 
-    function get_establishment(id) {
+    function get_establishment() {
       let csrftoken = getCookie('csrftoken')
 
       if(establishment_id !== "") {
@@ -60,11 +60,16 @@ $(document).ready(function() {
           }
         })
       }
+      else {
+        has_plugin = false
+        refresh_search_field()
+      }
     }
 
     // init
+    refresh_search_field()
     get_establishment()
-    
+
     $('#id_establishment').on('change', function() {
       establishment_id = this.value
       get_establishment()

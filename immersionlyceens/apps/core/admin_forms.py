@@ -862,6 +862,8 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC'])
             else:
                 self.fields["establishment"].queryset = Establishment.objects.none()
+                self.fields["groups"].queryset = \
+                    self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
 
             self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
