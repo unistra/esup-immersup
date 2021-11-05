@@ -731,14 +731,8 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
         # Other groups has no "Can view structure" permission
         qs = super().get_queryset(request)
 
-        if request.user.is_superuser:
-            return qs
-
         if request.user.is_establishment_manager():
-            return qs.filter(
-                Q(structures__establishment__isnull=True)
-                |Q(structures__establishment=request.user.establishment)
-            )
+            return qs.filter(structures__establishment=request.user.establishment)
 
         return qs
 
