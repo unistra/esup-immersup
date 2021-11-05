@@ -779,7 +779,7 @@ class ImmersionUserCreationForm(UserCreationForm):
                     pk=self.request.user.establishment.pk
                 )
 
-            if self.request.user.is_high_school_manager():
+            if self.request.user.is_high_school_manager() and self.fields.get("username"):
                 self.fields["username"].required = False
 
     def clean(self):
@@ -829,6 +829,9 @@ class ImmersionUserChangeForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        if self.fields and self.fields.get('highschool'):
+            self.fields["highschool"].queryset = HighSchool.objects.all().order_by("city", "label")
 
         if not self.request.user.is_superuser:
             # Disable establishment modification
@@ -881,7 +884,9 @@ class ImmersionUserChangeForm(UserChangeForm):
 
                 if self.fields.get('highschool'):
                     self.fields["highschool"].empty_label = None
-                    self.fields["highschool"].queryset = HighSchool.objects.filter(pk=user_highschool.id)
+                    self.fields["highschool"].queryset = \
+                        HighSchool.objects.filter(pk=user_highschool.id).order_by("city", "label")
+
 
     def clean(self):
         cleaned_data = super().clean()
@@ -1060,7 +1065,8 @@ class HighSchoolForm(forms.ModelForm):
                 )
 
 
-        if not self.instance or (self.instance and not self.instance.postbac_immersion):
+        if not self.instance or (self.instance and not self.instance.postbac_immersion) \
+            and self.fields.get("mailing_list"):
             self.fields["mailing_list"].disabled = True
 
         if self.fields.get('mailing_list'):
