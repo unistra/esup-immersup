@@ -775,6 +775,7 @@ class ImmersionUserCreationForm(UserCreationForm):
 
             # A regular establishment manager has only access to his own establishment
             if self.request.user.is_establishment_manager():
+                self.fields["establishment"].empty_label = None
                 self.fields["establishment"].queryset = Establishment.objects.filter(
                     pk=self.request.user.establishment.pk
                 )
@@ -848,6 +849,15 @@ class ImmersionUserChangeForm(UserChangeForm):
             if self.fields.get('establishment') and self.instance.establishment:
                 self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
                 self.fields["establishment"].empty_label = None
+
+                # Lock fields when the selected establishment has a source plugin set
+                has_plugin = self.instance.establishment.data_source_plugin is not None
+                if has_plugin:
+                    self.fields["username"].disabled = True
+                    self.fields["email"].disabled = True
+                    self.fields["first_name"].disabled = True
+                    self.fields["last_name"].disabled = True
+
             else:
                 self.fields["establishment"].queryset = Establishment.objects.none()
 
