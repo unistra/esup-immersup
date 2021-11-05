@@ -20,7 +20,7 @@ $(document).ready(function() {
 
     let query_order = 0
     let results
-    let establishment_id
+    let establishment_id = $("#id_establishment").val()
     let has_plugin = false
     let results_text = gettext("Results")
     let select_text = gettext("Select a user ...")
@@ -43,12 +43,8 @@ $(document).ready(function() {
       }
     }
 
-    // init
-    refresh_search_field()
-
-    $('#id_establishment').on('change', function() {
+    function get_establishment(id) {
       let csrftoken = getCookie('csrftoken')
-      establishment_id = this.value;
 
       if(establishment_id !== "") {
         $.ajax({
@@ -64,6 +60,14 @@ $(document).ready(function() {
           }
         })
       }
+    }
+
+    // init
+    get_establishment()
+    
+    $('#id_establishment').on('change', function() {
+      establishment_id = this.value
+      get_establishment()
     })
 
     $('#id_search').after(
