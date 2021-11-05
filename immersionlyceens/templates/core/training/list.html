@@ -88,7 +88,8 @@
   let current_structure_id;
   let duplicate_text = "{% trans 'Duplicate' %}";
   let delete_text = "{% trans 'Delete' %}";
-  let conformDialog;
+  let confirmDialog;
+  let highschool_id
 
   function delete_training(training_id) {
     var csrftoken = getCookie('csrftoken');
@@ -105,15 +106,12 @@
 
         if(error != '') {
           feedback.trigger("showFeedback", [[error, "danger"]]);
-        } else if(msg != '') {
+        }
+        else if(msg != '') {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
-                else if(msg !== '') {
-          feedback.trigger("showFeedback", [[msg, "success"]]);
-        }
-
-        dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
+        dt.ajax.url("/api/trainings/highschool/" + highschool_id).load();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -127,9 +125,14 @@
     feedback = $("#feedback");
     // current_structure_id = $('#strs option:selected').val();
 
+    if($('#hs option:selected').val() === undefined) {
+      highschool_id = {{ request.user.highschool.id }}
+    }
+
     // Reload the table when structure changes in selectbox
     $('#hs').change( function() {
-      dt.ajax.url("/api/trainings/highschool/" + $('#hs option:selected').val()).load();
+      highschool_id = $('#hs option:selected').val()
+      dt.ajax.url("/api/trainings/highschool/" + highschool_id).load();
     });
 
     confirmDialog = $("#confirm-dialog-form").dialog({
