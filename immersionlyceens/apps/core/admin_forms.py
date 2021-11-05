@@ -775,6 +775,7 @@ class ImmersionUserCreationForm(UserCreationForm):
 
             # A regular establishment manager has only access to his own establishment
             if self.request.user.is_establishment_manager():
+                self.fields["establishment"].empty_label = None
                 self.fields["establishment"].queryset = Establishment.objects.filter(
                     pk=self.request.user.establishment.pk
                 )
@@ -845,10 +846,22 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if not self.request.user.is_superuser:
             # Disable establishment modification
-            if self.instance.id and self.instance.establishment and self.fields.get('establishment'):
+            if self.fields.get('establishment') and self.instance.establishment:
                 self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
                 self.fields["establishment"].empty_label = None
-                self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
+
+                # Lock fields when the selected establishment has a source plugin set
+                has_plugin = self.instance.establishment.data_source_plugin is not None
+                if has_plugin:
+                    self.fields["username"].disabled = True
+                    self.fields["email"].disabled = True
+                    self.fields["first_name"].disabled = True
+                    self.fields["last_name"].disabled = True
+
+            else:
+                self.fields["establishment"].queryset = Establishment.objects.none()
+
+            self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
@@ -859,9 +872,17 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields[field].disabled = True
 
             # Restrictions on group / structures selection depending on current user group
-            if self.request.user.is_master_establishment_manager() \
-                and not self.instance.is_master_establishment_manager():
-                self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+            if self.request.user.is_master_establishment_manager():
+                if not self.instance.is_master_establishment_manager():
+                    self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+
+                if self.fields.get('structures'):
+                    if self.instance.establishment:
+                        self.fields["structures"].queryset = Structure.objects.filter(
+                            establishment=self.instance.establishment
+                        )
+                    else:
+                        self.fields["structures"].queryset = Structure.objects.none()
 
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment

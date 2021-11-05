@@ -20,7 +20,7 @@ $(document).ready(function() {
 
     let query_order = 0
     let results
-    let establishment_id
+    let establishment_id = $("#id_establishment").val()
     let has_plugin = false
     let results_text = gettext("Results")
     let select_text = gettext("Select a user ...")
@@ -29,18 +29,22 @@ $(document).ready(function() {
     function refresh_search_field() {
       if(!has_plugin) {
         $(".field-search").hide()
+        $("#id_username").prop("readonly", false);
+        $("#id_email").prop("readonly", false);
+        $("#id_first_name").prop("readonly", false);
+        $("#id_last_name").prop("readonly", false);
       }
       else {
         $(".field-search").show()
+        $("#id_username").prop("readonly", true);
+        $("#id_email").prop("readonly", true);
+        $("#id_first_name").prop("readonly", true);
+        $("#id_last_name").prop("readonly", true);
       }
     }
 
-    // init
-    refresh_search_field()
-
-    $('#id_establishment').on('change', function() {
+    function get_establishment(id) {
       let csrftoken = getCookie('csrftoken')
-      establishment_id = this.value;
 
       if(establishment_id !== "") {
         $.ajax({
@@ -56,6 +60,14 @@ $(document).ready(function() {
           }
         })
       }
+    }
+
+    // init
+    get_establishment()
+    
+    $('#id_establishment').on('change', function() {
+      establishment_id = this.value
+      get_establishment()
     })
 
     $('#id_search').after(
