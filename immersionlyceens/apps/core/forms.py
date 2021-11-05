@@ -65,9 +65,6 @@ class CourseForm(forms.ModelForm):
                 allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
 
             self.fields["highschool"].queryset = allowed_highschools.order_by('city', 'label')
-            print(allowed_highschools)
-            print(self.request.user.highschool)
-            print(self.request.user.highschool)
 
             if self.instance.id and not self.request.user.has_course_rights(self.instance.id):
                 for field in self.fields:

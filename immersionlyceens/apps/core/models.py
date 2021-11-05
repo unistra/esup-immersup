@@ -512,6 +512,9 @@ class Training(models.Model):
         """Return True if structure is set"""
         return self.structures.count() > 0
 
+    def can_delete(self):
+        return not self.courses.all().exists()
+
     class Meta:
         verbose_name = _('Training')
         verbose_name_plural = _('Trainings')

@@ -205,9 +205,13 @@
               data: "",
               render: function (data, type, row) {
                   let delete_text = "{% trans 'Delete' %}"
-                  let icons = '<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data(\'training_id\', '+row.id+').dialog(\'open\')" title="'+ delete_text +'">'+
-                       '<i class="fa fas fa-trash fa-2x"></i>' +
-                     '</button>'
+                  let icons = ''
+
+                  if(row.can_delete) {
+                      icons = '<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data(\'training_id\', ' + row.id + ').dialog(\'open\')" title="' + delete_text + '">' +
+                          '<i class="fa fas fa-trash fa-2x"></i>' +
+                          '</button>'
+                  }
                   return icons
               }
 

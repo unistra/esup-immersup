@@ -51,6 +51,7 @@ class TrainingHighSchoolSerializer(serializers.ModelSerializer):
     """Training serializer"""
     training_subdomains = serializers.SerializerMethodField("get_training_subdomains")
     highschool = HighSchoolViewSerializer()
+    can_delete = serializers.BooleanField()
 
     def get_training_subdomains(self, training):
         """get only active training subdomains"""
@@ -60,4 +61,4 @@ class TrainingHighSchoolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Training
-        fields = ("id", "label", "training_subdomains", "highschool", "active")
+        fields = ("id", "label", "training_subdomains", "highschool", "active", "can_delete")
