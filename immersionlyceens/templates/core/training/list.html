@@ -21,63 +21,51 @@
 <div id="feedback" class="container"></div>
 
 <div class="container-fluid" style="padding-top:20px; width:70%;">
-  <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
+
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+        {% trans "My high school" %} - {{ user.highschool.label }}
+    </div>
+    <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
     <span>
       {% trans "Do you really want to delete this course ?" %}
     </span>
   </div>
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-      {% trans "Training list" %}
-    </div>
     <div class="card-body">
-      {% if can_update %}
-      <div class="row">
-        <div class="col-md-6">
-          <a class="btn btn-secondary btn-sm" href="{% url 'training_add' %}">{% trans 'New training' %}</a>
-        </div>
-      </div>
-      {% endif %}
 
-      {% if user.is_master_establishment_manager %}
-          <div class="col-md-5" id="id_div_hs">
-            <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
-              <label for="hs">{% trans 'Select a high school' %} :</label>
-              <select id="hs" name="hs" class="form-control">
-                <option value="" selected>------------</option>
-                  {% for hs in highschools %}
-                    <option value="{{ hs.id }}">{{ hs }}</option>
-                  {% endfor %}
-              </select>
-            </div>
+      <div class="card">
+        <div class="card-title card-header d-flex justify-content-between align-items-center">
+          {% trans "Training list" %}
+          <a class="btn btn-secondary btn-sm" href="{% url 'training_add' %}">{% trans 'New training' %}</a></div>
+        <div class="card-body">
+
+          <div class="table-responsive">
+            <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+            <thead>
+              <tr>
+                <th><span id="label_filter">{% trans 'Label' %}</span></th>
+                <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
+                <th><span id="hs_filter">{% trans 'High school' %}</span></th>
+                <th><span id="active_filter">{% trans 'active' %}</span></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tfoot>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tfoot>
+            </table>
           </div>
-      {% endif %}
-      <br>
-
-      <div class="table-responsive">
-        <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
-        <thead>
-          <tr>
-            <th><span id="label_filter">{% trans 'Label' %}</span></th>
-            <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
-            <th><span id="hs_filter">{% trans 'High school' %}</span></th>
-            <th><span id="active_filter">{% trans 'active' %}</span></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tfoot>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tfoot>
-        </table>
+        </div>
       </div>
     </div>
   </div>
+
 </div>
 
 
