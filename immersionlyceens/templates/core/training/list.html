@@ -214,8 +214,11 @@
               }
           },
           {
-              data: "",
+              data: "can_delete",
               render: function (data, type, row) {
+                  if ( data === false ) {
+                      return ""
+                  }
                   let delete_text = "{% trans 'Delete' %}"
                   let icons = ''
 
