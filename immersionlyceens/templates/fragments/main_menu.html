@@ -49,19 +49,6 @@
           </div>
         {% endif %}
 
-        {% if authorized_groups|in_groups:"REF-ETAB-MAITRE" %}
-          <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTrainings" role="button" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false">
-              {% trans 'Trainings' %}
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownTrainings">
-              <a class="dropdown-item" href="{% url 'training_list' %}">{% trans 'Trainings list' %}</a>
-              <a class="dropdown-item" href="{% url 'training_add' %}">{% trans 'New training' %}</a>
-            </div>
-          </div>
-        {% endif %}
-
         {# Structure #}
         {% if authorized_groups|in_groups:"REF-STR" %}
           <div class="nav-item dropdown">
