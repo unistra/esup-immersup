@@ -1103,7 +1103,7 @@ class TrainingList(generic.TemplateView):
         return context
 
 
-@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingAdd(generic.CreateView):
     form_class = TrainingFormHighSchool
     template_name: str = "core/training/training.html"
@@ -1113,8 +1113,6 @@ class TrainingAdd(generic.CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_master_establishment_manager():
-            context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True)
         return context
 
     def get_form_kwargs(self) -> Dict[str, Any]:
@@ -1128,11 +1126,10 @@ class TrainingAdd(generic.CreateView):
 
     def form_invalid(self, form):
         messages.error(self.request, _("Training not created."))
-        messages.error(self.request, form.errors)
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingUpdate(generic.UpdateView):
     form_class = TrainingFormHighSchool
     template_name: str = "core/training/training.html"

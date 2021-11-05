@@ -2274,7 +2274,7 @@ class TrainingHighSchoolList(generics.ListAPIView):
                 return Training.objects.filter(highschool=self.request.user.highschool)
 
 
-@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingView(generics.DestroyAPIView):
     """Training hs delete class"""
     serializer_class = TrainingHighSchoolSerializer

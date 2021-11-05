@@ -14,7 +14,7 @@
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
-{% trans "Courses list" %}
+{% trans "Training list" %}
 {% endblock %}
 
 {% block content %}
@@ -45,14 +45,12 @@
               <tr>
                 <th><span id="label_filter">{% trans 'Label' %}</span></th>
                 <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
-                <th><span id="hs_filter">{% trans 'High school' %}</span></th>
                 <th><span id="active_filter">{% trans 'active' %}</span></th>
                 <th></th>
               </tr>
             </thead>
             <tfoot>
               <tr>
-                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -74,11 +72,9 @@
   let dt;
   let updatable = "{{ can_update }}";
   let feedback;
-  let current_structure_id;
   let duplicate_text = "{% trans 'Duplicate' %}";
   let delete_text = "{% trans 'Delete' %}";
   let confirmDialog;
-  let highschool_id
 
   function delete_training(training_id) {
     var csrftoken = getCookie('csrftoken');
@@ -90,21 +86,20 @@
       type: "DELETE",
 
       success: (json) =>  {
-        let msg = json['msg'];
-        let error = json['error'];
+        let msg = json['msg']
+        let error = json['error']
 
-        if(error != '') {
+        console.log(msg)
+        console.log(error)
+
+        if(error != '' && error != undefined) {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         }
-        else if(msg != '') {
+        else if(msg != '' && msg != undefined) {
+            console.log("World")
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
-        if(highschool_id) {
-            dt.ajax.url("/api/trainings/highschool/" + highschool_id).load();
-        }
-        else {
-            dt.ajax.url("/api/trainings/highschool").load();
-        }
+        dt.ajax.url("/api/trainings/highschool").load();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -116,22 +111,6 @@
   $(document).ready(() => {
     initFeedback();
     feedback = $("#feedback");
-    // current_structure_id = $('#strs option:selected').val();
-
-    if($('#hs option:selected').val() === undefined) {
-      highschool_id = "{{ request.user.highschool.id }}"
-    }
-
-    // Reload the table when structure changes in selectbox
-    $('#hs').change( function() {
-      highschool_id = $('#hs option:selected').val()
-      if(highschool_id) {
-        dt.ajax.url("/api/trainings/highschool/" + highschool_id).load();
-      }
-      else {
-        dt.ajax.url("/api/trainings/highschool").load();
-      }
-    });
 
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
@@ -189,11 +168,6 @@
           { data: "training_subdomains",
             render: function (data, type, row) {
               return "<ul>" + data.map(({label}) => "<li>" + label + "</li>").join("") + "</ul>"
-            },
-          },
-          { data: "highschool",
-            render: (data, type, row) => {
-              return data.city + " - " + data.label
             },
           },
           {
