@@ -859,9 +859,14 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self.fields[field].disabled = True
 
             # Restrictions on group / structures selection depending on current user group
-            if self.request.user.is_master_establishment_manager() \
-                and not self.instance.is_master_establishment_manager():
-                self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+            if self.request.user.is_master_establishment_manager():
+                if not self.instance.is_master_establishment_manager():
+                    self.fields["groups"].queryset = Group.objects.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
+
+                if self.fields.get('structures') and self.instance.establishment:
+                    self.fields["structures"].queryset = Structure.objects.filter(
+                        establishment=self.instance.establishment
+                    )
 
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment
