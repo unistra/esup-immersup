@@ -10,7 +10,7 @@ from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, Holiday, PublicDocument, PublicType, Slot, Structure,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, HighSchool,
 )
 
 
@@ -269,3 +269,47 @@ class TestSlotCase(TestCase):
         )
         s.save()
         self.assertTrue(Slot.objects.filter(id=s.id).count() > 0)
+
+
+class TrainingCase(TestCase):
+    def setUp(self) -> None:
+        self.today = datetime.datetime.today()
+        self.hs = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            postbac_immersion=True
+        )
+        self.structure = Structure.objects.create(label="test structure")
+
+    def test_training__is_highschool(self):
+        # False
+        t = Training.objects.create(label='training',)
+        self.assertFalse(t.is_highschool())
+
+        t.highschool = self.hs
+        t.save()
+        self.assertTrue(t.is_highschool())
+
+    def test_training__is_structure(self):
+        t = Training.objects.create(label="training2")
+        self.assertFalse(t.is_structure())
+
+        t.structures.add(self.structure)
+        self.assertTrue(t.is_structure())
+
+    def test_training__can_delete(self):
+        t = Training.objects.create(label="training2")
+        t.structures.add(self.structure)
+
+        self.assertTrue(t.can_delete())
+
+        course = Course.objects.create(label="course 1", training=t, structure=self.structure)
+        self.assertFalse(t.can_delete())

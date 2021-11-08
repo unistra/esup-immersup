@@ -510,7 +510,7 @@ class Training(models.Model):
 
     def is_structure(self) -> bool:
         """Return True if structure is set"""
-        return self.structures.count() > 0
+        return self.structures is not None and self.structures.count() > 0
 
     def can_delete(self):
         return not self.courses.all().exists()
