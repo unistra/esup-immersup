@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 from importlib import import_module
 
 from django.conf import settings
-
+from django.core.mail.message import sanitize_address
 from immersionlyceens.libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
@@ -39,9 +39,10 @@ def send_email(address, subject, body, from_addr=None):
 
     # Email data
     msg = MIMEMultipart('alternative')
+    encoding = settings.DEFAULT_CHARSET
     msg['Subject'] = subject
-    msg['From'] = from_addr
-    msg['To'] = recipient
+    msg['From'] = sanitize_address(from_addr, encoding)
+    msg['To'] = sanitize_address(recipient, encoding)
     html = body
 
     # part1 = MIMEText(text, 'plain')
