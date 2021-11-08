@@ -1715,3 +1715,55 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(new_user.structures.exists())
         self.assertEqual(new_user.username, new_user.email)
         self.assertFalse(new_user.is_staff)
+    
+    
+    def test_admin_training(self):
+        training_domain_data = {'label': 'domain', 'active': True}
+        training_subdomain_data = {'label': 'subdomain', 'active': True}
+        training_domain = TrainingDomain.objects.create(**training_domain_data)
+        training_subdomain = TrainingSubdomain.objects.create(
+            training_domain=training_domain, **training_subdomain_data)
+        master_establishment = Establishment.objects.create(
+            code='ETA1337', label='Etablissement 1337', short_label='Eta 1337',
+            active=True, master=False, email='test1@test.com')
+        structure = Structure.objects.create(label="structure1", establishment=master_establishment)
+
+
+        # no structure and no highschool
+        data = {"label": "hello", "training_subdomains": [training_subdomain]}
+        request.user = self.ref_lyc_user
+        form = TrainingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertGreater(len(str(form.errors)), 0)
+
+        # High school
+        data = {
+            "label": "hello",
+            "training_subdomains": [training_subdomain.id],
+            "highschool": self.high_school.id,
+        }
+        form = TrainingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(len(str(form.errors)), 0)
+
+        # only structure
+        data = {
+            "label": "hello",
+            "training_subdomains": [training_subdomain.id],
+            "structures": [structure.id],
+            # "highschool": self.high_school.id,
+        }
+        form = TrainingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(len(str(form.errors)), 0)
+
+        # both
+        data = {
+            "label": "hello",
+            "training_subdomains": [training_subdomain.id],
+            "structures": [structure.id],
+            "highschool": self.high_school.id,
+        }
+        form = TrainingForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertGreater(len(str(form.errors)), 0)
