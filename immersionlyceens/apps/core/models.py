@@ -1077,6 +1077,9 @@ class Visit(models.Model):
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='visits')
 
     def __str__(self):
+        if not self.establishment_id:
+            return super().__str__()
+
         if not self.structure:
             return f"{self.establishment.code} - {self.highschool} : {self.purpose}"
         else:
@@ -1094,6 +1097,13 @@ class Visit(models.Model):
 
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['establishment', 'structure', 'highschool', 'purpose'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_visit'
+            ),
+        ]
         verbose_name = _('Visit')
         verbose_name_plural = _('Visits')
 

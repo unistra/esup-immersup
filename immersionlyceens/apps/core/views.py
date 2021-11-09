@@ -1196,14 +1196,28 @@ class VisitAdd(generic.CreateView):
 
     def get_context_data(self, *args, **kwargs):
         speakers_list = []
-        context = super().get_context_data(**kwargs)
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
         if self.duplicate and object_pk:
+            context = {'duplicate': True}
             try:
                 visit = Visit.objects.get(pk=object_pk)
-                self.form = VisitForm(instance=visit, request=self.request)
+
+                initials = {
+                    'establishment': visit.establishment.id,
+                    'structure': visit.structure.id if visit.structure else None,
+                    'highschool': visit.highschool.id,
+                    'purpose': visit.purpose,
+                    'published': visit.published
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    initials[k] = data.get(k, initials[k])
+
+                self.form = VisitForm(initial=initials, request=self.request)
 
                 speakers_list = [{
                     "username": t.username,
@@ -1211,13 +1225,15 @@ class VisitAdd(generic.CreateView):
                     "firstname": t.first_name,
                     "email": t.email,
                     "display_name": f"{t.last_name} {t.first_name}",
-                    "is_removable": not t.slots.filter(visit=object_pk).exists(),
+                    "is_removable": True,
                 } for t in visit.speakers.all()]
 
-                visit.pk = None
+                context["origin_id"] = visit.id
                 context["form"] = self.form
             except Visit.DoesNotExist:
                 pass
+        else:
+            context = super().get_context_data(*args, **kwargs)
 
         context["can_update"] = True  # FixMe
         context["speakers"] = json.dumps(speakers_list)
@@ -1275,10 +1291,11 @@ class VisitUpdate(generic.UpdateView):
                     "firstname": t.first_name,
                     "email": t.email,
                     "display_name": f"{t.last_name} {t.first_name}",
-                    "is_removable": True  # FixMe : not t.slots.filter(visit=visit_id).exists(),
+                    "is_removable": not t.slots.filter(visit=visit_id).exists(),
                 } for t in visit.speakers.all()]
 
                 if duplicate:
+                    print("POF")
                     data = {
                         'establishment': visit.establishment,
                         'structure': visit.structure,
@@ -1290,7 +1307,7 @@ class VisitUpdate(generic.UpdateView):
 
                 self.form = VisitForm(instance=visit, request=self.request)
 
-            except Course.DoesNotExist:
+            except Visit.DoesNotExist:
                 self.form = VisitForm(request=self.request)
 
         context = super().get_context_data(**kwargs)

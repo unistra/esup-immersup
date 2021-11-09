@@ -28,9 +28,12 @@
       {% endif %}
     </div>
     <div class="card-body">
-      <form class="" role="form" action="/core/visit/{% if visit.id and not duplicate %}{{ visit.id }}{% else %}add{% endif %}" method="POST">
+      <!-- <form class="" role="form" action="/core/visit/{% if visit.id and not duplicate %}{{ visit.id }}{% else %}add{% endif %}" method="POST"> -->
+      <form class="" role="form" action="/core/visit/{% if visit.id %}{{ visit.id }}{% elif origin_id %}{{ origin_id }}{% else %}add{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
       {% csrf_token %}
         {{ form.id }}
+        <input type="hidden" name="duplicate" value="{{ duplicate }}">
+        <input type="hidden" name="origin_id" value="{{ origin_id }}">
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>

@@ -429,9 +429,30 @@ class VisitForm(forms.ModelForm):
                 self.fields["structure"].queryset = \
                     self.fields["structure"].queryset.filter(establishment=self.request.user.establishment)
 
+        if self.instance and self.instance.establishment_id:
+            self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.instance.establishment.id)
+
 
     def clean(self):
         cleaned_data = super().clean()
+
+        # Uniqueness
+        filters = {
+            'establishment' : cleaned_data.get("establishment", None),
+            'structure' : cleaned_data.get("structure", None),
+            'highschool' : cleaned_data.get("highschool", None),
+            'purpose' : cleaned_data.get("purpose", None)
+        }
+        exclude_filters = {}
+
+        if self.instance.id:
+            exclude_filters = {'id': self.instance.id}
+
+        if Visit.objects.filter(**filters).exclude(**exclude_filters).exists():
+            msg = _("A visit with these values already exists")
+            messages.error(self.request, msg)
+            raise forms.ValidationError(msg)
+
         try:
             speakers = json.loads(self.data.get("speakers_list", "[]"))
         except Exception:
