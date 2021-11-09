@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% if duplicate %}
+  {% trans "Duplicate a visit" %}
+{% elif visit %}
+  {% trans "Update a visit" %}
+{% else %}
+  {% trans "New visit" %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px; width:70%;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% if duplicate %}
+        {% trans "Duplicate a visit" %}
+      {% elif visit %}
+        {% trans "Update a visit" %}
+      {% else %}
+        {% trans "Create a new visit" %}
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <!-- <form class="" role="form" action="/core/visit/{% if visit.id and not duplicate %}{{ visit.id }}{% else %}add{% endif %}" method="POST"> -->
+      <form class="" role="form" action="/core/visit/{% if visit.id %}{{ visit.id }}{% elif origin_id %}{{ origin_id }}{% else %}add{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
+      {% csrf_token %}
+        {{ form.id }}
+        <input type="hidden" name="duplicate" value="{{ duplicate }}">
+        <input type="hidden" name="origin_id" value="{{ origin_id }}">
+        <div class="form-group row" id="id_div_establishment">
+          <label for="id_establishment" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Establishment' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ form.establishment }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.establishment.errors }}
+          </div>
+        </div>
+        <div class="form-group row" id="id_div_structure">
+          <label for="id_structure" class="col-sm-3 col-form-label">
+            {% trans 'Structure' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ form.structure }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.structure.errors }}
+          </div>
+        </div>
+        <div class="form-group row" id="id_div_highschool">
+          <label for="id_highschool" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'High school' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ form.highschool }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.highschool.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_purpose" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Visit purpose' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ form.purpose }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.purpose.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_published" class="col-sm-3 col-form-label">{% trans 'Published' %} :</label>
+          <div class="col-sm-3">
+            {{ form.published }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.published.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="person_search" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Speakers' %} :
+          </label>
+          <div class="col-sm-9">
+            <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
+            <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
+            <select id='live_select' style='display:none;'></select>
+            <a class="btn btn-secondary btn-sm" href="#" role="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</a>
+            <label id='ws_message' style='display:none; width:400px;'></label>
+            <ul id="id_speakers" class="mt-4"></ul>
+            {{ form.speakers.errors }}
+            <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
+          </div>
+        </div>
+        {% if can_update %}
+        <div class="form-group row">
+          <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
+            <a href="{% url 'visits' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
+            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
+            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
+          </div>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  var json_results;
+  var query_order = 0;
+  var structure_id = "{{ form.initial.structure }}" || "{{ request.session.structure_id }}" ;
+  var can_update = "{{ can_update }}";
+  var establishment_id = "{{ form.initial.establishment }}" || "{{ request.session.establishment_id }}";
+  var highschool_id = "{{ form.initial.highschool }}";
+
+  {% autoescape on %}
+  var speakers_array = {{ speakers|safe }};
+  {% endautoescape %}
+
+  function set_structures(estab_id) {
+    $.ajax({
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': estab_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+        for (let i = 0; i < json.length; i++) {
+          let selected = json[i]['id'] === parseInt(structure_id) ? "selected='selected'" : ""
+          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['code']} - ${json[i]['label']}</option>`
+        }
+        $('select#id_structure').html(options)
+
+        if(structure_id) {
+          $("#id_structure").val(structure_id);
+        }
+        else {
+          $("#id_structure").val($("#id_structure option:first").val());
+        }
+      }
+    })
+  }
+
+  function refresh_speakers_list() {
+    $("#id_speakers").empty();
+    $.each(speakers_array, function(i, item) {
+      let txt = "<li>";
+
+      if(can_update === "True" && (item["is_removable"] === true || item["is_removable"] === undefined)) {
+        txt += "<button type=\"button\" class=\"btn btn-secondary btn-sm\" onclick=\"remove_speaker('"+item['username']+"')\">X</button> ";
+      }
+      else {
+        txt += "<button type=\"button\" class=\"btn btn-danger btn-sm\">X</button> ";
+      }
+
+      txt += item['display_name'] + " (" + item['email'] + ")</li>";
+
+      $("#id_speakers").append(txt);
+    });
+
+    $('#id_speakers_list').val(JSON.stringify(speakers_array));
+  }
+
+  function remove_speaker(username) {
+    speakers_array = $.grep(speakers_array, function(value) {
+      return value["username"] != username;
+    });
+
+    refresh_speakers_list();
+  };
+
+  $('#id_establishment').change( function() {
+    establishment_id = $('#id_establishment option:selected').val();
+    structure_id = ""
+
+    if (establishment_id !== "") {
+        set_structures(establishment_id);
+    }
+  });
+
+  $('#live_select').change(function () {
+    let val = $('#live_select option:selected').val();
+
+    if(val != '') {
+      $('#id_add_button').show();
+    }
+    else {
+      $('#id_add_button').hide();
+    }
+  });
+
+  $('#id_add_button').click(function() {
+    let json_index = $('#live_select option:selected').val();
+
+    if($.inArray(json_results[json_index], speakers_array) == -1) {
+      speakers_array.push(json_results[json_index]);
+    }
+
+    refresh_speakers_list();
+  });
+
+  $('#person_search').on('input', function() {
+    if (this.value.length >= 2) {
+      var csrftoken = getCookie('csrftoken');
+      query_order += 1;
+
+      $.ajax({
+        beforeSend: function (request) {
+          request.setRequestHeader("X-CSRFToken", csrftoken);
+        },
+
+        url: "/api/get_person",
+        type: "POST",
+        data: {
+          username: this.value,
+          establishment_id: establishment_id,
+          structure_id: structure_id,
+          highschool_id: highschool_id,
+          query_order: query_order
+        },
+
+        success: function (json) {
+          var msg = json['msg'];
+          var query = json['data'][0];
+
+          if (msg != '') {
+            $('#ws_message').html(msg);
+            $('#ws_message').show();
+          } else {
+            $('#ws_message').html("");
+            $('#ws_message').hide();
+          }
+
+          // Prevent previous (longer) query from erasing latest one
+          if (query >= query_order) {
+            $("#live_select").show();
+
+            if (json['data'].length <= 1) {
+              $('#live_select').empty();
+            }
+            else {
+              json_results = json['data'];
+              $('#live_select').empty().append(
+                  "<option value='' disabled>" + "{% trans 'Select a person' %} ..." + "</option>"
+              );
+              for (var i = 1; i < json['data'].length; i++) {
+                $('#live_select').append(
+                  "<option value='" + i + "'>" + json['data'][i]['display_name'] + "</option>");
+              }
+              $('#id_add_button').show();
+            }
+          }
+        },
+        error: function (e) {
+          obj = JSON.stringify(e);
+          console.log("Error : " + obj);
+        }
+      });
+    }
+  });
+
+  $(document).ready(function() {
+    // initialize base values
+    if(highschool_id === 'None' || highschool_id === "") {
+      highschool_id = $("#id_highschool").val()
+    }
+    else {
+        $("#id_highschool").val(highschool_id)
+    }
+
+    if(establishment_id === 'None' || establishment_id === "") {
+      establishment_id = $("#id_establishment").val()
+    }
+    else {
+        $("#id_establishment").val(establishment_id)
+    }
+
+    if(structure_id === 'None' || structure_id === "") {
+      structure_id = $("#id_structure").val()
+    }
+    else {
+        $("#id_structure").val(structure_id)
+    }
+
+    set_structures($("#id_establishment").val())
+
+    if (speakers_array) {
+      refresh_speakers_list();
+    }
+
+    if (can_update === "False") {
+      $("#id_search_label").hide();
+      $("#person_search").hide();
+      $('input[name^="save"]').hide();
+    }
+
+  });
+</script>
+{% endblock %}

@@ -24,6 +24,7 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import filesizeformat, date as _date
 from django.utils.translation import pgettext, gettext_lazy as _
+from django.utils import timezone
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
@@ -1054,6 +1055,59 @@ class Course(models.Model):
         ordering = ['label', ]
 
 
+class Visit(models.Model):
+    """
+    Visit class
+    """
+
+    purpose = models.CharField(_("Purpose"), max_length=256)
+    published = models.BooleanField(_("Published"), default=True)
+
+    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.CASCADE,
+        blank=False, null=False, related_name='visits')
+
+    structure = models.ForeignKey(Structure, verbose_name=_("Structure"), null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="visits",
+    )
+
+    highschool = models.ForeignKey(HighSchool, verbose_name=_('High school'), null=False, blank=False,
+        on_delete=models.CASCADE, related_name="visits",
+    )
+
+    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='visits')
+
+    def __str__(self):
+        if not self.establishment_id:
+            return super().__str__()
+
+        if not self.structure:
+            return f"{self.establishment.code} - {self.highschool} : {self.purpose}"
+        else:
+            return f"{self.establishment.code} ({self.structure.code}) - {self.highschool} : {self.purpose}"
+
+
+    def can_delete(self):
+        today = timezone.now().date()
+        try:
+            current_year = UniversityYear.objects.get(active=True)
+        except UniversityYear.DoesNotExist:
+            return True
+
+        return current_year.date_is_between(today) and not self.slots.all().exists()
+
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['establishment', 'structure', 'highschool', 'purpose'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_visit'
+            ),
+        ]
+        verbose_name = _('Visit')
+        verbose_name_plural = _('Visits')
+
+
 class MailTemplateVars(models.Model):
     code = models.CharField(_("Code"), max_length=64, blank=False, null=False, unique=True)
     description = models.CharField(_("Description"), max_length=128, blank=False, null=False, unique=True)
@@ -1338,7 +1392,7 @@ class Slot(models.Model):
     """
 
     course = models.ForeignKey(
-        Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="slots",
+        Course, verbose_name=_("Course"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
     course_type = models.ForeignKey(
         CourseType,
@@ -1347,6 +1401,10 @@ class Slot(models.Model):
         blank=True,
         on_delete=models.CASCADE,
         related_name="slots",
+    )
+
+    visit = models.ForeignKey(
+        Visit, verbose_name=_("Visit"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
 
     campus = models.ForeignKey(
@@ -1382,6 +1440,12 @@ class Slot(models.Model):
         :return: number of registered students for instance slot
         """
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
+
+
+    def clean(self):
+        if [self.course, self.visit].count(None) != 1:
+            raise ValidationError("You must select one of : Course, Visit or Event")
+
 
     class Meta:
         verbose_name = _('Slot')

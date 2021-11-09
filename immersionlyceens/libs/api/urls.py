@@ -85,4 +85,6 @@ urlpatterns = [
     path('structures/', views.StructureList.as_view(), name='structure_list'),
     path('courses/', views.CourseList.as_view(), name='course_list'),
     path('buildings/', views.BuildingList.as_view(), name='building_list'),
+    path('visits/', views.VisitList.as_view(), name='visit_list'),
+    path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),
 ]

@@ -2,6 +2,7 @@
 Immersion app forms tests
 """
 import datetime
+import json
 
 from django.conf import settings
 from django.contrib.admin.sites import AdminSite
@@ -14,7 +15,7 @@ from django.urls import reverse
 from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday, Establishment
+    Immersion, Holiday, Establishment, Visit
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -923,3 +924,36 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.request['PATH_INFO'], '/')
 
 
+    def test_visit(self):
+        visit = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever",
+            published=True
+        )
+
+        visit.speakers.add(self.speaker1)
+
+        # As a ref_master_etab user
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get("/core/visits", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Duplicate a visit : check form values
+        response = self.client.get(f"/core/visit/{visit.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.purpose}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker1.username,
+            "lastname": self.speaker1.last_name,
+            "firstname": self.speaker1.first_name,
+            "email": self.speaker1.email,
+            "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
+            "is_removable": True
+        }]))

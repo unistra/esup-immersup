@@ -28,12 +28,12 @@ import requests
 from immersionlyceens.decorators import groups_required
 
 from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
-    HighSchoolStudentImmersionUserForm, TrainingFormHighSchool)
+    HighSchoolStudentImmersionUserForm, TrainingFormHighSchool, VisitForm)
 
 from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm, TrainingForm
 
 from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
-    Training, UniversityYear, Establishment)
+    Training, UniversityYear, Establishment, Visit)
 
 logger = logging.getLogger(__name__)
 
@@ -1150,4 +1150,183 @@ class TrainingUpdate(generic.UpdateView):
 
     def form_invalid(self, form):
         messages.error(self.request, _("Training \"%s\" not updated.") % str(form.instance))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+class VisitList(generic.TemplateView):
+    template_name = "core/visits_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True #FixMe
+
+        context["highschools"] = HighSchool.agreed.order_by("city", "label")
+        context["establishments"] = Establishment.activated.all()
+        context["structures"] = Structure.activated.all()
+
+        if not self.request.user.is_superuser:
+            if self.request.user.is_establishment_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+
+            if self.request.user.is_structure_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+
+        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+        context["structure_id"] = self.request.session.get('current_structure_id', None)
+
+        return context
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+class VisitAdd(generic.CreateView):
+    form_class = VisitForm
+    template_name = "core/visit.html"
+    duplicate = False
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_visit")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits")
+
+    def get_context_data(self, *args, **kwargs):
+        speakers_list = []
+        self.duplicate = self.kwargs.get('duplicate', False)
+        object_pk = self.kwargs.get('pk', None)
+
+        if self.duplicate and object_pk:
+            context = {'duplicate': True}
+            try:
+                visit = Visit.objects.get(pk=object_pk)
+
+                initials = {
+                    'establishment': visit.establishment.id,
+                    'structure': visit.structure.id if visit.structure else None,
+                    'highschool': visit.highschool.id,
+                    'purpose': visit.purpose,
+                    'published': visit.published
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    initials[k] = data.get(k, initials[k])
+
+                self.form = VisitForm(initial=initials, request=self.request)
+
+                speakers_list = [{
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": True,
+                } for t in visit.speakers.all()]
+
+                context["origin_id"] = visit.id
+                context["form"] = self.form
+            except Visit.DoesNotExist:
+                pass
+        else:
+            context = super().get_context_data(*args, **kwargs)
+
+        context["can_update"] = True  # FixMe
+        context["speakers"] = json.dumps(speakers_list)
+        context["establishment_id"] = self.request.session.get('current_establishment_id')
+        context["structure_id"] = self.request.session.get('current_structure_id')
+        return context
+
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("save_duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add_new", False) != False
+        response = super().form_valid(form)
+        messages.success(self.request, _(f"Visit {form.instance} created."))
+        return response
+
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Visit not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+class VisitUpdate(generic.UpdateView):
+    model = Visit
+    form_class = VisitForm
+    template_name = "core/visit.html"
+
+    queryset = Visit.objects.all()
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def get_context_data(self, **kwargs):
+        speakers_list = []
+        visit_id = self.object.id
+        duplicate = kwargs.get("duplicate", False)
+        if visit_id:
+            try:
+                visit = Visit.objects.get(pk=visit_id)
+                self.request.session["current_structure_id"] = visit.structure.id if visit.structure else None
+                self.request.session["current_highschool_id"] = visit.highschool.id
+                self.request.session["current_establishment_id"] = visit.establishment.id
+
+                speakers_list = [{
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": not t.slots.filter(visit=visit_id).exists(),
+                } for t in visit.speakers.all()]
+
+                if duplicate:
+                    print("POF")
+                    data = {
+                        'establishment': visit.establishment,
+                        'structure': visit.structure,
+                        'highschool': visit.highschool,
+                        'published': visit.published,
+                        'purpose': visit.purpose
+                    }
+                    visit = Visit(**data)
+
+                self.form = VisitForm(instance=visit, request=self.request)
+
+            except Visit.DoesNotExist:
+                self.form = VisitForm(request=self.request)
+
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True  # FixMe
+        context["speakers"] = json.dumps(speakers_list)
+        return context
+
+
+    def get_success_url(self):
+        return reverse("visits")
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Visit \"%s\" updated.") % str(form.instance))
+
+        self.request.session['current_establishment_id'] = self.object.establishment.id
+        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Visit \"%s\" not updated.") % str(form.instance))
         return super().form_invalid(form)

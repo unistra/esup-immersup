@@ -152,7 +152,8 @@ class StructureListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         structures = Structure.objects.all().order_by('establishment__code', 'label')
-        return [(s.id, f"{s.establishment.code} - {s.label}") for s in structures]
+        return [(s.id, f"{s.establishment.code} - {s.label}" if s.establishment else s.label) for s in structures]
+
 
     def queryset(self, request, queryset):
         if self.value():

@@ -28,10 +28,6 @@ urlpatterns = [
     path('slot/<int:slot_id>/<int:duplicate>', views.slot, name='duplicate_slot'),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
 
-    # path('slot/add', views.add_slot, name='add_slot'),
-    # path('slot/add/<int:slot_id>', views.add_slot, name='duplicate_slot'),
-    # path('slot/modify/<int:slot_id>', views.modify_slot, name='modify_slot'),
-
     path('slots/<int:str_id>/<int:train_id>', views.slots_list, name='slots_list'),
     path('slots/<int:str_id>', views.slots_list, name='slots_list'),
     path('slots/', views.slots_list, name='slots_list'),
@@ -46,4 +42,9 @@ urlpatterns = [
     path("training", views.TrainingList.as_view(), name="training_list"),
     path("training/add", views.TrainingAdd.as_view(), name="training_add"),
     path("training/<int:pk>/update", views.TrainingUpdate.as_view(), name="training_update"),
+
+    path("visits", views.VisitList.as_view(), name="visits"),
+    path("visit/add", views.VisitAdd.as_view(), name="add_visit"),
+    path("visit/<int:pk>", views.VisitUpdate.as_view(), name="update_visit"),
+    path('visit/<int:pk>/<int:duplicate>', views.VisitAdd.as_view(), name='duplicate_visit'),
 ]
