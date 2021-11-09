@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import socket
 from os import environ
 from os.path import normpath
-import socket
 
 from .base import *
 
@@ -218,3 +218,6 @@ SUMMERNOTE_CONFIG = {
 # Mailing list subscriber files directory
 BASE_FILES_DIR = "/tmp"
 MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
+
+# Goal
+STAGE = 'Dev'
