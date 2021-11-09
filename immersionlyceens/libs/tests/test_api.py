@@ -44,7 +44,8 @@ class APITestCase(TestCase):
         )
         """
         self.today = datetime.today()
-
+        self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
+        
         # TODO : put all these objects in test fixtures
 
         self.establishment = Establishment.objects.create(
@@ -149,6 +150,7 @@ class APITestCase(TestCase):
             email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school
         )
         self.student = get_user_model().objects.create_user(
             username='student',
@@ -365,8 +367,7 @@ class APITestCase(TestCase):
             allowed_first_semester_registrations=0,
             allowed_second_semester_registrations=0,
         )
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
+
         self.immersion = Immersion.objects.create(
             student=self.highschool_user,
             slot=self.slot,
@@ -2008,6 +2009,28 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content[0]['label'], 'Campus')
+
+
+    def test_high_school_speakers(self):
+        client = Client()
+
+        # Success
+        client.login(username='lycref', password='pass')
+        response = client.get(
+            reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}), 
+            **self.header
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['data'], [{
+            'id': 8,
+            'last_name': 'highschool_speaker',
+            'first_name': 'highschool_speaker',
+            'email': 'highschool_speaker@no-reply.com',
+            'is_active': 'Yes',
+            'has_courses': 'Yes',
+            'can_delete': False
+        }])
 
 
     def test_visit(self):

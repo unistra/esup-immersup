@@ -1734,7 +1734,8 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_lyc_user
         form = TrainingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertGreater(len(str(form.errors)), 0)
+        self.assertIn("Neither high school nor structure is set. Please choose one.", form.errors["__all__"])
+
 
         # High school
         data = {
@@ -1766,4 +1767,7 @@ class AdminFormsTestCase(TestCase):
         }
         form = TrainingForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertGreater(len(str(form.errors)), 0)
+        self.assertIn(
+            "High school and structure can't be set together. Please choose one.",
+            form.errors["__all__"]
+        )

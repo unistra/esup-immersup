@@ -28,7 +28,6 @@
       {% endif %}
     </div>
     <div class="card-body">
-      <!-- <form class="" role="form" action="/core/visit/{% if visit.id and not duplicate %}{{ visit.id }}{% else %}add{% endif %}" method="POST"> -->
       <form class="" role="form" action="/core/visit/{% if visit.id %}{{ visit.id }}{% elif origin_id %}{{ origin_id }}{% else %}add{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
       {% csrf_token %}
         {{ form.id }}

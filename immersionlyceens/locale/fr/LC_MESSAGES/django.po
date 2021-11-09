@@ -441,7 +441,7 @@ msgid "High school and structure can't be set together. Please choose one."
 msgstr "Vous ne pouvez sélectionner à la fois un lycée ET une structure. Veuillez choisir entre les deux."
 
 #: immersionlyceens/apps/core/admin_forms.py:255
-msgid "Neither high school and structures are set. Please choose one."
+msgid "Neither high school nor structure is set. Please choose one."
 msgstr "Vous n'avez sélectionné ni lycée, ni structure. Merci de sélectionner l'un ou l'autre."
 
 #: immersionlyceens/apps/core/admin_forms.py:284

@@ -255,7 +255,7 @@ class TrainingForm(forms.ModelForm):
         if high_school is not None and struct is not None and struct.count() > 0:
             raise ValidationError(_("High school and structure can't be set together. Please choose one."))
         elif high_school is None and (struct is None or struct.count() <= 0):
-            raise ValidationError(_("Neither high school and structures are set. Please choose one."))
+            raise ValidationError(_("Neither high school nor structure is set. Please choose one."))
 
     def clean(self):
         cleaned_data = super().clean()

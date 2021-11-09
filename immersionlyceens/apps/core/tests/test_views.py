@@ -683,15 +683,18 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.request['PATH_INFO'], '/core/courses_list')
         self.assertFalse(Course.objects.filter(label="This shouldn't happen").exists())
 
+
     def test_mycourses(self):
         self.client.login(username='speaker1', password='pass')
         response = self.client.get("/core/mycourses", follow=True)
         self.assertIn("Courses - HER speak", response.content.decode('utf-8'))
 
+
     def test_myslots(self):
         self.client.login(username='speaker1', password='pass')
         response = self.client.get("/core/myslots/", follow=True)
         self.assertIn("Slots - HER speak", response.content.decode('utf-8'))
+
 
     def test_myhighschool(self):
         self.client.login(username='lycref', password='pass')
@@ -720,7 +723,7 @@ class CoreViewsTestCase(TestCase):
         self.assertTrue(HighSchool.objects.filter(address='12 rue des Plantes').exists())
 
 
-    def my_high_school_speakers(self):
+    def test_my_high_school_speakers(self):
         self.client.login(username='lycref', password='pass')
 
         # Shouldn't work (no access)
@@ -730,10 +733,38 @@ class CoreViewsTestCase(TestCase):
         # Should work
         response = self.client.get("/core/high_school_speakers/%s" % self.high_school.id, follow=True)
         self.assertIn("My high school - %s" % self.high_school.label, response.content.decode('utf-8'))
-        self.assertIn(self.speaker1.last_name, response.content.decode('utf-8'))
-        self.assertNotIn(self.speaker2.last_name, response.content.decode('utf-8'))
+        self.assertIn(self.speaker1, response.context["speakers"])
+        self.assertNotIn(self.speaker2, response.context["speakers"])
 
 
+    def test_speaker(self):
+        """
+        Test speaker creation
+        """
+        self.assertFalse(ImmersionUser.objects.filter(email="test_speaker@test.com").exists())
+
+        # No access
+        for username in ['ref_etab', 'ref_master_etab', 'ref_str']:
+            self.client.login(username=username, password='pass')
+            response = self.client.get(reverse('speaker'))
+            self.assertEqual(response.status_code, 302)
+
+        # Success
+        self.client.login(username='lycref', password='pass')
+        response = self.client.get(reverse('speaker'))
+        self.assertEqual(response.status_code, 200)
+
+        data = {
+            'last_name': "Test_lastname",
+            'first_name': "Test_firstname",
+            'email': "test_speaker@test.com"
+        }
+
+        response = self.client.post(reverse('speaker'), data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(ImmersionUser.objects.filter(email="test_speaker@test.com").exists())
+        speaker = ImmersionUser.objects.get(email="test_speaker@test.com")
+        self.assertEqual(speaker.email, data["email"])
 
 
     def test_my_students(self):
@@ -940,8 +971,8 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/visits", follow=True)
         self.assertEqual(response.status_code, 200)
 
-        # Duplicate a visit : check form values
-        response = self.client.get(f"/core/visit/{visit.id}/1", follow=True)
+        # Update
+        response = self.client.get(f"/core/visit/{visit.id}", follow=True)
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
         self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
@@ -955,5 +986,43 @@ class CoreViewsTestCase(TestCase):
             "firstname": self.speaker1.first_name,
             "email": self.speaker1.email,
             "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
+            "is_removable": True
+        }]))
+
+        data = {
+            "establishment": visit.establishment.id,
+            "structure": visit.structure.id,
+            "highschool": visit.highschool.id,
+            "published": True,
+            "purpose": "New visit purpose",
+            "speakers_list": json.dumps([{
+                "email": self.speaker2.email,
+                "username": self.speaker2.username,
+                "lastname": self.speaker2.last_name,
+                "firstname": self.speaker2.first_name,
+            }])
+        }
+
+        response = self.client.post(f"/core/visit/{visit.id}", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        visit.refresh_from_db()
+        self.assertEqual(visit.purpose, "New visit purpose")
+
+
+        # Duplicate a visit : check form values
+        response = self.client.get(f"/core/visit/{visit.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.purpose}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker2.username,
+            "lastname": self.speaker2.last_name,
+            "firstname": self.speaker2.first_name,
+            "email": self.speaker2.email,
+            "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
             "is_removable": True
         }]))
