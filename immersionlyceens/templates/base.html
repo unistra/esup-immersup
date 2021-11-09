@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load immersionlyceens_tags %}
 {% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
+{% settings_get 'STAGE' as stage %}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
     <title>{% block title %}ImmerSup{% endblock %}</title>
@@ -48,7 +49,6 @@
       {% endfor %}
     </div>
     {% endif %}
-
     {% block content %}{% endblock %}
 
     {% include './modals/modal_credits.html'%}
@@ -69,7 +69,16 @@
         messages.style.display = "none";
       }, {%  settings_get 'MESSAGES_TIMEOUT' %} );
     }
+
+    {% if stage != 'Prod' and stage != 'Dev' %}
+    const markTemplate = (name) => {
+      return `<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='110px' width='110px'><text transform='translate(20, 100) rotate(-40)' fill='rgb(245,45,45)' font-size='22'>${name}</text></svg>`;
+    };
+    const base64Mark = btoa(markTemplate('{{ stage }}'));
+    document.getElementsByTagName('header')[0].style.backgroundImage = `url("data:image/svg+xml;base64,${base64Mark}")`;
+    {% endif %}
     </script>
+
     {% block foot-javascript %}{% endblock %}
 </body>
 </html>
