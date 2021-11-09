@@ -143,3 +143,6 @@ sentry_sdk.init(
     environment="test",
     release=RELEASE,
 )
+
+# Goal
+STAGE = 'Test'
