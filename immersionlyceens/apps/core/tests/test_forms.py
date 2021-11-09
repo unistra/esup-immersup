@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase
 
@@ -20,26 +21,22 @@ from ..admin_forms import (
     VacationForm,
 )
 from ..forms import (
-    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm,
+    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
     PublicDocument, PublicType, Slot, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    TrainingSubdomain, UniversityYear, Vacation, Visit
 )
-
-
-class MockRequest:
-    pass
-
-
-# request = MockRequest()
 
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
+setattr(request, 'session', {})
+messages = FallbackStorage(request)
+setattr(request, '_messages', messages)
 
 
 class FormTestCase(TestCase):
@@ -131,9 +128,21 @@ class FormTestCase(TestCase):
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
         self.slot.speakers.add(self.speaker1),
-        self.high_school = HighSchool.objects.create(label='HS1', address='here',
-                         department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-                         email='a@b.c', head_teacher_name='M. A B')
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=datetime.datetime.today() - datetime.timedelta(days=2),
+            convention_end_date = datetime.datetime.today() + datetime.timedelta(days=2),
+        )
+
+
         self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
                         highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
                         phone='0123456789', level=1, class_name='1ere S 3',
@@ -265,3 +274,41 @@ class FormTestCase(TestCase):
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertFalse(form.is_valid())
         self.assertIn("This field must be filled", form.errors["first_name"])
+
+
+    def test_visit_form(self):
+        """
+        Visit form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        data = {
+            'establishment': self.master_establishment.id,
+            'structure': self.structure.id,
+            'highschool': self.high_school.id,
+            'purpose': "Anything",
+            'published': True,
+        }
+
+        # Fail : missing speakers
+        form = VisitForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please add at least one speaker.", form.errors["__all__"])
+
+        # Success
+        data["speakers_list"] = '[{"username": "%s"}]' % self.speaker1.username
+        form = VisitForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        # Create a Visit with no structure
+        del(data["structure"])
+        form = VisitForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        # Fail : duplicate
+        form = VisitForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A visit with these values already exists", form.errors["__all__"])

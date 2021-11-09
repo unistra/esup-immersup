@@ -20,7 +20,7 @@ from rest_framework.test import APIClient, APITestCase
 
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building, Calendar, Campus, CancelType,
     Structure, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation
+    MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
@@ -80,6 +80,17 @@ class APITestCase(TestCase):
         )
         self.ref_etab_user.set_password('pass')
         self.ref_etab_user.save()
+
+        self.ref_master_etab_user = get_user_model().objects.create_user(
+            username='ref_master_etab',
+            password='pass',
+            email='ref_master_etab@no-reply.com',
+            first_name='ref_master_etab',
+            last_name='ref_master_etab',
+            establishment=self.establishment
+        )
+        self.ref_master_etab_user.set_password('pass')
+        self.ref_master_etab_user.save()
 
         self.highschool_user = get_user_model().objects.create_user(
             username='@EXTERNAL@_hs',
@@ -158,6 +169,7 @@ class APITestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='INTER').user_set.add(self.highschool_speaker)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
@@ -184,6 +196,7 @@ class APITestCase(TestCase):
         )
         self.structure = Structure.objects.create(
             label="test structure",
+            code="STR",
             establishment=self.establishment
         )
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
@@ -1995,3 +2008,57 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content[0]['label'], 'Campus')
+
+
+    def test_visit(self):
+        visit = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever",
+            published=True
+        )
+
+        visit2 = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever 2",
+            published=True
+        )
+
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        # List
+        response = client.get(reverse("visit_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content[0]['purpose'], 'Whatever')
+        self.assertEqual(content[0]['establishment'], "ETA1 : Etablissement 1 (master)")
+
+        # As ref-str (with no structure) : empty
+        client.login(username='ref_str', password='pass')
+        response = client.get(reverse("visit_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 0)
+
+        # Deletion
+        # as ref_str : fail (bad structure)
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
+        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Visit.objects.count(), 2)
+
+        # as ref_etab
+        client.login(username='ref_etab', password='pass')
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Visit.objects.count(), 1)
+
+        # as master_ref_etab
+        client.login(username='ref_etab', password='pass')
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Visit.objects.count(), 0)

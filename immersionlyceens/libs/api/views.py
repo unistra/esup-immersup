@@ -2333,6 +2333,7 @@ class VisitList(generics.ListAPIView):
         return queryset.order_by('establishment', 'structure', 'highschool', 'purpose')
 
 
+@method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
 class VisitDetail(generics.DestroyAPIView):
     """
     Visits list
@@ -2344,14 +2345,30 @@ class VisitDetail(generics.DestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
+        user = self.request.user
 
-        if obj and obj.slots.exists():
-            return JsonResponse(data={
-                "error": _("Some slots are attached to this visit: it can't be deleted")
-            })
+        if not obj:
+            return JsonResponse(data={"msg": _("Nothing to delete")})
+
+        if not user.is_superuser:
+            valid_conditions = [
+                user.is_master_establishment_manager(),
+                user.is_establishment_manager() and obj.establishment == user.establishment,
+                user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),
+            ]
+
+            if not any(valid_conditions):
+                return JsonResponse(
+                    data={"msg": _("Insufficient privileges")},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        if obj.slots.exists():
+            return JsonResponse(
+                data={"error": _("Some slots are attached to this visit: it can't be deleted")},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         super().delete(request, *args, **kwargs)
 
-        return JsonResponse(data={
-            "msg": _("Visit successfully deleted"),
-        })
+        return JsonResponse(data={"msg": _("Visit successfully deleted")})
