@@ -91,3 +91,6 @@ sentry_sdk.init(
     environment="preprod",
     release=RELEASE,
 )
+
+# Goal
+STAGE = 'Preprod'

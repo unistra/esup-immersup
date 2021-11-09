@@ -90,3 +90,6 @@ sentry_sdk.init(
     environment="prod",
     release=RELEASE,
 )
+
+# Goal
+STAGE = 'Prod'
