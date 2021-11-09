@@ -24,6 +24,7 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import filesizeformat, date as _date
 from django.utils.translation import pgettext, gettext_lazy as _
+from django.utils import timezone
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
@@ -1081,6 +1082,17 @@ class Visit(models.Model):
         else:
             return f"{self.establishment.code} ({self.structure.code}) - {self.highschool} : {self.purpose}"
 
+
+    def can_delete(self):
+        today = timezone.now().date()
+        try:
+            current_year = UniversityYear.objects.get(active=True)
+        except UniversityYear.DoesNotExist:
+            return True
+
+        return current_year.date_is_between(today) and not self.slots.all().exists()
+
+
     class Meta:
         verbose_name = _('Visit')
         verbose_name_plural = _('Visits')
@@ -1370,7 +1382,7 @@ class Slot(models.Model):
     """
 
     course = models.ForeignKey(
-        Course, verbose_name=_("Course"), null=False, blank=False, on_delete=models.CASCADE, related_name="slots",
+        Course, verbose_name=_("Course"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
     course_type = models.ForeignKey(
         CourseType,
@@ -1379,6 +1391,10 @@ class Slot(models.Model):
         blank=True,
         on_delete=models.CASCADE,
         related_name="slots",
+    )
+
+    visit = models.ForeignKey(
+        Visit, verbose_name=_("Visit"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
 
     campus = models.ForeignKey(
@@ -1414,6 +1430,12 @@ class Slot(models.Model):
         :return: number of registered students for instance slot
         """
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
+
+
+    def clean(self):
+        if [self.course, self.visit].count(None) != 1:
+            raise ValidationError("You must select one of : Course, Visit or Event")
+
 
     class Meta:
         verbose_name = _('Slot')

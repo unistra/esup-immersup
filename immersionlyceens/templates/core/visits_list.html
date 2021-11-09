@@ -30,19 +30,18 @@
       {% trans "Visits list" %}
     </div>
     <div class="card-body">
-      {% if can_update_visits %}
+      {% if can_update %}
       <div class="row">
         <div class="col-md-6">
-          <a class="btn btn-secondary btn-sm" href="{% url 'visit' %}">{% trans 'New visit' %}</a>
+          <a class="btn btn-secondary btn-sm" href="{% url 'add_visit' %}">{% trans 'New visit' %}</a>
         </div>
       </div>
       {% endif %}
       <div class="row">
         <div class="col-md-3">
-          <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
+          <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
             <label for="establishments">{% trans 'Select an establishment' %} :</label>
             <select id="establishments" class="form-control">
-              <option value="">------------</option>
               {% for establishment in establishments %}
                 <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
                   {{ establishment.code }} - {{ establishment.label }}
@@ -52,26 +51,13 @@
           </div>
         </div>
         <div class="col-md-5" id="id_div_structures">
-          <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
-            <label for="strs">{% trans 'Select a structure' %} :</label>
-            <select id="strs" class="form-control">
+          <div id="id_div_structure" style="padding-bottom:10px; padding-top:20px;">
+            <label for="structures">{% trans 'Select a structure' %} :</label>
+            <select id="structures" class="form-control">
               <option value="">------------</option>
               {% for structure in structures %}
                 <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
                   {{ structure.code }} - {{ structure.label }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
-            <label for="highschools">{% trans 'Select a high school' %} :</label>
-            <select id="highschools" class="form-control">
-              <option value="">------------</option>
-              {% for highschool in highschools %}
-                <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
-                  {{ highschool }}
                 </option>
               {% endfor %}
             </select>
@@ -114,7 +100,6 @@
   var feedback;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
-  var current_highschool_id = "{{ highschool_id }}";
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var conformDialog;
@@ -131,28 +116,20 @@
         request.setRequestHeader("X-CSRFToken", csrftoken);
       },
 
-      url: "/api/delete_visit",
-      data: {
-        visit_id: visit_id,
-      },
-
+      url: "/api/visit/" + visit_id,
+      type: "DELETE",
       success: function (json) {
         let msg = json['msg'];
         let error = json['error'];
 
-        if(error !== '') {
+        if(error !== undefined && error !== '') {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         }
-        else if(msg !== '') {
+        else if(msg != undefined && msg !== '') {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
-        if ($('#strs option:selected').val() !== "") {
-          load_visits("structure", $('#strs option:selected').val());
-        }
-        else if ($('#highschools option:selected').val() !== "") {
-          load_visits("highschool", $('#highschools option:selected').val());
-        }
+        load_visits();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -164,38 +141,14 @@
   $('#establishments').change( function() {
     current_establishment_id = $('#establishments option:selected').val();
     current_structure_id = ""
-
-    if (current_establishment_id !== "") {
-        set_structures(current_establishment_id);
-    }
-    else {
-        empty_structures()
-    }
+    set_structures(current_establishment_id);
   });
 
   // Reload the table when structure changes in selectbox
-  $('#strs').change( function() {
-    current_structure_id = $('#strs option:selected').val()
-    load_visits("structure", current_structure_id)
+  $('#structures').change( function() {
+    current_structure_id = $('#structures option:selected').val()
+    load_visits()
   });
-
-  $('#highschools').change( function() {
-    current_highschool_id = $('#highschools option:selected').val();
-
-    if (current_highschool_id !== "") {
-        empty_structures()
-        $('#establishments').val("");
-    }
-
-    load_visits("highschool", current_highschool_id)
-  });
-
-  function empty_structures() {
-      let options = '<option value="">---------</option>'
-      $('select#strs').html(options)
-      current_structure_id = ''
-      $("#id_div_structures").hide()
-  }
 
   function set_structures(establishment_id) {
     $.ajax({
@@ -210,18 +163,14 @@
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
         }
-        $('select#strs').html(options)
+        $('select#structures').html(options)
 
         if(current_structure_id) {
-          $("#strs").val(current_structure_id);
+          $("#structures").val(current_structure_id);
         }
         else {
-          $("#strs").val($("#strs option:first").val());
+          $("#structures").val($("#structures option:first").val());
         }
-
-        $("#id_div_structures").show()
-        current_highschool_id = ""
-        $('#highschools').val("");
       }
     })
   }
@@ -235,23 +184,19 @@
     initFeedback();
     feedback = $("#feedback");
 
-    if(current_highschool_id === 'None' || current_highschool_id === "") {
-      current_highschool_id = $("#highschools").val()
-    }
-
     if(current_establishment_id === 'None' || current_establishment_id === "") {
       current_establishment_id = $("#establishments").val()
     }
     else {
-        $("#establishments").val(current_establishment_id)
+      $("#establishments").val(current_establishment_id)
     }
 
     if(current_structure_id === 'None' || current_structure_id === "") {
-      current_structure_id = $("#strs").val()
+      current_structure_id = $("#structures").val()
     }
 
     if(current_establishment_id) {
-        set_structures(current_establishment_id)
+      set_structures(current_establishment_id)
     }
 
     confirmDialog = $("#confirm-dialog-form").dialog({
@@ -292,21 +237,20 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_visits",
+        url: "/api/visits/",
         data: function(d) {
-          if($('#strs').val()) {
-            d.structure = $('#strs').val();
+          d.establishment = $('#establishments').val()
+          if($('#structures').val()) {
+            d.structure = $('#structures').val();
           }
-          else if($('#highschools').val()) {
-            d.highschool = $('#highschools').val();
-          }
-
           return d
         },
         dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
+          if (json !== undefined && json.length !== 0) {
+            return json;
           }
+
+          return ""
         }
       },
       'searching': true,
@@ -346,6 +290,10 @@
                        "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                        "</a>\n";
 
+              icons += "<a href='/core/visit/"+row.id+"' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                       "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
+                       "</a>\n";
+
               if(row.can_delete) {
                 icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('visit_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
                          "<i class=\"fa fas fa-trash fa-2x\"></i>" +
@@ -361,7 +309,7 @@
         targets: "_all"
       }, {
         orderable: false,
-        targets: [8]
+        targets: [6]
       }],
     });
 

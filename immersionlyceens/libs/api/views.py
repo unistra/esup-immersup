@@ -38,11 +38,11 @@ from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
     Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
     PublicDocument, Slot, Structure, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation,
+    UserCourseAlert, Vacation, Visit
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer,
-    TrainingHighSchoolSerializer
+    TrainingHighSchoolSerializer, VisitSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -2215,7 +2215,7 @@ class CourseList(generics.ListAPIView):
 
         if not user.is_superuser:
             if user.is_structure_manager():
-                return user.structures.order_by('label')
+                return queryset.filter(structure__in=user.structures.all()).order_by('label')
             if user.is_establishment_manager() and user.establishment:
                 return Course.objects.filter(structure__in=user.establishment.structures.all()).order_by('label')
 
@@ -2242,6 +2242,7 @@ class BuildingList(generics.ListAPIView):
                 return queryset.filter(campus__establishment=user.establishment)
 
         return queryset
+
 
 class GetEstablishment(generics.RetrieveAPIView):
     """
@@ -2307,3 +2308,50 @@ def ajax_get_immersions_proposal_establishments(request):
         pass
 
     return JsonResponse(response, safe=False)
+
+
+class VisitList(generics.ListAPIView):
+    """
+    Visits list
+    """
+    serializer_class = VisitSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['establishment', 'structure']
+
+    def get_queryset(self):
+        queryset = Visit.objects.all()
+        user = self.request.user
+
+        if not user.is_superuser:
+            if user.is_structure_manager():
+                queryset = queryset.filter(structure__in=user.structures.all())
+            if user.is_establishment_manager() and user.establishment:
+                queryset = Visit.objects.filter(
+                    Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
+                    .distinct()
+
+        return queryset.order_by('establishment', 'structure', 'highschool', 'purpose')
+
+
+class VisitDetail(generics.DestroyAPIView):
+    """
+    Visits list
+    """
+    serializer_class = VisitSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    lookup_fields = ['id']
+    queryset = Visit.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+
+        if obj and obj.slots.exists():
+            return JsonResponse(data={
+                "error": _("Some slots are attached to this visit: it can't be deleted")
+            })
+
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse(data={
+            "msg": _("Visit successfully deleted"),
+        })

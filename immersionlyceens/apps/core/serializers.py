@@ -3,7 +3,7 @@
 
 from rest_framework import serializers
 
-from .models import Campus, Establishment, Training, TrainingSubdomain, HighSchool, Course, Structure, Building
+from .models import Campus, Establishment, Training, TrainingSubdomain, HighSchool, Course, Structure, Building, Visit
 
 class CampusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,6 +34,7 @@ class BuildingSerializer(serializers.ModelSerializer):
         model = Building
         fields = "__all__"
 
+
 class HighSchoolViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = HighSchool
@@ -61,3 +62,14 @@ class TrainingHighSchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Training
         fields = ("id", "label", "training_subdomains", "active", "can_delete")
+
+
+class VisitSerializer(serializers.ModelSerializer):
+    establishment = serializers.StringRelatedField(many=False)
+    structure = serializers.StringRelatedField(many=False)
+    highschool = serializers.StringRelatedField(many=False)
+    speakers = serializers.StringRelatedField(many=True)
+    can_delete = serializers.BooleanField()
+    class Meta:
+        model = Visit
+        fields = "__all__"

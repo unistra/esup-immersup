@@ -29,7 +29,10 @@ from .models import (
 
 class CustomStructureMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
-        return f"{obj.establishment.code} - {str(obj)}"
+        if obj.establishment:
+            return f"{obj.establishment.code} - {str(obj)}"
+        else:
+            return str(obj)
 
 
 class TypeFormMixin(forms.ModelForm):

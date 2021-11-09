@@ -1,11 +1,14 @@
+import json
+
 from datetime import datetime
 from typing import Dict, Any
 
 from django import forms
+from django.contrib import messages
+from django.contrib.auth.models import Group
 from django.conf import settings
 from django.forms.widgets import DateInput, TimeInput
-from django.utils.translation import gettext_lazy as _
-from django.utils.translation import ngettext
+from django.utils.translation import gettext, ngettext, gettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from rest_framework.exceptions import ValidationError
 
@@ -13,7 +16,7 @@ from ..immersion.forms import StudentRecordForm
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
     Building, Calendar, Campus, Structure, Course, CourseType, Establishment,
-    HighSchool, ImmersionUser, Slot, Training, UniversityYear,
+    HighSchool, ImmersionUser, Slot, Training, UniversityYear, Visit
 )
 
 
@@ -394,3 +397,110 @@ class TrainingFormHighSchool(TrainingForm):
             return cleaned_data
 
         return super().clean()
+
+
+
+class VisitForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        for field_name in ["establishment", "structure", "highschool", "purpose"]:
+            self.fields[field_name].widget.attrs.setdefault("class", "")
+            self.fields[field_name].widget.attrs["class"] += " form-control"
+
+        self.fields["highschool"].queryset = HighSchool.agreed.order_by("city", "label")
+        self.fields["establishment"].queryset = Establishment.activated.all()
+        self.fields["establishment"].empty_label = None
+        self.fields["structure"].queryset = Structure.activated.all()
+
+        if not self.request.user.is_superuser:
+            self.fields["establishment"].initial = self.request.user.establishment.id
+
+            if self.request.user.is_establishment_manager():
+                self.fields["establishment"].queryset = \
+                    Establishment.objects.filter(pk=self.request.user.establishment.id)
+                self.fields["structure"].queryset = \
+                    self.fields["structure"].queryset.filter(establishment=self.request.user.establishment)
+
+            if self.request.user.is_structure_manager():
+                self.fields["establishment"].queryset = \
+                    Establishment.objects.filter(pk=self.request.user.establishment.id)
+                self.fields["structure"].queryset = \
+                    self.fields["structure"].queryset.filter(establishment=self.request.user.establishment)
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        try:
+            speakers = json.loads(self.data.get("speakers_list", "[]"))
+        except Exception:
+            speakers = []
+
+        if not speakers:
+            messages.error(self.request, _("Please add at least one speaker."))
+            raise forms.ValidationError(_("Please add at least one speaker."))
+
+        return cleaned_data
+
+
+    def save(self, *args, **kwargs):
+        instance = super().save(*args, **kwargs)
+
+        self.request.session['current_establishment_id'] = instance.establishment.id
+        self.request.session['current_structure_id'] = instance.structure.id if instance.structure else None
+
+        speakers_list = json.loads(self.data.get('speakers_list', []))
+
+        current_speakers = [u for u in instance.speakers.all().values_list('username', flat=True)]
+        new_speakers = [speaker.get('username') for speaker in speakers_list]
+
+        # speakers to add
+        for speaker in speakers_list:
+            if isinstance(speaker, dict):
+                try:
+                    speaker_user = ImmersionUser.objects.get(username=speaker['username'])
+                except ImmersionUser.DoesNotExist:
+                    speaker_user = ImmersionUser.objects.create(
+                        username=speaker['username'],
+                        last_name=speaker['lastname'],
+                        first_name=speaker['firstname'],
+                        email=speaker['email'],
+                        establishment=instance.establishment
+                    )
+                    messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
+                    return_msg = speaker_user.send_message(self.request, 'CPT_CREATE_INTER')
+
+                    if not return_msg:
+                        messages.success(
+                            self.request,
+                            gettext("A confirmation email has been sent to {}").format(speaker['email']),
+                        )
+                    else:
+                        messages.warning(self.request, return_msg)
+
+                try:
+                    Group.objects.get(name='INTER').user_set.add(speaker_user)
+                except Exception:
+                    messages.error(
+                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                    )
+
+                if speaker_user:
+                    instance.speakers.add(speaker_user)
+
+        # speakers to remove
+        remove_list = set(current_speakers) - set(new_speakers)
+        for username in remove_list:
+            try:
+                user = ImmersionUser.objects.get(username=username)
+                instance.speakers.remove(user)
+            except ImmersionUser.DoesNotExist:
+                pass
+                
+        return instance
+
+
+    class Meta:
+        model = Visit
+        fields = ('purpose', 'published', 'structure', 'establishment', 'highschool')
