@@ -1,4 +1,7 @@
 from datetime import datetime
+from typing import Dict, Any
+
+from django.template import engines, Engine, Template
 
 from immersionlyceens.apps.core import models as core_models
 
@@ -74,3 +77,9 @@ def get_information_text(code=None):
         raise ValueError
 
     return value
+
+
+def render_text(template_data: str, data: Dict[str, Any]) -> str:
+    django_engine: Engine = engines["django"]
+    template: Template = django_engine.from_string(template_data)
+    return template.render(context=data)
