@@ -310,6 +310,10 @@ def ajax_get_documents(request):
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_get_slots(request):
+    """
+    Get slots list according to GET parameters
+    :return:
+    """
     response = {'msg': '', 'data': []}
     can_update_attendances = False
     today = datetime.datetime.today().date()
@@ -324,6 +328,13 @@ def ajax_get_slots(request):
     training_id = request.GET.get('training_id')
     structure_id = request.GET.get('structure_id')
     highschool_id = request.GET.get('highschool_id')
+    establishment_id = request.GET.get('establishment_id')
+    visits = request.GET.get('visits', False)
+
+    try:
+        int(establishment_id)
+    except (TypeError, ValueError):
+        establishment_id = None
 
     try:
         int(structure_id)
@@ -340,37 +351,53 @@ def ajax_get_slots(request):
     except (TypeError, ValueError):
         training_id = None
 
-    if not structure_id and not highschool_id:
-        response['msg'] = gettext("Error : a valid structure or highschool must be selected")
+    if visits and not establishment_id:
+        response['msg'] = gettext("Error : a valid establishment must be selected")
         return JsonResponse(response, safe=False)
 
-    if training_id is not None:
-        filters = {'course__training__id' : training_id}
-    elif structure_id is not None:
-        filters = {'course__training__structures__id': structure_id}
-    elif highschool_id is not None:
-        filters = {'course__training__highschool__id': highschool_id}
+    if not structure_id and not highschool_id:
+        response['msg'] = gettext("Error : a valid structure or high school must be selected")
+        return JsonResponse(response, safe=False)
 
-    slots = Slot.objects.prefetch_related(
-        'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
-        .filter(**filters)
+    if visits:
+        filters = {'visit__establishment__id': establishment_id}
+
+        if structure_id is not None:
+            filters['visit__structure__id'] = structure_id
+
+        slots = Slot.objects.prefetch_related(
+            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
+            .filter(**filters)
+    else:
+        if training_id is not None:
+            filters = {'course__training__id' : training_id}
+        elif structure_id is not None:
+            filters = {'course__training__structures__id': structure_id}
+        elif highschool_id is not None:
+            filters = {'course__training__highschool__id': highschool_id}
+
+        slots = Slot.objects.prefetch_related(
+            'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
+            .filter(**filters)
 
     all_data = []
     allowed_structures = request.user.get_authorized_structures()
 
     for slot in slots:
+        structure = slot.get_structure()
+        highschool = slot.get_highschool()
+
         data = {
             'id': slot.id,
             'published': slot.published,
-            'course_label': slot.course.label,
+            'course_label': slot.course.label if slot.course else None,
             'structure': {
-                'code': slot.course.structure.code if slot.course.structure else None,
-                'managed_by_me': slot.course.structure in allowed_structures if slot.course.structure else False,
+                'code': structure.code if structure else None,
+                'managed_by_me': structure in allowed_structures if structure else False,
             },
             'highschool': {
-                'label': f"{slot.course.highschool.city} - {slot.course.highschool.label}"
-                    if slot.course.highschool else "",
-                'managed_by_me': slot.course.highschool == request.user.highschool if request.user.highschool else False,
+                'label': f"{highschool.city} - {highschool.label}" if highschool else "",
+                'managed_by_me': highschool == request.user.highschool if request.user.highschool else False,
             },
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
