@@ -1433,7 +1433,7 @@ class Slot(models.Model):
         Get the slot structure depending of the slot type (visit, course, event)
         """
         if self.course_id and self.course.structure_id:
-            return self.course.structre
+            return self.course.structure
         elif self.visit_id and self.visit.structure_id:
             return self.visit.structure
 

@@ -284,7 +284,11 @@ $(document).ready(function(){
                 return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
               }
             },
-            { data: 'highschool' },
+            { data: 'highschool',
+              render: function(data, type, row) {
+                return data.label
+              },
+            },
             { data: 'structure',
               render: function(data, type, row) {
                 if(row.structure.code) {
@@ -343,13 +347,13 @@ $(document).ready(function(){
             },
             { data: 'id',
               render: function(data, type, row) {
-                if (row['structure']['managed_by_me']) {
+                if (row['can_update_visit_slot']) {
                   let element =
-                '        <a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
+                '        <a href="/core/visit_slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
                 '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
 
                   if(row.is_past === false) {
-                    element += '<a href="/core/slot/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
+                    element += '<a href="/core/visit_slot/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
                   }
                   if(row.n_register === 0 && row.is_past === false) {
                     element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';

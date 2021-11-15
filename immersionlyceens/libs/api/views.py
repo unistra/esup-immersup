@@ -382,23 +382,33 @@ def ajax_get_slots(request):
 
     all_data = []
     allowed_structures = request.user.get_authorized_structures()
+    user_establishment = request.user.establishment
+    user_highschool = request.user.highschool
 
     for slot in slots:
         structure = slot.get_structure()
         highschool = slot.get_highschool()
 
+        allowed_visit_slot_update_conditions = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
+            request.user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
+        ]
+
         data = {
             'id': slot.id,
             'published': slot.published,
+            'can_update_visit_slot': any(allowed_visit_slot_update_conditions),
             'course_label': slot.course.label if slot.course else None,
             'structure': {
                 'code': structure.code if structure else None,
-                'managed_by_me': structure in allowed_structures if structure else False,
+                'managed_by_me': structure and structure in allowed_structures,
             },
             'highschool': {
                 'label': f"{highschool.city} - {highschool.label}" if highschool else "",
-                'managed_by_me': highschool == request.user.highschool if request.user.highschool else False,
+                'managed_by_me': user_highschool and highschool == user_highschool,
             },
+            'purpose': slot.visit.purpose if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(
@@ -501,6 +511,27 @@ def ajax_get_course_speakers(request, course_id=None):
         response['msg'] = gettext("Error : a valid course must be selected")
     else:
         speakers = Course.objects.get(id=course_id).speakers.all().order_by('last_name')
+
+        for speaker in speakers:
+            speakers_data = {
+                'id': speaker.id,
+                'first_name': speaker.first_name,
+                'last_name': speaker.last_name.upper(),
+            }
+            response['data'].append(speakers_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+def ajax_get_visit_speakers(request, visit_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not visit_id:
+        response['msg'] = gettext("Error : a valid visit must be selected")
+    else:
+        speakers = Visit.objects.get(id=visit_id).speakers.all().order_by('last_name')
 
         for speaker in speakers:
             speakers_data = {
@@ -2343,7 +2374,7 @@ class VisitList(generics.ListAPIView):
     """
     serializer_class = VisitSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['establishment', 'structure']
+    filterset_fields = ['establishment', 'structure', 'highschool']
 
     def get_queryset(self):
         queryset = Visit.objects.all()

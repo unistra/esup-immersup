@@ -28,7 +28,7 @@ import requests
 from immersionlyceens.decorators import groups_required
 
 from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
-    HighSchoolStudentImmersionUserForm, TrainingFormHighSchool, VisitForm)
+    HighSchoolStudentImmersionUserForm, TrainingFormHighSchool, VisitForm, VisitSlotForm)
 
 from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm, TrainingForm
 
@@ -1161,11 +1161,11 @@ class VisitSlotList(generic.TemplateView):
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
 class VisitSlotAdd(generic.CreateView):
-    form_class = SlotForm
+    form_class = VisitSlotForm
     template_name = "core/visit_slot.html"
 
     def get_success_url(self):
-        return reverse("visits_slots_list")
+        return reverse("visits_slots")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1181,5 +1181,80 @@ class VisitSlotAdd(generic.CreateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
+        for k, error in form.errors.items():
+            messages.error(self.request, error)
         messages.error(self.request, _("Visit slot not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+class VisitSlotUpdate(generic.UpdateView):
+    model = Slot
+    form_class = VisitSlotForm
+    template_name = "core/visit_slot.html"
+
+    queryset = Slot.objects.filter(visit__isnull=False)
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def get_context_data(self, **kwargs):
+        speakers_list = []
+        slot_id = self.object.id
+        duplicate = kwargs.get("duplicate", False)
+        if slot_id:
+            try:
+                slot = Slot.objects.get(pk=slot_id)
+                self.request.session["current_structure_id"] = slot.visit.structure.id if slot.visit.structure else None
+                self.request.session["current_highschool_id"] = slot.visit.highschool.id
+                self.request.session["current_establishment_id"] = slot.visit.establishment.id
+
+                speakers_list = [{
+                    "id": t.id,
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": True,
+                } for t in slot.speakers.all()]
+
+                if duplicate:
+                    data = {
+                        'establishment': slot.visit.establishment,
+                        'structure': slot.visit.structure,
+                        'highschool': slot.visit.highschool,
+                        'published': slot.published,
+                        'purpose': slot.visit.purpose
+                    }
+                    slot = Slot(**data)
+
+                self.form = VisitSlotForm(instance=slot, request=self.request)
+
+            except Visit.DoesNotExist:
+                self.form = VisitSlotForm(request=self.request)
+
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True  # FixMe
+        context["speakers"] = json.dumps(speakers_list)
+
+        return context
+
+
+    def get_success_url(self):
+        return reverse("visits_slots")
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Visit slot \"%s\" updated.") % str(form.instance))
+
+        self.request.session['current_establishment_id'] = self.object.visit.establishment.id
+        self.request.session['current_structure_id'] = \
+            self.object.visit.structure.id if self.object.visit.structure else None
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Visit slot \"%s\" not updated.") % str(form.instance))
         return super().form_invalid(form)
