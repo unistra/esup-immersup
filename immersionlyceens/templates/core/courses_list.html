@@ -178,6 +178,8 @@
     current_establishment_id = $('#establishments option:selected').val();
     current_structure_id = ""
 
+    dt.clear().draw()
+
     if (current_establishment_id !== "") {
         set_structures(current_establishment_id);
     }
