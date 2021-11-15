@@ -736,7 +736,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
             return qs
 
         if request.user.is_establishment_manager():
-            return qs.filter(structures__establishment=request.user.establishment)
+            return qs.filter(structures__establishment=request.user.establishment).distinct()
 
         return qs
 
