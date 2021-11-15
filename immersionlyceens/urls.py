@@ -9,7 +9,7 @@ from immersionlyceens.apps.immersion.views import shibbolethLogin
 from .apps.core import views as core_views
 from .views import (
     accompanying, home, offer, offer_subdomain, procedure,
-    serve_accompanying_document, serve_public_document,
+    serve_accompanying_document, serve_public_document, visits_offer,
 )
 
 admin.autodiscover()
@@ -36,6 +36,7 @@ urlpatterns = [
     path('shib_secure', include('shibboleth.urls', namespace='shibboleth')),
     path('shib/', shibbolethLogin, name='shibboleth_login'),
     path('summernote/', include('django_summernote.urls')),
+    path('visits_offer', visits_offer, name='visits_offer')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # debug toolbar for dev

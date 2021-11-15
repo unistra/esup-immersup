@@ -10,6 +10,7 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext, gettext_lazy as _
+from django.views import generic
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
@@ -32,7 +33,7 @@ def home(request):
         procedure_txt = ''
 
     try:
-        offer_txt = InformationText.objects.get(code="INFO_BULLE_OFFRE", active=True).content
+        offer_txt = InformationText.objects.get(code="INFO_BULimmersionlyceens/apps/core/views.pyLE_OFFRE", active=True).content
     except InformationText.DoesNotExist:
         offer_txt = ''
 
@@ -314,6 +315,25 @@ def offer_subdomain(request, subdomain_id):
     }
 
     return render(request, 'offer_subdomains.html', context)
+
+
+def visits_offer(request):
+    """ Visits Offer view """
+
+    try:
+        visits_txt = InformationText.objects.get(code="INTRO_VISITE", active=True).content
+    except InformationText.DoesNotExist:
+        visits_txt = ''
+
+    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
+    courses_count = Course.objects.filter(published=True).count()
+    context = {
+        'subdomains': subdomains,
+        'courses_count': courses_count,
+        'visits_txt': visits_txt,
+    }
+    return render(request, 'visits_offer.html', context)
+
 
 def error_500(request):
     return render(request, '500.html', status=500)

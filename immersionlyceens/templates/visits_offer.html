@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% block title %}
+{% trans "Visits Offer" %}
+{% endblock %}
+{% block content %}
+
+
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+          <h1>{% trans 'Visits Offer' %}</h1>
+          <p class="text-uppercase">{% trans 'by highschools' %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Offer' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col lead">
+        {% if visits_txt %}
+        {{ visits_txt | safe }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-gray ">
+  <div class="container ">
+    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ courses_count }} {% trans 'available courses divided in subdomains (see below)' %}">{{ courses_count }} {% trans 'available courses' %}</span></p>
+    <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
+    {% if subdomains %}
+    {% regroup subdomains by training_domain.label as subdomains_list %}
+    {% for subdomain in subdomains_list %}
+      <div class="col">
+        <div class="card domain">
+          <header style="background-image: url({% static 'img/backgrounds/'%}{{ subdomain.list.0.training_domain.pk }}.jpg)">
+            <div class="domain-title">
+              <div class="sun sun-theme-primary">
+                <span class="sun-row">
+                  <span class="sun-cell sun-empty-1"></span>
+                    <span class="sun-cell">
+                      <span class="sun-cell-inner">
+                        <strong>{{ subdomain.grouper }}</strong>
+                      </span>
+                    </span>
+                    <span class="sun-cell sun-empty-4"></span>
+                    <span class="sun-cell sun-empty-1"></span>
+                  </span>
+              </div>
+            </div>
+          </header>
+          <div class="card-body">
+            <ul class="list-arrows">
+              {% for d in subdomain.list %}
+              <li>
+                <a href="{% url 'offer_subdomain' d.id %}">
+                {{ d.label }}
+                </a>
+                {% comment %}TODO: not planned in US doing it ? <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="8 cours disponibles">8</span></span> {% endcomment %}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    {% else %}
+      <p>{% trans 'No offer available' %}</p>
+    {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
