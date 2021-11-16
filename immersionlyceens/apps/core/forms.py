@@ -130,22 +130,8 @@ class SlotForm(forms.ModelForm):
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 
-        for elem in [
-            'establishment',
-            'highschool',
-            'structure',
-            'training',
-            'course',
-            'course_type',
-            'campus',
-            'building',
-            'room',
-            'start_time',
-            'end_time',
-            'n_places',
-            'additional_information',
-            #'published',
-        ]:
+        for elem in ['establishment', 'highschool', 'structure', 'visit', 'training', 'course', 'course_type',
+            'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         can_choose_establishment = any([
@@ -251,24 +237,9 @@ class SlotForm(forms.ModelForm):
 
     class Meta:
         model = Slot
-        fields = (
-            'id',
-            'establishment',
-            'structure',
-            'highschool',
-            'training',
-            'course',
-            'course_type',
-            'campus',
-            'building',
-            'room',
-            'date',
-            'start_time',
-            'end_time',
-            'n_places',
-            'additional_information',
-            'published',
-        )
+        fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'training', 'course', 'course_type',
+            'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places', 'additional_information',
+            'published', 'face_to_face')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
@@ -281,6 +252,106 @@ class SlotForm(forms.ModelForm):
         }
 
         localized_fields = ('date',)
+
+
+class VisitSlotForm(SlotForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["highschool"].queryset = HighSchool.agreed\
+            .filter(visits__isnull=False)\
+            .distinct()\
+            .order_by('city', 'label')
+
+        self.fields["room"].widget.attrs["placeholder"] = _("Please enter the building and room name")
+
+        visit = self.instance.visit if self.instance and self.instance.visit_id else None
+
+        if visit:
+            self.fields["structure"].initial = visit.structure.id if visit.structure else None
+            self.fields["highschool"].initial = visit.highschool.id
+            self.fields["establishment"].initial = visit.establishment.id
+
+
+    def clean(self):
+        cleaned_data = super(forms.ModelForm, self).clean()
+        visit = cleaned_data.get('visit')
+        pub = cleaned_data.get('published', None)
+
+        cals = Calendar.objects.all()
+
+        if cals.exists():
+            cal = cals.first()
+        else:
+            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
+
+        if pub is True:
+            # Mandatory fields, depending on high school / structure slot
+            m_fields = ['visit', 'date', 'start_time', 'end_time']
+
+            for field in m_fields:
+                if not cleaned_data.get(field):
+                    self.add_error(field, _("This field is required"))
+
+            """
+            if not all(cleaned_data.get(e) for e in m_fields):
+                raise forms.ValidationError(_('Required fields are not filled in'))
+            """
+
+        _date = cleaned_data.get('date')
+        if _date and not cal.date_is_between(_date):
+            raise forms.ValidationError(
+                {'date': _('Error: The date must be between the dates of the current calendar')}
+            )
+
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        if start_time and end_time and start_time >= end_time:
+            raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
+
+        if visit and not visit.published and pub:
+            visit.published = True
+            visit.save()
+
+        try:
+            speakers = self.data.getlist("speakers_list", [])
+            cleaned_data["speakers"] = speakers
+        except Exception as e:
+            speakers = []
+
+        if not speakers:
+            msg = _("Please select at least one speaker.")
+            messages.error(self.request, msg)
+            raise forms.ValidationError(msg)
+
+        return cleaned_data
+
+
+    def save(self, *args, **kwargs):
+        instance = super().save(*args, **kwargs)
+
+        self.request.session['current_establishment_id'] = instance.visit.establishment.id
+        self.request.session['current_structure_id'] = instance.visit.structure.id if instance.visit.structure else None
+
+        speakers_list = self.cleaned_data.get('speakers', [])
+        current_speakers = [u for u in instance.speakers.all().values_list('id', flat=True)]
+        new_speakers = [speaker for speaker in speakers_list]
+
+        # speakers to add
+        for speaker_id in new_speakers:
+            if not instance.speakers.filter(id=speaker_id).exists():
+                instance.speakers.add(speaker_id)
+
+        # speakers to remove
+        remove_list = set(current_speakers) - set(new_speakers)
+        for id in remove_list:
+            try:
+                user = ImmersionUser.objects.get(id=id)
+                instance.speakers.remove(user)
+            except ImmersionUser.DoesNotExist:
+                pass
+
+        return instance
+
 
 
 class MyHighSchoolForm(HighSchoolForm):

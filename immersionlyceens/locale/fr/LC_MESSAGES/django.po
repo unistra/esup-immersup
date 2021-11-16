@@ -2523,7 +2523,7 @@ msgstr "Erreur : pas d'id de template"
 
 #: immersionlyceens/libs/api/views.py:196
 #: immersionlyceens/libs/api/views.py:344
-msgid "Error : a valid structure or highschool must be selected"
+msgid "Error : a valid structure or high school must be selected"
 msgstr "Erreur : une structure ou un lycée valide doit être sélectionné"
 
 #: immersionlyceens/libs/api/views.py:262
