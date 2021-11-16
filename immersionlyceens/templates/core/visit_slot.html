@@ -47,14 +47,12 @@
 
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% if slot %}
-        {% if slot.id %}
-          {% trans 'modify visit slot' %}
-        {% else %}
-          {% trans 'duplicate visit slot' %}
-        {% endif %}
+      {% if duplicate %}
+        {% trans "Duplicate a visit slot" %}
+      {% elif slot %}
+        {% trans "Update a visit slot" %}
       {% else %}
-        {% trans 'Add a new visit slot' %}
+        {% trans "Add a new visit slot" %}
       {% endif %}
     </div>
     <div class="card-body">
@@ -109,6 +107,18 @@
           </div>
         </div>
 
+        <div class="form-group row">
+          <label for="id_face_to_face" class="col-form-label col-sm-3">{% trans 'Face to face' %}</label>
+          <div class="col-sm-1">
+            {{ form.face_to_face }}
+          </div>
+          {% if form.face_to_face.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ form.face_to_face.errors }}
+            </div>
+          {% endif %}
+        </div>
+
         <div class="form-group row" id="id_div_room">
           <label for="id_room" class="col-form-label col-sm-3">{% trans 'Location' %}</label>
           <div class="col-sm-6">
@@ -120,6 +130,7 @@
             </div>
           {% endif %}
         </div>
+
         <div class="form-group row" id="id_div_url">
           <label for="id_url" class="col-form-label col-sm-3">{% trans 'URL' %}</label>
           <div class="col-sm-6">
@@ -274,9 +285,9 @@
   var structure_id = "{{ form.structure.value }}";
   var visit_id = "{{ form.visit.value }}";
   var establishment_id = "{{ form.establishment.initial }}";
-  var highschool_id = "{{ form.highschool.id }}";
+  var highschool_id = "{{ form.highschool.value }}";
   var visits = Array();
-  var speakers = JSON.parse('{{ speakers|safe }}');
+  var speakers = "{{ speakers }}" ? JSON.parse('{{ speakers|safe }}') : Array();
 
   function empty_structures() {
       let options = '<option value="">---------</option>'
@@ -350,13 +361,10 @@
         highschool_id = ""
         $('#id_highschool').val("")
         set_structures(establishment_id);
-        set_campuses(establishment_id);
     }
     else {
         empty_structures()
         $("#id_div_highschool").show()
-        $("#id_div_campus").hide()
-        $("#id_div_building").hide()
     }
   });
 
@@ -373,6 +381,17 @@
       set_visits()
     }
   });
+
+  $('#id_face_to_face').change( function() {
+    if($('#id_face_to_face').is(':checked')) {
+      $("#id_div_room").show()
+      $("#id_div_url").hide()
+    }
+    else {
+      $("#id_div_room").hide()
+      $("#id_div_url").show()
+    }
+  })
 
   function load_speakers(value) {
     $.ajax({
@@ -411,6 +430,9 @@ $(document).ready(function(){
   if(highschool_id === 'None' || highschool_id === "") {
     highschool_id = $("#id_highschool").val()
   }
+  else {
+    $("#id_highschool").val(highschool_id)
+  }
 
   if(establishment_id === 'None' || establishment_id === "") {
     establishment_id = $("#id_establishment").val()
@@ -426,13 +448,18 @@ $(document).ready(function(){
     $("#id_structure").val(structure_id)
   }
 
+  /*
   if(establishment_id && highschool_id) {
     set_visits()
   }
+  */
 
   if(visit_id === 'None' || visit_id === "") {
     visit_id = $("#id_visit").val()
-    load_speakers(visit_id);
+
+    if(visit_id) {
+      load_speakers(visit_id);
+    }
   }
   else {
     $("#id_visit").val(visit_id)
@@ -445,6 +472,15 @@ $(document).ready(function(){
     empty_structures()
   } else {
     set_structures(establishment_id)
+  }
+
+  if($('#id_face_to_face').is(':checked')) {
+    $("#id_div_room").show()
+    $("#id_div_url").hide()
+  }
+  else {
+    $("#id_div_room").hide()
+    $("#id_div_url").show()
   }
 
   // Initialize trainings depending on structure / high school selection
@@ -599,80 +635,21 @@ $(document).ready(function(){
     yearRange: "2020:2100",
   });
 
-    /*
-    {% if not slot %}
+  // toggle
+  toggle_required_fields();
 
-        {% if not request.POST.structure %}
-            load_trainings($('#structure').val());
-        {% endif %}
-        {% if not request.POST.structure and not request.POST.training %}
-        load_course(
-            $('#structure').val(),
-            $('#training').val()
-        );
-        {% endif %}
-
-        {% if not form.campus.value %}
-            load_buildings($('#id_campus').val());
-        {% endif %}
-        {% if not form.course.value %}
-            id_course = $('#id_course').val();
-            if (id_course) {
-              load_speakers(id_course);
-            }
-        {% endif %}
-
+  $('#id_published').on('change', function(){ toggle_required_fields(); });
+  {% if slot or request.POST.structure %}
+    {% if slot %}
+      setTimeout(function() {
+        $('#ok_modify').fadeOut(1000, function(){
+          $('#ok_modify').hide();
+        });
+      },
+      {% settings_get 'MESSAGES_TIMEOUT' %}
+      );
     {% endif %}
-    */
-    // toggle
-    toggle_required_fields();
-
-    // add change handler
-    /*
-    $('#structure').change(function(event){ load_trainings(event.target.value); });
-    $('#training').change(function(event){ load_course($('#structure').val(), event.target.value); });
-    $('#id_campus').change(function(event){ load_buildings(event.target.value); });
-    */
-
-    $('#id_published').on('change', function(){ toggle_required_fields(); });
-
-    {% if slot or request.POST.structure %}
-        {% if slot %}
-        setTimeout(function(){
-                $('#ok_modify').fadeOut(1000, function(){
-                    $('#ok_modify').hide();
-                });
-            },
-            {%  settings_get 'MESSAGES_TIMEOUT' %}
-        );
-        {% endif %}
-
-    /*
-    $('#structure option').each(function(i, e) {
-        {% if request.POST.structure %}
-        if ( $(e).val() == '{{ request.POST.structure }}' )
-        {% elif slot %}
-        if ( $(e).val() == '{{ slot.course.structure.id }}' )
-        {% endif %}
-        {
-            e.selected = true;
-            load_trainings($(e).val(), true);
-        }
-    });
-    */
-
-    // $('#id_campus option[value="{{ slot.campus.id }}"]').attr('selected', '');
-    // $('#id_campus option[value="{{ form.campus.value }}"]').attr('selected', '');
-    // load_buildings($('#id_campus').val());
-
-    /*
-    $('#id_course').html('');
-    $('#id_course').append(
-        // '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
-        '<option selected value="{{ form.course.value }}">{{ slot.course.label }}</option>'
-    );
-    */
-    {% endif %}
+  {% endif %}
 });
 </script>
 {% endblock %}

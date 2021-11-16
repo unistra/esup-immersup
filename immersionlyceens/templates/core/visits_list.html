@@ -125,7 +125,7 @@
         if(error !== undefined && error !== '') {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         }
-        else if(msg != undefined && msg !== '') {
+        else if(msg !== undefined && msg !== '') {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 

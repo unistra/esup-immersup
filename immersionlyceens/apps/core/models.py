@@ -23,7 +23,7 @@ from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import filesizeformat, date as _date
-from django.utils.translation import pgettext, gettext_lazy as _
+from django.utils.translation import gettext, pgettext, gettext_lazy as _
 from django.utils import timezone
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
@@ -1428,6 +1428,8 @@ class Slot(models.Model):
 
     published = models.BooleanField(_("Published"), default=True, null=False)
 
+    face_to_face = models.BooleanField(_("Face to face"), default=True, null=False, blank=True)
+
     def get_structure(self):
         """
         Get the slot structure depending of the slot type (visit, course, event)
@@ -1469,6 +1471,18 @@ class Slot(models.Model):
     def clean(self):
         if [self.course, self.visit].count(None) != 1:
             raise ValidationError("You must select one of : Course, Visit or Event")
+
+    def __str__(self):
+        if self.visit:
+            slot_type = _(f"Visit - {self.visit.highschool}")
+        elif self.course:
+            slot_type = _(f"Course - {self.course_type} {self.course.label}")
+        """
+        elif self.event:
+            slot_type = _("Event ")
+        """
+
+        return gettext(f"{slot_type} : {self.date} : {self.start_time}-{self.end_time})")
 
 
     class Meta:

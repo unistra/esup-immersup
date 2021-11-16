@@ -1096,7 +1096,6 @@ class VisitUpdate(generic.UpdateView):
                 } for t in visit.speakers.all()]
 
                 if duplicate:
-                    print("POF")
                     data = {
                         'establishment': visit.establishment,
                         'structure': visit.structure,
@@ -1118,13 +1117,21 @@ class VisitUpdate(generic.UpdateView):
 
 
     def get_success_url(self):
-        return reverse("visits")
+        if self.add_new:
+            return reverse("add_visit")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits")
 
     def form_valid(self, form):
-        messages.success(self.request, _("Visit \"%s\" updated.") % str(form.instance))
+        messages.success(self.request, _("Visit \"%s\" updated.") % form.instance)
 
         self.request.session['current_establishment_id'] = self.object.establishment.id
         self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+
+        self.duplicate = self.request.POST.get("save_duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add_new", False) != False
 
         return super().form_valid(form)
 
@@ -1163,12 +1170,64 @@ class VisitSlotList(generic.TemplateView):
 class VisitSlotAdd(generic.CreateView):
     form_class = VisitSlotForm
     template_name = "core/visit_slot.html"
+    duplicate = False
 
     def get_success_url(self):
-        return reverse("visits_slots")
+        if self.add_new:
+            return reverse("add_visit_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits_slots")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        speakers_list = []
+        self.duplicate = self.kwargs.get('duplicate', False)
+        object_pk = self.kwargs.get('pk', None)
+
+        if self.duplicate and object_pk:
+            context = {'duplicate': True}
+            try:
+                slot = Slot.objects.get(pk=object_pk)
+
+                initials = {
+                    'establishment': slot.visit.establishment.id,
+                    'structure': slot.visit.structure.id if slot.visit.structure else None,
+                    'highschool': slot.visit.highschool.id,
+                    'purpose': slot.visit.purpose,
+                    'published': slot.published,
+                    'visit': slot.visit,
+                    'room': slot.room,
+                    'url': slot.url,
+                    'date': slot.date,
+                    'start_time': slot.start_time,
+                    'end_time': slot.end_time,
+                    'n_places': slot.n_places,
+                    'additional_information': slot.additional_information,
+                    'face_to_face': slot.face_to_face,
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    initials[k] = data.get(k, initials[k])
+
+                self.form = VisitSlotForm(initial=initials, request=self.request)
+
+                speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
+
+                context["origin_id"] = slot.id
+                context["form"] = self.form
+            except Slot.DoesNotExist:
+                pass
+        else:
+            context = super().get_context_data(*args, **kwargs)
+
+        context["can_update"] = True  # FixMe
+        context["speakers"] = json.dumps(speakers_list)
+        context["establishment_id"] = self.request.session.get('current_establishment_id')
+        context["structure_id"] = self.request.session.get('current_structure_id')
         return context
 
     def get_form_kwargs(self):
@@ -1177,6 +1236,8 @@ class VisitSlotAdd(generic.CreateView):
         return kw
 
     def form_valid(self, form):
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
         messages.success(self.request, _("Visit slot %s created.") % str(form.instance))
         return super().form_valid(form)
 
@@ -1244,10 +1305,21 @@ class VisitSlotUpdate(generic.UpdateView):
 
 
     def get_success_url(self):
-        return reverse("visits_slots")
+        if self.add_new:
+            return reverse("add_visit_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits_slots")
+
 
     def form_valid(self, form):
-        messages.success(self.request, _("Visit slot \"%s\" updated.") % str(form.instance))
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
+
+        print(form.instance)
+
+        messages.success(self.request, _("Visit slot \"%s\" updated.") % form.instance)
 
         self.request.session['current_establishment_id'] = self.object.visit.establishment.id
         self.request.session['current_structure_id'] = \

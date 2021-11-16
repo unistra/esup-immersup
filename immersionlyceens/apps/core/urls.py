@@ -48,7 +48,8 @@ urlpatterns = [
     path("visit/<int:pk>", views.VisitUpdate.as_view(), name="update_visit"),
     path('visit/<int:pk>/<int:duplicate>', views.VisitAdd.as_view(), name='duplicate_visit'),
 
-    path('visit_slot', views.VisitSlotAdd.as_view(), name='visit_slot'),
-    path('visit_slot/<int:pk>', views.VisitSlotUpdate.as_view(), name='update_visit_slot'),
     path('visits_slots/', views.VisitSlotList.as_view(), name='visits_slots'),
-]
+    path('visit_slot', views.VisitSlotAdd.as_view(), name='add_visit_slot'),
+    path('visit_slot/<int:pk>', views.VisitSlotUpdate.as_view(), name='update_visit_slot'),
+    path('visit_slot/<int:pk>/<int:duplicate>', views.VisitSlotAdd.as_view(), name='duplicate_visit_slot'),
+    ]

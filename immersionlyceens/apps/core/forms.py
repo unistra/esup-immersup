@@ -239,7 +239,7 @@ class SlotForm(forms.ModelForm):
         model = Slot
         fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places', 'additional_information',
-            'published')
+            'published', 'face_to_face')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
@@ -270,6 +270,7 @@ class VisitSlotForm(SlotForm):
             self.fields["structure"].initial = visit.structure.id if visit.structure else None
             self.fields["highschool"].initial = visit.highschool.id
             self.fields["establishment"].initial = visit.establishment.id
+
 
     def clean(self):
         cleaned_data = super(forms.ModelForm, self).clean()
