@@ -572,6 +572,8 @@ def courses_list(request):
         "can_update_courses": can_update_courses
     }
 
+    print(context)
+
     return render(request, 'core/courses_list.html', context)
 
 
@@ -610,10 +612,6 @@ def course(request, course_id=None, duplicate=False):
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
-            request.session["current_structure_id"] = course.structure.id if course.structure else None
-            request.session["current_highschool_id"] = course.highschool.id if course.highschool else None
-            request.session["current_establishment_id"] = \
-                course.structure.establishment.id if course.structure else None
 
             speakers_list = [{
                 "username": t.username,
@@ -626,6 +624,7 @@ def course(request, course_id=None, duplicate=False):
 
             if duplicate:
                 data = {
+                    'highschool': course.highschool,
                     'structure': course.structure,
                     'training': course.training,
                     'published': course.published,
@@ -643,8 +642,11 @@ def course(request, course_id=None, duplicate=False):
         cannot_update_conditions = [
             not course,
             course and course.structure and not (course.get_structures_queryset() & allowed_strs).exists(),
-            course and course.highschool and course.highschool != request.user.highschool
+            request.user.is_high_school_manager() and course and course.highschool
+                and course.highschool != request.user.highschool,
         ]
+
+        print(cannot_update_conditions)
 
         if any(cannot_update_conditions):
             if request.method == 'POST':
@@ -673,6 +675,11 @@ def course(request, course_id=None, duplicate=False):
         else:
             if course_form.is_valid():
                 new_course = course_form.save()
+
+                request.session["current_structure_id"] = new_course.structure.id if new_course.structure else None
+                request.session["current_highschool_id"] = new_course.highschool.id if new_course.highschool else None
+                request.session["current_establishment_id"] = \
+                    new_course.structure.establishment.id if new_course.structure else None
 
                 request.session["current_structure_id"] = new_course.structure_id
 

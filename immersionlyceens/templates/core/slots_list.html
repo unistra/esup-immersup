@@ -307,14 +307,15 @@
   }
 
 $(document).ready(function(){
+    let highschool_id = "{{ highschool_id }}";
+    let establishment_id = "{{ establishment_id }}";
+    let structure_id = "{{ structure_id }}";
+    let training_id = "{{ training_id }}";
+
     // reset feedback
     setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
 
     var selected_training = false;
-
-    {% if structure_id %}
-        $('#structure option[value="{{ structure_id }}"]').attr('selected', '');
-    {% endif %}
 
     initFeedback();
 
@@ -346,6 +347,30 @@ $(document).ready(function(){
     $('#training').on('change', function(event) {
       reload_data();
     });
+
+    console.log(establishment_id)
+    console.log(structure_id)
+    console.log(highschool_id)
+    console.log(training_id)
+
+    if(establishment_id !== "None") {
+      $('#establishments option[value="establishment_id"]').attr('selected', '');
+    }
+
+    if(structure_id !== "None") {
+      $('#structure option[value="structure_id"]').attr('selected', '');
+      load_trainings('structure', structure_id);
+    }
+
+    if(highschool_id !== "None") {
+      $('#highschools option[value="highschool_id"]').attr('selected', '');
+      load_trainings('highschool', highschool_id);
+    }
+
+    if(training_id !== "None") {
+      $('#training option[value="training_id"]').attr('selected', '');
+      reload_data();
+    }
 
 
     $('#top_indicator').hide();

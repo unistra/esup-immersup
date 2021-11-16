@@ -407,11 +407,14 @@
       structure_id = ""
       empty_structures()
       empty_trainings()
+      $("#id_div_establishment").hide()
+      $("#id_div_structure").hide()
       $("#id_div_highschool").show()
     } else {
       highschool_id = ""
       set_structures($("#id_establishment").val())
       $("#id_div_highschool").hide()
+      $("#id_div_establishment").show()
     }
 
     // Initialize trainings depending on structure / high school selection
