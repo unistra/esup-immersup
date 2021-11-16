@@ -1112,7 +1112,6 @@ class MailTemplateVars(models.Model):
     code = models.CharField(_("Code"), max_length=64, blank=False, null=False, unique=True)
     description = models.CharField(_("Description"), max_length=128, blank=False, null=False, unique=True)
 
-
     def __str__(self):
         return f"{self.code} : {self.description}"
 
@@ -1137,7 +1136,6 @@ class MailTemplate(models.Model):
     available_vars = models.ManyToManyField(
         MailTemplateVars, related_name='mail_templates', verbose_name=_("Available variables"),
     )
-
 
     def __str__(self):
         return f"{self.code} : {self.label}"
