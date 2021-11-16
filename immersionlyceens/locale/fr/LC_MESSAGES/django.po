@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-09 14:57+0100\n"
+"POT-Creation-Date: 2021-11-16 11:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -118,7 +118,7 @@ msgstr "Statistiques"
 #: immersionlyceens/apps/charts/views.py:130
 #: immersionlyceens/templates/charts/global_slots_charts.html:214
 #: immersionlyceens/templates/charts/trainings_charts.html:98
-#: immersionlyceens/templates/core/courses_list.html:311
+#: immersionlyceens/templates/core/courses_list.html:313
 #: immersionlyceens/templates/core/duplicated_accounts.html:101
 #: immersionlyceens/templates/core/highschool_students.html:107
 #: immersionlyceens/templates/core/my_high_school_speakers.html:87
@@ -128,7 +128,7 @@ msgstr "Statistiques"
 #: immersionlyceens/templates/core/student_validation.html:330
 #: immersionlyceens/templates/core/student_validation.html:378
 #: immersionlyceens/templates/core/students_presence.html:91
-#: immersionlyceens/templates/core/training/list.html:150
+#: immersionlyceens/templates/core/training/list.html:146
 #: immersionlyceens/templates/core/visits_list.html:236
 #: immersionlyceens/templates/immersion/my_immersions.html:251
 #: immersionlyceens/templates/immersion/my_immersions.html:326
@@ -150,8 +150,8 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/apps/core/admin.py:1332
 #: immersionlyceens/libs/api/views.py:2140
 #: immersionlyceens/libs/api/views.py:2141
-#: immersionlyceens/templates/core/courses_list.html:287
-#: immersionlyceens/templates/core/courses_list.html:340
+#: immersionlyceens/templates/core/courses_list.html:289
+#: immersionlyceens/templates/core/courses_list.html:342
 #: immersionlyceens/templates/core/highschool_students.html:149
 #: immersionlyceens/templates/core/mycourses.html:93
 #: immersionlyceens/templates/core/myslots.html:140
@@ -162,8 +162,8 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/templates/core/slots_list.html:387
 #: immersionlyceens/templates/core/student_validation.html:228
 #: immersionlyceens/templates/core/student_validation.html:255
-#: immersionlyceens/templates/core/training/list.html:125
-#: immersionlyceens/templates/core/training/list.html:176
+#: immersionlyceens/templates/core/training/list.html:121
+#: immersionlyceens/templates/core/training/list.html:172
 #: immersionlyceens/templates/core/visits_list.html:212
 #: immersionlyceens/templates/core/visits_list.html:264
 #: immersionlyceens/templates/modals/modal_alerts.html:67
@@ -177,8 +177,8 @@ msgstr "Oui"
 #: immersionlyceens/apps/core/admin.py:1332
 #: immersionlyceens/libs/api/views.py:2140
 #: immersionlyceens/libs/api/views.py:2141
-#: immersionlyceens/templates/core/courses_list.html:295
-#: immersionlyceens/templates/core/courses_list.html:343
+#: immersionlyceens/templates/core/courses_list.html:297
+#: immersionlyceens/templates/core/courses_list.html:345
 #: immersionlyceens/templates/core/highschool_students.html:155
 #: immersionlyceens/templates/core/mycourses.html:96
 #: immersionlyceens/templates/core/myslots.html:143
@@ -189,8 +189,8 @@ msgstr "Oui"
 #: immersionlyceens/templates/core/slots_list.html:387
 #: immersionlyceens/templates/core/student_validation.html:236
 #: immersionlyceens/templates/core/student_validation.html:263
-#: immersionlyceens/templates/core/training/list.html:133
-#: immersionlyceens/templates/core/training/list.html:176
+#: immersionlyceens/templates/core/training/list.html:129
+#: immersionlyceens/templates/core/training/list.html:172
 #: immersionlyceens/templates/core/visits_list.html:220
 #: immersionlyceens/templates/core/visits_list.html:267
 #: immersionlyceens/templates/modals/modal_alerts.html:75
@@ -3001,7 +3001,7 @@ msgstr "Données de dédoublonnage supprimées"
 
 #: immersionlyceens/libs/api/views.py:2286
 msgid "Some courses are attached to this training: delete not allowed"
-msgstr "Des cours sont liés à cette formation : suppression impossible"
+msgstr "Des cours sont rattachés à cette formation : Suppression impossible"
 
 #: immersionlyceens/libs/api/views.py:2291
 #, python-format
@@ -3353,7 +3353,6 @@ msgid "Please confirm"
 msgstr "Veuillez confirmer"
 
 #: immersionlyceens/templates/core/courses_list.html:25
-#: immersionlyceens/templates/core/training/list.html:31
 msgid "Do you really want to delete this course ?"
 msgstr "Voulez-vous vraiment supprimer ce cours ?"
 
@@ -3400,7 +3399,7 @@ msgstr "Dupliquer"
 #: immersionlyceens/templates/core/my_high_school_speakers.html:117
 #: immersionlyceens/templates/core/slots_list.html:466
 #: immersionlyceens/templates/core/training/list.html:76
-#: immersionlyceens/templates/core/training/list.html:185
+#: immersionlyceens/templates/core/training/list.html:181
 #: immersionlyceens/templates/core/visits_list.html:104
 msgid "Delete"
 msgstr "Supprimer"
@@ -3896,6 +3895,10 @@ msgstr "La date de fin doit être postérieure à la date de début"
 #: immersionlyceens/templates/core/training/list.html:38
 msgid "Training list"
 msgstr "Liste des formations"
+
+#: immersionlyceens/templates/core/training/list.html:31
+msgid "Do you really want to delete this training ?"
+msgstr "Voulez-vous vraiment supprimer cette formation ?"
 
 #: immersionlyceens/templates/core/training/list.html:39
 #: immersionlyceens/templates/core/training/training.html:12
