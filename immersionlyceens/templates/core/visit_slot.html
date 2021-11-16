@@ -121,11 +121,11 @@
 
         <div class="form-group row" id="id_div_room">
           <label for="id_room" class="col-form-label col-sm-3">{% trans 'Location' %}</label>
-          <div class="col-sm-6">
+          <div class="col-sm-3">
             {{ form.room }}
           </div>
           {% if form.room.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ form.room.errors }}
             </div>
           {% endif %}
@@ -133,11 +133,11 @@
 
         <div class="form-group row" id="id_div_url">
           <label for="id_url" class="col-form-label col-sm-3">{% trans 'URL' %}</label>
-          <div class="col-sm-6">
+          <div class="col-sm-3">
             {{ form.url }}
           </div>
           {% if form.url.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ form.url.errors }}
             </div>
           {% endif %}
@@ -145,33 +145,33 @@
 
         <div class="form-group row">
             <label for="date" class="col-form-label col-sm-3">{% trans 'Date' %}</label>
-            <div class="col-sm-6">
+            <div class="col-sm-3">
                 {{ form.date }}
             </div>
             {% if form.date.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ form.date.errors }}
             </div>
             {% endif %}
         </div>
         <div class="form-group row">
             <label for="start_time" class="col-form-label col-sm-3">{% trans 'Start time' %}</label>
-            <div class="col-sm-6">
+            <div class="col-sm-3">
                 {{ form.start_time }}
             </div>
             {% if form.start_time.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ form.start_time.errors }}
             </div>
             {% endif %}
         </div>
         <div class="form-group row">
           <label for="end_time" class="col-form-label col-sm-3">{% trans 'End time' %}</label>
-          <div class="col-sm-6">
+          <div class="col-sm-3">
             {{ form.end_time }}
           </div>
           {% if form.end_time.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ form.end_time.errors }}
             </div>
           {% endif %}
@@ -217,11 +217,11 @@
 
         <div class="form-group row">
           <label for="n_places" class="col-form-label col-sm-3">{% trans 'Number of places' %}</label>
-          <div class="col-sm-6">
+          <div class="col-sm-3">
             {{ form.n_places }}
           </div>
           {% if form.n_places.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ form.n_places.errors }}
             </div>
           {% endif %}

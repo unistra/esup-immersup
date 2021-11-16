@@ -2,9 +2,11 @@
 Django Admin Forms tests suite
 """
 import datetime
+import json
 
 from django.conf import settings
 from django.contrib.admin.sites import AdminSite
+from django.http import QueryDict
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -21,7 +23,7 @@ from ..admin_forms import (
     VacationForm,
 )
 from ..forms import (
-    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm
+    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
@@ -312,3 +314,70 @@ class FormTestCase(TestCase):
         form = VisitForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("A visit with these values already exists", form.errors["__all__"])
+
+
+    def test_visit_slot_form(self):
+        """
+        Visit slot form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        visit = Visit.objects.create(
+            purpose="whatever",
+            published=False,
+            establishment=self.master_establishment,
+            structure=None,
+            highschool=self.high_school
+        )
+
+        visit.speakers.add(self.speaker1)
+
+        self.assertFalse(Slot.objects.filter(visit=visit).exists())
+
+        data = {
+            'visit': visit,
+            'face_to_face': True,
+            'room': "anywhere",
+            'published': True,
+            'date': self.today + datetime.timedelta(days=30),
+            'start_time': datetime.time(10, 0),
+            'end_time': datetime.time(12, 0),
+            'n_places':20,
+            'additional_information': 'whatever'
+        }
+
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+
+        # Fail : missing speakers
+        form = VisitSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please select at least one speaker.", form.errors["__all__"])
+
+        data["speakers_list"] = self.speaker1.id
+
+        # Fail : date not in calendar
+        data["date"] = self.today + datetime.timedelta(days=101)
+        qdict.update(data)
+
+        form = VisitSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+
+        data["date"] = self.today + datetime.timedelta(days=30)
+
+        # Success
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+
+        form = VisitSlotForm(data=qdict, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertTrue(Slot.objects.filter(visit=visit).exists())
+        slot = Slot.objects.get(visit=visit)
+        self.assertEqual(slot.speakers.count(), 1)
+        self.assertEqual(slot.speakers.first(), self.speaker1)
+
+

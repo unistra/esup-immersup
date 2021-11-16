@@ -1317,8 +1317,6 @@ class VisitSlotUpdate(generic.UpdateView):
         self.duplicate = self.request.POST.get("duplicate", False) != False
         self.add_new = self.request.POST.get("save_add", False) != False
 
-        print(form.instance)
-
         messages.success(self.request, _("Visit slot \"%s\" updated.") % form.instance)
 
         self.request.session['current_establishment_id'] = self.object.visit.establishment.id

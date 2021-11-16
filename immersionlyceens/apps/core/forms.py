@@ -313,8 +313,9 @@ class VisitSlotForm(SlotForm):
             visit.save()
 
         try:
-            speakers = json.loads(self.data.get("speakers_list", "[]"))
-        except Exception:
+            speakers = self.data.getlist("speakers_list", [])
+            cleaned_data["speakers"] = speakers
+        except Exception as e:
             speakers = []
 
         if not speakers:
@@ -331,9 +332,9 @@ class VisitSlotForm(SlotForm):
         self.request.session['current_establishment_id'] = instance.visit.establishment.id
         self.request.session['current_structure_id'] = instance.visit.structure.id if instance.visit.structure else None
 
-        speakers_list = self.data.getlist('speakers_list', [])
+        speakers_list = self.cleaned_data.get('speakers', [])
         current_speakers = [u for u in instance.speakers.all().values_list('id', flat=True)]
-        new_speakers = [int(speaker) for speaker in speakers_list]
+        new_speakers = [speaker for speaker in speakers_list]
 
         # speakers to add
         for speaker_id in new_speakers:
