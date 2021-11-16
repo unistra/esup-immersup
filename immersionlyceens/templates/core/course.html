@@ -407,9 +407,11 @@
       structure_id = ""
       empty_structures()
       empty_trainings()
-      $("#id_div_establishment").hide()
-      $("#id_div_structure").hide()
-      $("#id_div_highschool").show()
+      if(highschool_id !== "" && highschool_id !== undefined) {
+        $("#id_div_establishment").hide()
+        $("#id_div_structure").hide()
+        $("#id_div_highschool").show()
+     }   
     } else {
       highschool_id = ""
       set_structures($("#id_establishment").val())
