@@ -82,7 +82,7 @@
             <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
             <th class="align-top">{% trans 'Purpose' %}</th>
             <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
-            <th id="building_filter" class="align-top">{% trans 'Building' %} - {% trans 'Room' %}</th>
+            <th id="location_filter" class="align-top">{% trans 'Location / address' %}</th>
             <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
             <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
             <th class="align-top">{% trans 'Info.' %}</th>
@@ -308,7 +308,16 @@ $(document).ready(function(){
                 return data;
               }
             },
-            { data: 'room' },
+            { data: 'room',
+              render: function(data, type, row) {
+                if(row.face_to_face) {
+                  return row.room
+                }
+                else {
+                  return row.url
+                }
+              }
+            },
             { data: 'speakers',
               render: function(data) {
                 let element = '';
@@ -420,7 +429,7 @@ $(document).ready(function(){
             column_number: 5,
             filter_type: "text",
             filter_default_label: "",
-            filter_container_id: "building_filter",
+            filter_container_id: "location_filter",
             style_class: "form-control form-control-sm",
             filter_reset_button_text: false,
         },

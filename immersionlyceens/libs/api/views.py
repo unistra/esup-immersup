@@ -425,6 +425,8 @@ def ajax_get_slots(request):
                 'campus': slot.campus.label if slot.campus else '',
                 'building': slot.building.label if slot.building else '',
             },
+            'face_to_face': slot.face_to_face,
+            'url': slot.url,
             'room': slot.room or '-',
             'speakers': {},
             'n_register': slot.registered_students(),
