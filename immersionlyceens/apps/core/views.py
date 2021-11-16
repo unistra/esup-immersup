@@ -154,7 +154,7 @@ def slots_list(request, str_id=None, train_id=None):
         'establishment_id': establishment_id,
         'structure_id': structure_id,
         'highschool_id': highschool_id,
-        'training_id': None,
+        'training_id': request.session.get("current_training_id", None),
         'trainings': [],
         'contact_form': contact_form,
         'cancel_types': CancelType.objects.filter(active=True),
@@ -222,6 +222,16 @@ def slot(request, slot_id=None, duplicate=False):
 
         if slot_form.is_valid() and (not published or len(speakers) > 0):
             new_slot = slot_form.save()
+
+            request.session["current_structure_id"] = \
+                new_slot.course.structure.id if new_slot.course and new_slot.course.structure else None
+            request.session["current_highschool_id"] = \
+                new_slot.course.highschool.id if new_slot.course and new_slot.course.highschool else None
+            request.session["current_establishment_id"] = \
+                new_slot.structure.establishment.id if new_slot.course and new_slot.course.structure else None
+            request.session["current_training_id"] = \
+                new_slot.course.training.id if new_slot.course and new_slot.course.training else None
+
             for speaker in speakers:
                 new_slot.speakers.add(speaker)
 
@@ -447,8 +457,6 @@ def course(request, course_id=None, duplicate=False):
                 and course.highschool != request.user.highschool,
         ]
 
-        print(cannot_update_conditions)
-
         if any(cannot_update_conditions):
             if request.method == 'POST':
                 return HttpResponseRedirect("/core/courses_list")
@@ -481,8 +489,6 @@ def course(request, course_id=None, duplicate=False):
                 request.session["current_highschool_id"] = new_course.highschool.id if new_course.highschool else None
                 request.session["current_establishment_id"] = \
                     new_course.structure.establishment.id if new_course.structure else None
-
-                request.session["current_structure_id"] = new_course.structure_id
 
                 current_speakers = [u for u in new_course.speakers.all().values_list('username', flat=True)]
                 new_speakers = [speaker.get('username') for speaker in speakers_list]
