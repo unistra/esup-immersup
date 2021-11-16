@@ -228,7 +228,7 @@ def slot(request, slot_id=None, duplicate=False):
             request.session["current_highschool_id"] = \
                 new_slot.course.highschool.id if new_slot.course and new_slot.course.highschool else None
             request.session["current_establishment_id"] = \
-                new_slot.structure.establishment.id if new_slot.course and new_slot.course.structure else None
+                new_slot.course.structure.establishment.id if new_slot.course and new_slot.course.structure else None
             request.session["current_training_id"] = \
                 new_slot.course.training.id if new_slot.course and new_slot.course.training else None
 
@@ -382,8 +382,6 @@ def courses_list(request):
         "highschool_id": highschool_id,
         "can_update_courses": can_update_courses
     }
-
-    print(context)
 
     return render(request, 'core/courses_list.html', context)
 
