@@ -1713,12 +1713,12 @@ class CertificateSignature(models.Model):
 class OffOfferEventType(models.Model):
     """Off offer event type"""
 
-    label = models.CharField(_("Short label"), max_length=256, unique=True)
-    full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    # full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
     active = models.BooleanField(_("Active"), default=True)
 
     def __str__(self) -> str:
-        return f"{self.full_label} ({self.label})"
+        return f"{self.label}"
 
     def validate_unique(self, exclude=None):
         """Validate unique"""

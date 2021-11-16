@@ -1414,7 +1414,7 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = OffOfferEventTypeForm
-    list_display = ('label', 'full_label', 'active')
+    list_display = ('label', 'active')
     ordering = ('label',)
 
     def has_add_permission(self, request):
