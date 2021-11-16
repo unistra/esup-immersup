@@ -193,7 +193,7 @@ def ajax_get_courses(request):
         highschool_id = None
 
     if not structure_id and not highschool_id:
-        response['msg'] = gettext("Error : a valid structure or highschool must be selected")
+        response['msg'] = gettext("Error : a valid structure or high school must be selected")
         return JsonResponse(response, safe=False)
 
     if structure_id:
