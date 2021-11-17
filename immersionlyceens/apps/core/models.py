@@ -22,17 +22,17 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
-from django.template.defaultfilters import filesizeformat, date as _date
-from django.utils.translation import gettext, pgettext, gettext_lazy as _
+from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
+from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.validators import JsonSchemaValidator
 
 from .managers import (
-    ActiveManager, CustomDeleteManager, HighSchoolAgreedManager,
-    StructureQuerySet, EstablishmentQuerySet
+    ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
+    HighSchoolAgreedManager, StructureQuerySet,
 )
 
 logger = logging.getLogger(__name__)
@@ -515,6 +515,10 @@ class Training(models.Model):
 
     def can_delete(self):
         return not self.courses.all().exists()
+
+    def distinct_establishments(self):
+        ids = self.structures.all().values('establishment_id').distinct()
+        return Establishment.objects.filter(pk__in=ids)
 
     class Meta:
         verbose_name = _('Training')

@@ -41,7 +41,6 @@ function initBadge() {
   console.log('la')
   $('.immersup-badge').each(function () {
     var rgb = $(this).css('backgroundColor')
-    console.log('rgb: ' + rgb)
     var colors = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
 
     var r = colors[1]
