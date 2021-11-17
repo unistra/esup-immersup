@@ -42,7 +42,7 @@
           </div>
         {% endif %}
 
-        {% if highschool_visit %}
+        {% if highschool_visit and authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE" %}
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownVisits" role="button" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">

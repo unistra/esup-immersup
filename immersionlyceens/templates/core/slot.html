@@ -405,6 +405,12 @@
   $('#id_establishment').change( function() {
     establishment_id = $('#id_establishment option:selected').val();
     structure_id = ""
+    training_id = ""
+
+    empty_structures()
+    empty_trainings()
+    empty_campuses()
+    empty_buildings()
 
     if (establishment_id !== "") {
         highschool_id = ""
@@ -413,14 +419,10 @@
         set_campuses(establishment_id)
     }
     else {
-        empty_structures()
-        empty_campuses()
         $("#id_div_highschool").show()
         $("#id_div_campus").hide()
         $("#id_div_building").hide()
     }
-
-    empty_buildings()
   });
 
   $('#id_structure').change( function() {
@@ -655,11 +657,17 @@ $(document).ready(function(){
     highschool_id = $("#id_highschool").val()
   }
 
-  if(establishment_id === 'None' || establishment_id === "") {
+  if(establishment_id === 'None' || establishment_id === "" || establishment_id === undefined) {
     establishment_id = $("#id_establishment").val()
-  }
-  else {
+    structure_id = ""
+    empty_structures()
+    $("#id_div_highschool").show()
+  } else {
     $("#id_establishment").val(establishment_id)
+    highschool_id = ""
+    set_structures(establishment_id)
+    set_campuses(establishment_id)
+    $("#id_div_highschool").hide()
   }
 
   if(structure_id === 'None' || structure_id === "") {
@@ -671,17 +679,6 @@ $(document).ready(function(){
   }
   else {
       $("#id_training").val(training_id)
-  }
-
-  if(establishment_id === "" || establishment_id === undefined) {
-    structure_id = ""
-    empty_structures()
-    $("#id_div_highschool").show()
-  } else {
-    highschool_id = ""
-    set_structures(establishment_id)
-    set_campuses(establishment_id)
-    $("#id_div_highschool").hide()
   }
 
   if(campus_id === "" || campus_id === undefined) {
