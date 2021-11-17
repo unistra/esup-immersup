@@ -497,8 +497,9 @@ class VisitForm(forms.ModelForm):
             if self.request.user.is_structure_manager():
                 self.fields["establishment"].queryset = \
                     Establishment.objects.filter(pk=self.request.user.establishment.id)
+                self.fields["structure"].required = True
                 self.fields["structure"].queryset = \
-                    self.fields["structure"].queryset.filter(establishment=self.request.user.establishment)
+                    self.fields["structure"].queryset.filter(id__in=self.request.user.structures.all())
 
         if self.instance and self.instance.establishment_id:
             self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.instance.establishment.id)

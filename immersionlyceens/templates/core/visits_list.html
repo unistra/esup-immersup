@@ -334,15 +334,21 @@
       },
     ]);
 
+    console.log(current_establishment_id)
+
     if (current_establishment_id === 'None' || current_establishment_id === "") {
       current_establishment_id = $("#establishments").val()
     } else {
       $("#establishments").val(current_establishment_id)
-      set_structures(current_establishment_id)
     }
+
+    set_structures(current_establishment_id)
 
     if (current_structure_id === 'None' || current_structure_id === "") {
       current_structure_id = $("#structures").val()
+    }
+    else {
+      $("#structures").val(current_structure_id)
     }
 
     load_visits()

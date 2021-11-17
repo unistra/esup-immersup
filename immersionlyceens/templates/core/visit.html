@@ -47,6 +47,9 @@
         </div>
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
+            {% if request.user.is_structure_manager %}
+            <i class="fa fas fa-asterisk"></i>
+            {% endif %}
             {% trans 'Structure' %} :
           </label>
           <div class="col-sm-3">
@@ -141,7 +144,10 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        let options = '<option value="">---------</option>'
+        let options = ''
+        {% if not request.user.is_structure_manager %}
+          options += '<option value="">---------</option>'
+        {% endif %}
         for (let i = 0; i < json.length; i++) {
           let selected = json[i]['id'] === parseInt(structure_id) ? "selected='selected'" : ""
           options += `<option value="${json[i]['id']}" ${selected}>${json[i]['code']} - ${json[i]['label']}</option>`
@@ -282,21 +288,23 @@
       highschool_id = $("#id_highschool").val()
     }
     else {
-        $("#id_highschool").val(highschool_id)
+      $("#id_highschool").val(highschool_id)
     }
 
     if(establishment_id === 'None' || establishment_id === "") {
       establishment_id = $("#id_establishment").val()
     }
     else {
-        $("#id_establishment").val(establishment_id)
+      $("#id_establishment").val(establishment_id)
     }
+
+    set_structures(establishment_id)
 
     if(structure_id === 'None' || structure_id === "") {
       structure_id = $("#id_structure").val()
     }
     else {
-        $("#id_structure").val(structure_id)
+      $("#id_structure").val(structure_id)
     }
 
     set_structures($("#id_establishment").val())
