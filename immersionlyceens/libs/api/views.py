@@ -406,7 +406,8 @@ def ajax_get_slots(request):
             },
             'highschool': {
                 'label': f"{highschool.city} - {highschool.label}" if highschool else "",
-                'managed_by_me': user_highschool and highschool == user_highschool,
+                'managed_by_me': request.user.is_master_establishment_manager()\
+                    or (user_highschool and highschool == user_highschool),
             },
             'purpose': slot.visit.purpose if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
