@@ -334,8 +334,6 @@
       },
     ]);
 
-    console.log(current_establishment_id)
-
     if (current_establishment_id === 'None' || current_establishment_id === "") {
       current_establishment_id = $("#establishments").val()
     } else {
@@ -350,8 +348,6 @@
     else {
       $("#structures").val(current_structure_id)
     }
-
-    load_visits()
   });
 </script>
 {% endblock %}
