@@ -308,7 +308,7 @@ def ajax_get_documents(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER')
 def ajax_get_slots(request):
     """
     Get slots list according to GET parameters
@@ -316,12 +316,14 @@ def ajax_get_slots(request):
     """
     response = {'msg': '', 'data': []}
     can_update_attendances = False
-    today = datetime.datetime.today().date()
+    today = datetime.datetime.today()
+    user_filter = False
+    filters = {}
     slots = []
 
     try:
         year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today <= year.end_date
+        can_update_attendances = today.date() <= year.end_date
     except UniversityYear.DoesNotExist:
         pass
 
@@ -329,7 +331,8 @@ def ajax_get_slots(request):
     structure_id = request.GET.get('structure_id')
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
-    visits = request.GET.get('visits', False)
+    visits = request.GET.get('visits', False) == "true"
+    past_slots = request.GET.get('past', False) == "true"
 
     try:
         int(establishment_id)
@@ -351,16 +354,21 @@ def ajax_get_slots(request):
     except (TypeError, ValueError):
         training_id = None
 
-    if visits and not establishment_id:
+    if request.user.is_speaker():
+        user_filter = True
+        filters["speakers"] = request.user
+
+    if not user_filter and visits and not establishment_id:
         response['msg'] = gettext("Error : a valid establishment must be selected")
         return JsonResponse(response, safe=False)
 
-    if not structure_id and not highschool_id:
+    if not user_filter and not structure_id and not highschool_id:
         response['msg'] = gettext("Error : a valid structure or high school must be selected")
         return JsonResponse(response, safe=False)
 
     if visits:
-        filters = {'visit__establishment__id': establishment_id}
+        filters["course__isnull"] = True
+        filters['visit__establishment__id'] = establishment_id
 
         if structure_id is not None:
             filters['visit__structure__id'] = structure_id
@@ -369,16 +377,29 @@ def ajax_get_slots(request):
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
             .filter(**filters)
     else:
+        filters["visit__isnull"] = True
+
         if training_id is not None:
-            filters = {'course__training__id' : training_id}
+            filters['course__training__id'] = training_id
         elif structure_id is not None:
-            filters = {'course__training__structures__id': structure_id}
+            filters['course__training__structures__id'] = structure_id
         elif highschool_id is not None:
-            filters = {'course__training__highschool__id': highschool_id}
+            filters['course__training__highschool__id'] = highschool_id
 
         slots = Slot.objects.prefetch_related(
             'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
             .filter(**filters)
+
+    if user_filter:
+        if past_slots:
+            slots = slots.exclude(date__lt=today.date(), immersions__isnull=True).distinct()
+        else:
+            slots = slots.filter(
+                Q(date__gte=today.date())
+                | Q(date=today.date(), end_time__gte=today.time())
+                | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
+            ).distinct()
+
 
     all_data = []
     allowed_structures = request.user.get_authorized_structures()
@@ -395,13 +416,23 @@ def ajax_get_slots(request):
             request.user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
         ]
 
+        if slot.course:
+            training_label = f'{slot.course.training.label} ({slot.course_type.label})'
+            training_label_full = f'{slot.course.training.label} ({slot.course_type.full_label})'
+        else:
+            training_label = None
+            training_label_full = None
+
         data = {
             'id': slot.id,
             'published': slot.published,
             'can_update_visit_slot': any(allowed_visit_slot_update_conditions),
             'course_label': slot.course.label if slot.course else None,
+            'training_label': training_label,
+            'training_label_full': training_label_full,
             'structure': {
                 'code': structure.code if structure else None,
+                'establishment': structure.establishment.short_label if structure else None,
                 'managed_by_me': structure and structure in allowed_structures,
             },
             'highschool': {
@@ -434,10 +465,11 @@ def ajax_get_slots(request):
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'additional_information': slot.additional_information,
             'attendances_value': 0,
+            'attendances_status': '',
             'is_past': False,
         }
 
-        if data['datetime'] and data['datetime'] <= datetime.datetime.today():
+        if data['datetime'] and data['datetime'] <= today:
             data['is_past'] = True
             if not slot.immersions.filter(cancellation_type__isnull=True).exists():
                 data['attendances_value'] = -1  # nothing
@@ -446,11 +478,16 @@ def ajax_get_slots(request):
                 or can_update_attendances
             ):
                 data['attendances_value'] = 1  # to enter
+                data['attendances_status'] = gettext("To enter")
             else:
                 data['attendances_value'] = 2  # view only
+                data['attendances_status'] = gettext("Entered")
+        else:
+            data['attendances_status'] = gettext("Future slot")
 
         for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
             data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
+
         all_data.append(data.copy())
 
     response['data'] = all_data
@@ -613,113 +650,6 @@ def ajax_get_my_courses(request):
             course_data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
 
         response['data'].append(course_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('INTER')
-def ajax_get_my_slots(request):
-    response = {'msg': '', 'data': []}
-    can_update_attendances = False
-
-    today = datetime.datetime.today()
-    try:
-        year = UniversityYear.objects.get(active=True)
-        can_update_attendances = today.date() <= year.end_date
-    except UniversityYear.DoesNotExist:
-        pass
-
-    # TODO: filter on emargement which should be set !
-    past_slots = resolve(request.path_info).url_name == 'GetMySlotsAll'
-
-    if not request.user:
-        response['msg'] = gettext("Error : a valid user is required")
-
-    if past_slots:
-        slots = (
-            Slot.objects.prefetch_related(
-                'course__training', 'course__structure', 'course__highschool', 'speakers', 'immersions'
-            )
-            .filter(speakers=request.user.id)
-            .exclude(date__lt=today.date(), immersions__isnull=True)
-        ).distinct()
-    else:
-        slots = (
-            Slot.objects.prefetch_related(
-                'course__training', 'course__structure', 'course__highschool', 'speakers', 'immersions'
-            )
-            .filter(
-                Q(date__gte=today.date())
-                | Q(date=today.date(), end_time__gte=today.time())
-                | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True),
-                speakers=request.user.id,
-            )
-            .distinct()
-        )
-
-    for slot in slots:
-        campus = ""
-        managed_by = ""
-
-        if slot.campus and slot.building:
-            campus = f'{slot.campus.label} - {slot.building.label}'
-
-        if slot.course.structure:
-            managed_by = slot.course.structure.code
-        elif slot.course.highschool:
-            managed_by = f"{slot.course.highschool.city} - {slot.course.highschool.label}"
-
-        slot_data = {
-            'id': slot.id,
-            'published': slot.published,
-            'managed_by': managed_by,
-            'training_label': f'{slot.course.training.label} ({slot.course_type.label})',
-            'training_label_full': f'{slot.course.training.label} ({slot.course_type.full_label})',
-            'location': {'campus': campus, 'room': slot.room, },
-            'schedules': {
-                'date': _date(slot.date, "l d/m/Y"),
-                'time': f'{slot.start_time.strftime("%H:%M")} - {slot.end_time.strftime("%H:%M")}',
-            },
-            'datetime': datetime.datetime.strptime(
-                "%s:%s:%s %s:%s"
-                % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
-                "%Y:%m:%d %H:%M",
-            ) if slot.date else None,
-            'start_time': slot.start_time.strftime("%H:%M"),
-            'end_time': slot.end_time.strftime("%H:%M"),
-            'label': slot.course.label,
-            'speakers': {},
-            'n_places': slot.n_places if slot.n_places is not None else 0,
-            'registered_students_count': {"capacity": slot.n_places, "students_count": slot.registered_students(), },
-            'additional_information': slot.additional_information,
-            'attendances_status': '',
-            'attendances_value': 0,
-        }
-
-        if slot_data['datetime'] and slot_data['datetime'] <= today:
-            if not slot.immersions.filter(cancellation_type__isnull=True).exists():
-                slot_data['attendances_status'] = ""
-                slot_data['attendances_value'] = -1
-            elif (
-                slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()
-                and can_update_attendances
-            ):
-                slot_data['attendances_status'] = gettext("To enter")
-                slot_data['attendances_value'] = 1
-            else:
-                slot_data['attendances_status'] = gettext("Entered")
-                if can_update_attendances:
-                    slot_data['attendances_value'] = 1
-                else:
-                    slot_data['attendances_value'] = 2
-        else:
-            slot_data['attendances_status'] = gettext("Future slot")
-
-        for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
-            slot_data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
-
-        response['data'].append(slot_data.copy())
 
     return JsonResponse(response, safe=False)
 

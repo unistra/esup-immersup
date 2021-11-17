@@ -299,7 +299,7 @@ class FormTestCase(TestCase):
         self.assertIn("Please add at least one speaker.", form.errors["__all__"])
 
         # Success
-        data["speakers_list"] = '[{"username": "%s"}]' % self.speaker1.username
+        data["speakers_list"] = '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
         form = VisitForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()

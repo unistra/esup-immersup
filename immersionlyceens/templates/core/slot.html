@@ -61,6 +61,7 @@
       <form method="POST" class="form-group" role="form" id="add_slot">
         {% csrf_token %}
         {{ slot_form.id }}
+        <input type="hidden" name="face_to_face" value="1">
         {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
