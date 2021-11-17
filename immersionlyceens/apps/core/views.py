@@ -193,6 +193,7 @@ def slot(request, slot_id=None, duplicate=False):
                 slot.id = None
 
             update_conditions = [
+                request.user.is_master_establishment_manager(),
                 slot.course.structure and slot.course.structure in request.user.get_authorized_structures(),
                 slot.course.highschool and slot.course.highschool == request.user.highschool
             ]
@@ -200,6 +201,15 @@ def slot(request, slot_id=None, duplicate=False):
             if not any(update_conditions):
                 messages.error(request, _("This slot belongs to another structure"))
                 return redirect('/core/slots/')
+
+            request.session["current_structure_id"] = \
+                slot.course.structure.id if slot.course and slot.course.structure else None
+            request.session["current_highschool_id"] = \
+                slot.course.highschool.id if slot.course and slot.course.highschool else None
+            request.session["current_establishment_id"] = \
+                slot.course.structure.establishment.id if slot.course and slot.course.structure else None
+            request.session["current_training_id"] = \
+                slot.course.training.id if slot.course and slot.course.training else None
 
         except Slot.DoesNotExist:  # id not found : make an empty slot
             messages.warning(request, _("This slot id does not exist"))
@@ -223,6 +233,7 @@ def slot(request, slot_id=None, duplicate=False):
         if slot_form.is_valid() and (not published or len(speakers) > 0):
             new_slot = slot_form.save()
 
+            # Update session variables
             request.session["current_structure_id"] = \
                 new_slot.course.structure.id if new_slot.course and new_slot.course.structure else None
             request.session["current_highschool_id"] = \
