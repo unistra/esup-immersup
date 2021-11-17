@@ -1026,3 +1026,125 @@ class CoreViewsTestCase(TestCase):
             "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
             "is_removable": True
         }]))
+
+
+    def test_visit_slot(self):
+        visit = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever",
+            published=False
+        )
+
+        visit.speakers.add(self.speaker1)
+
+        self.assertFalse(Slot.objects.filter(visit=visit).exists())
+
+        # As a ref_master_etab user
+        # slots list
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get("/core/visits_slots", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Create
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get("/core/visit_slot", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        data = {
+            'visit': visit.id,
+            'face_to_face': True,
+            'room': "anywhere",
+            'published': True,
+            'date': (self.today - datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'start_time': "12:00",
+            'end_time': "14:00",
+            'n_places': 20,
+            'additional_information': 'whatever',
+            'save': "Save",
+        }
+
+        # Invalid date (not between calendar boundaries)
+        response = self.client.post("/core/visit_slot", data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Error: The date must be between the dates of the current calendar",
+                      response.content.decode('utf-8'))
+
+        # With a valid date, but speakers are still missing
+        data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        response = self.client.post("/core/visit_slot", data=data, follow=True)
+        self.assertIn("Please select at least one speaker.", response.content.decode('utf-8'))
+        self.assertFalse(Slot.objects.filter(visit=visit).exists())
+        self.assertEqual(response.template_name, ['core/visit_slot.html'])
+
+        # With a speaker
+        data["speakers_list"] = [self.speaker1.id]
+
+        response = self.client.post("/core/visit_slot", data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.template_name, ["core/visits_slots_list.html"])
+
+        self.assertTrue(Slot.objects.filter(visit=visit).exists())
+        slot = Slot.objects.get(visit=visit)
+        self.assertEqual(slot.speakers.first(), self.speaker1)
+        visit.refresh_from_db()
+        self.assertTrue(visit.published)
+
+        """
+        # Update
+        response = self.client.get(f"/core/visit/{visit.id}", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.purpose}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker1.username,
+            "lastname": self.speaker1.last_name,
+            "firstname": self.speaker1.first_name,
+            "email": self.speaker1.email,
+            "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
+            "is_removable": True
+        }]))
+
+        data = {
+            "establishment": visit.establishment.id,
+            "structure": visit.structure.id,
+            "highschool": visit.highschool.id,
+            "published": True,
+            "purpose": "New visit purpose",
+            "speakers_list": json.dumps([{
+                "email": self.speaker2.email,
+                "username": self.speaker2.username,
+                "lastname": self.speaker2.last_name,
+                "firstname": self.speaker2.first_name,
+            }])
+        }
+
+        response = self.client.post(f"/core/visit/{visit.id}", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        visit.refresh_from_db()
+        self.assertEqual(visit.purpose, "New visit purpose")
+
+
+        # Duplicate a visit : check form values
+        response = self.client.get(f"/core/visit/{visit.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
+        self.assertIn(f"value=\"{visit.purpose}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker2.username,
+            "lastname": self.speaker2.last_name,
+            "firstname": self.speaker2.first_name,
+            "email": self.speaker2.email,
+            "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
+            "is_removable": True
+        }]))
+        """

@@ -320,7 +320,7 @@ class VisitSlotForm(SlotForm):
 
         if not speakers:
             msg = _("Please select at least one speaker.")
-            messages.error(self.request, msg)
+            # messages.error(self.request, msg)
             raise forms.ValidationError(msg)
 
         return cleaned_data

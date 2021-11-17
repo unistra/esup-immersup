@@ -205,12 +205,13 @@
     current_structure_id = ""
 
     if (current_establishment_id !== "") {
-        set_structures(current_establishment_id);
-        dt.clear().draw()
+      set_structures(current_establishment_id);
     }
     else {
-        empty_structures()
+      empty_structures()
     }
+
+    dt.clear().draw()
   });
 
   // Reload the table when structure changes in selectbox
@@ -363,23 +364,13 @@ $(document).ready(function(){
       }
   });
 
-  $("#structure").on('change', function(event){
-    $('#training').val('');
-    load_trainings('structure', event.target.value);
-    reload_data();
-  });
-
-  $("#highschools").on('change', function(event){
-    $('#training').val('');
-    load_trainings('highschool', event.target.value);
-  });
-
   $('#training').on('change', function(event) {
     reload_data();
   });
 
   if(current_establishment_id !== "None") {
     $("#establishments").val(current_establishment_id)
+    set_structures(current_establishment_id)
   }
 
   if(current_structure_id !== "None") {

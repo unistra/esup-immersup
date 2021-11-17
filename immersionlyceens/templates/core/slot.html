@@ -390,6 +390,18 @@
       course_id = ''
   }
 
+  function empty_campuses() {
+      let options = '<option value="">---------</option>'
+      $('select#id_campus').html(options)
+      campus_id = ''
+  }
+
+  function empty_buildings() {
+      let options = '<option value="">---------</option>'
+      $('select#id_building').html(options)
+      building_id = ''
+  }
+
   $('#id_establishment').change( function() {
     establishment_id = $('#id_establishment option:selected').val();
     structure_id = ""
@@ -397,15 +409,18 @@
     if (establishment_id !== "") {
         highschool_id = ""
         $('#id_highschool').val("")
-        set_structures(establishment_id);
-        set_campuses(establishment_id);
+        set_structures(establishment_id)
+        set_campuses(establishment_id)
     }
     else {
         empty_structures()
+        empty_campuses()
         $("#id_div_highschool").show()
         $("#id_div_campus").hide()
         $("#id_div_building").hide()
     }
+
+    empty_buildings()
   });
 
   $('#id_structure').change( function() {
@@ -423,16 +438,18 @@
     highschool_id = $('#id_highschool option:selected').val()
 
     if (highschool_id !== "") {
-        empty_structures()
-        $('#id_establishment').val("")
-        $('#id_structure').val("")
-        $("#id_div_campus").hide()
-        $("#id_div_building").hide()
-        $("#id_div_establishment").hide()
+      empty_structures()
+      empty_campuses()
+      empty_buildings()
+      $('#id_establishment').val("")
+      $('#id_structure').val("")
+      $("#id_div_campus").hide()
+      $("#id_div_building").hide()
+      $("#id_div_establishment").hide()
     } else {
-        $("#id_div_establishment").show()
-        $("#id_div_campus").show()
-        $("#id_div_building").show()
+      $("#id_div_establishment").show()
+      $("#id_div_campus").show()
+      $("#id_div_building").show()
     }
 
     set_trainings('highschool', highschool_id)
@@ -447,7 +464,7 @@
       object_id = highschool_id
     }
     else if(structure_id) {
-        type = "structure"
+      type = "structure"
       object_id = structure_id
     }
 
@@ -465,7 +482,13 @@
 
   $('#id_campus').change( function() {
     campus_id = $('#id_campus option:selected').val();
-    set_buildings(campus_id);
+
+    if(campus_id !== "") {
+      set_buildings(campus_id)
+    }
+    else {
+      empty_buildings()
+    }
   });
 
   function set_trainings(type, object_id) {
@@ -657,8 +680,15 @@ $(document).ready(function(){
   } else {
     highschool_id = ""
     set_structures(establishment_id)
-    set_campuses(establishment_id);
+    set_campuses(establishment_id)
     $("#id_div_highschool").hide()
+  }
+
+  if(campus_id === "" || campus_id === undefined) {
+    empty_buildings()
+  }
+  else {
+    set_buildings(campus_id)
   }
 
   // Initialize trainings depending on structure / high school selection
@@ -841,80 +871,22 @@ $(document).ready(function(){
     yearRange: "2020:2100",
   });
 
-    /*
-    {% if not slot %}
+  // toggle
+  toggle_required_fields();
 
-        {% if not request.POST.structure %}
-            load_trainings($('#structure').val());
-        {% endif %}
-        {% if not request.POST.structure and not request.POST.training %}
-        load_course(
-            $('#structure').val(),
-            $('#training').val()
-        );
-        {% endif %}
+  $('#id_published').on('change', function(){ toggle_required_fields(); });
 
-        {% if not slot_form.campus.value %}
-            load_buildings($('#id_campus').val());
-        {% endif %}
-        {% if not slot_form.course.value %}
-            id_course = $('#id_course').val();
-            if (id_course) {
-              load_speakers(id_course);
-            }
-        {% endif %}
-
+  {% if slot or request.POST.structure %}
+    {% if slot %}
+      setTimeout(function(){
+        $('#ok_modify').fadeOut(1000, function(){
+          $('#ok_modify').hide();
+        });
+        },
+        {%  settings_get 'MESSAGES_TIMEOUT' %}
+      );
     {% endif %}
-    */
-    // toggle
-    toggle_required_fields();
-
-    // add change handler
-    /*
-    $('#structure').change(function(event){ load_trainings(event.target.value); });
-    $('#training').change(function(event){ load_course($('#structure').val(), event.target.value); });
-    $('#id_campus').change(function(event){ load_buildings(event.target.value); });
-    */
-
-    $('#id_published').on('change', function(){ toggle_required_fields(); });
-
-    {% if slot or request.POST.structure %}
-        {% if slot %}
-        setTimeout(function(){
-                $('#ok_modify').fadeOut(1000, function(){
-                    $('#ok_modify').hide();
-                });
-            },
-            {%  settings_get 'MESSAGES_TIMEOUT' %}
-        );
-        {% endif %}
-
-    /*
-    $('#structure option').each(function(i, e) {
-        {% if request.POST.structure %}
-        if ( $(e).val() == '{{ request.POST.structure }}' )
-        {% elif slot %}
-        if ( $(e).val() == '{{ slot.course.structure.id }}' )
-        {% endif %}
-        {
-            e.selected = true;
-            load_trainings($(e).val(), true);
-        }
-    });
-    */
-
-    // $('#id_campus option[value="{{ slot.campus.id }}"]').attr('selected', '');
-    // $('#id_campus option[value="{{ slot_form.campus.value }}"]').attr('selected', '');
-    // load_buildings($('#id_campus').val());
-
-    /*
-    $('#id_course').html('');
-    $('#id_course').append(
-        // '<option selected value="{{ slot.course.id }}">{{ slot.course.label }}</option>'
-        '<option selected value="{{ slot_form.course.value }}">{{ slot.course.label }}</option>'
-    );
-    */
-    {% endif %}
+  {% endif %}
 });
 </script>
 {% endblock %}
