@@ -32,11 +32,7 @@
             <tr>
               <th id="published_filter" class="w-5">{% trans 'Published' %}</th>
               <th id="structure_filter">
-                {% if request.user.highschool %}
-                    {% trans 'Highschool' %}
-                {% else %}
-                    {% trans 'Structure' %}
-                {% endif %}
+                {% trans 'Structure / High school' %}
               </th>
               <th id="training_filter">{% trans 'Training' %}</th>
               <th id="label_filter">{% trans 'Label' %}</th>
@@ -73,7 +69,7 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_my_courses",
+        url: "/api/get_courses",
           dataSrc: function (json) {
             if (json['data'] !== undefined) {
               return json['data'];
@@ -160,7 +156,6 @@
     filter_reset_button_text: false,
   }, {
     column_number: 1,
-    filter_type: "text",
     filter_default_label: "",
     filter_container_id: "structure_filter",
     style_class: "form-control form-control-sm",

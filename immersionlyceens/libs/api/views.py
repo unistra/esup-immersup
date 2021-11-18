@@ -174,42 +174,44 @@ def ajax_get_available_vars(request, template_id=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER')
 def ajax_get_courses(request):
-    courses = Course.objects.none()
     response = {'msg': '', 'data': []}
 
     structure_id = request.GET.get('structure')
     highschool_id = request.GET.get('highschool')
+    filters = {}
+    speaker_filter = {}
+    user_filter = False
+
+    if request.user.is_speaker():
+        user_filter = True
+        filters["speakers"] = request.user
+        speaker_filter["speaker_id"] = request.user
 
     try:
         int(structure_id)
+        filters["training__structures"] = structure_id
     except (TypeError, ValueError):
         structure_id = None
 
     try:
         int(highschool_id)
+        filters["training__highschool"] = highschool_id
     except (TypeError, ValueError):
         highschool_id = None
 
-    if not structure_id and not highschool_id:
+    if not user_filter and not structure_id and not highschool_id:
         response['msg'] = gettext("Error : a valid structure or high school must be selected")
         return JsonResponse(response, safe=False)
 
-    if structure_id:
-        courses = Course.objects.prefetch_related('training', 'structure')\
-            .filter(training__structures=structure_id)
-    elif highschool_id:
-        try:
-            courses = Course.objects.prefetch_related('training', 'highschool', 'structure') \
-                .filter(training__highschool=highschool_id)
-        except FieldError:
-            # NotImplemented (yet) : see #194
-            pass
+    courses = Course.objects.prefetch_related('training', 'highschool', 'structure').filter(**filters)
 
     for course in courses:
+        managed_by = None
+
         if course.structure:
-            managed_by = course.structure.code
+            managed_by = f"{course.structure.code} ({course.structure.establishment.short_label})"
         elif course.highschool:
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
 
@@ -222,11 +224,12 @@ def ajax_get_courses(request):
             'structure_code': course.structure.code if course.structure else None,
             'structure_id': course.structure.id if course.structure else None,
             'highschool_id': course.highschool.id if course.highschool else None,
+            'highschool_label': f"{course.highschool.city} - {course.highschool.label}" if course.highschool else None,
             'speakers': [],
-            'slots_count': course.slots_count(),
-            'n_places': course.free_seats(),
-            'published_slots_count': course.published_slots_count(),
-            'registered_students_count': course.registrations_count(),
+            'slots_count': course.slots_count(**speaker_filter),
+            'n_places': course.free_seats(**speaker_filter),
+            'published_slots_count': course.published_slots_count(**speaker_filter),
+            'registered_students_count': course.registrations_count(**speaker_filter),
             'alerts_count': course.get_alerts_count(),
             'can_delete': not course.slots.exists(),
         }
@@ -610,45 +613,6 @@ def ajax_delete_course(request):
         response['msg'] = gettext("Course successfully deleted")
     else:
         response['error'] = gettext("Error : slots are linked to this course")
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('INTER')
-def ajax_get_my_courses(request):
-    managed_by = ""
-    response = {'msg': '', 'data': []}
-
-    if not request.user:
-        response['msg'] = gettext("Error : a valid user is required")
-
-    courses = Course.objects.prefetch_related('training').filter(speakers=request.user)
-
-    for course in courses:
-        if course.structure:
-            managed_by = course.structure.code
-        elif course.highschool:
-            managed_by = f"{course.highschool.city} - {course.highschool.label}"
-
-        course_data = {
-            'id': course.id,
-            'published': course.published,
-            'managed_by': managed_by,
-            'training_label': course.training.label,
-            'label': course.label,
-            'speakers': {},
-            'slots_count': course.slots_count(speaker_id=request.user.id),
-            'n_places': course.free_seats(speaker_id=request.user.id),
-            'published_slots_count': course.published_slots_count(speaker_id=request.user.id),
-            'registered_students_count': course.registrations_count(speaker_id=request.user.id),
-            'alerts_count': course.get_alerts_count(),
-        }
-
-        for speaker in course.speakers.all().order_by('last_name', 'first_name'):
-            course_data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
-
-        response['data'].append(course_data.copy())
 
     return JsonResponse(response, safe=False)
 

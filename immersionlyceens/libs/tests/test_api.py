@@ -996,13 +996,13 @@ class APITestCase(TestCase):
             Course.objects.get(id=self.course.id)
 
 
-    def test_API_ajax_get_my_courses(self):
+    def test_API_ajax_get_speaker_courses(self):
         # As a 'structure' speaker
         request.user = self.speaker1
         client = Client()
         client.login(username='speaker1', password='pass')
 
-        url = f"/api/get_my_courses"
+        url = "/api/get_courses/"
         
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -1012,7 +1012,10 @@ class APITestCase(TestCase):
         c = content['data'][0]
         self.assertEqual(self.course.id, c['id'])
         self.assertEqual(self.course.published, c['published'])
-        self.assertEqual(self.course.structure.code, c['managed_by'])
+        self.assertEqual(
+            f"{self.course.structure.code} ({self.course.structure.establishment.short_label})",
+            c['managed_by']
+        )
         self.assertEqual(self.course.training.label, c['training_label'])
         self.assertEqual(self.course.label, c['label'])
         # speakers
