@@ -517,8 +517,9 @@ class Training(models.Model):
         return not self.courses.all().exists()
 
     def distinct_establishments(self):
-        ids = self.structures.all().values('establishment_id').distinct()
-        return Establishment.objects.filter(pk__in=ids)
+        return Establishment.objects.filter(structures__in=self.structures.all()) \
+                                    .distinct()
+
 
     class Meta:
         verbose_name = _('Training')
