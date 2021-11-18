@@ -682,7 +682,7 @@ $(document).ready(function(){
       $("#id_training").val(training_id)
   }
 
-  if(campus_id === "" || campus_id === undefined) {
+  if(campus_id === "" || campus_id === undefined || campus_id === "None") {
     empty_buildings()
   }
   else {

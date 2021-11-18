@@ -400,7 +400,6 @@ def ajax_get_slots(request):
                 | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
             ).distinct()
 
-
     all_data = []
     allowed_structures = request.user.get_authorized_structures()
     user_establishment = request.user.establishment
@@ -431,15 +430,15 @@ def ajax_get_slots(request):
             'training_label': training_label,
             'training_label_full': training_label_full,
             'structure': {
-                'code': structure.code if structure else None,
-                'establishment': structure.establishment.short_label if structure else None,
-                'managed_by_me': structure and structure in allowed_structures,
-            },
+                'code': structure,
+                'establishment': structure.establishment.short_label,
+                'managed_by_me': structure in allowed_structures,
+            } if structure else None,
             'highschool': {
-                'label': f"{highschool.city} - {highschool.label}" if highschool else "",
+                'label': f"{highschool.city} - {highschool.label}",
                 'managed_by_me': request.user.is_master_establishment_manager()\
                     or (user_highschool and highschool == user_highschool),
-            },
+            } if highschool else None,
             'purpose': slot.visit.purpose if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
