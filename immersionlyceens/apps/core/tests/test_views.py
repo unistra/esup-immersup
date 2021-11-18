@@ -1091,17 +1091,17 @@ class CoreViewsTestCase(TestCase):
         visit.refresh_from_db()
         self.assertTrue(visit.published)
 
-        """
         # Update
-        response = self.client.get(f"/core/visit/{visit.id}", follow=True)
+        response = self.client.get(f"/core/visit_slot/{slot.id}", follow=True)
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
-        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.purpose}\"", content)
+        self.assertIn(f"value=\"{slot.visit.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{slot.visit.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{slot.visit.highschool.id}\" selected", content)
+        self.assertIn(f"value=\"{slot.visit.id}\"", content)
 
         self.assertEqual(response.context["speakers"], json.dumps([{
+            "id": self.speaker1.id,
             "username": self.speaker1.username,
             "lastname": self.speaker1.last_name,
             "firstname": self.speaker1.first_name,
@@ -1111,40 +1111,43 @@ class CoreViewsTestCase(TestCase):
         }]))
 
         data = {
-            "establishment": visit.establishment.id,
-            "structure": visit.structure.id,
-            "highschool": visit.highschool.id,
-            "published": True,
-            "purpose": "New visit purpose",
-            "speakers_list": json.dumps([{
-                "email": self.speaker2.email,
-                "username": self.speaker2.username,
-                "lastname": self.speaker2.last_name,
-                "firstname": self.speaker2.first_name,
-            }])
+            "visit": slot.visit.id,
+            'face_to_face': False,
+            'url': "http://www.whatever.com",
+            'published': True,
+            'date': datetime.datetime.now().strftime("%Y-%m-%d"),
+            'start_time': "10:00",
+            'end_time': "12:00",
+            'n_places': 10,
+            'additional_information': 'whatever',
+            "speakers_list": [self.speaker1.id],
+            'save': "Save",
         }
 
-        response = self.client.post(f"/core/visit/{visit.id}", data, follow=True)
+        response = self.client.post(f"/core/visit_slot/{slot.id}", data, follow=True)
+
         self.assertEqual(response.status_code, 200)
-        visit.refresh_from_db()
-        self.assertEqual(visit.purpose, "New visit purpose")
+        self.assertEqual(response.template_name, ["core/visits_slots_list.html"])
+        slot.refresh_from_db()
+
+        self.assertEqual(slot.start_time, datetime.time(10, 0))
+        self.assertEqual(slot.end_time, datetime.time(12, 0))
+        self.assertEqual(slot.n_places, data["n_places"])
+        self.assertFalse(slot.face_to_face)
+        self.assertEqual(slot.url, data["url"])
+        self.assertEqual(slot.speakers.first(), self.speaker1)
 
 
-        # Duplicate a visit : check form values
-        response = self.client.get(f"/core/visit/{visit.id}/1", follow=True)
+        # Duplicate a visit slot : check form values
+        response = self.client.get(f"/core/visit_slot/{slot.id}/1", follow=True)
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
-        self.assertIn(f"value=\"{visit.establishment.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.structure.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.highschool.id}\" selected", content)
-        self.assertIn(f"value=\"{visit.purpose}\"", content)
 
-        self.assertEqual(response.context["speakers"], json.dumps([{
-            "username": self.speaker2.username,
-            "lastname": self.speaker2.last_name,
-            "firstname": self.speaker2.first_name,
-            "email": self.speaker2.email,
-            "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
-            "is_removable": True
-        }]))
-        """
+        self.assertIn(f"value=\"{slot.visit.establishment.id}\" selected>{slot.visit.establishment}<", content)
+        self.assertIn(f"value=\"{slot.visit.structure.id}\" selected>{slot.visit.structure}<", content)
+        self.assertIn(f"value=\"{slot.visit.highschool.id}\" selected>{slot.visit.highschool}<", content)
+
+        # On template load, the full VisitSlot __str__ strings are displayed in the form, but we use javascript to
+        # display only the 'purpose' attribute in the options fields. However, this test doesn't care about javascript.
+        self.assertIn(f"value=\"{slot.visit.id}\" selected>{slot.visit}<", content)
+        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))

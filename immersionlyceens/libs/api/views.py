@@ -362,7 +362,7 @@ def ajax_get_slots(request):
         response['msg'] = gettext("Error : a valid establishment must be selected")
         return JsonResponse(response, safe=False)
 
-    if not user_filter and not structure_id and not highschool_id:
+    if not user_filter and not visits and not structure_id and not highschool_id:
         response['msg'] = gettext("Error : a valid structure or high school must be selected")
         return JsonResponse(response, safe=False)
 

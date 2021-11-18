@@ -150,10 +150,6 @@ class SlotForm(forms.ModelForm):
         if allowed_establishments.count() == 1:
             self.fields["establishment"].initial = allowed_establishments.first().id
             self.fields["establishment"].empty_label = None
-
-        if allowed_establishments.count() == 1:
-            self.fields["establishment"].initial = allowed_establishments.first().id
-            self.fields["establishment"].empty_label = None
         elif course and course.structure:
             self.fields["establishment"].initial = course.structure.establishment.id
 
@@ -272,7 +268,6 @@ class VisitSlotForm(SlotForm):
             self.fields["highschool"].initial = visit.highschool.id
             self.fields["establishment"].initial = visit.establishment.id
 
-
     def clean(self):
         cleaned_data = super(forms.ModelForm, self).clean()
         visit = cleaned_data.get('visit')
@@ -334,7 +329,7 @@ class VisitSlotForm(SlotForm):
         self.request.session['current_structure_id'] = instance.visit.structure.id if instance.visit.structure else None
 
         speakers_list = self.cleaned_data.get('speakers', [])
-        current_speakers = [u for u in instance.speakers.all().values_list('id', flat=True)]
+        current_speakers = [f"{u}" for u in instance.speakers.all().values_list('id', flat=True)]
         new_speakers = [speaker for speaker in speakers_list]
 
         # speakers to add

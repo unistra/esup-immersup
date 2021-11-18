@@ -242,7 +242,6 @@ $(document).ready(function(){
       reload_data();
     });
 
-
     $('#top_indicator').hide();
     dt = $('#slots_list').DataTable({
         ajax: {
@@ -450,6 +449,15 @@ $(document).ready(function(){
             filter_reset_button_text: false,
         },
     ])
+
+    if(current_establishment_id !== "None" && current_establishment_id !== "" && current_establishment_id !== undefined) {
+      $("#id_establishment").val(current_establishment_id)
+      set_structures(current_establishment_id)
+    }
+
+    if(current_structure_id !== "None" && current_structure_id !== "" && current_structure_id !== undefined) {
+      $("#id_structure").val(current_structure_id)
+    }
 });
 
 

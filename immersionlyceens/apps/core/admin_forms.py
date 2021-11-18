@@ -1033,18 +1033,19 @@ class ImmersionUserChangeForm(UserChangeForm):
         new_groups = set(self.data.get('groups', []))
 
         if inter_group:
-            if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
+            if self.request.user.is_high_school_manager():
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
-                conditions = [
-                    self.instance.establishment and not self.instance.establishment.data_source_plugin,
-                    self.instance.highschool is not None
-                ]
+        if not self.request.user.is_superuser:
+            conditions = [
+                self.instance.establishment and not self.instance.establishment.data_source_plugin,
+                self.instance.highschool is not None
+            ]
 
-                if any(conditions):
-                    self.instance.username = self.instance.email
-                # TODO: send CPT_CREATE_INTER in case of a new user
+            if any(conditions):
+                self.instance.username = self.instance.email
+            # TODO: send CPT_CREATE_INTER in case of a new user
 
         if ref_lyc_group and str(ref_lyc_group.id) in new_groups - current_groups:
             # REF-LYC group spotted : if the password is not set, send an email to the user

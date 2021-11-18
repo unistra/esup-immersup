@@ -364,7 +364,6 @@
     }
     else {
         empty_structures()
-        $("#id_div_highschool").show()
     }
   });
 
@@ -447,12 +446,6 @@ $(document).ready(function(){
   else {
     $("#id_structure").val(structure_id)
   }
-
-  /*
-  if(establishment_id && highschool_id) {
-    set_visits()
-  }
-  */
 
   if(visit_id === 'None' || visit_id === "") {
     visit_id = $("#id_visit").val()
