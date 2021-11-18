@@ -430,7 +430,7 @@ def ajax_get_slots(request):
             'training_label': training_label,
             'training_label_full': training_label_full,
             'structure': {
-                'code': structure,
+                'code': structure.code,
                 'establishment': structure.establishment.short_label,
                 'managed_by_me': structure in allowed_structures,
             } if structure else None,
