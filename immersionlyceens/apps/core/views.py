@@ -35,7 +35,7 @@ from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, Sl
 from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm, TrainingForm
 
 from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
-    Training, UniversityYear, Establishment, Visit)
+    Training, UniversityYear, Establishment, Visit, OffOfferEvent)
 
 logger = logging.getLogger(__name__)
 
@@ -1385,17 +1385,17 @@ class OffOfferEventsList(generic.TemplateView):
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
 class OffOfferEventAdd(generic.CreateView):
-    form_class = VisitForm
+    form_class = OffOfferEventForm
     template_name = "core/off_offer_event.html"
     duplicate = False
 
     def get_success_url(self):
         if self.add_new:
-            return reverse("add_visit")
+            return reverse("add_off_offer_event")
         elif self.duplicate and self.object.pk:
-            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
+            return reverse("duplicate_off_offer_event", kwargs={'pk': self.object.pk, 'duplicate': 1})
         else:
-            return reverse("visits")
+            return reverse("off_offer_events")
 
     def get_context_data(self, *args, **kwargs):
         speakers_list = []
@@ -1405,14 +1405,16 @@ class OffOfferEventAdd(generic.CreateView):
         if self.duplicate and object_pk:
             context = {'duplicate': True}
             try:
-                visit = Visit.objects.get(pk=object_pk)
+                event = OffOfferEvent.objects.get(pk=object_pk)
 
                 initials = {
-                    'establishment': visit.establishment.id,
-                    'structure': visit.structure.id if visit.structure else None,
-                    'highschool': visit.highschool.id,
-                    'purpose': visit.purpose,
-                    'published': visit.published
+                    'establishment': event.establishment.id,
+                    'structure': event.structure.id if event.structure else None,
+                    'highschool': event.highschool.id,
+                    'event_type': event.highschool.id,
+                    'label': event.label,
+                    'description': event.description,
+                    'published': event.published
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1420,7 +1422,7 @@ class OffOfferEventAdd(generic.CreateView):
                 for k in initials.keys():
                     initials[k] = data.get(k, initials[k])
 
-                self.form = VisitForm(initial=initials, request=self.request)
+                self.form = OffOfferEventForm(initial=initials, request=self.request)
 
                 speakers_list = [{
                     "username": t.username,
@@ -1429,11 +1431,11 @@ class OffOfferEventAdd(generic.CreateView):
                     "email": t.email,
                     "display_name": f"{t.last_name} {t.first_name}",
                     "is_removable": True,
-                } for t in visit.speakers.all()]
+                } for t in event.speakers.all()]
 
                 context["origin_id"] = visit.id
                 context["form"] = self.form
-            except Visit.DoesNotExist:
+            except OffOfferEvent.DoesNotExist:
                 pass
         else:
             context = super().get_context_data(*args, **kwargs)
@@ -1455,12 +1457,12 @@ class OffOfferEventAdd(generic.CreateView):
         self.duplicate = self.request.POST.get("save_duplicate", False) != False
         self.add_new = self.request.POST.get("save_add_new", False) != False
         response = super().form_valid(form)
-        messages.success(self.request, _(f"Visit {form.instance} created."))
+        messages.success(self.request, _(f"Off offer event {form.instance} created."))
         return response
 
 
     def form_invalid(self, form):
-        messages.error(self.request, _("Visit not created."))
+        messages.error(self.request, _("Off offer event not created."))
         return super().form_invalid(form)
 
 
