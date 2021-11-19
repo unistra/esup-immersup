@@ -2295,6 +2295,13 @@ class VisitList(generics.ListAPIView):
 
         return queryset.order_by('establishment', 'structure', 'highschool', 'purpose')
 
+    def filter_queryset(self, queryset):
+        if "structure" not in self.request.query_params:
+            return queryset
+
+        structure_id = self.request.query_params.get("structure", None) or None
+        return queryset.filter(structure=structure_id)
+
 
 @method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
 class VisitDetail(generics.DestroyAPIView):

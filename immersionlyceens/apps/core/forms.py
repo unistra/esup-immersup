@@ -272,6 +272,7 @@ class VisitSlotForm(SlotForm):
         cleaned_data = super(forms.ModelForm, self).clean()
         visit = cleaned_data.get('visit')
         pub = cleaned_data.get('published', None)
+        face_to_face = cleaned_data.get('face_to_face', None)
 
         cals = Calendar.objects.all()
 
@@ -283,6 +284,11 @@ class VisitSlotForm(SlotForm):
         if pub is True:
             # Mandatory fields, depending on high school / structure slot
             m_fields = ['visit', 'date', 'start_time', 'end_time']
+
+            if face_to_face:
+                m_fields.append("room")
+            else:
+                m_fields.append("url")
 
             for field in m_fields:
                 if not cleaned_data.get(field):
@@ -314,7 +320,7 @@ class VisitSlotForm(SlotForm):
         except Exception as e:
             speakers = []
 
-        if not speakers:
+        if pub and not speakers:
             msg = _("Please select at least one speaker.")
             # messages.error(self.request, msg)
             raise forms.ValidationError(msg)

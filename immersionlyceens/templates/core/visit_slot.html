@@ -326,7 +326,7 @@
       type: 'GET',
       data: {
         'establishment': establishment_id,
-        'structure': structure_id,
+        'structure': structure_id === "" ? null : structure_id,
         'highschool': highschool_id,
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
@@ -363,12 +363,17 @@
         set_structures(establishment_id);
     }
     else {
+        empty_visits()
         empty_structures()
     }
   });
 
   $('#id_structure').change( function() {
     structure_id = $('#id_structure option:selected').val()
+
+    if (highschool_id !== "") {
+      set_visits()
+    }
   });
 
   $('#id_highschool').change( function() {
@@ -384,11 +389,17 @@
   $('#id_face_to_face').change( function() {
     if($('#id_face_to_face').is(':checked')) {
       $("#id_div_room").show()
+      $('#id_room').attr('required', 'required');
+
       $("#id_div_url").hide()
+      $('#id_url').removeAttr('required');
     }
     else {
       $("#id_div_room").hide()
+      $('#id_room').removeAttr('required');
+
       $("#id_div_url").show()
+      $('#id_url').attr('required', 'required');
     }
   })
 
@@ -463,17 +474,24 @@ $(document).ready(function(){
   if(establishment_id === "" || establishment_id === undefined) {
     structure_id = ""
     empty_structures()
+    empty_visits()
   } else {
     set_structures(establishment_id)
   }
 
   if($('#id_face_to_face').is(':checked')) {
     $("#id_div_room").show()
+    $('#id_room').attr('required', 'required');
+
     $("#id_div_url").hide()
+    $('#id_url').removeAttr('required');
   }
   else {
     $("#id_div_room").hide()
+    $('#id_room').removeAttr('required');
+
     $("#id_div_url").show()
+    $('#id_url').attr('required', 'required');
   }
 
   // Initialize trainings depending on structure / high school selection
@@ -582,10 +600,18 @@ $(document).ready(function(){
 
   function toggle_required_fields () {
     let published = $('#id_published').prop('checked');
+    let face_to_face = $('#id_face_to_face').prop('checked');
     if (published) {
       let mandatory = [
-        'visit', 'room', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+        'visit', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
       ]
+
+      if(face_to_face) {
+          mandatory.push("room")
+      }
+      else {
+          mandatory.push("url")
+      }
 
       mandatory.forEach(function(e){
         $('#id_' + e).attr('required', 'sfdgsg');
@@ -593,7 +619,7 @@ $(document).ready(function(){
     }
     else {
       let not_mandatory = [
-        'room', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+        'room', 'url', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
       ];
       let mandatory = ['visit'];
 
