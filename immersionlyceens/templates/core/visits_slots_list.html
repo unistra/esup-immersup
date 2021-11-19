@@ -290,7 +290,7 @@ $(document).ready(function(){
             },
             { data: 'structure',
               render: function(data, type, row) {
-                if(row.structure.code) {
+                if(row.structure && row.structure.code) {
                   return row.structure.code;
                 }
 
