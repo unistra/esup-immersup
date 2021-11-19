@@ -1736,3 +1736,61 @@ class OffOfferEventType(models.Model):
         verbose_name = _('Off offer event type')
         verbose_name_plural = _('Off offer event types')
         ordering = ('label',)
+
+
+class OffOfferEvent(models.Model):
+    """
+    Off-offer event class
+    """
+
+    label = models.CharField(_("Label"), max_length=256)
+    description = models.CharField(_("Description"), max_length=256)
+    published = models.BooleanField(_("Published"), default=True)
+
+    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.CASCADE,
+        blank=False, null=False, related_name='events')
+
+    structure = models.ForeignKey(Structure, verbose_name=_("Structure"), null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="events",
+    )
+
+    highschool = models.ForeignKey(HighSchool, verbose_name=_('High school'), null=False, blank=False,
+        on_delete=models.CASCADE, related_name="events",
+    )
+
+    event_type = models.ForeignKey(OffOfferEventType, verbose_name=_('Event type'), null=False, blank=False,
+        on_delete=models.CASCADE, related_name="events",
+    )
+
+    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='events')
+
+    def __str__(self):
+        if not self.establishment_id:
+            return super().__str__()
+
+        if not self.structure:
+            return f"{self.establishment.code} - {self.highschool} : {self.purpose}"
+        else:
+            return f"{self.establishment.code} ({self.structure.code}) - {self.highschool} : {self.label}"
+
+
+    def can_delete(self):
+        today = timezone.now().date()
+        try:
+            current_year = UniversityYear.objects.get(active=True)
+        except UniversityYear.DoesNotExist:
+            return True
+
+        return current_year.date_is_between(today) and not self.slots.all().exists()
+
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['establishment', 'structure', 'highschool', 'label', 'event_type'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_event'
+            ),
+        ]
+        verbose_name = _('Off-offer event')
+        verbose_name_plural = _('Off-offer events')
