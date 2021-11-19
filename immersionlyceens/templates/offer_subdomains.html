@@ -83,7 +83,7 @@
                   <h6 class="mb-5 mb-sm-0 more-less-title">
                     <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
                     {% if d.slots %}
-                      <button class="pl-0" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
+                      <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
                     {% endif %}
                     {{ d.course.label }}
                     {% if d.course.url %}
