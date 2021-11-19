@@ -7,11 +7,11 @@
 {% endblock %}
 {% block title %}
 {% if duplicate %}
-  {% trans "Duplicate a visit" %}
-{% elif visit %}
-  {% trans "Update a visit" %}
+  {% trans "Duplicate an off offer event" %}
+{% elif form.instance %}
+  {% trans "Update an off offer event" %}
 {% else %}
-  {% trans "New visit" %}
+  {% trans "New off offer event" %}
 {% endif %}
 {% endblock %}
 
@@ -20,19 +20,20 @@
   <div class="card">
     <div class="card-header text-white bg-secondary">
       {% if duplicate %}
-        {% trans "Duplicate a visit" %}
-      {% elif visit %}
-        {% trans "Update a visit" %}
+        {% trans "Duplicate an off offer event" %}
+      {% elif form.instance %}
+        {% trans "Update an off offer event" %}
       {% else %}
-        {% trans "Create a new visit" %}
+        {% trans "Create a new off offer event" %}
       {% endif %}
     </div>
     <div class="card-body">
-      <form class="" role="form" action="/core/visit/{% if visit.id %}{{ visit.id }}{% elif origin_id %}{{ origin_id }}{% else %}add{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
+      <form class="" role="form" action="/core/off_offer_event/{% if form.instance.id %}{{ form.instance.id }}{% elif origin_id %}{{ origin_id }}{% else %}add{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
       {% csrf_token %}
         {{ form.id }}
         <input type="hidden" name="duplicate" value="{{ duplicate }}">
         <input type="hidden" name="origin_id" value="{{ origin_id }}">
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -45,10 +46,26 @@
             {{ form.establishment.errors }}
           </div>
         </div>
+        {% endif %}
+        <div class="form-group row" id="id_div_highschool">
+          <label for="id_highschool" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% if request.user.is_master_establishment_manager %}
+                <strong>{% trans 'or' %} </strong>
+            {% endif %}
+            {% trans 'high school' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ form.highschool }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.highschool.errors }}
+          </div>
+        </div>
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             {% if request.user.is_structure_manager %}
-            <i class="fa fas fa-asterisk"></i>
+              <i class="fa fas fa-asterisk"></i>
             {% endif %}
             {% trans 'Structure' %} :
           </label>
@@ -59,28 +76,40 @@
             {{ form.structure.errors }}
           </div>
         </div>
-        <div class="form-group row" id="id_div_highschool">
-          <label for="id_highschool" class="col-sm-3 col-form-label">
+        <div class="form-group row">
+          <label for="id_event_type" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% trans 'High school' %} :
+            {% trans 'Event type' %} :
           </label>
           <div class="col-sm-3">
-            {{ form.highschool }}
+            {{ form.event_type }}
           </div>
           <div class="col-sm-6">
-            {{ form.highschool.errors }}
+            {{ form.event_type.errors }}
           </div>
         </div>
         <div class="form-group row">
-          <label for="id_purpose" class="col-sm-3 col-form-label">
+          <label for="id_label" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% trans 'Visit purpose' %} :
+            {% trans 'Event label' %} :
           </label>
           <div class="col-sm-3">
-            {{ form.purpose }}
+            {{ form.label }}
           </div>
           <div class="col-sm-6">
-            {{ form.purpose.errors }}
+            {{ form.label.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="id_description" class="col-sm-3 col-form-label">
+            <i class="fa fas fa-asterisk"></i>
+            {% trans 'Event description' %} :
+          </label>
+          <div class="col-sm-3">
+            {{ form.description }}
+          </div>
+          <div class="col-sm-6">
+            {{ form.description.errors }}
           </div>
         </div>
         <div class="form-group row">
@@ -111,7 +140,7 @@
         {% if can_update %}
         <div class="form-group row">
           <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
-            <a href="{% url 'visits' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+            <a href="{% url 'off_offer_events' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
             <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
@@ -130,6 +159,7 @@
   var can_update = "{{ can_update }}";
   var establishment_id = "{{ form.initial.establishment }}" || "{{ request.session.establishment_id }}";
   var highschool_id = "{{ form.initial.highschool }}";
+  var event_id = "{{ form.initial.event }}";
 
   {% autoescape on %}
   var speakers_array = {{ speakers|safe }};
@@ -160,8 +190,18 @@
         else {
           $("#id_structure").val($("#id_structure option:first").val());
         }
+
+        $("#id_div_structure").show()
+        $("#id_div_highschool").hide()
       }
     })
+  }
+
+  function empty_structures() {
+    let options = '<option value="">---------</option>'
+    $('select#id_structure').html(options)
+    structure_id = ''
+    $("#id_div_structure").hide()
   }
 
   function refresh_speakers_list() {
@@ -197,7 +237,27 @@
     structure_id = ""
 
     if (establishment_id !== "") {
+        highschool_id = ""
+        $('#id_highschool').val("")
         set_structures(establishment_id);
+    }
+    else {
+        empty_structures()
+        $("#id_div_highschool").show()
+    }
+  });
+
+  $('#id_highschool').change( function() {
+    highschool_id = $('#id_highschool option:selected').val()
+
+    if (highschool_id !== "") {
+        empty_structures()
+        $('#id_establishment').val("")
+        $('#id_structure').val("")
+
+        $("#id_div_establishment").hide()
+    } else {
+        $("#id_div_establishment").show()
     }
   });
 
@@ -305,6 +365,13 @@
     }
     else {
       $("#id_structure").val(structure_id)
+    }
+
+    if(event_id === 'None' || event_id === "") {
+      event_id = $("#id_event").val()
+    }
+    else {
+      $("#id_event").val(event_id)
     }
 
     set_structures($("#id_establishment").val())

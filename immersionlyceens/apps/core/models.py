@@ -1113,6 +1113,150 @@ class Visit(models.Model):
         verbose_name_plural = _('Visits')
 
 
+class OffOfferEventType(models.Model):
+    """Off offer event type"""
+
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    # full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self) -> str:
+        return f"{self.label}"
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+        except ValidationError as exc:
+            raise ValidationError(_('An off offer event type with this label already exists')) from exc
+
+    class Meta:
+        verbose_name = _('Off offer event type')
+        verbose_name_plural = _('Off offer event types')
+        ordering = ('label',)
+
+
+class OffOfferEvent(models.Model):
+    """
+    Off-offer event class
+    """
+
+    label = models.CharField(_("Label"), max_length=256)
+    description = models.CharField(_("Description"), max_length=256)
+    published = models.BooleanField(_("Published"), default=True)
+
+    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.CASCADE,
+        blank=True, null=True, related_name='events')
+
+    structure = models.ForeignKey(Structure, verbose_name=_("Structure"), null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="events",
+    )
+
+    highschool = models.ForeignKey(HighSchool, verbose_name=_('High school'), null=True, blank=True,
+        on_delete=models.CASCADE, related_name="events",
+    )
+
+    event_type = models.ForeignKey(OffOfferEventType, verbose_name=_('Event type'), null=False, blank=False,
+        on_delete=models.CASCADE, related_name="events",
+    )
+
+    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='events')
+
+    def __str__(self):
+        if not self.establishment_id:
+            return super().__str__()
+
+        if self.establishment:
+            event_str = self.establishment.code
+            if self.structure:
+                event_str += f" - {self.structure.code}"
+        else:
+            event_str = f"{self.highschool.city} - {self.highschool.label}"
+
+        event_str += f" : {self.label}"
+
+        return event_str
+
+
+    def can_delete(self):
+        today = timezone.now().date()
+        try:
+            current_year = UniversityYear.objects.get(active=True)
+        except UniversityYear.DoesNotExist:
+            return True
+
+        return current_year.date_is_between(today) and not self.slots.all().exists()
+
+    def free_seats(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        :return: number of seats as the sum of seats of all slots under this event
+        """
+        filters = {'published': True}
+
+        if speaker_id:
+            filters['speakers'] = speaker_id
+
+        d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
+
+        return d['total_seats']
+
+    def published_slots_count(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        Return number of published slots under this event
+        """
+        filters = {'published': True}
+
+        if speaker_id:
+            filters['speakers'] = speaker_id
+
+        return self.slots.filter(**filters).count()
+
+    def slots_count(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        Return number of slots under this event, published or not
+        """
+        if speaker_id:
+            return self.slots.filter(speakers=speaker_id).count()
+        else:
+            return self.slots.all().count()
+
+    def registrations_count(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        :return: the number of non-cancelled registered students on all the slots
+        under this event (past and future)
+        """
+        filters = {'slot__event': self, 'cancellation_type__isnull': True}
+
+        if speaker_id:
+            filters['slot__speakers'] = speaker_id
+
+        return Immersion.objects.prefetch_related('slot').filter(**filters).count()
+
+    def clean(self):
+        if [self.establishment, self.highschool].count(None) != 1:
+            raise ValidationError("You must select one of : Establishment or High school")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['establishment', 'structure', 'label', 'event_type'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_establishment_event'
+            ),
+            models.UniqueConstraint(
+                fields=['highschool', 'label', 'event_type'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_highschool_event'
+            ),
+        ]
+        verbose_name = _('Off-offer event')
+        verbose_name_plural = _('Off-offer events')
+
+
 class MailTemplateVars(models.Model):
     code = models.CharField(_("Code"), max_length=64, blank=False, null=False, unique=True)
     description = models.CharField(_("Description"), max_length=128, blank=False, null=False, unique=True)
@@ -1412,6 +1556,11 @@ class Slot(models.Model):
         Visit, verbose_name=_("Visit"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
 
+    event = models.ForeignKey(
+        OffOfferEvent, verbose_name=_("Off offer event"), null=True, blank=True, on_delete=models.CASCADE,
+        related_name="slots",
+    )
+
     campus = models.ForeignKey(
         Campus, verbose_name=_("Campus"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
@@ -1474,7 +1623,7 @@ class Slot(models.Model):
 
 
     def clean(self):
-        if [self.course, self.visit].count(None) != 1:
+        if [self.course, self.visit, self.event].count(None) != 2:
             raise ValidationError("You must select one of : Course, Visit or Event")
 
     def __str__(self):
@@ -1714,83 +1863,3 @@ class CertificateSignature(models.Model):
         verbose_name = _('Signature for attendance certificate')
         verbose_name_plural = _('Signature for attendance certificate')
 
-
-class OffOfferEventType(models.Model):
-    """Off offer event type"""
-
-    label = models.CharField(_("Label"), max_length=256, unique=True)
-    # full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
-    active = models.BooleanField(_("Active"), default=True)
-
-    def __str__(self) -> str:
-        return f"{self.label}"
-
-    def validate_unique(self, exclude=None):
-        """Validate unique"""
-        try:
-            super().validate_unique()
-        except ValidationError as exc:
-            raise ValidationError(_('An off offer event type with this label already exists')) from exc
-
-    class Meta:
-        verbose_name = _('Off offer event type')
-        verbose_name_plural = _('Off offer event types')
-        ordering = ('label',)
-
-
-class OffOfferEvent(models.Model):
-    """
-    Off-offer event class
-    """
-
-    label = models.CharField(_("Label"), max_length=256)
-    description = models.CharField(_("Description"), max_length=256)
-    published = models.BooleanField(_("Published"), default=True)
-
-    establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.CASCADE,
-        blank=False, null=False, related_name='events')
-
-    structure = models.ForeignKey(Structure, verbose_name=_("Structure"), null=True, blank=True,
-        on_delete=models.SET_NULL, related_name="events",
-    )
-
-    highschool = models.ForeignKey(HighSchool, verbose_name=_('High school'), null=False, blank=False,
-        on_delete=models.CASCADE, related_name="events",
-    )
-
-    event_type = models.ForeignKey(OffOfferEventType, verbose_name=_('Event type'), null=False, blank=False,
-        on_delete=models.CASCADE, related_name="events",
-    )
-
-    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='events')
-
-    def __str__(self):
-        if not self.establishment_id:
-            return super().__str__()
-
-        if not self.structure:
-            return f"{self.establishment.code} - {self.highschool} : {self.purpose}"
-        else:
-            return f"{self.establishment.code} ({self.structure.code}) - {self.highschool} : {self.label}"
-
-
-    def can_delete(self):
-        today = timezone.now().date()
-        try:
-            current_year = UniversityYear.objects.get(active=True)
-        except UniversityYear.DoesNotExist:
-            return True
-
-        return current_year.date_is_between(today) and not self.slots.all().exists()
-
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['establishment', 'structure', 'highschool', 'label', 'event_type'],
-                deferrable=models.Deferrable.IMMEDIATE,
-                name='unique_event'
-            ),
-        ]
-        verbose_name = _('Off-offer event')
-        verbose_name_plural = _('Off-offer events')

@@ -612,7 +612,6 @@ class OffOfferEventForm(forms.ModelForm):
 
         self.fields["highschool"].queryset = HighSchool.agreed.order_by("city", "label")
         self.fields["establishment"].queryset = Establishment.activated.all()
-        self.fields["establishment"].empty_label = None
         self.fields["structure"].queryset = Structure.activated.all()
 
         if not self.request.user.is_superuser:
@@ -647,10 +646,13 @@ class OffOfferEventForm(forms.ModelForm):
         }
         exclude_filters = {}
 
+        print(filters)
+        print(self.instance.__dict__)
+
         if self.instance.id:
             exclude_filters = {'id': self.instance.id}
 
-        if Visit.objects.filter(**filters).exclude(**exclude_filters).exists():
+        if OffOfferEvent.objects.filter(**filters).exclude(**exclude_filters).exists():
             msg = _("An event with these values already exists")
             messages.error(self.request, msg)
             raise forms.ValidationError(msg)
@@ -669,7 +671,8 @@ class OffOfferEventForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
 
-        self.request.session['current_establishment_id'] = instance.establishment.id
+        self.request.session['current_establishment_id'] = instance.establishment.id if instance.establishment else None
+        self.request.session['current_highschool_id'] = instance.highschool.id if instance.highschool else None
         self.request.session['current_structure_id'] = instance.structure.id if instance.structure else None
 
         speakers_list = json.loads(self.data.get('speakers_list', []))

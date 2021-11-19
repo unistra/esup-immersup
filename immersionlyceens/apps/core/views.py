@@ -1385,6 +1385,11 @@ class OffOfferEventsList(generic.TemplateView):
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
 
+            if self.request.user.is_high_school_manager():
+                context["establishments"] = Establishment.objects.none()
+                context["structures"] = Structure.objects.none()
+                context["highschool_id"] = self.request.user.highschool.id
+
         context["establishment_id"] = self.request.session.get('current_establishment_id', None)
         context["structure_id"] = self.request.session.get('current_structure_id', None)
 
@@ -1418,8 +1423,8 @@ class OffOfferEventAdd(generic.CreateView):
                 initials = {
                     'establishment': event.establishment.id,
                     'structure': event.structure.id if event.structure else None,
-                    'highschool': event.highschool.id,
-                    'event_type': event.highschool.id,
+                    'highschool': event.highschool.id if event.highschool else None,
+                    'event_type': event.event_type.id,
                     'label': event.label,
                     'description': event.description,
                     'published': event.published
@@ -1441,7 +1446,7 @@ class OffOfferEventAdd(generic.CreateView):
                     "is_removable": True,
                 } for t in event.speakers.all()]
 
-                context["origin_id"] = visit.id
+                context["origin_id"] = event.id
                 context["form"] = self.form
             except OffOfferEvent.DoesNotExist:
                 pass
@@ -1476,11 +1481,11 @@ class OffOfferEventAdd(generic.CreateView):
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
 class OffOfferEventUpdate(generic.UpdateView):
-    model = Visit
-    form_class = VisitForm
+    model = OffOfferEvent
+    form_class = OffOfferEventForm
     template_name = "core/off_offer_event.html"
 
-    queryset = Visit.objects.all()
+    queryset = OffOfferEvent.objects.all()
 
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
@@ -1489,14 +1494,16 @@ class OffOfferEventUpdate(generic.UpdateView):
 
     def get_context_data(self, **kwargs):
         speakers_list = []
-        visit_id = self.object.id
+        event_id = self.object.id
+
         duplicate = kwargs.get("duplicate", False)
-        if visit_id:
+        if event_id:
             try:
-                visit = Visit.objects.get(pk=visit_id)
-                self.request.session["current_structure_id"] = visit.structure.id if visit.structure else None
-                self.request.session["current_highschool_id"] = visit.highschool.id
-                self.request.session["current_establishment_id"] = visit.establishment.id
+                event = OffOfferEvent.objects.get(pk=event_id)
+                self.request.session["current_structure_id"] = event.structure.id if event.structure else None
+                self.request.session["current_highschool_id"] = event.highschool.id if event.highschool else None
+                self.request.session["current_establishment_id"] = \
+                    event.establishment.id if event.establishment else None
 
                 speakers_list = [{
                     "username": t.username,
@@ -1504,23 +1511,25 @@ class OffOfferEventUpdate(generic.UpdateView):
                     "firstname": t.first_name,
                     "email": t.email,
                     "display_name": f"{t.last_name} {t.first_name}",
-                    "is_removable": not t.slots.filter(visit=visit_id).exists(),
-                } for t in visit.speakers.all()]
+                    "is_removable": not t.slots.filter(event=event_id).exists(),
+                } for t in event.speakers.all()]
 
                 if duplicate:
                     data = {
-                        'establishment': visit.establishment,
-                        'structure': visit.structure,
-                        'highschool': visit.highschool,
-                        'published': visit.published,
-                        'purpose': visit.purpose
+                        'establishment': event.establishment,
+                        'structure': event.structure,
+                        'highschool': event.highschool,
+                        'event_type': event.event_type,
+                        'published': event.published,
+                        'label': event.label,
+                        'description': event.description
                     }
-                    visit = Visit(**data)
+                    event = OffOfferEvent(**data)
 
-                self.form = VisitForm(instance=visit, request=self.request)
+                self.form = OffOfferEventForm(instance=event, request=self.request)
 
-            except Visit.DoesNotExist:
-                self.form = VisitForm(request=self.request)
+            except OffOfferEvent.DoesNotExist:
+                self.form = OffOfferEventForm(request=self.request)
 
         context = super().get_context_data(**kwargs)
         context["can_update"] = True  # FixMe
@@ -1530,17 +1539,19 @@ class OffOfferEventUpdate(generic.UpdateView):
 
     def get_success_url(self):
         if self.add_new:
-            return reverse("add_visit")
+            return reverse("add_off_offer_event")
         elif self.duplicate and self.object.pk:
-            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
+            return reverse("duplicate_off_offer_event", kwargs={'pk': self.object.pk, 'duplicate': 1})
         else:
-            return reverse("visits")
+            return reverse("off_offer_events")
 
     def form_valid(self, form):
-        messages.success(self.request, _("Visit \"%s\" updated.") % form.instance)
+        messages.success(self.request, _("Off offer event \"%s\" updated.") % form.instance)
 
-        self.request.session['current_establishment_id'] = self.object.establishment.id
+        self.request.session['current_establishment_id'] = \
+            self.object.establishment.id if self.object.establishment else None
         self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+        self.request.session['current_highschool_id'] = self.object.highschool.id if self.object.highschool else None
 
         self.duplicate = self.request.POST.get("save_duplicate", False) != False
         self.add_new = self.request.POST.get("save_add_new", False) != False
@@ -1548,5 +1559,5 @@ class OffOfferEventUpdate(generic.UpdateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        messages.error(self.request, _("Visit \"%s\" not updated.") % str(form.instance))
+        messages.error(self.request, _("Off offer event \"%s\" not updated.") % str(form.instance))
         return super().form_invalid(form)

@@ -38,11 +38,11 @@ from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
     Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
     PublicDocument, Slot, Structure, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation, Visit
+    UserCourseAlert, Vacation, Visit, OffOfferEvent
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer,
-    TrainingHighSchoolSerializer, VisitSerializer
+    TrainingHighSchoolSerializer, VisitSerializer, OffOfferEventSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -2323,7 +2323,7 @@ class VisitList(generics.ListAPIView):
 @method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
 class VisitDetail(generics.DestroyAPIView):
     """
-    Visits list
+    Visit detail
     """
     serializer_class = VisitSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
@@ -2359,3 +2359,86 @@ class VisitDetail(generics.DestroyAPIView):
         super().delete(request, *args, **kwargs)
 
         return JsonResponse(data={"msg": _("Visit successfully deleted")})
+
+
+class OffOfferEventList(generics.ListAPIView):
+    """
+    Off offer events list
+    """
+    serializer_class = OffOfferEventSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['establishment', 'structure', 'highschool']
+
+    def get_queryset(self):
+        queryset = OffOfferEvent.objects.all()
+        user = self.request.user
+
+        if not user.is_superuser:
+            if user.is_high_school_manager():
+                queryset = queryset.filter(highschool=user.highschool)
+            if user.is_structure_manager():
+                queryset = queryset.filter(structure__in=user.structures.all())
+            if user.is_establishment_manager() and user.establishment:
+                queryset = OffOfferEvent.objects.filter(
+                    Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
+                    .distinct()
+
+        return queryset.order_by('establishment', 'structure', 'highschool', 'label')
+
+    def filter_queryset(self, queryset):
+        filters = {}
+        if "structure" in self.request.query_params:
+            structure_id = self.request.query_params.get("structure", None) or None
+            filters["structure"] = structure_id
+
+        if "establishment" in self.request.query_params:
+            establishment_id = self.request.query_params.get("establishment", None) or None
+            filters["establishment"] = establishment_id
+
+        if "highschool" in self.request.query_params:
+            highschool_id = self.request.query_params.get("highschool", None) or None
+            filters["highschool"] = highschool_id
+
+        return queryset.filter(**filters)
+
+
+@method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-LYC'), name="dispatch")
+class OffOfferEventDetail(generics.DestroyAPIView):
+    """
+    Off offer event detail
+    """
+    serializer_class = OffOfferEventSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    lookup_fields = ['id']
+    queryset = OffOfferEvent.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        user = self.request.user
+
+        if not obj:
+            return JsonResponse(data={"msg": _("Nothing to delete")})
+
+        if not user.is_superuser:
+            valid_conditions = [
+                user.is_master_establishment_manager(),
+                user.is_high_school_manager() and obj.highschool == user.highschool,
+                user.is_establishment_manager() and obj.establishment == user.establishment,
+                user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),
+            ]
+
+            if not any(valid_conditions):
+                return JsonResponse(
+                    data={"msg": _("Insufficient privileges")},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        if obj.slots.exists():
+            return JsonResponse(
+                data={"error": _("Some slots are attached to this event: it can't be deleted")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse(data={"msg": _("Off offer event successfully deleted")})
