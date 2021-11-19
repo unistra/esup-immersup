@@ -429,10 +429,10 @@ $(document).ready(function(){
           { data: 'course_label' },
           { data: 'structure',
             render: function(data, type, row) {
-              if(row.structure.code) {
+              if(row.structure) {
                   return row.structure.code;
               }
-              else if (row.highschool.label) {
+              else if (row.highschool) {
                   return row.highschool.label;
               }
 
@@ -493,7 +493,7 @@ $(document).ready(function(){
           },
           { data: 'id',
             render: function(data, type, row) {
-              if ( row['structure']['managed_by_me'] || row['highschool']['managed_by_me']) {
+              if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
                 let element =
               '        <a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
               '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
