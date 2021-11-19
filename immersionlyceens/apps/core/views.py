@@ -326,7 +326,7 @@ def del_slot(request, slot_id):
             ]
             if any(conditions):
                 return HttpResponse(gettext("This slot belongs to another structure"))
-            
+
         slot.delete()
     except Slot.DoesNotExist:
         pass
@@ -1179,20 +1179,22 @@ class VisitSlotList(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
 
+        # Defaults
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
+        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+        context["structure_id"] = self.request.session.get('current_structure_id', None)
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["establishment_id"] = self.request.user.establishment_id
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
-
-        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-        context["structure_id"] = self.request.session.get('current_structure_id', None)
+                context["establishment_id"] = self.request.user.establishment_id
 
         return context
 

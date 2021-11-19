@@ -441,18 +441,14 @@
 
 $(document).ready(function(){
   // initialize base values
-  if(highschool_id === 'None' || highschool_id === "") {
-    highschool_id = $("#id_highschool").val()
-  }
-  else {
-    $("#id_highschool").val(highschool_id)
-  }
-
-  if(establishment_id === 'None' || establishment_id === "") {
+  if(establishment_id === "" || establishment_id === 'None' || establishment_id === undefined) {
     establishment_id = $("#id_establishment").val()
-  }
-  else {
+    structure_id = ""
+    empty_structures()
+    empty_visits()
+  } else {
     $("#id_establishment").val(establishment_id)
+    set_structures(establishment_id)
   }
 
   if(structure_id === 'None' || structure_id === "") {
@@ -460,6 +456,20 @@ $(document).ready(function(){
   }
   else {
     $("#id_structure").val(structure_id)
+  }
+
+  if(highschool_id === 'None' || highschool_id === "") {
+    highschool_id = $("#id_highschool").val()
+  }
+  else {
+    $("#id_highschool").val(highschool_id)
+  }
+
+  if(highschool_id) {
+    set_visits()
+  }
+  else {
+    empty_visits()
   }
 
   if(visit_id === 'None' || visit_id === "") {
@@ -472,15 +482,6 @@ $(document).ready(function(){
   else {
     $("#id_visit").val(visit_id)
     load_speakers(visit_id);
-  }
-
-
-  if(establishment_id === "" || establishment_id === undefined) {
-    structure_id = ""
-    empty_structures()
-    empty_visits()
-  } else {
-    set_structures(establishment_id)
   }
 
   if($('#id_face_to_face').is(':checked')) {

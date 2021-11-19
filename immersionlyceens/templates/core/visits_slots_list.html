@@ -118,6 +118,7 @@
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
   var slot_places = 0;
+  var is_structure_manager = "{{ request.user.is_structure_manager }}"
 
   let deleteDialog = $("#delete-dialog-form").dialog({
     autoOpen: false,
@@ -198,7 +199,11 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        let options = '<option value="">---------</option>'
+        let options = ''
+
+        if(is_structure_manager === "False") {
+            options += '<option value="">---------</option>'
+        }
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
         }
@@ -455,6 +460,9 @@ $(document).ready(function(){
     if(current_establishment_id !== "None" && current_establishment_id !== "" && current_establishment_id !== undefined) {
       $("#id_establishment").val(current_establishment_id)
       set_structures(current_establishment_id)
+    }
+    else {
+      empty_structures()
     }
 
     if(current_structure_id !== "None" && current_structure_id !== "" && current_structure_id !== undefined) {

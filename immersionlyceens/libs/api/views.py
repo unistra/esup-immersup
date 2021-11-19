@@ -388,6 +388,8 @@ def ajax_get_slots(request):
         slots = Slot.objects.prefetch_related(
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
             .filter(**filters)
+
+        user_filter_key = "visit__structure__in"
     else:
         filters["visit__isnull"] = True
 
@@ -401,6 +403,12 @@ def ajax_get_slots(request):
         slots = Slot.objects.prefetch_related(
             'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
             .filter(**filters)
+
+        user_filter_key = "course__structure__in"
+
+    if not request.user.is_superuser and request.user.is_structure_manager():
+        user_filter = {user_filter_key: request.user.structures.all()}
+        slots = slots.filter(**user_filter)
 
     if user_filter:
         if past_slots:
@@ -2296,11 +2304,20 @@ class VisitList(generics.ListAPIView):
         return queryset.order_by('establishment', 'structure', 'highschool', 'purpose')
 
     def filter_queryset(self, queryset):
-        if "structure" not in self.request.query_params:
-            return queryset
+        filters = {}
+        if "structure" in self.request.query_params:
+            structure_id = self.request.query_params.get("structure", None) or None
+            filters["structure"] = structure_id
 
-        structure_id = self.request.query_params.get("structure", None) or None
-        return queryset.filter(structure=structure_id)
+        if "establishment" in self.request.query_params:
+            establishment_id = self.request.query_params.get("establishment", None) or None
+            filters["establishment"] = establishment_id
+
+        if "highschool" in self.request.query_params:
+            highschool_id = self.request.query_params.get("highschool", None) or None
+            filters["highschool"] = highschool_id
+
+        return queryset.filter(**filters)
 
 
 @method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
