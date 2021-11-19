@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db import IntegrityError
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -506,7 +507,9 @@ def course(request, course_id=None, duplicate=False):
                 for speaker in speakers_list:
                     if isinstance(speaker, dict):
                         try:
-                            speaker_user = ImmersionUser.objects.get(username=speaker['username'])
+                            speaker_user = ImmersionUser.objects.get(
+                                Q(username=speaker['username']) | Q(email=speaker['email'])
+                            )
                         except ImmersionUser.DoesNotExist:
                             establishment = new_course.structure.establishment if new_course.structure else None
 
