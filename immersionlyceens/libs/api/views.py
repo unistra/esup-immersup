@@ -207,13 +207,20 @@ def ajax_get_courses(request):
 
     courses = Course.objects.prefetch_related('training', 'highschool', 'structure').filter(**filters)
 
+    allowed_structures = request.user.get_authorized_structures()
+
     for course in courses:
         managed_by = None
+        has_rights = False
 
         if course.structure:
             managed_by = f"{course.structure.code} ({course.structure.establishment.short_label})"
+            has_rights = (course.training.structures.all() & allowed_structures).exists()
         elif course.highschool:
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
+            has_rights = course.highschool == request.user.highschool
+
+
 
         course_data = {
             'id': course.id,
@@ -231,6 +238,7 @@ def ajax_get_courses(request):
             'published_slots_count': course.published_slots_count(**speaker_filter),
             'registered_students_count': course.registrations_count(**speaker_filter),
             'alerts_count': course.get_alerts_count(),
+            'has_rights': has_rights,
             'can_delete': not course.slots.exists(),
         }
 

@@ -388,10 +388,7 @@
           { "data": "",
             "render": function (data, type, row) {
               var icons = "";
-              let has_rights = (row.structure_id === parseInt(current_structure_id))
-                  || (row.highschool_id === parseInt(current_highschool_id))
-
-              if(has_rights) {
+              if(row.has_rights) {
                 icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                          "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                          "</a>\n";
