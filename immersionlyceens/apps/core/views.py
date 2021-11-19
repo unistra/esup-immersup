@@ -319,8 +319,14 @@ def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
         # Check whether the user has access to this slot
-        if request.user.is_structure_manager() and slot.course.structure not in request.user.structures.all():
-            return HttpResponse(gettext("This slot belongs to another structure"))
+        if request.user.is_structure_manager():
+            conditions = [
+                slot.course and slot.course.structure not in request.user.structures.all(),
+                slot.visit and slot.visit.structure not in request.user.structures.all()
+            ]
+            if any(conditions):
+                return HttpResponse(gettext("This slot belongs to another structure"))
+            
         slot.delete()
     except Slot.DoesNotExist:
         pass
