@@ -255,6 +255,9 @@ class ImmersionUser(AbstractUser):
 
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
+
+            from immersionlyceens.libs.mails.variables_parser import Parser
+
             logger.debug("Message body : %s" % message_body)
             send_email(self.email, template.subject, message_body)
         except Exception as e:

@@ -1,16 +1,15 @@
-import json
 import logging
 import re
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from requests import Request
 
-from immersionlyceens.apps.core.models import (EvaluationFormLink, EvaluationType, Immersion, UniversityYear,
+from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
     MailTemplateVars, Slot, Course, ImmersionUser)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 logger = logging.getLogger(__name__)
@@ -27,6 +26,14 @@ def multisub(subs, subject):
 
 
 def parser(message_body, available_vars=None, user=None, request=None, **kwargs):
+    return Parser.parser(
+        message_body=message_body,
+        available_vars=available_vars,
+        user=user,
+        request=request,
+        **kwargs
+    )
+
     slot = kwargs.get('slot')
     slot_list = kwargs.get('slot_list')
     course = kwargs.get('course')
@@ -210,7 +217,6 @@ class Parser:
     def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]],
                user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
         context: Dict[str, Any] = cls.get_context(user, request, **kwargs)
-
         return render_text(template_data=message_body, data=context)
 
     @staticmethod
@@ -281,7 +287,7 @@ class Parser:
         return {}
 
     @staticmethod
-    def get_user_context(user: Optional[ImmersionUser], institution_label: Optional[str]):
+    def get_user_context(user: Optional[ImmersionUser], institution_label: Optional[str], record: Optional[Union[StudentRecord, HighSchoolStudentRecord]]):
         if user:
             context: Dict[str, Any] = {
                 "nom": user.last_name,
@@ -299,12 +305,16 @@ class Parser:
                         "etudiant_date_naissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
                     })
                 except HighSchoolStudentRecord.DoesNotExist:
-                    # TODO: maybe instead of lycee use a home_institution tpl var ???
-                    context.update({"lycee": institution_label})
+                    pass
             elif user.is_student():
-                pass
+                # TODO: maybe instead of lycee use a home_institution tpl var ???
+                context.update({"lycee": institution_label})
+                if record:
+                    context.update({
+                        "etudiant_date_naissances": date_format(record.birth_date, 'd/m/Y')
+                    })
             elif user.highschool:
-                pass
+                context.update({"lycee": user.highschool.label})
 
             return context
         return {}
@@ -391,26 +401,79 @@ class Parser:
         course: Optional[Course] = kwargs.get('course')
         immersion: Optional[Immersion] = kwargs.get('immersion')
 
-        institution_label: Optional[Any] = None
-        record: Optional[Any] = None
-
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
         global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()
         platform_url: str = cls.get_platform_url(request)
         year: Optional[UniversityYear] = cls.get_year()
 
+        record: Optional[Union[HighSchoolStudentRecord, StudentRecord]] = None
+        institution_label: Optional[Any] = None
+        registered_students: Optional[List[str]] = None
+
+        tmp_var: Dict[str, Any] = cls.get_registered_students(slot)
+        if "record" in tmp_var:
+            record = tmp_var["record"]
+        if "registered_students" in tmp_var:
+            registered_students = tmp_var["registered_students"]
+        if "institution_label" in tmp_var:
+            institution_label = tmp_var["institution_label"]
+
         context: Dict[str, Any] = {
             "annee": year.label,
             "urlPlateforme": platform_url,
         }
+
         context.update(cls.get_course_context(course))
         context.update(cls.get_slot_context(slot))
-        context.update(cls.get_user_context(user, None))
+        # todo
+        context.update(cls.get_user_context(user, institution_label, record))
+
         context.update(cls.get_cancellation_type_context(immersion))
         context.update(cls.get_user_request_context(user, request, platform_url))
         context.update(cls.get_slot_list_context(slot_list))
         context.update(cls.get_slot_survey_context(slot_survey))
         context.update(cls.get_global_survey_context(global_survey))
+        context.update(cls.get_registered_students_context(registered_students))
+
+        context.update()
 
         return context
+
+    @staticmethod
+    def get_registered_students(slot: Optional[Slot]) -> Dict[str, Any]:
+        record: Optional[Union[HighSchoolStudentRecord, StudentRecord]] = None
+        if slot:
+            institution_label: str = _("Unknown home institution")
+            registered_students: List[str] = []
+            registered: Immersion
+            for registration in Immersion.objects.filter(slot=slot, cancellation_type__isnull=True):
+                if registration.student.is_high_school_student():
+                    record = registration.student.get_high_school_student_record()
+                    if record and record.highschool:
+                        institution_label = record.highschool.label
+                elif registration.student.is_student():
+                    record = registration.student.get_student_record()
+                    if record:
+                        uai_code, institution = record.home_institution()
+                        institution_label = institution.label if institution else uai_code
+
+                registered_students.append(
+                    f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
+                )
+
+            return {
+                "registered_students": registered_students,
+                "record": record,
+                "institution_label": institution_label,
+
+            }
+        return {}
+
+    @staticmethod
+    def get_registered_students_context(registered_students: Optional[List[str]]) -> Dict[str, Any]:
+        if registered_students:
+            return {
+                "listeInscrits": "<br />".join(sorted(registered_students))
+            }
+        return {}
 
