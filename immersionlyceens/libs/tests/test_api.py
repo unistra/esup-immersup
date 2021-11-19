@@ -930,9 +930,13 @@ class APITestCase(TestCase):
         self.assertEqual(c['structure_code'], self.course.structure.code)
         self.assertEqual(c['structure_id'], self.course.structure.id)
 
-        speaker_names = [f'{t.last_name} {t.first_name}' for t in self.course.speakers.all()]
-        for t in c['speakers']:
-            self.assertIn(t, speaker_names)
+        speakers = [{
+            'name': f'{t.last_name} {t.first_name}',
+            'email': t.email
+        } for t in self.course.speakers.all()]
+
+        for speaker in c['speakers']:
+            self.assertIn(speaker, speakers)
 
         self.assertEqual(c['slots_count'], self.course.slots_count())
         self.assertEqual(c['n_places'], self.course.free_seats())

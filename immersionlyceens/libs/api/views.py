@@ -220,8 +220,6 @@ def ajax_get_courses(request):
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
             has_rights = course.highschool == request.user.highschool
 
-
-
         course_data = {
             'id': course.id,
             'published': course.published,
@@ -243,7 +241,10 @@ def ajax_get_courses(request):
         }
 
         for speaker in course.speakers.all().order_by('last_name', 'first_name'):
-            course_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
+            course_data['speakers'].append({
+                'name': f"{speaker.last_name} {speaker.first_name}",
+                'email': speaker.email
+            })
 
         response['data'].append(course_data.copy())
 

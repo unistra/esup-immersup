@@ -102,8 +102,8 @@
       "data": "speakers",
       "render": function (data) {
         let txt = "";
-        $.each(data, function (name, email) {
-          txt += "<a href='mailto:" + email + "'>" + name + "</a><br>";
+        $.each(data, function (index, speaker) {
+          txt += "<a href='mailto:" + speaker.email + "'>" + speaker.name + "</a><br>";
         });
         return txt;
       },
