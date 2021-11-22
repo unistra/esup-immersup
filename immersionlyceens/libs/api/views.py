@@ -54,8 +54,7 @@ from immersionlyceens.decorators import (
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
-from immersionlyceens.libs.mails.variables_parser import multisub
-from immersionlyceens.libs.utils import get_general_setting
+from immersionlyceens.libs.utils import get_general_setting, render_text
 
 logger = logging.getLogger(__name__)
 
@@ -1878,12 +1877,12 @@ def ajax_send_email_contact_us(request):
     # Contacting user mail notification
     if notify_user:
         try:
-            vars = [
-                ('${nom}', lastname),
-                ('${prenom}', firstname),
-            ]
+            vars = {
+                "nom": lastname,
+                "prenom": firstname,
+            }
+            message_body = render_text(template_data=template.body, data=vars)
 
-            message_body = multisub(vars, template.body)
             send_email(email, template.subject, message_body)
         except Exception as e:
             logger.exception(e)
