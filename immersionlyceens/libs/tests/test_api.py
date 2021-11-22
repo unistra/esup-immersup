@@ -20,7 +20,8 @@ from rest_framework.test import APIClient, APITestCase
 
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building, Calendar, Campus, CancelType,
     Structure, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit
+    MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
+    OffOfferEvent, OffOfferEventType
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
@@ -392,6 +393,8 @@ class APITestCase(TestCase):
             email=self.student.email,
             course=self.course
         )
+
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
 
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -2069,7 +2072,76 @@ class APITestCase(TestCase):
         self.assertEqual(Visit.objects.count(), 1)
 
         # as master_ref_etab
-        client.login(username='ref_etab', password='pass')
+        client.login(username='ref_master_etab', password='pass')
         response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Visit.objects.count(), 0)
+
+
+    def test_off_offer_event(self):
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=None,
+            event_type=self.event_type,
+            label="Establishment event",
+            description="Whatever",
+            published=True
+        )
+
+        event2 = OffOfferEvent.objects.create(
+            establishment=None,
+            structure=None,
+            highschool=self.high_school,
+            event_type=self.event_type,
+            label="High school event",
+            description="Whatever",
+            published=True
+        )
+
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        # List
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 1)
+        self.assertEqual(content[0]['label'], 'Establishment event')
+        self.assertEqual(content[0]['establishment'], "ETA1 : Etablissement 1 (master)")
+
+        # As ref-lyc
+        client.login(username='lycref', password='pass')
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 1)
+        self.assertEqual(content[0]['label'], 'High school event')
+        self.assertEqual(content[0]['highschool'], f"{self.high_school.city} - {self.high_school.label}")
+
+        # As ref-str (with no structure) : empty
+        client.login(username='ref_str', password='pass')
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 0)
+
+        # Deletion
+        # as ref_str : fail (bad structure)
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
+        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(OffOfferEvent.objects.count(), 2)
+
+        # as ref_etab : same establishment : success
+        client.login(username='ref_etab', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 1)
+
+        # as master_ref_etab : no access to high school events
+        client.login(username='ref_master_etab', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
+        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(OffOfferEvent.objects.count(), 1)

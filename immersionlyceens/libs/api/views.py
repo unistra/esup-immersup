@@ -2421,7 +2421,7 @@ class OffOfferEventDetail(generics.DestroyAPIView):
 
         if not user.is_superuser:
             valid_conditions = [
-                user.is_master_establishment_manager(),
+                user.is_master_establishment_manager() and not obj.highschool,
                 user.is_high_school_manager() and obj.highschool == user.highschool,
                 user.is_establishment_manager() and obj.establishment == user.establishment,
                 user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),
