@@ -181,6 +181,8 @@ class APITestCase(TestCase):
         message_body = MailTemplate.objects.get(code='CPT_MIN_CREATE_LYCEEN')
         parsed_body = parser(message_body.body, user=self.highschool_user)
 
+        print(parsed_body)
+
         self.assertIn(self.highschool_user.first_name, parsed_body)
         self.assertIn(self.highschool_user.last_name, parsed_body)
         self.assertIn(self.highschool_user.validation_string, parsed_body)
@@ -262,3 +264,13 @@ class APITestCase(TestCase):
         message_body = MailTemplate.objects.get(code='IMMERSION_ANNUL')
         parsed_body = parser(message_body.body, user=self.highschool_user, immersion=self.immersion)
         self.assertIn(self.immersion.cancellation_type.label, parsed_body)
+
+    def test_condition(self):
+        message_body = "{% if prenom == 'Jean' %}Hello{% else %}World{% endif %}"
+        parsed_body = parser(message_body, user=self.highschool_user)
+
+        self.assertEqual("Hello", parsed_body)
+
+        self.highschool_user.first_name = "dsfgfd"
+        parsed_body = parser(message_body, user=self.highschool_user)
+        self.assertEqual("World", parsed_body)
