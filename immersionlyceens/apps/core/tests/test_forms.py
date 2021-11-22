@@ -408,20 +408,28 @@ class FormTestCase(TestCase):
         # Success
         data["speakers_list"] = '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
         form = OffOfferEventForm(data=data, request=request)
-        form.is_valid()
-
-        print(form.errors)
-
         self.assertTrue(form.is_valid())
         form.save()
+        event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=self.structure)
+        self.assertEqual(event.speakers.first(), self.speaker1)
 
         # Create an Event with no structure
         del(data["structure"])
         form = OffOfferEventForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
+        event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=None)
+        self.assertEqual(event.speakers.first(), self.speaker1)
 
         # Fail : duplicate
         form = OffOfferEventForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("An event with these values already exists", form.errors["__all__"])
+
+        # Fail : establishment or highschool required
+        del(data["establishment"])
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You must select one of : Establishment or High school", form.errors["__all__"])
+
+        # As a high school manager
