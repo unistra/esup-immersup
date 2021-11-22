@@ -13,7 +13,7 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE | fix_lang_code }}.js"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 {% endblock %}
 {% block section_title %}
 <h2 class="ml-2">{% trans "Duplicated accounts" %}</h2>
@@ -110,7 +110,7 @@
       },
     'searching': true,
     'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE | fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
       { "data": "names",

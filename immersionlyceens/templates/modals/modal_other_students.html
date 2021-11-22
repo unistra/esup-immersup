@@ -62,7 +62,7 @@ $('#modal_other_registrants').on('show.bs.modal', function (e) {
     'paging': false,
     'ordering': true,
     'language': {
-      url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE | fix_lang_code }}.json"
+      url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
       {"data": "name"},

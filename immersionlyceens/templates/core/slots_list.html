@@ -17,7 +17,7 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE | fix_lang_code }}.js"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
@@ -418,7 +418,7 @@ $(document).ready(function(){
       paging: true,
       ordering: true,
       language: {
-        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE | fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       columns: [
           { data: 'published',
