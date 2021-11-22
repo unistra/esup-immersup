@@ -433,3 +433,29 @@ class FormTestCase(TestCase):
         self.assertIn("You must select one of : Establishment or High school", form.errors["__all__"])
 
         # As a high school manager
+        request.user = self.lyc_ref
+
+        # Error : can't choose establishmeent/structure
+        data = {
+            'establishment': self.master_establishment.id,
+            'structure': self.structure.id,
+            'highschool': None,
+            'label': "High school event",
+            'event_type': self.event_type,
+            'published': True,
+            'description': "Description test 2",
+            "speakers_list": '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
+        }
+
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Select a valid choice. That choice is not one of the available choices.",
+            form.errors["structure"]
+        )
+        self.assertIn(
+            "Select a valid choice. That choice is not one of the available choices.",
+            form.errors["establishment"]
+        )
+        self.assertIn("You must select one of : Establishment or High school", form.errors["__all__"])
+        
