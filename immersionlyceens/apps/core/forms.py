@@ -6,6 +6,7 @@ from typing import Dict, Any
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.conf import settings
 from django.forms.widgets import DateInput, TimeInput
 from django.utils.translation import gettext, ngettext, gettext_lazy as _
@@ -130,22 +131,8 @@ class SlotForm(forms.ModelForm):
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 
-        for elem in [
-            'establishment',
-            'highschool',
-            'structure',
-            'training',
-            'course',
-            'course_type',
-            'campus',
-            'building',
-            'room',
-            'start_time',
-            'end_time',
-            'n_places',
-            'additional_information',
-            #'published',
-        ]:
+        for elem in ['establishment', 'highschool', 'structure', 'visit', 'training', 'course', 'course_type',
+            'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         can_choose_establishment = any([
@@ -159,10 +146,6 @@ class SlotForm(forms.ModelForm):
             self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
         else:
             allowed_establishments = Establishment.objects.none()
-
-        if allowed_establishments.count() == 1:
-            self.fields["establishment"].initial = allowed_establishments.first().id
-            self.fields["establishment"].empty_label = None
 
         if allowed_establishments.count() == 1:
             self.fields["establishment"].initial = allowed_establishments.first().id
@@ -251,24 +234,9 @@ class SlotForm(forms.ModelForm):
 
     class Meta:
         model = Slot
-        fields = (
-            'id',
-            'establishment',
-            'structure',
-            'highschool',
-            'training',
-            'course',
-            'course_type',
-            'campus',
-            'building',
-            'room',
-            'date',
-            'start_time',
-            'end_time',
-            'n_places',
-            'additional_information',
-            'published',
-        )
+        fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'training', 'course', 'course_type',
+            'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places', 'additional_information',
+            'published', 'face_to_face')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
@@ -281,6 +249,125 @@ class SlotForm(forms.ModelForm):
         }
 
         localized_fields = ('date',)
+
+
+class VisitSlotForm(SlotForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["highschool"].queryset = HighSchool.agreed\
+            .filter(visits__isnull=False)\
+            .distinct()\
+            .order_by('city', 'label')
+
+        self.fields["room"].widget.attrs["placeholder"] = _("Please enter the building and room name")
+
+        allowed_establishments = Establishment.activated.user_establishments(self.request.user)
+        self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
+
+        allowed_structs = self.request.user.get_authorized_structures()
+        self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
+
+        if self.request.user.is_structure_manager():
+            self.fields["structure"].initial = self.fields["structure"].queryset.first()
+            self.fields["structure"].empty_label = None
+        else:
+            self.fields["structure"].initial = None
+            self.fields["structure"].empty_label = "---------"
+
+        visit = self.instance.visit if self.instance and self.instance.visit_id else None
+
+        if visit:
+            self.fields["structure"].initial = visit.structure.id if visit.structure else None
+            self.fields["highschool"].initial = visit.highschool.id
+            self.fields["establishment"].initial = visit.establishment.id
+
+
+    def clean(self):
+        cleaned_data = super(forms.ModelForm, self).clean()
+        visit = cleaned_data.get('visit')
+        pub = cleaned_data.get('published', None)
+        face_to_face = cleaned_data.get('face_to_face', None)
+
+        cals = Calendar.objects.all()
+
+        if cals.exists():
+            cal = cals.first()
+        else:
+            raise forms.ValidationError(_('Error: A calendar is required to set a slot.'))
+
+        if pub is True:
+            # Mandatory fields, depending on high school / structure slot
+            m_fields = ['visit', 'date', 'start_time', 'end_time']
+
+            if face_to_face:
+                m_fields.append("room")
+            else:
+                m_fields.append("url")
+
+            for field in m_fields:
+                if not cleaned_data.get(field):
+                    self.add_error(field, _("This field is required"))
+
+            """
+            if not all(cleaned_data.get(e) for e in m_fields):
+                raise forms.ValidationError(_('Required fields are not filled in'))
+            """
+
+        _date = cleaned_data.get('date')
+        if _date and not cal.date_is_between(_date):
+            raise forms.ValidationError(
+                {'date': _('Error: The date must be between the dates of the current calendar')}
+            )
+
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        if start_time and end_time and start_time >= end_time:
+            raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
+
+        if visit and not visit.published and pub:
+            visit.published = True
+            visit.save()
+
+        try:
+            speakers = self.data.getlist("speakers_list", [])
+            cleaned_data["speakers"] = speakers
+        except Exception as e:
+            speakers = []
+
+        if pub and not speakers:
+            msg = _("Please select at least one speaker.")
+            # messages.error(self.request, msg)
+            raise forms.ValidationError(msg)
+
+        return cleaned_data
+
+
+    def save(self, *args, **kwargs):
+        instance = super().save(*args, **kwargs)
+
+        self.request.session['current_establishment_id'] = instance.visit.establishment.id
+        self.request.session['current_structure_id'] = instance.visit.structure.id if instance.visit.structure else None
+
+        speakers_list = self.cleaned_data.get('speakers', [])
+        current_speakers = [f"{u}" for u in instance.speakers.all().values_list('id', flat=True)]
+        new_speakers = [speaker for speaker in speakers_list]
+
+        # speakers to add
+        for speaker_id in new_speakers:
+            if not instance.speakers.filter(id=speaker_id).exists():
+                instance.speakers.add(speaker_id)
+
+        # speakers to remove
+        remove_list = set(current_speakers) - set(new_speakers)
+        for id in remove_list:
+            try:
+                user = ImmersionUser.objects.get(id=id)
+                instance.speakers.remove(user)
+            except ImmersionUser.DoesNotExist:
+                pass
+
+        return instance
+
 
 
 class MyHighSchoolForm(HighSchoolForm):
@@ -426,8 +513,9 @@ class VisitForm(forms.ModelForm):
             if self.request.user.is_structure_manager():
                 self.fields["establishment"].queryset = \
                     Establishment.objects.filter(pk=self.request.user.establishment.id)
+                self.fields["structure"].required = True
                 self.fields["structure"].queryset = \
-                    self.fields["structure"].queryset.filter(establishment=self.request.user.establishment)
+                    self.fields["structure"].queryset.filter(id__in=self.request.user.structures.all())
 
         if self.instance and self.instance.establishment_id:
             self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.instance.establishment.id)
@@ -480,7 +568,7 @@ class VisitForm(forms.ModelForm):
         for speaker in speakers_list:
             if isinstance(speaker, dict):
                 try:
-                    speaker_user = ImmersionUser.objects.get(username=speaker['username'])
+                    speaker_user = ImmersionUser.objects.get(Q(username=speaker['username'])|Q(email=speaker['email']))
                 except ImmersionUser.DoesNotExist:
                     speaker_user = ImmersionUser.objects.create(
                         username=speaker['username'],

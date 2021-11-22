@@ -12,7 +12,7 @@
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 {% endblock %}
 {% block title %}
 {% trans "My slots" %}
@@ -116,7 +116,7 @@
       },
     'searching': true,
     'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
     {% if is_establishment_manager %}

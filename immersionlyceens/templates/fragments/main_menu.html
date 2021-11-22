@@ -18,7 +18,7 @@
           </a>
         </div>
         <div class="nav-item">
-        <a class="nav-link" href="{% url 'procedure' %}">{% trans 'Procedure' %}</a>
+          <a class="nav-link" href="{% url 'procedure' %}">{% trans 'Procedure' %}</a>
         </div>
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownOffer" role="button" data-toggle="dropdown"
@@ -45,18 +45,24 @@
             <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
               <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
               <a class="dropdown-item" href="{% url 'course' %}">{% trans 'New course' %}</a>
-            </div>
-          </div>
-          <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSlots" role="button" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false">
-              {% trans 'Slots' %}
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownSlots">
               <a class="dropdown-item" href="{% url 'slots_list' %}">{% trans 'Slots list' %}</a>
               <a class="dropdown-item" href="{% url 'slot' %}">{% trans 'New slot' %}</a>
             </div>
           </div>
+        {% endif %}
+
+        {% if highschool_visit and authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE" %}
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownVisits" role="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            {% trans 'Visits' %}
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
+            <a class="dropdown-item" href="{% url 'visits' %}">{% trans 'Visits list' %}</a>
+            <a class="dropdown-item" href="{% url 'visits_slots' %}">{% trans 'Visits slots list' %}</a>
+            <a class="dropdown-item" href="{% url 'add_visit_slot' %}">{% trans 'New visit slot' %}</a>
+          </div>
+        </div>
         {% endif %}
 
         {# Structure #}

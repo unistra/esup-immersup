@@ -268,17 +268,23 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 messages.warning(request, no_delete_msg)
                 return False
 
-            if obj.courses.all().exists():
-                messages.warning(request, _("This user is linked to courses/events, he can't be deleted"))
+            if obj.courses.all().exists() or obj.visits.all().exists():
+                messages.warning(
+                    request,
+                    _("This account is linked to courses/visits/events, you can't delete it")
+                )
                 return False
 
+            user_groups = obj.groups.all().values_list('name', flat=True)
+
             if request.user.is_master_establishment_manager():
-                return obj.groups.filter(name__in=('REF-ETAB', 'REF-STR')).exists()
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE')
+                return not ({x for x in user_groups} - set(rights))
+                # return obj.groups.filter(name__in=('REF-ETAB', 'REF-STR')).exists()
 
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
             if request.user.is_establishment_manager():
-                user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
                 establishment_condition = obj.establishment == request.user.establishment
 
@@ -289,7 +295,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
                 return not ({x for x in user_groups} - set(rights))
 
             if request.user.is_high_school_manager():
-                user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
                 highschool_condition = obj.highschool == request.user.highschool
 
@@ -736,7 +741,7 @@ class TrainingAdmin(AdminWithRequest, admin.ModelAdmin):
             return qs
 
         if request.user.is_establishment_manager():
-            return qs.filter(structures__establishment=request.user.establishment)
+            return qs.filter(structures__establishment=request.user.establishment).distinct()
 
         return qs
 
@@ -1414,7 +1419,7 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = OffOfferEventTypeForm
-    list_display = ('label', 'full_label', 'active')
+    list_display = ('label', 'active')
     ordering = ('label',)
 
     def has_add_permission(self, request):

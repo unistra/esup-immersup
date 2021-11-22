@@ -179,16 +179,17 @@ class BuildingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['campus'].queryset = Campus.objects.filter(active=True).order_by('label')
 
-        if not self.request.user.is_superuser:
+        if self.request.user.is_superuser or self.request.user.is_master_establishment_manager():
+            self.fields['establishment'].queryset = Establishment.objects.all()
+        else:
             if self.request.user.is_establishment_manager():
                 user_establishment = self.request.user.establishment
                 self.fields['establishment'].queryset = Establishment.objects.filter(pk=user_establishment.id)
                 self.fields['campus'].queryset = Campus.objects.filter(establishment=user_establishment)
-            elif self.request.user.is_master_establishment_manager():
-                self.fields['establishment'].queryset = Establishment.objects.all()
 
             if self.instance and self.instance.pk and self.instance.campus and self.instance.campus.establishment:
                 self.fields['establishment'].disabled = True
+
 
         try:
             self.fields['establishment'].initial = self.instance.campus.establishment
@@ -1037,8 +1038,15 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
+        if not self.request.user.is_superuser:
+            conditions = [
+                self.instance.establishment and not self.instance.establishment.data_source_plugin,
+                self.instance.highschool is not None
+            ]
+
+            if any(conditions):
                 self.instance.username = self.instance.email
-                # TODO: send CPT_CREATE_INTER in case of a new user
+            # TODO: send CPT_CREATE_INTER in case of a new user
 
         if ref_lyc_group and str(ref_lyc_group.id) in new_groups - current_groups:
             # REF-LYC group spotted : if the password is not set, send an email to the user

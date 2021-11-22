@@ -261,7 +261,7 @@
       },
       'searching': true,
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
         { "data": "training" },
@@ -336,7 +336,7 @@
       },
       'searching': true,
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
         { "data": "training" },
@@ -408,7 +408,7 @@
       },
       'searching': true,
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
         { "data": "training" },

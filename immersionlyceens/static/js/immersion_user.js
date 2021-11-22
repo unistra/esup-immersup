@@ -29,14 +29,12 @@ $(document).ready(function() {
     function refresh_search_field() {
       if(!has_plugin) {
         $(".field-search").hide()
-        $("#id_username").prop("readonly", false);
         $("#id_email").prop("readonly", false);
         $("#id_first_name").prop("readonly", false);
         $("#id_last_name").prop("readonly", false);
       }
       else {
         $(".field-search").show()
-        $("#id_username").prop("readonly", true);
         $("#id_email").prop("readonly", true);
         $("#id_first_name").prop("readonly", true);
         $("#id_last_name").prop("readonly", true);

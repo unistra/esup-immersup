@@ -24,6 +24,7 @@ urlpatterns = [
     path('get_available_vars/<int:template_id>', views.ajax_get_available_vars, name='GetAvailableVars',),
     path('get_buildings/<int:campus_id>', views.ajax_get_buildings, name='get_buildings',),
     path('get_course_speakers/<int:course_id>', views.ajax_get_course_speakers, name='get_course_speakers',),
+    path('get_visit_speakers/<int:visit_id>', views.ajax_get_visit_speakers, name='get_visit_speakers',),
     path(
         'get_courses_by_training/<int:structure_id>/<int:training_id>',
         views.ajax_get_courses_by_training,
@@ -46,9 +47,7 @@ urlpatterns = [
     path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
     path('get_immersions/<int:user_id>', views.ajax_get_immersions, name='get_immersions',),
     path('get_immersions/<int:user_id>/<immersion_type>', views.ajax_get_immersions, name='get_immersions',),
-    path('get_my_courses', views.ajax_get_my_courses, name='GetMyCourses'),
-    path('get_my_slots', views.ajax_get_my_slots, name='GetMySlots'),
-    path('get_my_slots/all', views.ajax_get_my_slots, name='GetMySlotsAll'),
+    # path('get_my_courses', views.ajax_get_my_courses, name='GetMyCourses'),
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),

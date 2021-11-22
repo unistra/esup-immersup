@@ -1,16 +1,19 @@
 import datetime
+import logging
 
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.utils.translation import gettext_lazy as _
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
-    EvaluationType, Holiday, PublicDocument, PublicType, Slot, Structure,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, HighSchool,
+    EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
+    ImmersionUser, PublicDocument, PublicType, Slot, Structure, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -68,7 +71,6 @@ class PublicTypeTestCase(TestCase):
         o = PublicType.objects.create(label=label)
         self.assertEqual(str(o), label)
         self.assertTrue(o.active)
-
 
 
 class UniversityYearTestCase(TestCase):
@@ -313,3 +315,126 @@ class TrainingCase(TestCase):
 
         course = Course.objects.create(label="course 1", training=t, structure=self.structure)
         self.assertFalse(t.can_delete())
+
+    def test_distinct_establishments(self):
+        t = Training.objects.create(label="training2")
+        establishment = Establishment.objects.create(
+            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
+            address= 'address', department='departmeent', city='city', zip_code= 'zip_code', phone_number= '+33666'
+        )
+        establishment2 = Establishment.objects.create(
+            code='ETA3', label='Etablissement 3', short_label='Eta 3', active=True, master=False, email='test@test.com',
+            address= 'address', department='departmeent', city='city', zip_code= 'zip_code', phone_number= '+33666'
+        )
+        self.structure.establishment=establishment
+        self.structure.save()
+        t.structures.add(self.structure)
+        structure2 = Structure.objects.create(label="test structure2", code="str2", establishment=establishment)
+        self.assertQuerysetEqual(t.distinct_establishments(), \
+                                 ["<Establishment: ETA2 : Etablissement 2>", ],
+                                  ordered=False)
+
+        t.structures.add(structure2)
+        # Only one establishment is returned
+        self.assertTrue(t.distinct_establishments().count() == 1)
+        self.assertQuerysetEqual(t.distinct_establishments(), \
+                                 ["<Establishment: ETA2 : Etablissement 2>",],
+                                 ordered=False)
+
+        # Return two establishments
+        structure3 = Structure.objects.create(label="test structure3", code="str3", establishment=establishment2)
+        t.structures.add(structure3)
+        self.assertTrue(t.distinct_establishments().count() == 2)
+        self.assertQuerysetEqual(t.distinct_establishments(), \
+                                 ["<Establishment: ETA2 : Etablissement 2>", "<Establishment: ETA3 : Etablissement 3>"],
+                                 ordered=False)
+
+    def test_str_training(self):
+        t = Training.objects.create(label="training")
+        self.assertEqual(str(t), 'training')
+
+
+class StructureTestCase(TestCase):
+    def setUp(self):
+        self.structure = Structure.objects.create(code='test', label="test structure")
+
+    def test_str_structure(self):
+        self.assertEqual(str(self.structure), 'test : test structure')
+
+
+class HighSchoolTestCase(TestCase):
+    def setUp(self):
+        self.today = datetime.datetime.today()
+        self.hs = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            postbac_immersion=True
+        )
+
+    def test_str_structure(self):
+        self.assertEqual(str(self.hs), 'STRASBOURG - HS1')
+
+
+class ImmersionUserTestCase(TestCase):
+    def test_str_user(self):
+        iu = ImmersionUser.objects.create_user(
+            username='user',
+            password='pass',
+            email='bofh@no-reply.com',
+            first_name='john',
+            last_name='bofh',
+        )
+        iu.set_password('pass')
+        iu.save()
+        self.assertEqual(str(iu), 'bofh john')
+
+class TrainingDomainTestCase(TestCase):
+    def test_str_training_domain(self):
+        td = TrainingDomain.objects.create(label="label")
+        self.assertEqual(str(td), 'label')
+
+
+class TrainingSubDomainTestCase(TestCase):
+    def setUp(self):
+        self.td = TrainingDomain.objects.create(label="label")
+
+    def test_str_training_domain(self):
+        tsd = TrainingSubdomain.objects.create(
+            label="subdomain label",
+            training_domain=self.td
+        )
+        self.assertEqual(str(tsd), 'label - subdomain label')
+
+class GeneralBachelorTeachingTestCase(TestCase):
+    def test_str_general_bachelor_teaching(self):
+        gbt = GeneralBachelorTeaching.objects.create(label="GeneralBachelorTeaching")
+        self.assertEqual(str(gbt), 'GeneralBachelorTeaching')
+        self.assertTrue(gbt.active)
+
+class CourseTestCase(TestCase):
+    def test_str_course(self):
+        c = Structure.objects.create(label='my structure', code='R2D2')
+        # Training domain
+        td = TrainingDomain.objects.create(label='my_domain')
+        # Training subdomain
+        tsd = TrainingSubdomain.objects.create(label='my_sub_domain', training_domain=td)
+        # Training
+        t = Training.objects.create(label='training',)  #  training_subdomains={tsd}, structures=[c, ])
+
+        t.training_subdomains.add(tsd)
+        t.structures.add(c)
+
+        # Course type
+        ct = CourseType.objects.create(label='CM')
+        # Course
+        course = Course.objects.create(label='my super course', training=t, structure=c)
+
+        self.assertEqual(str(course),'my super course')

@@ -125,7 +125,7 @@
             <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
             <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
             <select id='live_select' style='display:none;'></select>
-            <a class="btn btn-secondary btn-sm" href="#" role="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</a>
+            <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
             <label id='ws_message' style='display:none; width:300px;'></label>
             <ul id="id_speakers" class="mt-4"></ul>
             {{ course_form.speakers.errors }}
@@ -407,11 +407,16 @@
       structure_id = ""
       empty_structures()
       empty_trainings()
-      $("#id_div_highschool").show()
+      if(highschool_id !== "" && highschool_id !== undefined) {
+        $("#id_div_establishment").hide()
+        $("#id_div_structure").hide()
+        $("#id_div_highschool").show()
+     }   
     } else {
       highschool_id = ""
       set_structures($("#id_establishment").val())
       $("#id_div_highschool").hide()
+      $("#id_div_establishment").show()
     }
 
     // Initialize trainings depending on structure / high school selection
