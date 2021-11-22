@@ -610,7 +610,7 @@ class OffOfferEventForm(forms.ModelForm):
             self.fields[field_name].widget.attrs.setdefault("class", "")
             self.fields[field_name].widget.attrs["class"] += " form-control"
 
-        self.fields["highschool"].queryset = HighSchool.agreed.order_by("city", "label")
+        self.fields["highschool"].queryset = HighSchool.agreed.none()
         self.fields["establishment"].queryset = Establishment.activated.all()
         self.fields["structure"].queryset = Structure.activated.all()
 
@@ -636,7 +636,7 @@ class OffOfferEventForm(forms.ModelForm):
             if self.request.user.is_high_school_manager():
                 self.fields["establishment"].queryset = Establishment.objects.none()
                 self.fields["structure"].queryset = Structure.objects.none()
-                self.fields["highschool"].queryset = HighSchool.objects.filter(id=self.request.user.highschool.id)
+                self.fields["highschool"].queryset = HighSchool.agreed.filter(id=self.request.user.highschool.id)
                 self.fields["highschool"].empty_label = None
 
 
