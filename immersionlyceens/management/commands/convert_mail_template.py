@@ -31,17 +31,6 @@ class Command(BaseCommand):
             var.save()
             print(f"- {var}")
 
-        print("")
-        print("")
-        print("")
-        self.send_to_me()
-
-    def send_to_me(self):
-        u = ImmersionUser.objects.get(email="a.combeau@unistra.fr")
-        err = u.send_message(None, 'IMMERSION_CONFIRM', slot={})
-
-        print(f"Error: {err}")
-
 
 
 
