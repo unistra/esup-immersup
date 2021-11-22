@@ -346,10 +346,10 @@ class Parser:
                 }
             else:
                 return {
-                    '{{ lienValidation }}': "<a href='{0}{1}'>{0}{1}</a>".format(
+                    'lienValidation': "<a href='{0}{1}'>{0}{1}</a>".format(
                         platform_url, reverse('immersion:activate', kwargs={'hash': user.validation_string})
                     ),
-                    '{{ lienMotDePasse }}': "<a href='{0}{1}'>{0}{1}</a>".format(
+                    'lienMotDePasse': "<a href='{0}{1}'>{0}{1}</a>".format(
                         platform_url, reverse('immersion:reset_password', kwargs={'hash': user.recovery_string})
                     )
                 }
@@ -425,7 +425,6 @@ class Parser:
 
         context.update(cls.get_course_context(course))
         context.update(cls.get_slot_context(slot))
-        # todo
         context.update(cls.get_user_context(user, institution_label, record))
 
         context.update(cls.get_cancellation_type_context(immersion))
@@ -436,7 +435,6 @@ class Parser:
         context.update(cls.get_registered_students_context(registered_students))
 
         context.update()
-
         return context
 
     @staticmethod
