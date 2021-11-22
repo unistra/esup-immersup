@@ -10,6 +10,9 @@
       border:2px solid grey !important;
       margin-top:20px;
     }
+
+
+
 </style>
 {% endblock %}
 
@@ -64,8 +67,11 @@
           <div class="card">
             <div class="card-header card-cours" id="training{{training.pk}}">
               <h5 class="mb-0 more-less-title">
+                {% for e in training.grouper.distinct_establishments %}
+                  <span class="badge badge-pill immersup-badge" style="background-color: {{e.badge_html_color }};margin: 2px;">{{ e.label }}</span>
+                {% endfor %}
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="training{{training.grouper.pk}}">
-                <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i> {{ training.grouper.label }}
+                <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.grouper.label }}
                 </button>
                 {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>{% endif %}
               </h5>
@@ -221,6 +227,7 @@ function open_alert_modal(course_id) {
 
 $(document).ready(function() {
   initFeedback();
+  initBadge();
   feedback = $("#feedback");
 
   $(".close-button").on("click", function() {

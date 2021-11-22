@@ -32,11 +32,7 @@
             <tr>
               <th id="published_filter" class="w-5">{% trans 'Published' %}</th>
               <th id="structure_filter">
-                {% if request.user.highschool %}
-                    {% trans 'Highschool' %}
-                {% else %}
-                    {% trans 'Structure' %}
-                {% endif %}
+                {% trans 'Structure / High school' %}
               </th>
               <th id="training_filter">{% trans 'Training' %}</th>
               <th id="label_filter">{% trans 'Label' %}</th>
@@ -73,7 +69,7 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/get_my_courses",
+        url: "/api/get_courses",
           dataSrc: function (json) {
             if (json['data'] !== undefined) {
               return json['data'];
@@ -82,7 +78,7 @@
       },
     'searching': true,
     'language': {
-      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+      url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
     {
@@ -106,8 +102,8 @@
       "data": "speakers",
       "render": function (data) {
         let txt = "";
-        $.each(data, function (name, email) {
-          txt += "<a href='mailto:" + email + "'>" + name + "</a><br>";
+        $.each(data, function (index, speaker) {
+          txt += "<a href='mailto:" + speaker.email + "'>" + speaker.name + "</a><br>";
         });
         return txt;
       },
@@ -160,7 +156,6 @@
     filter_reset_button_text: false,
   }, {
     column_number: 1,
-    filter_type: "text",
     filter_default_label: "",
     filter_container_id: "structure_filter",
     style_class: "form-control form-control-sm",

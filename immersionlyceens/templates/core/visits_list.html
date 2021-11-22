@@ -42,6 +42,7 @@
           <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
             <label for="establishments">{% trans 'Select an establishment' %} :</label>
             <select id="establishments" class="form-control">
+              <option value="">------------</option>
               {% for establishment in establishments %}
                 <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
                   {{ establishment.code }} - {{ establishment.label }}
@@ -125,7 +126,7 @@
         if(error !== undefined && error !== '') {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         }
-        else if(msg != undefined && msg !== '') {
+        else if(msg !== undefined && msg !== '') {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
@@ -142,6 +143,7 @@
     current_establishment_id = $('#establishments option:selected').val();
     current_structure_id = ""
     set_structures(current_establishment_id);
+    load_visits()
   });
 
   // Reload the table when structure changes in selectbox
@@ -184,25 +186,12 @@
     initFeedback();
     feedback = $("#feedback");
 
-    if(current_establishment_id === 'None' || current_establishment_id === "") {
-      current_establishment_id = $("#establishments").val()
-    }
-    else {
-      $("#establishments").val(current_establishment_id)
-    }
-
-    if(current_structure_id === 'None' || current_structure_id === "") {
-      current_structure_id = $("#structures").val()
-    }
-
-    if(current_establishment_id) {
-      set_structures(current_establishment_id)
-    }
-
     confirmDialog = $("#confirm-dialog-form").dialog({
       autoOpen: false,
       closeOnEscape: false,
-      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      open: function (event, ui) {
+        $(".ui-dialog-titlebar-close").hide();
+      },
       closeText: "hide",
       width: 'auto',
       modal: true,
@@ -229,19 +218,19 @@
     dt = $('#visits_table').DataTable({
       'processing': false,
       'order': [
-          [1, "asc"],
-          [2, "asc"]
-       ],
+        [1, "asc"],
+        [2, "asc"]
+      ],
       'pageLength': 15,
-      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': false,
       'ajax': {
         url: "/api/visits/",
-        data: function(d) {
-          d.establishment = $('#establishments').val()
-          if($('#structures').val()) {
-            d.structure = $('#structures').val();
+        data: function (d) {
+          d.establishment = current_establishment_id
+          if (current_structure_id) {
+            d.structure = current_structure_id;
           }
           return d
         },
@@ -255,54 +244,56 @@
       },
       'searching': true,
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-          { "data": "published",
-            "render": function (data) {
-              if (data) {
-                txt="{% trans 'Yes' %}";
-              }
-              else {
-                txt="{% trans 'No' %}";
-              }
+        {
+          "data": "published",
+          "render": function (data) {
+            if (data) {
+              txt = "{% trans 'Yes' %}";
+            } else {
+              txt = "{% trans 'No' %}";
+            }
 
-              return txt;
-            },
+            return txt;
           },
-          { "data": "establishment"},
-          { "data": "structure" },
-          { "data": "highschool" },
-          { "data": "purpose" },
-          { "data": "speakers",
-            "render": function (data) {
-              let txt = "";
-              $.each(data, function(index, value) {
-                txt += value+"<br>";
-              });
-              return txt;
-            },
+        },
+        {"data": "establishment"},
+        {"data": "structure"},
+        {"data": "highschool"},
+        {"data": "purpose"},
+        {
+          "data": "speakers",
+          "render": function (data) {
+            let txt = "";
+            $.each(data, function (index, value) {
+              txt += value + "<br>";
+            });
+            return txt;
           },
-          { "data": "",
-            "render": function (data, type, row) {
-              var icons = "";
-              icons += "<a href='/core/visit/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
-                       "<i class=\"fa fas fa-copy fa-2x\"></i>" +
-                       "</a>\n";
+        },
+        {
+          "data": "",
+          "render": function (data, type, row) {
+            var icons = "";
+            icons += "<a href='/core/visit/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                "</a>\n";
 
-              icons += "<a href='/core/visit/"+row.id+"' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
-                       "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
-                       "</a>\n";
+            icons += "<a href='/core/visit/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
+                "</a>\n";
 
-              if(row.can_delete) {
-                icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('visit_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +
-                         "<i class=\"fa fas fa-trash fa-2x\"></i>" +
-                         "</button>";
-              }
+            if (row.can_delete) {
+              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('visit_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
+                  "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                  "</button>";
+            }
 
-              return icons;
-            },
+            return icons;
           },
+        },
       ],
       columnDefs: [{
         defaultContent: "",
@@ -315,12 +306,12 @@
 
     // Filters init
     yadcf.init(dt, [{
-        column_number: 0,
-        filter_default_label: "",
-        filter_container_id: "published_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
+      column_number: 0,
+      filter_default_label: "",
+      filter_container_id: "published_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
       {
         column_number: 1,
         filter_default_label: "",
@@ -343,6 +334,21 @@
         filter_reset_button_text: false,
       },
     ]);
+
+    if (current_establishment_id === 'None' || current_establishment_id === "") {
+      current_establishment_id = $("#establishments").val()
+    } else {
+      $("#establishments").val(current_establishment_id)
+    }
+
+    set_structures(current_establishment_id)
+
+    if (current_structure_id === 'None' || current_structure_id === "") {
+      current_structure_id = $("#structures").val()
+    }
+    else {
+      $("#structures").val(current_structure_id)
+    }
   });
 </script>
 {% endblock %}

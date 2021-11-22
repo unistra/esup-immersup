@@ -178,6 +178,8 @@
     current_establishment_id = $('#establishments option:selected').val();
     current_structure_id = ""
 
+    dt.clear().draw()
+
     if (current_establishment_id !== "") {
         set_structures(current_establishment_id);
     }
@@ -331,7 +333,7 @@
       },
       'searching': true,
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
           { "data": "published",
@@ -348,24 +350,12 @@
           },
           { "data": "training_label"},
           { "data": "managed_by" },
-          { "data": "label",
-            "render": function (data, type, row) {
-              let has_rights = (row.structure_id === parseInt(current_structure_id))
-                  || (row.highschool_id === parseInt(current_highschool_id))
-
-              if(updatable === "True" && has_rights) {
-                return "<a href='/core/course/" + row.id + "'>"+data+"</a>";
-              }
-              else {
-                return data;
-              }
-            },
-          },
+          { "data": "label" },
           { "data": "speakers",
             "render": function (data) {
               let txt = "";
-              $.each(data, function(index, value) {
-                txt += value+"<br>";
+              $.each(data, function (index, speaker) {
+                txt += "<a href='mailto:" + speaker.email + "'>" + speaker.name + "</a><br>";
               });
               return txt;
             },
@@ -398,11 +388,16 @@
           { "data": "",
             "render": function (data, type, row) {
               var icons = "";
-              if(row.structure_id === parseInt(current_structure_id)
-                || row.highschool_id === parseInt(current_highschool_id)) {
+              if(row.has_rights) {
                 icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                          "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                          "</a>\n";
+
+                if(updatable === "True") {
+                  icons += "<a href='/core/course/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                      "<i class=\"fa fas fa-pencil fa-2x\"></i>" +
+                      "</a>\n";
+                }
 
                 if(row.can_delete) {
                   icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('course_id', " + row.id + ").dialog('open')\" title='"+ delete_text +"'>" +

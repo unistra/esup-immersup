@@ -22,17 +22,17 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
-from django.template.defaultfilters import filesizeformat, date as _date
-from django.utils.translation import pgettext, gettext_lazy as _
+from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
+from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.validators import JsonSchemaValidator
 
 from .managers import (
-    ActiveManager, CustomDeleteManager, HighSchoolAgreedManager,
-    StructureQuerySet, EstablishmentQuerySet
+    ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
+    HighSchoolAgreedManager, StructureQuerySet,
 )
 
 logger = logging.getLogger(__name__)
@@ -518,6 +518,11 @@ class Training(models.Model):
 
     def can_delete(self):
         return not self.courses.all().exists()
+
+    def distinct_establishments(self):
+        return Establishment.objects.filter(structures__in=self.structures.all()) \
+                                    .distinct()
+
 
     class Meta:
         verbose_name = _('Training')
@@ -1414,7 +1419,7 @@ class Slot(models.Model):
     building = models.ForeignKey(
         Building, verbose_name=_("Building"), null=True, blank=True, on_delete=models.CASCADE, related_name="slots",
     )
-    room = models.CharField(_("Room"), max_length=50, blank=True, null=True)
+    room = models.CharField(_("Room"), max_length=128, blank=True, null=True)
 
     date = models.DateField(_('Date'), blank=True, null=True)
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
@@ -1425,7 +1430,33 @@ class Slot(models.Model):
     n_places = models.PositiveIntegerField(_('Number of places'))
     additional_information = models.CharField(_('Additional information'), max_length=128, null=True, blank=True)
 
+    url = models.URLField(_("Website address"), max_length=512, blank=True, null=True)
+
     published = models.BooleanField(_("Published"), default=True, null=False)
+
+    face_to_face = models.BooleanField(_("Face to face"), default=True, null=False, blank=True)
+
+    def get_structure(self):
+        """
+        Get the slot structure depending of the slot type (visit, course, event)
+        """
+        if self.course_id and self.course.structure_id:
+            return self.course.structure
+        elif self.visit_id and self.visit.structure_id:
+            return self.visit.structure
+
+        return None
+
+    def get_highschool(self):
+        """
+        Get the slot high school depending of the slot type (visit, course, event)
+        """
+        if self.course_id and self.course.highschool_id:
+            return self.course.highschool
+        elif self.visit_id and self.visit.highschool_id:
+            return self.visit.highschool
+
+        return None
 
 
     def available_seats(self):
@@ -1446,6 +1477,18 @@ class Slot(models.Model):
     def clean(self):
         if [self.course, self.visit].count(None) != 1:
             raise ValidationError("You must select one of : Course, Visit or Event")
+
+    def __str__(self):
+        if self.visit:
+            slot_type = _(f"Visit - {self.visit.highschool}")
+        elif self.course:
+            slot_type = _(f"Course - {self.course_type} {self.course.label}")
+        """
+        elif self.event:
+            slot_type = _("Event ")
+        """
+
+        return gettext(f"{slot_type} : {self.date} : {self.start_time}-{self.end_time})")
 
 
     class Meta:
@@ -1676,12 +1719,12 @@ class CertificateSignature(models.Model):
 class OffOfferEventType(models.Model):
     """Off offer event type"""
 
-    label = models.CharField(_("Short label"), max_length=256, unique=True)
-    full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
+    label = models.CharField(_("Label"), max_length=256, unique=True)
+    # full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
     active = models.BooleanField(_("Active"), default=True)
 
     def __str__(self) -> str:
-        return f"{self.full_label} ({self.label})"
+        return f"{self.label}"
 
     def validate_unique(self, exclude=None):
         """Validate unique"""

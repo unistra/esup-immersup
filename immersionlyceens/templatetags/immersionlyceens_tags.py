@@ -8,10 +8,10 @@ from django.utils.encoding import force_str
 from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from immersionlyceens.libs.utils import (
+    get_general_setting, get_information_text,
+)
 
-from immersionlyceens.libs.utils import get_general_setting, get_information_text
-
-# TODO: uncomment later
 from ..apps.core.models import GeneralSettings, ImmersionUser
 
 register = template.Library()
@@ -117,3 +117,13 @@ def information_text_get(code):
         return get_information_text(code=code)
     except (ValueError, NameError):
         return ""
+
+
+@register.filter
+def fix_lang_code(code):
+    # Dirty fix for safari and old browsers
+    if code == 'fr-fr' or code =='fr':
+        return 'fr-FR'
+    # TODO: other languages here ?
+    else:
+        return code

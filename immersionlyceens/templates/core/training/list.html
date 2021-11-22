@@ -28,7 +28,7 @@
     </div>
     <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
     <span>
-      {% trans "Do you really want to delete this course ?" %}
+      {% trans "Do you really want to delete this training ?" %}
     </span>
   </div>
     <div class="card-body">
@@ -89,14 +89,10 @@
         let msg = json['msg']
         let error = json['error']
 
-        console.log(msg)
-        console.log(error)
-
         if(error != '' && error != undefined) {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         }
         else if(msg != '' && msg != undefined) {
-            console.log("World")
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
         dt.ajax.url("/api/trainings/highschool").load();
@@ -156,7 +152,7 @@
       },
       'searching': true,
       'language': {
-          url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
           {
@@ -207,12 +203,14 @@
     yadcf.init(dt, [{
         column_number: 0,
         filter_default_label: "",
+        filter_type: "text",
         filter_container_id: "label_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
         column_number: 1,
+        filter_type: "text",
         filter_default_label: "",
         filter_container_id: "subdomain_filter",
         style_class: "form-control form-control-sm",
@@ -220,13 +218,6 @@
       },
       {
         column_number: 2,
-        filter_default_label: "",
-        filter_container_id: "hs_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 3,
         filter_default_label: "",
         filter_container_id: "active_filter",
         style_class: "form-control form-control-sm",

@@ -1,277 +1,286 @@
 input[type="checkbox"] {
-    margin-top: -1px;
-    vertical-align: middle;
+  margin-top: -1px;
+  vertical-align: middle;
 }
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-input[type=number] {
-    -moz-appearance: textfield;
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 #livesearch {
-    width: 300px;
-    visibility: hidden;
-    display: inline-block;
-    float: left;
+  width: 300px;
+  visibility: hidden;
+  display: inline-block;
+  float: left;
 }
 
 #livesearch_label {
-    width: 120px;
-    margin-left: 20px;
-    visibility: hidden;
-    display: inline-block;
-    float: left;
+  width: 120px;
+  margin-left: 20px;
+  visibility: hidden;
+  display: inline-block;
+  float: left;
 }
 
 #id_username {
-    float: left;
+  float: left;
 }
 
 #id_search {
-    float: left;
+  float: left;
 }
 
 .top-buffer {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .warning {
-    color: red;
+  color: red;
 }
 
 .styled-select {
-    width: 100%;
+  width: 100%;
 }
 
 .glyphicon-margin-left {
-    margin-left: 20px;
+  margin-left: 20px;
 }
 
 .glyphicon-refresh-animate {
-    -animation: spin .7s infinite linear;
-    -ms-animation: spin .7s infinite linear;
-    -webkit-animation: spinw .7s infinite linear;
-    -moz-animation: spinm .7s infinite linear;
+  -animation: spin 0.7s infinite linear;
+  -ms-animation: spin 0.7s infinite linear;
+  -webkit-animation: spinw 0.7s infinite linear;
+  -moz-animation: spinm 0.7s infinite linear;
 }
 
 @keyframes spin {
-    from {
-        transform: scale(1) rotate(0deg);
-    }
-    to {
-        transform: scale(1) rotate(360deg);
-    }
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+  to {
+    transform: scale(1) rotate(360deg);
+  }
 }
 
 @-webkit-keyframes spinw {
-    from {
-        -webkit-transform: rotate(0deg);
-    }
-    to {
-        -webkit-transform: rotate(360deg);
-    }
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+  }
 }
 
 @-moz-keyframes spinm {
-    from {
-        -moz-transform: rotate(0deg);
-    }
-    to {
-        -moz-transform: rotate(360deg);
-    }
+  from {
+    -moz-transform: rotate(0deg);
+  }
+  to {
+    -moz-transform: rotate(360deg);
+  }
 }
 
 .panel-heading .glyphicon {
-    padding-left: 15px;
+  padding-left: 15px;
 }
 
 .table-container {
-    width: 95%;
+  width: 95%;
 }
-
 
 /* Fix long string content for filters */
 
 .yadcf-filter {
-    width: 100px;
+  width: 100px;
 }
-
 
 /* No hover effect on specific element of a nav pill */
 
-.nav>li.no-effect>a:hover,
-.nav>li.no-effect>a:focus {
-    background-color: transparent;
+.nav > li.no-effect > a:hover,
+.nav > li.no-effect > a:focus {
+  background-color: transparent;
 }
-
 
 /* Scrollable modal body */
 
 .modal-scrollable {
-    overflow-y: initial !important
+  overflow-y: initial !important;
 }
 
 .modal-scrollable .modal-body {
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
 .icon-spinner {
-    display: none;
+  display: none;
 }
 
 .glyphicon-spin {
-    -webkit-animation: spin 2s infinite linear;
-    -moz-animation: spin 2s infinite linear;
-    -o-animation: spin 2s infinite linear;
-    animation: spin 2s infinite linear;
+  -webkit-animation: spin 2s infinite linear;
+  -moz-animation: spin 2s infinite linear;
+  -o-animation: spin 2s infinite linear;
+  animation: spin 2s infinite linear;
 }
 
 @-moz-keyframes spin {
-    0% {
-        -moz-transform: rotate(0deg);
-    }
-    100% {
-        -moz-transform: rotate(359deg);
-    }
+  0% {
+    -moz-transform: rotate(0deg);
+  }
+  100% {
+    -moz-transform: rotate(359deg);
+  }
 }
 
 @-webkit-keyframes spin {
-    0% {
-        -webkit-transform: rotate(0deg);
-    }
-    100% {
-        -webkit-transform: rotate(359deg);
-    }
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+  }
 }
 
 @-o-keyframes spin {
-    0% {
-        -o-transform: rotate(0deg);
-    }
-    100% {
-        -o-transform: rotate(359deg);
-    }
+  0% {
+    -o-transform: rotate(0deg);
+  }
+  100% {
+    -o-transform: rotate(359deg);
+  }
 }
 
 @keyframes spin {
-    0% {
-        -webkit-transform: rotate(0deg);
-        transform: rotate(0deg);
-    }
-    100% {
-        -webkit-transform: rotate(359deg);
-        transform: rotate(359deg);
-    }
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
 }
 
 .selector select {
-    width: 380px;
-    height: 10em;
+  width: 380px;
+  height: 10em;
 }
-
 
 /* No style on anchors */
 
 a.unlink {
-    color: inherit;
+  color: inherit;
 }
 
 a.unlink:hover {
-    color: inherit;
+  color: inherit;
 }
 
 .fullmodal-dialog {
-    width: 98% !important;
-    height: 92% !important;
-    min-width: 98% !important;
-    min-height: 92% !important;
-    max-width: 98% !important;
-    max-height: 92% !important;
-    padding: 0 !important;
+  width: 98% !important;
+  height: 92% !important;
+  min-width: 98% !important;
+  min-height: 92% !important;
+  max-width: 98% !important;
+  max-height: 92% !important;
+  padding: 0 !important;
 }
 
 .fullmodal-content {
-    height: 99% !important;
-    min-height: 99% !important;
-    max-height: 99% !important;
+  height: 99% !important;
+  min-height: 99% !important;
+  max-height: 99% !important;
 }
 
-.more-less-title>button:after {
-    /* minus */
-    content: "\f067";
-    font-family: 'FontAwesome';
-    position: absolute;
-    right: 2px;
+.more-less-title > button:after {
+  /* minus */
+  content: "\f067";
+  font-family: "FontAwesome";
+  position: absolute;
+  right: 2px;
 }
 
-.more-less-title>button[aria-expanded="true"]:after {
-    /* plus */
-    content: "\f068";
-    right: 2px;
+.more-less-title > button[aria-expanded="true"]:after {
+  /* plus */
+  content: "\f068";
+  right: 2px;
 }
 
 .light-bg-secondary {
-    background-color: #E1E1E1;
+  background-color: #e1e1e1;
 }
 
 .light-bg-primary {
-    background-color: #C5E1FF;
+  background-color: #c5e1ff;
 }
 
 .light-bg-success {
-    background-color: #DCFFCC;
+  background-color: #dcffcc;
 }
-
 
 /* Fixed sticky feedback message*/
 
 .msg-fixed {
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    z-index: 9999;
-    border-radius: 0px
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  z-index: 9999;
+  border-radius: 0px;
 }
 
 .subdomains-icons {
-    font-size: 2em;
-    color: #55c1c3;
-    margin-right: 0.5em;
-    vertical-align: middle;
+  font-size: 2em;
+  color: #55c1c3;
+  margin-right: 0.5em;
+  vertical-align: middle;
 }
 
 .centered-icon {
-    display: block;
-    height: 100%;
-    width: 100%;
-    margin: auto;
-    text-align: center;
+  display: block;
+  height: 100%;
+  width: 100%;
+  margin: auto;
+  text-align: center;
 }
 
-@media all and (max-width:480px) {
-    .resp-btn {
-        width: 100%;
-        display: block;
-    }
+@media all and (max-width: 480px) {
+  .resp-btn {
+    width: 100%;
+    display: block;
+  }
 }
 
 /* ui widgets */
 .ui-widget > * {
-    font-family: "Unistra A", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    font-size: 1.1rem;
+  font-family: "Unistra A", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 1.1rem;
 }
 
 .dialog-button {
-    font-family: "Unistra A", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
-    font-size: 1.1rem !important;
-    font-weight: 400 !important;
+  font-family: "Unistra A", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+  font-size: 1.1rem !important;
+  font-weight: 400 !important;
 }
 
+/* Badge text color autodetect */
+/* :root {
+  --light-color: 80;
+  --threshold: 60;
+}
 
+.immersup-badge {
+  --switch: calc((attr(--background-color) - var(--threshold)) * -100);
+  color: hsl(0, 0%, var(--switch));
+  background-color: attr(background-color);
+} */
