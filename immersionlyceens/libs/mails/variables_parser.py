@@ -311,7 +311,7 @@ class Parser:
                 context.update({"lycee": institution_label})
                 if record:
                     context.update({
-                        "etudiant_date_naissances": date_format(record.birth_date, 'd/m/Y')
+                        "etudiant_date_naissance": date_format(record.birth_date, 'd/m/Y')
                     })
             elif user.highschool:
                 context.update({"lycee": user.highschool.label})
@@ -425,14 +425,16 @@ class Parser:
 
         context.update(cls.get_course_context(course))
         context.update(cls.get_slot_context(slot))
-        context.update(cls.get_user_context(user, institution_label, record))
+        context.update(cls.get_registered_students_context(registered_students))
 
         context.update(cls.get_cancellation_type_context(immersion))
+
+        context.update(cls.get_user_context(user, institution_label, record))
         context.update(cls.get_user_request_context(user, request, platform_url))
+
         context.update(cls.get_slot_list_context(slot_list))
         context.update(cls.get_slot_survey_context(slot_survey))
         context.update(cls.get_global_survey_context(global_survey))
-        context.update(cls.get_registered_students_context(registered_students))
 
         context.update()
         return context
