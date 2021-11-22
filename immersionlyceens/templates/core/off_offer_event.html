@@ -33,7 +33,7 @@
         {{ form.id }}
         <input type="hidden" name="duplicate" value="{{ duplicate }}">
         <input type="hidden" name="origin_id" value="{{ origin_id }}">
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -155,9 +155,9 @@
 <script type="text/javascript">
   var json_results;
   var query_order = 0;
-  var structure_id = "{{ form.initial.structure }}" || "{{ request.session.structure_id }}" ;
+  var structure_id = "{{ form.initial.structure }}" // || "{{ request.session.structure_id }}" ;
   var can_update = "{{ can_update }}";
-  var establishment_id = "{{ form.initial.establishment }}" || "{{ request.session.establishment_id }}";
+  var establishment_id = "{{ form.initial.establishment }}" // || "{{ request.session.establishment_id }}";
   var highschool_id = "{{ form.initial.highschool }}";
   var event_id = "{{ form.initial.event }}";
 
@@ -261,6 +261,15 @@
     }
   });
 
+  $('#id_structure').change( function() {
+    structure_id = $('#id_structure option:selected').val()
+
+    if(structure_id !== "") {
+      highschool_id = ""
+      $('#id_highschool').val("")
+    }
+  })
+
   $('#live_select').change(function () {
     let val = $('#live_select option:selected').val();
 
@@ -346,19 +355,38 @@
     // initialize base values
     if(highschool_id === 'None' || highschool_id === "") {
       highschool_id = $("#id_highschool").val()
+
+      if(highschool_id !== "") {
+        empty_structures()
+        $("#id_div_structure").hide()
+        $("#id_div_highschool").show()
+      }
     }
     else {
       $("#id_highschool").val(highschool_id)
+      empty_structures()
+      $("#id_div_structure").hide()
+      $("#id_div_highschool").show()
     }
 
     if(establishment_id === 'None' || establishment_id === "") {
-      establishment_id = $("#id_establishment").val()
+      establishment_id = $("#id_establishment").val() || ""
+
+      if(establishment_id === "") {
+        empty_structures()
+        $("#id_div_structure").hide()
+        $("#id_div_highschool").show()
+      }
+      else {
+        $("#id_div_highschool").hide()
+        set_structures(establishment_id)
+      }
     }
     else {
       $("#id_establishment").val(establishment_id)
+      $("#id_div_highschool").hide()
+      set_structures(establishment_id)
     }
-
-    set_structures(establishment_id)
 
     if(structure_id === 'None' || structure_id === "") {
       structure_id = $("#id_structure").val()
@@ -373,8 +401,6 @@
     else {
       $("#id_event").val(event_id)
     }
-
-    set_structures($("#id_establishment").val())
 
     if (speakers_array) {
       refresh_speakers_list();

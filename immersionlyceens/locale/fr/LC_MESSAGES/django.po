@@ -5003,3 +5003,7 @@ msgstr "Rechercher un lycée"
 #: immersionlyceens/views.py:221
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
+
+#: templates/hijack/notification.html:18
+msgid "release"
+msgstr "libérer-délivrer"

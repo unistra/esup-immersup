@@ -615,7 +615,10 @@ class OffOfferEventForm(forms.ModelForm):
         self.fields["structure"].queryset = Structure.activated.all()
 
         if not self.request.user.is_superuser:
-            self.fields["establishment"].initial = self.request.user.establishment.id
+            # Keep this ?
+            # self.fields["establishment"].initial = self.request.user.establishment.id
+
+            self.fields["establishment"].empty_label = None
 
             if self.request.user.is_establishment_manager():
                 self.fields["establishment"].queryset = \
@@ -630,8 +633,16 @@ class OffOfferEventForm(forms.ModelForm):
                 self.fields["structure"].queryset = \
                     self.fields["structure"].queryset.filter(id__in=self.request.user.structures.all())
 
+            if self.request.user.is_high_school_manager():
+                self.fields["establishment"].queryset = Establishment.objects.none()
+                self.fields["structure"].queryset = Structure.objects.none()
+                self.fields["highschool"].queryset = HighSchool.objects.filter(id=self.request.user.highschool.id)
+                self.fields["highschool"].empty_label = None
+
+
         if self.instance and self.instance.establishment_id:
             self.fields["establishment"].queryset = Establishment.objects.filter(pk=self.instance.establishment.id)
+            self.fields["establishment"].empty_label = None
 
     def clean(self):
         cleaned_data = super().clean()
@@ -645,9 +656,6 @@ class OffOfferEventForm(forms.ModelForm):
             'event_type': cleaned_data.get("event_type", None)
         }
         exclude_filters = {}
-
-        print(filters)
-        print(self.instance.__dict__)
 
         if self.instance.id:
             exclude_filters = {'id': self.instance.id}

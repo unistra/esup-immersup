@@ -23,14 +23,15 @@ from ..admin_forms import (
     VacationForm,
 )
 from ..forms import (
-    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm
+    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm, OffOfferEventForm
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
     PublicDocument, PublicType, Slot, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation, Visit
+    TrainingSubdomain, UniversityYear, Vacation, Visit, OffOfferEventType,
+    OffOfferEvent
 )
 
 
@@ -159,7 +160,7 @@ class FormTestCase(TestCase):
                         )
 
         self.evaluation_type = EvaluationType.objects.create(code='testCode', label='testLabel')
-
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
 
     def test_slot_form(self):
         """
@@ -381,3 +382,46 @@ class FormTestCase(TestCase):
         self.assertEqual(slot.speakers.first(), self.speaker1)
 
 
+    def test_event_form(self):
+        """
+        Event form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        # Event with establishment + structure
+        data = {
+            'establishment': self.master_establishment.id,
+            'structure': self.structure.id,
+            'highschool': None,
+            'label': "Label test",
+            'event_type': self.event_type,
+            'published': True,
+            'description': "Description test"
+        }
+
+        # Fail : missing speakers
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please add at least one speaker.", form.errors["__all__"])
+
+        # Success
+        data["speakers_list"] = '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
+        form = OffOfferEventForm(data=data, request=request)
+        form.is_valid()
+
+        print(form.errors)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        # Create an Event with no structure
+        del(data["structure"])
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        # Fail : duplicate
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("An event with these values already exists", form.errors["__all__"])

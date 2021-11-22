@@ -61,7 +61,9 @@
             <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
               <select id="establishments" class="form-control">
+                {% if request.user.is_master_establishment_manager %}
                 <option value="">------------</option>
+                {% endif %}
                 {% for establishment in establishments %}
                   <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
                     {{ establishment.code }} - {{ establishment.label }}
@@ -324,7 +326,7 @@
             if(row.establishment) {
               let txt = row.establishment
               if (row.structure) {
-                  txt += row.structure
+                  txt += " - " + row.structure
               }
 
               return txt
@@ -334,7 +336,18 @@
             }
           }
         },
-        {"data": "label"},
+        {
+          "data": "label",
+          "render": function (data, type, row) {
+            let txt = data
+
+            if(row.description) {
+              txt += '&nbsp;<span data-toggle="tooltip" title="' + row.description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
+            }
+
+            return txt
+          }
+        },
         {
           "data": "speakers",
           "render": function (data) {
@@ -396,7 +409,7 @@
         targets: "_all"
       }, {
         orderable: false,
-        targets: [6]
+        targets: [7]
       }],
     });
 

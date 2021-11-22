@@ -1383,7 +1383,7 @@ class OffOfferEventsList(generic.TemplateView):
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["structures"] = self.request.user.structures.all()
 
             if self.request.user.is_high_school_manager():
                 context["establishments"] = Establishment.objects.none()
@@ -1421,7 +1421,7 @@ class OffOfferEventAdd(generic.CreateView):
                 event = OffOfferEvent.objects.get(pk=object_pk)
 
                 initials = {
-                    'establishment': event.establishment.id,
+                    'establishment': event.establishment.id if event.establishment else None,
                     'structure': event.structure.id if event.structure else None,
                     'highschool': event.highschool.id if event.highschool else None,
                     'event_type': event.event_type.id,

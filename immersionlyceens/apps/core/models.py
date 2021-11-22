@@ -1163,11 +1163,8 @@ class OffOfferEvent(models.Model):
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='events')
 
     def __str__(self):
-        if not self.establishment_id:
-            return super().__str__()
-
         if self.establishment:
-            event_str = self.establishment.code
+            event_str = self.establishment.short_label
             if self.structure:
                 event_str += f" - {self.structure.code}"
         else:
