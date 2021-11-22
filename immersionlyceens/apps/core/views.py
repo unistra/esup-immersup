@@ -1261,6 +1261,7 @@ class VisitSlotAdd(generic.CreateView):
         context["speakers"] = json.dumps(speakers_list)
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')
+
         return context
 
     def get_form_kwargs(self):

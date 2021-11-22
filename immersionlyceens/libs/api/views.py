@@ -2207,7 +2207,7 @@ class BuildingList(generics.ListAPIView):
 
         if not user.is_superuser:
             if user.is_structure_manager():
-                return queryset.filter(campus__establishment__structures__in=user.structures.all())
+                return queryset.filter(campus__establishment__structures__in=user.structures.all()).distinct()
 
             if user.is_establishment_manager() and user.establishment:
                 return queryset.filter(campus__establishment=user.establishment)

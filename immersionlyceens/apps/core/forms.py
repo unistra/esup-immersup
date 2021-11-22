@@ -261,12 +261,22 @@ class VisitSlotForm(SlotForm):
 
         self.fields["room"].widget.attrs["placeholder"] = _("Please enter the building and room name")
 
+        allowed_establishments = Establishment.activated.user_establishments(self.request.user)
+        self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
+
+        allowed_structs = self.request.user.get_authorized_structures()
+        self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
+        self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
+        self.fields["structure"].initial = None
+        self.fields["structure"].empty_label = "---------"
+
         visit = self.instance.visit if self.instance and self.instance.visit_id else None
 
         if visit:
             self.fields["structure"].initial = visit.structure.id if visit.structure else None
             self.fields["highschool"].initial = visit.highschool.id
             self.fields["establishment"].initial = visit.establishment.id
+
 
     def clean(self):
         cleaned_data = super(forms.ModelForm, self).clean()

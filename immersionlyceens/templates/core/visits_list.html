@@ -42,6 +42,7 @@
           <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
             <label for="establishments">{% trans 'Select an establishment' %} :</label>
             <select id="establishments" class="form-control">
+              <option value="">------------</option>
               {% for establishment in establishments %}
                 <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
                   {{ establishment.code }} - {{ establishment.label }}
