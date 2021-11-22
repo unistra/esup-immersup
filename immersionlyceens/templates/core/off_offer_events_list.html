@@ -14,7 +14,7 @@
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
-{% trans "Visits list" %}
+{% trans "Off offer events list" %}
 {% endblock %}
 
 {% block content %}
@@ -22,60 +22,85 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
     <span>
-      {% trans "Do you really want to delete this visit ?" %}
+      {% trans "Do you really want to delete this event ?" %}
     </span>
   </div>
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans "Visits list" %}
+      {% trans "Off offer events list" %}
     </div>
     <div class="card-body">
       {% if can_update %}
       <div class="row">
         <div class="col-md-6">
-          <a class="btn btn-secondary btn-sm" href="{% url 'add_visit' %}">{% trans 'New visit' %}</a>
+          <a class="btn btn-secondary btn-sm" href="{% url 'add_off_offer_event' %}">{% trans 'New off offer event' %}</a>
         </div>
       </div>
       {% endif %}
       <div class="row">
-        <div class="col-md-3">
-          <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
-            <label for="establishments">{% trans 'Select an establishment' %} :</label>
-            <select id="establishments" class="form-control">
-              <option value="">------------</option>
-              {% for establishment in establishments %}
-                <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
-                  {{ establishment.code }} - {{ establishment.label }}
-                </option>
-              {% endfor %}
-            </select>
+        {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager %}
+          <div class="col-md-3">
+            <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
+              <label for="highschools">{% trans 'Select a high school' %} :</label>
+              <select id="highschools" class="form-control">
+                <option value="">------------</option>
+                {% for highschool in highschools %}
+                  <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
+                    {{ highschool }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="col-md-5" id="id_div_structures">
-          <div id="id_div_structure" style="padding-bottom:10px; padding-top:20px;">
-            <label for="structures">{% trans 'Select a structure' %} :</label>
-            <select id="structures" class="form-control">
-              <option value="">------------</option>
-              {% for structure in structures %}
-                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
-                  {{ structure.code }} - {{ structure.label }}
-                </option>
-              {% endfor %}
-            </select>
+        {% endif %}
+        {% if request.user.is_master_establishment_manager %}
+          <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
+        {% endif %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
+          <div class="col-md-3">
+            <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
+              <label for="establishments">{% trans 'Select an establishment' %} :</label>
+              <select id="establishments" class="form-control">
+                {% if request.user.is_master_establishment_manager %}
+                <option value="">------------</option>
+                {% endif %}
+                {% for establishment in establishments %}
+                  <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
+                    {{ establishment.code }} - {{ establishment.label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
-        </div>
+        {% endif %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager %}
+          <div class="col-md-5" id="id_div_structures">
+            <div id="id_div_structure" style="padding-bottom:10px; padding-top:20px;">
+              <label for="structures">{% trans 'Select a structure' %} :</label>
+              <select id="structures" class="form-control">
+                <option value="">------------</option>
+                {% for structure in structures %}
+                  <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
+                    {{ structure.code }} - {{ structure.label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        {% endif %}
       </div>
 
       <div class="table-responsive">
-        <table id="visits_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+        <table id="events_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
           <tr>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
-            <th><span id="establishment_filter">{% trans 'Establishment' %}</span></th>
-            <th><span id="structure_filter">{% trans 'Structure' %}</span></th>
-            <th><span id="highschool_filter">{% trans 'High school' %}</span></th>
-            <th class="align-top">{% trans 'Purpose' %}</th>
-            <th class="align-top">{% trans 'Speakers' %}</th>
+            <th><span id="event_type_filter">{% trans 'Event type' %}</span></th>
+            <th><span id="managed_by_filter">{% trans 'Managed by' %}</span></th>
+            <th><span id="label_filter">{% trans 'Label' %}</span></th>
+            <th><span id="speakers_filter">{% trans 'Speakers' %}</span></th>
+            <th class="align-top">{% trans 'Published slots' %}</th>
+            <th class="align-top">{% trans 'Registered students' %}</th>
             <th></th>
           </tr>
         </thead>
@@ -97,10 +122,11 @@
 </div>
 <script type="text/javascript">
   var dt;
-  var updatable = "{{ can_update_visits }}";
+  var updatable = "{{ can_update_eventss }}";
   var feedback;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
+  var current_highschool_id = "{{ highschool_id }}";
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var confirmDialog;
@@ -109,7 +135,7 @@
       $("#id_div_structures").hide()
   }
 
-  function delete_visit(visit_id) {
+  function delete_event(event_id) {
     var csrftoken = getCookie('csrftoken');
 
     $.ajax({
@@ -117,7 +143,7 @@
         request.setRequestHeader("X-CSRFToken", csrftoken);
       },
 
-      url: "/api/visit/" + visit_id,
+      url: "/api/off_offer_event/" + event_id,
       type: "DELETE",
       success: function (json) {
         let msg = json['msg'];
@@ -130,7 +156,7 @@
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
 
-        load_visits();
+        load_events();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -142,14 +168,33 @@
   $('#establishments').change( function() {
     current_establishment_id = $('#establishments option:selected').val();
     current_structure_id = ""
-    set_structures(current_establishment_id);
-    load_visits()
+
+    if(current_establishment_id !== "") {
+      current_highschool_id = ""
+      set_structures(current_establishment_id)
+      $('#highschools').val("")
+    }
+
+    load_events()
   });
 
   // Reload the table when structure changes in selectbox
   $('#structures').change( function() {
     current_structure_id = $('#structures option:selected').val()
-    load_visits()
+    load_events()
+  });
+
+  $('#highschools').change( function() {
+    current_highschool_id = $('#highschools option:selected').val();
+
+    if (current_highschool_id !== "") {
+        current_establishment_id = ""
+        empty_structures()
+        $('#establishments').val("")
+        $('#structures').val("")
+    }
+
+    load_events()
   });
 
   function set_structures(establishment_id) {
@@ -173,11 +218,21 @@
         else {
           $("#structures").val($("#structures option:first").val());
         }
+
+        $("#id_div_structures").show()
+        $('#highschools').val("");
       }
     })
   }
 
-  function load_visits() {
+  function empty_structures() {
+      let options = '<option value="">---------</option>'
+      $('select#structures').html(options)
+      current_structure_id = ''
+      $("#id_div_structures").hide()
+  }
+
+  function load_events() {
     dt.clear().draw()
     dt.ajax.reload()
   }
@@ -201,7 +256,7 @@
           text: "{% trans 'Yes' %}",
           "class": 'dialog-button',
           click: function () {
-            delete_visit($("#confirm-dialog-form").data('visit_id'));
+            delete_event($("#confirm-dialog-form").data('event_id'));
             confirmDialog.dialog("close");
           },
         },
@@ -215,7 +270,7 @@
       ],
     });
 
-    dt = $('#visits_table').DataTable({
+    dt = $('#events_table').DataTable({
       'processing': false,
       'order': [
         [1, "asc"],
@@ -226,9 +281,14 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        url: "/api/visits/",
+        url: "/api/off_offer_events/",
         data: function (d) {
-          d.establishment = current_establishment_id
+          if (current_establishment_id) {
+            d.establishment = current_establishment_id
+          }
+          if (current_highschool_id) {
+            d.highschool = current_highschool_id
+          }
           if (current_structure_id) {
             d.structure = current_structure_id;
           }
@@ -244,7 +304,7 @@
       },
       'searching': true,
       'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
       },
       'columns': [
         {
@@ -259,10 +319,35 @@
             return txt;
           },
         },
-        {"data": "establishment"},
-        {"data": "structure"},
-        {"data": "highschool"},
-        {"data": "purpose"},
+        {"data": "event_type"},
+        {
+          "data": "managed_by",
+          "render": function(data, type, row) {
+            if(row.establishment) {
+              let txt = row.establishment
+              if (row.structure) {
+                  txt += " - " + row.structure
+              }
+
+              return txt
+            }
+            else if(row.highschool) {
+              return row.highschool
+            }
+          }
+        },
+        {
+          "data": "label",
+          "render": function (data, type, row) {
+            let txt = data
+
+            if(row.description) {
+              txt += '&nbsp;<span data-toggle="tooltip" title="' + row.description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
+            }
+
+            return txt
+          }
+        },
         {
           "data": "speakers",
           "render": function (data) {
@@ -273,20 +358,44 @@
             return txt;
           },
         },
+        { "data": "published_slots_count",
+          "render": function(data, type, row) {
+            return data + "/" + row.slots_count;
+          }
+        },
+        { "data": "registrations_count",
+          "render": function(data, type, row) {
+            let current = data;
+            let n = row.n_places;
+
+            element = '<span>' + current + '/' + n + '</span>' +
+                  '<div class="progress">' +
+                  '  <div' +
+                  '    class="progress-bar"' +
+                  '    role="progressbar"' +
+                  '    aria-valuenow="' + current + '"' +
+                  '    aria-valuemin="0"' +
+                  '    aria-valuemax="' + n + '"' +
+                  '    style="width: ' + Math.round(current/n * 100) + '%">' +
+                  '  </div>' +
+                  '</div>';
+            return element;
+          }
+        },
         {
           "data": "",
           "render": function (data, type, row) {
             var icons = "";
-            icons += "<a href='/core/visit/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+            icons += "<a href='/core/off_offer_event/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                 "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                 "</a>\n";
 
-            icons += "<a href='/core/visit/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+            icons += "<a href='/core/off_offer_event/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
                 "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
                 "</a>\n";
 
             if (row.can_delete) {
-              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('visit_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
+              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('event_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
                   "<i class=\"fa fas fa-trash fa-2x\"></i>" +
                   "</button>";
             }
@@ -300,7 +409,7 @@
         targets: "_all"
       }, {
         orderable: false,
-        targets: [6]
+        targets: [7]
       }],
     });
 
@@ -315,21 +424,30 @@
       {
         column_number: 1,
         filter_default_label: "",
-        filter_container_id: "establishment_filter",
+        filter_container_id: "event_type_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
         column_number: 2,
         filter_default_label: "",
-        filter_container_id: "structure_filter",
+        filter_container_id: "managed_by_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
         column_number: 3,
+        filter_type: "text",
         filter_default_label: "",
-        filter_container_id: "highschool_filter",
+        filter_container_id: "label_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 4,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "speakers_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
@@ -339,15 +457,21 @@
       current_establishment_id = $("#establishments").val()
     } else {
       $("#establishments").val(current_establishment_id)
+      set_structures(current_establishment_id)
     }
-
-    set_structures(current_establishment_id)
 
     if (current_structure_id === 'None' || current_structure_id === "") {
       current_structure_id = $("#structures").val()
     }
     else {
       $("#structures").val(current_structure_id)
+    }
+
+    if (current_highschool_id === 'None' || current_highschool_id === "") {
+      current_highschool_id = $("#highschools").val()
+    }
+    else {
+      $("#highschools").val(current_highschool_id)
     }
   });
 </script>

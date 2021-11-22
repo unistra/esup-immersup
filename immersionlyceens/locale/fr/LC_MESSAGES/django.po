@@ -5003,5 +5003,6 @@ msgstr "Rechercher un lycée"
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
 
-#~ msgid "Error : a valid user is required"
-#~ msgstr "Erreur : une utilisateur valide doit être renseigné"
+#: templates/hijack/notification.html:18
+msgid "release"
+msgstr "libérer-délivrer"

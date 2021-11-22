@@ -15,7 +15,7 @@ from django.urls import reverse
 from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday, Establishment, Visit
+    Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -287,6 +287,8 @@ class CoreViewsTestCase(TestCase):
             slot=self.slot,
             attendance_status=1
         )
+
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
 
 
     def test_import_holidays(self):
@@ -1151,3 +1153,80 @@ class CoreViewsTestCase(TestCase):
         # display only the 'purpose' attribute in the options fields. However, this test doesn't care about javascript.
         self.assertIn(f"value=\"{slot.visit.id}\" selected>{slot.visit}<", content)
         self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
+
+
+    def test_off_offer_event(self):
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=None,
+            event_type=self.event_type,
+            label="Whatever",
+            description="Whatever too",
+            published=True
+        )
+
+        event.speakers.add(self.speaker1)
+
+        # As a ref_master_etab user
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get("/core/off_offer_events", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Update
+        response = self.client.get(f"/core/off_offer_event/{event.id}", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{event.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{event.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{event.event_type.id}\" selected", content)
+        self.assertIn(f"value=\"{event.label}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker1.username,
+            "lastname": self.speaker1.last_name,
+            "firstname": self.speaker1.first_name,
+            "email": self.speaker1.email,
+            "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
+            "is_removable": True
+        }]))
+
+        data = {
+            "establishment": event.establishment.id,
+            "structure": event.structure.id,
+            "event_type": event.event_type.id,
+            "published": True,
+            "label": "New event label",
+            "description": "Also new description",
+            "speakers_list": json.dumps([{
+                "email": self.speaker2.email,
+                "username": self.speaker2.username,
+                "lastname": self.speaker2.last_name,
+                "firstname": self.speaker2.first_name,
+            }])
+        }
+
+        response = self.client.post(f"/core/off_offer_event/{event.id}", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        event.refresh_from_db()
+        self.assertEqual(event.label, data["label"])
+        self.assertEqual(event.description, data["description"])
+
+
+        # Duplicate a visit : check form values
+        response = self.client.get(f"/core/off_offer_event/{event.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{event.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{event.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{event.event_type.id}\" selected", content)
+        self.assertIn(f"value=\"{event.label}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker2.username,
+            "lastname": self.speaker2.last_name,
+            "firstname": self.speaker2.first_name,
+            "email": self.speaker2.email,
+            "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
+            "is_removable": True
+        }]))
