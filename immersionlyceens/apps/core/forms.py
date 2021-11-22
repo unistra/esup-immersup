@@ -266,9 +266,13 @@ class VisitSlotForm(SlotForm):
 
         allowed_structs = self.request.user.get_authorized_structures()
         self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
-        self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
-        self.fields["structure"].initial = None
-        self.fields["structure"].empty_label = "---------"
+
+        if self.request.user.is_structure_manager():
+            self.fields["structure"].initial = self.fields["structure"].queryset.first()
+            self.fields["structure"].empty_label = None
+        else:
+            self.fields["structure"].initial = None
+            self.fields["structure"].empty_label = "---------"
 
         visit = self.instance.visit if self.instance and self.instance.visit_id else None
 
