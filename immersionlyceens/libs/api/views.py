@@ -343,6 +343,7 @@ def ajax_get_slots(request):
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
     visits = request.GET.get('visits', False) == "true"
+    events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
 
     try:
@@ -369,16 +370,22 @@ def ajax_get_slots(request):
         user_filter = True
         filters["speakers"] = request.user
 
-    if not user_filter and visits and not establishment_id:
-        response['msg'] = gettext("Error : a valid establishment must be selected")
-        return JsonResponse(response, safe=False)
+    if not user_filter:
+        if visits and not establishment_id:
+            response['msg'] = gettext("Error : a valid establishment must be selected")
+            return JsonResponse(response, safe=False)
 
-    if not user_filter and not visits and not structure_id and not highschool_id:
-        response['msg'] = gettext("Error : a valid structure or high school must be selected")
-        return JsonResponse(response, safe=False)
+        if events and not establishment_id and not highschool_id:
+            response['msg'] = gettext("Error : a valid establishment or high school must be selected")
+            return JsonResponse(response, safe=False)
+
+        if not visits and not structure_id and not highschool_id:
+            response['msg'] = gettext("Error : a valid structure or high school must be selected")
+            return JsonResponse(response, safe=False)
 
     if visits:
         filters["course__isnull"] = True
+        filters["event__isnull"] = True
         filters['visit__establishment__id'] = establishment_id
 
         if structure_id is not None:
@@ -389,8 +396,25 @@ def ajax_get_slots(request):
             .filter(**filters)
 
         user_filter_key = "visit__structure__in"
+    elif events:
+        filters["course__isnull"] = True
+        filters["visit__isnull"] = True
+
+        if establishment_id:
+            filters['event__establishment__id'] = establishment_id
+            if structure_id is not None:
+                filters['event__structure__id'] = structure_id
+        elif highschool_id:
+            filters['event__highschool__id'] = highschool_id
+
+        slots = Slot.objects.prefetch_related(
+            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
+            .filter(**filters)
+
+        user_filter_key = "event__structure__in"
     else:
         filters["visit__isnull"] = True
+        filters["event__isnull"] = True
 
         if training_id is not None:
             filters['course__training__id'] = training_id
@@ -434,6 +458,12 @@ def ajax_get_slots(request):
             request.user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
         ]
 
+        allowed_event_slot_update_conditions = [
+            request.user.is_master_establishment_manager() and slot.event and not slot.event.highschool,
+            request.user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
+            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures
+        ]
+
         if slot.course:
             training_label = f'{slot.course.training.label} ({slot.course_type.label})'
             training_label_full = f'{slot.course.training.label} ({slot.course_type.full_label})'
@@ -444,7 +474,8 @@ def ajax_get_slots(request):
         data = {
             'id': slot.id,
             'published': slot.published,
-            'can_update_visit_slot': any(allowed_visit_slot_update_conditions),
+            'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
+            'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
             'course_label': slot.course.label if slot.course else None,
             'training_label': training_label,
             'training_label_full': training_label_full,
@@ -461,6 +492,9 @@ def ajax_get_slots(request):
             'purpose': slot.visit.purpose if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
+            'event_type': slot.event.event_type.label if slot.event and slot.event.event_type else None,
+            'event_label': slot.event.label if slot.event else None,
+            'event_description': slot.event.description if slot.event else None,
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),

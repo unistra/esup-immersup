@@ -45,7 +45,7 @@
         <a href="{% url 'slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
       </div>
       <div class="row">
-        {%  if request.user.is_high_school_manager or request.user.is_master_establishment_manager %}
+        {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager %}
           <div class="col-md-3">
             <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="highschools">{% trans 'Select a high school' %} :</label>
@@ -59,11 +59,11 @@
               </select>
             </div>
           </div>
-        {%  endif %}
-        {%  if request.user.is_master_establishment_manager %}
+        {% endif %}
+        {% if request.user.is_master_establishment_manager %}
           <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
         {% endif %}
-        {%  if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
           <div class="col-md-3">
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
@@ -78,7 +78,7 @@
             </div>
           </div>
         {% endif %}
-        {%  if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager %}
           <div class="col-md-5" id="id_div_structures">
             <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="structure">{% trans 'Select a structure' %} :</label>
