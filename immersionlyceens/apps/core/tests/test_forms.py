@@ -234,12 +234,25 @@ class FormTestCase(TestCase):
             'n_places': 10,
             'published': True,
         }
+        # Fail : past date
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You can't set a date in the past", form.errors["date"])
+
         # Fail : Not between calendar dates
+        invalid_data["date"] = self.today + datetime.timedelta(days=102)
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
 
         # Fail : time errors
+        invalid_data["date"] = self.today
+        invalid_data["start_time"] = datetime.time(hour=0)
+        invalid_data["end_time"] = datetime.time(hour=1)
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Slot is set for today : please enter a valid start_time", form.errors["start_time"])
+
         invalid_data["date"] = self.today + datetime.timedelta(days=10)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)

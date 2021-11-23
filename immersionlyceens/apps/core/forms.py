@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.forms.widgets import DateInput, TimeInput
 from django.utils.translation import gettext, ngettext, gettext_lazy as _
+from django.utils import timezone
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from rest_framework.exceptions import ValidationError
 
@@ -197,6 +198,9 @@ class SlotForm(forms.ModelForm):
         structure = cleaned_data.get('structure')
         highschool = cleaned_data.get('highschool')
         pub = cleaned_data.get('published', None)
+        n_places = cleaned_data.get('n_places', 0)
+        _date = cleaned_data.get('date')
+        start_time = cleaned_data.get('start_time', 0)
 
         cals = Calendar.objects.all()
 
@@ -215,7 +219,21 @@ class SlotForm(forms.ModelForm):
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
 
-        _date = cleaned_data.get('date')
+            if _date < timezone.now().date():
+                raise forms.ValidationError(
+                    {'date': _("You can't set a date in the past")}
+                )
+
+            if _date == timezone.now().date() and start_time <= timezone.now().time():
+                raise forms.ValidationError(
+                    {'start_time': _("Slot is set for today : please enter a valid start_time")}
+                )
+
+            if not n_places or n_places <= 0:
+                raise forms.ValidationError(
+                    {'n_places': _("Please enter a valid number for 'n_places' field")}
+                )
+
         if _date and not cal.date_is_between(_date):
             raise forms.ValidationError(
                 {'date': _('Error: The date must be between the dates of the current calendar')}
@@ -287,6 +305,9 @@ class VisitSlotForm(SlotForm):
         visit = cleaned_data.get('visit')
         pub = cleaned_data.get('published', None)
         face_to_face = cleaned_data.get('face_to_face', None)
+        start_time = cleaned_data.get('start_time', None)
+        n_places = cleaned_data.get('n_places', None)
+        _date = cleaned_data.get('date')
 
         cals = Calendar.objects.all()
 
@@ -308,12 +329,21 @@ class VisitSlotForm(SlotForm):
                 if not cleaned_data.get(field):
                     self.add_error(field, _("This field is required"))
 
-            """
-            if not all(cleaned_data.get(e) for e in m_fields):
-                raise forms.ValidationError(_('Required fields are not filled in'))
-            """
+            if _date < timezone.now().date():
+                raise forms.ValidationError(
+                    {'date': _("You can't set a date in the past")}
+                )
 
-        _date = cleaned_data.get('date')
+            if _date == timezone.now().date() and start_time <= timezone.now().time():
+                raise forms.ValidationError(
+                    {'start_time': _("Slot is set for today : please enter a valid start_time")}
+                )
+
+            if not n_places or n_places <= 0:
+                raise forms.ValidationError(
+                    {'n_places': _("Please enter a valid number for 'n_places' field")}
+                )
+
         if _date and not cal.date_is_between(_date):
             raise forms.ValidationError(
                 {'date': _('Error: The date must be between the dates of the current calendar')}

@@ -646,7 +646,6 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 

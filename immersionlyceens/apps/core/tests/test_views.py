@@ -357,7 +357,7 @@ class CoreViewsTestCase(TestCase):
             'campus': self.campus.id,
             'building': self.building.id,
             'room': "212",
-            'date': (self.today - datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
             'speaker_%s' % self.speaker1.id: 1,
@@ -367,14 +367,20 @@ class CoreViewsTestCase(TestCase):
             'save': 1
         }
 
-        # Fail with date outside of calendar boundaries and missing field
+        # Fail with date in the past
+        response = self.client.post("/core/slot", data, follow=True)
+        self.assertFalse(Slot.objects.filter(room="212").exists())
+        self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
+
+        # Fail with date outside of calendar boundaries
+        data["date"] = (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d")
         response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn("Error: The date must be between the dates of the current calendar",
             response.content.decode('utf-8'))
 
         # Update to a valid date
-        data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
         # Fail with missing field
         del(data['speaker_%s' % self.speaker1.id])
@@ -1059,22 +1065,27 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': True,
             'room': "anywhere",
             'published': True,
-            'date': (self.today - datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
             'n_places': 20,
             'additional_information': 'whatever',
             'save': "Save",
         }
+        # Fail with date in the past
+        response = self.client.post("/core/visit_slot", data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
 
         # Invalid date (not between calendar boundaries)
+        data["date"] = (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d")
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Error: The date must be between the dates of the current calendar",
                       response.content.decode('utf-8'))
 
         # With a valid date, but speakers are still missing
-        data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertIn("Please select at least one speaker.", response.content.decode('utf-8'))
         self.assertFalse(Slot.objects.filter(visit=visit).exists())
@@ -1117,7 +1128,7 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': False,
             'url': "http://www.whatever.com",
             'published': True,
-            'date': datetime.datetime.now().strftime("%Y-%m-%d"),
+            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
             'start_time': "10:00",
             'end_time': "12:00",
             'n_places': 10,
