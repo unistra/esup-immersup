@@ -214,7 +214,7 @@ def ajax_get_courses(request):
 
         if course.structure:
             managed_by = f"{course.structure.code} ({course.structure.establishment.short_label})"
-            has_rights = (Structure.filter(pk=course.structure) & allowed_structures).exists()
+            has_rights = (Structure.filter(pk=course.structure.id) & allowed_structures).exists()
         elif course.highschool:
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
             has_rights = request.user.is_master_establishment_manager() or course.highschool == request.user.highschool
