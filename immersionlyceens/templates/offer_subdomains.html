@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block title %}
-{% trans "Offer" %}
+{% trans "Courses offer" %}
 {% endblock %}
 {% block content %}
 {% authorized_groups request.user %}
@@ -49,7 +49,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home' %}">{% trans 'Homepage' %}</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'offer' %}">{% trans 'Offer' %}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'offer' %}">{% trans "Courses offer" %}</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ subdomain }}</li>
             </ol>
         </nav>

@@ -14,7 +14,7 @@ from django.views import generic
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
-    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
+    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -325,12 +325,12 @@ def visits_offer(request):
     except InformationText.DoesNotExist:
         visits_txt = ''
 
-    subdomains = TrainingSubdomain.activated.filter(training_domain__active=True).order_by('training_domain', 'label')
-    courses_count = Course.objects.filter(published=True).count()
+    visits = Visit.objects.filter(published=True).order_by('highschool__city', 'highschool__label')
+    visits_count = visits.count()
     context = {
-        'subdomains': subdomains,
-        'courses_count': courses_count,
+        'visits_count': visits_count,
         'visits_txt': visits_txt,
+        'visits': visits
     }
     return render(request, 'visits_offer.html', context)
 

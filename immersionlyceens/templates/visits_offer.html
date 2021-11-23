@@ -22,7 +22,8 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans 'Offer' %}</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Visits offer" %}
+</li>
       </ol>
     </nav>
   </div>
@@ -40,49 +41,25 @@
 </section>
 
 <section class="py-5 bg-gray ">
-  <div class="container ">
-    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ courses_count }} {% trans 'available courses divided in subdomains (see below)' %}">{{ courses_count }} {% trans 'available courses' %}</span></p>
-    <div class="domains row row-cols-1 row-cols-sm-2 row-cols-xl-4 justify-content-center">
-    {% if subdomains %}
-    {% regroup subdomains by training_domain.label as subdomains_list %}
-    {% for subdomain in subdomains_list %}
-      <div class="col">
-        <div class="card domain">
-          <header style="background-image: url({% static 'img/backgrounds/'%}{{ subdomain.list.0.training_domain.pk }}.jpg)">
-            <div class="domain-title">
-              <div class="sun sun-theme-primary">
-                <span class="sun-row">
-                  <span class="sun-cell sun-empty-1"></span>
-                    <span class="sun-cell">
-                      <span class="sun-cell-inner">
-                        <strong>{{ subdomain.grouper }}</strong>
-                      </span>
-                    </span>
-                    <span class="sun-cell sun-empty-4"></span>
-                    <span class="sun-cell sun-empty-1"></span>
-                  </span>
-              </div>
-            </div>
-          </header>
-          <div class="card-body">
-            <ul class="list-arrows">
-              {% for d in subdomain.list %}
-              <li>
-                <a href="{% url 'offer_subdomain' d.id %}">
-                {{ d.label }}
-                </a>
-                {% comment %}TODO: not planned in US doing it ? <span class="badge-wrapper"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="8 cours disponibles">8</span></span> {% endcomment %}
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
+  <div class="container-fluid mt-4">
+    <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ visits_count }} {% trans 'available visits (see below)' %}">{{ visits_count }} {% trans 'available visits' %}</span></p>
+
+    {% if visits %}
+    {% regroup visits by highschool as visits_list %}
+    {% for visit in visits_list %}
+
+    <div>
+      <div class="card">
+        <div class="card-header card-cours" id="visit{{visit.pk}}">
+          <h5 class="mb-0 more-less-title">{{ visit.grouper.city }} {{ visit.grouper.label }}</h5>
         </div>
-      </div>
+    </div>
+
+
     {% endfor %}
     {% else %}
-      <p>{% trans 'No offer available' %}</p>
+      <p class="text-center">{% trans 'No visit available' %}</p>
     {% endif %}
-    </div>
   </div>
 </section>
 {% endblock %}
