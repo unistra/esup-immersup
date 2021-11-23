@@ -217,7 +217,7 @@ def ajax_get_courses(request):
             has_rights = (course.training.structures.all() & allowed_structures).exists()
         elif course.highschool:
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
-            has_rights = course.highschool == request.user.highschool
+            has_rights = request.user.is_master_establishment_manager() or course.highschool == request.user.highschool
 
         course_data = {
             'id': course.id,
