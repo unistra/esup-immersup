@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-22 15:31+0100\n"
+"POT-Creation-Date: 2021-11-23 11:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -154,6 +154,8 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/libs/api/views.py:2111
 #: immersionlyceens/templates/core/courses_list.html:289
 #: immersionlyceens/templates/core/courses_list.html:342
+#: immersionlyceens/templates/core/events_slots_list.html:155
+#: immersionlyceens/templates/core/events_slots_list.html:310
 #: immersionlyceens/templates/core/highschool_students.html:149
 #: immersionlyceens/templates/core/mycourses.html:89
 #: immersionlyceens/templates/core/myslots.html:141
@@ -163,7 +165,7 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/templates/core/slot.html:746
 #: immersionlyceens/templates/core/slot.html:771
 #: immersionlyceens/templates/core/slots_list.html:170
-#: immersionlyceens/templates/core/slots_list.html:426
+#: immersionlyceens/templates/core/slots_list.html:434
 #: immersionlyceens/templates/core/student_validation.html:228
 #: immersionlyceens/templates/core/student_validation.html:255
 #: immersionlyceens/templates/core/training/list.html:121
@@ -188,6 +190,8 @@ msgstr "Oui"
 #: immersionlyceens/libs/api/views.py:2111
 #: immersionlyceens/templates/core/courses_list.html:297
 #: immersionlyceens/templates/core/courses_list.html:345
+#: immersionlyceens/templates/core/events_slots_list.html:162
+#: immersionlyceens/templates/core/events_slots_list.html:310
 #: immersionlyceens/templates/core/highschool_students.html:155
 #: immersionlyceens/templates/core/mycourses.html:92
 #: immersionlyceens/templates/core/myslots.html:144
@@ -197,7 +201,7 @@ msgstr "Oui"
 #: immersionlyceens/templates/core/slot.html:753
 #: immersionlyceens/templates/core/slot.html:786
 #: immersionlyceens/templates/core/slots_list.html:177
-#: immersionlyceens/templates/core/slots_list.html:426
+#: immersionlyceens/templates/core/slots_list.html:434
 #: immersionlyceens/templates/core/student_validation.html:236
 #: immersionlyceens/templates/core/student_validation.html:263
 #: immersionlyceens/templates/core/training/list.html:129
@@ -1052,6 +1056,7 @@ msgstr "Code"
 #: immersionlyceens/apps/core/models.py:1479
 #: immersionlyceens/apps/core/models.py:1738
 #: immersionlyceens/templates/core/courses_list.html:98
+#: immersionlyceens/templates/core/events_slots_list.html:105
 #: immersionlyceens/templates/core/my_high_school.html:30
 #: immersionlyceens/templates/core/mycourses.html:38
 #: immersionlyceens/templates/core/myslots.html:56
@@ -1427,6 +1432,7 @@ msgstr "Années universitaires"
 #: immersionlyceens/apps/core/models.py:771
 #: immersionlyceens/apps/core/models.py:1570
 #: immersionlyceens/apps/core/models.py:1720
+#: immersionlyceens/templates/core/events_slots_list.html:106
 #: immersionlyceens/templates/core/slot.html:188
 #: immersionlyceens/templates/core/slots_list.html:119
 #: immersionlyceens/templates/core/students_presence.html:40
@@ -1540,6 +1546,7 @@ msgstr "Calendriers"
 #: immersionlyceens/apps/core/models.py:1581
 #: immersionlyceens/templates/core/course.html:111
 #: immersionlyceens/templates/core/courses_list.html:95
+#: immersionlyceens/templates/core/events_slots_list.html:102
 #: immersionlyceens/templates/core/mycourses.html:33
 #: immersionlyceens/templates/core/myslots.html:51
 #: immersionlyceens/templates/core/off_offer_event.html:116
@@ -1559,6 +1566,7 @@ msgstr "Publié"
 #: immersionlyceens/apps/core/models.py:1574
 #: immersionlyceens/templates/core/course.html:122
 #: immersionlyceens/templates/core/courses_list.html:99
+#: immersionlyceens/templates/core/events_slots_list.html:108
 #: immersionlyceens/templates/core/mycourses.html:39
 #: immersionlyceens/templates/core/myslots.html:59
 #: immersionlyceens/templates/core/off_offer_event.html:127
@@ -1624,6 +1632,7 @@ msgid "Description"
 msgstr "Description"
 
 #: immersionlyceens/apps/core/models.py:1162
+#: immersionlyceens/templates/core/events_slots_list.html:104
 #: immersionlyceens/templates/core/off_offer_event.html:82
 #: immersionlyceens/templates/core/off_offer_events_list.html:98
 msgid "Event type"
@@ -2115,9 +2124,9 @@ msgid "Training \"%s\" not updated."
 msgstr "Formation \"%s\" non mise à jour."
 
 #: immersionlyceens/apps/core/views.py:1088
-#, python-brace-format
-msgid "Visit {form.instance} created."
-msgstr "Visite {form.instance} créée"
+#, python-format
+msgid "Visit \"%s\" created."
+msgstr "Visite \"%s\" créée."
 
 #: immersionlyceens/apps/core/views.py:1093
 msgid "Visit not created."
@@ -2168,7 +2177,6 @@ msgstr "Evènement hors offre \"%s\" mis à jour."
 
 #: immersionlyceens/apps/core/views.py:1563
 #, python-format
-#| msgid "Off offer event type"
 msgid "Off offer event \"%s\" not updated."
 msgstr "Echec de la mise à jour de l'évènement hors offre \"%s\""
 
@@ -3326,6 +3334,7 @@ msgstr "Statistiques lycéennes - Inscriptions/participations par niveau"
 #: immersionlyceens/templates/charts/highschool_domains_charts.html:27
 #: immersionlyceens/templates/charts/trainings_charts.html:30
 #: immersionlyceens/templates/core/courses_list.html:44
+#: immersionlyceens/templates/core/events_slots_list.html:51
 #: immersionlyceens/templates/core/off_offer_events_list.html:44
 #: immersionlyceens/templates/core/slots_list.html:51
 #: immersionlyceens/templates/core/student_validation.html:54
@@ -3427,6 +3436,7 @@ msgstr "Créer un cours"
 
 #: immersionlyceens/templates/core/course.html:52
 #: immersionlyceens/templates/core/courses_list.html:57
+#: immersionlyceens/templates/core/events_slots_list.html:64
 #: immersionlyceens/templates/core/off_offer_event.html:54
 #: immersionlyceens/templates/core/off_offer_events_list.html:57
 #: immersionlyceens/templates/core/slot.html:83
@@ -3525,6 +3535,7 @@ msgid "Do you really want to delete this course ?"
 msgstr "Voulez-vous vraiment supprimer ce cours ?"
 
 #: immersionlyceens/templates/core/courses_list.html:62
+#: immersionlyceens/templates/core/events_slots_list.html:69
 #: immersionlyceens/templates/core/off_offer_events_list.html:62
 #: immersionlyceens/templates/core/slots_list.html:69
 #: immersionlyceens/templates/core/visits_list.html:43
@@ -3533,6 +3544,7 @@ msgid "Select an establishment"
 msgstr "Sélectionnez un établissement"
 
 #: immersionlyceens/templates/core/courses_list.html:77
+#: immersionlyceens/templates/core/events_slots_list.html:84
 #: immersionlyceens/templates/core/off_offer_events_list.html:79
 #: immersionlyceens/templates/core/slots_list.html:84
 #: immersionlyceens/templates/core/visits_list.html:56
@@ -3564,8 +3576,9 @@ msgid "Alerts"
 msgstr "Nb alertes"
 
 #: immersionlyceens/templates/core/courses_list.html:131
+#: immersionlyceens/templates/core/events_slots_list.html:388
 #: immersionlyceens/templates/core/off_offer_events_list.html:130
-#: immersionlyceens/templates/core/slots_list.html:499
+#: immersionlyceens/templates/core/slots_list.html:507
 #: immersionlyceens/templates/core/training/list.html:75
 #: immersionlyceens/templates/core/visits_list.html:104
 #: immersionlyceens/templates/core/visits_slots_list.html:365
@@ -3573,9 +3586,10 @@ msgid "Duplicate"
 msgstr "Dupliquer"
 
 #: immersionlyceens/templates/core/courses_list.html:132
+#: immersionlyceens/templates/core/events_slots_list.html:394
 #: immersionlyceens/templates/core/my_high_school_speakers.html:117
 #: immersionlyceens/templates/core/off_offer_events_list.html:131
-#: immersionlyceens/templates/core/slots_list.html:505
+#: immersionlyceens/templates/core/slots_list.html:513
 #: immersionlyceens/templates/core/training/list.html:76
 #: immersionlyceens/templates/core/training/list.html:181
 #: immersionlyceens/templates/core/visits_list.html:105
@@ -3584,11 +3598,12 @@ msgid "Delete"
 msgstr "Supprimer"
 
 #: immersionlyceens/templates/core/courses_list.html:397
+#: immersionlyceens/templates/core/events_slots_list.html:391
 #: immersionlyceens/templates/core/hs_record_manager.html:62
 #: immersionlyceens/templates/core/my_high_school.html:202
 #: immersionlyceens/templates/core/off_offer_events_list.html:393
 #: immersionlyceens/templates/core/slot__controls.html:7
-#: immersionlyceens/templates/core/slots_list.html:502
+#: immersionlyceens/templates/core/slots_list.html:510
 #: immersionlyceens/templates/core/visits_list.html:284
 #: immersionlyceens/templates/core/visits_slots_list.html:368
 msgid "Modify"
@@ -3614,6 +3629,78 @@ msgstr "Lycée"
 #: immersionlyceens/templates/core/duplicated_accounts.html:59
 msgid "Keep all entries"
 msgstr "Tout conserver"
+
+#: immersionlyceens/templates/core/events_slots_list.html:33
+msgid "Confirm event slot deletion"
+msgstr "Confirmer la suppression du créneau d'évènement"
+
+#: immersionlyceens/templates/core/events_slots_list.html:35
+msgid "Do you really want to delete this event slot ?"
+msgstr "Voulez-vous vraiment supprimer ce créneau d'évènement ?"
+
+#: immersionlyceens/templates/core/events_slots_list.html:41
+msgid "Event slots"
+msgstr "Créneaux d'évènements"
+
+#: immersionlyceens/templates/core/events_slots_list.html:45
+msgid "Add a event slot"
+msgstr "Ajouter un créneau d'évènement"
+
+#: immersionlyceens/templates/core/events_slots_list.html:45
+msgid "New event slot"
+msgstr "Nouveau créneau d'évènement"
+
+#: immersionlyceens/templates/core/events_slots_list.html:103
+#: immersionlyceens/templates/core/slots_list.html:117
+msgid "Managed By"
+msgstr "Géré par"
+
+#: immersionlyceens/templates/core/events_slots_list.html:107
+#: immersionlyceens/templates/core/visits_slots_list.html:85
+msgid "Location / address"
+msgstr "Lieu / adresse internet"
+
+#: immersionlyceens/templates/core/events_slots_list.html:109
+#: immersionlyceens/templates/core/slots_list.html:123
+#: immersionlyceens/templates/core/visits_slots_list.html:87
+msgid "# of registration"
+msgstr "Nombre d'inscrits"
+
+#: immersionlyceens/templates/core/events_slots_list.html:110
+#: immersionlyceens/templates/core/slots_list.html:124
+#: immersionlyceens/templates/core/visits_slots_list.html:88
+msgid "Info."
+msgstr "Info."
+
+#: immersionlyceens/templates/core/events_slots_list.html:111
+#: immersionlyceens/templates/core/slots_list.html:125
+#: immersionlyceens/templates/core/visits_slots_list.html:89
+msgid "Control"
+msgstr "Contrôle"
+
+#: immersionlyceens/templates/core/events_slots_list.html:343
+msgid "Remote event"
+msgstr "Distanciel"
+
+#: immersionlyceens/templates/core/events_slots_list.html:398
+#: immersionlyceens/templates/core/myslots.html:222
+#: immersionlyceens/templates/core/slots_list.html:517
+#: immersionlyceens/templates/core/visits_slots_list.html:375
+msgid "Enter attendances"
+msgstr "Saisir des emargements"
+
+#: immersionlyceens/templates/core/events_slots_list.html:403
+#: immersionlyceens/templates/core/myslots.html:227
+#: immersionlyceens/templates/core/slots_list.html:522
+#: immersionlyceens/templates/core/visits_slots_list.html:380
+msgid "View registered students"
+msgstr "Consulter la liste des inscrits"
+
+#: immersionlyceens/templates/core/events_slots_list.html:509
+#: immersionlyceens/templates/core/slots_list.html:316
+#: immersionlyceens/templates/core/visits_slots_list.html:479
+msgid "The slot has been successfully deleted"
+msgstr "Le créneau a été supprimé avec succès"
 
 #: immersionlyceens/templates/core/highschool_students.html:19
 #: immersionlyceens/templates/core/hs_record_manager.html:19
@@ -3782,18 +3869,6 @@ msgstr "Lieu"
 msgid "Attendance"
 msgstr "Emargements"
 
-#: immersionlyceens/templates/core/myslots.html:219
-#: immersionlyceens/templates/core/slots_list.html:509
-#: immersionlyceens/templates/core/visits_slots_list.html:375
-msgid "Enter attendances"
-msgstr "Saisir des emargements"
-
-#: immersionlyceens/templates/core/myslots.html:224
-#: immersionlyceens/templates/core/slots_list.html:514
-#: immersionlyceens/templates/core/visits_slots_list.html:380
-msgid "View registered students"
-msgstr "Consulter la liste des inscrits"
-
 #: immersionlyceens/templates/core/off_offer_event.html:10
 #: immersionlyceens/templates/core/off_offer_event.html:23
 msgid "Duplicate an off offer event"
@@ -3931,30 +4006,6 @@ msgstr "Ajouter un créneau"
 #: immersionlyceens/templates/fragments/main_menu.html:40
 msgid "New slot"
 msgstr "Nouveau créneau"
-
-#: immersionlyceens/templates/core/slots_list.html:117
-msgid "Managed By"
-msgstr "Géré par"
-
-#: immersionlyceens/templates/core/slots_list.html:123
-#: immersionlyceens/templates/core/visits_slots_list.html:87
-msgid "# of registration"
-msgstr "Nombre d'inscrits"
-
-#: immersionlyceens/templates/core/slots_list.html:124
-#: immersionlyceens/templates/core/visits_slots_list.html:88
-msgid "Info."
-msgstr "Info."
-
-#: immersionlyceens/templates/core/slots_list.html:125
-#: immersionlyceens/templates/core/visits_slots_list.html:89
-msgid "Control"
-msgstr "Contrôle"
-
-#: immersionlyceens/templates/core/slots_list.html:308
-#: immersionlyceens/templates/core/visits_slots_list.html:479
-msgid "The slot has been successfully deleted"
-msgstr "Le créneau a été supprimé avec succès"
 
 #: immersionlyceens/templates/core/speaker.html:23
 msgid "Speaker data"
@@ -4255,10 +4306,6 @@ msgstr "Ajouter un créneau de visite"
 #: immersionlyceens/templates/fragments/main_menu.html:55
 msgid "New visit slot"
 msgstr "Nouveau créneau de visite"
-
-#: immersionlyceens/templates/core/visits_slots_list.html:85
-msgid "Location / address"
-msgstr "Lieu / adresse internet"
 
 #: immersionlyceens/templates/core/visits_slots_list.html:320
 msgid "Remote visit"

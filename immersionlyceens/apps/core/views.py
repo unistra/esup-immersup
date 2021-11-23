@@ -1085,7 +1085,7 @@ class VisitAdd(generic.CreateView):
         self.duplicate = self.request.POST.get("save_duplicate", False) != False
         self.add_new = self.request.POST.get("save_add_new", False) != False
         response = super().form_valid(form)
-        messages.success(self.request, _(f"Visit {form.instance} created."))
+        messages.success(self.request, _("Visit \"%s\" created.") % form.instance)
         return response
 
 
