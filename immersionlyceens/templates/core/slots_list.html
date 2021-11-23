@@ -210,6 +210,8 @@
     else {
       empty_structures()
     }
+    
+    empty_trainings()
 
     dt.clear().draw()
   });
@@ -239,6 +241,12 @@
       $('select#structure').html(options)
       current_structure_id = ''
       $("#id_div_structures").hide()
+  }
+  
+  function empty_trainings() {
+      let options = '<option value="">---------</option>'
+      $('select#training').html(options)
+      current_training_id = ''
   }
 
   function set_structures(establishment_id) {
