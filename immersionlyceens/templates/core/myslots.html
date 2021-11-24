@@ -160,7 +160,11 @@
       }
     },
     { "data": "training_label" },
-    { "data": "course_label" },
+    { "data": "course",
+      "render": function (data, type, row) {
+        return data.label
+      },
+    },
     {
       "data": "datetime",
       "render": function (data, type, row) {

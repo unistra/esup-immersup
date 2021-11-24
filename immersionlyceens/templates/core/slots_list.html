@@ -435,7 +435,11 @@ $(document).ready(function(){
               return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
             }
           },
-          { data: 'course_label' },
+          { "data": "course",
+            "render": function (data, type, row) {
+              return '<a href="/core/course/'+data.id+'">'+data.label+'</a>'
+            },
+          },
           { data: 'structure',
             render: function(data, type, row) {
               if(row.structure) {

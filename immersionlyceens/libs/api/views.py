@@ -390,18 +390,25 @@ def ajax_get_slots(request):
 
         user_filter_key = "visit__structure__in"
     else:
+        structure_filter = Q()
+
         filters["visit__isnull"] = True
 
         if training_id is not None:
             filters['course__training__id'] = training_id
         elif structure_id is not None:
-            filters['course__training__structures__id'] = structure_id
+            or_structure_filter = {
+                'course__training__structures__id': structure_id,
+                'course__structure__id': structure_id,
+            }
+            for item in or_structure_filter:
+                structure_filter |= Q(**{item:or_structure_filter[item]})
         elif highschool_id is not None:
             filters['course__training__highschool__id'] = highschool_id
 
         slots = Slot.objects.prefetch_related(
             'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
-            .filter(**filters)
+            .filter(structure_filter, **filters)
 
         user_filter_key = "course__structure__in"
 
@@ -445,7 +452,10 @@ def ajax_get_slots(request):
             'id': slot.id,
             'published': slot.published,
             'can_update_visit_slot': any(allowed_visit_slot_update_conditions),
-            'course_label': slot.course.label if slot.course else None,
+            'course' : {
+                'id': slot.course.id,
+                'label': slot.course.label
+            } if slot.course else None,
             'training_label': training_label,
             'training_label_full': training_label_full,
             'structure': {
@@ -458,7 +468,10 @@ def ajax_get_slots(request):
                 'managed_by_me': request.user.is_master_establishment_manager()\
                     or (user_highschool and highschool == user_highschool),
             } if highschool else None,
-            'purpose': slot.visit.purpose if slot.visit else None,
+            'visit': {
+                'id': slot.visit.id,
+                'purpose': slot.visit.purpose
+            } if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
             'datetime': datetime.datetime.strptime(

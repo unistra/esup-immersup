@@ -302,7 +302,11 @@ $(document).ready(function(){
                 return ""
               },
             },
-            { data: 'purpose' },
+            { data: 'visit',
+              render: function(data, type, row) {
+                return '<a href="/core/visit/'+data.id+'">'+data.purpose+'</a>'
+              }
+            },
             { data: 'datetime',
               render: function(data, type, row) {
                 if(type === "display" || type === "filter") {
