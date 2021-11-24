@@ -215,7 +215,13 @@ class APITestCase(TestCase):
         self.highschool_training.training_subdomains.add(self.t_sub_domain)
         self.training.structures.add(self.structure)
         self.training2.structures.add(self.structure)
-        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
+        self.ref_str.structures.add(self.structure)
+
+        self.course = Course.objects.create(
+            label="course 1",
+            training=self.training,
+            structure=self.structure
+        )
         self.course.speakers.add(self.speaker1)
         self.highschool_course = Course.objects.create(
             label="course 1",
@@ -489,7 +495,6 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = "/api/get_slots"
         data = {
-            'structure_id': self.structure.id,
             'training_id': self.training.id
         }
         response = self.client.get(url, data, **self.header)
@@ -513,36 +518,21 @@ class APITestCase(TestCase):
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
 
-        # With no training id
-        # same results because all slots are linked to the same course
+        # With no training id : no result
         # Todo : redefine test data
-        data = {'structure_id': self.structure.id}
+        data = {}
         response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['data']), 6)
-        slot = content['data'][0]
-        self.assertEqual(slot['id'], self.slot.id)
-        self.assertEqual(slot['published'], self.slot.published)
-        self.assertEqual(slot['course']['label'], self.slot.course.label)
-        self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
-        self.assertTrue(slot['structure']['managed_by_me'])
-        self.assertEqual(slot['course_type'], self.slot.course_type.label)
-        self.assertEqual(slot['date'], _date(self.today, 'l d/m/Y'))
-        self.assertEqual(slot['time']['start'], '12h00')
-        self.assertEqual(slot['time']['end'], '14h00')
-        self.assertEqual(slot['location']['campus'], self.slot.campus.label)
-        self.assertEqual(slot['location']['building'], self.slot.building.label)
-        self.assertEqual(slot['room'], self.slot.room)
-        self.assertEqual(slot['n_register'], self.slot.registered_students())
-        self.assertEqual(slot['n_places'], self.slot.n_places)
+        self.assertEqual(content['msg'], "Error : a valid training must be selected")
 
         # Logged as structure manager
         client = Client()
         client.login(username='ref_str', password='pass')
-        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
+        data = {'training_id': self.training.id}
         response = client.get(url, data, **self.header)
         self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 5)
 
 
     def test_API_get_trainings(self):
@@ -2052,6 +2042,7 @@ class APITestCase(TestCase):
         self.assertEqual(content[0]['establishment'], "ETA1 : Etablissement 1 (master)")
 
         # As ref-str (with no structure) : empty
+        self.ref_str.structures.remove(self.structure)
         client.login(username='ref_str', password='pass')
         response = client.get(reverse("visit_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2120,6 +2111,7 @@ class APITestCase(TestCase):
         self.assertEqual(content[0]['highschool'], f"{self.high_school.city} - {self.high_school.label}")
 
         # As ref-str (with no structure) : empty
+        self.ref_str.structures.remove(self.structure)
         client.login(username='ref_str', password='pass')
         response = client.get(reverse("off_offer_event_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

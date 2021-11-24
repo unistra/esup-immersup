@@ -373,8 +373,8 @@ def ajax_get_slots(request):
         response['msg'] = gettext("Error : a valid establishment must be selected")
         return JsonResponse(response, safe=False)
 
-    if not user_filter and not visits and not structure_id and not highschool_id:
-        response['msg'] = gettext("Error : a valid structure or high school must be selected")
+    if not user_filter and not visits and not training_id:
+        response['msg'] = gettext("Error : a valid training must be selected")
         return JsonResponse(response, safe=False)
 
     if visits:
@@ -390,27 +390,16 @@ def ajax_get_slots(request):
 
         user_filter_key = "visit__structure__in"
     else:
-        structure_filter = Q()
-
         filters["visit__isnull"] = True
 
         if training_id is not None:
             filters['course__training__id'] = training_id
-        elif structure_id is not None:
-            or_structure_filter = {
-                'course__training__structures__id': structure_id,
-                'course__structure__id': structure_id,
-            }
-            for item in or_structure_filter:
-                structure_filter |= Q(**{item:or_structure_filter[item]})
-        elif highschool_id is not None:
-            filters['course__training__highschool__id'] = highschool_id
 
         slots = Slot.objects.prefetch_related(
             'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
-            .filter(structure_filter, **filters)
+            .filter(**filters)
 
-        user_filter_key = "course__structure__in"
+        user_filter_key = "course__training__structures__in"
 
     if not request.user.is_superuser and request.user.is_structure_manager():
         user_filter = {user_filter_key: request.user.structures.all()}

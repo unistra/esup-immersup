@@ -222,7 +222,6 @@
     current_structure_id = $('#structure option:selected').val()
     $('#training').val('');
     load_trainings('structure', current_structure_id);
-    reload_data();
   });
 
   $('#highschools').change( function() {
@@ -234,7 +233,6 @@
     }
 
     load_trainings('highschool', current_highschool_id);
-    reload_data();
   });
 
   function empty_structures() {
@@ -374,7 +372,14 @@ $(document).ready(function(){
   });
 
   $('#training').on('change', function(event) {
-    reload_data();
+    training_id = $("#training").val()
+
+    if(training_id !== "") {
+      reload_data();
+    }
+    else {
+      dt.clear().draw()
+    }
   });
 
   if(current_establishment_id !== "None") {
@@ -437,7 +442,11 @@ $(document).ready(function(){
           },
           { "data": "course",
             "render": function (data, type, row) {
-              return '<a href="/core/course/'+data.id+'">'+data.label+'</a>'
+              if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
+                return '<a href="/core/course/' + data.id + '">' + data.label + '</a>'
+              } else {
+                return data.label
+              }
             },
           },
           { data: 'structure',
