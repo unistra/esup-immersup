@@ -95,8 +95,8 @@
         <thead>
           <tr>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
-            <th><span id="event_type_filter">{% trans 'Event type' %}</span></th>
             <th><span id="managed_by_filter">{% trans 'Managed by' %}</span></th>
+            <th><span id="event_type_filter">{% trans 'Event type' %}</span></th>
             <th><span id="label_filter">{% trans 'Label' %}</span></th>
             <th><span id="speakers_filter">{% trans 'Speakers' %}</span></th>
             <th class="align-top">{% trans 'Published slots' %}</th>
@@ -169,6 +169,8 @@
     current_establishment_id = $('#establishments option:selected').val();
     current_structure_id = ""
 
+    empty_structures()
+
     if(current_establishment_id !== "") {
       current_highschool_id = ""
       set_structures(current_establishment_id)
@@ -234,7 +236,27 @@
 
   function load_events() {
     dt.clear().draw()
-    dt.ajax.reload()
+
+    let data = Object()
+    if (current_establishment_id) {
+      data.establishment = current_establishment_id
+    }
+    if (current_highschool_id) {
+      data.highschool = current_highschool_id
+    }
+    if (current_structure_id) {
+      data.structure = current_structure_id;
+    }
+
+    if(Object.keys(data).length) {
+      $.ajax({
+        url: "/api/off_offer_events/",
+        data: data,
+        success: function (data) {
+          dt.rows.add(data).draw();
+        },
+      });
+    }
   }
 
   $(document).ready(function() {
@@ -280,28 +302,6 @@
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
       'serverSide': false,
       'responsive': false,
-      'ajax': {
-        url: "/api/off_offer_events/",
-        data: function (d) {
-          if (current_establishment_id) {
-            d.establishment = current_establishment_id
-          }
-          if (current_highschool_id) {
-            d.highschool = current_highschool_id
-          }
-          if (current_structure_id) {
-            d.structure = current_structure_id;
-          }
-          return d
-        },
-        dataSrc: function (json) {
-          if (json !== undefined && json.length !== 0) {
-            return json;
-          }
-
-          return ""
-        }
-      },
       'searching': true,
       'language': {
         url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
@@ -319,12 +319,11 @@
             return txt;
           },
         },
-        {"data": "event_type"},
         {
           "data": "managed_by",
           "render": function(data, type, row) {
             if(row.establishment) {
-              let txt = row.establishment
+              let txt = row.establishment.short_label
               if (row.structure) {
                   txt += " - " + row.structure
               }
@@ -336,6 +335,7 @@
             }
           }
         },
+        {"data": "event_type"},
         {
           "data": "label",
           "render": function (data, type, row) {
@@ -473,6 +473,11 @@
     else {
       $("#highschools").val(current_highschool_id)
     }
+
+    if(is_set(current_establishment_id) || is_set(current_highschool_id)) {
+      load_events()
+    }
+
   });
 </script>
 {% endblock %}

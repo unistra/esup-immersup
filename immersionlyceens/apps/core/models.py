@@ -1582,6 +1582,19 @@ class Slot(models.Model):
 
     face_to_face = models.BooleanField(_("Face to face"), default=True, null=False, blank=True)
 
+    def get_establishment(self):
+        """
+        Get the slot establishment depending of the slot type (visit, course, event)
+        """
+        if self.course_id and self.course.structure_id:
+            return self.course.structure.establishment
+        elif self.visit_id and self.visit.establishment_id:
+            return self.visit.establishment
+        elif self.event_id and self.event.establishment_id:
+            return self.event.establishment
+
+        return None
+
     def get_structure(self):
         """
         Get the slot structure depending of the slot type (visit, course, event)

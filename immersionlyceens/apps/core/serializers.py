@@ -78,7 +78,7 @@ class VisitSerializer(serializers.ModelSerializer):
 
 
 class OffOfferEventSerializer(serializers.ModelSerializer):
-    establishment = serializers.StringRelatedField(many=False)
+    establishment = EstablishmentSerializer(many=False, read_only=True)
     structure = serializers.StringRelatedField(many=False)
     highschool = serializers.StringRelatedField(many=False)
     event_type = serializers.StringRelatedField(many=False)

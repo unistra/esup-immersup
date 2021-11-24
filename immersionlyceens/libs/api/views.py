@@ -375,11 +375,11 @@ def ajax_get_slots(request):
             response['msg'] = gettext("Error : a valid establishment must be selected")
             return JsonResponse(response, safe=False)
 
-        if events and not establishment_id and not highschool_id:
+        elif events and not establishment_id and not highschool_id:
             response['msg'] = gettext("Error : a valid establishment or high school must be selected")
             return JsonResponse(response, safe=False)
 
-        if not visits and not structure_id and not highschool_id:
+        elif not events and not visits and not structure_id and not highschool_id:
             response['msg'] = gettext("Error : a valid structure or high school must be selected")
             return JsonResponse(response, safe=False)
 
@@ -449,6 +449,7 @@ def ajax_get_slots(request):
     user_highschool = request.user.highschool
 
     for slot in slots:
+        establishment = slot.get_establishment()
         structure = slot.get_structure()
         highschool = slot.get_highschool()
 
@@ -479,8 +480,14 @@ def ajax_get_slots(request):
             'course_label': slot.course.label if slot.course else None,
             'training_label': training_label,
             'training_label_full': training_label_full,
+            'establishment': {
+                'code': establishment.code,
+                'short_label': establishment.short_label,
+                'label': establishment.label
+            } if establishment else None,
             'structure': {
                 'code': structure.code,
+                'label': structure.label,
                 'establishment': structure.establishment.short_label,
                 'managed_by_me': structure in allowed_structures,
             } if structure else None,
@@ -638,6 +645,27 @@ def ajax_get_visit_speakers(request, visit_id=None):
 
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+def ajax_get_event_speakers(request, event_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not event_id:
+        response['msg'] = gettext("Error : a valid event must be selected")
+    else:
+        speakers = OffOfferEvent.objects.get(id=event_id).speakers.all().order_by('last_name')
+
+        for speaker in speakers:
+            speakers_data = {
+                'id': speaker.id,
+                'first_name': speaker.first_name,
+                'last_name': speaker.last_name.upper(),
+            }
+            response['data'].append(speakers_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.GET.get('course_id')
@@ -680,7 +708,7 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -693,6 +721,7 @@ def ajax_check_date_between_vacation(request):
             formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
         except ValueError:
             error = True
+
         if error:
             try:
                 formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
@@ -2420,6 +2449,10 @@ class OffOfferEventList(generics.ListAPIView):
 
     def filter_queryset(self, queryset):
         filters = {}
+        structure_id = None
+        establishment_id = None
+        highschool_id = None
+
         if "structure" in self.request.query_params:
             structure_id = self.request.query_params.get("structure", None) or None
             filters["structure"] = structure_id

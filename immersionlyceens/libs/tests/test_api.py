@@ -2108,7 +2108,9 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(content), 1)
         self.assertEqual(content[0]['label'], 'Establishment event')
-        self.assertEqual(content[0]['establishment'], "ETA1 : Etablissement 1 (master)")
+        self.assertEqual(content[0]['establishment']['id'], 1)
+        self.assertEqual(content[0]['establishment']['code'], 'ETA1')
+        self.assertEqual(content[0]['establishment']['label'], 'Etablissement 1')
 
         # As ref-lyc
         client.login(username='lycref', password='pass')
