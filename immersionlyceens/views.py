@@ -320,17 +320,26 @@ def offer_subdomain(request, subdomain_id):
 def visits_offer(request):
     """ Visits Offer view """
 
+    filters = {}
+
     try:
         visits_txt = InformationText.objects.get(code="INTRO_VISITE", active=True).content
     except InformationText.DoesNotExist:
         visits_txt = ''
 
     visits = Visit.objects.filter(published=True).order_by('highschool__city', 'highschool__label')
+
+    filters["course__isnull"] = True
+    filters["visit__published"] = True
+    visits = Slot.objects.prefetch_related(
+            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
+            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label')
+
     visits_count = visits.count()
     context = {
         'visits_count': visits_count,
         'visits_txt': visits_txt,
-        'visits': visits
+        'visits': visits,
     }
     return render(request, 'visits_offer.html', context)
 
