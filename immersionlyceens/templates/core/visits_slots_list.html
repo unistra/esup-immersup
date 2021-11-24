@@ -304,7 +304,11 @@ $(document).ready(function(){
             },
             { data: 'visit',
               render: function(data, type, row) {
-                return '<a href="/core/visit/'+data.id+'">'+data.purpose+'</a>'
+                if (row['can_update_visit_slot']) {
+                  return '<a href="/core/visit/' + data.id + '">' + data.purpose + '</a>'
+                } else {
+                  return data.purpose
+                }
               }
             },
             { data: 'datetime',
