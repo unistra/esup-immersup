@@ -1133,6 +1133,10 @@ class OffOfferEventType(models.Model):
         except ValidationError as exc:
             raise ValidationError(_('An off offer event type with this label already exists')) from exc
 
+    def can_delete(self) -> bool:
+        """Check if you can delete an off offer event type"""
+        return not OffOfferEvent.objects.filter(event_type=self).exists()
+
     class Meta:
         verbose_name = _('Off offer event type')
         verbose_name_plural = _('Off offer event types')

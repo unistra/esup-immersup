@@ -1438,12 +1438,8 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         if not request.user.is_master_establishment_manager():
             return False
 
-        # todo: implement off offer event type in slot
-        # if obj and Slot.objects.filter(course_type=obj).exists():
-        #     messages.warning(
-        #         request, _("This off offer event type can't be deleted because it is used by some slots"),
-        #     )
-        #     return False
+        if obj and not obj.can_delete():
+            return False
 
         return True
 
