@@ -459,7 +459,7 @@
 
         for (let i = 0; i < json.length; i++) {
           let selected = json[i]['id'] === parseInt(event_id) ? "selected='selected'" : ""
-          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']} ${json[i]['event_type']}</option>`
+          options += `<option value="${json[i]['id']}" ${selected}>${json[i]['event_type']} : ${json[i]['label']}</option>`
         }
         $('select#id_event').html(options)
 

@@ -23,7 +23,8 @@ from ..admin_forms import (
     VacationForm,
 )
 from ..forms import (
-    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm, OffOfferEventForm
+    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm, OffOfferEventForm,
+    OffOfferEventSlotForm
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
@@ -506,3 +507,93 @@ class FormTestCase(TestCase):
         form = OffOfferEventForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
+
+
+    def test_off_offer_event_slot_form(self):
+        """
+        Event slot form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        event = OffOfferEvent.objects.create(
+            label="whatever",
+            event_type=self.event_type,
+            published=False,
+            establishment=self.master_establishment,
+            structure=None,
+        )
+
+        event.speakers.add(self.speaker1)
+
+        self.assertFalse(Slot.objects.filter(event=event).exists())
+
+        data = {
+            'event': event,
+            'face_to_face': True,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': "anywhere",
+            'published': True,
+            'date': self.today + datetime.timedelta(days=30),
+            'start_time': datetime.time(10, 0),
+            'end_time': datetime.time(12, 0),
+            'n_places':20,
+            'additional_information': 'whatever'
+        }
+
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+
+        # Fail : missing speakers
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please select at least one speaker.", form.errors["__all__"])
+
+        data["speakers_list"] = self.speaker1.id
+
+        # Fail : date not in calendar
+        data["date"] = self.today + datetime.timedelta(days=101)
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+
+        # Fail : date in the past
+        data["date"] = self.today - datetime.timedelta(days=1)
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You can't set a date in the past", form.errors["date"])
+
+        # Good one
+        data["date"] = self.today + datetime.timedelta(days=30)
+
+        # Fail : n_places is 0
+        data["n_places"] = 0
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please enter a valid number for 'n_places' field", form.errors["n_places"])
+
+
+        # Success
+        data["n_places"] = 10
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        form.is_valid()
+
+        print(form.errors)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertTrue(Slot.objects.filter(event=event).exists())
+        slot = Slot.objects.get(event=event)
+        self.assertEqual(slot.speakers.count(), 1)
+        self.assertEqual(slot.speakers.first(), self.speaker1)

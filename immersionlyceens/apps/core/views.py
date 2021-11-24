@@ -1635,13 +1635,13 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 slot = Slot.objects.get(pk=object_pk)
 
                 initials = {
-                    'establishment': slot.event.establishment.id,
+                    'establishment': slot.event.establishment.id if slot.event.establishment else None,
                     'structure': slot.event.structure.id if slot.event.structure else None,
-                    'highschool': slot.event.highschool.id,
-                    'event_type': slot.event.purpose,
+                    'highschool': slot.event.highschool.id if slot.event.highschool else None,
+                    'event_type': slot.event.event_type.id,
                     'campus': slot.campus,
                     'building': slot.building,
-                    'label': slot.event.purpose,
+                    'label': slot.event.label,
                     'published': slot.published,
                     'event': slot.event,
                     'room': slot.room,
@@ -1732,17 +1732,6 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
                     "display_name": f"{t.last_name} {t.first_name}",
                     "is_removable": True,
                 } for t in slot.speakers.all()]
-
-                if duplicate:
-                    data = {
-                        'establishment': slot.event.establishment,
-                        'structure': slot.event.structure,
-                        'highschool': slot.event.highschool,
-                        'published': slot.published,
-                        'event_type': slot.event.event_typepublished,
-                        'label': slot.event.label
-                    }
-                    slot = Slot(**data)
 
                 self.form = OffOfferEventSlotForm(instance=slot, request=self.request)
 
