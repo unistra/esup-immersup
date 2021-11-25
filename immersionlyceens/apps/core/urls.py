@@ -57,4 +57,9 @@ urlpatterns = [
     path("off_offer_event/add", views.OffOfferEventAdd.as_view(), name="add_off_offer_event"),
     path("off_offer_event/<int:pk>", views.OffOfferEventUpdate.as_view(), name="update_off_offer_event"),
     path('off_offer_event/<int:pk>/<int:duplicate>', views.OffOfferEventAdd.as_view(), name='duplicate_off_offer_event'),
+
+    path('off_offer_events_slots/', views.OffOfferEventSlotList.as_view(), name='off_offer_events_slots'),
+    path('off_offer_event_slot', views.OffOfferEventSlotAdd.as_view(), name='add_off_offer_event_slot'),
+    path('off_offer_event_slot/<int:pk>', views.OffOfferEventSlotUpdate.as_view(), name='update_ff_offer_event_slot'),
+    path('off_offer_event_slot/<int:pk>/<int:duplicate>', views.OffOfferEventSlotAdd.as_view(), name='duplicate_off_offer_event_slot'),
 ]

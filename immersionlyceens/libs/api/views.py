@@ -343,6 +343,7 @@ def ajax_get_slots(request):
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
     visits = request.GET.get('visits', False) == "true"
+    events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
 
     try:
@@ -369,16 +370,22 @@ def ajax_get_slots(request):
         user_filter = True
         filters["speakers"] = request.user
 
-    if not user_filter and visits and not establishment_id:
-        response['msg'] = gettext("Error : a valid establishment must be selected")
-        return JsonResponse(response, safe=False)
+    if not user_filter:
+        if visits and not establishment_id:
+            response['msg'] = gettext("Error : a valid establishment must be selected")
+            return JsonResponse(response, safe=False)
 
-    if not user_filter and not visits and not training_id:
-        response['msg'] = gettext("Error : a valid training must be selected")
-        return JsonResponse(response, safe=False)
+        elif events and not establishment_id and not highschool_id:
+            response['msg'] = gettext("Error : a valid establishment or high school must be selected")
+            return JsonResponse(response, safe=False)
+
+        elif not events and not visits and not training_id:
+            response['msg'] = gettext("Error : a valid training must be selected")
+            return JsonResponse(response, safe=False)
 
     if visits:
         filters["course__isnull"] = True
+        filters["event__isnull"] = True
         filters['visit__establishment__id'] = establishment_id
 
         if structure_id is not None:
@@ -389,8 +396,25 @@ def ajax_get_slots(request):
             .filter(**filters)
 
         user_filter_key = "visit__structure__in"
+    elif events:
+        filters["course__isnull"] = True
+        filters["visit__isnull"] = True
+
+        if establishment_id:
+            filters['event__establishment__id'] = establishment_id
+            if structure_id is not None:
+                filters['event__structure__id'] = structure_id
+        elif highschool_id:
+            filters['event__highschool__id'] = highschool_id
+
+        slots = Slot.objects.prefetch_related(
+            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
+            .filter(**filters)
+
+        user_filter_key = "event__structure__in"
     else:
         filters["visit__isnull"] = True
+        filters["event__isnull"] = True
 
         if training_id is not None:
             filters['course__training__id'] = training_id
@@ -421,6 +445,7 @@ def ajax_get_slots(request):
     user_highschool = request.user.highschool
 
     for slot in slots:
+        establishment = slot.get_establishment()
         structure = slot.get_structure()
         highschool = slot.get_highschool()
 
@@ -428,6 +453,12 @@ def ajax_get_slots(request):
             request.user.is_master_establishment_manager(),
             request.user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
             request.user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
+        ]
+
+        allowed_event_slot_update_conditions = [
+            request.user.is_master_establishment_manager() and slot.event and not slot.event.highschool,
+            request.user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
+            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures
         ]
 
         if slot.course:
@@ -440,15 +471,22 @@ def ajax_get_slots(request):
         data = {
             'id': slot.id,
             'published': slot.published,
-            'can_update_visit_slot': any(allowed_visit_slot_update_conditions),
-            'course' : {
-                'id': slot.course.id,
-                'label': slot.course.label
+            'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
+            'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
+            'course': {
+               'id': slot.course.id,
+               'label': slot.course.label
             } if slot.course else None,
             'training_label': training_label,
             'training_label_full': training_label_full,
+            'establishment': {
+                'code': establishment.code,
+                'short_label': establishment.short_label,
+                'label': establishment.label
+            } if establishment else None,
             'structure': {
                 'code': structure.code,
+                'label': structure.label,
                 'establishment': structure.establishment.short_label,
                 'managed_by_me': structure in allowed_structures,
             } if structure else None,
@@ -463,6 +501,9 @@ def ajax_get_slots(request):
             } if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
+            'event_type': slot.event.event_type.label if slot.event and slot.event.event_type else None,
+            'event_label': slot.event.label if slot.event else None,
+            'event_description': slot.event.description if slot.event else None,
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
@@ -606,6 +647,27 @@ def ajax_get_visit_speakers(request, visit_id=None):
 
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+def ajax_get_event_speakers(request, event_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not event_id:
+        response['msg'] = gettext("Error : a valid event must be selected")
+    else:
+        speakers = OffOfferEvent.objects.get(id=event_id).speakers.all().order_by('last_name')
+
+        for speaker in speakers:
+            speakers_data = {
+                'id': speaker.id,
+                'first_name': speaker.first_name,
+                'last_name': speaker.last_name.upper(),
+            }
+            response['data'].append(speakers_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.GET.get('course_id')
@@ -660,6 +722,7 @@ def ajax_check_date_between_vacation(request):
             formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
         except ValueError:
             error = True
+
         if error:
             try:
                 formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
@@ -2387,6 +2450,10 @@ class OffOfferEventList(generics.ListAPIView):
 
     def filter_queryset(self, queryset):
         filters = {}
+        structure_id = None
+        establishment_id = None
+        highschool_id = None
+
         if "structure" in self.request.query_params:
             structure_id = self.request.query_params.get("structure", None) or None
             filters["structure"] = structure_id

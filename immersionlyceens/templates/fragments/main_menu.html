@@ -60,12 +60,14 @@
         {# Off offer events #}
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE" or authorized_groups|in_groups:"REF-LYC" and user.highschool.postbac_immersion %}
         <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownVisits" role="button" data-toggle="dropdown"
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEvents" role="button" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             {% trans 'Events' %}
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
             <a class="dropdown-item" href="{% url 'off_offer_events' %}">{% trans 'Off offer events list' %}</a>
+            <a class="dropdown-item" href="{% url 'off_offer_events_slots' %}">{% trans 'Off offer events slots list' %}</a>
+            <a class="dropdown-item" href="{% url 'add_off_offer_event_slot' %}">{% trans 'New off offer event slot' %}</a>
           </div>
         </div>
         {% endif %}

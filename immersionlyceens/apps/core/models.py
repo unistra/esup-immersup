@@ -1586,6 +1586,19 @@ class Slot(models.Model):
 
     face_to_face = models.BooleanField(_("Face to face"), default=True, null=False, blank=True)
 
+    def get_establishment(self):
+        """
+        Get the slot establishment depending of the slot type (visit, course, event)
+        """
+        if self.course_id and self.course.structure_id:
+            return self.course.structure.establishment
+        elif self.visit_id and self.visit.establishment_id:
+            return self.visit.establishment
+        elif self.event_id and self.event.establishment_id:
+            return self.event.establishment
+
+        return None
+
     def get_structure(self):
         """
         Get the slot structure depending of the slot type (visit, course, event)
@@ -1594,6 +1607,8 @@ class Slot(models.Model):
             return self.course.structure
         elif self.visit_id and self.visit.structure_id:
             return self.visit.structure
+        elif self.event_id and self.event.structure_id:
+            return self.event.structure
 
         return None
 
@@ -1605,6 +1620,8 @@ class Slot(models.Model):
             return self.course.highschool
         elif self.visit_id and self.visit.highschool_id:
             return self.visit.highschool
+        elif self.event_id and self.event.highschool_id:
+            return self.event.highschool
 
         return None
 
@@ -1633,12 +1650,10 @@ class Slot(models.Model):
             slot_type = _(f"Visit - {self.visit.highschool}")
         elif self.course:
             slot_type = _(f"Course - {self.course_type} {self.course.label}")
-        """
         elif self.event:
-            slot_type = _("Event ")
-        """
+            slot_type = _(f"Event - {self.event.label}")
 
-        return gettext(f"{slot_type} : {self.date} : {self.start_time}-{self.end_time})")
+        return f"{slot_type} : {self.date} : {self.start_time}-{self.end_time}"
 
 
     class Meta:

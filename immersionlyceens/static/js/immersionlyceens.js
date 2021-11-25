@@ -55,3 +55,7 @@ function initBadge() {
     }
   })
 }
+
+function is_set(obj) {
+  return obj !== null && obj !== undefined && obj !== "" && obj !== "None"
+}
