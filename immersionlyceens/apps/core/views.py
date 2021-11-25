@@ -1792,7 +1792,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
         self.duplicate = self.request.POST.get("duplicate", False) != False
         self.add_new = self.request.POST.get("save_add", False) != False
 
-        messages.success(self.request, _("EVent slot \"%s\" updated.") % form.instance)
+        messages.success(self.request, _("Event slot \"%s\" updated.") % form.instance)
 
         self.request.session["current_structure_id"] = \
             self.object.event.structure.id if self.object.event.structure else None
