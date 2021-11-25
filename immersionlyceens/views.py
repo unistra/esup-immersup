@@ -327,13 +327,13 @@ def visits_offer(request):
     except InformationText.DoesNotExist:
         visits_txt = ''
 
-    visits = Visit.objects.filter(published=True).order_by('highschool__city', 'highschool__label')
+
 
     filters["course__isnull"] = True
     filters["visit__published"] = True
     visits = Slot.objects.prefetch_related(
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label')
+            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'date')
 
     visits_count = visits.count()
     context = {

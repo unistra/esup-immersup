@@ -3,8 +3,10 @@
 {% block title %}
 {% trans "Visits Offer" %}
 {% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
 {% block content %}
-
 
 <div class="main-title inside text-center">
   <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
@@ -41,109 +43,171 @@
 </section>
 
 <section class="py-5 bg-gray ">
-  <div class="container-fluid mt-4">
+  <div class="container-fluid mt-4" class="collapse">
     <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ visits_count }} {% trans 'available visits (see below)' %}">{{ visits_count }} {% trans 'available visits' %}</span></p>
 
     {% if visits %}
-      <div id="accordion" class="accordion">
-        {% regroup visits by visit.highschool as highschool_list %}
-        {% for h in highschool_list %}
-        <div class="card">
-          <div class="card-header card-visits" id="highschool{{h.grouper.pk}}">
-            <h5 class="mb-0 more-less-title">
-              <button class="btn btn-link" data-toggle="collapse" data-target="#visit{{h.grouper.pk}}" aria-expanded="false" aria-controls="highschool{{h.grouper.pk}}">
-              <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Highschool' %}"></i>
-              {{ h.grouper.city }} {{ h.grouper.label }}
-              </button>
-            </h5>
-          </div>
-          <div id="visit{{h.grouper.pk}}"  aria-labelledby="#visit{{h.grouper.pk}}" data-parent="#accordion">
-            <div class="card-body" class="collapse">
-          {% for slot in h.list %}
-              {% comment %} {% regroup h by purpose as purpose_list %} {% endcomment %}
-                <div class="card-header">
-                  <h6 class="mb-5 mb-sm-0 more-less-title">
-                    <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Visit' %}"></i>
-                    <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#slot{{h.grouper.pk}}" aria-expanded="false" aria-controls="course{{d.visit.pk}}">
-                    {{ slot.visit.purpose }}
-                    </button>
-                  </h6>
-                </div>
-
-                <div id="slot{{h.grouper.pk}}">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="table-responsive">
-                        <table class="table table-bordered">
-                          <tbody>
-                            <tr>
-                              <td style="width: 20%"><i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
-                              <td style="width: 20%"><i class="fa fas fa-clock-o text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
-                              <td style="width: 20%"><i class="us us-books us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i> {{ slot.course_type }}</td>
-                              <td style="width: 20%" rowspan="2">
-                                <i class="us us-duo us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i>
-                                {% trans 'Speaker(s)' %} :
-                                <ul>
-                              {% if slot.speakers.all%}
-                                  {% for speaker in slot.speakers.all  %}
-                                  <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
-                                  {% endfor %}
-                              {% else %}
-                                  <li>{% trans 'Data not available' %}</li>
-                              {% endif %}
-                                </ul>
-                              </td>
-                              <td>
-                                {% if slot.cancelled %}
-                                    <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
-                                    {% if slot.can_register %}
-                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
-                                    {% endif %}
-                                {% elif slot.already_registered %}
-                                    <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
-                                {% elif slot.opening_soon %}
-                                    <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
-                                {% elif slot.available_seats > 0 %}
-                                  <span class="badge badge-primary badge-pill">
-                                  {% trans 'Available places' %} : {{ slot.available_seats }}
-                                  </span><br>
-                                  {% if authorized_groups|in_groups:"LYC,ETU" %}
-                                      {% if slot.can_register %}
-                                        <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
-                                      {% endif %}
-                                  {% endif %}
-                                {% else %}
-                                  <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+    <div id="accordion" class="accordion">
+      {% regroup visits by visit.highschool as highschool_list %}
+      {% for h in highschool_list %}
+      <div class="card">
+        <div class="card-header card-visits" id="highschool{{h.grouper.pk}}">
+          <h5 class="mb-0 more-less-title">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#visit{{h.grouper.pk}}" aria-expanded="false" aria-controls="highschool{{h.grouper.pk}}">
+            <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Highschool' %}"></i>
+            {{ h.grouper.city }} {{ h.grouper.label }}
+            </button>
+          </h5>
+        </div>
+        <div class="collapse" id="visit{{h.grouper.pk}}"  aria-labelledby="#visit{{h.grouper.pk}}" data-parent="#accordion">
+          <div class="card-body" >
+          {% regroup h.list by visit as slots_list %}
+          {% for slot in slots_list %}
+            {% for s in slot.list %}
+            <div id="slot">
+              <div class="card" class="collapse">
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <tbody>
+                        <tr>
+                         <td style="width: 15%" rowspan="2">
+                            <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Purpose' %}"></i>
+                            <span class="badge badge-pill immersup-badge" style="background-color: {{s.visit.establishment.badge_html_color }};margin: 2px;">{{ s.visit.establishment.label }}</span></span>
+                          </td>
+                         <td style="width: 15%" rowspan="2">
+                            <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Purpose' %}"></i>
+                            {{ s.visit.structure.label }}
+                          </td>
+                         <td style="width: 15%" rowspan="2">
+                            <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Purpose' %}"></i>
+                            {{ s.visit.purpose }}
+                          </td>
+                          <td style="width: 15%" rowspan="2">
+                            <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i>
+                            {{ s.date | date:"l d F Y"}}
+                          </td>
+                          <td style="width: 10%" rowspan="2">
+                            <i class="fa fas fa-clock-o text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i>
+                            {{ s.start_time }} - {{ s.end_time }}
+                          </td>
+                          <td style="width: 10%" rowspan="2">
+                            <i class="us us-meeting us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i>
+                            {% trans 'Room' %} : {{ s.room }}
+                          </td>
+                          <td style="width: 15%" rowspan="2">
+                            <i class="us us-duo us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i>
+                            {% trans 'Speaker(s)' %} :
+                            <ul>
+                          {% if s.speakers.all%}
+                              {% for speaker in s.speakers.all  %}
+                              <li>{{ speaker.last_name | title }} {{ speaker.first_name | title }}</li>
+                              {% endfor %}
+                          {% else %}
+                              <li>{% trans 'Data not available' %}</li>
+                          {% endif %}
+                            </ul>
+                          </td>
+                          <td>
+                            {% if s.cancelled %}
+                                <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
+                                {% if s.can_register %}
+                                    <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
                                 {% endif %}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td><i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>{% trans 'Campus' %} : {{ slot.campus }}</td>
-                              <td><i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
-                              {% if slot.building.url %}
-                                <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
+                            {% elif s.already_registered %}
+                                <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
+                            {% elif s.opening_soon %}
+                                <span class="badge badge-pill badge-info">{% trans 'Opening soon' %}</span>
+                            {% elif s.available_seats > 0 %}
+                              <span class="badge badge-primary badge-pill">
+                              {% trans 'Available places' %} : {{ s.available_seats }}
+                              </span><br>
+                              {% if authorized_groups|in_groups:"LYC,ETU" %}
+                                  {% if s.can_register %}
+                                    <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
+                                  {% endif %}
                               {% endif %}
-                              </td>
-                              <td>
-                              <i class="us us-meeting us-fw text-secondary d-none d-md-inline-block subdomains-icons"></i>
-                              {% trans 'Room' %} : {{ slot.room }}</td>
-                              <td>{% if slot.additional_information %}{% trans 'Additional information' %} : <p>{{ slot.additional_information }}</p>{% endif %}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                            {% else %}
+                              <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>{% if s.additional_information %}{% trans 'Additional information' %} : <p>{{ s.additional_information }}</p>{% endif %}</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-              {% endfor %}
+              </div>
             </div>
+            {% endfor %}
+          {% endfor %}
           </div>
         </div>
-
-        {% endfor %}
+      </div>
+      {% endfor %}
     {% else %}
-        <p class="text-center">{% trans 'No visit available' %}</p>
+    <p class="text-center">{% trans 'No visit available' %}</p>
     {% endif %}
   </div>
 </section>
+<script>
+var feedback;
+var open_course_id = "{{ open_course_id }}";
+var open_training_id = "{{ open_training_id }}";
+var current_course_id = "";
+var is_anonymous = {% if is_anonymous %}true{% else %}false{% endif %};
+
+function register(slot_id) {
+  $.ajax({
+      url: "{% url 'SlotRegistration' %}",
+      type: 'POST',
+      data: {
+        'slot_id': slot_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error) {
+          feedback.trigger("showFeedback", [[msg, "danger"]]);
+        }
+        else {
+          window.location = "{% url 'visits_offer' %}";
+        }
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+}
+
+function open_alert_modal(course_id) {
+  current_course_id = course_id;
+  $('#modal_course_alert').modal('show');
+}
+
+$(document).ready(function() {
+  initFeedback();
+  initBadge();
+  feedback = $("#feedback");
+
+  $(".close-button").on("click", function() {
+    $("div.collapse").collapse('hide');
+  });
+
+  // Reopen course and training accordeons after registration for easier navigation
+  /*
+  if(open_training_id) {
+    $('#training'+open_training_id).collapse('show');
+  }
+  */
+
+  if(open_course_id) {
+    $('#course'+open_course_id).collapse('show');
+  }
+});
+</script>
 {% endblock %}
