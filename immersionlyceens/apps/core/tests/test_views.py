@@ -1234,7 +1234,7 @@ class CoreViewsTestCase(TestCase):
 
     def test_off_offer_event_slot(self):
         event = OffOfferEvent.objects.create(
-            label="whatever",
+            label="event label",
             event_type=self.event_type,
             published=False,
             establishment=self.master_establishment,
@@ -1323,7 +1323,7 @@ class CoreViewsTestCase(TestCase):
         }]))
 
         data = {
-            "event": slot.event.id,
+            "event": event.id,
             'face_to_face': False,
             'url': "http://www.whatever.com",
             'published': True,
@@ -1369,7 +1369,7 @@ class CoreViewsTestCase(TestCase):
 
         self.assertIn(f"value=\"{slot.event.establishment.id}\" selected>{slot.event.establishment}<", content)
         self.assertIn(f"value=\"{slot.event.structure.id}\" selected>{slot.event.structure}<", content)
-        # self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event.event_type} {slot.event}<", content)
+        self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
         self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
 
         # With a highschool
@@ -1389,5 +1389,5 @@ class CoreViewsTestCase(TestCase):
         content = response.content.decode('utf-8')
 
         self.assertIn(f"value=\"{slot.event.highschool_id}\" selected>{slot.event.highschool}<", content)
-        # self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
+        self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
         self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
