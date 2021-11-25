@@ -2357,6 +2357,8 @@ class VisitList(generics.ListAPIView):
         user = self.request.user
 
         if not user.is_superuser:
+            if user.is_speaker():
+                queryset = queryset.filter(speakers=user)
             if user.is_structure_manager():
                 queryset = queryset.filter(structure__in=user.structures.all())
             if user.is_establishment_manager() and user.establishment:
@@ -2437,6 +2439,8 @@ class OffOfferEventList(generics.ListAPIView):
         user = self.request.user
 
         if not user.is_superuser:
+            if user.is_speaker():
+                queryset = queryset.filter(speakers=user)
             if user.is_high_school_manager():
                 queryset = queryset.filter(highschool=user.highschool)
             if user.is_structure_manager():

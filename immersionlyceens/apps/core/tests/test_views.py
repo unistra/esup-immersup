@@ -710,6 +710,14 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/myvisits", follow=True)
         self.assertNotIn("My visits", response.content.decode('utf-8'))
 
+    def test_my_events(self):
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get("/core/myevents", follow=True)
+        self.assertIn("My events", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myevents", follow=True)
+        self.assertNotIn("My events", response.content.decode('utf-8'))
 
     def test_myslots(self):
         self.client.login(username='speaker1', password='pass')

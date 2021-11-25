@@ -74,7 +74,6 @@ class VisitSerializer(serializers.ModelSerializer):
     establishment = serializers.StringRelatedField(many=False)
     structure = serializers.StringRelatedField(many=False)
     highschool = serializers.StringRelatedField(many=False)
-    # speakers = serializers.StringRelatedField(many=True)
     speakers = ImmersionUserSerializer(many=True, read_only=True)
     can_delete = serializers.BooleanField()
 
@@ -93,7 +92,7 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
     structure = serializers.StringRelatedField(many=False)
     highschool = serializers.StringRelatedField(many=False)
     event_type = serializers.StringRelatedField(many=False)
-    speakers = serializers.StringRelatedField(many=True)
+    speakers = ImmersionUserSerializer(many=True, read_only=True)
     can_delete = serializers.BooleanField()
     published_slots_count = serializers.IntegerField()
     slots_count = serializers.IntegerField()
