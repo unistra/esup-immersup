@@ -267,8 +267,8 @@
           "data": "speakers",
           "render": function (data) {
             let txt = "";
-            $.each(data, function (index, value) {
-              txt += value + "<br>";
+            $.each(data, function (index, speaker) {
+              txt += "<a href='mailto:" + speaker.email + "'>" + speaker.first_name + " " + speaker.last_name +"</a><br>";
             });
             return txt;
           },

@@ -71,7 +71,7 @@ msgstr "Structure d'établissement"
 #: immersionlyceens/templates/charts/trainings_charts.html:51
 #: immersionlyceens/templates/core/course.html:80
 #: immersionlyceens/templates/core/courses_list.html:96
-#: immersionlyceens/templates/core/mycourses.html:37
+#: immersionlyceens/templates/core/my_interventions.html:37
 #: immersionlyceens/templates/core/myslots.html:55
 #: immersionlyceens/templates/core/slot.html:111
 #: immersionlyceens/templates/core/slots_list.html:99
@@ -123,7 +123,7 @@ msgstr "Statistiques"
 #: immersionlyceens/templates/core/duplicated_accounts.html:101
 #: immersionlyceens/templates/core/highschool_students.html:107
 #: immersionlyceens/templates/core/my_high_school_speakers.html:87
-#: immersionlyceens/templates/core/mycourses.html:68
+#: immersionlyceens/templates/core/my_interventions.html:68
 #: immersionlyceens/templates/core/myslots.html:114
 #: immersionlyceens/templates/core/off_offer_events_list.html:280
 #: immersionlyceens/templates/core/student_validation.html:277
@@ -157,7 +157,7 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/templates/core/events_slots_list.html:155
 #: immersionlyceens/templates/core/events_slots_list.html:310
 #: immersionlyceens/templates/core/highschool_students.html:149
-#: immersionlyceens/templates/core/mycourses.html:89
+#: immersionlyceens/templates/core/my_interventions.html:89
 #: immersionlyceens/templates/core/myslots.html:141
 #: immersionlyceens/templates/core/off_offer_events_list.html:256
 #: immersionlyceens/templates/core/off_offer_events_list.html:314
@@ -193,7 +193,7 @@ msgstr "Oui"
 #: immersionlyceens/templates/core/events_slots_list.html:162
 #: immersionlyceens/templates/core/events_slots_list.html:310
 #: immersionlyceens/templates/core/highschool_students.html:155
-#: immersionlyceens/templates/core/mycourses.html:92
+#: immersionlyceens/templates/core/my_interventions.html:92
 #: immersionlyceens/templates/core/myslots.html:144
 #: immersionlyceens/templates/core/off_offer_events_list.html:264
 #: immersionlyceens/templates/core/off_offer_events_list.html:316
@@ -1058,7 +1058,7 @@ msgstr "Code"
 #: immersionlyceens/templates/core/courses_list.html:98
 #: immersionlyceens/templates/core/events_slots_list.html:105
 #: immersionlyceens/templates/core/my_high_school.html:30
-#: immersionlyceens/templates/core/mycourses.html:38
+#: immersionlyceens/templates/core/my_interventions.html:38
 #: immersionlyceens/templates/core/myslots.html:56
 #: immersionlyceens/templates/core/off_offer_events_list.html:100
 #: immersionlyceens/templates/core/training/list.html:46
@@ -1547,7 +1547,7 @@ msgstr "Calendriers"
 #: immersionlyceens/templates/core/course.html:111
 #: immersionlyceens/templates/core/courses_list.html:95
 #: immersionlyceens/templates/core/events_slots_list.html:102
-#: immersionlyceens/templates/core/mycourses.html:33
+#: immersionlyceens/templates/core/my_interventions.html:33
 #: immersionlyceens/templates/core/myslots.html:51
 #: immersionlyceens/templates/core/off_offer_event.html:116
 #: immersionlyceens/templates/core/off_offer_events_list.html:97
@@ -1567,7 +1567,7 @@ msgstr "Publié"
 #: immersionlyceens/templates/core/course.html:122
 #: immersionlyceens/templates/core/courses_list.html:99
 #: immersionlyceens/templates/core/events_slots_list.html:108
-#: immersionlyceens/templates/core/mycourses.html:39
+#: immersionlyceens/templates/core/my_interventions.html:39
 #: immersionlyceens/templates/core/myslots.html:59
 #: immersionlyceens/templates/core/off_offer_event.html:127
 #: immersionlyceens/templates/core/off_offer_events_list.html:101
@@ -1588,7 +1588,6 @@ msgid "Speakers"
 msgstr "Intervenants"
 
 #: immersionlyceens/apps/core/models.py:1049
-#: immersionlyceens/templates/core/mycourses.html:24
 #: immersionlyceens/templates/fragments/main_menu.html:34
 msgid "Courses"
 msgstr "Cours"
@@ -3558,13 +3557,13 @@ msgid "Managed by"
 msgstr "Gérée par"
 
 #: immersionlyceens/templates/core/courses_list.html:100
-#: immersionlyceens/templates/core/mycourses.html:40
+#: immersionlyceens/templates/core/my_interventions.html:40
 #: immersionlyceens/templates/core/off_offer_events_list.html:102
 msgid "Published slots"
 msgstr "Créneaux publiés"
 
 #: immersionlyceens/templates/core/courses_list.html:101
-#: immersionlyceens/templates/core/mycourses.html:41
+#: immersionlyceens/templates/core/my_interventions.html:41
 #: immersionlyceens/templates/core/myslots.html:60
 #: immersionlyceens/templates/core/off_offer_events_list.html:103
 #: immersionlyceens/templates/modals/modal_public_slots.html:25
@@ -3834,17 +3833,18 @@ msgstr "A des cours/événements"
 msgid "Edit"
 msgstr "Modifier"
 
-#: immersionlyceens/templates/core/mycourses.html:16
+#: immersionlyceens/templates/core/my_interventions.html:16
+#: immersionlyceens/templates/core/my_interventions.html:24
 #: immersionlyceens/templates/fragments/main_menu.html:92
 msgid "My courses"
 msgstr "Mes cours"
 
-#: immersionlyceens/templates/core/mycourses.html:27
+#: immersionlyceens/templates/core/my_interventions.html:27
 #: immersionlyceens/templates/core/myslots.html:42
 msgid "Reset filters"
 msgstr "Réinitialiser les filtres"
 
-#: immersionlyceens/templates/core/mycourses.html:35
+#: immersionlyceens/templates/core/my_interventions.html:35
 #: immersionlyceens/templates/core/myslots.html:53
 msgid "Structure / High school"
 msgstr "Structure / Lycée"

@@ -692,10 +692,23 @@ class CoreViewsTestCase(TestCase):
         self.assertFalse(Course.objects.filter(label="This shouldn't happen").exists())
 
 
-    def test_mycourses(self):
+    def test_my_courses(self):
         self.client.login(username='speaker1', password='pass')
         response = self.client.get("/core/mycourses", follow=True)
-        self.assertIn("Courses - HER speak", response.content.decode('utf-8'))
+        self.assertIn("My courses", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/mycourses", follow=True)
+        self.assertNotIn("My courses", response.content.decode('utf-8'))
+
+    def test_my_visits(self):
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get("/core/myvisits", follow=True)
+        self.assertIn("My visits", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myvisits", follow=True)
+        self.assertNotIn("My visits", response.content.decode('utf-8'))
 
 
     def test_myslots(self):

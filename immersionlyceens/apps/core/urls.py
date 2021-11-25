@@ -21,6 +21,7 @@ urlpatterns = [
     ),
     path('my_students', views.my_students, name='my_students'),
     path('mycourses/', views.mycourses, name='mycourses'),
+    path('myvisits/', views.myvisits, name='myvisits'),
     path('myslots/', views.myslots, name='myslots'),
 
     path('slot', views.slot, name='slot'),

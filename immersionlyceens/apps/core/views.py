@@ -604,7 +604,24 @@ def mycourses(request):
         "structure_id": structure_id
     }
 
-    return render(request, 'core/mycourses.html', context)
+    return render(request, 'core/my_courses.html', context)
+
+
+@groups_required('INTER',)
+def myvisits(request):
+
+    structure_id = None
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+
+    if allowed_strs.count() == 1:
+        structure_id = allowed_strs.first().id
+
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id
+    }
+
+    return render(request, 'core/my_visits.html', context)
 
 
 @groups_required('INTER',)
