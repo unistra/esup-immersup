@@ -250,7 +250,7 @@ ul
     });
 
     function switch_bachelor_data(level) {
-      if(level==1 || level==2) {
+      if(level == 0 || level == 1 || level == 2) {
         $('#id_bachelor_data').show("slow");
         $('#id_post_bachelor_data').hide("slow");
       }
@@ -260,9 +260,14 @@ ul
       }
     }
 
-    function switch_bachelor_type_options(b_type) {
+    function switch_bachelor_type_options(b_type, level) {
+
       if(b_type == 1) {
-        $('#id_general_bachelor_data').show("slow");
+        if ( level == 1 || level == 2 ) {
+          $('#id_general_bachelor_data').show("slow");
+        } else {
+          $('#id_general_bachelor_data').hide("slow");
+        }
         $('#id_technological_bachelor_data').hide("slow");
         $('#id_professional_bachelor_data').hide("slow");
       }
@@ -280,12 +285,15 @@ ul
 
     $('#id_level').change(function() {
       let level = $('#id_level option:selected').val();
+      let b_type = $('#id_bachelor_type option:selected').val();
       switch_bachelor_data(level);
+      switch_bachelor_type_options(b_type, level);
     });
 
     $('#id_bachelor_type').change(function() {
       let b_type = $('#id_bachelor_type option:selected').val();
-      switch_bachelor_type_options(b_type);
+      let level = $("#id_level option:selected").val()
+      switch_bachelor_type_options(b_type, level);
     });
 
     // Init
@@ -293,7 +301,7 @@ ul
     switch_bachelor_data(level);
 
     let b_type = $('#id_bachelor_type option:selected').val();
-    switch_bachelor_type_options(b_type);
+    switch_bachelor_type_options(b_type, level);
   });
 </script>
 {% endblock %}
