@@ -652,6 +652,16 @@ def myslots(request):
     return render(request, 'core/myslots.html', context)
 
 
+@groups_required('INTER',)
+def my_visits_slots(request):
+    contact_form = ContactForm()
+
+    context = {
+        'contact_form': contact_form,
+    }
+
+    return render(request, 'core/my_visits_slots.html', context)
+
 @groups_required('REF-LYC',)
 def my_high_school(request, high_school_id=None):
     if request.user.highschool and request.user.highschool.id != high_school_id:

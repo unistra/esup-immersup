@@ -24,6 +24,7 @@ urlpatterns = [
     path('myvisits/', views.myvisits, name='myvisits'),
     path('myevents/', views.myevents, name='myevents'),
     path('myslots/', views.myslots, name='myslots'),
+    path('my_visits_slots/', views.my_visits_slots, name='my_visits_slots'),
 
     path('slot', views.slot, name='slot'),
     path('slot/<int:slot_id>', views.slot, name='modify_slot'),

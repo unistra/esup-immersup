@@ -330,7 +330,6 @@ def ajax_get_slots(request):
     today = datetime.datetime.today()
     user_filter = False
     filters = {}
-    slots = []
 
     try:
         year = UniversityYear.objects.get(active=True)
@@ -386,7 +385,9 @@ def ajax_get_slots(request):
     if visits:
         filters["course__isnull"] = True
         filters["event__isnull"] = True
-        filters['visit__establishment__id'] = establishment_id
+
+        if establishment_id:
+            filters['visit__establishment__id'] = establishment_id
 
         if structure_id is not None:
             filters['visit__structure__id'] = structure_id
