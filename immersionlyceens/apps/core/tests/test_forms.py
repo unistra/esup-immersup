@@ -601,8 +601,6 @@ class FormTestCase(TestCase):
         form = OffOfferEventSlotForm(data=qdict, request=request)
         form.is_valid()
 
-        print(form.errors)
-
         self.assertTrue(form.is_valid())
         form.save()
 

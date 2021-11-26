@@ -330,7 +330,6 @@ def ajax_get_slots(request):
     today = datetime.datetime.today()
     user_filter = False
     filters = {}
-    slots = []
 
     try:
         year = UniversityYear.objects.get(active=True)
@@ -386,7 +385,9 @@ def ajax_get_slots(request):
     if visits:
         filters["course__isnull"] = True
         filters["event__isnull"] = True
-        filters['visit__establishment__id'] = establishment_id
+
+        if establishment_id:
+            filters['visit__establishment__id'] = establishment_id
 
         if structure_id is not None:
             filters['visit__structure__id'] = structure_id
@@ -2357,6 +2358,8 @@ class VisitList(generics.ListAPIView):
         user = self.request.user
 
         if not user.is_superuser:
+            if user.is_speaker():
+                queryset = queryset.filter(speakers=user)
             if user.is_structure_manager():
                 queryset = queryset.filter(structure__in=user.structures.all())
             if user.is_establishment_manager() and user.establishment:
@@ -2437,6 +2440,8 @@ class OffOfferEventList(generics.ListAPIView):
         user = self.request.user
 
         if not user.is_superuser:
+            if user.is_speaker():
+                queryset = queryset.filter(speakers=user)
             if user.is_high_school_manager():
                 queryset = queryset.filter(highschool=user.highschool)
             if user.is_structure_manager():

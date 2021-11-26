@@ -413,16 +413,17 @@ class OffOfferEventSlotForm(SlotForm):
         allowed_structs = self.request.user.get_authorized_structures()
         self.fields["structure"].queryset = allowed_structs.order_by('code', 'label')
 
-        if self.request.user.is_high_school_manager():
-            self.fields["highschool"].queryset = HighSchool.objects.filter(id=self.request.user.highschool.id)
-            self.fields["highschool"].empty_label = None
+        if not self.request.user.is_superuser:
+            if self.request.user.is_high_school_manager():
+                self.fields["highschool"].queryset = HighSchool.objects.filter(id=self.request.user.highschool.id)
+                self.fields["highschool"].empty_label = None
 
-        if self.request.user.is_structure_manager():
-            self.fields["structure"].initial = self.fields["structure"].queryset.first()
-            self.fields["structure"].empty_label = None
-        else:
-            self.fields["structure"].initial = None
-            self.fields["structure"].empty_label = "---------"
+            if self.request.user.is_structure_manager():
+                self.fields["structure"].initial = self.fields["structure"].queryset.first()
+                self.fields["structure"].empty_label = None
+            else:
+                self.fields["structure"].initial = None
+                self.fields["structure"].empty_label = "---------"
 
         event = self.instance.event if self.instance and self.instance.event_id else None
 

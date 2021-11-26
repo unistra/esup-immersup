@@ -1103,6 +1103,54 @@ class Visit(models.Model):
 
         return current_year.date_is_between(today) and not self.slots.all().exists()
 
+    def free_seats(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        :return: number of seats as the sum of seats of all slots under this visit
+        """
+        filters = {'published': True}
+
+        if speaker_id:
+            filters['speakers'] = speaker_id
+
+        d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
+
+        return d['total_seats']
+
+    def published_slots_count(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        Return number of published slots under this visit
+        """
+        filters = {'published': True}
+
+        if speaker_id:
+            filters['speakers'] = speaker_id
+
+        return self.slots.filter(**filters).count()
+
+    def slots_count(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        Return number of slots under this visit, published or not
+        """
+        if speaker_id:
+            return self.slots.filter(speakers=speaker_id).count()
+        else:
+            return self.slots.all().count()
+
+    def registrations_count(self, speaker_id=None):
+        """
+        :speaker_id: optional : only consider slots attached to 'speaker'
+        :return: the number of non-cancelled registered students on all the slots
+        under this visit (past and future)
+        """
+        filters = {'slot__visit': self, 'cancellation_type__isnull': True}
+
+        if speaker_id:
+            filters['slot__speakers'] = speaker_id
+
+        return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
     class Meta:
         constraints = [

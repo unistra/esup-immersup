@@ -604,7 +604,41 @@ def mycourses(request):
         "structure_id": structure_id
     }
 
-    return render(request, 'core/mycourses.html', context)
+    return render(request, 'core/my_courses.html', context)
+
+
+@groups_required('INTER',)
+def myvisits(request):
+
+    structure_id = None
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+
+    if allowed_strs.count() == 1:
+        structure_id = allowed_strs.first().id
+
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id
+    }
+
+    return render(request, 'core/my_visits.html', context)
+
+
+@groups_required('INTER',)
+def myevents(request):
+
+    structure_id = None
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+
+    if allowed_strs.count() == 1:
+        structure_id = allowed_strs.first().id
+
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id
+    }
+
+    return render(request, 'core/my_events.html', context)
 
 
 @groups_required('INTER',)
@@ -617,6 +651,16 @@ def myslots(request):
 
     return render(request, 'core/myslots.html', context)
 
+
+@groups_required('INTER',)
+def my_visits_slots(request):
+    contact_form = ContactForm()
+
+    context = {
+        'contact_form': contact_form,
+    }
+
+    return render(request, 'core/my_visits_slots.html', context)
 
 @groups_required('REF-LYC',)
 def my_high_school(request, high_school_id=None):
@@ -1758,7 +1802,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
         self.duplicate = self.request.POST.get("duplicate", False) != False
         self.add_new = self.request.POST.get("save_add", False) != False
 
-        messages.success(self.request, _("EVent slot \"%s\" updated.") % form.instance)
+        messages.success(self.request, _("Event slot \"%s\" updated.") % form.instance)
 
         self.request.session["current_structure_id"] = \
             self.object.event.structure.id if self.object.event.structure else None
