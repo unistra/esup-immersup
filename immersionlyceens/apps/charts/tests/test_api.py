@@ -47,9 +47,29 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'],
-            [{'name': 'Registrations count', 'Pupil in year 12 / 11th grade student': 3, 'Pupil in year 13 / 12th grade student': 2, 'Above A Level / High-School Degree': 0},
-             {'name': 'Registrations to at least one immersion', 'Pupil in year 12 / 11th grade student': 2, 'Pupil in year 13 / 12th grade student': 2, 'Above A Level / High-School Degree': 0},
-             {'name': 'Attended to at least one immersion', 'Pupil in year 12 / 11th grade student': 1, 'Pupil in year 13 / 12th grade student': 1, 'Above A Level / High-School Degree': 0}]
+            [
+              {
+                'name': 'Registrations count',
+                'Pupil in year 11 / 10th grade student': 0,
+                'Pupil in year 12 / 11th grade student': 3,
+                'Pupil in year 13 / 12th grade student': 2,
+                'Above A Level / High-School Degree': 0
+              },
+              {
+                 'name': 'Registrations to at least one immersion',
+                 'Pupil in year 11 / 10th grade student': 0,
+                 'Pupil in year 12 / 11th grade student': 2,
+                 'Pupil in year 13 / 12th grade student': 2,
+                 'Above A Level / High-School Degree': 0
+              },
+              {
+                  'name': 'Attended to at least one immersion',
+                  'Pupil in year 11 / 10th grade student': 0,
+                  'Pupil in year 12 / 11th grade student': 1,
+                  'Pupil in year 13 / 12th grade student': 1,
+                  'Above A Level / High-School Degree': 0
+              }
+            ]
         )
 
         # Highschool domain charts
@@ -58,6 +78,8 @@ class ChartsTestCase(TestCase):
 
         content = response.content.decode()
         json_content = json.loads(content)
+
+        print(json.dumps(json_content["datasets"], indent=2))
 
         self.assertEqual(json_content['datasets'],
             [{'domain': 'Art, Lettres, Langues', 'count': 15,
