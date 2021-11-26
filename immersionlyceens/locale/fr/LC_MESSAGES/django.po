@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-26 14:14+0100\n"
+"POT-Creation-Date: 2021-11-26 15:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -250,7 +250,7 @@ msgstr "Lycées"
 #: immersionlyceens/apps/core/models.py:106
 #: immersionlyceens/apps/core/models.py:176
 #: immersionlyceens/apps/core/models.py:494
-#: immersionlyceens/apps/immersion/models.py:78
+#: immersionlyceens/apps/immersion/models.py:79
 #: immersionlyceens/templates/fragments/main_menu.html:80
 msgid "Structures"
 msgstr "Structures d'établissements"
@@ -1135,8 +1135,8 @@ msgstr "Adresse3"
 
 #: immersionlyceens/apps/core/models.py:54
 #: immersionlyceens/apps/core/models.py:122
-#: immersionlyceens/apps/immersion/models.py:70
-#: immersionlyceens/apps/immersion/models.py:281
+#: immersionlyceens/apps/immersion/models.py:71
+#: immersionlyceens/apps/immersion/models.py:282
 #: immersionlyceens/templates/core/my_high_school.html:102
 #: immersionlyceens/templates/immersion/hs_record.html:81
 #: immersionlyceens/templates/immersion/student_record.html:86
@@ -1251,7 +1251,7 @@ msgstr "Propose son offre post bac à l'immersion"
 #: immersionlyceens/apps/core/models.py:969
 #: immersionlyceens/apps/core/models.py:1081
 #: immersionlyceens/apps/core/models.py:1210
-#: immersionlyceens/apps/immersion/models.py:61
+#: immersionlyceens/apps/immersion/models.py:62
 #: immersionlyceens/templates/core/my_visits.html:36
 #: immersionlyceens/templates/core/my_visits_slots.html:54
 #: immersionlyceens/templates/core/training/training.html:39
@@ -1360,7 +1360,7 @@ msgid "A bachelor mention with this label already exists"
 msgstr "Une mention de baccalauréat avec ce nom existe déjà"
 
 #: immersionlyceens/apps/core/models.py:574
-#: immersionlyceens/apps/immersion/models.py:83
+#: immersionlyceens/apps/immersion/models.py:84
 #: immersionlyceens/templates/immersion/hs_record.html:133
 msgid "Technological bachelor series"
 msgstr "Série du baccalauréat technologique"
@@ -1907,8 +1907,8 @@ msgid "Absent"
 msgstr "Absent(e)"
 
 #: immersionlyceens/apps/core/models.py:1725
-#: immersionlyceens/apps/immersion/models.py:52
-#: immersionlyceens/apps/immersion/models.py:271
+#: immersionlyceens/apps/immersion/models.py:53
+#: immersionlyceens/apps/immersion/models.py:272
 #: immersionlyceens/libs/api/views.py:1146
 #: immersionlyceens/libs/tests/test_api.py:1319
 #: immersionlyceens/templates/core/students_presence.html:41
@@ -2323,82 +2323,86 @@ msgid "Please choose your origin bachelor type"
 msgstr "Veuillez sélectionner votre yype de baccalauréat d'origine"
 
 #: immersionlyceens/apps/immersion/models.py:14
-#: immersionlyceens/apps/immersion/models.py:250
+#: immersionlyceens/apps/immersion/models.py:251
 msgid "Mr"
 msgstr "Monsieur"
 
 #: immersionlyceens/apps/immersion/models.py:15
-#: immersionlyceens/apps/immersion/models.py:251
+#: immersionlyceens/apps/immersion/models.py:252
 msgid "Mrs"
 msgstr "Madame"
 
 #: immersionlyceens/apps/immersion/models.py:20
+msgid "Pupil in year 11 / 10th grade student"
+msgstr "Seconde"
+
+#: immersionlyceens/apps/immersion/models.py:21
 msgid "Pupil in year 12 / 11th grade student"
 msgstr "Première"
 
-#: immersionlyceens/apps/immersion/models.py:21
+#: immersionlyceens/apps/immersion/models.py:22
 msgid "Pupil in year 13 / 12th grade student"
 msgstr "Terminale"
 
-#: immersionlyceens/apps/immersion/models.py:22
+#: immersionlyceens/apps/immersion/models.py:23
 msgid "Above A Level / High-School Degree"
 msgstr "Post-bac"
 
-#: immersionlyceens/apps/immersion/models.py:26
-#: immersionlyceens/apps/immersion/models.py:263
+#: immersionlyceens/apps/immersion/models.py:27
+#: immersionlyceens/apps/immersion/models.py:264
 msgid "General"
 msgstr "Général"
 
-#: immersionlyceens/apps/immersion/models.py:27
-#: immersionlyceens/apps/immersion/models.py:264
+#: immersionlyceens/apps/immersion/models.py:28
+#: immersionlyceens/apps/immersion/models.py:265
 msgid "Technological"
 msgstr "Technologique"
 
-#: immersionlyceens/apps/immersion/models.py:28
-#: immersionlyceens/apps/immersion/models.py:265
+#: immersionlyceens/apps/immersion/models.py:29
+#: immersionlyceens/apps/immersion/models.py:266
 msgid "Professional"
 msgstr "Professionnel"
 
-#: immersionlyceens/apps/immersion/models.py:33
-#: immersionlyceens/apps/immersion/models.py:266
+#: immersionlyceens/apps/immersion/models.py:34
+#: immersionlyceens/apps/immersion/models.py:267
 msgid "DAEU"
 msgstr "DAEU"
 
-#: immersionlyceens/apps/immersion/models.py:37
+#: immersionlyceens/apps/immersion/models.py:38
 msgid "BTS1"
 msgstr "BTS1"
 
-#: immersionlyceens/apps/immersion/models.py:38
+#: immersionlyceens/apps/immersion/models.py:39
 msgid "BTS2"
 msgstr "BTS2"
 
-#: immersionlyceens/apps/immersion/models.py:39
+#: immersionlyceens/apps/immersion/models.py:40
 msgid "BTSA1"
 msgstr "BTSA1"
 
-#: immersionlyceens/apps/immersion/models.py:40
+#: immersionlyceens/apps/immersion/models.py:41
 msgid "BTSA2"
 msgstr "BTSA2"
 
-#: immersionlyceens/apps/immersion/models.py:41
-#: immersionlyceens/apps/immersion/models.py:259
+#: immersionlyceens/apps/immersion/models.py:42
+#: immersionlyceens/apps/immersion/models.py:260
 msgid "Other"
 msgstr "Autre"
 
-#: immersionlyceens/apps/immersion/models.py:45
+#: immersionlyceens/apps/immersion/models.py:46
 msgid "To validate"
 msgstr "À valider"
 
-#: immersionlyceens/apps/immersion/models.py:46
+#: immersionlyceens/apps/immersion/models.py:47
 msgid "Validated"
 msgstr "Validé"
 
-#: immersionlyceens/apps/immersion/models.py:47
+#: immersionlyceens/apps/immersion/models.py:48
 msgid "Rejected"
 msgstr "rejeté"
 
-#: immersionlyceens/apps/immersion/models.py:68
-#: immersionlyceens/apps/immersion/models.py:280
+#: immersionlyceens/apps/immersion/models.py:69
+#: immersionlyceens/apps/immersion/models.py:281
 #: immersionlyceens/templates/core/duplicated_accounts.html:36
 #: immersionlyceens/templates/core/highschool_students.html:52
 #: immersionlyceens/templates/core/hs_record_manager.html:48
@@ -2410,15 +2414,15 @@ msgstr "rejeté"
 msgid "Birth date"
 msgstr "Date de naissance"
 
-#: immersionlyceens/apps/immersion/models.py:69
-#: immersionlyceens/apps/immersion/models.py:279
+#: immersionlyceens/apps/immersion/models.py:70
+#: immersionlyceens/apps/immersion/models.py:280
 #: immersionlyceens/templates/immersion/hs_record.html:45
 #: immersionlyceens/templates/immersion/student_record.html:51
 msgid "Civility"
 msgstr "Civilité"
 
-#: immersionlyceens/apps/immersion/models.py:71
-#: immersionlyceens/apps/immersion/models.py:282
+#: immersionlyceens/apps/immersion/models.py:72
+#: immersionlyceens/apps/immersion/models.py:283
 #: immersionlyceens/templates/charts/global_domains_charts.html:42
 #: immersionlyceens/templates/core/highschool_students.html:56
 #: immersionlyceens/templates/core/hs_record_manager.html:53
@@ -2431,7 +2435,7 @@ msgstr "Civilité"
 msgid "Level"
 msgstr "Niveau"
 
-#: immersionlyceens/apps/immersion/models.py:72
+#: immersionlyceens/apps/immersion/models.py:73
 #: immersionlyceens/templates/core/hs_record_manager.html:58
 #: immersionlyceens/templates/core/student_validation.html:89
 #: immersionlyceens/templates/core/student_validation.html:122
@@ -2440,110 +2444,110 @@ msgstr "Niveau"
 msgid "Class name"
 msgstr "Classe"
 
-#: immersionlyceens/apps/immersion/models.py:75
+#: immersionlyceens/apps/immersion/models.py:76
 #: immersionlyceens/templates/immersion/hs_record.html:114
 msgid "Bachelor type"
 msgstr "Type de baccalauréat"
 
-#: immersionlyceens/apps/immersion/models.py:91
+#: immersionlyceens/apps/immersion/models.py:92
 #: immersionlyceens/templates/immersion/hs_record.html:142
 msgid "Professional bachelor mention"
 msgstr "Mention du baccalauréat professionnel"
 
-#: immersionlyceens/apps/immersion/models.py:94
+#: immersionlyceens/apps/immersion/models.py:95
 #: immersionlyceens/templates/core/highschool_students.html:60
 #: immersionlyceens/templates/immersion/hs_record.html:152
 msgid "Post bachelor level"
 msgstr "Niveau d'étude post-bac"
 
-#: immersionlyceens/apps/immersion/models.py:96
-#: immersionlyceens/apps/immersion/models.py:284
+#: immersionlyceens/apps/immersion/models.py:97
+#: immersionlyceens/apps/immersion/models.py:285
 #: immersionlyceens/templates/immersion/hs_record.html:159
 #: immersionlyceens/templates/immersion/student_record.html:118
 msgid "Origin bachelor type"
 msgstr "Type de baccalauréat d'origine"
 
-#: immersionlyceens/apps/immersion/models.py:99
-#: immersionlyceens/apps/immersion/models.py:287
+#: immersionlyceens/apps/immersion/models.py:100
+#: immersionlyceens/apps/immersion/models.py:288
 #: immersionlyceens/templates/immersion/hs_record.html:166
 #: immersionlyceens/templates/immersion/student_record.html:124
 msgid "Current diploma"
 msgstr "Diplôme actuel"
 
-#: immersionlyceens/apps/immersion/models.py:104
+#: immersionlyceens/apps/immersion/models.py:105
 msgid "Allow students from my school to see my registrations"
 msgstr "Inscription aux immersions visibles pour les autres lycéens"
 
-#: immersionlyceens/apps/immersion/models.py:107
+#: immersionlyceens/apps/immersion/models.py:108
 msgid "Allow students from my school to see my email address"
 msgstr "Courriel visible pour les autres lycéens"
 
-#: immersionlyceens/apps/immersion/models.py:110
-#: immersionlyceens/apps/immersion/models.py:290
+#: immersionlyceens/apps/immersion/models.py:111
+#: immersionlyceens/apps/immersion/models.py:291
 msgid "Number of allowed year registrations"
 msgstr "Nombre d'inscriptions autorisées sur l'année"
 
-#: immersionlyceens/apps/immersion/models.py:113
-#: immersionlyceens/apps/immersion/models.py:293
+#: immersionlyceens/apps/immersion/models.py:114
+#: immersionlyceens/apps/immersion/models.py:294
 msgid "Number of allowed registrations for second semester"
 msgstr "Nombre d'inscriptions autorisées au semestre 2"
 
-#: immersionlyceens/apps/immersion/models.py:116
-#: immersionlyceens/apps/immersion/models.py:296
+#: immersionlyceens/apps/immersion/models.py:117
+#: immersionlyceens/apps/immersion/models.py:297
 msgid "Number of allowed registrations for first semester"
 msgstr "Nombre d'nscriptions autorisées au semestre 1"
 
-#: immersionlyceens/apps/immersion/models.py:118
+#: immersionlyceens/apps/immersion/models.py:119
 msgid "Validation"
 msgstr "Validation"
 
-#: immersionlyceens/apps/immersion/models.py:120
+#: immersionlyceens/apps/immersion/models.py:121
 msgid "Duplicates list"
 msgstr "Liste des doublons"
 
-#: immersionlyceens/apps/immersion/models.py:121
+#: immersionlyceens/apps/immersion/models.py:122
 msgid "Solved duplicates list"
 msgstr "Liste des doublons résolus"
 
-#: immersionlyceens/apps/immersion/models.py:124
-#: immersionlyceens/apps/immersion/models.py:299
+#: immersionlyceens/apps/immersion/models.py:125
+#: immersionlyceens/apps/immersion/models.py:300
 #, python-brace-format
 msgid "Record for {self.student.first_name} {self.student.last_name}"
 msgstr "Fiche de {self.student.first_name} {self.student.last_name}"
 
-#: immersionlyceens/apps/immersion/models.py:242
+#: immersionlyceens/apps/immersion/models.py:243
 msgid "High school student record"
 msgstr "Fiche lycéen"
 
-#: immersionlyceens/apps/immersion/models.py:243
+#: immersionlyceens/apps/immersion/models.py:244
 msgid "High school student records"
 msgstr "Fiches lycéens"
 
-#: immersionlyceens/apps/immersion/models.py:254
+#: immersionlyceens/apps/immersion/models.py:255
 msgid "Licence 1 (1st year above A level)"
 msgstr "Licence 1"
 
-#: immersionlyceens/apps/immersion/models.py:255
+#: immersionlyceens/apps/immersion/models.py:256
 msgid "Licence 2 (2nd year above A level)"
 msgstr "Licence 2"
 
-#: immersionlyceens/apps/immersion/models.py:256
+#: immersionlyceens/apps/immersion/models.py:257
 msgid "Licence 3 (3rd year above A level)"
 msgstr "Licence 3"
 
-#: immersionlyceens/apps/immersion/models.py:257
+#: immersionlyceens/apps/immersion/models.py:258
 msgid "BTEC 1"
 msgstr "DUT 1"
 
-#: immersionlyceens/apps/immersion/models.py:258
+#: immersionlyceens/apps/immersion/models.py:259
 msgid "BTEC 2"
 msgstr "DUT 2"
 
-#: immersionlyceens/apps/immersion/models.py:278
+#: immersionlyceens/apps/immersion/models.py:279
 msgid "Home institution code"
 msgstr "Code de l'établissement d'origine"
 
-#: immersionlyceens/apps/immersion/models.py:317
+#: immersionlyceens/apps/immersion/models.py:318
 #: immersionlyceens/templates/immersion/hs_record.html:13
 #: immersionlyceens/templates/immersion/hs_record.html:17
 #: immersionlyceens/templates/immersion/student_record.html:13
@@ -2551,7 +2555,7 @@ msgstr "Code de l'établissement d'origine"
 msgid "Student record"
 msgstr "Fiche Lycéen"
 
-#: immersionlyceens/apps/immersion/models.py:318
+#: immersionlyceens/apps/immersion/models.py:319
 msgid "Student records"
 msgstr "Fiche étudiant"
 
@@ -5393,5 +5397,5 @@ msgstr "Rechercher un lycée"
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
 
-msgid "release"
-msgstr "libérer-délivrer"
+#~ msgid "release"
+#~ msgstr "libérer-délivrer"
