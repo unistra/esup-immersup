@@ -642,25 +642,20 @@ def myevents(request):
 
 
 @groups_required('INTER',)
-def myslots(request):
+def myslots(request, slots_type=None):
     contact_form = ContactForm()
 
     context = {
         'contact_form': contact_form,
     }
 
-    return render(request, 'core/myslots.html', context)
+    if slots_type == "visits":
+        return render(request, 'core/my_visits_slots.html', context)
+    elif slots_type == "events":
+        return render(request, 'core/my_events_slots.html', context)
+    elif slots_type == "courses":
+        return render(request, 'core/myslots.html', context)
 
-
-@groups_required('INTER',)
-def my_visits_slots(request):
-    contact_form = ContactForm()
-
-    context = {
-        'contact_form': contact_form,
-    }
-
-    return render(request, 'core/my_visits_slots.html', context)
 
 @groups_required('REF-LYC',)
 def my_high_school(request, high_school_id=None):
@@ -1154,7 +1149,6 @@ class VisitUpdate(generic.UpdateView):
     def get_context_data(self, **kwargs):
         speakers_list = []
         visit_id = self.object.id
-        duplicate = kwargs.get("duplicate", False)
         if visit_id:
             try:
                 visit = Visit.objects.get(pk=visit_id)
@@ -1171,18 +1165,7 @@ class VisitUpdate(generic.UpdateView):
                     "is_removable": not t.slots.filter(visit=visit_id).exists(),
                 } for t in visit.speakers.all()]
 
-                if duplicate:
-                    data = {
-                        'establishment': visit.establishment,
-                        'structure': visit.structure,
-                        'highschool': visit.highschool,
-                        'published': visit.published,
-                        'purpose': visit.purpose
-                    }
-                    visit = Visit(**data)
-
                 self.form = VisitForm(instance=visit, request=self.request)
-
             except Visit.DoesNotExist:
                 self.form = VisitForm(request=self.request)
 
@@ -1343,7 +1326,6 @@ class VisitSlotUpdate(generic.UpdateView):
     def get_context_data(self, **kwargs):
         speakers_list = []
         slot_id = self.object.id
-        duplicate = kwargs.get("duplicate", False)
         if slot_id:
             try:
                 slot = Slot.objects.get(pk=slot_id)
@@ -1360,16 +1342,6 @@ class VisitSlotUpdate(generic.UpdateView):
                     "display_name": f"{t.last_name} {t.first_name}",
                     "is_removable": True,
                 } for t in slot.speakers.all()]
-
-                if duplicate:
-                    data = {
-                        'establishment': slot.visit.establishment,
-                        'structure': slot.visit.structure,
-                        'highschool': slot.visit.highschool,
-                        'published': slot.published,
-                        'purpose': slot.visit.purpose
-                    }
-                    slot = Slot(**data)
 
                 self.form = VisitSlotForm(instance=slot, request=self.request)
 
@@ -1541,7 +1513,6 @@ class OffOfferEventUpdate(generic.UpdateView):
         speakers_list = []
         event_id = self.object.id
 
-        duplicate = kwargs.get("duplicate", False)
         if event_id:
             try:
                 event = OffOfferEvent.objects.get(pk=event_id)
@@ -1558,18 +1529,6 @@ class OffOfferEventUpdate(generic.UpdateView):
                     "display_name": f"{t.last_name} {t.first_name}",
                     "is_removable": not t.slots.filter(event=event_id).exists(),
                 } for t in event.speakers.all()]
-
-                if duplicate:
-                    data = {
-                        'establishment': event.establishment,
-                        'structure': event.structure,
-                        'highschool': event.highschool,
-                        'event_type': event.event_type,
-                        'published': event.published,
-                        'label': event.label,
-                        'description': event.description
-                    }
-                    event = OffOfferEvent(**data)
 
                 self.form = OffOfferEventForm(instance=event, request=self.request)
 
@@ -1756,7 +1715,6 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
     def get_context_data(self, **kwargs):
         speakers_list = []
         slot_id = self.object.id
-        duplicate = kwargs.get("duplicate", False)
         if slot_id:
             try:
                 slot = Slot.objects.get(pk=slot_id)

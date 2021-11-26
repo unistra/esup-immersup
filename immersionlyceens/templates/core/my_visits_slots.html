@@ -26,7 +26,7 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans "Visits slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
+      {% trans "My visits slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
     </div>
     <div class="card-body">
 
@@ -34,7 +34,7 @@
         <form class="form-inline">
           <div class="form-group">
             <div class="form-group form-check mx-sm-3 mb-2">
-              <input type="checkbox" id="filter_past_slots" class="form-check-input"></label>
+              <input type="checkbox" id="filter_past_slots" class="form-check-input">
               <label for="filter_past_slots" class="form-check-label ml-md-2"> {% trans 'Include past slots with attendances' %}</label>
             </div>
             <div class="form-group mb-2">
