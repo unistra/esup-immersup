@@ -48,7 +48,7 @@ def customLogin(request, profile=None):
     :param profile: name of the profile (None = students)
     """
     # Clear all client sessions
-    Session.objects.all().delete()
+    # Session.objects.all().delete()
 
     is_reg_possible, is_year_valid, year = check_active_year()
 
