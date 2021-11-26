@@ -79,8 +79,6 @@ class ChartsTestCase(TestCase):
         content = response.content.decode()
         json_content = json.loads(content)
 
-        print(json.dumps(json_content["datasets"], indent=2))
-
         self.assertEqual(json_content['datasets'],
             [{'domain': 'Art, Lettres, Langues', 'count': 15,
               'subData': [{'name': 'Art plastiques', 'count': 7}, {'name': 'Art visuels', 'count': 8}]},
