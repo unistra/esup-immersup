@@ -719,23 +719,32 @@ class CoreViewsTestCase(TestCase):
         response = self.client.get("/core/myevents", follow=True)
         self.assertNotIn("My events", response.content.decode('utf-8'))
 
-    def test_myslots(self):
+    def test_my_courses_slots(self):
         self.client.login(username='speaker1', password='pass')
-        response = self.client.get("/core/myslots/", follow=True)
-        self.assertIn("Slots - HER speak", response.content.decode('utf-8'))
+        response = self.client.get("/core/myslots/courses", follow=True)
+        self.assertIn("My slots - HER speak", response.content.decode('utf-8'))
 
         self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/myslots", follow=True)
-        self.assertNotIn("Slots - HER speak", response.content.decode('utf-8'))
+        response = self.client.get("/core/myslots/courses", follow=True)
+        self.assertNotIn("My slots - HER speak", response.content.decode('utf-8'))
 
     def test_my_visits_slots(self):
         self.client.login(username='speaker1', password='pass')
-        response = self.client.get("/core/my_visits_slots/", follow=True)
-        self.assertIn("Visits slots - HER speak", response.content.decode('utf-8'))
+        response = self.client.get("/core/myslots/visits", follow=True)
+        self.assertIn("My visits slots - HER speak", response.content.decode('utf-8'))
 
         self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/my_visits_slots/", follow=True)
-        self.assertNotIn("Visits slots - HER speak", response.content.decode('utf-8'))
+        response = self.client.get("/core/myslots/visits", follow=True)
+        self.assertNotIn("My visits slots - HER speak", response.content.decode('utf-8'))
+
+    def test_my_events_slots(self):
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get("/core/myslots/events", follow=True)
+        self.assertIn("My events slots - HER speak", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myslots/events", follow=True)
+        self.assertNotIn("My events slots - HER speak", response.content.decode('utf-8'))
 
     def test_myhighschool(self):
         self.client.login(username='lycref', password='pass')

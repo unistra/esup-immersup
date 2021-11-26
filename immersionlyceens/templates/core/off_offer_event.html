@@ -8,7 +8,7 @@
 {% block title %}
 {% if duplicate %}
   {% trans "Duplicate an off offer event" %}
-{% elif form.instance %}
+{% elif form.instance.id %}
   {% trans "Update an off offer event" %}
 {% else %}
   {% trans "New off offer event" %}
@@ -21,7 +21,7 @@
     <div class="card-header text-white bg-secondary">
       {% if duplicate %}
         {% trans "Duplicate an off offer event" %}
-      {% elif form.instance %}
+      {% elif form.instance.id %}
         {% trans "Update an off offer event" %}
       {% else %}
         {% trans "Create a new off offer event" %}

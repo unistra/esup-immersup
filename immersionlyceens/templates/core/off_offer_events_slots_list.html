@@ -340,8 +340,15 @@ $(document).ready(function(){
                 }
               },
             },
-            { "data": "event_type" },
-            { "data": "event_label" },
+            { data: "event_type" },
+            { data: "event_label",
+              render: function(data, type, row) {
+                let txt = data
+                txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+
+                return txt
+              }
+            },
             { data: 'datetime',
               render: function(data, type, row) {
                 if(type === "display" || type === "filter") {
@@ -399,7 +406,7 @@ $(document).ready(function(){
                 return element;
               }
             },
-            { data: 'event_description',
+            { data: 'additional_information',
               render: function(data) {
                 if (data) {
                   return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
