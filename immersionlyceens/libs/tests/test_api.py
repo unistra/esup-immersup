@@ -1411,7 +1411,7 @@ class APITestCase(TestCase):
 
         one = False
         for h in content['data']:
-            if h['level'] == HighSchoolStudentRecord.LEVELS[2][1]:
+            if h['level'] == HighSchoolStudentRecord.LEVELS[-1][1]:
                 self.assertEqual(self.hs_record.get_post_bachelor_level_display(), h['post_bachelor_level'])
                 self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
                 one = True
