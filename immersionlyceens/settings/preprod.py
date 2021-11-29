@@ -99,9 +99,6 @@ DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
 
 # SUMMER NOTE
-BASE_DIR = os.getcwd()
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 SUMMERNOTE_THEME = 'bs4'
 SUMMERNOTE_CONFIG = {
     'spellCheck': True,
