@@ -225,6 +225,8 @@
 
   $('#highschools').change( function() {
     current_highschool_id = $('#highschools option:selected').val();
+    
+    dt.clear().draw()
 
     if (current_highschool_id !== "") {
         empty_structures()
