@@ -877,7 +877,7 @@ msgstr "Champs obligatoires non renseignés"
 #: immersionlyceens/apps/core/forms.py:334
 #: immersionlyceens/apps/core/forms.py:467
 msgid "You can't set a date in the past"
-msgstr "Vous ne pouvez pas pararmétrer de date dans le passé"
+msgstr "Vous ne pouvez pas paramétrer de date dans le passé"
 
 #: immersionlyceens/apps/core/forms.py:229
 #: immersionlyceens/apps/core/forms.py:339
