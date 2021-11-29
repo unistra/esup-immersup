@@ -250,7 +250,7 @@ ul
     });
 
     function switch_bachelor_data(level) {
-      if(level == 0 || level == 1 || level == 2) {
+      if(level == 4 || level == 1 || level == 2) {
         $('#id_bachelor_data').show("slow");
         $('#id_post_bachelor_data').hide("slow");
       }
@@ -261,7 +261,7 @@ ul
     }
 
     function switch_bachelor_type_options(b_type, level) {
-
+      // console.log("b_type => " + b_type)
       if(b_type == 1) {
         if ( level == 1 || level == 2 ) {
           $('#id_general_bachelor_data').show("slow");
