@@ -355,5 +355,43 @@ def visits_offer(request):
     return render(request, 'visits_offer.html', context)
 
 
+def events_offer(request):
+    """ Visits Offer view """
+
+    filters = {}
+    today = timezone.now().date()
+
+    try:
+        events_txt = InformationText.objects.get(code="INTRO_EVENEMENTHO", active=True).content
+    except InformationText.DoesNotExist:
+        events_txt = ''
+
+    # Published visits only & no course slot
+    filters["course__isnull"] = True
+    filters["visit__published"] = True
+
+    # If user is highschool student filter on highschool
+    try:
+        if request.user.is_high_school_student() and not request.user.is_superuser:
+            filters["visit__highschool"] = request.user.get_high_school_student_record().highschool
+    except:
+        # AnonymousUser
+        pass
+    # TODO: implement class method in model to retrieve >=today slots for visits
+    filters["date__gte"] = today
+    events = Slot.objects.prefetch_related(
+            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
+            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'date')
+
+    events_count = events.count()
+    context = {
+        'events_count': events_count,
+        'events_txt': events_txt,
+        'events': events,
+    }
+    return render(request, 'events_offer.html', context)
+
+
+
 def error_500(request):
     return render(request, '500.html', status=500)

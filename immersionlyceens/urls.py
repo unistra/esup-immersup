@@ -8,7 +8,7 @@ from immersionlyceens.apps.immersion.views import shibbolethLogin
 
 from .apps.core import views as core_views
 from .views import (
-    accompanying, home, offer, offer_subdomain, procedure,
+    accompanying, events_offer, home, offer, offer_subdomain, procedure,
     serve_accompanying_document, serve_public_document, visits_offer,
 )
 
@@ -26,6 +26,7 @@ urlpatterns = [
     path('core/', include('immersionlyceens.apps.core.urls')),
     path('dl/accdoc/<int:accompanying_document_id>', serve_accompanying_document, name='accompanying_document',),
     path('dl/pubdoc/<int:public_document_id>', serve_public_document, name='public_document',),
+    path('events_offer', events_offer, name='events_offer'),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),
