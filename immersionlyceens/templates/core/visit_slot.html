@@ -408,29 +408,32 @@
   })
 
   function load_speakers(value) {
-    $.ajax({
-      url: '/api/get_visit_speakers/' + value,
-      success: function(data) {
-        if ( data['data'] ) {
-          $('#id_speakers').html('');
-          data['data'].forEach(function(e){
-            let checked = ''
+    $('#id_speakers').html('');
 
-            if (speakers.find(s => s.id === e['id']) !== undefined) {
-              checked = "checked"
-            }
+    if(value !== '') {
+      $.ajax({
+        url: '/api/get_visit_speakers/' + value,
+        success: function (data) {
+          if (data['data']) {
+            data['data'].forEach(function (e) {
+              let checked = ''
 
-            let name= '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
-            element = '<div class="custom-checkbox custom-control">';
-            element += '<input type="checkbox" name="speakers_list" value="' + e['id'] + '"' + checked +'>';
-            element += '&nbsp;<label for="speakers_list">' + name +'</label>';
-            element += '</div>';
-            $('#id_speakers').append(element);
-          });
-        }
-      },
-      error: function() {$('#id_speakers').html('');}
-    });
+              if (speakers.find(s => s.id === e['id']) !== undefined) {
+                checked = "checked"
+              }
+
+              let name = '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
+              element = '<div class="custom-checkbox custom-control">';
+              element += '<input type="checkbox" name="speakers_list" value="' + e['id'] + '"' + checked + '>';
+              element += '&nbsp;<label for="speakers_list">' + name + '</label>';
+              element += '</div>';
+              $('#id_speakers').append(element);
+            });
+          }
+        },
+        error: function () {}
+      });
+    }
   }
 
   $("#id_visit").change(function() {

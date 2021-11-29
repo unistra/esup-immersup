@@ -797,15 +797,18 @@ class OffOfferEventForm(forms.ModelForm):
             # Keep this ?
             # self.fields["establishment"].initial = self.request.user.establishment.id
 
-            self.fields["establishment"].empty_label = None
+            if self.request.user.is_master_establishment_manager():
+                self.fields["highschool"].queryset = HighSchool.agreed.order_by('city', 'label')
 
             if self.request.user.is_establishment_manager():
+                self.fields["establishment"].empty_label = None
                 self.fields["establishment"].queryset = \
                     Establishment.objects.filter(pk=self.request.user.establishment.id)
                 self.fields["structure"].queryset = \
                     self.fields["structure"].queryset.filter(establishment=self.request.user.establishment)
 
             if self.request.user.is_structure_manager():
+                self.fields["establishment"].empty_label = None
                 self.fields["establishment"].queryset = \
                     Establishment.objects.filter(pk=self.request.user.establishment.id)
                 self.fields["structure"].required = True

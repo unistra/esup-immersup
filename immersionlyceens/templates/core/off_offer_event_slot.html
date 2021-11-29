@@ -586,11 +586,13 @@
   });
 
   function load_speakers(value) {
-    $.ajax({
+    $('#id_speakers').html('');
+
+    if(value != '') {
+      $.ajax({
       url: '/api/get_event_speakers/' + value,
       success: function(data) {
         if ( data['data'] ) {
-          $('#id_speakers').html('');
           data['data'].forEach(function(e){
             let checked = ''
 
@@ -607,8 +609,9 @@
           });
         }
       },
-      error: function() {$('#id_speakers').html('');}
+      error: function() {}
     });
+    }
   }
 
   $("#id_event").change(function() {
