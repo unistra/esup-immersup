@@ -133,7 +133,9 @@ class SlotForm(forms.ModelForm):
         course = self.instance.course if self.instance and self.instance.course_id else None
 
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
-            'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url']:
+            'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
+            'allowed_establishments', 'allowed_highschools',
+            'allowed_student_levels', 'allowed_post_bachelor_levels']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         can_choose_establishment = any([
@@ -254,7 +256,8 @@ class SlotForm(forms.ModelForm):
         model = Slot
         fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'event', 'training', 'course',
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
-            'additional_information', 'published', 'face_to_face')
+            'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
+            'allowed_establishments', 'allowed_highschools', 'allowed_student_levels', 'allowed_post_bachelor_levels')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
