@@ -355,7 +355,7 @@ def visits_offer(request):
     return render(request, 'visits_offer.html', context)
 
 
-def events_offer(request):
+def offer_off_offer_events(request):
     """ Visits Offer view """
 
     filters = {}
@@ -368,20 +368,20 @@ def events_offer(request):
 
     # Published visits only & no course slot
     filters["course__isnull"] = True
-    filters["visit__published"] = True
+    filters["event__published"] = True
 
     # If user is highschool student filter on highschool
     try:
         if request.user.is_high_school_student() and not request.user.is_superuser:
-            filters["visit__highschool"] = request.user.get_high_school_student_record().highschool
+            filters["event__highschool"] = request.user.get_high_school_student_record().highschool
     except:
         # AnonymousUser
         pass
     # TODO: implement class method in model to retrieve >=today slots for visits
     filters["date__gte"] = today
     events = Slot.objects.prefetch_related(
-            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'date')
+            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
+            .filter(**filters).order_by('event__highschool__city', 'event__highschool__label', 'date')
 
     events_count = events.count()
     context = {
@@ -389,7 +389,7 @@ def events_offer(request):
         'events_txt': events_txt,
         'events': events,
     }
-    return render(request, 'events_offer.html', context)
+    return render(request, 'offer_off_offer_events.html', context)
 
 
 

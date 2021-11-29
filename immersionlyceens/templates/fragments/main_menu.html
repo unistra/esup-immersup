@@ -27,7 +27,7 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
             <a class="dropdown-item" href="{% url 'offer' %}">{% trans 'Courses' %}</a>
-            <a class="dropdown-item" href="{% url 'events_offer' %}">{% trans 'Events' %}</a>
+            <a class="dropdown-item" href="{% url 'offer_off_offer_events' %}">{% trans 'Off offer Events' %}</a>
             {% if highschool_visit %}
             <a class="dropdown-item" href="{% url 'visits_offer' %}">{% trans 'Visits' %}</a>
             {% endif %}
