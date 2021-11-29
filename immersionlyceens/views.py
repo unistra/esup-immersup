@@ -9,6 +9,7 @@ from django.http import (
     HttpResponseNotFound, StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
 
@@ -321,16 +322,26 @@ def visits_offer(request):
     """ Visits Offer view """
 
     filters = {}
+    today = timezone.now().date()
 
     try:
         visits_txt = InformationText.objects.get(code="INTRO_VISITE", active=True).content
     except InformationText.DoesNotExist:
         visits_txt = ''
 
-
-
+    # Published visits only & no course slot
     filters["course__isnull"] = True
     filters["visit__published"] = True
+
+    # If user is highschool student filter on highschool
+    try:
+        if request.user.is_high_school_student() and not request.user.is_superuser:
+            filters["visit__highschool"] = request.user.get_high_school_student_record().highschool
+    except:
+        # AnonymousUser
+        pass
+    # TODO: implement class method in model to retrieve >=today slots for visits
+    filters["date__gte"] = today
     visits = Slot.objects.prefetch_related(
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
             .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'date')
