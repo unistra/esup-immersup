@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-26 16:19+0100\n"
+"POT-Creation-Date: 2021-11-29 11:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2488,19 +2488,26 @@ msgid "Allow students from my school to see my email address"
 msgstr "Courriel visible pour les autres lycéens"
 
 #: immersionlyceens/apps/immersion/models.py:111
-#: immersionlyceens/apps/immersion/models.py:291
 msgid "Number of allowed year registrations"
 msgstr "Nombre d'inscriptions autorisées sur l'année"
 
 #: immersionlyceens/apps/immersion/models.py:114
-#: immersionlyceens/apps/immersion/models.py:294
-msgid "Number of allowed registrations for second semester"
-msgstr "Nombre d'inscriptions autorisées au semestre 2"
+#: immersionlyceens/apps/immersion/models.py:297
+#, fuzzy
+#| msgid "Number of allowed registrations for first semester"
+msgid ""
+"Number of allowed registrations for first semester (excluding visits and "
+"events)"
+msgstr "Nombre d'nscriptions autorisées au semestre 1"
 
 #: immersionlyceens/apps/immersion/models.py:117
-#: immersionlyceens/apps/immersion/models.py:297
-msgid "Number of allowed registrations for first semester"
-msgstr "Nombre d'nscriptions autorisées au semestre 1"
+#: immersionlyceens/apps/immersion/models.py:294
+#, fuzzy
+#| msgid "Number of allowed registrations for second semester"
+msgid ""
+"Number of allowed registrations for second semester (excluding visits and "
+"events)"
+msgstr "Nombre d'inscriptions autorisées au semestre 2"
 
 #: immersionlyceens/apps/immersion/models.py:119
 msgid "Validation"
@@ -2551,6 +2558,10 @@ msgstr "DUT 2"
 #: immersionlyceens/apps/immersion/models.py:279
 msgid "Home institution code"
 msgstr "Code de l'établissement d'origine"
+
+#: immersionlyceens/apps/immersion/models.py:291
+msgid "Number of allowed year registrations (excluding visits and events)"
+msgstr "Nombre d'inscriptions autorisées sur l'année (hors visites et évènements)"
 
 #: immersionlyceens/apps/immersion/models.py:318
 #: immersionlyceens/templates/immersion/hs_record.html:13
@@ -4825,18 +4836,18 @@ msgstr ""
 
 #: immersionlyceens/templates/immersion/hs_record.html:191
 #: immersionlyceens/templates/immersion/student_record.html:131
-msgid "Annually allowed registrations"
-msgstr "Inscriptions autorisées sur l'année"
+msgid "Annually allowed registrations (excluding visits and events)"
+msgstr "Inscriptions autorisées sur l'année (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:202
 #: immersionlyceens/templates/immersion/student_record.html:142
-msgid "Allowed registrations for first semester"
-msgstr "Inscriptions autorisées au semestre 1"
+msgid "Allowed registrations for first semester (excluding visits and events)"
+msgstr "Inscriptions autorisées au semestre 1 (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:212
 #: immersionlyceens/templates/immersion/student_record.html:152
-msgid "Allowed registrations for second semester"
-msgstr "Inscriptions autorisées au semestre 2"
+msgid "Allowed registrations for second semester (excluding visits and events)"
+msgstr "Inscriptions autorisées au semestre 2 (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:229
 #: immersionlyceens/templates/immersion/student_record.html:170
@@ -5417,5 +5428,5 @@ msgstr "Rechercher un lycée"
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
 
-msgid "release"
-msgstr "libérer-délivrer"
+#~ msgid "release"
+#~ msgstr "libérer-délivrer"
