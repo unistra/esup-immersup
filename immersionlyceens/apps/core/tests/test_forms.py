@@ -23,14 +23,16 @@ from ..admin_forms import (
     VacationForm,
 )
 from ..forms import (
-    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm
+    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm, OffOfferEventForm,
+    OffOfferEventSlotForm
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
     EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
     PublicDocument, PublicType, Slot, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation, Visit
+    TrainingSubdomain, UniversityYear, Vacation, Visit, OffOfferEventType,
+    OffOfferEvent
 )
 
 
@@ -102,12 +104,22 @@ class FormTestCase(TestCase):
             establishment=self.establishment
         )
 
+        self.ref_str_user = get_user_model().objects.create_user(
+            username='ref_str',
+            password='pass',
+            email='ref_str@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
+            establishment=self.establishment
+        )
+
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
 
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
 
         self.today = datetime.datetime.today()
         self.structure = Structure.objects.create(label="test structure")
@@ -129,7 +141,8 @@ class FormTestCase(TestCase):
             building=self.building, room='room 1', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.speakers.add(self.speaker1),
+        self.slot.speakers.add(self.speaker1)
+        self.ref_str_user.structures.add(self.structure)
 
         self.high_school = HighSchool.objects.create(
             label='HS1',
@@ -159,7 +172,7 @@ class FormTestCase(TestCase):
                         )
 
         self.evaluation_type = EvaluationType.objects.create(code='testCode', label='testLabel')
-
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
 
     def test_slot_form(self):
         """
@@ -222,12 +235,25 @@ class FormTestCase(TestCase):
             'n_places': 10,
             'published': True,
         }
+        # Fail : past date
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You can't set a date in the past", form.errors["date"])
+
         # Fail : Not between calendar dates
+        invalid_data["date"] = self.today + datetime.timedelta(days=102)
         form = SlotForm(data=invalid_data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
 
         # Fail : time errors
+        invalid_data["date"] = self.today
+        invalid_data["start_time"] = datetime.time(hour=0)
+        invalid_data["end_time"] = datetime.time(hour=1)
+        form = SlotForm(data=invalid_data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Slot is set for today : please enter a valid start_time", form.errors["start_time"])
+
         invalid_data["date"] = self.today + datetime.timedelta(days=10)
         invalid_data["start_time"] = datetime.time(hour=20)
         invalid_data["end_time"] = datetime.time(hour=2)
@@ -381,3 +407,204 @@ class FormTestCase(TestCase):
         self.assertEqual(slot.speakers.first(), self.speaker1)
 
 
+    def test_event_form(self):
+        """
+        Event form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        # Event with establishment + structure
+        data = {
+            'establishment': self.master_establishment.id,
+            'structure': self.structure.id,
+            'highschool': None,
+            'label': "Label test",
+            'event_type': self.event_type,
+            'published': True,
+            'description': "Description test"
+        }
+
+        # Fail : missing speakers
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please add at least one speaker.", form.errors["__all__"])
+
+        # Success
+        data["speakers_list"] = '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=self.structure)
+        self.assertEqual(event.speakers.first(), self.speaker1)
+
+        # Create an Event with no structure
+        del(data["structure"])
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=None)
+        self.assertEqual(event.speakers.first(), self.speaker1)
+
+        # Fail : duplicate
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("An event with these values already exists", form.errors["__all__"])
+
+        # Fail : establishment or highschool required
+        del(data["establishment"])
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You must select one of : Establishment or High school", form.errors["__all__"])
+
+        # As a high school manager
+        request.user = self.lyc_ref
+
+        # Error : can't choose establishment/structure
+        data = {
+            'establishment': self.master_establishment.id,
+            'structure': self.structure.id,
+            'highschool': None,
+            'label': "High school event",
+            'event_type': self.event_type,
+            'published': True,
+            'description': "Description test 2",
+            "speakers_list": '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
+        }
+
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Select a valid choice. That choice is not one of the available choices.",
+            form.errors["structure"]
+        )
+        self.assertIn(
+            "Select a valid choice. That choice is not one of the available choices.",
+            form.errors["establishment"]
+        )
+        self.assertIn("You must select one of : Establishment or High school", form.errors["__all__"])
+
+        # Success
+        del(data["establishment"])
+        del(data["structure"])
+        data["highschool"] = self.high_school
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        # As a structure manager
+        request.user = self.ref_str_user
+
+        # Error : can't choose highschool
+        data = {
+            'establishment': None,
+            'structure': self.structure,
+            'highschool': self.high_school,
+            'label': "Structure event",
+            'event_type': self.event_type,
+            'published': True,
+            'description': "Description test 2",
+            "speakers_list": '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
+        }
+
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Select a valid choice. That choice is not one of the available choices.",
+            form.errors["highschool"]
+        )
+
+        # Success
+        del (data["highschool"])
+        data["establishment"] = self.ref_str_user.establishment
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+
+    def test_off_offer_event_slot_form(self):
+        """
+        Event slot form tests
+        """
+        request.user = self.ref_master_etab_user
+        # TODO : more tests with other users
+
+        event = OffOfferEvent.objects.create(
+            label="whatever",
+            event_type=self.event_type,
+            published=False,
+            establishment=self.master_establishment,
+            structure=None,
+        )
+
+        event.speakers.add(self.speaker1)
+
+        self.assertFalse(Slot.objects.filter(event=event).exists())
+
+        data = {
+            'event': event,
+            'face_to_face': True,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': "anywhere",
+            'published': True,
+            'date': self.today + datetime.timedelta(days=30),
+            'start_time': datetime.time(10, 0),
+            'end_time': datetime.time(12, 0),
+            'n_places':20,
+            'additional_information': 'whatever'
+        }
+
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+
+        # Fail : missing speakers
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please select at least one speaker.", form.errors["__all__"])
+
+        data["speakers_list"] = self.speaker1.id
+
+        # Fail : date not in calendar
+        data["date"] = self.today + datetime.timedelta(days=101)
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
+
+        # Fail : date in the past
+        data["date"] = self.today - datetime.timedelta(days=1)
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You can't set a date in the past", form.errors["date"])
+
+        # Good one
+        data["date"] = self.today + datetime.timedelta(days=30)
+
+        # Fail : n_places is 0
+        data["n_places"] = 0
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please enter a valid number for 'n_places' field", form.errors["n_places"])
+
+
+        # Success
+        data["n_places"] = 10
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+
+        form = OffOfferEventSlotForm(data=qdict, request=request)
+        form.is_valid()
+
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertTrue(Slot.objects.filter(event=event).exists())
+        slot = Slot.objects.get(event=event)
+        self.assertEqual(slot.speakers.count(), 1)
+        self.assertEqual(slot.speakers.first(), self.speaker1)

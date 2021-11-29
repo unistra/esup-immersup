@@ -52,6 +52,7 @@
           </div>
         {% endif %}
 
+        {# Visits #}
         {% if highschool_visit and authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE" %}
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownVisits" role="button" data-toggle="dropdown"
@@ -62,6 +63,21 @@
             <a class="dropdown-item" href="{% url 'visits' %}">{% trans 'Visits list' %}</a>
             <a class="dropdown-item" href="{% url 'visits_slots' %}">{% trans 'Visits slots list' %}</a>
             <a class="dropdown-item" href="{% url 'add_visit_slot' %}">{% trans 'New visit slot' %}</a>
+          </div>
+        </div>
+        {% endif %}
+
+        {# Off offer events #}
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE" or authorized_groups|in_groups:"REF-LYC" and user.highschool.postbac_immersion %}
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEvents" role="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            {% trans 'Events' %}
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
+            <a class="dropdown-item" href="{% url 'off_offer_events' %}">{% trans 'Off offer events list' %}</a>
+            <a class="dropdown-item" href="{% url 'off_offer_events_slots' %}">{% trans 'Off offer events slots list' %}</a>
+            <a class="dropdown-item" href="{% url 'add_off_offer_event_slot' %}">{% trans 'New off offer event slot' %}</a>
           </div>
         </div>
         {% endif %}
@@ -86,7 +102,11 @@
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownConsultSpeaker">
               <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
-              <a class="dropdown-item" href="{% url 'myslots' %}">{% trans 'My slots' %}</a>
+              <a class="dropdown-item" href="{% url 'myslots' slots_type='courses' %}">{% trans 'My courses slots' %}</a>
+              <a class="dropdown-item" href="{% url 'myvisits' %}">{% trans 'My visits' %}</a>
+              <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My visits slots' %}</a>
+              <a class="dropdown-item" href="{% url 'myevents' %}">{% trans 'My events' %}</a>
+              <a class="dropdown-item" href="{% url 'myslots' slots_type='events' %}">{% trans 'My events slots' %}</a>
             </div>
           </div>
         {% endif %}

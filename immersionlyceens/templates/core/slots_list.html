@@ -45,7 +45,7 @@
         <a href="{% url 'slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
       </div>
       <div class="row">
-        {%  if request.user.is_high_school_manager or request.user.is_master_establishment_manager %}
+        {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager %}
           <div class="col-md-3">
             <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="highschools">{% trans 'Select a high school' %} :</label>
@@ -59,11 +59,11 @@
               </select>
             </div>
           </div>
-        {%  endif %}
-        {%  if request.user.is_master_establishment_manager %}
+        {% endif %}
+        {% if request.user.is_master_establishment_manager %}
           <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
         {% endif %}
-        {%  if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
           <div class="col-md-3">
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
@@ -78,7 +78,7 @@
             </div>
           </div>
         {% endif %}
-        {%  if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager %}
           <div class="col-md-5" id="id_div_structures">
             <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="structure">{% trans 'Select a structure' %} :</label>
@@ -210,6 +210,8 @@
     else {
       empty_structures()
     }
+    
+    empty_trainings()
 
     dt.clear().draw()
   });
@@ -219,7 +221,6 @@
     current_structure_id = $('#structure option:selected').val()
     $('#training').val('');
     load_trainings('structure', current_structure_id);
-    reload_data();
   });
 
   $('#highschools').change( function() {
@@ -231,7 +232,6 @@
     }
 
     load_trainings('highschool', current_highschool_id);
-    reload_data();
   });
 
   function empty_structures() {
@@ -239,6 +239,12 @@
       $('select#structure').html(options)
       current_structure_id = ''
       $("#id_div_structures").hide()
+  }
+  
+  function empty_trainings() {
+      let options = '<option value="">---------</option>'
+      $('select#training').html(options)
+      current_training_id = ''
   }
 
   function set_structures(establishment_id) {
@@ -365,7 +371,14 @@ $(document).ready(function(){
   });
 
   $('#training').on('change', function(event) {
-    reload_data();
+    training_id = $("#training").val()
+
+    if(training_id !== "") {
+      reload_data();
+    }
+    else {
+      dt.clear().draw()
+    }
   });
 
   if(current_establishment_id !== "None") {
@@ -426,7 +439,15 @@ $(document).ready(function(){
               return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
             }
           },
-          { data: 'course_label' },
+          { "data": "course",
+            "render": function (data, type, row) {
+              if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
+                return '<a href="/core/course/' + data.id + '">' + data.label + '</a>'
+              } else {
+                return data.label
+              }
+            },
+          },
           { data: 'structure',
             render: function(data, type, row) {
               if(row.structure) {

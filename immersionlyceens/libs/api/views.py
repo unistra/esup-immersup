@@ -38,11 +38,11 @@ from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
     Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
     PublicDocument, Slot, Structure, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation, Visit
+    UserCourseAlert, Vacation, Visit, OffOfferEvent
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer,
-    TrainingHighSchoolSerializer, VisitSerializer
+    TrainingHighSchoolSerializer, VisitSerializer, OffOfferEventSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -54,8 +54,7 @@ from immersionlyceens.decorators import (
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
-from immersionlyceens.libs.mails.variables_parser import multisub
-from immersionlyceens.libs.utils import get_general_setting
+from immersionlyceens.libs.utils import get_general_setting, render_text
 
 logger = logging.getLogger(__name__)
 
@@ -215,10 +214,10 @@ def ajax_get_courses(request):
 
         if course.structure:
             managed_by = f"{course.structure.code} ({course.structure.establishment.short_label})"
-            has_rights = (course.training.structures.all() & allowed_structures).exists()
+            has_rights = (Structure.objects.filter(pk=course.structure.id) & allowed_structures).exists()
         elif course.highschool:
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
-            has_rights = course.highschool == request.user.highschool
+            has_rights = request.user.is_master_establishment_manager() or course.highschool == request.user.highschool
 
         course_data = {
             'id': course.id,
@@ -331,7 +330,6 @@ def ajax_get_slots(request):
     today = datetime.datetime.today()
     user_filter = False
     filters = {}
-    slots = []
 
     try:
         year = UniversityYear.objects.get(active=True)
@@ -344,6 +342,7 @@ def ajax_get_slots(request):
     highschool_id = request.GET.get('highschool_id')
     establishment_id = request.GET.get('establishment_id')
     visits = request.GET.get('visits', False) == "true"
+    events = request.GET.get('events', False) == "true"
     past_slots = request.GET.get('past', False) == "true"
 
     try:
@@ -370,17 +369,25 @@ def ajax_get_slots(request):
         user_filter = True
         filters["speakers"] = request.user
 
-    if not user_filter and visits and not establishment_id:
-        response['msg'] = gettext("Error : a valid establishment must be selected")
-        return JsonResponse(response, safe=False)
+    if not user_filter:
+        if visits and not establishment_id:
+            response['msg'] = gettext("Error : a valid establishment must be selected")
+            return JsonResponse(response, safe=False)
 
-    if not user_filter and not visits and not structure_id and not highschool_id:
-        response['msg'] = gettext("Error : a valid structure or high school must be selected")
-        return JsonResponse(response, safe=False)
+        elif events and not establishment_id and not highschool_id:
+            response['msg'] = gettext("Error : a valid establishment or high school must be selected")
+            return JsonResponse(response, safe=False)
+
+        elif not events and not visits and not training_id:
+            response['msg'] = gettext("Error : a valid training must be selected")
+            return JsonResponse(response, safe=False)
 
     if visits:
         filters["course__isnull"] = True
-        filters['visit__establishment__id'] = establishment_id
+        filters["event__isnull"] = True
+
+        if establishment_id:
+            filters['visit__establishment__id'] = establishment_id
 
         if structure_id is not None:
             filters['visit__structure__id'] = structure_id
@@ -390,21 +397,34 @@ def ajax_get_slots(request):
             .filter(**filters)
 
         user_filter_key = "visit__structure__in"
+    elif events:
+        filters["course__isnull"] = True
+        filters["visit__isnull"] = True
+
+        if establishment_id:
+            filters['event__establishment__id'] = establishment_id
+            if structure_id is not None:
+                filters['event__structure__id'] = structure_id
+        elif highschool_id:
+            filters['event__highschool__id'] = highschool_id
+
+        slots = Slot.objects.prefetch_related(
+            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
+            .filter(**filters)
+
+        user_filter_key = "event__structure__in"
     else:
         filters["visit__isnull"] = True
+        filters["event__isnull"] = True
 
         if training_id is not None:
             filters['course__training__id'] = training_id
-        elif structure_id is not None:
-            filters['course__training__structures__id'] = structure_id
-        elif highschool_id is not None:
-            filters['course__training__highschool__id'] = highschool_id
 
         slots = Slot.objects.prefetch_related(
             'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
             .filter(**filters)
 
-        user_filter_key = "course__structure__in"
+        user_filter_key = "course__training__structures__in"
 
     if not request.user.is_superuser and request.user.is_structure_manager():
         user_filter = {user_filter_key: request.user.structures.all()}
@@ -426,6 +446,7 @@ def ajax_get_slots(request):
     user_highschool = request.user.highschool
 
     for slot in slots:
+        establishment = slot.get_establishment()
         structure = slot.get_structure()
         highschool = slot.get_highschool()
 
@@ -433,6 +454,12 @@ def ajax_get_slots(request):
             request.user.is_master_establishment_manager(),
             request.user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
             request.user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
+        ]
+
+        allowed_event_slot_update_conditions = [
+            request.user.is_master_establishment_manager() and slot.event and not slot.event.highschool,
+            request.user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
+            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures
         ]
 
         if slot.course:
@@ -445,12 +472,22 @@ def ajax_get_slots(request):
         data = {
             'id': slot.id,
             'published': slot.published,
-            'can_update_visit_slot': any(allowed_visit_slot_update_conditions),
-            'course_label': slot.course.label if slot.course else None,
+            'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
+            'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
+            'course': {
+               'id': slot.course.id,
+               'label': slot.course.label
+            } if slot.course else None,
             'training_label': training_label,
             'training_label_full': training_label_full,
+            'establishment': {
+                'code': establishment.code,
+                'short_label': establishment.short_label,
+                'label': establishment.label
+            } if establishment else None,
             'structure': {
                 'code': structure.code,
+                'label': structure.label,
                 'establishment': structure.establishment.short_label,
                 'managed_by_me': structure in allowed_structures,
             } if structure else None,
@@ -459,9 +496,15 @@ def ajax_get_slots(request):
                 'managed_by_me': request.user.is_master_establishment_manager()\
                     or (user_highschool and highschool == user_highschool),
             } if highschool else None,
-            'purpose': slot.visit.purpose if slot.visit else None,
+            'visit': {
+                'id': slot.visit.id,
+                'purpose': slot.visit.purpose
+            } if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
+            'event_type': slot.event.event_type.label if slot.event and slot.event.event_type else None,
+            'event_label': slot.event.label if slot.event else None,
+            'event_description': slot.event.description if slot.event else None,
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
@@ -605,6 +648,27 @@ def ajax_get_visit_speakers(request, visit_id=None):
 
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+def ajax_get_event_speakers(request, event_id=None):
+    response = {'msg': '', 'data': []}
+
+    if not event_id:
+        response['msg'] = gettext("Error : a valid event must be selected")
+    else:
+        speakers = OffOfferEvent.objects.get(id=event_id).speakers.all().order_by('last_name')
+
+        for speaker in speakers:
+            speakers_data = {
+                'id': speaker.id,
+                'first_name': speaker.first_name,
+                'last_name': speaker.last_name.upper(),
+            }
+            response['data'].append(speakers_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def ajax_delete_course(request):
     response = {'msg': '', 'error': ''}
     course_id = request.GET.get('course_id')
@@ -647,7 +711,6 @@ def ajax_get_agreed_highschools(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE')
 def ajax_check_date_between_vacation(request):
     response = {'data': {}, 'msg': ''}
 
@@ -660,6 +723,7 @@ def ajax_check_date_between_vacation(request):
             formated_date = datetime.datetime.strptime(_date, '%Y/%m/%d')
         except ValueError:
             error = True
+
         if error:
             try:
                 formated_date = datetime.datetime.strptime(_date, '%d/%m/%Y')
@@ -1849,12 +1913,12 @@ def ajax_send_email_contact_us(request):
     # Contacting user mail notification
     if notify_user:
         try:
-            vars = [
-                ('${nom}', lastname),
-                ('${prenom}', firstname),
-            ]
+            vars = {
+                "nom": lastname,
+                "prenom": firstname,
+            }
+            message_body = render_text(template_data=template.body, data=vars)
 
-            message_body = multisub(vars, template.body)
             send_email(email, template.subject, message_body)
         except Exception as e:
             logger.exception(e)
@@ -2294,6 +2358,8 @@ class VisitList(generics.ListAPIView):
         user = self.request.user
 
         if not user.is_superuser:
+            if user.is_speaker():
+                queryset = queryset.filter(speakers=user)
             if user.is_structure_manager():
                 queryset = queryset.filter(structure__in=user.structures.all())
             if user.is_establishment_manager() and user.establishment:
@@ -2323,7 +2389,7 @@ class VisitList(generics.ListAPIView):
 @method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
 class VisitDetail(generics.DestroyAPIView):
     """
-    Visits list
+    Visit detail
     """
     serializer_class = VisitSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
@@ -2359,3 +2425,92 @@ class VisitDetail(generics.DestroyAPIView):
         super().delete(request, *args, **kwargs)
 
         return JsonResponse(data={"msg": _("Visit successfully deleted")})
+
+
+class OffOfferEventList(generics.ListAPIView):
+    """
+    Off offer events list
+    """
+    serializer_class = OffOfferEventSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['establishment', 'structure', 'highschool']
+
+    def get_queryset(self):
+        queryset = OffOfferEvent.objects.all()
+        user = self.request.user
+
+        if not user.is_superuser:
+            if user.is_speaker():
+                queryset = queryset.filter(speakers=user)
+            if user.is_high_school_manager():
+                queryset = queryset.filter(highschool=user.highschool)
+            if user.is_structure_manager():
+                queryset = queryset.filter(structure__in=user.structures.all())
+            if user.is_establishment_manager() and user.establishment:
+                queryset = OffOfferEvent.objects.filter(
+                    Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
+                    .distinct()
+
+        return queryset.order_by('establishment', 'structure', 'highschool', 'label')
+
+    def filter_queryset(self, queryset):
+        filters = {}
+        structure_id = None
+        establishment_id = None
+        highschool_id = None
+
+        if "structure" in self.request.query_params:
+            structure_id = self.request.query_params.get("structure", None) or None
+            filters["structure"] = structure_id
+
+        if "establishment" in self.request.query_params:
+            establishment_id = self.request.query_params.get("establishment", None) or None
+            filters["establishment"] = establishment_id
+
+        if "highschool" in self.request.query_params:
+            highschool_id = self.request.query_params.get("highschool", None) or None
+            filters["highschool"] = highschool_id
+
+        return queryset.filter(**filters)
+
+
+@method_decorator(groups_required('REF-STR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-LYC'), name="dispatch")
+class OffOfferEventDetail(generics.DestroyAPIView):
+    """
+    Off offer event detail
+    """
+    serializer_class = OffOfferEventSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    lookup_fields = ['id']
+    queryset = OffOfferEvent.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        user = self.request.user
+
+        if not obj:
+            return JsonResponse(data={"msg": _("Nothing to delete")})
+
+        if not user.is_superuser:
+            valid_conditions = [
+                user.is_master_establishment_manager() and not obj.highschool,
+                user.is_high_school_manager() and obj.highschool == user.highschool,
+                user.is_establishment_manager() and obj.establishment == user.establishment,
+                user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),
+            ]
+
+            if not any(valid_conditions):
+                return JsonResponse(
+                    data={"msg": _("Insufficient privileges")},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        if obj.slots.exists():
+            return JsonResponse(
+                data={"error": _("Some slots are attached to this event: it can't be deleted")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse(data={"msg": _("Off offer event successfully deleted")})

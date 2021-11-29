@@ -20,7 +20,8 @@ from rest_framework.test import APIClient, APITestCase
 
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building, Calendar, Campus, CancelType,
     Structure, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit
+    MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
+    OffOfferEvent, OffOfferEventType
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
@@ -214,7 +215,13 @@ class APITestCase(TestCase):
         self.highschool_training.training_subdomains.add(self.t_sub_domain)
         self.training.structures.add(self.structure)
         self.training2.structures.add(self.structure)
-        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
+        self.ref_str.structures.add(self.structure)
+
+        self.course = Course.objects.create(
+            label="course 1",
+            training=self.training,
+            structure=self.structure
+        )
         self.course.speakers.add(self.speaker1)
         self.highschool_course = Course.objects.create(
             label="course 1",
@@ -393,6 +400,8 @@ class APITestCase(TestCase):
             course=self.course
         )
 
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
+
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
 
@@ -486,7 +495,6 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = "/api/get_slots"
         data = {
-            'structure_id': self.structure.id,
             'training_id': self.training.id
         }
         response = self.client.get(url, data, **self.header)
@@ -496,7 +504,7 @@ class APITestCase(TestCase):
         slot = content['data'][0]
         self.assertEqual(slot['id'], self.slot.id)
         self.assertEqual(slot['published'], self.slot.published)
-        self.assertEqual(slot['course_label'], self.slot.course.label)
+        self.assertEqual(slot['course']['label'], self.slot.course.label)
         self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
         self.assertTrue(slot['structure']['managed_by_me'])
         self.assertEqual(slot['course_type'], self.slot.course_type.label)
@@ -510,36 +518,21 @@ class APITestCase(TestCase):
         self.assertEqual(slot['n_places'], self.slot.n_places)
 
 
-        # With no training id
-        # same results because all slots are linked to the same course
+        # With no training id : no result
         # Todo : redefine test data
-        data = {'structure_id': self.structure.id}
+        data = {}
         response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['data']), 6)
-        slot = content['data'][0]
-        self.assertEqual(slot['id'], self.slot.id)
-        self.assertEqual(slot['published'], self.slot.published)
-        self.assertEqual(slot['course_label'], self.slot.course.label)
-        self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
-        self.assertTrue(slot['structure']['managed_by_me'])
-        self.assertEqual(slot['course_type'], self.slot.course_type.label)
-        self.assertEqual(slot['date'], _date(self.today, 'l d/m/Y'))
-        self.assertEqual(slot['time']['start'], '12h00')
-        self.assertEqual(slot['time']['end'], '14h00')
-        self.assertEqual(slot['location']['campus'], self.slot.campus.label)
-        self.assertEqual(slot['location']['building'], self.slot.building.label)
-        self.assertEqual(slot['room'], self.slot.room)
-        self.assertEqual(slot['n_register'], self.slot.registered_students())
-        self.assertEqual(slot['n_places'], self.slot.n_places)
+        self.assertEqual(content['msg'], "Error : a valid training must be selected")
 
         # Logged as structure manager
         client = Client()
         client.login(username='ref_str', password='pass')
-        data = {'structure_id': self.structure.id, 'training_id': self.training.id}
+        data = {'training_id': self.training.id}
         response = client.get(url, data, **self.header)
         self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 5)
 
 
     def test_API_get_trainings(self):
@@ -1112,7 +1105,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.slot.start_time.strftime("%Hh%M"), s['time']['start'])
         self.assertEqual(self.slot.end_time.strftime("%Hh%M"), s['time']['end'])
 
-        self.assertEqual(self.slot.course.label, s['course_label'])
+        self.assertEqual(self.slot.course.label, s['course']['label'])
         # TODO: speakers
         self.assertEqual(self.slot.n_places, s['n_places'])
         self.assertEqual(self.slot.registered_students(), s['n_register'])
@@ -1418,7 +1411,7 @@ class APITestCase(TestCase):
 
         one = False
         for h in content['data']:
-            if h['level'] == HighSchoolStudentRecord.LEVELS[2][1]:
+            if h['level'] == HighSchoolStudentRecord.LEVELS[-1][1]:
                 self.assertEqual(self.hs_record.get_post_bachelor_level_display(), h['post_bachelor_level'])
                 self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
                 one = True
@@ -2049,6 +2042,7 @@ class APITestCase(TestCase):
         self.assertEqual(content[0]['establishment'], "ETA1 : Etablissement 1 (master)")
 
         # As ref-str (with no structure) : empty
+        self.ref_str.structures.remove(self.structure)
         client.login(username='ref_str', password='pass')
         response = client.get(reverse("visit_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2069,7 +2063,79 @@ class APITestCase(TestCase):
         self.assertEqual(Visit.objects.count(), 1)
 
         # as master_ref_etab
-        client.login(username='ref_etab', password='pass')
+        client.login(username='ref_master_etab', password='pass')
         response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Visit.objects.count(), 0)
+
+
+    def test_off_offer_event(self):
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=None,
+            event_type=self.event_type,
+            label="Establishment event",
+            description="Whatever",
+            published=True
+        )
+
+        event2 = OffOfferEvent.objects.create(
+            establishment=None,
+            structure=None,
+            highschool=self.high_school,
+            event_type=self.event_type,
+            label="High school event",
+            description="Whatever",
+            published=True
+        )
+
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        # List
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 1)
+        self.assertEqual(content[0]['label'], 'Establishment event')
+        self.assertEqual(content[0]['establishment']['id'], 1)
+        self.assertEqual(content[0]['establishment']['code'], 'ETA1')
+        self.assertEqual(content[0]['establishment']['label'], 'Etablissement 1')
+
+        # As ref-lyc
+        client.login(username='lycref', password='pass')
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 1)
+        self.assertEqual(content[0]['label'], 'High school event')
+        self.assertEqual(content[0]['highschool'], f"{self.high_school.city} - {self.high_school.label}")
+
+        # As ref-str (with no structure) : empty
+        self.ref_str.structures.remove(self.structure)
+        client.login(username='ref_str', password='pass')
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 0)
+
+        # Deletion
+        # as ref_str : fail (bad structure)
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
+        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(OffOfferEvent.objects.count(), 2)
+
+        # as ref_etab : same establishment : success
+        client.login(username='ref_etab', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 1)
+
+        # as master_ref_etab : no access to high school events
+        client.login(username='ref_master_etab', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
+        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(OffOfferEvent.objects.count(), 1)

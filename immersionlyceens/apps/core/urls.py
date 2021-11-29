@@ -21,7 +21,9 @@ urlpatterns = [
     ),
     path('my_students', views.my_students, name='my_students'),
     path('mycourses/', views.mycourses, name='mycourses'),
-    path('myslots/', views.myslots, name='myslots'),
+    path('myvisits/', views.myvisits, name='myvisits'),
+    path('myevents/', views.myevents, name='myevents'),
+    path('myslots/<str:slots_type>', views.myslots, name='myslots'),
 
     path('slot', views.slot, name='slot'),
     path('slot/<int:slot_id>', views.slot, name='modify_slot'),
@@ -52,4 +54,14 @@ urlpatterns = [
     path('visit_slot', views.VisitSlotAdd.as_view(), name='add_visit_slot'),
     path('visit_slot/<int:pk>', views.VisitSlotUpdate.as_view(), name='update_visit_slot'),
     path('visit_slot/<int:pk>/<int:duplicate>', views.VisitSlotAdd.as_view(), name='duplicate_visit_slot'),
-    ]
+
+    path("off_offer_events", views.OffOfferEventsList.as_view(), name="off_offer_events"),
+    path("off_offer_event/add", views.OffOfferEventAdd.as_view(), name="add_off_offer_event"),
+    path("off_offer_event/<int:pk>", views.OffOfferEventUpdate.as_view(), name="update_off_offer_event"),
+    path('off_offer_event/<int:pk>/<int:duplicate>', views.OffOfferEventAdd.as_view(), name='duplicate_off_offer_event'),
+
+    path('off_offer_events_slots/', views.OffOfferEventSlotList.as_view(), name='off_offer_events_slots'),
+    path('off_offer_event_slot', views.OffOfferEventSlotAdd.as_view(), name='add_off_offer_event_slot'),
+    path('off_offer_event_slot/<int:pk>', views.OffOfferEventSlotUpdate.as_view(), name='update_ff_offer_event_slot'),
+    path('off_offer_event_slot/<int:pk>/<int:duplicate>', views.OffOfferEventSlotAdd.as_view(), name='duplicate_off_offer_event_slot'),
+]

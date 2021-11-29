@@ -15,7 +15,7 @@ from django.urls import reverse
 from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday, Establishment, Visit
+    Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -288,6 +288,8 @@ class CoreViewsTestCase(TestCase):
             attendance_status=1
         )
 
+        self.event_type = OffOfferEventType.objects.create(label="Event type label")
+
 
     def test_import_holidays(self):
         self.assertFalse(Holiday.objects.all().exists())
@@ -355,7 +357,7 @@ class CoreViewsTestCase(TestCase):
             'campus': self.campus.id,
             'building': self.building.id,
             'room': "212",
-            'date': (self.today - datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
             'speaker_%s' % self.speaker1.id: 1,
@@ -365,14 +367,20 @@ class CoreViewsTestCase(TestCase):
             'save': 1
         }
 
-        # Fail with date outside of calendar boundaries and missing field
+        # Fail with date in the past
+        response = self.client.post("/core/slot", data, follow=True)
+        self.assertFalse(Slot.objects.filter(room="212").exists())
+        self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
+
+        # Fail with date outside of calendar boundaries
+        data["date"] = (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d")
         response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
         self.assertIn("Error: The date must be between the dates of the current calendar",
             response.content.decode('utf-8'))
 
         # Update to a valid date
-        data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
         # Fail with missing field
         del(data['speaker_%s' % self.speaker1.id])
@@ -684,17 +692,59 @@ class CoreViewsTestCase(TestCase):
         self.assertFalse(Course.objects.filter(label="This shouldn't happen").exists())
 
 
-    def test_mycourses(self):
+    def test_my_courses(self):
         self.client.login(username='speaker1', password='pass')
         response = self.client.get("/core/mycourses", follow=True)
-        self.assertIn("Courses - HER speak", response.content.decode('utf-8'))
+        self.assertIn("My courses", response.content.decode('utf-8'))
 
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/mycourses", follow=True)
+        self.assertNotIn("My courses", response.content.decode('utf-8'))
 
-    def test_myslots(self):
+    def test_my_visits(self):
         self.client.login(username='speaker1', password='pass')
-        response = self.client.get("/core/myslots/", follow=True)
-        self.assertIn("Slots - HER speak", response.content.decode('utf-8'))
+        response = self.client.get("/core/myvisits", follow=True)
+        self.assertIn("My visits", response.content.decode('utf-8'))
 
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myvisits", follow=True)
+        self.assertNotIn("My visits", response.content.decode('utf-8'))
+
+    def test_my_events(self):
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get("/core/myevents", follow=True)
+        self.assertIn("My events", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myevents", follow=True)
+        self.assertNotIn("My events", response.content.decode('utf-8'))
+
+    def test_my_courses_slots(self):
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get("/core/myslots/courses", follow=True)
+        self.assertIn("My slots - HER speak", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myslots/courses", follow=True)
+        self.assertNotIn("My slots - HER speak", response.content.decode('utf-8'))
+
+    def test_my_visits_slots(self):
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get("/core/myslots/visits", follow=True)
+        self.assertIn("My visits slots - HER speak", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myslots/visits", follow=True)
+        self.assertNotIn("My visits slots - HER speak", response.content.decode('utf-8'))
+
+    def test_my_events_slots(self):
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get("/core/myslots/events", follow=True)
+        self.assertIn("My events slots - HER speak", response.content.decode('utf-8'))
+
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get("/core/myslots/events", follow=True)
+        self.assertNotIn("My events slots - HER speak", response.content.decode('utf-8'))
 
     def test_myhighschool(self):
         self.client.login(username='lycref', password='pass')
@@ -1057,22 +1107,27 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': True,
             'room': "anywhere",
             'published': True,
-            'date': (self.today - datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
             'n_places': 20,
             'additional_information': 'whatever',
             'save': "Save",
         }
+        # Fail with date in the past
+        response = self.client.post("/core/visit_slot", data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
 
         # Invalid date (not between calendar boundaries)
+        data["date"] = (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d")
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Error: The date must be between the dates of the current calendar",
                       response.content.decode('utf-8'))
 
         # With a valid date, but speakers are still missing
-        data["date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertIn("Please select at least one speaker.", response.content.decode('utf-8'))
         self.assertFalse(Slot.objects.filter(visit=visit).exists())
@@ -1115,7 +1170,7 @@ class CoreViewsTestCase(TestCase):
             'face_to_face': False,
             'url': "http://www.whatever.com",
             'published': True,
-            'date': datetime.datetime.now().strftime("%Y-%m-%d"),
+            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
             'start_time': "10:00",
             'end_time': "12:00",
             'n_places': 10,
@@ -1150,4 +1205,242 @@ class CoreViewsTestCase(TestCase):
         # On template load, the full VisitSlot __str__ strings are displayed in the form, but we use javascript to
         # display only the 'purpose' attribute in the options fields. However, this test doesn't care about javascript.
         self.assertIn(f"value=\"{slot.visit.id}\" selected>{slot.visit}<", content)
+        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
+
+
+    def test_off_offer_event(self):
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=None,
+            event_type=self.event_type,
+            label="Whatever",
+            description="Whatever too",
+            published=True
+        )
+
+        event.speakers.add(self.speaker1)
+
+        # As a ref_master_etab user
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get("/core/off_offer_events", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Update
+        response = self.client.get(f"/core/off_offer_event/{event.id}", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{event.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{event.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{event.event_type.id}\" selected", content)
+        self.assertIn(f"value=\"{event.label}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker1.username,
+            "lastname": self.speaker1.last_name,
+            "firstname": self.speaker1.first_name,
+            "email": self.speaker1.email,
+            "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
+            "is_removable": True
+        }]))
+
+        data = {
+            "establishment": event.establishment.id,
+            "structure": event.structure.id,
+            "event_type": event.event_type.id,
+            "published": True,
+            "label": "New event label",
+            "description": "Also new description",
+            "speakers_list": json.dumps([{
+                "email": self.speaker2.email,
+                "username": self.speaker2.username,
+                "lastname": self.speaker2.last_name,
+                "firstname": self.speaker2.first_name,
+            }])
+        }
+
+        response = self.client.post(f"/core/off_offer_event/{event.id}", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        event.refresh_from_db()
+        self.assertEqual(event.label, data["label"])
+        self.assertEqual(event.description, data["description"])
+
+
+        # Duplicate a visit : check form values
+        response = self.client.get(f"/core/off_offer_event/{event.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{event.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{event.structure.id}\" selected", content)
+        self.assertIn(f"value=\"{event.event_type.id}\" selected", content)
+        self.assertIn(f"value=\"{event.label}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "username": self.speaker2.username,
+            "lastname": self.speaker2.last_name,
+            "firstname": self.speaker2.first_name,
+            "email": self.speaker2.email,
+            "display_name": f"{self.speaker2.last_name} {self.speaker2.first_name}",
+            "is_removable": True
+        }]))
+
+
+    def test_off_offer_event_slot(self):
+        event = OffOfferEvent.objects.create(
+            label="event label",
+            event_type=self.event_type,
+            published=False,
+            establishment=self.master_establishment,
+            structure=None,
+        )
+
+        event.speakers.add(self.speaker1)
+
+        self.assertFalse(Slot.objects.filter(event=event).exists())
+
+        # As a ref_master_etab user
+        # slots list
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get("/core/off_offer_events_slots", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Create
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get("/core/off_offer_event_slot", follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        data = {
+            'event': event.id,
+            'face_to_face': True,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': "anywhere",
+            'published': True,
+            'date': (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
+            'start_time': "12:00",
+            'end_time': "14:00",
+            'n_places': 20,
+            'additional_information': 'whatever',
+            'save': "Save",
+        }
+
+        # Invalid date (not between calendar boundaries)
+        response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Error: The date must be between the dates of the current calendar",
+                      response.content.decode('utf-8'))
+
+        # Date in the past
+        data["date"] = (self.today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("You can&#x27;t set a date in the past", response.content.decode('utf-8'))
+
+        # With a valid date, but speakers are still missing
+        data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
+        self.assertIn("Please select at least one speaker.", response.content.decode('utf-8'))
+        self.assertFalse(Slot.objects.filter(event=event).exists())
+        self.assertEqual(response.template_name, ['core/off_offer_event_slot.html'])
+
+        # With a speaker
+        data["speakers_list"] = [self.speaker1.id]
+
+        response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.template_name, ["core/off_offer_events_slots_list.html"])
+
+        self.assertTrue(Slot.objects.filter(event=event).exists())
+        slot = Slot.objects.get(event=event)
+        self.assertEqual(slot.speakers.first(), self.speaker1)
+        event.refresh_from_db()
+        self.assertTrue(event.published)
+
+        # Update
+        response = self.client.get(f"/core/off_offer_event_slot/{slot.id}", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{slot.event.establishment.id}\" selected", content)
+        self.assertIn(f"value=\"{slot.campus.id}\" selected", content)
+        self.assertIn(f"value=\"{slot.building.id}\" selected", content)
+        self.assertIn(f"value=\"{slot.event.id}\"", content)
+
+        self.assertEqual(response.context["speakers"], json.dumps([{
+            "id": self.speaker1.id,
+            "username": self.speaker1.username,
+            "lastname": self.speaker1.last_name,
+            "firstname": self.speaker1.first_name,
+            "email": self.speaker1.email,
+            "display_name": f"{self.speaker1.last_name} {self.speaker1.first_name}",
+            "is_removable": True
+        }]))
+
+        data = {
+            "event": event.id,
+            'face_to_face': False,
+            'url': "http://www.whatever.com",
+            'published': True,
+            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+            'start_time': "10:00",
+            'end_time': "12:00",
+            'n_places': 10,
+            'additional_information': 'whatever',
+            "speakers_list": [self.speaker1.id],
+            'save': "Save",
+        }
+
+        response = self.client.post(f"/core/off_offer_event_slot/{slot.id}", data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.template_name, ["core/off_offer_events_slots_list.html"])
+        slot.refresh_from_db()
+
+        self.assertEqual(slot.start_time, datetime.time(10, 0))
+        self.assertEqual(slot.end_time, datetime.time(12, 0))
+        self.assertEqual(slot.n_places, data["n_places"])
+        self.assertFalse(slot.face_to_face)
+        self.assertEqual(slot.url, data["url"])
+        self.assertEqual(slot.speakers.first(), self.speaker1)
+
+
+        # Duplicate an event slot : check form values
+        response = self.client.get(f"/core/off_offer_event_slot/{slot.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn(f"value=\"{slot.event.establishment.id}\" selected>{slot.event.establishment}<", content)
+        self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
+        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
+
+        # Update event data and test again
+        event.structure = self.structure
+        event.save()
+        slot.event = event
+        slot.save()
+        response = self.client.get(f"/core/off_offer_event_slot/{slot.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+
+        self.assertIn(f"value=\"{slot.event.establishment.id}\" selected>{slot.event.establishment}<", content)
+        self.assertIn(f"value=\"{slot.event.structure.id}\" selected>{slot.event.structure}<", content)
+        self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
+        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
+
+        # With a highschool
+        event.highschool = self.high_school
+        event.establishment = None
+        event.structure = None
+        event.save()
+
+        slot.event = event
+        slot.campus = None
+        slot.building = None
+        slot.save()
+
+
+        response = self.client.get(f"/core/off_offer_event_slot/{slot.id}/1", follow=True)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+
+        self.assertIn(f"value=\"{slot.event.highschool_id}\" selected>{slot.event.highschool}<", content)
+        self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
         self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))

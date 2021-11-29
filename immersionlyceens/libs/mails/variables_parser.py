@@ -1,201 +1,291 @@
 import logging
-import re
+from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
+from requests import Request
 
-from immersionlyceens.apps.core.models import EvaluationFormLink, EvaluationType, Immersion, UniversityYear
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
-from immersionlyceens.libs.utils import get_general_setting
+from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
+    MailTemplateVars, Slot, Course, ImmersionUser)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.libs.utils import get_general_setting, render_text
 
 logger = logging.getLogger(__name__)
 
 
-def multisub(subs, subject):
-    """
-    Simultaneously replace all vars in text
-    """
-    pattern = '|'.join('(%s)' % re.escape(p) for p, s in subs)
-    substs = [s for p, s in subs]
-    replace = lambda m: substs[m.lastindex - 1]
-    return re.sub(pattern, replace, subject)
-
-
 def parser(message_body, available_vars=None, user=None, request=None, **kwargs):
-    slot = kwargs.get('slot')
-    slot_list = kwargs.get('slot_list')
-    course = kwargs.get('course')
-    immersion = kwargs.get('immersion')
-    slot_survey = None
-    global_survey = None
-    institution_label = None
-    record = None
+    return Parser.parser(
+        message_body=message_body,
+        available_vars=available_vars,
+        user=user,
+        request=request,
+        **kwargs
+    )
 
-    if request:
-        # The following won't work in 'commands'
-        platform_url = request.build_absolute_uri(reverse('home'))
-    else:
-        try:
-            platform_url = get_general_setting("PLATFORM_URL")
-        except (ValueError, NameError):
-            logger.warning("Warning : PLATFORM_URL not set in core General Settings")
-            platform_url = "https://<plateforme immersion>"
 
-    try:
-        slot_survey = EvaluationFormLink.objects.get(evaluation_type__code='EVA_CRENEAU', active=True)
-    except (EvaluationFormLink.DoesNotExist, EvaluationFormLink.MultipleObjectsReturned):
-        pass
+class Parser:
+    @classmethod
+    def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]],
+               user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
+        context: Dict[str, Any] = cls.get_context(user, request, **kwargs)
+        return render_text(template_data=message_body, data=context)
 
-    try:
-        global_survey = EvaluationFormLink.objects.get(evaluation_type__code='EVA_DISPOSITIF', active=True)
-    except (EvaluationFormLink.DoesNotExist, EvaluationFormLink.MultipleObjectsReturned):
-        pass
-
-    try:
-        year = UniversityYear.objects.get(active=True)
-    except UniversityYear.DoesNotExist:
-        return None
-
-    vars = [
-        ('${annee}', year.label),
-        ('${urlPlateforme}', platform_url)
-    ]
-
-    if course:
-        vars += [
-            ('${cours.libelle}', course.label),
-            ('${cours.nbplaceslibre}', course.free_seats())
-        ]
-
-    if slot:
-        vars += [
-            ('${creneau.batiment}', slot.building.label),
-            ('${creneau.campus}', slot.campus.label),
-            ('${creneau.structure}', slot.course.structure.label),
-            ('${creneau.cours}', slot.course.label),
-            ('${creneau.date}', date_format(slot.date)),
-            ('${creneau.intervenants}', ','.join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()])),
-            ('${creneau.formation}', slot.course.training.label),
-            ('${creneau.heuredebut}', slot.start_time.strftime("%-Hh%M")),
-            ('${creneau.heurefin}', slot.end_time.strftime("%-Hh%M")),
-            ('${creneau.info}', slot.additional_information),
-            ('${creneau.salle}', slot.room),
-            ('${creneau.type}', slot.course_type.full_label),
-        ]
-
-        # Registered students to a slot
-        registered_students = []
-
-        for registration in Immersion.objects.filter(slot=slot, cancellation_type__isnull=True):
-            institution_label = _("Unknown home institution")
-            if registration.student.is_high_school_student():
-                record = registration.student.get_high_school_student_record()
-                if record and record.highschool:
-                    institution_label = record.highschool.label
-            elif registration.student.is_student():
-                record = registration.student.get_student_record()
-                if record:
-                    uai_code, institution = record.home_institution()
-                    institution_label = institution.label if institution else uai_code
-
-            registered_students.append(
-                f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
-            )
-
-        vars += [('${listeInscrits}', '<br />'.join(sorted(registered_students)))]
-
-    if immersion and immersion.cancellation_type:
-        vars += [('${motifAnnulation}', immersion.cancellation_type.label)]
-
-    if user:
-        vars += [
-            ('${nom}', user.last_name),
-            ('${prenom}', user.first_name),
-            ('${int.nom}', user.last_name),  # ! doublon
-            ('${int.prenom}', user.first_name),  # ! doublon
-            ('${referentlycee.nom}', user.last_name),  # ! doublon
-            ('${referentlycee.prenom}', user.first_name),  # ! doublon
-            ('${identifiant}', user.get_cleaned_username()),
-            ('${jourDestructionCptMin}', user.get_localized_destruction_date()),
-        ]
-
+    @staticmethod
+    def get_platform_url(request: Optional[Request]):
+        platform_url: str = ""
         if request:
-            vars += [
-                (
-                    '${lienValidation}',
-                    "<a href='{0}'>{0}</a>".format(
+            # The following won't work in 'commands'
+            platform_url = request.build_absolute_uri(reverse('home'))
+        else:
+            try:
+                platform_url = get_general_setting("PLATFORM_URL")
+            except (ValueError, NameError):
+                logger.warning("Warning : PLATFORM_URL not set in core General Settings")
+                platform_url = "https://<plateforme immersion>"
+        return platform_url
+
+    @staticmethod
+    def get_slot_survey() -> Optional[EvaluationFormLink]:
+        try:
+            return EvaluationFormLink.objects.get(evaluation_type__code='EVA_CRENEAU', active=True)
+        except (EvaluationFormLink.DoesNotExist, EvaluationFormLink.MultipleObjectsReturned):
+            return
+
+    @staticmethod
+    def get_global_survey() -> Optional[EvaluationFormLink]:
+        try:
+            return EvaluationFormLink.objects.get(evaluation_type__code='EVA_DISPOSITIF', active=True)
+        except (EvaluationFormLink.DoesNotExist, EvaluationFormLink.MultipleObjectsReturned):
+            return
+
+    @staticmethod
+    def get_year() -> Optional[UniversityYear]:
+        try:
+            return UniversityYear.objects.get(active=True)
+        except UniversityYear.DoesNotExist:
+            return
+
+    @staticmethod
+    def get_course_context(course: Optional[Course]) -> Dict[str, Any]:
+        if course:
+            return {
+                "cours": {
+                    "libelle": course.label,
+                    "nbplaceslibre": course.free_seats(),
+                }
+            }
+        return {}
+
+    @staticmethod
+    def get_slot_context(slot: Optional[Slot]) -> Dict[str, Any]:
+        if slot:
+            return {
+                "creneau": {
+                    "batiment": slot.building.label,
+                    "campus": slot.campus.label,
+                    "structure": slot.course.structure.label,
+                    "cours": slot.course.label,
+                    "date": date_format(slot.date),
+                    "intervenants": ",".join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()]),
+                    "formation": slot.course.training.label,
+                    "heuredebut": slot.start_time.strftime("%-Hh%M"),
+                    "heurefin": slot.end_time.strftime("%-Hh%M"),
+                    "info": slot.additional_information,
+                    "salle": slot.room,
+                    "type": slot.course_type.full_label,
+                }
+            }
+        return {}
+
+    @staticmethod
+    def get_user_context(user: Optional[ImmersionUser], institution_label: Optional[str], record: Optional[Union[StudentRecord, HighSchoolStudentRecord]]):
+        if user:
+            context: Dict[str, Any] = {
+                "nom": user.last_name,
+                "prenom": user.first_name,
+                "int": {"nom": user.last_name, "prenom": user.first_name},
+                "referentlycee": {"nom": user.last_name, "prenom": user.first_name},
+                "identifiant": user.get_cleaned_username(),
+                "jourDestructionCptMin": user.get_localized_destruction_date(),
+            }
+
+            if user.is_high_school_student():
+                try:
+                    context.update({
+                        "lycee": user.high_school_student_record.highschool.label,
+                        "etudiant_date_naissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
+                    })
+                except HighSchoolStudentRecord.DoesNotExist:
+                    pass
+            elif user.is_student():
+                # TODO: maybe instead of lycee use a home_institution tpl var ???
+                context.update({"lycee": institution_label})
+                if record:
+                    context.update({
+                        "etudiant_date_naissance": date_format(record.birth_date, 'd/m/Y')
+                    })
+            elif user.highschool:
+                context.update({"lycee": user.highschool.label})
+
+            return context
+        return {}
+
+
+    @staticmethod
+    def get_cancellation_type_context(immersion: Optional[Immersion]) -> Dict[str, Any]:
+        if immersion and immersion.cancellation_type:
+            return {
+                "motifAnnulation": immersion.cancellation_type.label
+            }
+        return {}
+
+    @staticmethod
+    def get_user_request_context(user: ImmersionUser, request: Any, platform_url: str) -> Dict[str, Any]:
+        if user:
+            if request:
+                return {
+                    "lienValidation": '<a href="{0}">{0}</a>'.format(
                         request.build_absolute_uri(
                             reverse('immersion:activate', kwargs={'hash': user.validation_string})
                         )
                     ),
-                ),
-                (
-                    '${lienMotDePasse}',
-                    "<a href='{0}'>{0}</a>".format(
+                    "lienMotDePasse": '<a href="{0}">{0}</a>'.format(
                         request.build_absolute_uri(
-                            reverse('immersion:reset_password', kwargs={'hash': user.recovery_string})
+                            reverse("immersion:reset_password", kwargs={'hash': user.recovery_string})
                         )
                     ),
-                ),
-            ]
-        else:
-            vars += [
-                (
-                    '${lienValidation}',
-                    "<a href='{0}{1}'>{0}{1}</a>".format(
+                }
+            else:
+                return {
+                    'lienValidation': "<a href='{0}{1}'>{0}{1}</a>".format(
                         platform_url, reverse('immersion:activate', kwargs={'hash': user.validation_string})
                     ),
-                ),
-                (
-                    '${lienMotDePasse}',
-                    "<a href='{0}{1}'>{0}{1}</a>".format(
+                    'lienMotDePasse': "<a href='{0}{1}'>{0}{1}</a>".format(
                         platform_url, reverse('immersion:reset_password', kwargs={'hash': user.recovery_string})
-                    ),
-                ),
+                    )
+                }
+
+        return {}
+
+    @staticmethod
+    def get_slot_list_context(slot_list):
+        if slot_list:
+            slot_text: List[str] = [
+                "* {date} ({start_time} - {end_time}) : {course} ({course_type})<br />Bâtiment {building}, salle {room}<br /> -> {speakers}".format(
+                    date=date_format(s.date),
+                    start_time=s.start_time.strftime("%-Hh%M"),
+                    end_time=s.end_time.strftime("%-Hh%M"),
+                    course=s.course.label,
+                    course_type=s.course_type.label,
+                    building=s.building,
+                    room=s.room,
+                    speakers=','.join([f"{t.first_name} {t.last_name}" for t in s.speakers.all()]),
+                )
+                for s in slot_list
             ]
 
-        if user.is_high_school_student():
-            try:
-                vars.append(('${lycee}', user.high_school_student_record.highschool.label))
-                vars.append(
-                    ('${etudiant_date_naissance}', date_format(user.high_school_student_record.birth_date, 'd/m/Y'))
+            return {
+                "creneaux": {
+                    "liste": "<br /><br />".join(slot_text)
+                }
+            }
+        return {}
+
+    @staticmethod
+    def get_slot_survey_context(slot_survey: Optional[EvaluationFormLink]) -> Dict[str, Any]:
+        if slot_survey:
+            return {"lienCreneau": f"<a href='{slot_survey.url}'>{slot_survey.url}</a>"}
+        else:
+            return {"lienCreneau": _("Link improperly configured")}
+
+    @staticmethod
+    def get_global_survey_context(global_survey: Optional[EvaluationFormLink]) -> Dict[str, Any]:
+        if global_survey:
+            return {"lienGlobal": f"<a href='{global_survey.url}'>{global_survey.url}</a>"}
+        else:
+            return {"lienGlobal": _("Link improperly configured")}
+
+    @classmethod
+    def get_context(cls, user: Optional[ImmersionUser], request: Optional[Request] = None, **kwargs) -> Dict[str, Any]:
+        slot: Optional[Slot] = kwargs.get('slot')
+        slot_list: Optional[List[Slot]] = kwargs.get('slot_list')
+        course: Optional[Course] = kwargs.get('course')
+        immersion: Optional[Immersion] = kwargs.get('immersion')
+
+        slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
+        global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()
+        platform_url: str = cls.get_platform_url(request)
+        year: Optional[UniversityYear] = cls.get_year()
+
+        record: Optional[Union[HighSchoolStudentRecord, StudentRecord]] = None
+        institution_label: Optional[Any] = None
+        registered_students: Optional[List[str]] = None
+
+        tmp_var: Dict[str, Any] = cls.get_registered_students(slot)
+        if "record" in tmp_var:
+            record = tmp_var["record"]
+        if "registered_students" in tmp_var:
+            registered_students = tmp_var["registered_students"]
+        if "institution_label" in tmp_var:
+            institution_label = tmp_var["institution_label"]
+
+        context: Dict[str, Any] = {
+            "annee": year.label,
+            "urlPlateforme": platform_url,
+        }
+
+        context.update(cls.get_course_context(course))
+        context.update(cls.get_slot_context(slot))
+        context.update(cls.get_registered_students_context(registered_students))
+
+        context.update(cls.get_cancellation_type_context(immersion))
+
+        context.update(cls.get_user_context(user, institution_label, record))
+        context.update(cls.get_user_request_context(user, request, platform_url))
+
+        context.update(cls.get_slot_list_context(slot_list))
+        context.update(cls.get_slot_survey_context(slot_survey))
+        context.update(cls.get_global_survey_context(global_survey))
+
+        context.update()
+        return context
+
+    @staticmethod
+    def get_registered_students(slot: Optional[Slot]) -> Dict[str, Any]:
+        record: Optional[Union[HighSchoolStudentRecord, StudentRecord]] = None
+        if slot:
+            institution_label: str = _("Unknown home institution")
+            registered_students: List[str] = []
+            registered: Immersion
+            for registration in Immersion.objects.filter(slot=slot, cancellation_type__isnull=True):
+                if registration.student.is_high_school_student():
+                    record = registration.student.get_high_school_student_record()
+                    if record and record.highschool:
+                        institution_label = record.highschool.label
+                elif registration.student.is_student():
+                    record = registration.student.get_student_record()
+                    if record:
+                        uai_code, institution = record.home_institution()
+                        institution_label = institution.label if institution else uai_code
+
+                registered_students.append(
+                    f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
                 )
-            except HighSchoolStudentRecord.DoesNotExist:
-                pass
-        elif user.is_student():
-            # TODO: maybe instead of lycee use a home_institution tpl var ???
-            vars.append(('${lycee}', institution_label))
-            if record:
-                vars.append(('${etudiant_date_naissance}', date_format(record.birth_date, 'd/m/Y')))
-        elif user.highschool:
-            vars.append(('${lycee}', user.highschool.label))
 
-    if slot_list:
-        slot_txt = [
-            "* %s (%s - %s) : %s (%s)<br />Bâtiment %s, salle %s<br /> -> %s"
-            % (
-                date_format(s.date),
-                s.start_time.strftime("%-Hh%M"),
-                s.end_time.strftime("%-Hh%M"),
-                s.course.label,
-                s.course_type.label,
-                s.building,
-                s.room,
-                ','.join([f"{t.first_name} {t.last_name}" for t in s.speakers.all()]),
-            )
-            for s in slot_list
-        ]
-        vars += [('${creneaux.liste}', '<br /><br />'.join(slot_txt))]
+            return {
+                "registered_students": registered_students,
+                "record": record,
+                "institution_label": institution_label,
 
-    if slot_survey:
-        vars.append(('${lienCreneau}', "<a href='{0}'>{0}</a>".format(slot_survey.url)))
-    else:
-        vars.append(('${lienCreneau}', _("Link improperly configured")))
+            }
+        return {}
 
-    if global_survey:
-        vars.append(('${lienGlobal}', "<a href='{0}'>{0}</a>".format(global_survey.url)))
-    else:
-        vars.append(('${lienGlobal}', _("Link improperly configured")))
+    @staticmethod
+    def get_registered_students_context(registered_students: Optional[List[str]]) -> Dict[str, Any]:
+        if registered_students:
+            return {
+                "listeInscrits": "<br />".join(sorted(registered_students))
+            }
+        return {}
 
-    return multisub(vars, message_body)

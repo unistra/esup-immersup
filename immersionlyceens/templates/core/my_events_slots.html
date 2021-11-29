@@ -17,7 +17,7 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 {% endblock %}
 {% block title %}
-{% trans "My slots" %}
+{% trans "My events slots" %}
 {% endblock %}
 
 {% block content %}
@@ -26,10 +26,9 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans "My slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
+      {% trans "My events slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
     </div>
     <div class="card-body">
-
       <div>
         <form class="form-inline">
           <div class="form-group">
@@ -44,15 +43,13 @@
         </form>
       </div>
       <div class="table-responsive">
-        <table id="slots_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <table id="events_slots_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
             <tr>
               <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
-              <th id="structure_filter" class="align-top">
-                {% trans 'Structure / High school' %}
-              </th>
-              <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
-              <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
+              <th id="establishment_filter" class="align-top">{% trans 'Establishment / High school' %}</th>
+              <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
+              <th id="event_filter" class="align-top">{% trans 'Event label' %}</th>
               <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
               <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
               <th id="speaker_filter" class="align-top">{% trans 'Speakers' %}</th>
@@ -104,7 +101,7 @@
 
   $(document).ready(function () {
     $.fn.dataTableExt.errMode = 'console';
-    dt = $('#slots_table').DataTable({
+    dt = $('#events_slots_table').DataTable({
       'processing': false,
       'order': [
         [4, "asc"]
@@ -118,7 +115,7 @@
         data: function(d) {
           d.past = $('#filter_past_slots').is(':checked')
           d.visits = false
-          d.events = false
+          d.events = true
           return d
         },
         dataSrc: function (json) {
@@ -147,23 +144,28 @@
         return txt;
       },
     },
-    { "data": "structure.code",
-      "render": function (data, type, row) {
-        if(row.structure) {
-          return row.structure.code + " (" + row.structure.establishment + ")"
+    { "data": "establishment.label",
+      render: function(data, type, row) {
+        if(row.establishment) {
+          let txt = row.establishment.short_label
+          if (row.structure) {
+            txt += " - " + row.structure.label
+          }
+          return txt
         }
-        else if (row.highschool) {
+        else if(row.highschool) {
           return row.highschool.label
         }
-
-        return ""
-      }
-    },
-    { "data": "training_label" },
-    { "data": "course",
-      "render": function (data, type, row) {
-        return data.label
       },
+    },
+    { "data": "structure.label" },
+    { "data": "event_label",
+      render: function(data, type, row) {
+        let txt = data
+        txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + row.event_description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
+
+        return txt
+      }
     },
     {
       "data": "datetime",
@@ -178,15 +180,21 @@
     {
       "data": "location",
       "render": function (data, type, row) {
-        let txt = "<span>"
+        let txt = ""
 
-        if(data.campus) {
-            txt += data.campus + "</span><br><span>"
+        if(row.face_to_face) {
+            txt += "<span>"
+            if (data.campus) {
+                txt += data.campus + "</span><br><span>"
+            }
+            if (data.building) {
+                txt += data.building + "</span><br><span>"
+            }
+            return txt + row.room + "</span>";
         }
-        if(data.building) {
-            txt += data.building + "</span><br><span>"
+        else {
+            return "{% trans 'Remote event' %}"
         }
-        return txt + row.room + "</span>";
       }
     },
     {
@@ -278,20 +286,20 @@
   }, {
     column_number: 1,
     filter_default_label: "",
-    filter_container_id: "structure_filter",
+    filter_container_id: "establishment_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   }, {
     column_number: 2,
     filter_default_label: "",
+    filter_container_id: "structure_filter",
     style_class: "form-control form-control-sm",
-    filter_container_id: "training_filter",
     filter_reset_button_text: false,
   }, {
     column_number: 3,
     filter_default_label: "",
     style_class: "form-control form-control-sm",
-    filter_container_id: "label_filter",
+    filter_container_id: "event_filter",
     filter_reset_button_text: false,
   }, {
     column_number: 6,

@@ -3,7 +3,13 @@
 
 from rest_framework import serializers
 
-from .models import Campus, Establishment, Training, TrainingSubdomain, HighSchool, Course, Structure, Building, Visit
+from .models import (Campus, Establishment, Training, TrainingSubdomain, HighSchool,
+    Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser)
+
+class ImmersionUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImmersionUser
+        fields = ('last_name', 'first_name', 'email')
 
 class CampusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,8 +74,31 @@ class VisitSerializer(serializers.ModelSerializer):
     establishment = serializers.StringRelatedField(many=False)
     structure = serializers.StringRelatedField(many=False)
     highschool = serializers.StringRelatedField(many=False)
-    speakers = serializers.StringRelatedField(many=True)
+    speakers = ImmersionUserSerializer(many=True, read_only=True)
     can_delete = serializers.BooleanField()
+
+    published_slots_count = serializers.IntegerField()
+    slots_count = serializers.IntegerField()
+    registrations_count = serializers.IntegerField()
+    n_places = serializers.IntegerField(source="free_seats")
+
     class Meta:
         model = Visit
+        fields = "__all__"
+
+
+class OffOfferEventSerializer(serializers.ModelSerializer):
+    establishment = EstablishmentSerializer(many=False, read_only=True)
+    structure = serializers.StringRelatedField(many=False)
+    highschool = serializers.StringRelatedField(many=False)
+    event_type = serializers.StringRelatedField(many=False)
+    speakers = ImmersionUserSerializer(many=True, read_only=True)
+    can_delete = serializers.BooleanField()
+    published_slots_count = serializers.IntegerField()
+    slots_count = serializers.IntegerField()
+    registrations_count = serializers.IntegerField()
+    n_places = serializers.IntegerField(source="free_seats")
+
+    class Meta:
+        model = OffOfferEvent
         fields = "__all__"

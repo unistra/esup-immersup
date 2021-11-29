@@ -2,7 +2,7 @@
     "model": "core.mailtemplatevars",
     "pk": 1,
     "fields": {
-      "code": "${annee}",
+      "code": "{{ annee }}",
       "description": "Ann\u00e9e"
     }
   },
@@ -10,7 +10,7 @@
     "model": "core.mailtemplatevars",
     "pk": 2,
     "fields": {
-      "code": "${cours.libelle}",
+      "code": "{{ cours.libelle }}",
       "description": "Libell\u00e9 du cours"
     }
   },
@@ -18,7 +18,7 @@
     "model": "core.mailtemplatevars",
     "pk": 3,
     "fields": {
-      "code": "${cours.nbplaceslibre}",
+      "code": "{{ cours.nbplaceslibre }}",
       "description": "Places disponibles dans le cours"
     }
   },
@@ -26,7 +26,7 @@
     "model": "core.mailtemplatevars",
     "pk": 4,
     "fields": {
-      "code": "${creneau.batiment}",
+      "code": "{{ creneau.batiment }}",
       "description": "Cr\u00e9neau : b\u00e2timent dans lequel a lieu le cours"
     }
   },
@@ -34,7 +34,7 @@
     "model": "core.mailtemplatevars",
     "pk": 5,
     "fields": {
-      "code": "${creneau.campus}",
+      "code": "{{ creneau.campus }}",
       "description": "Cr\u00e9neau : campus"
     }
   },
@@ -42,7 +42,7 @@
     "model": "core.mailtemplatevars",
     "pk": 6,
     "fields": {
-      "code": "${creneau.structure}",
+      "code": "{{ creneau.structure }}",
       "description": "Cr\u00e9neau : structure"
     }
   },
@@ -50,7 +50,7 @@
     "model": "core.mailtemplatevars",
     "pk": 7,
     "fields": {
-      "code": "${creneau.cours}",
+      "code": "{{ creneau.cours }}",
       "description": "Cr\u00e9neau : nom du cours"
     }
   },
@@ -58,7 +58,7 @@
     "model": "core.mailtemplatevars",
     "pk": 8,
     "fields": {
-      "code": "${creneau.date}",
+      "code": "{{ creneau.date }}",
       "description": "Cr\u00e9neau : date"
     }
   },
@@ -66,7 +66,7 @@
     "model": "core.mailtemplatevars",
     "pk": 9,
     "fields": {
-      "code": "${creneau.intervenants}",
+      "code": "{{ creneau.intervenants }}",
       "description": "Liste des intervenants du cr\u00e9neau"
     }
   },
@@ -74,7 +74,7 @@
     "model": "core.mailtemplatevars",
     "pk": 10,
     "fields": {
-      "code": "${creneau.formation}",
+      "code": "{{ creneau.formation }}",
       "description": "Formation concern\u00e9e par le cr\u00e9neau"
     }
   },
@@ -82,7 +82,7 @@
     "model": "core.mailtemplatevars",
     "pk": 11,
     "fields": {
-      "code": "${creneau.heuredebut}",
+      "code": "{{ creneau.heuredebut }}",
       "description": "Cr\u00e9neau : heure de d\u00e9but"
     }
   },
@@ -90,7 +90,7 @@
     "model": "core.mailtemplatevars",
     "pk": 12,
     "fields": {
-      "code": "${creneau.heurefin}",
+      "code": "{{ creneau.heurefin }}",
       "description": "Cr\u00e9neau : heure de fin"
     }
   },
@@ -98,7 +98,7 @@
     "model": "core.mailtemplatevars",
     "pk": 13,
     "fields": {
-      "code": "${creneau.info}",
+      "code": "{{ creneau.info }}",
       "description": "Cr\u00e9neau : autres informations"
     }
   },
@@ -106,7 +106,7 @@
     "model": "core.mailtemplatevars",
     "pk": 14,
     "fields": {
-      "code": "${creneau.salle}",
+      "code": "{{ creneau.salle }}",
       "description": "Cr\u00e9neau : salle"
     }
   },
@@ -114,7 +114,7 @@
     "model": "core.mailtemplatevars",
     "pk": 15,
     "fields": {
-      "code": "${creneau.type}",
+      "code": "{{ creneau.type }}",
       "description": "Cr\u00e9neau : type"
     }
   },
@@ -122,7 +122,7 @@
     "model": "core.mailtemplatevars",
     "pk": 16,
     "fields": {
-      "code": "${int.nom}",
+      "code": "{{ int.nom }}",
       "description": "Nom de l'intervenant"
     }
   },
@@ -130,7 +130,7 @@
     "model": "core.mailtemplatevars",
     "pk": 17,
     "fields": {
-      "code": "${int.prenom}",
+      "code": "{{ int.prenom }}",
       "description": "Pr\u00e9nom de l'intervenant"
     }
   },
@@ -138,7 +138,7 @@
     "model": "core.mailtemplatevars",
     "pk": 18,
     "fields": {
-      "code": "${identifiant}",
+      "code": "{{ identifiant }}",
       "description": "Identifiant"
     }
   },
@@ -146,7 +146,7 @@
     "model": "core.mailtemplatevars",
     "pk": 19,
     "fields": {
-      "code": "${lycee}",
+      "code": "{{ lycee }}",
       "description": "Nom du lyc\u00e9e"
     }
   },
@@ -154,7 +154,7 @@
     "model": "core.mailtemplatevars",
     "pk": 20,
     "fields": {
-      "code": "${jourDestructionCptMin}",
+      "code": "{{ jourDestructionCptMin }}",
       "description": "Date de destruction automatique du compte"
     }
   },
@@ -162,7 +162,7 @@
     "model": "core.mailtemplatevars",
     "pk": 21,
     "fields": {
-      "code": "${lienCreneau}",
+      "code": "{{ lienCreneau }}",
       "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du cr\u00e9neau"
     }
   },
@@ -170,7 +170,7 @@
     "model": "core.mailtemplatevars",
     "pk": 22,
     "fields": {
-      "code": "${lienGlobal}",
+      "code": "{{ lienGlobal }}",
       "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du dispositif"
     }
   },
@@ -178,7 +178,7 @@
     "model": "core.mailtemplatevars",
     "pk": 23,
     "fields": {
-      "code": "${lienValidation}",
+      "code": "{{ lienValidation }}",
       "description": "Lien vers la page de validation du compte"
     }
   },
@@ -186,7 +186,7 @@
     "model": "core.mailtemplatevars",
     "pk": 24,
     "fields": {
-      "code": "${listeInscrits.etablissement}",
+      "code": "{{ listeInscrits.etablissement }}",
       "description": "Liste des inscrits : \u00e9tablissement"
     }
   },
@@ -194,7 +194,7 @@
     "model": "core.mailtemplatevars",
     "pk": 25,
     "fields": {
-      "code": "${listeInscrits}",
+      "code": "{{ listeInscrits }}",
       "description": "Liste des inscrits (noms et pr\u00e9noms)"
     }
   },
@@ -202,7 +202,7 @@
     "model": "core.mailtemplatevars",
     "pk": 26,
     "fields": {
-      "code": "${motifAnnulation}",
+      "code": "{{ motifAnnulation }}",
       "description": "Motif de l'annulation"
     }
   },
@@ -210,7 +210,7 @@
     "model": "core.mailtemplatevars",
     "pk": 27,
     "fields": {
-      "code": "${nom}",
+      "code": "{{ nom }}",
       "description": "Nom du destinataire"
     }
   },
@@ -218,7 +218,7 @@
     "model": "core.mailtemplatevars",
     "pk": 28,
     "fields": {
-      "code": "${password}",
+      "code": "{{ password }}",
       "description": "Mot de passe"
     }
   },
@@ -226,7 +226,7 @@
     "model": "core.mailtemplatevars",
     "pk": 29,
     "fields": {
-      "code": "${prenom}",
+      "code": "{{ prenom }}",
       "description": "Pr\u00e9nom du destinataire"
     }
   },
@@ -234,7 +234,7 @@
     "model": "core.mailtemplatevars",
     "pk": 30,
     "fields": {
-      "code": "${referentlycee.nom}",
+      "code": "{{ referentlycee.nom }}",
       "description": "Nom du r\u00e9f\u00e9rent du lyc\u00e9e"
     }
   },
@@ -242,7 +242,7 @@
     "model": "core.mailtemplatevars",
     "pk": 31,
     "fields": {
-      "code": "${referentlycee.prenom}",
+      "code": "{{ referentlycee.prenom }}",
       "description": "Pr\u00e9nom du r\u00e9f\u00e9rent du lyc\u00e9e"
     }
   },
@@ -250,7 +250,7 @@
     "model": "core.mailtemplatevars",
     "pk": 32,
     "fields": {
-      "code": "${urlPlateforme}",
+      "code": "{{ urlPlateforme }}",
       "description": "Adresse (URL) de la plateforme"
     }
   },
@@ -258,7 +258,7 @@
     "model": "core.mailtemplatevars",
     "pk": 33,
     "fields": {
-      "code": "${lienMotDePasse}",
+      "code": "{{ lienMotDePasse }}",
       "description": "Lien vers la page de r\u00e9initialisation du mot de passe"
     }
   },
@@ -266,7 +266,7 @@
     "model": "core.mailtemplatevars",
     "pk": 34,
     "fields": {
-      "code": "${creneaux.liste}",
+      "code": "{{ creneaux.liste }}",
       "description": "Affichage de cr\u00e9neaux sous forme de liste"
     }
   },
@@ -274,7 +274,7 @@
     "model": "core.mailtemplatevars",
     "pk": 35,
     "fields": {
-      "code": "${etudiant_date_naissance}",
+      "code": "{{ etudiant_date_naissance }}",
       "description": "Date de naissance de l'\u00e9tudiant"
     }
   }

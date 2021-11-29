@@ -25,6 +25,7 @@ urlpatterns = [
     path('get_buildings/<int:campus_id>', views.ajax_get_buildings, name='get_buildings',),
     path('get_course_speakers/<int:course_id>', views.ajax_get_course_speakers, name='get_course_speakers',),
     path('get_visit_speakers/<int:visit_id>', views.ajax_get_visit_speakers, name='get_visit_speakers',),
+    path('get_event_speakers/<int:event_id>', views.ajax_get_event_speakers, name='get_event_speakers',),
     path(
         'get_courses_by_training/<int:structure_id>/<int:training_id>',
         views.ajax_get_courses_by_training,
@@ -86,4 +87,7 @@ urlpatterns = [
     path('buildings/', views.BuildingList.as_view(), name='building_list'),
     path('visits/', views.VisitList.as_view(), name='visit_list'),
     path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),
+
+    path('off_offer_events/', views.OffOfferEventList.as_view(), name='off_offer_event_list'),
+    path('off_offer_event/<int:pk>', views.OffOfferEventDetail.as_view(), name='off_offer_event_detail'),
 ]

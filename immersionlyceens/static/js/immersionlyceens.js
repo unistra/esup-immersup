@@ -38,7 +38,6 @@ function initFeedback(obj) {
 }
 
 function initBadge() {
-  console.log('la')
   $('.immersup-badge').each(function () {
     var rgb = $(this).css('backgroundColor')
     var colors = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
@@ -55,4 +54,8 @@ function initBadge() {
       $(this).css('color', 'white')
     }
   })
+}
+
+function is_set(obj) {
+  return obj !== null && obj !== undefined && obj !== "" && obj !== "None"
 }
