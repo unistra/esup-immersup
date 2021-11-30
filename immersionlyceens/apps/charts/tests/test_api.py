@@ -385,8 +385,8 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['datasets'],
             [{'name': 'Attended to at least one immersion', 'Pupil in year 11 / 10th grade student': 2},
-             {'name': 'Registrations to at least one immersion', 'Pupil in year 12 / 11th grade student': 3},
-             {'name': 'Registrations count', 'Pupil in year 12 / 11th grade student': 5}]
+             {'name': 'Registrations to at least one immersion', 'Pupil in year 11 / 10th grade student': 3},
+             {'name': 'Registrations count', 'Pupil in year 11 / 10th grade student': 5}]
         )
 
         # Registration charts cats (ajax query, headers needed)
