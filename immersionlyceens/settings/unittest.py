@@ -17,7 +17,7 @@ DEBUG = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': environ.get('DEFAULT_DB_TEST_NAME', 'immersionlyceens'),
+        'NAME': environ.get('DEFAULT_DB_TEST_NAME', 'immersionlyceens-test'),
         'USER': environ.get('DEFAULT_DB_USER', 'immersionlyceens'),
         'PASSWORD': environ.get('DEFAULT_DB_PASSWORD', 'immersionlyceens'),
         'HOST': environ.get('DEFAULT_DB_HOST', 'postgres'),
