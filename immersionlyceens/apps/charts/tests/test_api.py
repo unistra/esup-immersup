@@ -398,9 +398,9 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['attended_one']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 0,
+              'Pupil in year 11 / 10th grade student': 1,
               'Pupil in year 12 / 11th grade student': 1,
-              'Pupil in year 13 / 12th grade student': 1,
+              'Pupil in year 13 / 12th grade student': 0,
               'Above A Level / High-School Degree': 0},
              {'name': 'Université de Strasbourg',
               'Pupil in year 11 / 10th grade student': 0,
@@ -411,15 +411,15 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['one_immersion']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 0,
+              'Pupil in year 11 / 10th grade student': 2,
               'Pupil in year 12 / 11th grade student': 2,
-              'Pupil in year 13 / 12th grade student': 2,
+              'Pupil in year 13 / 12th grade student': 0,
               'Above A Level / High-School Degree': 0},
              {'name': 'Université de Strasbourg',
               'Pupil in year 11 / 10th grade student': 0,
               'Pupil in year 12 / 11th grade student': 0,
-              'Pupil in year 13 / 12th grade student': 0,
-              'Above A Level / High-School Degree': 1}]
+              'Pupil in year 13 / 12th grade student': 1,
+              'Above A Level / High-School Degree': 0}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
