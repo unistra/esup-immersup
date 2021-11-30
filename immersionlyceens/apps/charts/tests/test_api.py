@@ -361,20 +361,20 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['datasets'],
              [{'name': 'Attended to at least one immersion',
-               'Pupil in year 11 / 10th grade student': 0,
+               'Pupil in year 11 / 10th grade student': 2,
                'Pupil in year 12 / 11th grade student': 2,
-               'Pupil in year 13 / 12th grade student': 2,
+               'Pupil in year 13 / 12th grade student': 0,
                'Above A Level / High-School Degree': 0},
               {'name': 'Registrations to at least one immersion',
-               'Pupil in year 11 / 10th grade student': 0,
-               'Pupil in year 12 / 11th grade student': 3,
-               'Pupil in year 13 / 12th grade student': 4,
-               'Above A Level / High-School Degree': 2},
+               'Pupil in year 11 / 10th grade student': 3,
+               'Pupil in year 12 / 11th grade student': 4,
+               'Pupil in year 13 / 12th grade student': 2,
+               'Above A Level / High-School Degree': 0},
               {'name': 'Registrations count',
-               'Pupil in year 11 / 10th grade student': 0,
-               'Pupil in year 12 / 11th grade student': 5,
-               'Pupil in year 13 / 12th grade student': 4,
-               'Above A Level / High-School Degree': 3}]
+               'Pupil in year 11 / 10th grade student': 5,
+               'Pupil in year 12 / 11th grade student': 4,
+               'Pupil in year 13 / 12th grade student': 3,
+               'Above A Level / High-School Degree': 0}]
         )
 
         # With another level
