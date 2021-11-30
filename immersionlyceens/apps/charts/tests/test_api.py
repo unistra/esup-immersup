@@ -384,7 +384,7 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'],
-            [{'name': 'Attended to at least one immersion', 'Pupil in year 12 / 11th grade student': 2},
+            [{'name': 'Attended to at least one immersion', 'Pupil in year 11 / 10th grade student': 2},
              {'name': 'Registrations to at least one immersion', 'Pupil in year 12 / 11th grade student': 3},
              {'name': 'Registrations count', 'Pupil in year 12 / 11th grade student': 5}]
         )
