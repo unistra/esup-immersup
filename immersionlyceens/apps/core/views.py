@@ -1243,12 +1243,13 @@ class VisitSlotAdd(generic.CreateView):
 
 
     def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
         speakers_list = []
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
         if self.duplicate and object_pk:
-            context = {'duplicate': True}
+            context['duplicate'] = True
             try:
                 slot = Slot.objects.get(pk=object_pk)
 
@@ -1282,10 +1283,9 @@ class VisitSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
-        else:
-            context = super().get_context_data(*args, **kwargs)
 
         context["can_update"] = True  # FixMe
+        context["slot_mode"] = "visit"
         context["speakers"] = json.dumps(speakers_list)
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')

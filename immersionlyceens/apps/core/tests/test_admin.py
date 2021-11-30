@@ -967,7 +967,7 @@ class AdminFormsTestCase(TestCase):
             'label': 'testDocument',
             'description': 'testDescription',
             'active': True,
-            'public_type': ['1',]
+            'public_type': [f"{public_type.id}",]
         }
 
         # Failures (invalid users)

@@ -21,6 +21,7 @@ from .models import (
     HighSchool, ImmersionUser, Slot, Training, UniversityYear, Visit, OffOfferEvent
 )
 
+from ..immersion.models import HighSchoolStudentRecord, StudentRecord
 
 class CourseForm(forms.ModelForm):
     establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
@@ -132,8 +133,28 @@ class SlotForm(forms.ModelForm):
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 
+        self.fields['allowed_highschool_levels'] = forms.MultipleChoiceField(
+            widget=forms.SelectMultiple,
+            choices=HighSchoolStudentRecord.LEVELS,
+            required=False
+        )
+
+        self.fields['allowed_student_levels'] = forms.MultipleChoiceField(
+            widget=forms.SelectMultiple,
+            choices=StudentRecord.LEVELS,
+            required=False
+        )
+
+        self.fields['allowed_post_bachelor_levels'] = forms.MultipleChoiceField(
+            widget=forms.SelectMultiple,
+            choices=HighSchoolStudentRecord.POST_BACHELOR_LEVELS,
+            required=False
+        )
+
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
-            'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url']:
+            'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
+            'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
+            'allowed_post_bachelor_levels']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
         can_choose_establishment = any([
@@ -192,6 +213,24 @@ class SlotForm(forms.ModelForm):
         if instance:
             self.fields['date'].value = instance.date
 
+    def clean_restrictions(self, cleaned_data):
+        try:
+            cleaned_data['allowed_highschool_levels'] = [int(x) for x in cleaned_data['allowed_highschool_levels']]
+        except (ValueError, TypeError):
+            cleaned_data['allowed_highschool_levels'] = []
+
+        try:
+            cleaned_data['allowed_student_levels'] = [int(x) for x in cleaned_data['allowed_student_levels']]
+        except (ValueError, TypeError):
+            cleaned_data['allowed_student_levels'] = []
+
+        try:
+            cleaned_data['allowed_post_bachelor_levels'] = [int(x) for x in cleaned_data['allowed_post_bachelor_levels']]
+        except (ValueError, TypeError):
+            cleaned_data['allowed_post_bachelor_levels'] = []
+
+        return cleaned_data
+
     def clean(self):
         cleaned_data = super().clean()
         course = cleaned_data.get('course')
@@ -201,6 +240,8 @@ class SlotForm(forms.ModelForm):
         n_places = cleaned_data.get('n_places', 0)
         _date = cleaned_data.get('date')
         start_time = cleaned_data.get('start_time', 0)
+
+        cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 
@@ -254,7 +295,9 @@ class SlotForm(forms.ModelForm):
         model = Slot
         fields = ('id', 'establishment', 'structure', 'highschool', 'visit', 'event', 'training', 'course',
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
-            'additional_information', 'published', 'face_to_face')
+            'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
+            'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
+            'allowed_post_bachelor_levels')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
@@ -308,6 +351,8 @@ class VisitSlotForm(SlotForm):
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
+
+        cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 
@@ -441,6 +486,8 @@ class OffOfferEventSlotForm(SlotForm):
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
+
+        cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 

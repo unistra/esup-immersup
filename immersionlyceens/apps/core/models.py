@@ -18,6 +18,7 @@ from os.path import dirname, join
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q, Sum
@@ -1633,6 +1634,27 @@ class Slot(models.Model):
     published = models.BooleanField(_("Published"), default=True, null=False)
 
     face_to_face = models.BooleanField(_("Face to face"), default=True, null=False, blank=True)
+
+    establishments_restrictions = models.BooleanField(
+        _("Use establishments restrictions"), default=False, null=False, blank=True
+    )
+
+    levels_restrictions = models.BooleanField(
+        _("Use levels restrictions"), default=False, null=False, blank=True
+    )
+
+    allowed_establishments = models.ManyToManyField(
+        Establishment, verbose_name=_("Allowed establishments"), related_name='+', blank=True
+    )
+
+    allowed_highschools = models.ManyToManyField(
+        HighSchool, verbose_name=_("Allowed high schools"), related_name='+', blank=True
+    )
+
+    # Since levels are not objects, we use array fields to handle these restrictions
+    allowed_highschool_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    allowed_student_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    allowed_post_bachelor_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
 
     def get_establishment(self):
         """
