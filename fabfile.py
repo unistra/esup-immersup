@@ -120,6 +120,10 @@ def test():
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
     }
     env.extra_symlink_dirs = ['media']
     execute(build_env)
@@ -156,6 +160,10 @@ def preprod():
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
     }
     execute(build_env)
 
@@ -191,6 +199,10 @@ def prod():
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
     }
     execute(build_env)
 

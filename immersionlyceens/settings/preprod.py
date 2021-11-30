@@ -94,3 +94,12 @@ sentry_sdk.init(
 
 # Goal
 STAGE = 'Preprod'
+
+#####################
+# S3 storage config #
+#####################
+AWS_ACCESS_KEY_ID = '{{ s3_access_key }}'
+AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
+AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
+AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
+S3_FILEPATH = 'preprod'
