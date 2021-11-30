@@ -1644,11 +1644,11 @@ class Slot(models.Model):
     )
 
     allowed_establishments = models.ManyToManyField(
-        Establishment, verbose_name=_("Allowed establishments"), related_name='+'
+        Establishment, verbose_name=_("Allowed establishments"), related_name='+', blank=True
     )
 
     allowed_highschools = models.ManyToManyField(
-        HighSchool, verbose_name=_("Allowed high schools"), related_name='+'
+        HighSchool, verbose_name=_("Allowed high schools"), related_name='+', blank=True
     )
 
     # Since levels are not objects, we use array fields to handle these restrictions

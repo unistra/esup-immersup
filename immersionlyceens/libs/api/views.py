@@ -445,7 +445,7 @@ def ajax_get_slots(request):
     user_establishment = request.user.establishment
     user_highschool = request.user.highschool
 
-    for slot in slots:
+    for slot in slots.order_by('date', 'start_time'):
         establishment = slot.get_establishment()
         structure = slot.get_structure()
         highschool = slot.get_highschool()
@@ -759,7 +759,6 @@ def ajax_get_student_records(request):
     actions = ['TO_VALIDATE', 'VALIDATED', 'REJECTED']
 
     if action and action.upper() in actions:
-
         if hs_id:
             action = action.upper()
             records = []
@@ -770,21 +769,19 @@ def ajax_get_student_records(request):
             elif action == 'REJECTED':
                 records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=3,)  # REJECTED
 
-            response['data'] = [
-                {
-                    'id': record.id,
-                    'first_name': record.student.first_name,
-                    'last_name': record.student.last_name,
-                    'birth_date': _date(record.birth_date, "j/m/Y"),
-                    'level': HighSchoolStudentRecord.LEVELS[record.level - 1][1],
-                    'class_name': record.class_name,
-                }
-                for record in records
-            ]
+            response['data'] = [{
+                'id': record.id,
+                'first_name': record.student.first_name,
+                'last_name': record.student.last_name,
+                'birth_date': _date(record.birth_date, "j/m/Y"),
+                'level': HighSchoolStudentRecord.LEVELS[record.level - 1][1],
+                'class_name': record.class_name,
+            } for record in records.order_by('student__last_name', 'student__first_name')]
         else:
             response['msg'] = gettext("Error: No high school selected")
     else:
         response['msg'] = gettext("Error: No action selected for AJAX request")
+
     return JsonResponse(response, safe=False)
 
 
@@ -1636,7 +1633,7 @@ def get_csv_structures(request, structure_id):
     today = _date(datetime.datetime.today(), 'Ymd')
     structure = Structure.objects.get(id=structure_id).label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{structure}_{today}.csv"'
-    slots = Slot.objects.filter(course__structure_id=structure_id, published=True)
+    slots = Slot.objects.filter(course__structure_id=structure_id, published=True).order_by('date', 'start_time')
 
     infield_separator = '|'
 
@@ -1711,7 +1708,8 @@ def get_csv_highschool(request, high_school_id):
     ]
 
     content = []
-    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)
+    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)\
+        .order_by('student__last_name', 'student__first_name')
     for hs in hs_records:
         immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
         if immersions.count() > 0:

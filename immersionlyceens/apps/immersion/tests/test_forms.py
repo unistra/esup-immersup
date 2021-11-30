@@ -122,7 +122,7 @@ class FormTestCase(TestCase):
             'birth_date': self.today,
             'level': 1,
             'class_name': 'Hello world ! :D',
-            'student': self.high_school.id
+            'student': self.highschool_user.id
         }
         form = HighSchoolStudentRecordManagerForm(data=data, instance=self.hs_record)
         self.assertTrue(form.is_valid())

@@ -289,13 +289,13 @@
           {% endif %}
         </div>
 
-        <div class="form-group row" id="div_allowed_establishments">
-          <div class="col-sm-3">
-            <label for="id_allowed_establishments" class="col-form-label col-sm-3">{% trans 'Allowed establishments' %}</label>
+        <div class="form-group row" id="id_div_allowed_establishments">
+          <div class="col-sm-3 offset-sm-3">
+            <label for="id_allowed_establishments" class="col-form-label">{% trans 'Allowed establishments' %}</label>
             {{ slot_form.allowed_establishments }}
           </div>
           <div class="col-sm-3">
-            <label for="id_allowed_highschools" class="col-form-label col-sm-3">{% trans 'Allowed high schools' %}</label>
+            <label for="id_allowed_highschools" class="col-form-label">{% trans 'Allowed high schools' %}</label>
             {{ slot_form.allowed_highschools }}
           </div>
 
@@ -315,6 +315,27 @@
           {% if slot_form.levels_restrictions.errors %}
             <div class="col-sm-3 alert alert-danger">
               {{ slot_form.levels_restrictions.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group row" id="id_div_allowed_levels">
+          <div class="col-sm-3 offset-sm-3">
+            <label for="id_allowed_highschool_levels" class="col-form-label">{% trans 'Allowed high school levels' %}</label>
+            {{ slot_form.allowed_highschool_levels }}
+          </div>
+          <div class="col-sm-3">
+            <label for="id_allowed_student_levels" class="col-form-label">{% trans 'Allowed student levels' %}</label>
+            {{ slot_form.allowed_student_levels }}
+          </div>
+          <div class="col-sm-3">
+            <label for="id_allowed_post_bachelor_levels" class="col-form-label">{% trans 'Allowed post bachelor levels' %}</label>
+            {{ slot_form.allowed_post_bachelor_levels }}
+          </div>
+
+          {% if slot_form.allowed_establishments.errors %}
+            <div class="col-sm-3 alert alert-danger">
+              {{ slot_form.allowed_establishments.errors }}
             </div>
           {% endif %}
         </div>
@@ -891,6 +912,29 @@ $(document).ready(function(){
     }
   }
 
+  function toggle_establishments_restrictions() {
+    if ($('#id_establishments_restrictions').prop('checked')) {
+      $('#id_div_allowed_establishments').show()
+    }
+    else {
+      $('#id_div_allowed_establishments').hide()
+      $('#id_allowed_establishments').find('option').prop('selected',false)
+      $('#id_allowed_highschools').find('option').prop('selected',false)
+    }
+  }
+
+  function toggle_levels_restrictions() {
+    if ($('#id_levels_restrictions').prop('checked')) {
+      $('#id_div_allowed_levels').show()
+    }
+    else {
+      $('#id_div_allowed_levels').hide()
+      $('#id_allowed_highschool_levels').find('option').prop('selected',false)
+      $('#id_allowed_student_levels').find('option').prop('selected',false)
+      $('#id_allowed_post_bachelor_levels').find('option').prop('selected',false)
+    }
+  }
+
   // Change input type
   $('#id_start_time').get(0).type = 'time';
   $('#id_end_time').get(0).type = 'time';
@@ -914,8 +958,13 @@ $(document).ready(function(){
 
   // toggle
   toggle_required_fields();
-
   $('#id_published').on('change', function(){ toggle_required_fields(); });
+
+  toggle_establishments_restrictions();
+  $('#id_establishments_restrictions').on('change', function() { toggle_establishments_restrictions() });
+
+  toggle_levels_restrictions();
+  $('#id_levels_restrictions').on('change', function() { toggle_levels_restrictions() });
 
   {% if slot or request.POST.structure %}
     {% if slot %}
