@@ -112,3 +112,12 @@ MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 
 # Goal
 STAGE = 'Dev'
+
+#####################
+# S3 storage config #
+#####################
+AWS_S3_ENDPOINT_URL = environ.get('AWS_S3_ENDPOINT_URL')
+AWS_STORAGE_BUCKET_NAME = environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = environ.get('AWS_SECRET_ACCESS_KEY')
+S3_FILEPATH = ''

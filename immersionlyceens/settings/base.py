@@ -568,3 +568,12 @@ IGNORABLE_404_URLS = [
     re.compile(r'^/favicon\.ico$'),
     re.compile(r'^/robots\.txt$'),
 ]
+
+######
+# S3 #
+######
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_FILE_OVERWRITE = True
+AWS_DEFAULT_ACL = None
+AWS_AUTO_CREATE_BUCKET = True
