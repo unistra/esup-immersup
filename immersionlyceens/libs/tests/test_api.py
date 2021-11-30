@@ -326,7 +326,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             civility=1,
             phone='0123456789',
-            level=1,
+            level=2,
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
@@ -342,7 +342,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             civility=2,
             phone='0123456789',
-            level=2,
+            level=3,
             class_name='TS 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
@@ -1411,7 +1411,7 @@ class APITestCase(TestCase):
 
         one = False
         for h in content['data']:
-            if h['level'] == HighSchoolStudentRecord.LEVELS[-1][1]:
+            if h['level'] == HighSchoolStudentRecord.LEVELS[2][1]:
                 self.assertEqual(self.hs_record.get_post_bachelor_level_display(), h['post_bachelor_level'])
                 self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
                 one = True
