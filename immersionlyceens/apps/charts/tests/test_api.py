@@ -50,23 +50,23 @@ class ChartsTestCase(TestCase):
             [
               {
                 'name': 'Registrations count',
-                'Pupil in year 11 / 10th grade student': 0,
-                'Pupil in year 12 / 11th grade student': 3,
-                'Pupil in year 13 / 12th grade student': 2,
+                'Pupil in year 11 / 10th grade student': 3,
+                'Pupil in year 12 / 11th grade student': 2,
+                'Pupil in year 13 / 12th grade student': 0,
                 'Above A Level / High-School Degree': 0
               },
               {
                  'name': 'Registrations to at least one immersion',
-                 'Pupil in year 11 / 10th grade student': 0,
+                 'Pupil in year 11 / 10th grade student': 2,
                  'Pupil in year 12 / 11th grade student': 2,
-                 'Pupil in year 13 / 12th grade student': 2,
+                 'Pupil in year 13 / 12th grade student': 0,
                  'Above A Level / High-School Degree': 0
               },
               {
                   'name': 'Attended to at least one immersion',
-                  'Pupil in year 11 / 10th grade student': 0,
+                  'Pupil in year 11 / 10th grade student': 1,
                   'Pupil in year 12 / 11th grade student': 1,
-                  'Pupil in year 13 / 12th grade student': 1,
+                  'Pupil in year 13 / 12th grade student': 0,
                   'Above A Level / High-School Degree': 0
               }
             ]
