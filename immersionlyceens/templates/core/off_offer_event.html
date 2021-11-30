@@ -165,8 +165,6 @@
   var speakers_array = {{ speakers|safe }};
   {% endautoescape %}
 
-  console.log("array : " + speakers_array)
-
   function set_structures(estab_id) {
     $.ajax({
       url: "{% url 'structure_list' %}",

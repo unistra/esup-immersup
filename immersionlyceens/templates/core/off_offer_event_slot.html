@@ -660,7 +660,7 @@
           data['data'].forEach(function(e){
             let checked = ''
 
-            if (speakers.find(s => s.id === e['id']) !== undefined) {
+            if (speakers.find(s => parseInt(s) === e['id']) !== undefined) {
               checked = "checked"
             }
 
@@ -695,14 +695,17 @@ $(document).ready(function(){
 
   if(establishment_id) {
     $("#id_div_structure").show()
+    $("#id_div_campus").show()
+    $("#id_div_building").show()
     $("#id_div_highschool").hide()
     set_structures(establishment_id)
     set_campuses(establishment_id)
   }
   else {
     $("#id_div_structure").hide()
+    $("#id_div_campus").hide()
+    $("#id_div_building").hide()
     empty_structures()
-    empty_events()
   }
 
   if(!is_set(structure_id)) {
@@ -712,6 +715,24 @@ $(document).ready(function(){
     $("#id_structure").val(structure_id)
   }
 
+  if(!is_set(campus_id)) {
+    campus_id = $("#id_campus").val()
+  }
+  else {
+    $("#id_campus").val(campus_id)
+  }
+
+  if(campus_id) {
+      set_buildings()
+  }
+
+  if(!is_set(building_id)) {
+    building_id = $("#id_building").val()
+  }
+  else {
+    $("#id_building").val(building_id)
+  }
+
   if(!is_set(highschool_id)) {
     highschool_id = $("#id_highschool").val()
   }
@@ -719,22 +740,26 @@ $(document).ready(function(){
     $("#id_highschool").val(highschool_id)
   }
 
-  if(!is_set(campus_id)) {
-    empty_buildings()
+  if(highschool_id) {
+    $("#id_div_establishment").hide()
+    $("#id_div_structure").hide()
+    $("#id_div_campus").hide()
+    $("#id_div_building").hide()
   }
-  else {
-    set_buildings(campus_id)
+
+  // Structure is not mandatory to load the events
+  if(is_set(establishment_id) || is_set(highschool_id)) {
+    set_events()
   }
 
   if(!is_set(event_id)) {
     event_id = $("#id_event").val()
-
-    if(event_id) {
-      load_speakers(event_id);
-    }
   }
   else {
     $("#id_event").val(event_id)
+  }
+
+  if(event_id) {
     load_speakers(event_id);
   }
 
@@ -751,11 +776,6 @@ $(document).ready(function(){
 
     $("#id_div_url").show()
     $('#id_url').attr('required', 'required');
-  }
-
-  // Structure is not mandatory
-  if(is_set(establishment_id) || is_set(highschool_id)) {
-    set_events()
   }
 
   initFeedback();

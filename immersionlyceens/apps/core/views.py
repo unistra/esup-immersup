@@ -1246,7 +1246,7 @@ class VisitSlotAdd(generic.CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
 
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
@@ -1328,7 +1328,7 @@ class VisitSlotUpdate(generic.UpdateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
 
         slot_id = self.object.id
         if slot_id:
@@ -1641,7 +1641,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
 
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
@@ -1679,12 +1679,14 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 self.form = OffOfferEventSlotForm(initial=initials, request=self.request)
 
                 speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
-
                 context["speakers"] = json.dumps(speakers_list)
+
                 context["origin_id"] = slot.id
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
+
+
 
         context["can_update"] = True  # FixMe
         context["establishment_id"] = self.request.session.get('current_establishment_id')
@@ -1726,7 +1728,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
 
         slot_id = self.object.id
         if slot_id:
