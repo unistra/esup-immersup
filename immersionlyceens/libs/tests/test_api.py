@@ -621,7 +621,7 @@ class APITestCase(TestCase):
         self.hs_record.save()
         data = {
             'action': 'REJECTED',
-            'high_school_id': self.hs_record.id
+            'high_school_id': self.high_school.id
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())

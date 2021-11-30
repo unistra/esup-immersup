@@ -1413,6 +1413,7 @@ class OffOfferEventsList(generic.TemplateView):
             if self.request.user.is_high_school_manager():
                 context["establishments"] = Establishment.objects.none()
                 context["structures"] = Structure.objects.none()
+                context["highschools"] = HighSchool.agreed.filter(id=self.request.user.highschool.id)
                 context["highschool_id"] = self.request.user.highschool.id
 
         return context
