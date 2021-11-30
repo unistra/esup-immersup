@@ -3,6 +3,7 @@
 import os
 from os import environ
 from os.path import normpath
+
 from .base import *
 
 #######################
@@ -16,8 +17,16 @@ DEBUG = True
 # Database configuration #
 ##########################
 
-DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
-DATABASES['default']['NAME'] = environ.get('DEFAULT_DB_NAME', 'immersionlyceens.db')
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': environ.get('DEFAULT_DB_TEST_NAME', 'immersionlyceens'),
+        'USER': environ.get('DEFAULT_DB_USER', 'immersionlyceens'),
+        'PASSWORD': environ.get('DEFAULT_DB_PASSWORD', 'immersionlyceens'),
+        'HOST': environ.get('DEFAULT_DB_HOST', 'postgres'),
+        'PORT': environ.get('DEFAULT_DB_PORT', '5432'),
+    }
+}
 
 ############################
 # Allowed hosts & Security #
