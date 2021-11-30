@@ -593,9 +593,6 @@ class APITestCase(TestCase):
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
-
-        print(f"content : {content}")
-
         self.assertEqual(len(content['data']), 2)
 
         hs_record = content['data'][0]
@@ -610,7 +607,7 @@ class APITestCase(TestCase):
         self.hs_record.save()
         data = {
             'action': 'VALIDATED',
-            'high_school_id': self.hs_record.id
+            'high_school_id': self.high_school.id
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())

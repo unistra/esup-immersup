@@ -1067,7 +1067,9 @@ class VisitAdd(generic.CreateView):
             return reverse("visits")
 
     def get_context_data(self, *args, **kwargs):
-        speakers_list = []
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
@@ -1100,15 +1102,13 @@ class VisitAdd(generic.CreateView):
                     "is_removable": True,
                 } for t in visit.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
                 context["origin_id"] = visit.id
                 context["form"] = self.form
             except Visit.DoesNotExist:
                 pass
-        else:
-            context = super().get_context_data(*args, **kwargs)
 
         context["can_update"] = True  # FixMe
-        context["speakers"] = json.dumps(speakers_list)
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')
         return context
@@ -1146,8 +1146,10 @@ class VisitUpdate(generic.UpdateView):
         kw["request"] = self.request
         return kw
 
-    def get_context_data(self, **kwargs):
-        speakers_list = []
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         visit_id = self.object.id
         if visit_id:
             try:
@@ -1165,13 +1167,13 @@ class VisitUpdate(generic.UpdateView):
                     "is_removable": not t.slots.filter(visit=visit_id).exists(),
                 } for t in visit.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
+
                 self.form = VisitForm(instance=visit, request=self.request)
             except Visit.DoesNotExist:
                 self.form = VisitForm(request=self.request)
 
-        context = super().get_context_data(**kwargs)
         context["can_update"] = True  # FixMe
-        context["speakers"] = json.dumps(speakers_list)
         return context
 
 
@@ -1244,7 +1246,8 @@ class VisitSlotAdd(generic.CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        speakers_list = []
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
@@ -1279,6 +1282,7 @@ class VisitSlotAdd(generic.CreateView):
 
                 speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
                 context["origin_id"] = slot.id
                 context["form"] = self.form
             except Slot.DoesNotExist:
@@ -1286,7 +1290,6 @@ class VisitSlotAdd(generic.CreateView):
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "visit"
-        context["speakers"] = json.dumps(speakers_list)
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')
 
@@ -1323,8 +1326,10 @@ class VisitSlotUpdate(generic.UpdateView):
         kw["request"] = self.request
         return kw
 
-    def get_context_data(self, **kwargs):
-        speakers_list = []
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         slot_id = self.object.id
         if slot_id:
             try:
@@ -1343,15 +1348,12 @@ class VisitSlotUpdate(generic.UpdateView):
                     "is_removable": True,
                 } for t in slot.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
                 self.form = VisitSlotForm(instance=slot, request=self.request)
-
             except Visit.DoesNotExist:
                 self.form = VisitSlotForm(request=self.request)
 
-        context = super().get_context_data(**kwargs)
         context["can_update"] = True  # FixMe
-        context["speakers"] = json.dumps(speakers_list)
-
         return context
 
 
@@ -1393,22 +1395,25 @@ class OffOfferEventsList(generic.TemplateView):
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
 
+        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+        context["structure_id"] = self.request.session.get('current_structure_id', None)
+        context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["establishment_id"] = self.request.user.establishment.id
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = self.request.user.structures.all()
+                context["establishment_id"] = self.request.user.establishment.id
 
             if self.request.user.is_high_school_manager():
                 context["establishments"] = Establishment.objects.none()
                 context["structures"] = Structure.objects.none()
                 context["highschool_id"] = self.request.user.highschool.id
-
-        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-        context["structure_id"] = self.request.session.get('current_structure_id', None)
 
         return context
 
@@ -1428,7 +1433,9 @@ class OffOfferEventAdd(generic.CreateView):
             return reverse("off_offer_events")
 
     def get_context_data(self, *args, **kwargs):
-        speakers_list = []
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
@@ -1463,15 +1470,13 @@ class OffOfferEventAdd(generic.CreateView):
                     "is_removable": True,
                 } for t in event.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
                 context["origin_id"] = event.id
                 context["form"] = self.form
             except OffOfferEvent.DoesNotExist:
                 pass
-        else:
-            context = super().get_context_data(*args, **kwargs)
 
         context["can_update"] = True  # FixMe
-        context["speakers"] = json.dumps(speakers_list)
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')
         return context
@@ -1487,7 +1492,13 @@ class OffOfferEventAdd(generic.CreateView):
         self.duplicate = self.request.POST.get("save_duplicate", False) != False
         self.add_new = self.request.POST.get("save_add_new", False) != False
         response = super().form_valid(form)
-        messages.success(self.request, _(f"Off offer event {form.instance} created."))
+        messages.success(self.request, _("Off offer event \"%s\" created.") % form.instance)
+
+        self.request.session['current_establishment_id'] = \
+            self.object.establishment.id if self.object.establishment else None
+        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+        self.request.session['current_highschool_id'] = self.object.highschool.id if self.object.highschool else None
+
         return response
 
 
@@ -1509,8 +1520,10 @@ class OffOfferEventUpdate(generic.UpdateView):
         kw["request"] = self.request
         return kw
 
-    def get_context_data(self, **kwargs):
-        speakers_list = []
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         event_id = self.object.id
 
         if event_id:
@@ -1530,14 +1543,12 @@ class OffOfferEventUpdate(generic.UpdateView):
                     "is_removable": not t.slots.filter(event=event_id).exists(),
                 } for t in event.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
                 self.form = OffOfferEventForm(instance=event, request=self.request)
-
             except OffOfferEvent.DoesNotExist:
                 self.form = OffOfferEventForm(request=self.request)
 
-        context = super().get_context_data(**kwargs)
         context["can_update"] = True  # FixMe
-        context["speakers"] = json.dumps(speakers_list)
         return context
 
 
@@ -1628,7 +1639,9 @@ class OffOfferEventSlotAdd(generic.CreateView):
 
 
     def get_context_data(self, *args, **kwargs):
-        speakers_list = []
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
@@ -1666,15 +1679,13 @@ class OffOfferEventSlotAdd(generic.CreateView):
 
                 speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
                 context["origin_id"] = slot.id
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
-        else:
-            context = super().get_context_data(*args, **kwargs)
 
         context["can_update"] = True  # FixMe
-        context["speakers"] = json.dumps(speakers_list)
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')
         context["highschool_id"] = self.request.session.get('current_highschool_id')
@@ -1712,8 +1723,10 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
         kw["request"] = self.request
         return kw
 
-    def get_context_data(self, **kwargs):
-        speakers_list = []
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
         slot_id = self.object.id
         if slot_id:
             try:
@@ -1735,15 +1748,12 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
                     "is_removable": True,
                 } for t in slot.speakers.all()]
 
+                context["speakers"] = json.dumps(speakers_list)
                 self.form = OffOfferEventSlotForm(instance=slot, request=self.request)
-
             except Slot.DoesNotExist:
                 self.form = OffOfferEventSlotForm(request=self.request)
 
-        context = super().get_context_data(**kwargs)
         context["can_update"] = True  # FixMe
-        context["speakers"] = json.dumps(speakers_list)
-
         return context
 
 

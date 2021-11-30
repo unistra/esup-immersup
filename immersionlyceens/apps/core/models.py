@@ -1169,8 +1169,10 @@ class OffOfferEventType(models.Model):
     """Off offer event type"""
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    # full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
     active = models.BooleanField(_("Active"), default=True)
+
+    objects = models.Manager()
+    activated = ActiveManager()
 
     def __str__(self) -> str:
         return f"{self.label}"

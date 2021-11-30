@@ -18,7 +18,8 @@ from ..immersion.forms import StudentRecordForm
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
     Building, Calendar, Campus, Structure, Course, CourseType, Establishment,
-    HighSchool, ImmersionUser, Slot, Training, UniversityYear, Visit, OffOfferEvent
+    HighSchool, ImmersionUser, Slot, Training, UniversityYear, Visit, OffOfferEvent,
+    OffOfferEventType
 )
 
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -839,13 +840,15 @@ class OffOfferEventForm(forms.ModelForm):
         self.fields["highschool"].queryset = HighSchool.agreed.none()
         self.fields["establishment"].queryset = Establishment.activated.all()
         self.fields["structure"].queryset = Structure.activated.all()
+        self.fields["event_type"].queryset = OffOfferEventType.activated.all()
 
         if not self.request.user.is_superuser:
             # Keep this ?
             # self.fields["establishment"].initial = self.request.user.establishment.id
 
             if self.request.user.is_master_establishment_manager():
-                self.fields["highschool"].queryset = HighSchool.agreed.order_by('city', 'label')
+                self.fields["highschool"].queryset = \
+                    HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 
             if self.request.user.is_establishment_manager():
                 self.fields["establishment"].empty_label = None
@@ -865,7 +868,8 @@ class OffOfferEventForm(forms.ModelForm):
             if self.request.user.is_high_school_manager():
                 self.fields["establishment"].queryset = Establishment.objects.none()
                 self.fields["structure"].queryset = Structure.objects.none()
-                self.fields["highschool"].queryset = HighSchool.agreed.filter(id=self.request.user.highschool.id)
+                self.fields["highschool"].queryset = \
+                    HighSchool.agreed.filter(postbac_immersion=True, id=self.request.user.highschool.id)
                 self.fields["highschool"].empty_label = None
 
 
