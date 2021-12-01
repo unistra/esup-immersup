@@ -36,6 +36,7 @@ class ChartsTestCase(TestCase):
 
 
     def test_charts_api(self):
+        # TODO: refactor this hell test! :O Sorry but 500 lines that's not acceptable!
         self.client.login(username='test-ref-etab', password='hiddenpassword')
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -441,15 +442,15 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['attended_one']['datasets'],
-            [{'Pupil in year 12 / 11th grade student': 1, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 11 / 10th grade student': 1, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
-            [{'Pupil in year 12 / 11th grade student': 2, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 11 / 10th grade student': 2, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
-            [{'Pupil in year 12 / 11th grade student': 3, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 11 / 10th grade student': 3, 'name': 'Lycée Jean Monnet'}]
         )
 
         # Slots charts (ajax query, headers needed)
