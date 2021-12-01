@@ -80,15 +80,30 @@ class ChartsTestCase(TestCase):
         content = response.content.decode()
         json_content = json.loads(content)
 
-        self.assertEqual(json_content['datasets'],
-            [{'domain': 'Art, Lettres, Langues', 'count': 15,
-              'subData': [{'name': 'Art plastiques', 'count': 7}, {'name': 'Art visuels', 'count': 8}]},
-             {'domain': 'Droit, Economie, Gestion', 'count': 5, 'subData': [{'name': 'Economie, Gestion', 'count': 5}]},
-             {'domain': 'Sciences Humaines et sociales', 'count': 2,
-              'subData': [{'name': 'Sport', 'count': 2}]},
-             {'domain': 'Sciences et Technologies', 'count': 11,
-              'subData': [{'name': 'Informatique', 'count': 4}, {'name': 'Mathématiques', 'count': 7}]}]
-        )
+        self.assertEqual(json_content['datasets'], [
+             {'domain': 'Art, Lettres, Langues',
+              'count': 15,
+              'subData': [
+                  {'name': 'Art plastiques', 'count': 7},
+                  {'name': 'Art visuels', 'count': 8}
+              ]},
+             {'domain': 'Droit, Economie, Gestion',
+              'count': 5,
+              'subData': [
+                  {'name': 'Economie, Gestion', 'count': 5}
+              ]},
+             {'domain': 'Sciences Humaines et sociales',
+              'count': 2,
+              'subData': [
+                  {'name': 'Sport', 'count': 2}
+              ]},
+             {'domain': 'Sciences et Technologies',
+              'count': 11,
+              'subData': [
+                  {'name': 'Informatique', 'count': 4},
+                  {'name': 'Mathématiques', 'count': 7}
+              ]}
+        ])
 
         # Global domain charts
         url = "/charts/get_global_domains_charts"

@@ -17,11 +17,16 @@ DEBUG = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': environ.get('DEFAULT_DB_TEST_NAME', 'immersionlyceens-test'),
+        'NAME': environ.get('DEFAULT_DB_NAME', 'immersionlyceens'),
         'USER': environ.get('DEFAULT_DB_USER', 'immersionlyceens'),
         'PASSWORD': environ.get('DEFAULT_DB_PASSWORD', 'immersionlyceens'),
         'HOST': environ.get('DEFAULT_DB_HOST', 'postgres'),
         'PORT': environ.get('DEFAULT_DB_PORT', '5432'),
+        'TEST':  {
+            'NAME': None,
+            'CHARSET': "UTF-8' LC_COLLATE 'C' LC_CTYPE 'C",
+            'TEMPLATE': "template0",
+        }
     }
 }
 
