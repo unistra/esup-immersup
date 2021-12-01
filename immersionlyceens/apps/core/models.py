@@ -11,6 +11,7 @@ pylint ignore:
 """
 import datetime
 import logging
+import os
 import re
 import uuid
 from functools import partial
@@ -37,6 +38,19 @@ from .managers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+
+def get_file_path(instance, filename,):
+    file_basename, extension = os.path.splitext(filename)
+    year = datetime.datetime.now().strftime('%Y')
+    return (
+        os.path.join(settings.S3_FILEPATH if hasattr(settings, 'S3_FILEPATH') else '',
+                     year,
+                     f'{file_basename}{extension}')
+        .lower()
+        .replace(' ', '_')
+    )
 
 
 class Establishment(models.Model):
@@ -1427,7 +1441,7 @@ class AccompanyingDocument(models.Model):
 
     document = models.FileField(
         _("Document"),
-        upload_to='uploads/accompanyingdocs/%Y',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
@@ -1479,7 +1493,7 @@ class PublicDocument(models.Model):
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
         _("Document"),
-        upload_to='uploads/publicdocs/%Y',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
@@ -1875,7 +1889,7 @@ class CertificateLogo(models.Model):
 
     logo = models.ImageField(
         _("Logo"),
-        upload_to='uploads/certificate_logo/',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
@@ -1917,7 +1931,7 @@ class CertificateSignature(models.Model):
 
     signature = models.ImageField(
         _("Signature"),
-        upload_to='uploads/certificate_signature/',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
