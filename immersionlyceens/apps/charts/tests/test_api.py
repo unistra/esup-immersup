@@ -36,6 +36,7 @@ class ChartsTestCase(TestCase):
 
 
     def test_charts_api(self):
+        # TODO: refactor this hell test! :O Sorry but 500 lines that's not acceptable!
         self.client.login(username='test-ref-etab', password='hiddenpassword')
         header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -50,23 +51,23 @@ class ChartsTestCase(TestCase):
             [
               {
                 'name': 'Registrations count',
-                'Pupil in year 11 / 10th grade student': 0,
-                'Pupil in year 12 / 11th grade student': 3,
-                'Pupil in year 13 / 12th grade student': 2,
+                'Pupil in year 11 / 10th grade student': 3,
+                'Pupil in year 12 / 11th grade student': 2,
+                'Pupil in year 13 / 12th grade student': 0,
                 'Above A Level / High-School Degree': 0
               },
               {
                  'name': 'Registrations to at least one immersion',
-                 'Pupil in year 11 / 10th grade student': 0,
+                 'Pupil in year 11 / 10th grade student': 2,
                  'Pupil in year 12 / 11th grade student': 2,
-                 'Pupil in year 13 / 12th grade student': 2,
+                 'Pupil in year 13 / 12th grade student': 0,
                  'Above A Level / High-School Degree': 0
               },
               {
                   'name': 'Attended to at least one immersion',
-                  'Pupil in year 11 / 10th grade student': 0,
+                  'Pupil in year 11 / 10th grade student': 1,
                   'Pupil in year 12 / 11th grade student': 1,
-                  'Pupil in year 13 / 12th grade student': 1,
+                  'Pupil in year 13 / 12th grade student': 0,
                   'Above A Level / High-School Degree': 0
               }
             ]
@@ -361,20 +362,20 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['datasets'],
              [{'name': 'Attended to at least one immersion',
-               'Pupil in year 11 / 10th grade student': 0,
+               'Pupil in year 11 / 10th grade student': 2,
                'Pupil in year 12 / 11th grade student': 2,
-               'Pupil in year 13 / 12th grade student': 2,
+               'Pupil in year 13 / 12th grade student': 0,
                'Above A Level / High-School Degree': 0},
               {'name': 'Registrations to at least one immersion',
-               'Pupil in year 11 / 10th grade student': 0,
-               'Pupil in year 12 / 11th grade student': 3,
-               'Pupil in year 13 / 12th grade student': 4,
-               'Above A Level / High-School Degree': 2},
+               'Pupil in year 11 / 10th grade student': 3,
+               'Pupil in year 12 / 11th grade student': 4,
+               'Pupil in year 13 / 12th grade student': 2,
+               'Above A Level / High-School Degree': 0},
               {'name': 'Registrations count',
-               'Pupil in year 11 / 10th grade student': 0,
-               'Pupil in year 12 / 11th grade student': 5,
-               'Pupil in year 13 / 12th grade student': 4,
-               'Above A Level / High-School Degree': 3}]
+               'Pupil in year 11 / 10th grade student': 5,
+               'Pupil in year 12 / 11th grade student': 4,
+               'Pupil in year 13 / 12th grade student': 3,
+               'Above A Level / High-School Degree': 0}]
         )
 
         # With another level
@@ -384,9 +385,9 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'],
-            [{'name': 'Attended to at least one immersion', 'Pupil in year 12 / 11th grade student': 2},
-             {'name': 'Registrations to at least one immersion', 'Pupil in year 12 / 11th grade student': 3},
-             {'name': 'Registrations count', 'Pupil in year 12 / 11th grade student': 5}]
+            [{'name': 'Attended to at least one immersion', 'Pupil in year 11 / 10th grade student': 2},
+             {'name': 'Registrations to at least one immersion', 'Pupil in year 11 / 10th grade student': 3},
+             {'name': 'Registrations count', 'Pupil in year 11 / 10th grade student': 5}]
         )
 
         # Registration charts cats (ajax query, headers needed)
@@ -398,9 +399,9 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['attended_one']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 0,
+              'Pupil in year 11 / 10th grade student': 1,
               'Pupil in year 12 / 11th grade student': 1,
-              'Pupil in year 13 / 12th grade student': 1,
+              'Pupil in year 13 / 12th grade student': 0,
               'Above A Level / High-School Degree': 0},
              {'name': 'Université de Strasbourg',
               'Pupil in year 11 / 10th grade student': 0,
@@ -411,28 +412,28 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['one_immersion']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 0,
+              'Pupil in year 11 / 10th grade student': 2,
               'Pupil in year 12 / 11th grade student': 2,
-              'Pupil in year 13 / 12th grade student': 2,
+              'Pupil in year 13 / 12th grade student': 0,
               'Above A Level / High-School Degree': 0},
              {'name': 'Université de Strasbourg',
               'Pupil in year 11 / 10th grade student': 0,
               'Pupil in year 12 / 11th grade student': 0,
-              'Pupil in year 13 / 12th grade student': 0,
-              'Above A Level / High-School Degree': 1}]
+              'Pupil in year 13 / 12th grade student': 1,
+              'Above A Level / High-School Degree': 0}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 0,
-              'Pupil in year 12 / 11th grade student': 3,
-              'Pupil in year 13 / 12th grade student': 2,
+              'Pupil in year 11 / 10th grade student': 3,
+              'Pupil in year 12 / 11th grade student': 2,
+              'Pupil in year 13 / 12th grade student': 0,
               'Above A Level / High-School Degree': 0},
              {'name': 'Université de Strasbourg',
               'Pupil in year 11 / 10th grade student': 0,
               'Pupil in year 12 / 11th grade student': 0,
-              'Pupil in year 13 / 12th grade student': 0,
-              'Above A Level / High-School Degree': 1}]
+              'Pupil in year 13 / 12th grade student': 1,
+              'Above A Level / High-School Degree': 0}]
         )
 
         url = "/charts/get_registration_charts_cats"
@@ -441,15 +442,15 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['attended_one']['datasets'],
-            [{'Pupil in year 12 / 11th grade student': 1, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 11 / 10th grade student': 1, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
-            [{'Pupil in year 12 / 11th grade student': 2, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 11 / 10th grade student': 2, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
-            [{'Pupil in year 12 / 11th grade student': 3, 'name': 'Lycée Jean Monnet'}]
+            [{'Pupil in year 11 / 10th grade student': 3, 'name': 'Lycée Jean Monnet'}]
         )
 
         # Slots charts (ajax query, headers needed)
