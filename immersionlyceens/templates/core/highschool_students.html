@@ -23,7 +23,7 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% if request.user.is_establishment_manager %}
+      {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
         {% trans "All registered students" %}
       {% else %}
         {% trans "Student profiles" %}
@@ -44,18 +44,18 @@
         <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
             <tr>
-              {% if request.user.is_establishment_manager %}
+              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
               <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
               {% endif %}
               <th class="align-top">{% trans 'Name' %}</th>
               <th class="align-top">{% trans 'Birth date' %}</th>
-              {% if request.user.is_establishment_manager %}
+              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
               <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
               {% endif %}
               <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
               <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
               <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
-              {% if request.user.is_establishment_manager %}
+              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager  %}
               <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
               {% endif %}
               <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
@@ -63,7 +63,7 @@
           </thead>
           <tbody>
             <tr>
-              {% if request.user.is_establishment_manager %}
+              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager  %}
               <td></td>
               <td></td>
               <td></td>
@@ -85,7 +85,8 @@
   var dt;
   var highschool_id = "{{ request.user.highschool.id }}";
   var current_student_id;
-  let is_ref_etab = "{{ is_establishment_manager }}" === "True";
+  const is_ref_etab = "{{ is_establishment_manager }}" === "True";
+  const is_ref_etab_maitre = "{{ request.user.is_master_establishment_manager }}" === "True";
   let order = [[0, "asc"],];
 
   function open_modal(student_id) {
@@ -93,7 +94,7 @@
     $('#modal_student_details').modal('show');
   }
 
-  if(is_ref_etab) {
+  if(is_ref_etab || is_ref_etab_maitre) {
     order = [[3, "asc"], [1, "asc"], ];
   }
 
@@ -119,7 +120,7 @@
         url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
-    {% if is_establishment_manager %}
+    {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
     { "data": "student_type" },
     {% endif %}
     { "data": "name",
@@ -133,13 +134,13 @@
       }
     },
     { "data": "birthdate" },
-    {% if is_establishment_manager %}
+    {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
     { "data": "institution" },
     {% endif %}
     { "data": "level" },
     { "data": "class" },
     { "data": "bachelor" },
-    {% if is_establishment_manager %}
+    {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
     { "data": "post_bachelor_level" },
     {% endif %}
     { "data": "registered",
