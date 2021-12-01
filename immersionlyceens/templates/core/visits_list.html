@@ -139,11 +139,23 @@
     });
   }
 
+  function empty_structures() {
+    let options = '<option value="">---------</option>'
+    $('select#structures').html(options)
+    current_structure_id = ''
+  }
+
   $('#establishments').change( function() {
     current_establishment_id = $('#establishments option:selected').val();
     current_structure_id = ""
-    set_structures(current_establishment_id);
-    load_visits()
+
+    if(current_establishment_id) {
+      set_structures(current_establishment_id);
+      load_visits()
+    }
+    else {
+      empty_structures()
+    }
   });
 
   // Reload the table when structure changes in selectbox
@@ -173,6 +185,8 @@
         else {
           $("#structures").val($("#structures option:first").val());
         }
+
+        $("#id_div_structures").show()
       }
     })
   }
