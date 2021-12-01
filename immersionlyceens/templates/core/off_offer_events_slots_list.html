@@ -68,7 +68,7 @@
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
               <select id="id_establishment" class="form-control">
-                {% if request.user.is_establishment_manager %}
+                {% if request.user.is_master_establishment_manager %}
                   <option value="">------------</option>
                 {% endif %}
                 {% for establishment in establishments %}
@@ -348,11 +348,14 @@ $(document).ready(function(){
                 }
               },
             },
-            { data: "event_type" },
-            { data: "event_label",
+            { data: "event.type" },
+            { data: "event.label",
               render: function(data, type, row) {
                 let txt = data
-                txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+                if (row['can_update_event_slot']) {
+                  txt = '<a href="/core/off_offer_event/' + row.event.id + '">' + data + '</a>'
+                }
+                txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + row.event.description + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
 
                 return txt
               }
@@ -378,7 +381,10 @@ $(document).ready(function(){
                     txt += " - " + data.building
                   }
                   if(row.room) {
-                    txt += "<br>" + row.room
+                    if(txt !== "") {
+                        txt += "<br>"
+                    }
+                    txt += row.room
                   }
                   return txt
                 }

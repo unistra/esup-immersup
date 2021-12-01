@@ -1225,6 +1225,7 @@ class VisitSlotList(generic.TemplateView):
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
                 context["establishment_id"] = self.request.user.establishment.id
+                context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
 
         return context
 
@@ -1606,6 +1607,7 @@ class OffOfferEventSlotList(generic.TemplateView):
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
                 context["establishment_id"] = self.request.user.establishment.id
+                context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
 
             if self.request.user.is_high_school_manager():
                 context["establishments"] = Establishment.objects.none()

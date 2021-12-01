@@ -457,9 +457,10 @@ def ajax_get_slots(request):
         ]
 
         allowed_event_slot_update_conditions = [
-            request.user.is_master_establishment_manager() and slot.event and not slot.event.highschool,
+            request.user.is_master_establishment_manager() and slot.event,
             request.user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
-            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures
+            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures,
+            request.user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
         ]
 
         if slot.course:
@@ -502,9 +503,12 @@ def ajax_get_slots(request):
             } if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
-            'event_type': slot.event.event_type.label if slot.event and slot.event.event_type else None,
-            'event_label': slot.event.label if slot.event else None,
-            'event_description': slot.event.description if slot.event else None,
+            'event': {
+                'id': slot.event.id,
+                'type': slot.event.event_type.label if slot.event.event_type else None,
+                'label': slot.event.label,
+                'description': slot.event.description
+            } if slot.event else None,
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),

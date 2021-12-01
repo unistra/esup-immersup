@@ -147,11 +147,7 @@
     { "data": "establishment.label",
       render: function(data, type, row) {
         if(row.establishment) {
-          let txt = row.establishment.short_label
-          if (row.structure) {
-            txt += " - " + row.structure.label
-          }
-          return txt
+          return row.establishment.label
         }
         else if(row.highschool) {
           return row.highschool.label
@@ -159,10 +155,10 @@
       },
     },
     { "data": "structure.label" },
-    { "data": "event_label",
+    { "data": "event.label",
       render: function(data, type, row) {
         let txt = data
-        txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + row.event_description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
+        txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + row.event.description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
 
         return txt
       }
