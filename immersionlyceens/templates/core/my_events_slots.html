@@ -157,7 +157,7 @@
     { "data": "structure.label" },
     { "data": "event.label",
       render: function(data, type, row) {
-        let txt = data
+        let txt = data + " (" + row.event.type + ") "
         txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + row.event.description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
 
         return txt
