@@ -73,10 +73,10 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschool_id'], '')
         self.assertEqual(response.context['levels'],
             [(0, 'All'),
-             (4, 'Pupil in year 11 / 10th grade student'),
-             (1, 'Pupil in year 12 / 11th grade student'),
-             (2, 'Pupil in year 13 / 12th grade student'),
-             (3, 'Above A Level / High-School Degree'),
+             (1, 'Pupil in year 11 / 10th grade student'),
+             (2, 'Pupil in year 12 / 11th grade student'),
+             (3, 'Pupil in year 13 / 12th grade student'),
+             (4, 'Above A Level / High-School Degree'),
              ]
         )
 
@@ -98,9 +98,9 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
         self.assertEqual(response.context['levels'], [(0, 'All'),
-            (4, 'Pupil in year 11 / 10th grade student'),
-            (1, 'Pupil in year 12 / 11th grade student'),
-            (2, 'Pupil in year 13 / 12th grade student'), (3, 'Above A Level / High-School Degree')])
+            (1, 'Pupil in year 11 / 10th grade student'),
+            (2, 'Pupil in year 12 / 11th grade student'),
+            (3, 'Pupil in year 13 / 12th grade student'), (4, 'Above A Level / High-School Degree')])
         self.assertEqual(response.context['level_filter'], 0)
 
         # Post with filters
@@ -128,10 +128,10 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschool_id'], '')
         self.assertEqual(response.context['levels'],
             [
-                (4, 'Pupil in year 11 / 10th grade student'),
-                (1, 'Pupil in year 12 / 11th grade student'),
-                (2, 'Pupil in year 13 / 12th grade student'),
-                (3, 'Above A Level / High-School Degree'),
+                (1, 'Pupil in year 11 / 10th grade student'),
+                (2, 'Pupil in year 12 / 11th grade student'),
+                (3, 'Pupil in year 13 / 12th grade student'),
+                (4, 'Above A Level / High-School Degree'),
             ]
         )
         self.assertEqual(response.context['high_school_name'], None)
@@ -145,10 +145,10 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschool_id'], 2)
         self.assertEqual(response.context['levels'],
             [
-                (4, 'Pupil in year 11 / 10th grade student'),
-                (1, 'Pupil in year 12 / 11th grade student'),
-                (2, 'Pupil in year 13 / 12th grade student'),
-                (3, 'Above A Level / High-School Degree'),
+                (1, 'Pupil in year 11 / 10th grade student'),
+                (2, 'Pupil in year 12 / 11th grade student'),
+                (3, 'Pupil in year 13 / 12th grade student'),
+                (4, 'Above A Level / High-School Degree'),
             ]
         )
         self.assertEqual(response.context['high_school_name'], "Lycée Jean Monnet")
@@ -162,8 +162,8 @@ class ChartsViewsTestCase(TestCase):
 
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
-        self.assertEqual(response.context['levels'], [(0, 'All'), (4, 'Pupil in year 11 / 10th grade student'), (1, 'Pupil in year 12 / 11th grade student'),
-            (2, 'Pupil in year 13 / 12th grade student'), (3, 'Above A Level / High-School Degree')])
+        self.assertEqual(response.context['levels'], [(0, 'All'), (1, 'Pupil in year 11 / 10th grade student'), (2, 'Pupil in year 12 / 11th grade student'),
+            (3, 'Pupil in year 13 / 12th grade student'), (4, 'Above A Level / High-School Degree')])
         self.assertEqual(response.context['part1_level_filter'], 0)
         self.assertEqual(response.context['level_filter'], 0)
 
