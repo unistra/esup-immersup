@@ -129,7 +129,7 @@
     {% endif %}
     { "data": "name",
       "render": function(data, type, row) {
-        if(is_ref_etab && row.record_link !== '') {
+        if((is_ref_etab || is_ref_etab_maitre) && row.record_link !== '') {
           return "<a href='"+row.record_link+"'>"+data+"</a>";
         }
         else {
