@@ -238,7 +238,7 @@
       success: function (json) {
         let options = ""
 
-        if(!is_structure_manager) {
+        if(is_structure_manager === "False") {
           options += '<option value="">---------</option>'
         }
 

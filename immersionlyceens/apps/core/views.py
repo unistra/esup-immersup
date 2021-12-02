@@ -1392,7 +1392,7 @@ class OffOfferEventsList(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
 
-        context["highschools"] = HighSchool.agreed.order_by("city", "label")
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by("city", "label")
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
 
@@ -1590,7 +1590,7 @@ class OffOfferEventSlotList(generic.TemplateView):
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
-        context["highschools"] = HighSchool.objects.filter(postbac_immersion=True)
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
         context["structures"] = Structure.activated.all()
 
         context["establishment_id"] = self.request.session.get('current_establishment_id', None)
@@ -1612,7 +1612,9 @@ class OffOfferEventSlotList(generic.TemplateView):
             if self.request.user.is_high_school_manager():
                 context["establishments"] = Establishment.objects.none()
                 context["structures"] = Structure.objects.none()
-                context["highschools"] = HighSchool.objects.filter(pk=self.request.user.highschool.id)
+                context["highschools"] = HighSchool.agreed.filter(
+                    postbac_immersion=True, pk=self.request.user.highschool.id
+                )
                 context["highschool_id"] = self.request.user.highschool.id
 
         return context

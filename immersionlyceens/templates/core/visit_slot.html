@@ -487,7 +487,7 @@
             data['data'].forEach(function (e) {
               let checked = ''
 
-              if (speakers.find(s => parseInt(s) === e['id']) !== undefined) {
+              if (speakers.find(s => parseInt(s.id) === e['id']) !== undefined) {
                 checked = "checked"
               }
 

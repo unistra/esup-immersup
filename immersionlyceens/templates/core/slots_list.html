@@ -407,13 +407,13 @@ $(document).ready(function(){
       ajax: {
         url: '/api/get_slots',
         data: function(d) {
-            d.training_id = $('#training').val();
+            d.training_id = current_training_id || $('#training').val();
 
             if($('#structure').val()) {
-              d.structure_id = $('#structure').val();
+              d.structure_id = current_training_id || $('#structure').val();
             }
             else if($('#highschools').val()) {
-              d.highschool_id = $('#highschools').val();
+              d.highschool_id = current_highschool_id || $('#highschools').val();
             }
             return d
         },
