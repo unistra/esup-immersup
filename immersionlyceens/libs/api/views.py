@@ -370,13 +370,27 @@ def ajax_get_slots(request):
         filters["speakers"] = request.user
 
     if not user_filter:
-        if visits and not establishment_id:
-            response['msg'] = gettext("Error : a valid establishment must be selected")
-            return JsonResponse(response, safe=False)
+        if visits and not establishment_id and not structure_id:
+            try:
+                establishment_id = request.user.establishment.id
+            except Exception as e:
+                response['msg'] = gettext("Error : a valid establishment or structure must be selected")
+                return JsonResponse(response, safe=False)
 
         elif events and not establishment_id and not highschool_id:
-            response['msg'] = gettext("Error : a valid establishment or high school must be selected")
-            return JsonResponse(response, safe=False)
+            try:
+                establishment_id = request.user.establishment.id
+            except Exception as e:
+                pass
+
+            try:
+                highschool_id = request.user.highschool.id
+            except Exception as e:
+                pass
+
+            if not highschool_id and not establishment_id:
+                response['msg'] = gettext("Error : a valid establishment or high school must be selected")
+                return JsonResponse(response, safe=False)
 
         elif not events and not visits and not training_id:
             response['msg'] = gettext("Error : a valid training must be selected")

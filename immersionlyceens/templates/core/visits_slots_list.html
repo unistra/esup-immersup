@@ -45,6 +45,7 @@
         <a href="{% url 'add_visit_slot' %}" class="btn btn-secondary" title="{% trans 'Add a visit slot' %}">{% trans 'New visit slot' %}</a>
       </div>
       <div class="row">
+        {% if request.user.is_master_establishment_manager %}
         <div class="col-md-3">
           <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
             <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
@@ -60,13 +61,12 @@
             </select>
           </div>
         </div>
+        {% endif %}
         <div class="col-md-5" id="id_div_structures">
           <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
             <label for="id_structure">{% trans 'Select a structure' %} :</label>
             <select id="id_structure" class="form-control">
-              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
-                <option value="">------------</option>
-              {% endif %}
+              <option value="">------------</option>
               {% for structure in structures %}
                 <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
                   {{ structure.code }} - {{ structure.label }}
@@ -203,11 +203,7 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        let options = ""
-
-        if(is_structure_manager === "False") {
-          options = '<option value="">---------</option>'
-        }
+        let options = '<option value="">---------</option>'
 
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`

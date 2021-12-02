@@ -1037,6 +1037,9 @@ class VisitList(generic.TemplateView):
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
 
+        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+        context["structure_id"] = self.request.session.get('current_structure_id', None)
+
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
@@ -1045,9 +1048,8 @@ class VisitList(generic.TemplateView):
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
-
-        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-        context["structure_id"] = self.request.session.get('current_structure_id', None)
+                if self.request.user.structures.count() == 1:
+                    context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
 
         return context
 
