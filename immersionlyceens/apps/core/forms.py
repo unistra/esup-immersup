@@ -164,6 +164,8 @@ class SlotForm(forms.ModelForm):
             self.request.user.is_structure_manager()
         ])
 
+        self.fields["allowed_highschools"].queryset = HighSchool.agreed.order_by('city', 'label')
+
         if can_choose_establishment:
             allowed_establishments = Establishment.activated.user_establishments(self.request.user)
             self.fields["establishment"].queryset = allowed_establishments.order_by('code', 'label')
