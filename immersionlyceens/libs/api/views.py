@@ -1463,14 +1463,16 @@ def ajax_get_highschool_students(request, highschool_id=None):
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    if request.user.is_establishment_manager():
+    is_master_or_etab_manager: bool = request.user.is_establishment_manager() or request.user.is_master_establishment_manager()
+
+    if is_master_or_etab_manager:
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            if not request.user.is_establishment_manager():
+            if not is_master_or_etab_manager:
                 response = {'data': [], 'msg': _('Invalid parameters')}
                 return JsonResponse(response, safe=False)
 
