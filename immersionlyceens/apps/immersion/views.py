@@ -363,11 +363,12 @@ def home(request):
 
 
 @login_required
-@groups_required('REF-ETAB', 'LYC')
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
     """
+    template_name: str = 'immersion/hs_record.html'
     record = None
     student = None
     calendar = None
@@ -509,7 +510,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'future_immersions': future_immersions,
     }
 
-    return render(request, 'immersion/hs_record.html', context)
+    return render(request, template_name, context)
 
 
 @login_required
