@@ -222,9 +222,11 @@ def ajax_get_courses(request):
         course_data = {
             'id': course.id,
             'published': course.published,
+            'training_id': course.training.id,
             'training_label': course.training.label,
             'label': course.label,
             'managed_by': managed_by,
+            'establishment_id': course.structure.establishment.id if course.structure else None,
             'structure_code': course.structure.code if course.structure else None,
             'structure_id': course.structure.id if course.structure else None,
             'highschool_id': course.highschool.id if course.highschool else None,

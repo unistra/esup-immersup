@@ -93,7 +93,7 @@ def import_holidays(request):
 
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
-def slots_list(request, str_id=None, train_id=None):
+def slots_list(request, establishment_id=None, highschool_id=None, structure_id=None, training_id=None):
     """
     Get slots list
     get filters : structure and trainings
@@ -105,14 +105,24 @@ def slots_list(request, str_id=None, train_id=None):
     template = 'core/slots_list.html'
 
     try:
-        int(str_id)
+        int(establishment_id)
     except (ValueError, TypeError):
-        str_id = None
+        establishment_id = None
 
     try:
-        int(train_id)
+        int(highschool_id)
     except (ValueError, TypeError):
-        train_id = None
+        highschool_id = None
+
+    try:
+        int(structure_id)
+    except (ValueError, TypeError):
+        structure_id = None
+
+    try:
+        int(training_id)
+    except (ValueError, TypeError):
+        training_id = None
 
     allowed_highschools = HighSchool.objects.none()
     allowed_establishments = Establishment.objects.none()
@@ -126,26 +136,28 @@ def slots_list(request, str_id=None, train_id=None):
         allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
         allowed_strs = request.user.get_authorized_structures()
     elif request.user.is_structure_manager():
+        allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
         allowed_strs = request.user.get_authorized_structures()
     elif request.user.is_high_school_manager():
         allowed_highschools = HighSchool.objects.filter(pk=request.user.highschool.id)
 
-    if allowed_establishments.count() == 1:
-        establishment_id = allowed_establishments.first().id
-    else:
-        establishment_id = request.session.get("current_establishment_id", None)
+    if not establishment_id or establishment_id not in allowed_establishments.values_list('pk', flat=True):
+        if allowed_establishments.count() == 1:
+            establishment_id = allowed_establishments.first().id
+        else:
+            establishment_id = request.session.get("current_establishment_id", None)
 
-    if request.user.is_high_school_manager() and allowed_highschools.count() == 1:
-        highschool_id = allowed_highschools.first().id
-    else:
-        highschool_id = request.session.get("current_highschool_id", None)
+    if not highschool_id or highschool_id not in allowed_highschools.values_list('pk', flat=True):
+        if request.user.is_high_school_manager() and allowed_highschools.count() == 1:
+            highschool_id = allowed_highschools.first().id
+        else:
+            highschool_id = request.session.get("current_highschool_id", None)
 
-    if str_id:
-        structure_id = str_id
-    elif allowed_strs.count() == 1:
-        structure_id = allowed_strs.first().id
-    else:
-        structure_id = request.session.get("current_structure_id", None)
+    if not structure_id or structure_id not in allowed_strs.values_list('pk', flat=True):
+        if allowed_strs.count() == 1:
+            structure_id = allowed_strs.first().id
+        else:
+            structure_id = request.session.get("current_structure_id", None)
 
     contact_form = ContactForm()
 
@@ -164,8 +176,8 @@ def slots_list(request, str_id=None, train_id=None):
 
     if structure_id:
         # Make sure the training is active and belongs to the selected structure
-        if train_id and Training.objects.filter(id=train_id, structures=structure_id, active=True).exists():
-            context['training_id'] = train_id
+        if training_id and Training.objects.filter(id=training_id, structures=structure_id, active=True).exists():
+            context['training_id'] = training_id
 
         trainings = Training.objects.prefetch_related('training_subdomains') \
                 .filter(structures=structure_id, active=True) \
@@ -182,7 +194,8 @@ def slots_list(request, str_id=None, train_id=None):
 
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
-def slot(request, slot_id=None, duplicate=False):
+def slot(request, slot_id=None, duplicate=False, establishment_id=None, highschool_id=None, structure_id=None,
+         training_id=None):
     slot = None
     speakers_idx = None
 
@@ -303,10 +316,14 @@ def slot(request, slot_id=None, duplicate=False):
         slot_form = SlotForm(request=request)
 
     context = {
-        "campus": Campus.objects.filter(active=True).order_by('label'),
+        "establishment_id": establishment_id,
+        "highschool_id": highschool_id,
+        "structure_id": structure_id,
+        "training_id": training_id,
         "slot_form": slot_form,
         "ready_load": True,
     }
+
     if slot:
         context['slot'] = slot
         context['course'] = slot.course

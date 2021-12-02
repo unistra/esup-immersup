@@ -389,7 +389,10 @@
           { "data": "alerts_count" },
           { "data": "",
             "render": function (data, type, row) {
-              var icons = "";
+              let icons = ""
+              let slot_url = '/core/slots/'
+              let add_slot_url = '/core/slot/add/'
+
               if(row.has_rights) {
                 icons += "<a href='/core/course/"+row.id+"/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                          "<i class=\"fa fas fa-copy fa-2x\"></i>" +
@@ -406,6 +409,25 @@
                            "<i class=\"fa fas fa-trash fa-2x\"></i>" +
                            "</button>";
                 }
+
+                if(is_set(row.establishment_id) && is_set(row.structure_id) && is_set(row.training_id)) {
+                    slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id
+                    add_slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id
+                }
+                else if(is_set(row.highschool_id) && is_set(row.training_id)) {
+                    slot_url += row.highschool_id + "/" + row.training_id
+                    add_slot_url += row.highschool_id + "/" + row.training_id
+                }
+
+                // direct link to slots list
+                icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this course' %}\">" +
+                         "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                         "</a>\n";
+
+                // direct link to new slot form
+                icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this course' %}\">" +
+                         "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                         "</a>\n";
               }
 
               return icons;
