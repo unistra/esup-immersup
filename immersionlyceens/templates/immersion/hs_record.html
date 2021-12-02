@@ -259,9 +259,10 @@ ul
     }
 
     function switch_bachelor_type_options(b_type, level) {
-      // console.log("b_type => " + b_type)
+      console.log("b_type => " + b_type)
+      console.log("level  => " + level)
       if(b_type == 1) {
-        if ( level == 1 || level == 2 ) {
+        if ( level == 2 || level == 3 ) {
           $('#id_general_bachelor_data').show("slow");
         } else {
           $('#id_general_bachelor_data').hide("slow");
