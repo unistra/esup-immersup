@@ -80,7 +80,7 @@
           <label for="id_highschool" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
             {% if request.user.is_master_establishment_manager %}
-                <strong>{% trans 'or' %} </strong>
+                <span id="id_or"><strong>{% trans 'or' %} </strong></span>
             {% endif %}
             {% trans 'high school' %} :
           </label>
@@ -120,11 +120,11 @@
 
         <div class="form-group row">
           <label for="id_course" class="col-form-label col-sm-3">{% trans 'Course' %}</label>
-          <div class="col-sm-6">
+          <div class="col-sm-3">
             {{ slot_form.course }}
           </div>
           {% if slot_form.course.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ slot_form.course.errors }}
             </div>
           {% endif %}
@@ -144,7 +144,7 @@
 
         <div class="form-group row" id="id_div_campus">
           <label for="id_campus" class="col-form-label col-sm-3">{% trans 'Campus' %}</label>
-          <div class="col-sm-6">
+          <div class="col-sm-3">
             {% if slot %}
                 <select name="campus" id="id_campus" class="form-control">
                     <option value="" selected>--------</option>
@@ -157,18 +157,18 @@
             {% endif %}
           </div>
           {% if slot_form.campus.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ slot_form.campus.errors }}
             </div>
           {% endif %}
         </div>
         <div class="form-group row" id="id_div_building">
           <label for="id_building" class="col-form-label col-sm-3">{% trans 'Building' %}</label>
-          <div class="col-sm-6">
+          <div class="col-sm-3">
             {{ slot_form.building }}
           </div>
           {% if slot_form.building.errors %}
-            <div class="col-sm-3 alert alert-danger">
+            <div class="col-sm-6 alert alert-danger">
               {{ slot_form.building.errors }}
             </div>
           {% endif %}
@@ -397,13 +397,13 @@
   var dateDialog;
   var courseDialog;
   var cancelDialog;
-  var training_id = "{{ slot_form.training.value }}";
-  var structure_id = "{{ slot_form.structure.value }}";
+  var training_id = parseInt("{{ slot_form.training.value }}") || "{{ training_id }}";
+  var structure_id = parseInt("{{ slot_form.structure.value }}") || "{{ structure_id }}";
   var course_id = "{{ slot_form.course.value }}";
   var campus_id = "{{ slot_form.campus.value }}";
   var building_id = "{{ slot_form.building.value }}";
-  var establishment_id = "{{ slot_form.establishment.initial }}";
-  var highschool_id = "{{ slot_form.highschool.id }}";
+  var establishment_id = parseInt("{{ slot_form.establishment.initial }}") || "{{ establishment_id }}";
+  var highschool_id = parseInt("{{ slot_form.highschool.id }}") || "{{ highschool_id }}";
   var courses = Array();
 
   function empty_structures() {
@@ -513,7 +513,9 @@
       $("#id_div_campus").hide()
       $("#id_div_building").hide()
       $("#id_div_establishment").hide()
+      $("#id_or").hide()
     } else {
+      $("#id_or").show()
       $("#id_div_establishment").show()
       $("#id_div_campus").show()
       $("#id_div_building").show()
@@ -729,6 +731,11 @@ $(document).ready(function(){
     $("#id_highschool").val(highschool_id)
   }
 
+  if(highschool_id) {
+    $("#id_div_establishment").hide()
+    $("#id_or").hide()
+  }
+
   if(!is_set(establishment_id)) {
     establishment_id = $("#id_establishment").val()
   } else {
@@ -851,11 +858,18 @@ $(document).ready(function(){
         "class": 'dialog-button',
         click: function () {
           let url = "/core/slots"
-          let str_id = $('#structure').val();
-          let train_id = $('#training').val();
 
-          if(str_id) url += "/"+str_id
-          if(train_id) url += "/"+train_id
+          let hs_id = $('#id_highschool').val();
+          let est_id = $('#id_establishment').val();
+          let str_id = $('#id_structure').val();
+          let train_id = $('#id_training').val();
+
+          if(hs_id && train_id) {
+            url += "/" + hs_id + "/" + train_id
+          }
+          else if(est_id && str_id && train_id) {
+            url += "/" + est_id + "/" + str_id + "/" + train_id
+          }
 
           window.location = url;
           cancelDialog.dialog("close");
