@@ -38,6 +38,7 @@
       </div>
       {% endif %}
       <div class="row">
+        {% if request.user.is_master_establishment_manager %}
         <div class="col-md-3">
           <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
             <label for="establishments">{% trans 'Select an establishment' %} :</label>
@@ -51,6 +52,7 @@
             </select>
           </div>
         </div>
+        {% endif %}
         <div class="col-md-5" id="id_div_structures">
           <div id="id_div_structure" style="padding-bottom:10px; padding-top:20px;">
             <label for="structures">{% trans 'Select a structure' %} :</label>
