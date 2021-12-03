@@ -1311,7 +1311,11 @@ class VisitSlotAdd(generic.CreateView):
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
                 data = self.request.POST
                 for k in initials.keys():
-                    initials[k] = data.get(k, initials[k])
+                    # careful, some fields are lists
+                    if k == 'allowed_highschool_levels':
+                        initials[k] = data.getlist(k, initials[k])
+                    else:
+                        initials[k] = data.get(k, initials[k])
 
                 self.form = VisitSlotForm(initial=initials, request=self.request)
 
@@ -1721,7 +1725,12 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
                 data = self.request.POST
                 for k in initials.keys():
-                    initials[k] = data.get(k, initials[k])
+                    # careful, some fields are lists
+                    if k in ['allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
+                             'allowed_student_levels', 'allowed_post_bachelor_levels']:
+                        initials[k] = data.getlist(k, initials[k])
+                    else:
+                        initials[k] = data.get(k, initials[k])
 
                 self.form = OffOfferEventSlotForm(initial=initials, request=self.request)
 
