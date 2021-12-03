@@ -76,7 +76,7 @@
             <th><span id="establishment_filter">{% trans 'Establishment' %}</span></th>
             <th><span id="structure_filter">{% trans 'Structure' %}</span></th>
             <th><span id="highschool_filter">{% trans 'High school' %}</span></th>
-            <th class="align-top">{% trans 'Purpose' %}</th>
+            <th><span id="purpose_filter">{% trans 'Purpose' %}</span></th>
             <th class="align-top">{% trans 'Speakers' %}</th>
             <th></th>
           </tr>
@@ -336,11 +336,7 @@
 
             if(is_set(row.establishment.id) && is_set(row.structure.id) && is_set(row.id)) {
                 slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
-                add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
-            }
-            else if(is_set(row.highschool.id) && is_set(row.id)) {
-                slot_url += row.highschool.id + "/" + row.id
-                add_slot_url += row.highschool.id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.highschool.id + "/" + row.id
             }
 
             // direct link to slots list
@@ -392,6 +388,13 @@
         column_number: 3,
         filter_default_label: "",
         filter_container_id: "highschool_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 4,
+        filter_default_label: "",
+        filter_container_id: "purpose_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },

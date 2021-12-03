@@ -1266,6 +1266,13 @@ class VisitSlotList(generic.TemplateView):
 
         context["visit_id"] = kwargs.get('visit_id', None)
 
+        if context["visit_id"]:
+            try:
+                visit = Visit.objects.get(pk=context["visit_id"])
+                context["visit_purpose_filter"] = visit.purpose
+            except Visit.DoesNotExist:
+                pass
+
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
@@ -1295,14 +1302,30 @@ class VisitSlotAdd(generic.CreateView):
         else:
             return reverse("visits_slots")
 
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
         context["speakers"] = json.dumps(speakers_list)
-
+        visit = None
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
+
+        context["establishment_id"] = \
+            self.kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+
+        context["structure_id"] = \
+            self.kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
+
+        context["highschool_id"] = \
+            self.kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
+
+        context["visit_id"] = self.kwargs.get('visit_id', None)
+
+        if context["visit_id"]:
+            try:
+                visit = Visit.objects.get(pk=context["visit_id"])
+            except Visit.DoesNotExist:
+                pass
 
         if self.duplicate and object_pk:
             context['duplicate'] = True
@@ -1347,11 +1370,19 @@ class VisitSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
+        elif context.get("visit_id"):
+            initials = {
+                'establishment': context.get("establishment_id", None),
+                'structure': context.get("structure_id", None),
+                'highschool': context.get("highschool_id", None),
+                'visit': visit,
+            }
+
+            self.form = VisitSlotForm(initial=initials, request=self.request)
+            context["form"] = self.form
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "visit"
-        context["establishment_id"] = self.request.session.get('current_establishment_id')
-        context["structure_id"] = self.request.session.get('current_structure_id')
 
         return context
 
