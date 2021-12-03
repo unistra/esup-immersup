@@ -17,4 +17,4 @@ django-admin-list-filter-dropdown
 djangorestframework<4.0
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
-django-storages[boto3]<1.10
+django-storages[boto3]
