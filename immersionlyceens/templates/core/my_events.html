@@ -102,13 +102,17 @@
             txt += row.establishment.label
           }
           if(row.highschool) {
-            txt += row.highschool
+            txt += row.highschool.city + " - " + row.highschool.label
           }
 
           return txt
         }
       },
-      { "data": "structure" },
+      { "data": "structure",
+        "render": function (data) {
+           return data.code + " - " + data.label
+        }
+      },
       { "data": "event_type" },
       {
         "data": "label",
@@ -161,6 +165,13 @@
           "defaultContent": "",
           "targets": "_all"
         },
+        {% if request.user.is_speaker and request.user.highschool %}
+          {
+            "targets": [ 2 ],
+            "visible": false,
+            "searchable": false
+          },
+        {% endif %}
       ],
     });
 
@@ -182,13 +193,17 @@
       filter_container_id: "events_establishment_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
-    }, {
+    },
+    {% if not request.user.highschool %}
+    {
       column_number: 2,
       filter_default_label: "",
       filter_container_id: "events_structure_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
-    }, {
+    },
+    {% endif %}
+    {
       column_number: 3,
       filter_default_label: "",
       filter_container_id: "events_event_type_filter",

@@ -78,7 +78,9 @@
             <div id="id_div_structure" style="padding-bottom:10px; padding-top:20px;">
               <label for="structures">{% trans 'Select a structure' %} :</label>
               <select id="structures" class="form-control">
+                {% if not request.user.is_structure_manager %}
                 <option value="">------------</option>
+                {% endif %}
                 {% for structure in structures %}
                   <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
                     {{ structure.code }} - {{ structure.label }}
@@ -130,6 +132,7 @@
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var confirmDialog;
+  let is_structure_manager = "{{ request.user.is_structure_manager }}"
 
   if($("#establishments").val() === "") {
       $("#id_div_structures").hide()
@@ -208,7 +211,12 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        let options = '<option value="">---------</option>'
+        let options = ""
+
+        if(!is_structure_manager) {
+          options = '<option value="">---------</option>'
+        }
+
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
         }
