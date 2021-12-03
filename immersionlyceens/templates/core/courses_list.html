@@ -56,7 +56,7 @@
         {% if request.user.is_master_establishment_manager %}
           <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
         {% endif %}
-        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
+        {% if request.user.is_master_establishment_manager %}
           <div class="col-md-3">
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
