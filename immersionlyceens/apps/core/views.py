@@ -1169,7 +1169,20 @@ class VisitUpdate(generic.UpdateView):
     form_class = VisitForm
     template_name = "core/visit.html"
 
-    queryset = Visit.objects.all()
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager():
+            return Visit.objects.all()
+
+        if user.is_establishment_manager():
+            return Visit.objects.filter(establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return Visit.objects.filter(highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return Visit.objects.filter(structure__in=user.get_authorized_structures())
+
 
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
@@ -1242,8 +1255,16 @@ class VisitSlotList(generic.TemplateView):
         # Defaults
         context["establishments"] = Establishment.activated.all()
         context["structures"] = Structure.activated.all()
-        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-        context["structure_id"] = self.request.session.get('current_structure_id', None)
+        context["establishment_id"] = \
+            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+
+        context["structure_id"] = \
+            kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
+
+        context["highschool_id"] = \
+            kwargs.get('highschool_id', None) or self.request.session.get('current_structure_id', None)
+
+        context["visit_id"] = kwargs.get('visit_id', None)
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
@@ -1358,7 +1379,19 @@ class VisitSlotUpdate(generic.UpdateView):
     form_class = VisitSlotForm
     template_name = "core/visit_slot.html"
 
-    queryset = Slot.objects.filter(visit__isnull=False)
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager():
+            return Slot.objects.filter(visit__isnull=False)
+
+        if user.is_establishment_manager():
+            return Slot.objects.filter(visit__establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return Slot.objects.filter(visit__highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return Slot.objects.filter(visit__structure__in=user.get_authorized_structures())
 
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
@@ -1554,7 +1587,19 @@ class OffOfferEventUpdate(generic.UpdateView):
     form_class = OffOfferEventForm
     template_name = "core/off_offer_event.html"
 
-    queryset = OffOfferEvent.objects.all()
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager():
+            return OffOfferEvent.objects.all()
+
+        if user.is_establishment_manager():
+            return OffOfferEvent.objects.filter(establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return OffOfferEvent.objects.filter(highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return OffOfferEvent.objects.filter(structure__in=user.get_authorized_structures())
 
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
@@ -1774,12 +1819,26 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
     form_class = OffOfferEventSlotForm
     template_name = "core/off_offer_event_slot.html"
 
-    queryset = Slot.objects.filter(event__isnull=False)
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager():
+            return Slot.objects.filter(event__isnull=False)
+
+        if user.is_establishment_manager():
+            return Slot.objects.filter(event__establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return Slot.objects.filter(event__highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return Slot.objects.filter(event__structure__in=user.get_authorized_structures())
+
 
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
         kw["request"] = self.request
         return kw
+
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -1839,6 +1898,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
             self.object.event.establishment.id if self.object.event.establishment else None
 
         return super().form_valid(form)
+
 
     def form_invalid(self, form):
         messages.error(self.request, _("Event slot \"%s\" not updated.") % form.instance)

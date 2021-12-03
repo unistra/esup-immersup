@@ -275,9 +275,33 @@
             return txt;
           },
         },
-        {"data": "establishment"},
-        {"data": "structure"},
-        {"data": "highschool"},
+        {"data": "establishment",
+          render: function (data) {
+            if(data) {
+                return data.code + " : " + data.label
+            }
+
+            return ""
+          }
+        },
+        {"data": "structure",
+          render: function (data) {
+            if(data) {
+                return data.code + " : " + data.label
+            }
+
+            return ""
+          }
+        },
+        {"data": "highschool",
+         render: function (data) {
+            if(data) {
+                return data.city + " - " + data.label
+            }
+
+            return ""
+         }
+        },
         {"data": "purpose"},
         {
           "data": "speakers",
@@ -292,7 +316,10 @@
         {
           "data": "",
           "render": function (data, type, row) {
-            var icons = "";
+            let icons = "";
+            let slot_url = '/core/visits_slots/'
+            let add_slot_url = '/core/visit_slot/add/'
+
             icons += "<a href='/core/visit/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                 "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                 "</a>\n";
@@ -306,6 +333,25 @@
                   "<i class=\"fa fas fa-trash fa-2x\"></i>" +
                   "</button>";
             }
+
+            if(is_set(row.establishment.id) && is_set(row.structure.id) && is_set(row.id)) {
+                slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
+            }
+            else if(is_set(row.highschool.id) && is_set(row.id)) {
+                slot_url += row.highschool.id + "/" + row.id
+                add_slot_url += row.highschool.id + "/" + row.id
+            }
+
+            // direct link to slots list
+            icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this visit' %}\">" +
+                     "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                     "</a>\n";
+
+            // direct link to new slot form
+            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this visit' %}\">" +
+                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                     "</a>\n";
 
             return icons;
           },
