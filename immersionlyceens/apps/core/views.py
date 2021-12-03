@@ -198,11 +198,16 @@ def slot(request, slot_id=None, duplicate=False, establishment_id=None, highscho
          training_id=None):
     slot = None
     speakers_idx = None
+    allowed_establishments = None
+    allowed_highschools = None
 
     if slot_id:
         try:
             slot = Slot.objects.get(id=slot_id)
             speakers_idx = [t.id for t in slot.speakers.all()]
+
+            allowed_establishments = [e.id for e in slot.allowed_establishments.all()]
+            allowed_highschools = [h.id for h in slot.allowed_highschools.all()]
 
             if duplicate:
                 slot.id = None
@@ -311,7 +316,11 @@ def slot(request, slot_id=None, duplicate=False, establishment_id=None, highscho
         else:
             return redirect('/')
     elif slot:
-        slot_form = SlotForm(instance=slot, request=request)
+        initials = {
+            'allowed_establishments': allowed_establishments,
+            'allowed_highschools': allowed_highschools
+        }
+        slot_form = SlotForm(instance=slot, initial=initials, request=request)
     else:
         slot_form = SlotForm(request=request)
 
@@ -328,6 +337,8 @@ def slot(request, slot_id=None, duplicate=False, establishment_id=None, highscho
         context['slot'] = slot
         context['course'] = slot.course
         context['speakers_idx'] = speakers_idx
+        context['allowed_establishments'] = allowed_establishments
+        context['allowed_highschools'] = allowed_highschools
 
     return render(request, 'core/slot.html', context=context)
 
@@ -1292,6 +1303,9 @@ class VisitSlotAdd(generic.CreateView):
                     'n_places': slot.n_places,
                     'additional_information': slot.additional_information,
                     'face_to_face': slot.face_to_face,
+                    'establishments_restrictions': False,
+                    'levels_restrictions': slot.levels_restrictions,
+                    'allowed_highschool_levels': slot.allowed_highschool_levels
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1374,6 +1388,7 @@ class VisitSlotUpdate(generic.UpdateView):
             except Visit.DoesNotExist:
                 self.form = VisitSlotForm(request=self.request)
 
+        context["slot_mode"] = "visit"
         context["can_update"] = True  # FixMe
         return context
 
@@ -1668,8 +1683,6 @@ class OffOfferEventSlotAdd(generic.CreateView):
         speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
         context["speakers"] = json.dumps(speakers_list)
 
-        print(context["speakers"])
-
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
@@ -1696,6 +1709,13 @@ class OffOfferEventSlotAdd(generic.CreateView):
                     'n_places': slot.n_places,
                     'additional_information': slot.additional_information,
                     'face_to_face': slot.face_to_face,
+                    'establishments_restrictions': slot.establishments_restrictions,
+                    'levels_restrictions': slot.levels_restrictions,
+                    'allowed_establishments': [e.id for e in slot.allowed_establishments.all()],
+                    'allowed_highschools': [h.id for h in slot.allowed_highschools.all()],
+                    'allowed_highschool_levels': slot.allowed_highschool_levels,
+                    'allowed_student_levels': slot.allowed_student_levels,
+                    'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels,
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1714,6 +1734,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 pass
 
         context["can_update"] = True  # FixMe
+        context["slot_mode"] = "event"
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')
         context["highschool_id"] = self.request.session.get('current_highschool_id')
@@ -1781,6 +1802,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
             except Slot.DoesNotExist:
                 self.form = OffOfferEventSlotForm(request=self.request)
 
+        context["slot_mode"] = "event"
         context["can_update"] = True  # FixMe
         return context
 
