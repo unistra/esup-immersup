@@ -45,11 +45,14 @@
         <a href="{% url 'add_visit_slot' %}" class="btn btn-secondary" title="{% trans 'Add a visit slot' %}">{% trans 'New visit slot' %}</a>
       </div>
       <div class="row">
+        {% if request.user.is_master_establishment_manager %}
         <div class="col-md-3">
           <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
             <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
             <select id="id_establishment" class="form-control">
-              <option value="">------------</option>
+              {% if request.user.is_master_establishment_manager %}
+                <option value="">------------</option>
+              {% endif %}
               {% for establishment in establishments %}
                 <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
                   {{ establishment.code }} - {{ establishment.label }}
@@ -58,6 +61,7 @@
             </select>
           </div>
         </div>
+        {% endif %}
         <div class="col-md-5" id="id_div_structures">
           <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
             <label for="id_structure">{% trans 'Select a structure' %} :</label>

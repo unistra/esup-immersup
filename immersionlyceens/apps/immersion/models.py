@@ -17,10 +17,10 @@ class HighSchoolStudentRecord(models.Model):
     # Use gettext on the next one because strings HAS to be translated here
     # in order to avoid sending lazy translation objects to JSON in charts API
     LEVELS = [
-        (4, gettext('Pupil in year 11 / 10th grade student')),
-        (1, gettext('Pupil in year 12 / 11th grade student')),
-        (2, gettext('Pupil in year 13 / 12th grade student')),
-        (3, gettext('Above A Level / High-School Degree'))
+        (1, gettext('Pupil in year 11 / 10th grade student')),
+        (2, gettext('Pupil in year 12 / 11th grade student')),
+        (3, gettext('Pupil in year 13 / 12th grade student')),
+        (4, gettext('Above A Level / High-School Degree'))
     ]
 
     BACHELOR_TYPES = [
@@ -111,10 +111,10 @@ class HighSchoolStudentRecord(models.Model):
         _("Number of allowed year registrations"), null=True, blank=True)
 
     allowed_first_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for second semester"), null=True, blank=True)
+        _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
 
     allowed_second_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for first semester"), null=True, blank=True)
+        _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
 
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
 
@@ -288,13 +288,13 @@ class StudentRecord(models.Model):
         _("Current diploma"), blank=True, null=True, max_length=128)
 
     allowed_global_registrations = models.SmallIntegerField(
-        _("Number of allowed year registrations"), null=True, blank=True)
+        _("Number of allowed year registrations (excluding visits and events)"), null=True, blank=True)
 
     allowed_first_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for second semester"), null=True, blank=True)
+        _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
 
     allowed_second_semester_registrations = models.SmallIntegerField(
-        _("Number of allowed registrations for first semester"), null=True, blank=True)
+        _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
 
     def __str__(self):
         return gettext(f"Record for {self.student.first_name} {self.student.last_name}")

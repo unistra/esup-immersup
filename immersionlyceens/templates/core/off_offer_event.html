@@ -353,37 +353,28 @@
 
   $(document).ready(function() {
     // initialize base values
-    if(highschool_id === 'None' || highschool_id === "") {
+    if(!is_set(highschool_id)) {
       highschool_id = $("#id_highschool").val()
-
-      if(highschool_id !== "") {
-        empty_structures()
-        $("#id_div_structure").hide()
-        $("#id_div_highschool").show()
-      }
     }
     else {
       $("#id_highschool").val(highschool_id)
-      empty_structures()
-      $("#id_div_structure").hide()
-      $("#id_div_highschool").show()
     }
 
-    if(establishment_id === 'None' || establishment_id === "") {
-      establishment_id = $("#id_establishment").val() || ""
+    if(highschool_id) {
+      $("#id_div_highschool").show()
+      empty_structures()
+      $("#id_div_establishment").hide()
+      $("#id_div_structure").hide()
+    }
 
-      if(establishment_id === "") {
-        empty_structures()
-        $("#id_div_structure").hide()
-        $("#id_div_highschool").show()
-      }
-      else {
-        $("#id_div_highschool").hide()
-        set_structures(establishment_id)
-      }
+    if(!is_set(establishment_id)) {
+      establishment_id = $("#id_establishment").val() || ""
     }
     else {
       $("#id_establishment").val(establishment_id)
+    }
+
+    if(establishment_id) {
       $("#id_div_highschool").hide()
       set_structures(establishment_id)
     }

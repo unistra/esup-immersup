@@ -11,6 +11,7 @@ pylint ignore:
 """
 import datetime
 import logging
+import os
 import re
 import uuid
 from functools import partial
@@ -18,6 +19,7 @@ from os.path import dirname, join
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q, Sum
@@ -36,6 +38,19 @@ from .managers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+
+def get_file_path(instance, filename,):
+    file_basename, extension = os.path.splitext(filename)
+    year = datetime.datetime.now().strftime('%Y')
+    return (
+        os.path.join(settings.S3_FILEPATH if hasattr(settings, 'S3_FILEPATH') else '',
+                     year,
+                     f'{file_basename}{extension}')
+        .lower()
+        .replace(' ', '_')
+    )
 
 
 class Establishment(models.Model):
@@ -1168,8 +1183,10 @@ class OffOfferEventType(models.Model):
     """Off offer event type"""
 
     label = models.CharField(_("Label"), max_length=256, unique=True)
-    # full_label = models.CharField(_("Full label"), max_length=256, unique=True, null=False, blank=False)
     active = models.BooleanField(_("Active"), default=True)
+
+    objects = models.Manager()
+    activated = ActiveManager()
 
     def __str__(self) -> str:
         return f"{self.label}"
@@ -1424,7 +1441,7 @@ class AccompanyingDocument(models.Model):
 
     document = models.FileField(
         _("Document"),
-        upload_to='uploads/accompanyingdocs/%Y',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
@@ -1476,7 +1493,7 @@ class PublicDocument(models.Model):
     active = models.BooleanField(_("Active"), default=True)
     document = models.FileField(
         _("Document"),
-        upload_to='uploads/publicdocs/%Y',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
@@ -1633,6 +1650,27 @@ class Slot(models.Model):
     published = models.BooleanField(_("Published"), default=True, null=False)
 
     face_to_face = models.BooleanField(_("Face to face"), default=True, null=False, blank=True)
+
+    establishments_restrictions = models.BooleanField(
+        _("Use establishments restrictions"), default=False, null=False, blank=True
+    )
+
+    levels_restrictions = models.BooleanField(
+        _("Use levels restrictions"), default=False, null=False, blank=True
+    )
+
+    allowed_establishments = models.ManyToManyField(
+        Establishment, verbose_name=_("Allowed establishments"), related_name='+', blank=True
+    )
+
+    allowed_highschools = models.ManyToManyField(
+        HighSchool, verbose_name=_("Allowed high schools"), related_name='+', blank=True
+    )
+
+    # Since levels are not objects, we use array fields to handle these restrictions
+    allowed_highschool_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    allowed_student_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    allowed_post_bachelor_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
 
     def get_establishment(self):
         """
@@ -1851,7 +1889,7 @@ class CertificateLogo(models.Model):
 
     logo = models.ImageField(
         _("Logo"),
-        upload_to='uploads/certificate_logo/',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
@@ -1893,7 +1931,7 @@ class CertificateSignature(models.Model):
 
     signature = models.ImageField(
         _("Signature"),
-        upload_to='uploads/certificate_signature/',
+        upload_to=get_file_path,
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},

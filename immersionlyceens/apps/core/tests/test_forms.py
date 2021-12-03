@@ -157,7 +157,6 @@ class FormTestCase(TestCase):
             convention_end_date = datetime.datetime.today() + datetime.timedelta(days=2),
         )
 
-
         self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
                         highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
                         phone='0123456789', level=1, class_name='1ere S 3',
@@ -484,10 +483,21 @@ class FormTestCase(TestCase):
         )
         self.assertIn("You must select one of : Establishment or High school", form.errors["__all__"])
 
-        # Success
+        # Fail : no postbac_immersion on the high school
         del(data["establishment"])
         del(data["structure"])
         data["highschool"] = self.high_school
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "Select a valid choice. That choice is not one of the available choices.",
+            form.errors["highschool"]
+        )
+
+        # Success
+        self.high_school.postbac_immersion = True
+        self.high_school.save()
+
         form = OffOfferEventForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()

@@ -68,7 +68,9 @@
             <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
               <select id="establishments" class="form-control">
-                <option value="">------------</option>
+                {% if request.user.is_master_establishment_manager %}
+                  <option value="">------------</option>
+                {% endif %}
                 {% for establishment in establishments %}
                   <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
                     {{ establishment.code }} - {{ establishment.label }}
@@ -225,6 +227,8 @@
 
   $('#highschools').change( function() {
     current_highschool_id = $('#highschools option:selected').val();
+    
+    dt.clear().draw()
 
     if (current_highschool_id !== "") {
         empty_structures()
@@ -371,9 +375,9 @@ $(document).ready(function(){
   });
 
   $('#training').on('change', function(event) {
-    training_id = $("#training").val()
+    current_training_id = $("#training").val()
 
-    if(training_id !== "") {
+    if(is_set(current_training_id)) {
       reload_data();
     }
     else {
@@ -405,13 +409,13 @@ $(document).ready(function(){
       ajax: {
         url: '/api/get_slots',
         data: function(d) {
-            d.training_id = $('#training').val();
+            d.training_id = current_training_id || $('#training').val();
 
             if($('#structure').val()) {
-              d.structure_id = $('#structure').val();
+              d.structure_id = current_training_id || $('#structure').val();
             }
             else if($('#highschools').val()) {
-              d.highschool_id = $('#highschools').val();
+              d.highschool_id = current_highschool_id || $('#highschools').val();
             }
             return d
         },

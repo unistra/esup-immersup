@@ -93,3 +93,17 @@ sentry_sdk.init(
 
 # Goal
 STAGE = 'Prod'
+
+#####################
+# S3 storage config #
+#####################
+# Uncomment/comment below switching to s3 media (uploads) file storage
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_FILE_OVERWRITE = True
+AWS_DEFAULT_ACL = None
+AWS_AUTO_CREATE_BUCKET = True
+AWS_ACCESS_KEY_ID = '{{ s3_access_key }}'
+AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
+AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
+AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
+S3_FILEPATH = 'prod'

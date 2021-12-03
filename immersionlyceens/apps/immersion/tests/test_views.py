@@ -136,12 +136,7 @@ class ImmersionViewsTestCase(TestCase):
             label='HS2', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
             email='d@e.fr', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
             convention_end_date=self.today + datetime.timedelta(days=10))
-        """
-        self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
-                        highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
-                        phone='0123456789', level=1, class_name='1ere S 3',
-                        bachelor_type=3, professional_bachelor_mention='My spe')
-        """
+
         self.lyc_ref.highschool = self.high_school
         self.lyc_ref.save()
         self.calendar = Calendar.objects.create(
@@ -475,7 +470,7 @@ class ImmersionViewsTestCase(TestCase):
             "level": 1,
             "class_name": "S10",
             "bachelor_type": 1,
-            "general_bachelor_teachings": [1],
+            "general_bachelor_teachings": [GeneralBachelorTeaching.objects.first().id],
             "technological_bachelor_mention": "",
             "professional_bachelor_mention": "",
             "post_bachelor_level": "",
@@ -581,7 +576,10 @@ class ImmersionViewsTestCase(TestCase):
             allowed_first_semester_registrations=2, allowed_second_semester_registrations=2, validation=2,
             duplicates="[5,6,4]")
 
-        self.assertEqual(HighSchoolStudentRecord.get_duplicate_tuples(), {(record2.id, 4, 5, 6), (record.id, 4, 5, 6)})
+        self.assertEqual(
+            HighSchoolStudentRecord.get_duplicate_tuples(),
+            {tuple(sorted([4, 5, 6, record2.id])), tuple(sorted([4, 5, 6, record.id]))}
+        )
 
         self.assertTrue(record.has_duplicates())
         self.assertEqual(record.get_duplicates(), [4,5,6])
@@ -594,8 +592,8 @@ class ImmersionViewsTestCase(TestCase):
 
         HighSchoolStudentRecord.clear_duplicate(6)
 
-        record = HighSchoolStudentRecord.objects.get(pk=1)
-        record2 = HighSchoolStudentRecord.objects.get(pk=2)
+        record = HighSchoolStudentRecord.objects.get(pk=record.id)
+        record2 = HighSchoolStudentRecord.objects.get(pk=record2.id)
 
         self.assertEqual(record.get_duplicates(), [4])
         self.assertEqual(record.solved_duplicates, "7")

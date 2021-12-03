@@ -14,6 +14,7 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils.translation import pgettext
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -44,7 +45,7 @@ class APITestCase(TestCase):
             description='REF-ETAB email'
         )
         """
-        self.today = datetime.today()
+        self.today = timezone.now()
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         
         # TODO : put all these objects in test fixtures
@@ -317,6 +318,7 @@ class APITestCase(TestCase):
             additional_information="Hello there!"
         )
         self.slot.speakers.add(self.speaker1),
+        self.past_slot.speakers.add(self.speaker1),
         self.slot2.speakers.add(self.speaker1),
         self.highschool_slot.speakers.add(self.highschool_speaker),
 
@@ -326,7 +328,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             civility=1,
             phone='0123456789',
-            level=1,
+            level=2,
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
@@ -342,7 +344,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             civility=2,
             phone='0123456789',
-            level=2,
+            level=3,
             class_name='TS 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
@@ -430,7 +432,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_check_course_publication(self):
         request.user = self.ref_etab_user
-        url = "/api/check_course_publication/1"
+        url = f"/api/check_course_publication/{self.course.id}"
 
         # True
         self.course.published = True
@@ -502,20 +504,20 @@ class APITestCase(TestCase):
 
         self.assertEqual(len(content['data']), 6)
         slot = content['data'][0]
-        self.assertEqual(slot['id'], self.slot.id)
-        self.assertEqual(slot['published'], self.slot.published)
-        self.assertEqual(slot['course']['label'], self.slot.course.label)
-        self.assertEqual(slot['structure']['code'], self.slot.course.structure.code)
+        self.assertEqual(slot['id'], self.past_slot.id)
+        self.assertEqual(slot['published'], self.past_slot.published)
+        self.assertEqual(slot['course']['label'], self.past_slot.course.label)
+        self.assertEqual(slot['structure']['code'], self.past_slot.course.structure.code)
         self.assertTrue(slot['structure']['managed_by_me'])
-        self.assertEqual(slot['course_type'], self.slot.course_type.label)
-        self.assertEqual(slot['date'], _date(self.today, 'l d/m/Y'))
+        self.assertEqual(slot['course_type'], self.past_slot.course_type.label)
+        self.assertEqual(slot['date'], _date(self.today - timedelta(days=1), 'l d/m/Y'))
         self.assertEqual(slot['time']['start'], '12h00')
         self.assertEqual(slot['time']['end'], '14h00')
-        self.assertEqual(slot['location']['campus'], self.slot.campus.label)
-        self.assertEqual(slot['location']['building'], self.slot.building.label)
-        self.assertEqual(slot['room'], self.slot.room)
-        self.assertEqual(slot['n_register'], self.slot.registered_students())
-        self.assertEqual(slot['n_places'], self.slot.n_places)
+        self.assertEqual(slot['location']['campus'], self.past_slot.campus.label)
+        self.assertEqual(slot['location']['building'], self.past_slot.building.label)
+        self.assertEqual(slot['room'], self.past_slot.room)
+        self.assertEqual(slot['n_register'], self.past_slot.registered_students())
+        self.assertEqual(slot['n_places'], self.past_slot.n_places)
 
 
         # With no training id : no result
@@ -580,18 +582,19 @@ class APITestCase(TestCase):
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['data'], [])
-        self.assertGreater(len(content['msg']), 0)
+        self.assertEqual(content['msg'], "Error: No high school selected")
 
         # To validate - With high school id
         self.hs_record.validation = 1  # to validate
         self.hs_record.save()
         data = {
             'action': 'TO_VALIDATE',
-            'high_school_id': self.hs_record.id
+            'high_school_id': self.high_school.id
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(len(content['data']), 2)
+
         hs_record = content['data'][0]
         self.assertEqual(hs_record['id'], self.hs_record.id)
         self.assertEqual(hs_record['first_name'], self.hs_record.student.first_name)
@@ -604,7 +607,7 @@ class APITestCase(TestCase):
         self.hs_record.save()
         data = {
             'action': 'VALIDATED',
-            'high_school_id': self.hs_record.id
+            'high_school_id': self.high_school.id
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
@@ -618,7 +621,7 @@ class APITestCase(TestCase):
         self.hs_record.save()
         data = {
             'action': 'REJECTED',
-            'high_school_id': self.hs_record.id
+            'high_school_id': self.high_school.id
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
@@ -805,7 +808,7 @@ class APITestCase(TestCase):
 
 
     def test_API_get_csv_structures(self):
-        url = f'/api/get_csv_structures/{self.high_school.id}'
+        url = f'/api/get_csv_structures/{self.structure.id}'
         client = Client()
         client.login(username='ref_str', password='pass')
 
@@ -832,6 +835,7 @@ class APITestCase(TestCase):
         ]
 
         n = 0
+
         for row in content:
             if n == 0:
                 for h in headers:
@@ -842,19 +846,19 @@ class APITestCase(TestCase):
                 self.assertIn(self.training.label, row[2])
                 self.assertIn(self.course.label, row[3])
                 self.assertIn(self.course_type.label, row[4])
-                self.assertIn(_date(self.today, 'd/m/Y'), row[5])
-                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[6])
-                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[7])
-                self.assertIn(self.slot.campus.label, row[8])
-                self.assertIn(self.slot.building.label, row[9])
-                self.assertEqual(self.slot.room, row[10])
+                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[5])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[6])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.past_slot.campus.label, row[8])
+                self.assertIn(self.past_slot.building.label, row[9])
+                self.assertEqual(self.past_slot.room, row[10])
                 self.assertIn(
                     f'{self.speaker1.first_name} {self.speaker1.last_name}',
                     row[11].split('|')
                 ),
-                self.assertEqual(str(self.slot.registered_students()), row[12])
-                self.assertEqual(str(self.slot.n_places), row[13])
-                self.assertEqual(self.slot.additional_information, row[14])
+                self.assertEqual(str(self.past_slot.registered_students()), row[12])
+                self.assertEqual(str(self.past_slot.n_places), row[13])
+                self.assertEqual(self.past_slot.additional_information, row[14])
 
             n += 1
 
@@ -1411,7 +1415,7 @@ class APITestCase(TestCase):
 
         one = False
         for h in content['data']:
-            if h['level'] == HighSchoolStudentRecord.LEVELS[-1][1]:
+            if h['level'] == HighSchoolStudentRecord.LEVELS[2][1]:
                 self.assertEqual(self.hs_record.get_post_bachelor_level_display(), h['post_bachelor_level'])
                 self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
                 one = True
@@ -1948,13 +1952,17 @@ class APITestCase(TestCase):
         response = client.get("/api/get_duplicates", **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['data'], [
-            {'id': 0, 'record_ids': [1, 2],
+            {'id': 0,
+             'record_ids': [self.hs_record.id, self.hs_record2.id],
              'names': ['SCHOOL high', 'SCHOOL2 high2'],
              'birthdates': [_date(self.hs_record.birth_date), _date(self.hs_record2.birth_date)],
              'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],
              'emails': ['hs@no-reply.com', 'hs2@no-reply.com'],
-             'record_links': ['/immersion/hs_record/1', '/immersion/hs_record/2']}]
-        )
+             'record_links': [
+                 f'/immersion/hs_record/{self.hs_record.id}',
+                 f'/immersion/hs_record/{self.hs_record2.id}'
+             ]}
+        ])
 
     def test_ajax_keep_entries(self):
         self.hs_record.duplicates = "[%s]" % self.hs_record2.id
@@ -1976,8 +1984,8 @@ class APITestCase(TestCase):
         r1 = HighSchoolStudentRecord.objects.get(pk=self.hs_record.id)
         r2 = HighSchoolStudentRecord.objects.get(pk=self.hs_record2.id)
 
-        self.assertEqual(r1.solved_duplicates, '2')
-        self.assertEqual(r2.solved_duplicates, '1')
+        self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
+        self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
 
 
     def test_campus(self):
@@ -1989,7 +1997,7 @@ class APITestCase(TestCase):
         response = client.get(reverse("campus_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content[0]['label'], 'Campus')
+        self.assertEqual(content[0]['label'], campus.label)
 
 
     def test_high_school_speakers(self):
@@ -2004,7 +2012,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['data'], [{
-            'id': 8,
+            'id': self.highschool_speaker.id,
             'last_name': 'highschool_speaker',
             'first_name': 'highschool_speaker',
             'email': 'highschool_speaker@no-reply.com',
@@ -2099,7 +2107,7 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(content), 1)
         self.assertEqual(content[0]['label'], 'Establishment event')
-        self.assertEqual(content[0]['establishment']['id'], 1)
+        self.assertEqual(content[0]['establishment']['id'], self.establishment.id)
         self.assertEqual(content[0]['establishment']['code'], 'ETA1')
         self.assertEqual(content[0]['establishment']['label'], 'Etablissement 1')
 

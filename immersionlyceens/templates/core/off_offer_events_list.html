@@ -304,7 +304,7 @@
       'responsive': false,
       'searching': true,
       'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE|fix_lang_code}}.json"
       },
       'columns': [
         {
@@ -424,14 +424,16 @@
       {
         column_number: 1,
         filter_default_label: "",
-        filter_container_id: "event_type_filter",
+        filter_match_mode: "exact",
+        filter_container_id: "managed_by_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
         column_number: 2,
         filter_default_label: "",
-        filter_container_id: "managed_by_filter",
+        filter_match_mode: "exact",
+        filter_container_id: "event_type_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },

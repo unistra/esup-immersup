@@ -222,9 +222,11 @@ def ajax_get_courses(request):
         course_data = {
             'id': course.id,
             'published': course.published,
+            'training_id': course.training.id,
             'training_label': course.training.label,
             'label': course.label,
             'managed_by': managed_by,
+            'establishment_id': course.structure.establishment.id if course.structure else None,
             'structure_code': course.structure.code if course.structure else None,
             'structure_id': course.structure.id if course.structure else None,
             'highschool_id': course.highschool.id if course.highschool else None,
@@ -370,13 +372,27 @@ def ajax_get_slots(request):
         filters["speakers"] = request.user
 
     if not user_filter:
-        if visits and not establishment_id:
-            response['msg'] = gettext("Error : a valid establishment must be selected")
-            return JsonResponse(response, safe=False)
+        if visits and not establishment_id and not structure_id:
+            try:
+                establishment_id = request.user.establishment.id
+            except Exception as e:
+                response['msg'] = gettext("Error : a valid establishment or structure must be selected")
+                return JsonResponse(response, safe=False)
 
         elif events and not establishment_id and not highschool_id:
-            response['msg'] = gettext("Error : a valid establishment or high school must be selected")
-            return JsonResponse(response, safe=False)
+            try:
+                establishment_id = request.user.establishment.id
+            except Exception as e:
+                pass
+
+            try:
+                highschool_id = request.user.highschool.id
+            except Exception as e:
+                pass
+
+            if not highschool_id and not establishment_id:
+                response['msg'] = gettext("Error : a valid establishment or high school must be selected")
+                return JsonResponse(response, safe=False)
 
         elif not events and not visits and not training_id:
             response['msg'] = gettext("Error : a valid training must be selected")
@@ -445,7 +461,7 @@ def ajax_get_slots(request):
     user_establishment = request.user.establishment
     user_highschool = request.user.highschool
 
-    for slot in slots:
+    for slot in slots.order_by('date', 'start_time'):
         establishment = slot.get_establishment()
         structure = slot.get_structure()
         highschool = slot.get_highschool()
@@ -457,9 +473,10 @@ def ajax_get_slots(request):
         ]
 
         allowed_event_slot_update_conditions = [
-            request.user.is_master_establishment_manager() and slot.event and not slot.event.highschool,
+            request.user.is_master_establishment_manager() and slot.event,
             request.user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
-            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures
+            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures,
+            request.user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
         ]
 
         if slot.course:
@@ -502,9 +519,12 @@ def ajax_get_slots(request):
             } if slot.visit else None,
             'course_type': slot.course_type.label if slot.course_type is not None else '-',
             'course_type_full': slot.course_type.full_label if slot.course_type is not None else '-',
-            'event_type': slot.event.event_type.label if slot.event and slot.event.event_type else None,
-            'event_label': slot.event.label if slot.event else None,
-            'event_description': slot.event.description if slot.event else None,
+            'event': {
+                'id': slot.event.id,
+                'type': slot.event.event_type.label if slot.event.event_type else None,
+                'label': slot.event.label,
+                'description': slot.event.description
+            } if slot.event else None,
             'datetime': datetime.datetime.strptime(
                 "%s:%s:%s %s:%s"
                 % (slot.date.year, slot.date.month, slot.date.day, slot.start_time.hour, slot.start_time.minute,),
@@ -759,7 +779,6 @@ def ajax_get_student_records(request):
     actions = ['TO_VALIDATE', 'VALIDATED', 'REJECTED']
 
     if action and action.upper() in actions:
-
         if hs_id:
             action = action.upper()
             records = []
@@ -770,21 +789,19 @@ def ajax_get_student_records(request):
             elif action == 'REJECTED':
                 records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=3,)  # REJECTED
 
-            response['data'] = [
-                {
-                    'id': record.id,
-                    'first_name': record.student.first_name,
-                    'last_name': record.student.last_name,
-                    'birth_date': _date(record.birth_date, "j/m/Y"),
-                    'level': HighSchoolStudentRecord.LEVELS[record.level - 1][1],
-                    'class_name': record.class_name,
-                }
-                for record in records
-            ]
+            response['data'] = [{
+                'id': record.id,
+                'first_name': record.student.first_name,
+                'last_name': record.student.last_name,
+                'birth_date': _date(record.birth_date, "j/m/Y"),
+                'level': HighSchoolStudentRecord.LEVELS[record.level - 1][1],
+                'class_name': record.class_name,
+            } for record in records.order_by('student__last_name', 'student__first_name')]
         else:
             response['msg'] = gettext("Error: No high school selected")
     else:
         response['msg'] = gettext("Error: No action selected for AJAX request")
+
     return JsonResponse(response, safe=False)
 
 
@@ -1462,14 +1479,16 @@ def ajax_get_highschool_students(request, highschool_id=None):
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    if request.user.is_establishment_manager():
+    is_master_or_etab_manager: bool = request.user.is_establishment_manager() or request.user.is_master_establishment_manager()
+
+    if is_master_or_etab_manager:
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            if not request.user.is_establishment_manager():
+            if not is_master_or_etab_manager:
                 response = {'data': [], 'msg': _('Invalid parameters')}
                 return JsonResponse(response, safe=False)
 
@@ -1636,7 +1655,7 @@ def get_csv_structures(request, structure_id):
     today = _date(datetime.datetime.today(), 'Ymd')
     structure = Structure.objects.get(id=structure_id).label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{structure}_{today}.csv"'
-    slots = Slot.objects.filter(course__structure_id=structure_id, published=True)
+    slots = Slot.objects.filter(course__structure_id=structure_id, published=True).order_by('date', 'start_time')
 
     infield_separator = '|'
 
@@ -1711,7 +1730,8 @@ def get_csv_highschool(request, high_school_id):
     ]
 
     content = []
-    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)
+    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)\
+        .order_by('student__last_name', 'student__first_name')
     for hs in hs_records:
         immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
         if immersions.count() > 0:
@@ -2493,7 +2513,7 @@ class OffOfferEventDetail(generics.DestroyAPIView):
 
         if not user.is_superuser:
             valid_conditions = [
-                user.is_master_establishment_manager() and not obj.highschool,
+                user.is_master_establishment_manager(),
                 user.is_high_school_manager() and obj.highschool == user.highschool,
                 user.is_establishment_manager() and obj.establishment == user.establishment,
                 user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),

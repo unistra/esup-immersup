@@ -3,15 +3,15 @@ stages:
   - test
 
 services:
-  - postgres:9.5
+  - postgres
 
 variables:
-  POSTGRES_DB: immersionlyceens
+  POSTGRES_DB: immersionlyceens-test
   POSTGRES_USER: immersionlyceens
   POSTGRES_PASSWORD: immersionlyceens
 
 before_script:
-  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0
+  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0 libpq-dev
 
 unittest:
   stage: test
