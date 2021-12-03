@@ -2120,7 +2120,8 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(content), 1)
         self.assertEqual(content[0]['label'], 'High school event')
-        self.assertEqual(content[0]['highschool'], f"{self.high_school.city} - {self.high_school.label}")
+        self.assertEqual(content[0]['highschool']["city"], self.high_school.city)
+        self.assertEqual(content[0]['highschool']["label"], self.high_school.label)
 
         # As ref-str (with no structure) : empty
         self.ref_str.structures.remove(self.structure)

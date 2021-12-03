@@ -1323,7 +1323,7 @@ class VisitSlotAdd(generic.CreateView):
         else:
             context["establishment_id"] = self.request.session.get('current_establishment_id', None)
             context["structure_id"] = self.request.session.get('current_structure_id', None)
-            ontext["highschool_id"] = self.request.session.get('current_highschool_id', None)
+            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
 
         if self.duplicate and object_pk:
             context['duplicate'] = True
@@ -1791,7 +1791,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
         else:
             context["establishment_id"] = self.request.session.get('current_establishment_id', None)
             context["structure_id"] = self.request.session.get('current_structure_id', None)
-            ontext["highschool_id"] = self.request.session.get('current_highschool_id', None)
+            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
 
         if self.duplicate and object_pk:
             context = {'duplicate': True}
