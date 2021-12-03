@@ -2141,9 +2141,8 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(OffOfferEvent.objects.count(), 1)
 
-        # as master_ref_etab : no access to high school events
+        # as master_ref_etab : full access
         client.login(username='ref_master_etab', password='pass')
         response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
-        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(OffOfferEvent.objects.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 0)
