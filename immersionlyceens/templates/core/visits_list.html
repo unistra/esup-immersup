@@ -334,7 +334,7 @@
                   "</button>";
             }
 
-            if(is_set(row.establishment.id) && is_set(row.structure.id) && is_set(row.id)) {
+            if(is_set(row.establishment.id) && is_set(row.structure.id) && is_set(row.id) && is_set(row.highschool.id)) {
                 slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
                 add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.highschool.id + "/" + row.id
             }

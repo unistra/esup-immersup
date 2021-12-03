@@ -1262,7 +1262,7 @@ class VisitSlotList(generic.TemplateView):
             kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
 
         context["highschool_id"] = \
-            kwargs.get('highschool_id', None) or self.request.session.get('current_structure_id', None)
+            kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
 
         context["visit_id"] = kwargs.get('visit_id', None)
 
@@ -1310,22 +1310,20 @@ class VisitSlotAdd(generic.CreateView):
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
 
-        context["establishment_id"] = \
-            self.kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+        if self.kwargs.get('visit_id', None):
+            context["establishment_id"] = self.kwargs.get('establishment_id', None)
+            context["structure_id"] = self.kwargs.get('structure_id', None)
+            context["highschool_id"] = self.kwargs.get('highschool_id', None)
+            context["visit_id"] = self.kwargs.get('visit_id')
 
-        context["structure_id"] = \
-            self.kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
-
-        context["highschool_id"] = \
-            self.kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
-
-        context["visit_id"] = self.kwargs.get('visit_id', None)
-
-        if context["visit_id"]:
             try:
                 visit = Visit.objects.get(pk=context["visit_id"])
             except Visit.DoesNotExist:
                 pass
+        else:
+            context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+            context["structure_id"] = self.request.session.get('current_structure_id', None)
+            ontext["highschool_id"] = self.request.session.get('current_highschool_id', None)
 
         if self.duplicate and object_pk:
             context['duplicate'] = True
@@ -1370,7 +1368,7 @@ class VisitSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
-        elif context.get("visit_id"):
+        elif visit:
             initials = {
                 'establishment': context.get("establishment_id", None),
                 'structure': context.get("structure_id", None),
@@ -1705,12 +1703,26 @@ class OffOfferEventSlotList(generic.TemplateView):
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
-        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
         context["structures"] = Structure.activated.all()
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 
-        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-        context["structure_id"] = self.request.session.get('current_structure_id', None)
-        context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+        context["establishment_id"] = \
+            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+
+        context["structure_id"] = \
+            kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
+
+        context["highschool_id"] = \
+            kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
+
+        context["event_id"] = kwargs.get('event_id', None)
+
+        if context["event_id"]:
+            try:
+                event = OffOfferEvent.objects.get(pk=context["event_id"])
+                context["event_type_filter"] = event.event_type.label
+            except OffOfferEvent.DoesNotExist:
+                pass
 
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
@@ -1742,7 +1754,6 @@ class OffOfferEventSlotAdd(generic.CreateView):
     duplicate = False
 
     def get_success_url(self):
-
         self.request.session['current_establishment_id'] = \
             self.object.event.establishment.id if self.object.event.establishment else None
         self.request.session['current_structure_id'] = \
@@ -1762,9 +1773,25 @@ class OffOfferEventSlotAdd(generic.CreateView):
         context = super().get_context_data(*args, **kwargs)
         speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
         context["speakers"] = json.dumps(speakers_list)
+        event = None
 
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
+
+        if self.kwargs.get('event_id', None):
+            context["establishment_id"] = self.kwargs.get('establishment_id', None)
+            context["structure_id"] = self.kwargs.get('structure_id', None)
+            context["highschool_id"] = self.kwargs.get('highschool_id', None)
+            context["event_id"] = self.kwargs.get('event_id')
+
+            try:
+                event = OffOfferEvent.objects.get(pk=context["event_id"])
+            except OffOfferEvent.DoesNotExist:
+                pass
+        else:
+            context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+            context["structure_id"] = self.request.session.get('current_structure_id', None)
+            ontext["highschool_id"] = self.request.session.get('current_highschool_id', None)
 
         if self.duplicate and object_pk:
             context = {'duplicate': True}
@@ -1817,6 +1844,16 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
+        elif event:
+            initials = {
+                'establishment': context.get("establishment_id", None),
+                'structure': context.get("structure_id", None),
+                'highschool': context.get("highschool_id", None),
+                'event': event,
+            }
+
+            self.form = OffOfferEventSlotForm(initial=initials, request=self.request)
+            context["form"] = self.form
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "event"

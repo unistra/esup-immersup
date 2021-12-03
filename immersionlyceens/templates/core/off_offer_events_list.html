@@ -325,13 +325,13 @@
             if(row.establishment) {
               let txt = row.establishment.short_label
               if (row.structure) {
-                  txt += " - " + row.structure
+                txt += " - " + row.structure.code + " : " + row.structure.label
               }
 
               return txt
             }
             else if(row.highschool) {
-              return row.highschool
+              return row.highschool.city + " - " + row.highschool.label
             }
           }
         },
@@ -385,7 +385,10 @@
         {
           "data": "",
           "render": function (data, type, row) {
-            var icons = "";
+            let icons = "";
+            let slot_url = '/core/off_offer_events_slots/'
+            let add_slot_url = '/core/off_offer_event_slot/add/'
+
             icons += "<a href='/core/off_offer_event/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                 "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                 "</a>\n";
@@ -399,6 +402,25 @@
                   "<i class=\"fa fas fa-trash fa-2x\"></i>" +
                   "</button>";
             }
+
+            if(is_set(row.establishment) && is_set(row.structure) && is_set(row.id)) {
+                slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
+            }
+            else if (is_set(row.highschool) && is_set(row.id)) {
+                slot_url += row.highschool.id + "/" + row.id
+                add_slot_url += row.highschool.id + "/" + row.id
+            }
+
+            // direct link to slots list
+            icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this visit' %}\">" +
+                     "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                     "</a>\n";
+
+            // direct link to new slot form
+            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this visit' %}\">" +
+                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                     "</a>\n";
 
             return icons;
           },
