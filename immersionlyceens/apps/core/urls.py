@@ -66,6 +66,11 @@ urlpatterns = [
     path('visit_slot/add/<int:establishment_id>/<int:structure_id>/<int:highschool_id>/<int:visit_id>',
          views.VisitSlotAdd.as_view(), name='add_establishment_visit_slot'),
 
+    path('slot/add/<int:highschool_id>/<int:visit_id>', views.VisitSlotAdd.as_view(),
+         name='add_high_school_visit_slot'),
+    path('slot/add/<int:establishment_id>/<int:structure_id>/<int:visit_id>', views.VisitSlotAdd.as_view(),
+         name='add_establishment_visit_slot'),
+
     path("off_offer_events", views.OffOfferEventsList.as_view(), name="off_offer_events"),
     path("off_offer_event/add", views.OffOfferEventAdd.as_view(), name="add_off_offer_event"),
     path("off_offer_event/<int:pk>", views.OffOfferEventUpdate.as_view(), name="update_off_offer_event"),
