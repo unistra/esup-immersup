@@ -1266,7 +1266,8 @@ class VisitSlotAdd(generic.CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
+        speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
+        context["speakers"] = json.dumps(speakers_list)
 
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
@@ -1664,7 +1665,10 @@ class OffOfferEventSlotAdd(generic.CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
+        speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
+        context["speakers"] = json.dumps(speakers_list)
+
+        print(context["speakers"])
 
         self.duplicate = self.kwargs.get('duplicate', False)
         object_pk = self.kwargs.get('pk', None)
@@ -1708,8 +1712,6 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
-
-
 
         context["can_update"] = True  # FixMe
         context["establishment_id"] = self.request.session.get('current_establishment_id')
