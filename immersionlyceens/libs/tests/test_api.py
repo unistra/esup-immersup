@@ -2046,8 +2046,10 @@ class APITestCase(TestCase):
         response = client.get(reverse("visit_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
+
         self.assertEqual(content[0]['purpose'], 'Whatever')
-        self.assertEqual(content[0]['establishment'], "ETA1 : Etablissement 1 (master)")
+        self.assertEqual(content[0]['establishment']['code'], "ETA1")
+        self.assertEqual(content[0]['establishment']['label'], "Etablissement 1")
 
         # As ref-str (with no structure) : empty
         self.ref_str.structures.remove(self.structure)
