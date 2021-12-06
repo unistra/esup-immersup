@@ -245,7 +245,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         professional_bachelor_mention = cleaned_data.get('professional_bachelor_mention', '')
         origin_bachelor_type = cleaned_data['origin_bachelor_type']
 
-        if level in [1, 2]:
+        if level in [2, 3]:
             if bachelor_type == 1:
                 cleaned_data['technological_bachelor_mention'] = None
                 cleaned_data['professional_bachelor_mention'] = ""
