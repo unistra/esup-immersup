@@ -411,12 +411,12 @@
                 }
 
                 if(is_set(row.establishment_id) && is_set(row.structure_id) && is_set(row.training_id)) {
-                    slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id
-                    add_slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id
+                    slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id + "/" + row.id
+                    add_slot_url += row.establishment_id + "/" + row.structure_id + "/" + row.training_id + "/" + row.id
                 }
                 else if(is_set(row.highschool_id) && is_set(row.training_id)) {
-                    slot_url += row.highschool_id + "/" + row.training_id
-                    add_slot_url += row.highschool_id + "/" + row.training_id
+                    slot_url += row.highschool_id + "/" + row.training_id + "/" + row.id
+                    add_slot_url += row.highschool_id + "/" + row.training_id + "/" + row.id
                 }
 
                 // direct link to slots list

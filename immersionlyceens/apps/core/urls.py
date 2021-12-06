@@ -29,13 +29,14 @@ urlpatterns = [
     path('slot/<int:slot_id>', views.slot, name='modify_slot'),
     path('slot/<int:slot_id>/<int:duplicate>', views.slot, name='duplicate_slot'),
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
-    path('slot/add/<int:highschool_id>/<int:training_id>', views.slot, name='add_high_school_slot'),
-    path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>', views.slot,
+    path('slot/add/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slot, name='add_high_school_slot'),
+    path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slot,
          name='add_establishment_slot'),
 
     path('slots/', views.slots_list, name='slots_list'),
-    path('slots/<int:highschool_id>/<int:training_id>', views.slots_list, name='high_school_filtered_slots_list'),
-    path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>', views.slots_list,
+    path('slots/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slots_list,
+         name='high_school_filtered_slots_list'),
+    path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slots_list,
          name='establishment_filtered_slots_list'),
 
     path('stats/', views.stats, name="stats"),

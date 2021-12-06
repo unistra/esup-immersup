@@ -399,7 +399,7 @@
   var cancelDialog;
   var training_id = parseInt("{{ slot_form.training.value }}") || "{{ training_id }}";
   var structure_id = parseInt("{{ slot_form.structure.value }}") || "{{ structure_id }}";
-  var course_id = "{{ slot_form.course.value }}";
+  var course_id = parseInt("{{ slot_form.course.value }}") || "{{ course_id }}";
   var campus_id = "{{ slot_form.campus.value }}";
   var building_id = "{{ slot_form.building.value }}";
   var establishment_id = parseInt("{{ slot_form.establishment.initial }}") || "{{ establishment_id }}";

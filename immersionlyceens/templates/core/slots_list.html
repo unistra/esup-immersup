@@ -159,6 +159,7 @@
   var current_highschool_id = "{{ highschool_id }}";
   var current_training_id = "{{ training_id }}";
   var slot_places = 0;
+  let course_label_filter = "{{ course_label_filter }}"
 
   let deleteDialog = $("#delete-dialog-form").dialog({
     autoOpen: false,
@@ -432,6 +433,18 @@ $(document).ready(function(){
       responsive: false,
       info: false,
       search: true,
+      searchCols: [
+          null,
+          { "search": course_label_filter },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+      ],
       paging: true,
       ordering: true,
       language: {

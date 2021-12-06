@@ -93,7 +93,7 @@ def import_holidays(request):
 
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
-def slots_list(request, establishment_id=None, highschool_id=None, structure_id=None, training_id=None):
+def slots_list(request, establishment_id=None, highschool_id=None, structure_id=None, training_id=None, course_id=None):
     """
     Get slots list
     get filters : structure and trainings
@@ -103,6 +103,7 @@ def slots_list(request, establishment_id=None, highschool_id=None, structure_id=
         return HttpResponseRedirect("/")
 
     template = 'core/slots_list.html'
+    course_label_filter = ""
 
     try:
         int(establishment_id)
@@ -123,6 +124,12 @@ def slots_list(request, establishment_id=None, highschool_id=None, structure_id=
         int(training_id)
     except (ValueError, TypeError):
         training_id = None
+
+    try:
+        course = Course.objects.get(pk=int(course_id))
+        course_label_filter = course.label
+    except (ValueError, TypeError, Course.DoesNotExist):
+        course_id = None
 
     allowed_highschools = HighSchool.objects.none()
     allowed_establishments = Establishment.objects.none()
@@ -169,6 +176,8 @@ def slots_list(request, establishment_id=None, highschool_id=None, structure_id=
         'structure_id': structure_id,
         'highschool_id': highschool_id,
         'training_id': request.session.get("current_training_id", None),
+        'course_id': course_id,
+        'course_label_filter': course_label_filter,
         'trainings': [],
         'contact_form': contact_form,
         'cancel_types': CancelType.objects.filter(active=True),
@@ -195,7 +204,7 @@ def slots_list(request, establishment_id=None, highschool_id=None, structure_id=
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def slot(request, slot_id=None, duplicate=False, establishment_id=None, highschool_id=None, structure_id=None,
-         training_id=None):
+         training_id=None, course_id=None):
     slot = None
     speakers_idx = None
     allowed_establishments = None
@@ -329,6 +338,7 @@ def slot(request, slot_id=None, duplicate=False, establishment_id=None, highscho
         "highschool_id": highschool_id,
         "structure_id": structure_id,
         "training_id": training_id,
+        "course_id": course_id,
         "slot_form": slot_form,
         "ready_load": True,
     }
