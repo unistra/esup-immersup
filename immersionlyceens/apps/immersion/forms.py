@@ -204,6 +204,9 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
+        is_hs_manager_or_master: bool = self.request.user.is_establishment_manager() or \
+                self.request.user.is_master_establishment_manager()
+
         self.fields["student"].widget = forms.HiddenInput()
         self.fields["highschool"].queryset = HighSchool.agreed.order_by('city','label')
         # self.fields['professional_bachelor_mention'].widget.attrs['class'] = 'form-control'
@@ -223,7 +226,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        if not self.request or not self.request.user.is_establishment_manager():
+        if not self.request or not is_hs_manager_or_master:
             del self.fields['allowed_global_registrations']
             del self.fields['allowed_first_semester_registrations']
             del self.fields['allowed_second_semester_registrations']
