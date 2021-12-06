@@ -6,9 +6,9 @@ from typing import Any, Dict
 
 from django import forms
 from django.conf import settings
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
-from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.forms.widgets import TextInput
@@ -22,8 +22,9 @@ from .models import (
     CancelType, CertificateLogo, CertificateSignature, CourseType,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
-    MailTemplate, MailTemplateVars, PublicDocument, PublicType, Structure,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, OffOfferEventType,
+    MailTemplate, MailTemplateVars, OffOfferEventType, PublicDocument,
+    PublicType, Structure, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -1448,7 +1449,7 @@ class CertificateLogoForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
@@ -1489,7 +1490,7 @@ class CertificateSignatureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager()
+            valid_user = user.is_master_establishment_manager()
         except AttributeError:
             pass
 
