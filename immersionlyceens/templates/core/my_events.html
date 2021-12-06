@@ -110,7 +110,11 @@
       },
       { "data": "structure",
         "render": function (data) {
-           return data.code + " - " + data.label
+           if (data) {
+             return data.code + " - " + data.label
+           }
+
+           return ""
         }
       },
       { "data": "event_type" },
