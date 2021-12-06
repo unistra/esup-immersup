@@ -148,19 +148,19 @@ def slots_list(request, establishment_id=None, highschool_id=None, structure_id=
     elif request.user.is_high_school_manager():
         allowed_highschools = HighSchool.objects.filter(pk=request.user.highschool.id)
 
-    if not establishment_id or establishment_id not in allowed_establishments.values_list('pk', flat=True):
+    if establishment_id and establishment_id not in allowed_establishments.values_list('pk', flat=True):
         if allowed_establishments.count() == 1:
             establishment_id = allowed_establishments.first().id
         else:
             establishment_id = request.session.get("current_establishment_id", None)
 
-    if not highschool_id or highschool_id not in allowed_highschools.values_list('pk', flat=True):
+    if highschool_id and highschool_id not in allowed_highschools.values_list('pk', flat=True):
         if request.user.is_high_school_manager() and allowed_highschools.count() == 1:
             highschool_id = allowed_highschools.first().id
         else:
             highschool_id = request.session.get("current_highschool_id", None)
 
-    if not structure_id or structure_id not in allowed_strs.values_list('pk', flat=True):
+    if structure_id and structure_id not in allowed_strs.values_list('pk', flat=True):
         if allowed_strs.count() == 1:
             structure_id = allowed_strs.first().id
         else:
@@ -175,7 +175,7 @@ def slots_list(request, establishment_id=None, highschool_id=None, structure_id=
         'establishment_id': establishment_id,
         'structure_id': structure_id,
         'highschool_id': highschool_id,
-        'training_id': request.session.get("current_training_id", None),
+        'training_id': training_id or request.session.get("current_training_id", None),
         'course_id': course_id,
         'course_label_filter': course_label_filter,
         'trainings': [],

@@ -386,22 +386,22 @@ $(document).ready(function(){
     }
   });
 
-  if(current_establishment_id !== "None") {
+  if(is_set(current_establishment_id)) {
     $("#establishments").val(current_establishment_id)
     set_structures(current_establishment_id)
   }
 
-  if(current_structure_id !== "None") {
+  if(is_set(current_structure_id)) {
     $("#structure").val(current_structure_id)
     load_trainings('structure', current_structure_id);
   }
 
-  if(current_highschool_id !== "None") {
+  if(is_set(current_highschool_id)) {
     $("#highschools").val(current_highschool_id)
     load_trainings('highschool', current_highschool_id);
   }
 
-  if(current_training_id !== "None") {
+  if(is_set(current_training_id)) {
     $("#training").val(current_training_id)
   }
 

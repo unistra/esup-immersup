@@ -768,6 +768,10 @@ $(document).ready(function(){
       $("#id_training").val(training_id)
   }
 
+  if(is_set(course_id)) {
+    load_speakers(course_id);
+  }
+
   if(!is_set(campus_id)) {
     empty_buildings()
   }
