@@ -126,6 +126,7 @@ class SlotForm(forms.ModelForm):
     structure = forms.ModelChoiceField(queryset=Structure.objects.all(), required=False)
     training = forms.ModelChoiceField(queryset=Training.objects.all(), required=False)
     highschool = forms.ModelChoiceField(queryset=HighSchool.agreed.filter(postbac_immersion=True), required=False)
+    repeat = forms.DateField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
@@ -215,6 +216,10 @@ class SlotForm(forms.ModelForm):
 
         if instance:
             self.fields['date'].value = instance.date
+
+        self.fields["repeat"].widget = forms.DateInput(
+            format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
+        )
 
 
     def clean_restrictions(self, cleaned_data):
@@ -318,7 +323,7 @@ class SlotForm(forms.ModelForm):
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
             'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'speakers')
+            'allowed_post_bachelor_levels', 'speakers', 'repeat')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
@@ -330,7 +335,7 @@ class SlotForm(forms.ModelForm):
             'end_time': TimeInput(format='%H:%M'),
         }
 
-        localized_fields = ('date',)
+        localized_fields = ('date', 'repeat')
 
 
 class VisitSlotForm(SlotForm):
