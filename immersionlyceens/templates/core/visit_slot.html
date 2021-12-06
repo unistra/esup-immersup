@@ -357,7 +357,7 @@
   var highschool_id = "{{ form.highschool.value }}";
   var visits = Array();
   var speakers = "{{ speakers }}" ? JSON.parse('{{ speakers|safe }}') : Array();
-  var is_structure_manager = "{{ request.user.is_structure_manager }}"
+  var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
 
   function empty_structures() {
       let options = '<option value="">---------</option>'
@@ -375,12 +375,15 @@
       },
       success: function (json) {
         let options = ""
-        if(is_structure_manager === "False") {
-            options += '<option value="">---------</option>'
+
+        if(!is_structure_manager) {
+          options += '<option value="">---------</option>'
         }
+
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
         }
+
         $('select#id_structure').html(options)
 
         if(structure_id) {

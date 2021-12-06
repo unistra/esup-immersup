@@ -141,7 +141,7 @@
   var current_establishment_id = "{{ establishment_id }}";
   var current_highschool_id = "{{ highschool_id }}";
   var slot_places = 0;
-  var is_structure_manager = "{{ request.user.is_structure_manager }}"
+  let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   let event_type_filter = "{{ event_type_filter }}"
 
   let deleteDialog = $("#delete-dialog-form").dialog({
