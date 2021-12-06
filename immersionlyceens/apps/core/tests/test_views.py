@@ -324,7 +324,7 @@ class CoreViewsTestCase(TestCase):
         # with parameters
         response = self.client.get(
             reverse("establishment_filtered_slots_list",
-                    args=[self.establishment.id, self.structure.id, self.training.id])
+                    args=[self.establishment.id, self.structure.id, self.training.id, self.course.id])
         )
         self.assertEqual(self.establishment.id, response.context["establishment_id"])
         self.assertEqual(self.structure.id, response.context["structure_id"])
