@@ -519,6 +519,7 @@ def student_record(request, student_id=None, record_id=None):
     """
     Student record
     """
+    template_name: str = 'immersion/student_record.html'
     record = None
     student = None
     calendar = None
@@ -637,7 +638,7 @@ def student_record(request, student_id=None, record_id=None):
         'future_immersions': future_immersions,
     }
 
-    return render(request, 'immersion/student_record.html', context)
+    return render(request, template_name, context)
 
 
 @login_required
