@@ -25,6 +25,12 @@
     </span>
   </div>
 
+  <div id="repeat-dialog-form" style='z-index:3000;' title='{% trans "Repeat slots creation" %}'>
+    <span>
+      {% trans 'Please select a date before setting this field' %}
+    </span>
+  </div>
+
   <div id="course-dialog-form" style='z-index:3000;' title='{% trans "Confirm course" %}'>
     <span>
       {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
@@ -194,6 +200,17 @@
               {{ slot_form.date.errors }}
             </div>
             {% endif %}
+        </div>
+        <div class="form-group row">
+          <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat until' %}</label>
+          <div class="col-sm-3">
+              {{ slot_form.repeat }}
+          </div>
+          {% if slot_form.repeat.errors %}
+          <div class="col-sm-6 alert alert-danger">
+            {{ slot_form.repeat.errors }}
+          </div>
+          {% endif %}
         </div>
         <div class="form-group row">
             <label for="id_start_time" class="col-form-label col-sm-3">{% trans 'Start time' %}</label>
