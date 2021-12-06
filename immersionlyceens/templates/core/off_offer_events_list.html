@@ -132,7 +132,7 @@
   var duplicate_text = "{% trans 'Duplicate' %}";
   var delete_text = "{% trans 'Delete' %}";
   var confirmDialog;
-  let is_structure_manager = "{{ request.user.is_structure_manager }}"
+  let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
 
   if($("#establishments").val() === "") {
       $("#id_div_structures").hide()
