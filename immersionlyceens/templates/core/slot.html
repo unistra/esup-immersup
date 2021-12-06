@@ -404,6 +404,7 @@
   var building_id = "{{ slot_form.building.value }}";
   var establishment_id = parseInt("{{ slot_form.establishment.initial }}") || "{{ establishment_id }}";
   var highschool_id = parseInt("{{ slot_form.highschool.id }}") || "{{ highschool_id }}";
+  var speakers = "{{ speakers_idx }}" ? JSON.parse('{{ speakers_idx|safe }}') : Array();
   var courses = Array();
 
   function empty_structures() {
@@ -708,9 +709,15 @@
         success: function (data) {
           if (data['data']) {
             data['data'].forEach(function (e) {
+              let checked = ''
+
+              if (speakers.find(s => parseInt(s) === e['id']) !== undefined) {
+                checked = "checked"
+              }
+            
               let name = '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
               element = '<div class="custom-checkbox custom-control">';
-              element += '<input type="checkbox" name="speaker_' + e['id'] + '" value="' + e['id'] + '">';
+              element += '<input type="checkbox" name="speaker_' + e['id'] + '" value="' + e['id'] + '" ' + checked + '>';
               element += '<label for="speaker_' + e['id'] + '">' + name + '</label>';
               element += '</div>';
               $('#id_speakers').append(element);
