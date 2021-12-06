@@ -2105,7 +2105,7 @@ def ajax_cancel_alert(request):
 
 
 @is_ajax_request
-@groups_required("REF-ETAB", 'REF-ETAB-MAITRE')
+@groups_required("REF-ETAB-MAITRE")
 def ajax_get_duplicates(request):
     """
     Get duplicates lists
@@ -2142,7 +2142,7 @@ def ajax_get_duplicates(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB-MAITRE')
 def ajax_keep_entries(request):
     """
     Remove duplicates ids from high school student records
