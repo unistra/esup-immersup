@@ -78,11 +78,15 @@
             <th><span id="highschool_filter">{% trans 'High school' %}</span></th>
             <th><span id="purpose_filter">{% trans 'Purpose' %}</span></th>
             <th class="align-top">{% trans 'Speakers' %}</th>
+            <th class="align-top">{% trans 'Published slots' %}</th>
+            <th class="align-top">{% trans 'Registered students' %}</th>
             <th></th>
           </tr>
         </thead>
         <tfoot>
           <tr>
+            <td></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -107,8 +111,8 @@
   var delete_text = "{% trans 'Delete' %}";
   var confirmDialog;
 
-  if($("#establishments").val() === "") {
-      $("#id_div_structures").hide()
+  if(!is_set($("#establishments").val())) {
+    $("#id_div_structures").hide()
   }
 
   function delete_visit(visit_id) {
@@ -313,6 +317,30 @@
             return txt;
           },
         },
+        { "data": "published_slots_count",
+          "render": function(data, type, row) {
+            return data + "/" + row.slots_count;
+          }
+        },
+        { "data": "registrations_count",
+          "render": function(data, type, row) {
+            let current = data;
+            let n = row.n_places;
+
+            element = '<span>' + current + '/' + n + '</span>' +
+                  '<div class="progress">' +
+                  '  <div' +
+                  '    class="progress-bar"' +
+                  '    role="progressbar"' +
+                  '    aria-valuenow="' + current + '"' +
+                  '    aria-valuemin="0"' +
+                  '    aria-valuemax="' + n + '"' +
+                  '    style="width: ' + Math.round(current/n * 100) + '%">' +
+                  '  </div>' +
+                  '</div>';
+            return element;
+          }
+        },
         {
           "data": "",
           "render": function (data, type, row) {
@@ -400,15 +428,17 @@
       },
     ]);
 
-    if (current_establishment_id === 'None' || current_establishment_id === "") {
+    if (!is_set(current_establishment_id)) {
       current_establishment_id = $("#establishments").val()
     } else {
       $("#establishments").val(current_establishment_id)
     }
 
-    set_structures(current_establishment_id)
+    if(is_set(current_establishment_id)) {
+      set_structures(current_establishment_id)
+    }
 
-    if (current_structure_id === 'None' || current_structure_id === "") {
+    if (!is_set(current_structure_id)) {
       current_structure_id = $("#structures").val()
     }
     else {
