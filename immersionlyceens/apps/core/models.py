@@ -1309,6 +1309,12 @@ class OffOfferEvent(models.Model):
         if [self.establishment, self.highschool].count(None) != 1:
             raise ValidationError("You must select one of : Establishment or High school")
 
+    def get_etab_or_high_school(self):
+        if not self.highschool:
+            return self.establishment.label
+        else:
+            return f'{self.highschool.label} : {self.highschool.city}'
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

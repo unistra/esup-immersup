@@ -366,8 +366,9 @@ def offer_off_offer_events(request):
     except InformationText.DoesNotExist:
         events_txt = ''
 
-    # Published visits only & no course slot
+    # Published event only & no course slot
     filters["course__isnull"] = True
+    filters["visit__isnull"] = True
     filters["event__published"] = True
 
     # If user is highschool student filter on highschool
@@ -381,7 +382,7 @@ def offer_off_offer_events(request):
     filters["date__gte"] = today
     events = Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('event__highschool__city', 'event__highschool__label', 'date')
+            .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'date')
 
     events_count = events.count()
     context = {
