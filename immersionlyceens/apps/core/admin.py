@@ -1263,12 +1263,21 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     filter_horizontal = ('available_vars',)
     summernote_fields = ('body',)
 
+    def has_module_permission(self, request):
+        return request.user.is_superuser or request.user.is_master_establishment_manager()
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.is_master_establishment_manager()
+
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return request.user.is_superuser or request.user.is_master_establishment_manager()
 
     def has_delete_permission(self, request, obj=None):
         # Only a superuser can delete a template
-        return request.user.is_superuser
+        return request.user.is_superuser or request.user.is_master_establishment_manager()
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.is_master_establishment_manager()
 
     class Media:
         css = {

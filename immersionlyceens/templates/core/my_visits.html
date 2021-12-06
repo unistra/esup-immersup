@@ -93,9 +93,25 @@
           return txt;
         },
       },
-      { "data": "establishment" },
-      { "data": "structure" },
-      { "data": "highschool" },
+      { "data": "establishment.label" },
+      { "data": "structure",
+        "render": function (data) {
+          if(data) {
+            return data.code + " - " + data.label
+          }
+
+          return ""
+        },
+      },
+      { "data": "highschool",
+        "render": function (data) {
+          if(data) {
+            return data.city + " - " + data.label
+          }
+
+          return ""
+        },
+      },
       {
         "data": "speakers",
         "render": function (data) {

@@ -71,9 +71,9 @@ class TrainingHighSchoolSerializer(serializers.ModelSerializer):
 
 
 class VisitSerializer(serializers.ModelSerializer):
-    establishment = serializers.StringRelatedField(many=False)
-    structure = serializers.StringRelatedField(many=False)
-    highschool = serializers.StringRelatedField(many=False)
+    establishment = EstablishmentSerializer(many=False, read_only=True)
+    structure = StructureSerializer(many=False, read_only=True)
+    highschool = HighSchoolViewSerializer(many=False, read_only=True)
     speakers = ImmersionUserSerializer(many=True, read_only=True)
     can_delete = serializers.BooleanField()
 
@@ -89,8 +89,8 @@ class VisitSerializer(serializers.ModelSerializer):
 
 class OffOfferEventSerializer(serializers.ModelSerializer):
     establishment = EstablishmentSerializer(many=False, read_only=True)
-    structure = serializers.StringRelatedField(many=False)
-    highschool = serializers.StringRelatedField(many=False)
+    structure = StructureSerializer(many=False, read_only=True)
+    highschool = HighSchoolViewSerializer(many=False, read_only=True)
     event_type = serializers.StringRelatedField(many=False)
     speakers = ImmersionUserSerializer(many=True, read_only=True)
     can_delete = serializers.BooleanField()

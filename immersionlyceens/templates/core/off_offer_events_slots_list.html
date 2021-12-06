@@ -142,6 +142,7 @@
   var current_highschool_id = "{{ highschool_id }}";
   var slot_places = 0;
   var is_structure_manager = "{{ request.user.is_structure_manager }}"
+  let event_type_filter = "{{ event_type_filter }}"
 
   let deleteDialog = $("#delete-dialog-form").dialog({
     autoOpen: false,
@@ -315,6 +316,18 @@ $(document).ready(function(){
         responsive: false,
         info: false,
         search: true,
+        searchCols: [
+            null,
+            null,
+            { "search": event_type_filter},
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+        ],
         paging: true,
         ordering: true,
         language: {

@@ -103,8 +103,10 @@
             <div class="dropdown-menu" aria-labelledby="navbarDropdownConsultSpeaker">
               <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
               <a class="dropdown-item" href="{% url 'myslots' slots_type='courses' %}">{% trans 'My courses slots' %}</a>
+              {% if not request.user.highschool %}
               <a class="dropdown-item" href="{% url 'myvisits' %}">{% trans 'My visits' %}</a>
               <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My visits slots' %}</a>
+              {% endif %}
               <a class="dropdown-item" href="{% url 'myevents' %}">{% trans 'My events' %}</a>
               <a class="dropdown-item" href="{% url 'myslots' slots_type='events' %}">{% trans 'My events slots' %}</a>
             </div>

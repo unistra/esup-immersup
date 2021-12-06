@@ -216,6 +216,7 @@ class SlotForm(forms.ModelForm):
         if instance:
             self.fields['date'].value = instance.date
 
+
     def clean_restrictions(self, cleaned_data):
         try:
             cleaned_data['allowed_highschool_levels'] = [int(x) for x in cleaned_data['allowed_highschool_levels']]

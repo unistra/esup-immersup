@@ -2046,8 +2046,10 @@ class APITestCase(TestCase):
         response = client.get(reverse("visit_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
+
         self.assertEqual(content[0]['purpose'], 'Whatever')
-        self.assertEqual(content[0]['establishment'], "ETA1 : Etablissement 1 (master)")
+        self.assertEqual(content[0]['establishment']['code'], "ETA1")
+        self.assertEqual(content[0]['establishment']['label'], "Etablissement 1")
 
         # As ref-str (with no structure) : empty
         self.ref_str.structures.remove(self.structure)
@@ -2118,7 +2120,8 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(content), 1)
         self.assertEqual(content[0]['label'], 'High school event')
-        self.assertEqual(content[0]['highschool'], f"{self.high_school.city} - {self.high_school.label}")
+        self.assertEqual(content[0]['highschool']["city"], self.high_school.city)
+        self.assertEqual(content[0]['highschool']["label"], self.high_school.label)
 
         # As ref-str (with no structure) : empty
         self.ref_str.structures.remove(self.structure)
@@ -2141,9 +2144,8 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(OffOfferEvent.objects.count(), 1)
 
-        # as master_ref_etab : no access to high school events
+        # as master_ref_etab : full access
         client.login(username='ref_master_etab', password='pass')
         response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
-        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(OffOfferEvent.objects.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 0)

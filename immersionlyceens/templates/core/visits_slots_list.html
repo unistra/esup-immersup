@@ -84,7 +84,7 @@
             <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
             <th id="highschool_filter" class="align-top">{% trans 'High school' %}</th>
             <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
-            <th class="align-top">{% trans 'Purpose' %}</th>
+            <th id="purpose_filter" class="align-top">{% trans 'Purpose' %}</th>
             <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
             <th id="location_filter" class="align-top">{% trans 'Location / address' %}</th>
             <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
@@ -123,6 +123,7 @@
   var current_establishment_id = "{{ establishment_id }}";
   var slot_places = 0;
   var is_structure_manager = "{{ request.user.is_structure_manager }}"
+  let visit_purpose_filter = "{{ visit_purpose_filter }}"
 
   let deleteDialog = $("#delete-dialog-form").dialog({
     autoOpen: false,
@@ -280,6 +281,18 @@ $(document).ready(function(){
         responsive: false,
         info: false,
         search: true,
+        searchCols: [
+            null,
+            null,
+            null,
+            { "search": visit_purpose_filter},
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+        ],
         paging: true,
         ordering: true,
         language: {
@@ -422,7 +435,6 @@ $(document).ready(function(){
         },
         {
             column_number: 1,
-            filter_type: "text",
             filter_default_label: "",
             filter_container_id: "highschool_filter",
             style_class: "form-control form-control-sm",
@@ -433,6 +445,13 @@ $(document).ready(function(){
             filter_default_label: "",
             style_class: "form-control form-control-sm",
             filter_container_id: "structure_filter",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 3,
+            filter_default_label: "",
+            style_class: "form-control form-control-sm",
+            filter_container_id: "purpose_filter",
             filter_reset_button_text: false,
         },
         {
