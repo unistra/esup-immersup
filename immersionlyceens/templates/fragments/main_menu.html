@@ -146,9 +146,12 @@
                 {% if authorized_groups|in_groups:"REF-ETAB,SRV-JUR,REF-ETAB-MAITRE" %}
                   <a class="dropdown-item" href="{% url 'students_presence' %}">{% trans 'View students by date' %}</a>
                 {% endif %}
-                {% if authorized_groups|in_groups:"REF-ETAB-MAITRE" %}
+                {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-ETAB" %}
                   <a class="dropdown-item" href="{% url 'duplicates' %}">{% trans 'View potential duplicates' %}</a>
+
+                  {% if authorized_groups|in_groups:"REF-ETAB-MAITRE" %}
                   <a class="dropdown-item" href="{% url 'student_validation_global' %}">{% trans 'Validate student profiles' %}</a>
+                  {% endif %}
                 {% endif %}
 
               </div>
