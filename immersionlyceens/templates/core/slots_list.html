@@ -408,7 +408,7 @@ $(document).ready(function(){
   $('#top_indicator').hide();
   dt = $('#list_of_slots').DataTable({
       ajax: {
-        url: '/api/get_slots',
+        url: '/api/slots',
         data: function(d) {
             d.training_id = current_training_id || $('#training').val();
 

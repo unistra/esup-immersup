@@ -232,6 +232,9 @@
           <label for="id_establishments_restrictions" class="col-form-label col-sm-3">{% trans 'Use establishments restrictions' %}</label>
           <div class="col-sm-3">
             {{ form.establishments_restrictions }}
+            <span id="establishments_restrictions_hint">
+              <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
+            </span>
           </div>
 
           {% if form.establishments_restrictions.errors %}
@@ -264,6 +267,9 @@
           <label for="id_levels_restrictions" class="col-form-label col-sm-3">{% trans 'Use levels restrictions' %}</label>
           <div class="col-sm-6">
             {{ form.levels_restrictions }}
+            <span id="levels_restrictions_hint">
+              <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
+            </span>
           </div>
 
           {% if form.levels_restrictions.errors %}
@@ -711,9 +717,11 @@ $(document).ready(function(){
   function toggle_establishments_restrictions() {
     if ($('#id_establishments_restrictions').prop('checked')) {
       $('#id_div_allowed_establishments').show()
+      $('#establishments_restrictions_hint').show()
     }
     else {
       $('#id_div_allowed_establishments').hide()
+      $('#establishments_restrictions_hint').hide()
       $('#id_allowed_establishments').find('option').prop('selected',false)
       $('#id_allowed_highschools').find('option').prop('selected',false)
     }
@@ -722,9 +730,11 @@ $(document).ready(function(){
   function toggle_levels_restrictions() {
     if ($('#id_levels_restrictions').prop('checked')) {
       $('#id_div_allowed_levels').show()
+      $('#levels_restrictions_hint').show()
     }
     else {
       $('#id_div_allowed_levels').hide()
+      $('#levels_restrictions_hint').hide()
       $('#id_allowed_highschool_levels').find('option').prop('selected',false)
       $('#id_allowed_student_levels').find('option').prop('selected',false)
       $('#id_allowed_post_bachelor_levels').find('option').prop('selected',false)

@@ -285,7 +285,7 @@ $(document).ready(function(){
     $('#top_indicator').hide();
     dt = $('#slots_list').DataTable({
         ajax: {
-          url: '/api/get_slots',
+          url: '/api/slots',
           data: function(d) {
               d.events = true
 

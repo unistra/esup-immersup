@@ -495,7 +495,7 @@ class APITestCase(TestCase):
 
     def test_API_get_ajax_slots(self):
         request.user = self.ref_etab_user
-        url = "/api/get_slots"
+        url = "/api/slots"
         data = {
             'training_id': self.training.id
         }
@@ -1051,7 +1051,7 @@ class APITestCase(TestCase):
 
     def test_API_get_my_slots(self):
         client = Client()
-        url = f"/api/get_slots?visits=false"
+        url = f"/api/slots?visits=false"
         # as a high school speaker
         client.login(username='highschool_speaker', password='pass')
 

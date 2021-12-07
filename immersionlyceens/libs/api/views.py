@@ -320,9 +320,8 @@ def ajax_get_documents(request):
     return JsonResponse(response, safe=False)
 
 
-@is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER')
-def ajax_get_slots(request):
+def slots(request):
     """
     Get slots list according to GET parameters
     :return:
