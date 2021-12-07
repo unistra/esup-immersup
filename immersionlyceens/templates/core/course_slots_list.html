@@ -1,0 +1,80 @@
+{% extends "./common_slots_list.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head-javascript %}
+{{ block.super }}
+<script src="{% static 'js/core/course_slots.js' %}"></script>
+{% endblock %}
+
+{% block slot_deletion %}
+<div id="delete-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot deletion" %}'>
+  <span>
+    {% trans 'Do you really want to delete this slot ?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block card_header %}
+<div class="card-header text-white bg-secondary">
+  {% trans "Slot" %}
+</div>
+{% endblock %}
+
+{% block card_title %}
+<div>
+  <a href="{% url 'add_course_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
+</div>
+{% endblock %}
+
+{% block trainings_filter %}
+<div class="row">
+  <div class="col-md-5">
+    <label for="id_training">{% trans "Select a training" %} :</label>
+    <select name="training" id="id_training" class="form-control">
+      <option value="">-------------</option>
+      {% for training in trainings %}
+        <option value="{{ training.id }}" {% if training.id == training_id %}selected{% endif %}>
+          {{ training.label }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+{% endblock %}
+
+{% block table_definition %}
+<thead>
+  <tr>
+    <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+    <th id="managed_by_filter" class="align-top">{% trans 'Managed By' %}</th>
+    <th id="course_filter" class="align-top">{% trans 'Course label' %}</th>
+    <th id="course_type_filter" class="align-top">{% trans 'Course type' %}</th>
+    <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
+    <th id="building_filter" class="align-top">{% trans 'Campus' %} - {% trans 'Building' %}</th>
+    <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
+    <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
+    <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
+    <th class="align-top">{% trans 'Info.' %}</th>
+    <th class="align-top">{% trans 'Control' %}</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+{% endblock %}
