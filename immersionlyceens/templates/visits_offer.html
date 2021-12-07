@@ -113,6 +113,46 @@
                           {% endif %}
                             </ul>
                           </td>
+                          {% if s.establishments_restrictions or s.levels_restrictions %}
+                          <td style="width: 20%" rowspan="2">
+                            {% if s.allowed_establishments.all%}
+                            {% trans "Allowed establishments" %} :
+                            <ul>
+                            {% for e in s.allowed_establishments.all %}
+                            <li>{{ e.label }} - {{ e.city }}</li>
+                            {% endfor %}
+                            </ul>
+                            {% endif %}
+                           {% if s.allowed_highschools.all%}
+                            {% trans "Allowed highschools" %} :
+                            <ul>
+                            {% for h in s.allowed_highschools.all %}
+                            <li>{{ h.label }} - {{ h.city }}</li>
+                            {% endfor %}
+                            </ul>
+                            {% endif %}
+                          {% endif %}
+                          {% if s.levels_restrictions %}
+                            {% if s.allowed_highschool_levels.all %}
+                              {% trans "Allowed highschool levels" %}
+                              {% for l in  s.allowed_highschool_levels.all %}
+                              {{ l }}
+                              {% endfor %}
+                            {% endif %}
+                            {% if s.allowed_student_levels.all %}
+                              {% trans "Allowed student levels" %}
+                              {% for l in  s.allowed_student_levels.all %}
+                              {{ l }}
+                              {% endfor %}
+                            {% endif %}
+                            {% if s.allowed_post_bachelor_levels.all %}
+                              {% trans "Allowed post bachelor levels" %}
+                              {% for l in  s.allowed_post_bachelor_levels.all %}
+                              {{ l }}
+                              {% endfor %}
+                            {% endif %}
+                          </td>
+                          {% endif %}
                           <td>
                             {% if s.cancelled %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>

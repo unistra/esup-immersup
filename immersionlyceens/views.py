@@ -329,8 +329,9 @@ def visits_offer(request):
     except InformationText.DoesNotExist:
         visits_txt = ''
 
-    # Published visits only & no course slot
+    # Published visits only & no course nor event slot
     filters["course__isnull"] = True
+    filters["event__isnull"] = True
     filters["visit__published"] = True
 
     # If user is highschool student filter on highschool
@@ -366,7 +367,7 @@ def offer_off_offer_events(request):
     except InformationText.DoesNotExist:
         events_txt = ''
 
-    # Published event only & no course slot
+    # Published event only & no course nor visit slot
     filters["course__isnull"] = True
     filters["visit__isnull"] = True
     filters["event__published"] = True
