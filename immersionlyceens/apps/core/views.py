@@ -998,7 +998,7 @@ def students_presence(request):
 
 
 @login_required
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE')
+@groups_required('REF-ETAB-MAITRE')
 def duplicated_accounts(request):
     """
     Manage duplicated accounts
