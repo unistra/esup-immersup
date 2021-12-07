@@ -127,6 +127,7 @@
                           </td>
                           {% if s.establishments_restrictions or s.levels_restrictions %}
                           <td style="width: 20%" rowspan="2">
+                            <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                             {% if s.allowed_establishments.all%}
                             {% trans "Allowed establishments" %} :
                             <ul>
