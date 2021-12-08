@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block confirm_slot_creation %}
+<div id="date-dialog-form" style='z-index:3000;' title='{% trans "Confirm event slot creation" %}'>
+  <span>
+    {% trans 'This date is inside a vacation or a holiday. Do you really want to create a course slot with this date ?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block confirm_publication %}
+<div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course" %}'>
+  <span>
+    {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block card_header %}
+<div class="card-header text-white bg-secondary">
+  {% if slot %}
+    {% if slot.id %}
+      {% trans 'modify slot' %}
+    {% else %}
+      {% trans 'duplicate slot' %}
+    {% endif %}
+  {% else %}
+    {% trans 'Add a new slot' %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block specific_fields %}
+<input type="hidden" name="face_to_face" value="1">
+
+<div class="form-group row">
+  <label for="id_training" class="col-sm-3 col-form-label">
+    <i class="fa fas fa-asterisk"></i>
+    {% trans 'Training' %} :
+  </label>
+  <div class="col-sm-3">
+    {{ form.training }}
+  </div>
+  <div class="col-sm-6">
+    {{ form.training.errors }}
+  </div>
+</div>
+
+<div class="form-group row">
+  <label for="id_course" class="col-form-label col-sm-3">{% trans 'Course' %}</label>
+  <div class="col-sm-3">
+    {{ form.course }}
+  </div>
+  {% if form.course.errors %}
+    <div class="col-sm-6 alert alert-danger">
+      {{ form.course.errors }}
+    </div>
+  {% endif %}
+</div>
+<div class="form-group row">
+  <label for="id_course_type" class="col-form-label col-sm-3">{% trans 'Course type' %}</label>
+  <div class="col-sm-3">
+    {{ form.course_type }}
+  </div>
+  {% if slot_form.course_type.errors %}
+    <div class="col-sm-6 alert alert-danger">
+      {{ form.course_type.errors }}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+<script>
+
+  $('#id_establishment').change( function() {
+    establishment_id = $('#id_establishment option:selected').val();
+    structure_id = ""
+    training_id = ""
+
+    empty_structures()
+    empty_trainings()
+    empty_campuses()
+    empty_buildings()
+
+    if (establishment_id !== "") {
+        highschool_id = ""
+        $('#id_highschool').val("")
+        set_structures(establishment_id)
+        set_campuses(establishment_id)
+    }
+    else {
+        $("#id_div_highschool").show()
+        $("#id_div_campus").hide()
+        $("#id_div_building").hide()
+    }
+  });
+
+  $('#id_structure').change( function() {
+    structure_id = $('#id_structure option:selected').val()
+
+    if(structure_id !== '') {
+      set_trainings('structure', structure_id)
+    }
+    else {
+      empty_trainings()
+    }
+  });
+
+  $('#id_highschool').change( function() {
+    highschool_id = $('#id_highschool option:selected').val()
+
+    if (highschool_id !== "") {
+      empty_structures()
+      empty_campuses()
+      empty_buildings()
+      $('#id_establishment').val("")
+      $('#id_structure').val("")
+      $("#id_div_campus").hide()
+      $("#id_div_building").hide()
+      $("#id_div_establishment").hide()
+      $("#id_or").hide()
+    } else {
+      $("#id_or").show()
+      $("#id_div_establishment").show()
+      $("#id_div_campus").show()
+      $("#id_div_building").show()
+    }
+
+    set_trainings('highschool', highschool_id)
+  });
+
+  $('#id_training').change( function() {
+    let type, object_id
+    training_id = $('#id_training option:selected').val();
+
+    if(highschool_id) {
+      type = "highschool"
+      object_id = highschool_id
+    }
+    else if(structure_id) {
+      type = "structure"
+      object_id = structure_id
+    }
+
+    set_courses(type, object_id, training_id);
+  });
+
+  $('#id_course').change( function() {
+    course_id = $('#id_course option:selected').val();
+
+    if(course_id !== '' && courses[course_id]['published'] === false) {
+      courseDialog.dialog('open');
+    }
+
+    load_speakers(course_id);
+  });
+
+  $('#id_campus').change( function() {
+    campus_id = $('#id_campus option:selected').val();
+
+    if(campus_id !== "") {
+      set_buildings(campus_id)
+    }
+    else {
+      empty_buildings()
+    }
+  });
+
+
+$(document).ready(function(){
+  // initialize base values
+  if(!is_set(highschool_id)) {
+    highschool_id = $("#id_highschool").val()
+  }
+  else {
+    $("#id_highschool").val(highschool_id)
+  }
+
+  if(highschool_id) {
+    $("#id_div_establishment").hide()
+    $("#id_or").hide()
+  }
+
+  if(!is_set(establishment_id)) {
+    establishment_id = $("#id_establishment").val()
+  } else {
+    $("#id_establishment").val(establishment_id)
+  }
+
+  if(establishment_id) {
+    highschool_id = ""
+    set_structures(establishment_id)
+    set_campuses(establishment_id)
+    $("#id_div_highschool").hide()
+  }
+  else {
+    structure_id = ""
+    empty_structures()
+    $("#id_div_highschool").show()
+  }
+
+  if(!is_set(structure_id)) {
+    structure_id = $("#id_structure").val()
+  }
+  else {
+    $("#id_structure").val(structure_id)
+  }
+
+  if(!is_set(training_id)) {
+    training_id = $("#id_training").val()
+  }
+  else {
+      $("#id_training").val(training_id)
+  }
+
+  if(is_set(course_id)) {
+    load_speakers(course_id);
+  }
+
+  if(!is_set(campus_id)) {
+    empty_buildings()
+  }
+  else {
+    set_buildings(campus_id)
+  }
+
+  // Initialize trainings depending on structure / high school selection
+  if(is_set(highschool_id)) {
+    set_trainings('highschool', highschool_id)
+    set_courses('highschool', highschool_id, training_id);
+    $("#id_div_campus").hide()
+    $("#id_div_building").hide()
+  }
+  else if (is_set(structure_id)) {
+    set_trainings('structure', structure_id)
+    set_courses('structure', structure_id, training_id);
+  }
+  else {
+    empty_trainings()
+    empty_courses()
+  }
+
+  initFeedback();
+  // reset feedback
+  setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+
+  dateDialog = $("#date-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          dateDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          $('#id_date').val('');
+          dateDialog.dialog("close");
+        },
+      }],
+  });
+
+  publicationDialog = $("#publication-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          courseDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          $('#id_course').val('');
+          courseDialog.dialog("close");
+        },
+      }],
+  });
+
+  cancelDialog = $("#cancel-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Yes' %}",
+        "class": 'dialog-button',
+        click: function () {
+          let url = "/core/slots"
+
+          let hs_id = $('#id_highschool').val();
+          let est_id = $('#id_establishment').val();
+          let str_id = $('#id_structure').val();
+          let train_id = $('#id_training').val();
+
+          if(hs_id && train_id) {
+            url += "/" + hs_id + "/" + train_id
+          }
+          else if(est_id && str_id && train_id) {
+            url += "/" + est_id + "/" + str_id + "/" + train_id
+          }
+
+          window.location = url;
+          cancelDialog.dialog("close");
+        },
+      },
+      {
+        text: "{% trans 'No' %}",
+        "class": 'dialog-button',
+        click: function () {
+          cancelDialog.dialog("close");
+        },
+      }],
+  });
+
+  /*
+  $('#id_course').change(function(event){
+    if(courses[event.target.value]['published'] == false) {
+      courseDialog.dialog('open');
+    }
+  });
+  */
+
+  function check_date() {
+    $.ajax({
+      url: '/api/check_vacations',
+      data: {
+        date: $('#id_date').val(),
+      },
+      success: function(data) {
+        if ( data['data'] ) {
+          if (data['data']['is_between']) {
+            dateDialog.dialog('open');
+          }
+        }
+      },
+    });
+  }
+
+  function toggle_required_fields () {
+    let published = $('#id_published').prop('checked');
+    if (published) {
+      let mandatory = Array()
+      if(structure_id) {
+          mandatory = [
+              'course', 'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time',
+              'speakers', 'n_places'
+          ]
+      }
+      else if (highschool_id) {
+          mandatory = ['course', 'course_type', 'room', 'date', 'start_time', 'end_time', 'speakers', 'n_places']
+      }
+      mandatory.forEach(function(e){
+        $('#id_' + e).attr('required', 'sfdgsg');
+      });
+    }
+    else {
+      let not_mandatory = [
+        'course_type', 'campus', 'building', 'room', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+      ];
+      let mandatory = ['training', 'course'];
+
+      not_mandatory.forEach(function(e){
+        $('#id_' + e).removeAttr('required');
+      });
+
+      mandatory.forEach(function(e){
+        $('#id_' + e).attr('required', 'sfdgsg');
+      });
+    }
+  }
+
+  function toggle_establishments_restrictions() {
+    if ($('#id_establishments_restrictions').prop('checked')) {
+      $('#id_div_allowed_establishments').show()
+      $('#establishments_restrictions_hint').show()
+    }
+    else {
+      $('#id_div_allowed_establishments').hide()
+      $('#establishments_restrictions_hint').hide()
+      $('#id_allowed_establishments').find('option').prop('selected',false)
+      $('#id_allowed_highschools').find('option').prop('selected',false)
+    }
+  }
+
+  function toggle_levels_restrictions() {
+    if ($('#id_levels_restrictions').prop('checked')) {
+      $('#id_div_allowed_levels').show()
+      $('#levels_restrictions_hint').show()
+    }
+    else {
+      $('#id_div_allowed_levels').hide()
+      $('#levels_restrictions_hint').hide()
+      $('#id_allowed_highschool_levels').find('option').prop('selected',false)
+      $('#id_allowed_student_levels').find('option').prop('selected',false)
+      $('#id_allowed_post_bachelor_levels').find('option').prop('selected',false)
+    }
+  }
+
+  // Change input type
+  $('#id_start_time').get(0).type = 'time';
+  $('#id_end_time').get(0).type = 'time';
+
+  // Date check
+  $('#id_date').on('change', function() {
+    check_date();
+  });
+
+  // Back button + confirm
+  $('.back_btn').click(function (event) {
+    cancelDialog.dialog('open');
+  });
+
+  $(".datepicker").datepicker({
+    dateFormat: 'dd/mm/yy',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "2020:2100",
+  });
+
+  // toggle
+  toggle_required_fields();
+  $('#id_published').on('change', function(){ toggle_required_fields(); });
+
+  toggle_establishments_restrictions();
+  $('#id_establishments_restrictions').on('change', function() { toggle_establishments_restrictions() });
+
+  toggle_levels_restrictions();
+  $('#id_levels_restrictions').on('change', function() { toggle_levels_restrictions() });
+
+  {% if slot or request.POST.structure %}
+    {% if slot %}
+      setTimeout(function(){
+        $('#ok_modify').fadeOut(1000, function(){
+          $('#ok_modify').hide();
+        });
+        },
+        {%  settings_get 'MESSAGES_TIMEOUT' %}
+      );
+    {% endif %}
+  {% endif %}
+});
+</script>
+{% endblock %}

@@ -1,45 +1,36 @@
 function init_datatable() {
   dt = $('#slots_list').DataTable({
-      'processing': false,
-      'order': [
-        [4, "asc"]
-      ],
-      'pageLength': 15,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, all_text]],
-      'serverSide': false,
-      'responsive': false,
-      'ajax': {
-        url: "/api/slots",
-        data: function(d) {
-          d.past = $('#filter_past_slots').is(':checked')
-          d.visits = false
-          d.events = false
-          return d
-        },
-        dataSrc: function (json) {
-          if (json['data'] !== undefined) {
-            return json['data'];
-          }
-        }
+    'processing': false,
+    'order': [
+      [4, "asc"]
+    ],
+    'pageLength': 15,
+    'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, all_text]],
+    'serverSide': false,
+    'responsive': false,
+    'ajax': {
+      url: "/api/slots",
+      data: function(d) {
+        d.past = $('#filter_past_slots').is(':checked')
+        d.visits = false
+        d.events = false
+        return d
       },
+      dataSrc: function (json) {
+        if (json['data'] !== undefined) {
+          return json['data'];
+        }
+      }
+    },
     'searching': true,
     'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        url: language_file
     },
     'columns': [
     {
       "data": "published",
       "render": function (data) {
-        let txt
-
-        if (data) {
-          txt = yes_text;
-        }
-        else {
-          txt = no_text;
-        }
-
-        return txt;
+        return (data) ? yes_text : no_text;
       },
     },
     { "data": "structure.code",

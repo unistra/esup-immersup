@@ -701,7 +701,7 @@ def myslots(request, slots_type=None):
     elif slots_type == "events":
         return render(request, 'core/my_events_slots.html', context)
     elif slots_type == "courses":
-        return render(request, 'core/myslots.html', context)
+        return render(request, 'core/my_courses_slots.html', context)
 
 
 @groups_required('REF-LYC',)
@@ -1076,7 +1076,7 @@ class TrainingUpdate(generic.UpdateView):
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
 class CourseSlotList(generic.TemplateView):
-    template_name = "core/course_slots_list.html"
+    template_name = "core/courses_slots_list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1140,7 +1140,7 @@ class CourseSlotList(generic.TemplateView):
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
 class CourseSlotAdd(generic.CreateView):
     form_class = SlotForm
-    template_name = "core/common_slot.html"
+    template_name = "core/course_slot.html"
     duplicate = False
 
     def get_success_url(self):
@@ -1156,7 +1156,7 @@ class CourseSlotAdd(generic.CreateView):
         elif self.duplicate and self.object.pk:
             return reverse("duplicate_course_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
         else:
-            return reverse("course_slots")
+            return reverse("courses_slots")
 
 
     def get_context_data(self, *args, **kwargs):
@@ -1286,7 +1286,7 @@ class CourseSlotAdd(generic.CreateView):
 class CourseSlotUpdate(generic.UpdateView):
     model = Slot
     form_class = SlotForm
-    template_name = "core/common_slot.html"
+    template_name = "core/course_slot.html"
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -1350,7 +1350,7 @@ class CourseSlotUpdate(generic.UpdateView):
         elif self.duplicate and self.object.pk:
             return reverse("duplicate_course_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
         else:
-            return reverse("course_slots")
+            return reverse("courses_slots")
 
 
     def form_valid(self, form):
@@ -1372,19 +1372,6 @@ class CourseSlotUpdate(generic.UpdateView):
     def form_invalid(self, form):
         messages.error(self.request, _("Course slot \"%s\" not updated.") % form.instance)
         return super().form_invalid(form)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
@@ -1585,6 +1572,7 @@ class VisitSlotList(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
+        context["slot_mode"] = "visit"
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
@@ -2029,11 +2017,12 @@ class OffOfferEventUpdate(generic.UpdateView):
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
 class OffOfferEventSlotList(generic.TemplateView):
-    template_name = "core/common_slots_list.html"
+    template_name = "core/off_offer_events_slots_list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
+        context["slot_mode"] = "event"
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
@@ -2084,7 +2073,7 @@ class OffOfferEventSlotList(generic.TemplateView):
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
 class OffOfferEventSlotAdd(generic.CreateView):
     form_class = OffOfferEventSlotForm
-    template_name = "core/common_slot.html"
+    template_name = "core/off_offer_event_slot.html"
     duplicate = False
 
     def get_success_url(self):
@@ -2219,7 +2208,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
 class OffOfferEventSlotUpdate(generic.UpdateView):
     model = Slot
     form_class = OffOfferEventSlotForm
-    template_name = "core/common_slot.html"
+    template_name = "core/off_offer_event_slot.html"
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user

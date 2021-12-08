@@ -43,7 +43,7 @@ urlpatterns = [
 
 
 
-    path('slots/', views.CourseSlotList.as_view(), name='course_slots'),
+    path('slots/', views.CourseSlotList.as_view(), name='courses_slots'),
     path('slots/<int:highschool_id>/<int:training_id>/<int:course_id>', views.CourseSlotList.as_view(),
          name='high_school_filtered_course_slots_list'),
     path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>',
