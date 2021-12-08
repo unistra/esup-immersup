@@ -4,6 +4,7 @@ import os
 from wsgiref.util import FileWrapper
 
 from django.conf import settings
+from django.db.models.query_utils import Q
 from django.http import (
     HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
     HttpResponseNotFound, StreamingHttpResponse,
@@ -337,7 +338,10 @@ def visits_offer(request):
     # If user is highschool student filter on highschool
     try:
         if request.user.is_high_school_student() and not request.user.is_superuser:
-            filters["visit__highschool"] = request.user.get_high_school_student_record().highschool
+            user_highschool = request.user.get_high_school_student_record().highschool
+            filters["visit__highschool"] = user_highschool
+            filters["allowed_highschools"] = Q(establishment_restrictions=False) | Q(allowed_highschools__contains=user_highschool)
+            # TODO: add level restrictions !!!
     except:
         # AnonymousUser
         pass
@@ -375,7 +379,10 @@ def offer_off_offer_events(request):
     # If user is highschool student filter on highschool
     try:
         if request.user.is_high_school_student() and not request.user.is_superuser:
-            filters["event__highschool"] = request.user.get_high_school_student_record().highschool
+            user_highschool = request.user.get_high_school_student_record().highschool
+            filters["event__highschool"] = user_highschool
+            filters["allowed_highschools"] = Q(establishment_restrictions=False) | Q(allowed_highschools__contains=user_highschool)
+            # TODO: add level restrictions !!!
     except:
         # AnonymousUser
         pass
