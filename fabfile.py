@@ -228,6 +228,8 @@ def prod():
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
     }
     execute(build_env)
 
