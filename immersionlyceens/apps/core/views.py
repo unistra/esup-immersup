@@ -1097,7 +1097,9 @@ class CourseSlotList(generic.TemplateView):
         context["highschool_id"] = \
             kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
 
-        context["training_id"] = kwargs.get('training_id', None)
+        context["training_id"] = \
+            kwargs.get('training_id', None) or self.request.session.get('current_training_id', None)
+
         context["course_id"] = kwargs.get('course_id', None)
 
         if context["course_id"]:
@@ -1145,11 +1147,13 @@ class CourseSlotAdd(generic.CreateView):
 
     def get_success_url(self):
         self.request.session['current_establishment_id'] = \
-            self.object.event.establishment.id if self.object.event.establishment else None
+            self.object.course.structure.establishment.id if self.object.course.structure else None
         self.request.session['current_structure_id'] = \
-            self.object.event.structure.id if self.object.event.structure else None
+            self.object.course.structure.id if self.object.course.structure else None
+        self.request.session['current_training_id'] = \
+            self.object.course.training.id if self.object.course.training else None
         self.request.session['current_highschool_id'] = \
-            self.object.event.highschool.id if self.object.event.highschool else None
+            self.object.course.highschool.id if self.object.course.highschool else None
 
         if self.add_new:
             return reverse("add_course_slot")
@@ -1189,6 +1193,7 @@ class CourseSlotAdd(generic.CreateView):
             context["establishment_id"] = self.request.session.get('current_establishment_id', None)
             context["structure_id"] = self.request.session.get('current_structure_id', None)
             context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+            context["tranining_id"] = self.request.session.get('current_training_id', None)
 
         if self.duplicate and object_pk:
             context = {'duplicate': True}
@@ -1244,7 +1249,7 @@ class CourseSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
-        elif course and training:
+        elif not self.request.POST and course and training:
             initials = {
                 'establishment': context.get("establishment_id", None),
                 'structure': context.get("structure_id", None),
@@ -1261,6 +1266,7 @@ class CourseSlotAdd(generic.CreateView):
         context["establishment_id"] = self.request.session.get('current_establishment_id')
         context["structure_id"] = self.request.session.get('current_structure_id')
         context["highschool_id"] = self.request.session.get('current_highschool_id')
+        context["training_id"] = self.request.session.get('current_training_id')
 
         return context
 
@@ -1291,16 +1297,16 @@ class CourseSlotUpdate(generic.UpdateView):
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
         if user.is_master_establishment_manager():
-            return Slot.objects.filter(event__isnull=False)
+            return Slot.objects.filter(course__isnull=False)
 
         if user.is_establishment_manager():
-            return Slot.objects.filter(event__establishment=user.establishment)
+            return Slot.objects.filter(course__establishment=user.establishment)
 
         if user.is_high_school_manager():
-            return Slot.objects.filter(event__highschool=user.highschool)
+            return Slot.objects.filter(course__highschool=user.highschool)
 
         if user.is_structure_manager():
-            return Slot.objects.filter(event__structure__in=user.get_authorized_structures())
+            return Slot.objects.filter(course__structure__in=user.get_authorized_structures())
 
 
     def get_form_kwargs(self):
@@ -1318,11 +1324,13 @@ class CourseSlotUpdate(generic.UpdateView):
             try:
                 slot = Slot.objects.get(pk=slot_id)
                 self.request.session["current_structure_id"] = \
-                    slot.event.structure.id if slot.event.structure else None
+                    slot.course.structure.id if slot.course.structure else None
                 self.request.session["current_highschool_id"] = \
-                    slot.event.highschool.id if slot.event.highschool else None
+                    slot.course.highschool.id if slot.course.highschool else None
                 self.request.session["current_establishment_id"] = \
-                    slot.event.establishment.id if slot.event.establishment else None
+                    slot.course.structure.establishment.id if slot.course.structure else None
+                self.request.session["current_training_id"] = \
+                    slot.course.training.id if slot.course.training else None
 
                 speakers_list = [{
                     "id": t.id,
@@ -1360,11 +1368,13 @@ class CourseSlotUpdate(generic.UpdateView):
         messages.success(self.request, _("Course slot \"%s\" updated.") % form.instance)
 
         self.request.session["current_structure_id"] = \
-            self.object.event.structure.id if self.object.event.structure else None
+            self.object.course.structure.id if self.object.course.structure else None
         self.request.session["current_highschool_id"] = \
-            self.object.event.highschool.id if self.object.event.highschool else None
+            self.object.course.highschool.id if self.object.course.highschool else None
         self.request.session["current_establishment_id"] = \
-            self.object.event.establishment.id if self.object.event.establishment else None
+            self.object.course.structure.establishment.id if self.object.course.structure else None
+        self.request.session["current_training_id"] = \
+            self.object.course.training.id if self.object.course.training else None
 
         return super().form_valid(form)
 
@@ -1690,7 +1700,7 @@ class VisitSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
-        elif visit:
+        elif not self.request.POST and visit:
             initials = {
                 'establishment': context.get("establishment_id", None),
                 'structure': context.get("structure_id", None),
@@ -2167,7 +2177,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 context["form"] = self.form
             except Slot.DoesNotExist:
                 pass
-        elif event:
+        elif not self.request.POST and event:
             initials = {
                 'establishment': context.get("establishment_id", None),
                 'structure': context.get("structure_id", None),

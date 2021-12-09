@@ -261,7 +261,7 @@
           <label for="id_establishments_restrictions" class="col-form-label col-sm-3">
             {% trans 'Use establishments restrictions' %}
           </label>
-          <div class="col-sm-3">
+          <div class="col-sm-6">
             {{ form.establishments_restrictions }}
             <span id="establishments_restrictions_hint">
               <i>{% trans "Keep 'Ctrl' or 'Command' key pressed to select multiple items" %}</i>
@@ -416,6 +416,7 @@
   var speakers = "{{ speakers }}" ? JSON.parse('{{ speakers|safe }}') : Array();
 
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+  var slot_mode = "{{ slot_mode }}"
 
   function empty_structures() {
       let options = '<option value="">---------</option>'
@@ -736,13 +737,18 @@
 
   $('#id_structure').change( function() {
     structure_id = $('#id_structure option:selected').val()
-    set_events()
+    if (slot_mode === "course") set_trainings('structure', structure_id)
+    else if(slot_mode === "event") set_events()
+    else if(slot_mode === "visit") set_visits()
+
   });
 
   $('#id_highschool').change( function() {
     highschool_id = $('#id_highschool option:selected').val()
 
-    empty_events()
+    if(slot_mode === "course") empty_courses()
+    else if(slot_mode === "event") empty_events()
+    else if(slot_mode === "visit") empty_visits()
 
     if (highschool_id !== "") {
       establishment_id = ""
@@ -757,7 +763,10 @@
       empty_structures()
       empty_campuses()
       empty_buildings()
-      set_events()
+
+      if(slot_mode === "course") set_trainings('highschool', highschool_id)
+      else if(slot_mode === "event") set_events()
+      else if(slot_mode === "visit") set_visits()
     } else {
       $("#id_div_establishment").show()
       $("#id_div_structure").show()
@@ -777,15 +786,55 @@
     }
   });
 
+  $('#id_training').change( function() {
+    let type, object_id
+    training_id = $('#id_training option:selected').val();
+
+    if(highschool_id) {
+      type = "highschool"
+      object_id = highschool_id
+    }
+    else if(structure_id) {
+      type = "structure"
+      object_id = structure_id
+    }
+
+    set_courses(type, object_id, training_id);
+  });
+
+  $('#id_course').change( function() {
+    course_id = $('#id_course option:selected').val();
+
+    if(course_id !== '' && courses[course_id]['published'] === false) {
+      courseDialog.dialog('open');
+    }
+
+    load_speakers(course_id);
+  });
+
 
 
   function toggle_required_fields () {
     let published = $('#id_published').prop('checked');
     let face_to_face = $('#id_face_to_face').prop('checked');
     if (published) {
-      let mandatory = [
-        'event', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
-      ]
+      let mandatory = Array()
+
+      if(slot_mode === "event") {
+        mandatory = [
+          'event', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+        ]
+      }
+      else if (slot_mode === "course") {
+        mandatory = [
+          'training', 'course', 'course_type', 'room', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+        ]
+      }
+      else if (slot_mode === "visit") {
+        mandatory = [
+          'visit', 'room', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+        ]
+      }
 
       if(face_to_face) {
           mandatory.push("room")
@@ -849,7 +898,7 @@
   }
 
   function toggle_face_to_face() {
-    if($('#id_face_to_face').is(':checked')) {
+    if($('#id_face_to_face').is(':checked') || $('#id_face_to_face').val() === "1") {
       $("#id_div_room").show()
 
       if($('#id_published').prop('checked')) {
@@ -998,6 +1047,12 @@ $(document).ready(function(){
     }
   }
 
+  if(slot_mode === "course") {
+    if(is_set(course_id)) {
+      load_speakers(course_id);
+    }
+  }
+
   if($('#id_face_to_face').is(':checked')) {
     $("#id_div_room").show()
     $('#id_room').attr('required', 'required');
@@ -1081,7 +1136,7 @@ $(document).ready(function(){
         click: function () {
           let url = ""
           if (slot_mode === 'course') {
-            url = "/core/course_slots"
+            url = "/core/slots"
           }
           else if (slot_mode === 'event') {
             url = "/core/off_offer_events_slots"

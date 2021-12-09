@@ -293,7 +293,48 @@ class SlotForm(forms.ModelForm):
             course.published = True
             course.save()
 
+        try:
+            speakers = self.data.getlist("speakers_list", [])
+            cleaned_data["speakers"] = speakers
+        except Exception as e:
+            speakers = []
+
+        if pub and not speakers:
+            msg = _("Please select at least one speaker.")
+            # messages.error(self.request, msg)
+            raise forms.ValidationError(msg)
+
         return cleaned_data
+
+    def save(self, *args, **kwargs):
+        instance = super().save(*args, **kwargs)
+
+        self.request.session['current_establishment_id'] = \
+            instance.course.structure.establishment.id if instance.course.structure else None
+        self.request.session['current_highschool_id'] = \
+            instance.course.highschool.id if instance.course.highschool else None
+        self.request.session['current_structure_id'] = \
+            instance.course.structure.id if instance.course.structure else None
+
+        speakers_list = self.cleaned_data.get('speakers', [])
+        current_speakers = [f"{u}" for u in instance.speakers.all().values_list('id', flat=True)]
+        new_speakers = [speaker for speaker in speakers_list]
+
+        # speakers to add
+        for speaker_id in new_speakers:
+            if not instance.speakers.filter(id=speaker_id).exists():
+                instance.speakers.add(speaker_id)
+
+        # speakers to remove
+        remove_list = set(current_speakers) - set(new_speakers)
+        for id in remove_list:
+            try:
+                user = ImmersionUser.objects.get(id=id)
+                instance.speakers.remove(user)
+            except ImmersionUser.DoesNotExist:
+                pass
+
+        return instance
 
     class Meta:
         model = Slot

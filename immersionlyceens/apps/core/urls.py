@@ -56,8 +56,7 @@ urlpatterns = [
          name='add_high_school_course_slot'),
     path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>',
          views.CourseSlotAdd.as_view(), name='add_establishment_course_slot'),
-
-
+    path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
 
     path('stats/', views.stats, name="stats"),
     path('student_validation/', views.student_validation, name='student_validation_global'),
