@@ -779,7 +779,8 @@ class ImmersionUserCreationForm(UserCreationForm):
             #    self.fields["establishment"].queryset = self.fields["establishment"].queryset.filter(master=False)
 
             # A regular establishment manager has only access to his own establishment
-            if self.request.user.is_establishment_manager():
+            if self.request.user.is_establishment_manager() and "establishment" in self.fields:
+                print(self.fields.keys())
                 self.fields["establishment"].empty_label = None
                 self.fields["establishment"].queryset = Establishment.objects.filter(
                     pk=self.request.user.establishment.pk
