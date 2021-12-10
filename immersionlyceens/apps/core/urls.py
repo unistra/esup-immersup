@@ -6,6 +6,22 @@ from django.urls import path
 
 from . import views
 
+"""
+    path('slot', views.slot, name='slot'),
+    path('slot/<int:slot_id>', views.slot, name='modify_slot'),
+    path('slot/<int:slot_id>/<int:duplicate>', views.slot, name='duplicate_slot'),
+    path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
+    path('slot/add/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slot, name='add_high_school_slot'),
+    path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slot,
+         name='add_establishment_slot'),
+
+    path('slots/', views.slots_list, name='slots_list'),
+    path('slots/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slots_list,
+         name='high_school_filtered_slots_list'),
+    path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slots_list,
+         name='establishment_filtered_slots_list'),
+    """
+
 urlpatterns = [
     path('structure', views.structure, name='structure'),
     path('structure/<structure_code>', views.structure, name='update_structure'),
@@ -25,19 +41,22 @@ urlpatterns = [
     path('myevents/', views.myevents, name='myevents'),
     path('myslots/<str:slots_type>', views.myslots, name='myslots'),
 
-    path('slot', views.slot, name='slot'),
-    path('slot/<int:slot_id>', views.slot, name='modify_slot'),
-    path('slot/<int:slot_id>/<int:duplicate>', views.slot, name='duplicate_slot'),
-    path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
-    path('slot/add/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slot, name='add_high_school_slot'),
-    path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slot,
-         name='add_establishment_slot'),
 
-    path('slots/', views.slots_list, name='slots_list'),
-    path('slots/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slots_list,
-         name='high_school_filtered_slots_list'),
-    path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slots_list,
-         name='establishment_filtered_slots_list'),
+
+    path('slots/', views.CourseSlotList.as_view(), name='courses_slots'),
+    path('slots/<int:highschool_id>/<int:training_id>/<int:course_id>', views.CourseSlotList.as_view(),
+         name='high_school_filtered_course_slots_list'),
+    path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>',
+         views.CourseSlotList.as_view(), name='establishment_filtered_course_slots_list'),
+
+    path('slot', views.CourseSlotAdd.as_view(), name='add_course_slot'),
+    path('slot/<int:pk>', views.CourseSlotUpdate.as_view(), name='update_course_slot'),
+    path('slot/<int:pk>/<int:duplicate>', views.CourseSlotAdd.as_view(), name='duplicate_course_slot'),
+    path('slot/add/<int:highschool_id>/<int:training_id>/<int:course_id>', views.CourseSlotAdd.as_view(),
+         name='add_high_school_course_slot'),
+    path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>',
+         views.CourseSlotAdd.as_view(), name='add_establishment_course_slot'),
+    path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
 
     path('stats/', views.stats, name="stats"),
     path('student_validation/', views.student_validation, name='student_validation_global'),

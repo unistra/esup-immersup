@@ -36,8 +36,8 @@
             <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
               <a class="dropdown-item" href="{% url 'courses_list' %}">{% trans 'Courses list' %}</a>
               <a class="dropdown-item" href="{% url 'course' %}">{% trans 'New course' %}</a>
-              <a class="dropdown-item" href="{% url 'slots_list' %}">{% trans 'Slots list' %}</a>
-              <a class="dropdown-item" href="{% url 'slot' %}">{% trans 'New slot' %}</a>
+              <a class="dropdown-item" href="{% url 'courses_slots' %}">{% trans 'Slots list' %}</a>
+              <a class="dropdown-item" href="{% url 'add_course_slot' %}">{% trans 'New slot' %}</a>
             </div>
           </div>
         {% endif %}

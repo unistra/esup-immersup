@@ -1,0 +1,235 @@
+function init_datatable() {
+  dt = $('#slots_list').DataTable({
+    ajax: {
+      url: '/api/slots',
+      data: function(d) {
+          d.training_id = current_training_id || $('#id_training').val();
+
+          if($('#id_structure').val()) {
+            d.structure_id = current_structure_id || $('#id_structure').val();
+          }
+          else if($('#id_highschool').val()) {
+            d.highschool_id = current_highschool_id || $('#id_highschool').val();
+          }
+          return d
+      },
+      dataSrc: function (json) {
+        if (json['data'] !== undefined && json['data'].length !== 0) {
+          return json['data'];
+        }
+        return [];
+      }
+    },
+    order: [[4, "asc"]],
+    processing: false,
+    serverSide: false,
+    responsive: false,
+    info: false,
+    search: true,
+    searchCols: [
+        null,
+        null,
+        { "search": course_label_filter },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+    ],
+    paging: true,
+    ordering: true,
+    language: {
+      url: language_file
+    },
+    columns: [
+        { data: 'published',
+          render: function(data, type, row) {
+            return (data) ? yes_text : no_text;
+          }
+        },
+        { data: 'structure',
+          render: function(data, type, row) {
+            if(row.structure) {
+                return row.structure.code;
+            }
+            else if (row.highschool) {
+                return row.highschool.label;
+            }
+
+            return ""
+          },
+        },
+        { data: "course",
+          "render": function (data, type, row) {
+            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
+              return '<a href="/core/course/' + data.id + '">' + data.label + '</a>'
+            } else {
+              return data.label
+            }
+          },
+        },
+        { data: 'course_type' },
+        { data: 'datetime',
+          render: function(data, type, row) {
+            if(type === "display" || type === "filter") {
+              return "<span>" + row.date + "</span><br><span>" + row.time['start'] + " - " + row.time['end'] + "</span>";
+            }
+
+            return data;
+          }
+        },
+        { data: 'location',
+          render: function(data) {
+            return data['campus'] + '<br>' + data['building'];
+          }
+        },
+        { data: 'room'},
+        { data: 'speakers',
+          render: function(data) {
+            let element = '';
+            $.each(data, function(name, email) {
+              element += '<a href="mailto:' + email + '">' + name + '</a><br>'
+            });
+            return element;
+          }
+        },
+        { data: 'n_register',
+          render: function(data, type, row) {
+            let current = data;
+            let n = row['n_places'];
+            element = '<span>' + current + '/' + n + '</span>' +
+                '<div class="progress">' +
+                '    <div' +
+                '       class="progress-bar"' +
+                '       role="progressbar"' +
+                '       aria-valuenow="' + current + '"' +
+                '       aria-valuemin="0"' +
+                '       aria-valuemax="' + n + '"' +
+                '       style="width: ' + Math.round(current/n * 100) + '%"' +
+                '></div>' +
+                '</div>';
+            return element;
+          }
+        },
+        { data: 'additional_information',
+          render: function(data) {
+            if (data) {
+              return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+            } else {
+              return '';
+            }
+          }
+        },
+        { data: 'id',
+          render: function(data, type, row) {
+            if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
+              let element =
+            '        <a href="/core/slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
+            '         title="' + duplicate_text + '"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
+
+              if(row.is_past === false) {
+                element += '<a href="/core/slot/' + data + '" class="btn btn-light btn-sm mr-1" title="' + modify_text + '"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
+              }
+              if(row.n_register === 0 && row.is_past === false) {
+                element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="' + delete_text + '"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
+              }
+
+              if(row.attendances_value === 1) {
+                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"" + attendances_text + "\">" +
+                           "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
+                           "</button>";
+              }
+              else if (row.attendances_value !== -1) {
+                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"" + registered_text + "\">" +
+                           "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
+                           "</button>";
+              }
+
+              element += "</div>";
+
+              return element;
+            } else {
+              return '';
+            }
+          }
+        },
+    ],
+    columnDefs: [{
+        defaultContent: '-',
+        targets: '_all'
+    }],
+  });
+
+  yadcf.init(dt, [
+    {
+        column_number: 0,
+        filter_default_label: "",
+        filter_container_id: "published_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 1,
+        filter_default_label: "",
+        style_class: "form-control form-control-sm",
+        filter_container_id: "managed_by_filter",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 2,
+        filter_default_label: "",
+        filter_container_id: "course_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 3,
+        filter_default_label: "",
+        filter_container_id: "course_type_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 4,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "date_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 5,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "building_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 6,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "room_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 7,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "speakers_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+    {
+        column_number: 8,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "registration_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },
+  ])
+}

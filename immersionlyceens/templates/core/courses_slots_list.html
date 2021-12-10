@@ -7,26 +7,42 @@
 
 {% block head-javascript %}
 {{ block.super }}
-<script src="{% static 'js/core/events_slots.js' %}"></script>
+<script src="{% static 'js/core/courses_slots.js' %}"></script>
 {% endblock %}
 
 {% block slot_deletion %}
 <div id="delete-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot deletion" %}'>
   <span>
-    {% trans 'Do you really want to delete this event slot ?' %}
+    {% trans 'Do you really want to delete this slot ?' %}
   </span>
 </div>
 {% endblock %}
 
 {% block card_header %}
 <div class="card-header text-white bg-secondary">
-  {% trans "Event slots" %}
+  {% trans "Slots" %}
 </div>
 {% endblock %}
 
 {% block card_title %}
 <div>
-  <a href="{% url 'add_off_offer_event_slot' %}" class="btn btn-secondary" title="{% trans 'Add an event slot' %}">{% trans 'New event slot' %}</a>
+  <a href="{% url 'add_course_slot' %}" class="btn btn-secondary" title="{% trans 'Add a slot' %}">{% trans 'New slot' %}</a>
+</div>
+{% endblock %}
+
+{% block trainings_filter %}
+<div class="row">
+  <div class="col-md-5">
+    <label for="id_training">{% trans "Select a training" %} :</label>
+    <select name="training" id="id_training" class="form-control">
+      <option value="">-------------</option>
+      {% for training in trainings %}
+        <option value="{{ training.id }}" {% if training.id == training_id %}selected{% endif %}>
+          {{ training.label }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
 </div>
 {% endblock %}
 
@@ -35,10 +51,11 @@
   <tr>
     <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
     <th id="managed_by_filter" class="align-top">{% trans 'Managed By' %}</th>
-    <th id="event_type_filter" class="align-top">{% trans 'Event type' %}</th>
-    <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
+    <th id="course_filter" class="align-top">{% trans 'Course label' %}</th>
+    <th id="course_type_filter" class="align-top">{% trans 'Course type' %}</th>
     <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
-    <th id="location_filter" class="align-top">{% trans 'Location / address' %}</th>
+    <th id="building_filter" class="align-top">{% trans 'Campus' %} - {% trans 'Building' %}</th>
+    <th id="room_filter" class="align-top">{% trans 'Room' %}</th>
     <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
     <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
     <th class="align-top">{% trans 'Info.' %}</th>
@@ -57,7 +74,7 @@
     <td></td>
     <td></td>
     <td></td>
+    <td></td>
   </tr>
 </tbody>
 {% endblock %}
-

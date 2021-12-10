@@ -1,0 +1,550 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
+<link rel="stylesheet" href="{{ STATIC_URL }}/summernote/summernote-bs4.css">
+
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+<script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+{% include '../modals/modal_view_slot_immersions.html' %}
+{% include '../modals/modal_register_students_list.html' %}
+{% include '../modals/modal_contact.html' %}
+<div id="top_indicator" class="hide w-100 bg-success pt-2 pb-1 fixed-top">
+    <p id="top_indicator__content" class="text-center text-light"></p>
+</div>
+<div id="feedback" class="container sticky-top"></div>
+<div class="container-fluid" style="padding-top: 20px; width: 98%;">
+  <div id="delete-dialog-form" style='z-index:3000;' title='{% trans "Confirm visit slot deletion" %}'>
+    <span>
+      {% trans 'Do you really want to delete this visit slot ?' %}
+    </span>
+  </div>
+  <br>
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Visit slots" %}
+    </div>
+    <div class="card-body">
+      <div>
+        <a href="{% url 'add_visit_slot' %}" class="btn btn-secondary" title="{% trans 'Add a visit slot' %}">{% trans 'New visit slot' %}</a>
+      </div>
+      <div class="row">
+        {% if request.user.is_master_establishment_manager %}
+        <div class="col-md-3">
+          <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
+            <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
+            <select id="id_establishment" class="form-control">
+              {% if request.user.is_master_establishment_manager %}
+                <option value="">------------</option>
+              {% endif %}
+              {% for establishment in establishments %}
+                <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
+                  {{ establishment.code }} - {{ establishment.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        {% endif %}
+        <div class="col-md-5" id="id_div_structures">
+          <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
+            <label for="id_structure">{% trans 'Select a structure' %} :</label>
+            <select id="id_structure" class="form-control">
+              <option value="">------------</option>
+              {% for structure in structures %}
+                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                  {{ structure.code }} - {{ structure.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <br>
+      <div class="table-responsive">
+        <table id="slots_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">
+        <thead>
+          <tr>
+            <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+            <th id="highschool_filter" class="align-top">{% trans 'High school' %}</th>
+            <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
+            <th id="purpose_filter" class="align-top">{% trans 'Purpose' %}</th>
+            <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
+            <th id="location_filter" class="align-top">{% trans 'Location / address' %}</th>
+            <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
+            <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
+            <th class="align-top">{% trans 'Info.' %}</th>
+            <th class="align-top">{% trans 'Control' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block foot-javascript %}
+<script>
+  var dt;
+  var current_slot_id;
+  var can_update_attendances = false;
+  var current_structure_id = "{{ structure_id }}";
+  var current_establishment_id = "{{ establishment_id }}";
+  var slot_places = 0;
+  var is_structure_manager = "{{ request.user.is_structure_manager }}"
+  let visit_purpose_filter = "{{ visit_purpose_filter }}"
+
+  let deleteDialog = $("#delete-dialog-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+      text: "{% trans 'Yes' %}",
+      "class": 'dialog-button',
+      click: function () {
+        delete_slot($("#delete-dialog-form").data("slot_id"))
+        deleteDialog.dialog("close");
+      },
+    }, {
+      text: "{% trans 'No' %}",
+      "class": 'dialog-button',
+      click: function () {
+        deleteDialog.dialog("close");
+      },
+  }],
+  });
+
+  function open_modal(slot_id, edit_mode, n_places, is_past=false) {
+    current_slot_id = slot_id;
+    slot_places = n_places;
+
+    if(edit_mode == 1) {
+      can_update_attendances = true;
+      $('#id_update_attendances').show();
+    }
+    else {
+      can_update_attendances = false;
+      $('#id_update_attendances').hide();
+    }
+    // put slot id in register button in modal
+    $('#btn_register_student').data('id', slot_id);
+    $('#modal_view_slot_immersions').data('ispast', is_past)
+    $('#modal_view_slot_immersions').modal('show');
+  }
+
+  $('#id_establishment').change( function() {
+    current_establishment_id = $('#id_establishment option:selected').val();
+    current_structure_id = ""
+
+    if (current_establishment_id !== "") {
+        set_structures(current_establishment_id);
+        dt.clear().draw()
+    }
+    else {
+        empty_structures()
+    }
+
+    reload_data()
+  });
+
+  // Reload the table when structure changes in selectbox
+  $('#id_structure').change( function() {
+    current_structure_id = $('#id_structure option:selected').val()
+    reload_data();
+  });
+
+  function empty_structures() {
+      let options = '<option value="">---------</option>'
+      $('select#id_structure').html(options)
+      current_structure_id = ''
+      $("#id_div_structures").hide()
+  }
+
+  function set_structures(establishment_id) {
+    $.ajax({
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': establishment_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+
+        for (let i = 0; i < json.length; i++) {
+          options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
+        }
+        $('select#id_structure').html(options)
+
+        if(current_structure_id) {
+          $("#id_structure").val(current_structure_id);
+        }
+        else {
+          $("#id_structure").val($("#id_structure option:first").val());
+        }
+
+        $("#id_div_structures").show()
+      }
+    })
+  }
+
+
+$(document).ready(function(){
+    // reset feedback
+    setTimeout(function(){$('#feedback').html('')}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+
+    {% if structure_id %}
+        $('#id_structure option[value="{{ structure_id }}"]').attr('selected', '');
+    {% endif %}
+
+    initFeedback();
+
+    function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.fn.dataTableExt.errMode = 'console';
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+
+    $("#id_structure").on('change', function(event){
+      reload_data();
+    });
+
+    $('#top_indicator').hide();
+    dt = $('#slots_list').DataTable({
+        ajax: {
+          url: '/api/slots',
+          data: function(d) {
+              d.visits = true
+
+              if($('#id_establishment').val()) {
+                d.establishment_id = $('#id_establishment').val();
+              }
+
+              if($('#id_structure').val()) {
+                d.structure_id = $('#id_structure').val();
+              }
+
+              return d
+          },
+          dataSrc: function (json) {
+            if (json['data'] !== undefined && json['data'].length !== 0) {
+              return json['data'];
+            }
+            return [];
+          }
+        },
+        order: [[4, "asc"], [1, "asc"], [2, "asc"], [3, "asc"]],
+        processing: false,
+        serverSide: false,
+        responsive: false,
+        info: false,
+        search: true,
+        searchCols: [
+            null,
+            null,
+            null,
+            { "search": visit_purpose_filter},
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+        ],
+        paging: true,
+        ordering: true,
+        language: {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+        },
+        columns: [
+            { data: 'published',
+              render: function(data, type, row) {
+                return (data) ? '{% trans "Yes" %}' : '{% trans "No" %}';
+              }
+            },
+            { data: 'highschool',
+              render: function(data, type, row) {
+                return data.label
+              },
+            },
+            { data: 'structure',
+              render: function(data, type, row) {
+                if(row.structure && row.structure.code) {
+                  return row.structure.code;
+                }
+
+                return ""
+              },
+            },
+            { data: 'visit',
+              render: function(data, type, row) {
+                if (row['can_update_visit_slot']) {
+                  return '<a href="/core/visit/' + data.id + '">' + data.purpose + '</a>'
+                } else {
+                  return data.purpose
+                }
+              }
+            },
+            { data: 'datetime',
+              render: function(data, type, row) {
+                if(type === "display" || type === "filter") {
+                  return "<span>" + row.date + "</span><br><span>" + row.time['start'] + " - " + row.time['end'] + "</span>";
+                }
+
+                return data;
+              }
+            },
+            { data: 'room',
+              render: function(data, type, row) {
+                if(row.face_to_face) {
+                  return row.room
+                }
+                else {
+                  return "{% trans 'Remote visit' %}"
+                }
+              }
+            },
+            { data: 'speakers',
+              render: function(data) {
+                let element = '';
+                $.each(data, function(name, email) {
+                  element += '<a href="mailto:' + email + '">' + name + '</a><br>'
+                });
+                return element;
+              }
+            },
+            { data: 'n_register',
+              render: function(data, type, row) {
+                let current = data;
+                let n = row['n_places'];
+                element = '<span>' + current + '/' + n + '</span>' +
+                    '<div class="progress">' +
+                    '    <div' +
+                    '       class="progress-bar"' +
+                    '       role="progressbar"' +
+                    '       aria-valuenow="' + current + '"' +
+                    '       aria-valuemin="0"' +
+                    '       aria-valuemax="' + n + '"' +
+                    '       style="width: ' + Math.round(current/n * 100) + '%"' +
+                    '></div>' +
+                    '</div>';
+                return element;
+              }
+            },
+            { data: 'additional_information',
+              render: function(data) {
+                if (data) {
+                  return '<span data-toggle="tooltip" title="' + data + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+                } else {
+                  return '';
+                }
+              }
+            },
+            { data: 'id',
+              render: function(data, type, row) {
+                if (row['can_update_visit_slot']) {
+                  let element =
+                '        <a href="/core/visit_slot/' + data + '/1" class="btn btn-light btn-sm mr-1" ' +
+                '         title="{% trans 'Duplicate' %}"><i class="fa far fa-copy fa-2x centered-icon"></i></a>';
+
+                  if(row.is_past === false) {
+                    element += '<a href="/core/visit_slot/' + data + '" class="btn btn-light btn-sm mr-1" title="{% trans 'Modify' %}"><i class="fa fas fa-pencil fa-2x centered-icon"></i></a>\n';
+                  }
+                  if(row.n_register === 0 && row.is_past === false) {
+                    element += '<button class="btn btn-light btn-sm mr-1" onclick="deleteDialog.data(\'slot_id\', ' + data + ').dialog(\'open\')" title="{% trans 'Delete' %}"><i class="fa fas fa-trash fa-2x centered-icon"></i></button>\n';
+                  }
+
+                  if(row.attendances_value === 1) {
+                    element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'Enter attendances' %}\">" +
+                               "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
+                               "</button>";
+                  }
+                  else if (row.attendances_value !== -1) {
+                    element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"{% trans 'View registered students' %}\">" +
+                               "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
+                               "</button>";
+                  }
+
+                  element += "</div>";
+
+                  return element;
+                } else {
+                  return '';
+                }
+              }
+            },
+        ],
+        columnDefs: [{
+            defaultContent: '-',
+            targets: '_all'
+        }, {
+          orderable: false,
+          targets: [9]
+        }],
+    });
+
+    yadcf.init(dt, [
+        {
+            column_number: 0,
+            filter_default_label: "",
+            filter_container_id: "published_filter",
+            style_class: "form-control form-control-sm",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 1,
+            filter_default_label: "",
+            filter_container_id: "highschool_filter",
+            style_class: "form-control form-control-sm",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 2,
+            filter_default_label: "",
+            style_class: "form-control form-control-sm",
+            filter_container_id: "structure_filter",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 3,
+            filter_default_label: "",
+            style_class: "form-control form-control-sm",
+            filter_container_id: "purpose_filter",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 4,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "date_filter",
+            style_class: "form-control form-control-sm",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 5,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "location_filter",
+            style_class: "form-control form-control-sm",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 6,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "speakers_filter",
+            style_class: "form-control form-control-sm",
+            filter_reset_button_text: false,
+        },
+        {
+            column_number: 7,
+            filter_type: "text",
+            filter_default_label: "",
+            filter_container_id: "registration_filter",
+            style_class: "form-control form-control-sm",
+            filter_reset_button_text: false,
+        },
+    ])
+
+    if(current_establishment_id !== "None" && current_establishment_id !== "" && current_establishment_id !== undefined) {
+      $("#id_establishment").val(current_establishment_id)
+      set_structures(current_establishment_id)
+    }
+    else {
+      empty_structures()
+    }
+
+    if(current_structure_id !== "None" && current_structure_id !== "" && current_structure_id !== undefined) {
+      $("#id_structure").val(current_structure_id)
+    }
+});
+
+
+function delete_slot(slot_id) {
+  $.post({
+      url: "/core/slot/delete/" + slot_id,
+      success: function(data) {
+          if(data === "ok") {
+            show_top_indicator("{% trans 'The slot has been successfully deleted' %}", "success");
+            reload_data();
+          }
+          else {
+            show_top_indicator(data, "error");
+          }
+      },
+  });
+}
+
+function reload_data() {
+  dt.clear().draw();
+  dt.ajax.reload();
+}
+
+function show_top_indicator(text, mode) {
+    let fade = 1000;
+    let display = {% settings_get 'MESSAGES_TIMEOUT' %};
+    $('#top_indicator__content').html(text);
+    $('#top_indicator').removeClass('hide');
+
+    if(mode == "error") {
+      $('#top_indicator').removeClass('bg-success');
+      $('#top_indicator').addClass('bg-danger');
+    }
+    else {
+      $('#top_indicator').removeClass('bg-danger');
+      $('#top_indicator').addClass('bg-success');
+    }
+
+    $('#top_indicator').show();
+    setTimeout(function(){
+            $('#top_indicator').fadeOut(fade, function(){
+                $('#top_indicator').hide();
+            });
+        },
+        display
+    );
+}
+</script>
+{% endblock %}

@@ -323,7 +323,7 @@ class CoreViewsTestCase(TestCase):
 
         # with parameters
         response = self.client.get(
-            reverse("establishment_filtered_slots_list",
+            reverse("establishment_filtered_course_slots_list",
                     args=[self.establishment.id, self.structure.id, self.training.id, self.course.id])
         )
         self.assertEqual(self.establishment.id, response.context["establishment_id"])
@@ -376,7 +376,7 @@ class CoreViewsTestCase(TestCase):
             'date': (self.today - datetime.timedelta(days=9)).strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
-            'speaker_%s' % self.speaker1.id: 1,
+            'speakers': [self.speaker1.id],
             'n_places': 33,
             'additional_information': "Here is additional data.",
             'published': "on",
@@ -399,20 +399,28 @@ class CoreViewsTestCase(TestCase):
         data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
         # Fail with missing field
-        del(data['speaker_%s' % self.speaker1.id])
+        del(data['speakers'])
         response = self.client.post("/core/slot", data, follow=True)
         self.assertFalse(Slot.objects.filter(room="212").exists())
-        self.assertIn("You have to select one or more speakers", response.content.decode('utf-8'))
+        self.assertIn("Required fields are not filled in", response.content.decode('utf-8'))
 
         # Success
-        data['speaker_%s' % self.speaker1.id] = 1
-        response = self.client.post("/core/slot", data, follow=True)
+        data['speakers'] = [self.speaker1.id]
 
+        self.course.published = False
+        self.course.save()
+        self.course.refresh_from_db()
+
+        response = self.client.post("/core/slot", data, follow=True)
         self.assertTrue(Slot.objects.filter(room="212").exists())
-        self.assertIn("Slot successfully added", response.content.decode('utf-8'))
+        slot = Slot.objects.get(room="212")
+        self.assertIn("Course slot \"%s\" created." % slot, response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.request['PATH_INFO'], '/core/slots/')
+
+        self.course.refresh_from_db()
+        self.assertTrue(self.course.published)
 
         # get slot form with an existing slot
         self.client.login(username='ref_etab', password='pass')
@@ -431,7 +439,7 @@ class CoreViewsTestCase(TestCase):
             'date': (self.today + datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
             'start_time': "16:00",
             'end_time': "18:00",
-            'speaker_%s' % self.speaker1.id: 1,
+            'speakers': [self.speaker1.id],
             'n_places': 33,
             'additional_information': "Here is additional data.",
             'published': "on",
@@ -439,10 +447,10 @@ class CoreViewsTestCase(TestCase):
         }
 
         response = self.client.post("/core/slot", data, follow=True)
-
         self.assertTrue(Slot.objects.filter(room="S40").exists())
-        self.assertIn("Slot successfully added", response.content.decode('utf-8'))
-        self.assertIn("Course published", response.content.decode('utf-8'))
+        slot = Slot.objects.get(room="S40")
+        self.assertIn("Course slot \"%s\" created." % slot, response.content.decode('utf-8'))
+        self.assertNotIn("Course published", response.content.decode('utf-8')) # course already published
         self.assertEqual(response.status_code, 200)
 
         self.assertFalse("slot" in response.context) # "Add new" form : no slot
@@ -454,11 +462,10 @@ class CoreViewsTestCase(TestCase):
         data["room"] = "S41"
         response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Slot successfully added", response.content.decode('utf-8'))
-        self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertTrue(Slot.objects.filter(room="S41").exists())
         slot = Slot.objects.get(room="S41")
-        self.assertEqual(response.context["slot"].course_id, self.course.id)  # empty slot
+        self.assertIn("Course slot \"%s\" created." % slot, response.content.decode('utf-8'))
+        self.assertNotIn("Course published", response.content.decode('utf-8')) # course already published
         self.assertEqual(response.request['PATH_INFO'], '/core/slot/%s/1' % slot.id)
 
         # Get as structure referent
@@ -477,10 +484,13 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
         # Fail with a non existing slot
         response = self.client.get("/core/slot/250", follow=True)
-        self.assertIn("This slot id does not exist", response.content.decode('utf-8'))
+        self.assertIn("Slot not found", response.content.decode('utf-8'))
 
         # Get an existing slot
         response = self.client.get("/core/slot/%s" % self.slot.id, follow=True)
+
+        self.course.published = False
+        self.course.save()
 
         # Get slot data and update a few fields
         data = {
@@ -494,7 +504,7 @@ class CoreViewsTestCase(TestCase):
             'date': (self.slot.date + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
             'start_time': "13:30",
             'end_time': "15:30",
-            'speaker_%s' % self.speaker1.id: 1,
+            'speakers': [self.speaker1.id],
             'n_places': 20,
             'additional_information': "New data",
             'published': "on",
@@ -502,13 +512,12 @@ class CoreViewsTestCase(TestCase):
             'save': 1
         }
         # Fail with missing field
-        del(data['speaker_%s' % self.speaker1.id])
+        del(data['speakers'])
         response = self.client.post("/core/slot/%s" % self.slot.id, data, follow=True)
         self.assertFalse(Slot.objects.filter(room="New room").exists())
-        self.assertIn("You have to select one or more speakers", response.content.decode('utf-8'))
 
         # Success
-        data['speaker_%s' % self.speaker1.id] = 1
+        data['speakers'] = [self.speaker1.id]
         response = self.client.post("/core/slot/%s" % self.slot.id, data, follow=True)
         slot = Slot.objects.get(pk=self.slot.id)
 
@@ -520,7 +529,7 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(slot.additional_information, "New data")
         self.assertEqual(slot.date, (self.slot.date + datetime.timedelta(days=1)).date())
 
-        self.assertIn("Slot successfully updated", response.content.decode('utf-8'))
+        self.assertIn("Course slot \"%s\" updated." % slot, response.content.decode('utf-8'))
         self.assertIn("Course published", response.content.decode('utf-8'))
         self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
@@ -535,7 +544,7 @@ class CoreViewsTestCase(TestCase):
         # Test with a slot the user doesn't have access to
         response = self.client.get("/core/slot/%s" % self.slot2.id)
         self.assertTrue(response.status_code, 302)
-        self.assertTrue(response.url, "/core/slots")
+        self.assertTrue(response.url, "/core/slots/")
 
         response = self.client.get("/core/slot/%s" % self.slot2.id, follow=True)
         self.assertTrue(response.status_code, 200)
@@ -1128,6 +1137,7 @@ class CoreViewsTestCase(TestCase):
             'end_time': "14:00",
             'n_places': 20,
             'additional_information': 'whatever',
+            'speakers': [self.speaker1.id],
             'save': "Save",
         }
         # Fail with date in the past
@@ -1144,13 +1154,14 @@ class CoreViewsTestCase(TestCase):
 
         # With a valid date, but speakers are still missing
         data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        del(data["speakers"])
         response = self.client.post("/core/visit_slot", data=data, follow=True)
-        self.assertIn("Please select at least one speaker.", response.content.decode('utf-8'))
+        self.assertIn("Required fields are not filled in", response.content.decode('utf-8'))
         self.assertFalse(Slot.objects.filter(visit=visit).exists())
         self.assertEqual(response.template_name, ['core/visit_slot.html'])
 
         # With a speaker
-        data["speakers_list"] = [self.speaker1.id]
+        data["speakers"] = [self.speaker1.id]
 
         response = self.client.post("/core/visit_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -1191,7 +1202,7 @@ class CoreViewsTestCase(TestCase):
             'end_time': "12:00",
             'n_places': 10,
             'additional_information': 'whatever',
-            "speakers_list": [self.speaker1.id],
+            "speakers": [self.speaker1.id],
             'save': "Save",
         }
 
@@ -1335,6 +1346,7 @@ class CoreViewsTestCase(TestCase):
             'date': (self.today + datetime.timedelta(days=15)).strftime("%Y-%m-%d"),
             'start_time': "12:00",
             'end_time': "14:00",
+            'speakers': [self.speaker1.id],
             'n_places': 20,
             'additional_information': 'whatever',
             'save': "Save",
@@ -1354,13 +1366,14 @@ class CoreViewsTestCase(TestCase):
 
         # With a valid date, but speakers are still missing
         data["date"] = (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        del(data['speakers'])
         response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
-        self.assertIn("Please select at least one speaker.", response.content.decode('utf-8'))
+        self.assertIn("Required fields are not filled in", response.content.decode('utf-8'))
         self.assertFalse(Slot.objects.filter(event=event).exists())
         self.assertEqual(response.template_name, ['core/off_offer_event_slot.html'])
 
         # With a speaker
-        data["speakers_list"] = [self.speaker1.id]
+        data["speakers"] = [self.speaker1.id]
 
         response = self.client.post("/core/off_offer_event_slot", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -1402,7 +1415,7 @@ class CoreViewsTestCase(TestCase):
             'end_time': "12:00",
             'n_places': 10,
             'additional_information': 'whatever',
-            "speakers_list": [self.speaker1.id],
+            "speakers": [self.speaker1.id],
             'save': "Save",
         }
 

@@ -195,6 +195,7 @@ class FormTestCase(TestCase):
 
         # Published slot
         valid_data = {
+            'face_to_face': True,
             'course': self.course.id,
             'course_type': self.course_type.id,
             'campus': self.campus.id,
@@ -204,6 +205,7 @@ class FormTestCase(TestCase):
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
+            'speakers': [self.speaker1.id],
             'published': True,
         }
         form = SlotForm(data=valid_data, request=request)
@@ -232,6 +234,7 @@ class FormTestCase(TestCase):
             'start_time': datetime.time(hour=12),
             'end_time': datetime.time(hour=14),
             'n_places': 10,
+            'speakers': [self.speaker1.id],
             'published': True,
         }
         # Fail : past date
@@ -372,31 +375,24 @@ class FormTestCase(TestCase):
             'additional_information': 'whatever'
         }
 
-        qdict = QueryDict('', mutable=True)
-        qdict.update(data)
-
         # Fail : missing speakers
-        form = VisitSlotForm(data=qdict, request=request)
+        form = VisitSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Please select at least one speaker.", form.errors["__all__"])
+        self.assertIn("This field is required", form.errors["speakers"])
 
-        data["speakers_list"] = self.speaker1.id
+        data["speakers"] = [self.speaker1.id]
 
         # Fail : date not in calendar
         data["date"] = self.today + datetime.timedelta(days=101)
-        qdict.update(data)
 
-        form = VisitSlotForm(data=qdict, request=request)
+        form = VisitSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
 
         data["date"] = self.today + datetime.timedelta(days=30)
 
         # Success
-        qdict = QueryDict('', mutable=True)
-        qdict.update(data)
-
-        form = VisitSlotForm(data=qdict, request=request)
+        form = VisitSlotForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
 
@@ -565,29 +561,24 @@ class FormTestCase(TestCase):
             'additional_information': 'whatever'
         }
 
-        qdict = QueryDict('', mutable=True)
-        qdict.update(data)
-
         # Fail : missing speakers
-        form = OffOfferEventSlotForm(data=qdict, request=request)
+        form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
-        self.assertIn("Please select at least one speaker.", form.errors["__all__"])
+        self.assertIn("This field is required", form.errors["speakers"])
 
-        data["speakers_list"] = self.speaker1.id
+        data["speakers"] = [self.speaker1]
 
         # Fail : date not in calendar
         data["date"] = self.today + datetime.timedelta(days=101)
-        qdict.update(data)
 
-        form = OffOfferEventSlotForm(data=qdict, request=request)
+        form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Error: The date must be between the dates of the current calendar", form.errors["date"])
 
         # Fail : date in the past
         data["date"] = self.today - datetime.timedelta(days=1)
-        qdict.update(data)
 
-        form = OffOfferEventSlotForm(data=qdict, request=request)
+        form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("You can't set a date in the past", form.errors["date"])
 
@@ -596,21 +587,14 @@ class FormTestCase(TestCase):
 
         # Fail : n_places is 0
         data["n_places"] = 0
-        qdict.update(data)
-
-        form = OffOfferEventSlotForm(data=qdict, request=request)
+        form = OffOfferEventSlotForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("Please enter a valid number for 'n_places' field", form.errors["n_places"])
 
-
         # Success
         data["n_places"] = 10
-        qdict = QueryDict('', mutable=True)
-        qdict.update(data)
 
-        form = OffOfferEventSlotForm(data=qdict, request=request)
-        form.is_valid()
-
+        form = OffOfferEventSlotForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
 
