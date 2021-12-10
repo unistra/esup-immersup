@@ -1124,7 +1124,7 @@ class CourseSlotList(generic.TemplateView):
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
                 context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
 
@@ -1165,8 +1165,6 @@ class CourseSlotAdd(generic.CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
-        context["speakers"] = json.dumps(speakers_list)
         course = None
         training = None
 
@@ -1189,11 +1187,13 @@ class CourseSlotAdd(generic.CreateView):
                 training = Training.objects.get(pk=context["training_id"])
             except Training.DoesNotExist:
                 pass
+        """    
         else:
             context["establishment_id"] = self.request.session.get('current_establishment_id', None)
             context["structure_id"] = self.request.session.get('current_structure_id', None)
             context["highschool_id"] = self.request.session.get('current_highschool_id', None)
             context["tranining_id"] = self.request.session.get('current_training_id', None)
+        """
 
         if self.duplicate and object_pk:
             context = {'duplicate': True}
@@ -1228,6 +1228,9 @@ class CourseSlotAdd(generic.CreateView):
                     'allowed_highschool_levels': slot.allowed_highschool_levels,
                     'allowed_student_levels': slot.allowed_student_levels,
                     'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels,
+
+
+                    'speakers': [s.id for s in slot.speakers.all()]
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1242,8 +1245,8 @@ class CourseSlotAdd(generic.CreateView):
 
                 self.form = self.form_class(initial=initials, request=self.request)
 
-                speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
-                context["speakers"] = json.dumps(speakers_list)
+                #speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
+                #context["speakers"] = json.dumps(speakers_list)
 
                 context["origin_id"] = slot.id
                 context["form"] = self.form
@@ -1278,7 +1281,8 @@ class CourseSlotAdd(generic.CreateView):
     def form_valid(self, form):
         self.duplicate = self.request.POST.get("duplicate", False) != False
         self.add_new = self.request.POST.get("save_add", False) != False
-        messages.success(self.request, _("Course slot %s created.") % form.instance)
+        messages.success(self.request, _("Course slot \"%s\" created.") % form.instance)
+
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -1294,13 +1298,26 @@ class CourseSlotUpdate(generic.UpdateView):
     form_class = SlotForm
     template_name = "core/course_slot.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.get_object()
+        except Exception as e:
+            if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
+                messages.error(request, _("This slot belongs to another structure"))
+            else:
+                messages.error(request, _("Slot not found"))
+            return redirect(reverse('courses_slots'))
+
+        return super().dispatch(request, *args, **kwargs)
+
+
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
         if user.is_master_establishment_manager():
             return Slot.objects.filter(course__isnull=False)
 
         if user.is_establishment_manager():
-            return Slot.objects.filter(course__establishment=user.establishment)
+            return Slot.objects.filter(course__structure__establishment=user.establishment)
 
         if user.is_high_school_manager():
             return Slot.objects.filter(course__highschool=user.highschool)
@@ -1376,6 +1393,29 @@ class CourseSlotUpdate(generic.UpdateView):
         self.request.session["current_training_id"] = \
             self.object.course.training.id if self.object.course.training else None
 
+        if self.object.course and not self.object.course.published and self.object.published:
+            self.object.course.published = True
+            self.object.course.save()
+            messages.success(self.request, _("Course published"))
+
+        if self.request.POST.get('notify_student') == 'on':
+            sent_msg = 0
+            immersions = Immersion.objects.filter(slot=self.object, cancellation_type__isnull=True)
+
+            for immersion in immersions:
+                ret = immersion.student.send_message(
+                    self.request,
+                    'CRENEAU_MODIFY_NOTIF',
+                    immersion=immersion,
+                    slot=self.object
+                )
+
+                if not ret:
+                    sent_msg += 1
+
+            if sent_msg:
+                messages.success(self.request, _("Notifications have been sent (%s)") % sent_msg)
+
         return super().form_valid(form)
 
 
@@ -1406,7 +1446,7 @@ class VisitList(generic.TemplateView):
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["structures"] = self.request.user.structures.filter(active=True)
                 if self.request.user.structures.count() == 1:
                     context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
 
@@ -1613,7 +1653,7 @@ class VisitSlotList(generic.TemplateView):
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
                 context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
 
@@ -1652,10 +1692,12 @@ class VisitSlotAdd(generic.CreateView):
                 visit = Visit.objects.get(pk=context["visit_id"])
             except Visit.DoesNotExist:
                 pass
+        """    
         else:
             context["establishment_id"] = self.request.session.get('current_establishment_id', None)
             context["structure_id"] = self.request.session.get('current_structure_id', None)
             context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+        """
 
         if self.duplicate and object_pk:
             context['duplicate'] = True
@@ -1713,7 +1755,6 @@ class VisitSlotAdd(generic.CreateView):
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "visit"
-
         return context
 
     def get_form_kwargs(self):
@@ -1724,7 +1765,8 @@ class VisitSlotAdd(generic.CreateView):
     def form_valid(self, form):
         self.duplicate = self.request.POST.get("duplicate", False) != False
         self.add_new = self.request.POST.get("save_add", False) != False
-        messages.success(self.request, _("Visit slot %s created.") % str(form.instance))
+        messages.success(self.request, _("Visit slot \"%s\" created.") % str(form.instance))
+
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -1739,6 +1781,18 @@ class VisitSlotUpdate(generic.UpdateView):
     model = Slot
     form_class = VisitSlotForm
     template_name = "core/visit_slot.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.get_object()
+        except Exception as e:
+            if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
+                messages.error(request, _("This slot belongs to another structure"))
+            else:
+                messages.error(request, _("Slot not found"))
+            return redirect(reverse('visits_slots'))
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -1810,6 +1864,11 @@ class VisitSlotUpdate(generic.UpdateView):
         self.request.session['current_structure_id'] = \
             self.object.visit.structure.id if self.object.visit.structure else None
 
+        if self.object.visit and not self.object.visit.published and self.object.published:
+            self.object.visit.published = True
+            self.object.visit.save()
+            messages.success(self.request, _("Visit published"))
+
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -1841,7 +1900,7 @@ class OffOfferEventsList(generic.TemplateView):
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = self.request.user.structures.all()
+                context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
 
             if self.request.user.is_high_school_manager():
@@ -2065,7 +2124,7 @@ class OffOfferEventSlotList(generic.TemplateView):
 
             if self.request.user.is_structure_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
-                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
                 context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
 
@@ -2121,10 +2180,16 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 event = OffOfferEvent.objects.get(pk=context["event_id"])
             except OffOfferEvent.DoesNotExist:
                 pass
+        """    
         else:
             context["establishment_id"] = self.request.session.get('current_establishment_id', None)
             context["structure_id"] = self.request.session.get('current_structure_id', None)
-            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+
+            if not context["establishment_id"]:
+                context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+            else:
+                context["highschool_id"] = None
+        """
 
         if self.duplicate and object_pk:
             context = {'duplicate': True}
@@ -2168,7 +2233,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
                     else:
                         initials[k] = data.get(k, initials[k])
 
-                self.form = OffOfferEventSlotForm(initial=initials, request=self.request)
+                self.form = self.form_class(initial=initials, request=self.request)
 
                 speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
                 context["speakers"] = json.dumps(speakers_list)
@@ -2185,15 +2250,11 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 'event': event,
             }
 
-            self.form = OffOfferEventSlotForm(initial=initials, request=self.request)
+            self.form = self.form_class(initial=initials, request=self.request)
             context["form"] = self.form
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "event"
-        context["establishment_id"] = self.request.session.get('current_establishment_id')
-        context["structure_id"] = self.request.session.get('current_structure_id')
-        context["highschool_id"] = self.request.session.get('current_highschool_id')
-
         return context
 
     def get_form_kwargs(self):
@@ -2204,7 +2265,8 @@ class OffOfferEventSlotAdd(generic.CreateView):
     def form_valid(self, form):
         self.duplicate = self.request.POST.get("duplicate", False) != False
         self.add_new = self.request.POST.get("save_add", False) != False
-        messages.success(self.request, _("Event slot %s created.") % form.instance)
+        messages.success(self.request, _("Event slot \"%s\" created.") % form.instance)
+
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -2219,6 +2281,19 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
     model = Slot
     form_class = OffOfferEventSlotForm
     template_name = "core/off_offer_event_slot.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.get_object()
+        except Exception as e:
+            if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
+                messages.error(request, _("This slot belongs to another structure"))
+            else:
+                messages.error(request, _("Slot not found"))
+            return redirect(reverse('off_offer_events_slots'))
+
+        return super().dispatch(request, *args, **kwargs)
+
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -2267,9 +2342,9 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
                 } for t in slot.speakers.all()]
 
                 context["speakers"] = json.dumps(speakers_list)
-                self.form = OffOfferEventSlotForm(instance=slot, request=self.request)
+                self.form = self.form_class(instance=slot, request=self.request)
             except Slot.DoesNotExist:
-                self.form = OffOfferEventSlotForm(request=self.request)
+                self.form = self.form_class(request=self.request)
 
         context["slot_mode"] = "event"
         context["can_update"] = True  # FixMe
@@ -2297,6 +2372,11 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
             self.object.event.highschool.id if self.object.event.highschool else None
         self.request.session["current_establishment_id"] = \
             self.object.event.establishment.id if self.object.event.establishment else None
+
+        if self.object.event and not self.object.event.published and self.object.published:
+            self.object.event.published = True
+            self.object.event.save()
+            messages.success(self.request, _("Event published"))
 
         return super().form_valid(form)
 

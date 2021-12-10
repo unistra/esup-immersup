@@ -259,7 +259,6 @@ class ImmersionUser(AbstractUser):
         :param message_code: Code of message to send
         :return: True if message sent else False
         """
-
         try:
             template = MailTemplate.objects.get(code=template_code, active=True)
             logger.debug("Template found : %s" % template)
@@ -270,9 +269,7 @@ class ImmersionUser(AbstractUser):
 
         try:
             message_body = template.parse_vars(user=self, request=request, **kwargs)
-
             from immersionlyceens.libs.mails.variables_parser import Parser
-
             logger.debug("Message body : %s" % message_body)
             send_email(self.email, template.subject, message_body)
         except Exception as e:
@@ -1640,7 +1637,7 @@ class Slot(models.Model):
     start_time = models.TimeField(_('Start time'), blank=True, null=True)
     end_time = models.TimeField(_('End time'), blank=True, null=True)
 
-    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='slots')
+    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='slots', blank=True)
 
     n_places = models.PositiveIntegerField(_('Number of places'))
     additional_information = models.CharField(_('Additional information'), max_length=128, null=True, blank=True)

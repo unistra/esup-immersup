@@ -450,7 +450,8 @@ def slots(request):
             slots = slots.exclude(date__lt=today.date(), immersions__isnull=True).distinct()
         else:
             slots = slots.filter(
-                Q(date__gte=today.date())
+                Q(date__isnull=True)
+                | Q(date__gte=today.date())
                 | Q(date=today.date(), end_time__gte=today.time())
                 | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
             ).distinct()
@@ -2262,10 +2263,10 @@ class CourseList(generics.ListAPIView):
     """
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['training', 'structure', 'highschool']
+    filterset_fields = ['training', 'structure', 'highschool', 'published']
 
     def get_queryset(self):
-        queryset = Course.objects.filter(published=True).order_by('label')
+        queryset = Course.objects.all().order_by('label')
         user = self.request.user
 
         if not user.is_superuser:

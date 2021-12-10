@@ -1947,10 +1947,11 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         client = Client()
-        client.login(username='ref_etab', password='pass')
+        client.login(username='ref_master_etab', password='pass')
         
         response = client.get("/api/get_duplicates", **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
+
         self.assertEqual(content['data'], [
             {'id': 0,
              'record_ids': [self.hs_record.id, self.hs_record2.id],
@@ -1972,7 +1973,7 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         client = Client()
-        client.login(username='ref_etab', password='pass')
+        client.login(username='ref_master_etab', password='pass')
 
         data = {
             "entries[]": [self.hs_record.id, self.hs_record2.id]
