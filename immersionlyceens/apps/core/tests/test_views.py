@@ -1232,7 +1232,6 @@ class CoreViewsTestCase(TestCase):
         # On template load, the full VisitSlot __str__ strings are displayed in the form, but we use javascript to
         # display only the 'purpose' attribute in the options fields. However, this test doesn't care about javascript.
         self.assertIn(f"value=\"{slot.visit.id}\" selected>{slot.visit}<", content)
-        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
 
 
     def test_off_offer_event(self):
@@ -1432,14 +1431,12 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(slot.url, data["url"])
         self.assertEqual(slot.speakers.first(), self.speaker1)
 
-
         # Duplicate an event slot : check form values
         response = self.client.get(f"/core/off_offer_event_slot/{slot.id}/1", follow=True)
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
         self.assertIn(f"value=\"{slot.event.establishment.id}\" selected>{slot.event.establishment}<", content)
         self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
-        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
 
         # Update event data and test again
         event.structure = self.structure
@@ -1453,7 +1450,6 @@ class CoreViewsTestCase(TestCase):
         self.assertIn(f"value=\"{slot.event.establishment.id}\" selected>{slot.event.establishment}<", content)
         self.assertIn(f"value=\"{slot.event.structure.id}\" selected>{slot.event.structure}<", content)
         self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
-        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
 
         # With a highschool
         event.highschool = self.high_school
@@ -1473,4 +1469,3 @@ class CoreViewsTestCase(TestCase):
 
         self.assertIn(f"value=\"{slot.event.highschool_id}\" selected>{slot.event.highschool}<", content)
         self.assertIn(f"value=\"{slot.event.id}\" selected>{slot.event}<", content)
-        self.assertEqual(response.context["speakers"], json.dumps([{"id": self.speaker1.id}]))
