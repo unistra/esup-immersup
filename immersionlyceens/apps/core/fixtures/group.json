@@ -53,5 +53,12 @@
     "fields": {
       "name": "REF-ETAB-MAITRE"
     }
+  },
+  {
+    "model": "auth.group",
+    "pk": 9,
+    "fields": {
+      "name": "VIS"
+    }
   }
 ]
