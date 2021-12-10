@@ -1203,11 +1203,13 @@ class CourseSlotAdd(generic.CreateView):
                 establishment_id = slot.course.structure.establishment.id if slot.course.structure else None
                 structure_id = slot.course.structure.id if slot.course.structure else None
                 highschool_id = slot.course.highschool.id if slot.course.highschool else None
+                training_id = slot.course.training.id if slot.course.training else None
 
                 initials = {
                     'establishment': establishment_id,
                     'structure': structure_id,
                     'highschool': highschool_id,
+                    'training': training_id,
                     'course': slot.course.id,
                     'course_type': slot.course_type.id,
                     'campus': slot.campus,
@@ -1228,8 +1230,6 @@ class CourseSlotAdd(generic.CreateView):
                     'allowed_highschool_levels': slot.allowed_highschool_levels,
                     'allowed_student_levels': slot.allowed_student_levels,
                     'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels,
-
-
                     'speakers': [s.id for s in slot.speakers.all()]
                 }
 
@@ -1721,7 +1721,8 @@ class VisitSlotAdd(generic.CreateView):
                     'face_to_face': slot.face_to_face,
                     'establishments_restrictions': False,
                     'levels_restrictions': slot.levels_restrictions,
-                    'allowed_highschool_levels': slot.allowed_highschool_levels
+                    'allowed_highschool_levels': slot.allowed_highschool_levels,
+                    'speakers': [s.id for s in slot.speakers.all()]
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -1733,11 +1734,7 @@ class VisitSlotAdd(generic.CreateView):
                     else:
                         initials[k] = data.get(k, initials[k])
 
-                self.form = VisitSlotForm(initial=initials, request=self.request)
-
-                speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
-
-                context["speakers"] = json.dumps(speakers_list)
+                self.form = self.form_class(initial=initials, request=self.request)
                 context["origin_id"] = slot.id
                 context["form"] = self.form
             except Slot.DoesNotExist:
@@ -1750,7 +1747,7 @@ class VisitSlotAdd(generic.CreateView):
                 'visit': visit,
             }
 
-            self.form = VisitSlotForm(initial=initials, request=self.request)
+            self.form = self.form_class(initial=initials, request=self.request)
             context["form"] = self.form
 
         context["can_update"] = True  # FixMe
@@ -2221,6 +2218,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
                     'allowed_highschool_levels': slot.allowed_highschool_levels,
                     'allowed_student_levels': slot.allowed_student_levels,
                     'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels,
+                    'speakers': [s.id for s in slot.speakers.all()]
                 }
 
                 # In case of form error, update initial values with POST ones (prevents a double call to clean())
@@ -2234,10 +2232,6 @@ class OffOfferEventSlotAdd(generic.CreateView):
                         initials[k] = data.get(k, initials[k])
 
                 self.form = self.form_class(initial=initials, request=self.request)
-
-                speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
-                context["speakers"] = json.dumps(speakers_list)
-
                 context["origin_id"] = slot.id
                 context["form"] = self.form
             except Slot.DoesNotExist:

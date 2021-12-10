@@ -398,6 +398,8 @@
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   var slot_mode = "{{ slot_mode }}"
 
+  empty_speakers()
+
   function empty_structures() {
       let options = '<option value="">---------</option>'
       $('select#id_structure').html(options)
@@ -446,7 +448,7 @@
   }
 
   function empty_speakers() {
-      let options = ''
+      let options = "<option value=''>{% trans 'Please fill the above fields first' %}</option>"
       $('select#id_speakers').html(options)
   }
 

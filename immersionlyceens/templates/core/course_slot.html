@@ -23,14 +23,12 @@
 
 {% block card_header %}
 <div class="card-header text-white bg-secondary">
-  {% if slot %}
-    {% if slot.id %}
-      {% trans 'modify slot' %}
-    {% else %}
-      {% trans 'duplicate slot' %}
-    {% endif %}
+  {% if duplicate %}
+    {% trans "Duplicate a course slot" %}
+  {% elif slot %}
+    {% trans "Update a course slot" %}
   {% else %}
-    {% trans 'Add a new slot' %}
+    {% trans "Add a new course slot" %}
   {% endif %}
 </div>
 {% endblock %}
