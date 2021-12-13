@@ -348,20 +348,6 @@
             let slot_url = '/core/visits_slots/'
             let add_slot_url = '/core/visit_slot/add/'
 
-            icons += "<a href='/core/visit/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
-                "<i class=\"fa fas fa-copy fa-2x\"></i>" +
-                "</a>\n";
-
-            icons += "<a href='/core/visit/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
-                "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
-                "</a>\n";
-
-            if (row.can_delete) {
-              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('visit_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
-                  "<i class=\"fa fas fa-trash fa-2x\"></i>" +
-                  "</button>";
-            }
-
             if(is_set(row.establishment) && is_set(row.structure) && is_set(row.id) && is_set(row.highschool)) {
                 slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
                 add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.highschool.id + "/" + row.id
@@ -376,6 +362,20 @@
             icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this visit' %}\">" +
                      "<i class=\"fa fas fa-plus fa-2x\"></i>" +
                      "</a>\n";
+
+            icons += "<a href='/core/visit/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                "</a>\n";
+
+            icons += "<a href='/core/visit/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
+                "</a>\n";
+
+            if (row.can_delete) {
+              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('visit_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
+                  "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                  "</button>";
+            }
 
             return icons;
           },
