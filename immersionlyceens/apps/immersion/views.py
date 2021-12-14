@@ -2,6 +2,7 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 from io import BytesIO
+from typing import Dict, Any
 
 from django.conf import settings
 from django.contrib import messages
@@ -19,6 +20,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import TemplateView, FormView
 
 from shibboleth.decorators import login_optional
 from shibboleth.middleware import ShibbolethRemoteUserMiddleware
@@ -34,7 +36,7 @@ from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
 from .forms import (
     HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
-    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
+    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, VisitorRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord
 
@@ -706,3 +708,19 @@ def immersion_attestation_download(request, immersion_id):
     except Exception as e:
         logger.error('Certificate download error', e)
         raise Http404()
+
+
+class VisitorRecordView(FormView):
+    template_name = "immersion/visitor_record.html"
+    form_class = VisitorRecordForm
+
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data()
+
+        # user_record = StudentForm()
+
+        context.update({
+            "back_url": self.request.session.get("back")
+        })
+        return context
+

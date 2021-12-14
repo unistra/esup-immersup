@@ -1,3 +1,5 @@
+from typing import List
+
 from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -6,7 +8,8 @@ from django.contrib.auth import authenticate
 
 from immersionlyceens.apps.core.models import \
     ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention
-from .models import HighSchoolStudentRecord, StudentRecord
+from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
+
 
 class LoginForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -336,6 +339,30 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
     class Meta:
         model = HighSchoolStudentRecord
         fields = ['birth_date', 'level', 'class_name', 'student']
+
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
+        }
+
+        localized_fields = ('birth_date',)
+
+
+class VisitorRecordForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        fields: List[str] = ["civility", "phone"]
+
+        for field in fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
+
+
+    class Meta:
+        model = VisitorRecord
+        fields = ['civility', 'birth_date', 'phone',
+                  'visitor'
+                  ]
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

@@ -1,11 +1,16 @@
 import json
 import logging
+from typing import Tuple, List, Any
 
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext, gettext_lazy as _
+from django.template.defaultfilters import filesizeformat
 from immersionlyceens.apps.core import models as core_models
+from immersionlyceens.apps.core.models import get_file_path
 
 logger = logging.getLogger(__name__)
+
 
 class HighSchoolStudentRecord(models.Model):
     """
@@ -76,8 +81,9 @@ class HighSchoolStudentRecord(models.Model):
     bachelor_type = models.SmallIntegerField(_("Bachelor type"), default=1, choices=BACHELOR_TYPES)
 
     general_bachelor_teachings = models.ManyToManyField(core_models.GeneralBachelorTeaching,
-        verbose_name=_("Structures"), blank=True, related_name='student_records'
-    )
+                                                        verbose_name=_("Structures"), blank=True,
+                                                        related_name='student_records'
+                                                        )
 
     technological_bachelor_mention = models.ForeignKey(
         core_models.BachelorMention,
@@ -93,9 +99,10 @@ class HighSchoolStudentRecord(models.Model):
 
     # For post-bachelor levels
     post_bachelor_level = models.SmallIntegerField(_("Post bachelor level"),
-        default=1, null=True, blank=True, choices=POST_BACHELOR_LEVELS)
+                                                   default=1, null=True, blank=True, choices=POST_BACHELOR_LEVELS)
     origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
-        default=1, null=True, blank=True, choices=POST_BACHELOR_ORIGIN_TYPES)
+                                                    default=1, null=True, blank=True,
+                                                    choices=POST_BACHELOR_ORIGIN_TYPES)
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
 
@@ -143,7 +150,7 @@ class HighSchoolStudentRecord(models.Model):
             self.save()
 
             for id in ids_list:
-                other_ids_list = sorted([self.id] + [i for i in ids_list if i!=id])
+                other_ids_list = sorted([self.id] + [i for i in ids_list if i != id])
                 try:
                     record = HighSchoolStudentRecord.objects.get(pk=id)
                     solved_duplicates = {
@@ -224,7 +231,7 @@ class HighSchoolStudentRecord(models.Model):
         for record in cls.objects.filter(duplicates__isnull=False):
             try:
                 dupes = json.loads(record.duplicates)
-                dupes.remove(record_id) # will raise a Value error if record_id not in dupes
+                dupes.remove(record_id)  # will raise a Value error if record_id not in dupes
                 record.duplicates = json.dumps(dupes) if dupes else None
                 record.save()
             except Exception:
@@ -283,7 +290,7 @@ class StudentRecord(models.Model):
     level = models.SmallIntegerField(_("Level"), default=1, blank=False, null=False, choices=LEVELS)
 
     origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
-        default=1, null=False, blank=False, choices=BACHELOR_TYPES)
+                                                    default=1, null=False, blank=False, choices=BACHELOR_TYPES)
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
 
@@ -313,8 +320,52 @@ class StudentRecord(models.Model):
         except core_models.HigherEducationInstitution.DoesNotExist:
             return self.uai_code, None
 
-
     class Meta:
         verbose_name = _('Student record')
         verbose_name_plural = _('Student records')
 
+
+class VisitorRecord(models.Model):
+    """
+    Visitor record class, linked to ImmersionUsers accounts
+    """
+    CIVS: List[Tuple[int, Any]] = [(1, _('Mr')), (2, _('Mrs'))]
+    VALIDATION_STATUS: List[Tuple[int, Any]] = [
+        (1, _('To validate')),
+        (2, _('Validated')),
+        (3, _('Rejected'))
+    ]
+    AUTH_CONTENT_TYPES: List[str] = ["jpg", "jpeg", "png"]
+
+    visitor = models.OneToOneField(
+        core_models.ImmersionUser,
+        verbose_name=_('Visitor'),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="visitor_record"
+    )
+    civility = models.SmallIntegerField(_("Civility"), null=False, blank=False, default=1, choices=CIVS)
+    phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
+    birth_date = models.DateField(_("Birth date"), null=False, blank=False)
+
+    motivation = models.TextField(_("Motivation"), null=False, blank=False)
+    identity_document = models.FileField(
+        _("Identity document"),
+        upload_to=get_file_path,
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+              % {
+                  'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
+                  'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+              },
+    )
+    validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
+
+    def __str__(self):
+        return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")
+
+    class Meta:
+        verbose_name = _('Visitor record')
+        verbose_name_plural = _('Visitor records')
