@@ -546,6 +546,24 @@ def slots(request):
             'speakers': {},
             'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None else 0,
+            'restrictions': {
+              'establishment_restrictions': slot.establishments_restrictions,
+              'levels_restrictions': slot.levels_restrictions,
+              'allowed_establishments': [e.short_label for e in slot.allowed_establishments.all()],
+              'allowed_highschools': [f"{h.city} - {h.label}" for h in slot.allowed_highschools.all()],
+              'allowed_highschool_levels': [
+                  level[1] for value in slot.allowed_highschool_levels
+                  for level in HighSchoolStudentRecord.LEVELS if level[0] == value
+              ] if slot.allowed_highschool_levels else [],
+              'allowed_post_bachelor_levels': [
+                  level[1] for value in slot.allowed_post_bachelor_levels
+                  for level in HighSchoolStudentRecord.POST_BACHELOR_LEVELS if level[0] == value
+              ] if slot.allowed_post_bachelor_levels else [],
+              'allowed_student_levels': [
+                  level[1] for value in slot.allowed_student_levels
+                  for level in StudentRecord.LEVELS if level[0] == value
+              ] if slot.allowed_student_levels else [],
+            },
             'additional_information': slot.additional_information,
             'attendances_value': 0,
             'attendances_status': '',
