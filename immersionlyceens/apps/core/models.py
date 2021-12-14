@@ -1306,6 +1306,12 @@ class OffOfferEvent(models.Model):
         if [self.establishment, self.highschool].count(None) != 1:
             raise ValidationError("You must select one of : Establishment or High school")
 
+    def get_etab_or_high_school(self):
+        if not self.highschool:
+            return self.establishment.label
+        else:
+            return f'{self.highschool.label} : {self.highschool.city}'
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -1713,6 +1719,7 @@ class Slot(models.Model):
         """
         :return: number of available seats for instance slot
         """
+        # TODO: check if we need to filter published slots only ???
         s = self.n_places - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
         return 0 if s < 0 else s
 
@@ -1721,6 +1728,7 @@ class Slot(models.Model):
         """
         :return: number of registered students for instance slot
         """
+        # TODO: check if we need to filter published slots only ???
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
 
