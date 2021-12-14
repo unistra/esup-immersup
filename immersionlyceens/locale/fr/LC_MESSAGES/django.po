@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-14 10:49+0100\n"
+"POT-Creation-Date: 2021-12-14 12:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2248,11 +2248,11 @@ msgstr ""
 msgid "Speaker successfully created."
 msgstr "Intervenant créé avec succès"
 
-#: immersionlyceens/apps/core/views.py:869
+#: immersionlyceens/apps/core/views.py:838
 msgid "Your account is not bound to any high school"
 msgstr "Votre compte n'est lié à aucun lycée"
 
-#: immersionlyceens/apps/core/views.py:886
+#: immersionlyceens/apps/core/views.py:848
 msgid "This high school id does not exist"
 msgstr "Ce lycée n'existe pas"
 
@@ -4264,9 +4264,8 @@ msgstr "Réinitialiser les filtres"
 
 #: immersionlyceens/templates/core/my_courses.html:35
 #: immersionlyceens/templates/core/my_courses_slots.html:44
-#: immersionlyceens/templates/core/old/myslots.html:53
-msgid "Structure / High school"
-msgstr "Structure / Lycée"
+msgid "Structure / Establishment"
+msgstr "Structure / Etablissement"
 
 #: immersionlyceens/templates/core/my_courses_slots.html:29
 #: immersionlyceens/templates/core/my_events_slots.html:29
@@ -4499,6 +4498,10 @@ msgstr "Nouveau créneau d'évènement"
 #: immersionlyceens/templates/core/visits_slots_list.html:41
 msgid "Location / address"
 msgstr "Lieu / adresse internet"
+
+#: immersionlyceens/templates/core/old/myslots.html:53
+msgid "Structure / High school"
+msgstr "Structure / Lycée"
 
 #: immersionlyceens/templates/core/old/off_offer_event_slot.html:28
 msgid "Confirm event publication"
@@ -5828,8 +5831,5 @@ msgstr "Pas de visite disponible"
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
 
-#~ msgid "Events Offer"
-#~ msgstr "Evénements"
-
-#~ msgid "release"
-#~ msgstr "libérer-délivrer"
+msgid "release"
+msgstr "libérer-délivrer"
