@@ -39,6 +39,8 @@
   <div class="card">
     {% block card_header %}{% endblock %}
     <div class="card-body">
+      <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
+
       <form method="POST" class="form-group" role="form" id="add_slot">
         {% csrf_token %}
         {{ form.id }}
