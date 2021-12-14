@@ -763,6 +763,8 @@
           if(slot_mode === "visit") set_visits()
         }
     }
+
+    toggle_required_fields()
   });
 
   $('#id_structure').change( function() {
@@ -867,7 +869,8 @@
 
   function toggle_required_fields () {
     let published = $('#id_published').prop('checked');
-    let face_to_face = $('#id_face_to_face').prop('checked');
+    let face_to_face = $('#id_face_to_face').prop('checked') || $('#id_face_to_face').val() === "1";
+
     if (published) {
       let mandatory = ['date', 'start_time', 'end_time', 'speakers', 'n_places']
 
@@ -876,6 +879,17 @@
       }
       else if (slot_mode === "course") {
         mandatory = mandatory.concat(['training', 'course', 'course_type'])
+
+        if(establishment_id) {
+          mandatory = mandatory.concat(['establishment', 'structure'])
+        }
+        else if(highschool_id) {
+          mandatory = mandatory.push('highschool')
+        }
+        else {
+          mandatory = mandatory.concat(['establishment', 'highschool'])
+        }
+
       }
       else if (slot_mode === "visit") {
         mandatory = mandatory.concat(['establishment', 'highschool', 'visit'])
@@ -883,6 +897,7 @@
 
       if(face_to_face) {
           mandatory.push("room")
+
           if(establishment_id) {
             mandatory.push('campus')
             mandatory.push('building')
@@ -899,14 +914,27 @@
     }
     else {
       let not_mandatory = [
-        'room', 'building', 'campus', 'url', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+        'establishment', 'structure', 'highschool', 'room', 'building', 'campus', 'url', 'date', 'start_time',
+        'end_time', 'speakers', 'n_places'
       ];
 
       let mandatory = Array()
 
       if(slot_mode === "event") mandatory = ['event']
       if(slot_mode === "visit") mandatory = ['establishment', 'highschool', 'visit']
-      if(slot_mode === "course") mandatory = ['training', 'course']
+      if(slot_mode === "course") {
+        mandatory = ['training', 'course']
+
+        if(establishment_id) {
+          mandatory = mandatory.concat(['establishment', 'structure'])
+        }
+        else if(highschool_id) {
+          mandatory.push('highschool')
+        }
+        else {
+          mandatory = mandatory.concat(['establishment', 'highschool'])
+        }
+      }
 
       not_mandatory.forEach(function(e){
         $('#id_' + e).removeAttr('required');
