@@ -879,20 +879,19 @@
       }
       else if (slot_mode === "course") {
         mandatory = mandatory.concat(['training', 'course', 'course_type'])
-
-        if(establishment_id) {
-          mandatory = mandatory.concat(['establishment', 'structure'])
-        }
-        else if(highschool_id) {
-          mandatory = mandatory.push('highschool')
-        }
-        else {
-          mandatory = mandatory.concat(['establishment', 'highschool'])
-        }
-
       }
       else if (slot_mode === "visit") {
         mandatory = mandatory.concat(['establishment', 'highschool', 'visit'])
+      }
+
+      if(slot_mode === "course" || slot_mode === "event") {
+        if (establishment_id) {
+          mandatory = mandatory.concat(['establishment', 'structure'])
+        } else if (highschool_id) {
+          mandatory = mandatory.push('highschool')
+        } else {
+          mandatory = mandatory.concat(['establishment', 'highschool'])
+        }
       }
 
       if(face_to_face) {
@@ -922,9 +921,9 @@
 
       if(slot_mode === "event") mandatory = ['event']
       if(slot_mode === "visit") mandatory = ['establishment', 'highschool', 'visit']
-      if(slot_mode === "course") {
-        mandatory = ['training', 'course']
+      if(slot_mode === "course") mandatory = ['training', 'course']
 
+      if(slot_mode === "course" || slot_mode === "event") {
         if(establishment_id) {
           mandatory = mandatory.concat(['establishment', 'structure'])
         }
