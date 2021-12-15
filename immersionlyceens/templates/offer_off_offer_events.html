@@ -71,39 +71,19 @@
                     <table class="table table-bordered">
                       <tbody>
                         <tr>
-                        {% if s.event.establishment %}
-                         <td style="width: 10%" rowspan="2">
-                            <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Establishment' %}"></i>
-                            <span class="badge badge-pill immersup-badge" style="background-color: {{s.event.establishment.badge_html_color }};margin: 2px;">{{ s.event.establishment.label }}</span></span>
-                          </td>
-                        {% endif %}
-                        {% if s.event.structure %}
-                         <td style="width: 10%" rowspan="2">
-                            <i class="fa fas fa-institution text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Structure' %}"></i>
-                            {{ s.event.structure.label }}
-                          </td>
-                        {% endif %}
-                         <td style="width: 10%" rowspan="2">
-                            <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Type' %}"></i>
-                            {{ s.event.event_type }}
-                          </td>
-                         <td style="width: 10%" rowspan="2">
-                            <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Label' %}"></i>
-                            {{ s.event.label }}
-                          </td>
-                         <td style="width: 15%" rowspan="2">
-                            <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Description' %}"></i>
-                            {{ s.event.description }}
-                          </td>
-                          <td style="width: 10%" rowspan="2">
+                          <td width="15%">
                             <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i>
                             {{ s.date | date:"l d F Y"}}
                           </td>
-                          <td style="width: 10%" rowspan="2">
+                          <td>
                             <i class="fa fas fa-clock-o text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i>
                             {{ s.start_time }} - {{ s.end_time }}
                           </td>
-                          <td style="width: 10%" rowspan="2">
+                          <td>
+                            <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Type' %}"></i>
+                            {{ s.event.event_type }}
+                          </td>
+                          <td>
                             {% if  s.face_to_face %}
                             <i class="us us-meeting us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Room' %}"></i>
                             {% trans 'Room' %} : {{ s.room }}
@@ -112,8 +92,8 @@
                             {% trans 'Remote visit' %}
                             {% endif %}
                           </td>
-                          <td style="width: 15%" rowspan="2">
-                            <i class="us us-duo us-fw text-secondary d-none d-md-inline-block subdomains-icons" {% trans 'Speaker(s)' %}></i>
+                          <td rowspan="2" width="15%">
+                            <i class="us us-duo us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                             {% trans 'Speaker(s)' %} :
                             <ul>
                           {% if s.speakers.all%}
@@ -125,8 +105,8 @@
                           {% endif %}
                             </ul>
                           </td>
+                          <td rowspan="2" width="15%">
                           {% if s.establishments_restrictions or s.levels_restrictions %}
-                          <td style="width: 20%" rowspan="2">
                             <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                             {% if s.allowed_establishments.all%}
                             {% trans "Allowed establishments" %} :
@@ -144,7 +124,7 @@
                             {% endfor %}
                             </ul>
                             {% endif %}
-                          {% endif %}
+
                           {% if s.levels_restrictions %}
                             {% if s.allowed_highschool_levels.all %}
                               {% trans "Allowed highschool levels" %}
@@ -164,8 +144,9 @@
                               {{ l }}
                               {% endfor %}
                             {% endif %}
-                          </td>
                           {% endif %}
+                          {% endif %}
+                          </td>
                           <td>
                             {% if s.cancelled %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
@@ -189,7 +170,28 @@
                           </td>
                         </tr>
                         <tr>
-                          <td>{% if s.additional_information %}{% trans 'Additional information' %} : <p>{{ s.additional_information }}</p>{% endif %}</td>
+                         <td style="width: 10%">
+                        {% if s.event.establishment %}
+                            <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Establishment' %}"></i>
+                            <span class="badge badge-pill immersup-badge" style="background-color: {{s.event.establishment.badge_html_color }};margin: 2px;">{{ s.event.establishment.label }}</span></span>
+                        {% endif %}
+                          </td>
+                         <td style="width: 10%">
+                        {% if s.event.structure %}
+                            <i class="fa fas fa-institution text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Structure' %}"></i>
+                            {{ s.event.structure.label }}
+                        {% endif %}
+                          </td>
+
+                         <td style="width: 10%">
+                            <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Label' %}"></i>
+                            {{ s.event.label }}
+                          </td>
+                         <td style="width: 15%">
+                            <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Description' %}"></i>
+                            {{ s.event.description }}
+                          </td>
+                          <td>{% if s.additional_information %} <p><i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Additional information' %}"></i> {{ s.additional_information }}</p>{% endif %}</td>
                         </tr>
                       </tbody>
                     </table>
