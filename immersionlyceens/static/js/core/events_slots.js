@@ -60,9 +60,9 @@ function init_datatable() {
       { data: 'structure',
         render: function(data, type, row) {
           if(row.establishment) {
-            let txt = row.establishment.short_label
+            let txt = row.establishment.code
             if (row.structure) {
-              txt += " - " + row.structure.label
+              txt += " - " + row.structure.code
             }
             return txt
           }

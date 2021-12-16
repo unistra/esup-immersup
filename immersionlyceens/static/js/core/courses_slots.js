@@ -55,7 +55,7 @@ function init_datatable() {
         { data: 'structure',
           render: function(data, type, row) {
             if(row.structure) {
-                return row.structure.code;
+                return row.establishment.code + " - " + row.structure.code;
             }
             else if (row.highschool) {
                 return row.highschool.label;
