@@ -192,6 +192,46 @@ function init_datatable() {
           }
         },
       },
+      { data: 'restrictions',
+        render: function(data) {
+          let txt = ""
+
+          if(data.establishment_restrictions === true) {
+            txt += establishments_txt + " :\n"
+            data.allowed_establishments.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_highschools.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+          }
+
+          if(data.levels_restrictions === true) {
+            if(txt) txt += "\n"
+
+            txt += levels_txt + " :\n"
+
+            data.allowed_highschool_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_post_bachelor_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_student_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+          }
+
+          if (txt) {
+            return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+          } else {
+            return '';
+          }
+        }
+      },
     ],
     "columnDefs": init_column_defs()
   });
