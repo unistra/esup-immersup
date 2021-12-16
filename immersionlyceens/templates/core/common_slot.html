@@ -877,6 +877,7 @@
 
     if (published) {
       let mandatory = ['date', 'start_time', 'end_time', 'speakers', 'n_places']
+      let not_mandatory = Array()
 
       if(slot_mode === "event") {
         mandatory.push('event')
@@ -891,8 +892,10 @@
       if(slot_mode === "course" || slot_mode === "event") {
         if (establishment_id) {
           mandatory = mandatory.concat(['establishment', 'structure'])
+          not_mandatory.push('highschool')
         } else if (highschool_id) {
           mandatory.push('highschool')
+          not_mandatory = not_mandatory.concat(['establishment', 'structure'])
         } else {
           mandatory = mandatory.concat(['establishment', 'highschool'])
         }
@@ -902,8 +905,10 @@
           mandatory.push("room")
 
           if(establishment_id) {
-            mandatory.push('campus')
-            mandatory.push('building')
+            mandatory = mandatory.concat(['campus', 'building'])
+          }
+          else {
+            not_mandatory = not_mandatory.concat(['campus', 'building'])
           }
       }
       else {
@@ -913,6 +918,11 @@
       mandatory.forEach(function(e){
         $('#id_' + e).attr('required', 'required');
         $('#id_mandatory_' + e).show();
+      });
+
+      not_mandatory.forEach(function(e){
+        $('#id_' + e).removeAttr('required');
+        $('#id_mandatory_' + e).hide();
       });
     }
     else {
