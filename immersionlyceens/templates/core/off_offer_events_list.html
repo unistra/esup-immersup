@@ -408,10 +408,12 @@
             }
 
             // direct link to slots list
-            icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this event' %}\">" +
-                     "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
-                     "</a>\n";
-
+            if(row.published_slots_count) {
+              icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this event' %}\">" +
+                       "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                       "</a>\n";
+            }
+            
             // direct link to new slot form
             icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
                      "<i class=\"fa fas fa-plus fa-2x\"></i>" +
