@@ -1277,10 +1277,12 @@ class CourseSlotAdd(generic.CreateView):
                 for k in initials.keys():
                     # careful, some fields are lists
                     if k in ['allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
-                             'allowed_student_levels', 'allowed_post_bachelor_levels']:
+                             'allowed_student_levels', 'allowed_post_bachelor_levels', 'speakers']:
                         initials[k] = data.getlist(k, initials[k])
                     else:
                         initials[k] = data.get(k, initials[k])
+
+                print(initials)
 
                 self.form = self.form_class(initial=initials, request=self.request)
 
@@ -1770,7 +1772,7 @@ class VisitSlotAdd(generic.CreateView):
                 data = self.request.POST
                 for k in initials.keys():
                     # careful, some fields are lists
-                    if k == 'allowed_highschool_levels':
+                    if k in ['allowed_highschool_levels', 'speakers']:
                         initials[k] = data.getlist(k, initials[k])
                     else:
                         initials[k] = data.get(k, initials[k])
@@ -2279,7 +2281,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 for k in initials.keys():
                     # careful, some fields are lists
                     if k in ['allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
-                             'allowed_student_levels', 'allowed_post_bachelor_levels']:
+                             'allowed_student_levels', 'allowed_post_bachelor_levels', 'speakers']:
                         initials[k] = data.getlist(k, initials[k])
                     else:
                         initials[k] = data.get(k, initials[k])
