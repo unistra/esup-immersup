@@ -33,10 +33,10 @@ function init_datatable() {
         return (data) ? yes_text : no_text;
       },
     },
-    { "data": "structure.code",
+    { "data": "structure",
       "render": function (data, type, row) {
         if(row.structure) {
-          return row.structure.code + " (" + row.structure.establishment + ")"
+          return row.establishment.code + " - " + row.structure.code;
         }
         else if (row.highschool) {
           return row.highschool.label

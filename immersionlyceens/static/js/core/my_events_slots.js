@@ -5,18 +5,9 @@ function init_column_defs() {
       "className": "all",
     },
     {
-      "orderable": false, "targets": 9
+      "orderable": false, "targets": 8
     },
   ]
-
-  if(is_highschool_manager) {
-    def.push({
-      "targets": [ 2 ],
-      "visible": false,
-      "searchable": false
-    })
-  }
-
   return def
 }
 
@@ -30,41 +21,31 @@ function init_yadcf_filter() {
     }, {
       column_number: 1,
       filter_default_label: "",
-      filter_container_id: "establishment_filter",
+      filter_container_id: "managed_by_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
     {
-      column_number: 3,
+      column_number: 2,
       filter_default_label: "",
       style_class: "form-control form-control-sm",
       filter_container_id: "event_filter",
       filter_reset_button_text: false,
     }, {
-      column_number: 6,
+      column_number: 5,
       filter_type: "text",
       filter_default_label: "",
       style_class: "form-control form-control-sm",
       filter_container_id: "speaker_filter",
       filter_reset_button_text: false,
     }, {
-      column_number: 8,
+      column_number: 7,
       filter_default_label: "",
       style_class: "form-control form-control-sm",
       filter_container_id: "attendances_filter",
       filter_reset_button_text: false,
     }
   ]
-
-  if(!is_highschool_manager) {
-    filter.push({
-      column_number: 2,
-      filter_default_label: "",
-      filter_container_id: "structure_filter",
-      style_class: "form-control form-control-sm",
-      filter_reset_button_text: false,
-    })
-  }
 
   return filter
 }
@@ -73,7 +54,7 @@ function init_datatable() {
   dt = $('#slots_list').DataTable({
     'processing': false,
     'order': [
-      [4, "asc"]
+      [3, "asc"]
     ],
     'pageLength': 15,
     'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, all_text]],
@@ -104,17 +85,18 @@ function init_datatable() {
           return (data) ? yes_text : no_text;
         },
       },
-      { "data": "establishment",
-        render: function(data, type, row) {
-          if(row.establishment) {
-            return row.establishment.label
+      { "data": "managed_by",
+        "render": function (data, type, row) {
+          if(row.structure) {
+            return row.establishment.code + " - " + row.structure.code;
           }
-          else if(row.highschool) {
+          else if (row.highschool) {
             return row.highschool.label
           }
-        },
+
+          return ""
+        }
       },
-      { "data": "structure.label" },
       { "data": "event.label",
         render: function(data, type, row) {
           let txt = data + " (" + row.event.type + ") "

@@ -33,8 +33,18 @@ function init_datatable() {
         return (data) ? yes_text : no_text;
       },
     },
-    { "data": "establishment.label" },
-    { "data": "structure.label" },
+    { "data": "structure",
+      "render": function (data, type, row) {
+        if(row.structure) {
+          return row.establishment.code + " - " + row.structure.code;
+        }
+        else if (row.highschool) {
+          return row.highschool.label
+        }
+
+        return ""
+      }
+    },
     { "data": "highschool.label" },
     { "data": "visit.purpose" },
     {
@@ -162,30 +172,24 @@ function init_datatable() {
   }, {
     column_number: 2,
     filter_default_label: "",
-    filter_container_id: "structure_filter",
     style_class: "form-control form-control-sm",
+    filter_container_id: "high_school_filter",
     filter_reset_button_text: false,
   }, {
     column_number: 3,
     filter_default_label: "",
     style_class: "form-control form-control-sm",
-    filter_container_id: "high_school_filter",
-    filter_reset_button_text: false,
-  }, {
-    column_number: 4,
-    filter_default_label: "",
-    style_class: "form-control form-control-sm",
     filter_container_id: "purpose_filter",
     filter_reset_button_text: false,
   }, {
-    column_number: 7,
+    column_number: 6,
     filter_type: "text",
     filter_default_label: "",
     style_class: "form-control form-control-sm",
     filter_container_id: "speaker_filter",
     filter_reset_button_text: false,
   }, {
-    column_number: 9,
+    column_number: 8,
     filter_default_label: "",
     style_class: "form-control form-control-sm",
     filter_container_id: "attendances_filter",

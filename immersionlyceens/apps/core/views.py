@@ -2162,13 +2162,22 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["establishment_id"] = \
             kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
 
-        if kwargs.get('establishment_id'):
-            try:
-                context["structure_id"] = int(kwargs.get('structure_id', None))
-            except Exception:
-                context["structure_id"] = ""
+        try:
+            establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
+            context["managed_by_filter"] = establishment.code
+        except Establishment.DoesNotExist:
+            pass
+
+        context["structure_id"] = kwargs.get('structure_id')
+
+        if context["structure_id"] == "null":
+            context["structure_id"] = ""
         else:
-            self.request.session.get('current_structure_id', None)
+            try:
+                structure = Structure.objects.get(pk=context["structure_id"])
+                context["managed_by_filter"] += f" - {structure.code}"
+            except Structure.DoesNotExist:
+                pass
 
         context["highschool_id"] = \
             kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)

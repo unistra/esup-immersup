@@ -36,7 +36,7 @@ function init_datatable() {
     search: true,
     searchCols: [
         null,
-        null,
+        { "search": managed_by_filter},
         { "search": event_type_filter},
         { "search": event_label_filter},
         null,
@@ -57,13 +57,14 @@ function init_datatable() {
           return (data) ? yes_text : no_text;
         }
       },
-      { data: 'structure',
+      { data: 'managed_by',
         render: function(data, type, row) {
           if(row.establishment) {
             let txt = row.establishment.code
             if (row.structure) {
-              txt += " - " + row.structure.code
+              txt += " - " + row.structure.code;
             }
+
             return txt
           }
           else if(row.highschool) {
