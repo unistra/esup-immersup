@@ -350,14 +350,9 @@
             let add_slot_url = '/core/visit_slot/add/'
 
             if(is_set(row.establishment) && is_set(row.id) && is_set(row.highschool)) {
-                if(is_set(row.structure)) {
-                    slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
-                    add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.highschool.id + "/" + row.id
-                }
-                else {
-                    slot_url += row.establishment.id + "/" + row.id
-                    add_slot_url += row.establishment.id + "/" + row.highschool.id + "/" + row.id
-                }
+                let structure_id = is_set(row.structure) ? row.structure.id : null
+                slot_url += row.establishment.id + "/" + structure_id + "/" + row.highschool.id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + structure_id + "/" + row.highschool.id + "/" + row.id
             }
 
             // direct link to slots list

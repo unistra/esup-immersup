@@ -32,7 +32,7 @@ function init_datatable() {
     search: true,
     searchCols: [
         null,
-        null,
+        { "search": highschool_filter },
         null,
         { "search": visit_purpose_filter},
         null,

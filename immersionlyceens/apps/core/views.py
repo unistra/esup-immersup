@@ -1688,6 +1688,13 @@ class VisitSlotList(generic.TemplateView):
             except Visit.DoesNotExist:
                 pass
 
+        if context["highschool_id"]:
+            try:
+                highschool = HighSchool.objects.get(pk=context["highschool_id"])
+                context["highschool_filter"] = str(highschool)
+            except HighSchool.DoesNotExist:
+                pass
+
         if not self.request.user.is_superuser:
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
@@ -1727,20 +1734,18 @@ class VisitSlotAdd(generic.CreateView):
 
         if self.kwargs.get('visit_id', None):
             context["establishment_id"] = self.kwargs.get('establishment_id', None)
-            context["structure_id"] = self.kwargs.get('structure_id', None)
             context["highschool_id"] = self.kwargs.get('highschool_id', None)
             context["visit_id"] = self.kwargs.get('visit_id')
+
+            try:
+                context["structure_id"] = int(self.kwargs.get('structure_id', None))
+            except Exception:
+                context["structure_id"] = ""
 
             try:
                 visit = Visit.objects.get(pk=context["visit_id"])
             except Visit.DoesNotExist:
                 pass
-        """    
-        else:
-            context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-            context["structure_id"] = self.request.session.get('current_structure_id', None)
-            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
-        """
 
         if self.duplicate and object_pk:
             context['duplicate'] = True
@@ -2219,9 +2224,9 @@ class OffOfferEventSlotAdd(generic.CreateView):
             context["establishment_id"] = self.kwargs.get('establishment_id', None)
             context["structure_id"] = ""
 
-            if kwargs.get('establishment_id'):
+            if self.kwargs.get('establishment_id'):
                 try:
-                    context["structure_id"] = int(kwargs.get('structure_id', None))
+                    context["structure_id"] = int(self.kwargs.get('structure_id', None))
                 except Exception:
                     context["structure_id"] = ""
 
@@ -2232,16 +2237,6 @@ class OffOfferEventSlotAdd(generic.CreateView):
                 event = OffOfferEvent.objects.get(pk=context["event_id"])
             except OffOfferEvent.DoesNotExist:
                 pass
-        """    
-        else:
-            context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-            context["structure_id"] = self.request.session.get('current_structure_id', None)
-
-            if not context["establishment_id"]:
-                context["highschool_id"] = self.request.session.get('current_highschool_id', None)
-            else:
-                context["highschool_id"] = None
-        """
 
         if self.duplicate and object_pk:
             context = {'duplicate': True}
