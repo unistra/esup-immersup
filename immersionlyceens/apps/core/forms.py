@@ -527,7 +527,6 @@ class OffOfferEventSlotForm(SlotForm):
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
                 self.add_error('n_places', msg)
-                raise forms.ValidationError({'n_places': msg})
 
         if _date and not cal.date_is_between(_date):
             raise forms.ValidationError(
