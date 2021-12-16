@@ -300,6 +300,7 @@
             </label>
             {{ form.allowed_highschool_levels }}
           </div>
+          {% if slot_mode != "visit" %}
           <div class="col-sm-3">
             <label for="id_allowed_student_levels" class="col-form-label">
               {% trans 'Allowed student levels' %}
@@ -312,6 +313,7 @@
             </label>
             {{ form.allowed_post_bachelor_levels }}
           </div>
+          {% endif %}
 
           {% if form.allowed_establishments.errors %}
             <div class="col-sm-3 alert alert-danger">
