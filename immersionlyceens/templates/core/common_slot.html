@@ -845,7 +845,7 @@
     course_id = $('#id_course option:selected').val();
 
     if(course_id !== '' && courses[course_id]['published'] === false) {
-      courseDialog.dialog('open');
+      publicationDialog.dialog('open');
     }
 
     empty_speakers()
