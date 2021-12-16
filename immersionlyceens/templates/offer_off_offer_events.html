@@ -43,7 +43,7 @@
 </section>
 
 <section class="py-5 bg-gray ">
-  <div class="container-fluid mt-4" class="collapse">
+  <div class="container-fluid mt-4">
     <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ events_count }} {% trans 'available events (see below)' %}">{{ events_count }} {% trans 'available events' %}</span></p>
 
     {% if events %}
@@ -65,7 +65,7 @@
           {% for slot in slots_list %}
             {% for s in slot.list %}
             <div id="slot">
-              <div class="card" class="collapse">
+              <div class="card">
                 <div class="card-body">
                   <div class="table-responsive">
                     <table class="table table-bordered">
@@ -178,7 +178,7 @@
                          <td style="width: 10%">
                         {% if s.event.establishment %}
                             <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Establishment' %}"></i>
-                            <span class="badge badge-pill immersup-badge" style="background-color: {{s.event.establishment.badge_html_color }};margin: 2px;">{{ s.event.establishment.label }}</span></span>
+                            <span class="badge badge-pill immersup-badge" style="background-color: {{s.event.establishment.badge_html_color }};margin: 2px;">{{ s.event.establishment.label }}</span>
                         {% endif %}
                           </td>
                          <td style="width: 10%">
