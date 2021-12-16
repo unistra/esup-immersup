@@ -398,6 +398,7 @@ function delete_slot(slot_id) {
 }
 
 function reload_data() {
+  yadcf.exResetAllFilters(dt);
   dt.clear().draw();
   dt.ajax.reload();
 }

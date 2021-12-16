@@ -5,6 +5,8 @@
 {% load immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
+{% include '../modals/modal_slot_repetition.html' %}
+
 {% block confirm_slot_creation %}
 <div id="date-dialog-form" style='z-index:3000;' title='{% trans "Confirm event slot creation" %}'>
   <span>
@@ -17,6 +19,14 @@
 <div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course" %}'>
   <span>
     {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block slot_repetition %}
+<div id="repeat-dialog-form" style='z-index:3000;' title='{% trans "Repeat slots creation" %}'>
+  <span>
+    {% trans 'Please select a date before setting this field' %}
   </span>
 </div>
 {% endblock %}
@@ -75,6 +85,23 @@
     <div class="col-sm-6 alert alert-danger">
       {{ form.course_type.errors }}
     </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block slot_repetition_field %}
+<div id="id_div_repeat" class="form-group row">
+  <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat weekly until' %}</label>
+  <div class="col-sm-3">
+      {{ form.repeat }}
+      <button class="btn btn-secondary duplicate_save_btn mb-1" name="edit" onclick="open_slot_repetition_modal()" title="{% trans 'Select dates' %}">
+          {% trans 'Select dates' %}
+      </button>
+  </div>
+  {% if form.repeat.errors %}
+  <div class="col-sm-6 alert alert-danger">
+    {{ form.repeat.errors }}
+  </div>
   {% endif %}
 </div>
 {% endblock %}
