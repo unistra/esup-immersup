@@ -2139,8 +2139,13 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["establishment_id"] = \
             kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
 
-        context["structure_id"] = \
-            kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
+        if kwargs.get('establishment_id'):
+            try:
+                context["structure_id"] = int(kwargs.get('structure_id', None))
+            except Exception:
+                context["structure_id"] = ""
+        else:
+            self.request.session.get('current_structure_id', None)
 
         context["highschool_id"] = \
             kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
@@ -2210,7 +2215,14 @@ class OffOfferEventSlotAdd(generic.CreateView):
 
         if self.kwargs.get('event_id', None):
             context["establishment_id"] = self.kwargs.get('establishment_id', None)
-            context["structure_id"] = self.kwargs.get('structure_id', None)
+            context["structure_id"] = ""
+
+            if kwargs.get('establishment_id'):
+                try:
+                    context["structure_id"] = int(kwargs.get('structure_id', None))
+                except Exception:
+                    context["structure_id"] = ""
+
             context["highschool_id"] = self.kwargs.get('highschool_id', None)
             context["event_id"] = self.kwargs.get('event_id')
 

@@ -96,7 +96,7 @@ urlpatterns = [
     path('off_offer_events_slots/', views.OffOfferEventSlotList.as_view(), name='off_offer_events_slots'),
     path('off_offer_events_slots/<int:highschool_id>/<int:event_id>', views.OffOfferEventSlotList.as_view(),
          name='high_school_filtered_events_slots_list'),
-    path('off_offer_events_slots/<int:establishment_id>/<int:structure_id>/<int:event_id>',
+    path('off_offer_events_slots/<int:establishment_id>/<str:structure_id>/<int:event_id>',
          views.OffOfferEventSlotList.as_view(),
          name='establishment_filtered_events_slots_list'),
 
@@ -107,6 +107,6 @@ urlpatterns = [
 
     path('off_offer_event_slot/add/<int:highschool_id>/<int:event_id>', views.OffOfferEventSlotAdd.as_view(),
          name='add_high_school_event_slot'),
-    path('off_offer_event_slot/add/<int:establishment_id>/<int:structure_id>/<int:event_id>',
+    path('off_offer_event_slot/add/<int:establishment_id>/<str:structure_id>/<int:event_id>',
          views.OffOfferEventSlotAdd.as_view(), name='add_establishment_event_slot'),
 ]

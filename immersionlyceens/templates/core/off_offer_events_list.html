@@ -398,9 +398,10 @@
             let slot_url = '/core/off_offer_events_slots/'
             let add_slot_url = '/core/off_offer_event_slot/add/'
 
-            if(is_set(row.establishment) && is_set(row.structure) && is_set(row.id)) {
-                slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
-                add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
+            if(is_set(row.establishment) && is_set(row.id)) {
+                let structure_id = is_set(row.structure) ? row.structure.id : null
+                slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
             }
             else if (is_set(row.highschool) && is_set(row.id)) {
                 slot_url += row.highschool.id + "/" + row.id
