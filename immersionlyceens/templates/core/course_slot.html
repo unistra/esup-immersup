@@ -8,7 +8,7 @@
 {% include '../modals/modal_slot_repetition.html' %}
 
 {% block confirm_slot_creation %}
-<div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm event slot creation" %}">
+<div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm course slot creation" %}">
   <span>
     {% trans 'This date is inside a vacation or a holiday. Do you really want to create a course slot with this date ?' %}
   </span>
@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block confirm_publication %}
-<div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course" %}'>
+<div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course publication" %}'>
   <span>
     {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
   </span>

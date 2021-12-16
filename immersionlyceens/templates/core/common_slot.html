@@ -649,11 +649,13 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
+        events = Array()
         let options = '<option value="">---------</option>'
 
         for (let i = 0; i < json.length; i++) {
           let selected = json[i]['id'] === parseInt(event_id) ? "selected='selected'" : ""
           options += `<option value="${json[i]['id']}" ${selected}>${json[i]['event_type']} : ${json[i]['label']}</option>`
+          events[json[i]['id']] = json[i]
         }
         $('select#id_event').html(options)
 
@@ -678,9 +680,12 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
+        visits = Array()
+
         let options = '<option value="">---------</option>'
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['purpose']}</option>`
+          visits[json[i]['id']] = json[i]
         }
         $('select#id_visit').html(options)
 
@@ -860,6 +865,11 @@
   if(is_set($("#id_event"))) {
     $("#id_event").change(function () {
       event_id = $('#id_event option:selected').val()
+
+      if(event_id !== '' && events[event_id]['published'] === false) {
+        publicationDialog.dialog('open');
+      }
+
       load_speakers(event_id);
     })
   }
@@ -867,6 +877,11 @@
   if(is_set($("#id_visit"))) {
     $("#id_visit").change(function() {
       visit_id = $('#id_visit option:selected').val()
+
+      if(visit_id !== '' && visits[visit_id]['published'] === false) {
+        publicationDialog.dialog('open');
+      }
+
       load_speakers(visit_id);
     })
   }
