@@ -1747,6 +1747,53 @@ class Slot(models.Model):
         return f"{slot_type} : {self.date} : {self.start_time}-{self.end_time}"
 
 
+    def get_allowed_highschool_levels(self):
+
+        #TODO: naughty rip off from HighSchoolStudentRecord model #FIXME later
+        LEVELS = [
+            (1, _('Pupil in year 11 / 10th grade student')),
+            (2, _('Pupil in year 12 / 11th grade student')),
+            (3, _('Pupil in year 13 / 12th grade student')),
+            (4, _('Above A Level / High-School Degree'))
+        ]
+        return [
+            level[1] for value in self.allowed_highschool_levels
+                for level in LEVELS if level[0] == value
+        ] if self.allowed_highschool_levels else []
+
+    def get_allowed_students_levels(self):
+
+        #TODO: naughty rip off from StudentRecord model #FIXME later
+        LEVELS = [
+            (1, _('Licence 1 (1st year above A level)')),
+            (2, _('Licence 2 (2nd year above A level)')),
+            (3, _('Licence 3 (3rd year above A level)')),
+            (4, _('BTEC 1')),
+            (5, _('BTEC 2')),
+            (6, _('Other')),
+        ]
+
+        return [
+            level[1] for value in self.allowed_student_levels
+                for level in LEVELS if level[0] == value
+        ] if self.allowed_student_levels else []
+
+    def get_allowed_post_bachelor_levels(self):
+
+        #TODO: naughty rip off from HighSchoolStudentRecord model #FIXME later
+        POST_BACHELOR_LEVELS = [
+            (1, _('BTS1')),
+            (2, _('BTS2')),
+            (3, _('BTSA1')),
+            (4, _('BTSA2')),
+            (5, _('Other')),
+        ]
+
+        return [
+            level[1] for value in self.allowed_post_bachelor_levels
+                for level in POST_BACHELOR_LEVELS if level[0] == value
+        ] if self.allowed_post_bachelor_levels else []
+
     class Meta:
         verbose_name = _('Slot')
         verbose_name_plural = _('Slots')

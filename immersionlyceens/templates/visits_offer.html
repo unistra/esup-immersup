@@ -125,15 +125,15 @@
                             {% if s.allowed_highschool_levels %}
                               <h6>{% trans "Allowed highschool levels" %} :</h6>
                               <ul>
-                              {% for l in  s.allowed_highschool_levels %}
+                              {% for l in  s.get_allowed_highschool_levels %}
                                 <li>{{ l }}</li>
                               {% endfor %}
                               </ul>
                             {% endif %}
-                            {% if s.allowed_student_levels.all %}
+                            {% if s.allowed_student_levels %}
                               <h6>{% trans "Allowed student levels" %} :</h6>
                               <ul>
-                              {% for l in  s.allowed_student_levels %}
+                              {% for l in  s.get_allowed_student_levels %}
                                 <li>{{ l }}</li>
                               {% endfor %}
                               </ul>
@@ -141,7 +141,7 @@
                             {% if s.allowed_post_bachelor_levels %}
                               <h6>{% trans "Allowed post bachelor levels" %} :</h6>
                               <ul>
-                              {% for l in  s.allowed_post_bachelor_levels %}
+                              {% for l in  s.get_allowed_post_bachelor_levels %}
                                 <li>{{ l }}</li>
                               {% endfor %}
                               </ul>

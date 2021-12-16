@@ -156,7 +156,7 @@
                                 {% if slot.allowed_highschool_levels %}
                                 <h6>{% trans "Allowed highschool levels" %} :</h6>
                                 <ul>
-                                {% for l in  slot.allowed_highschool_levels %}
+                                {% for l in  slot.get_allowed_highschool_levels %}
                                   <li>{{ l }}</li>
                                 {% endfor %}
                                 </ul>
@@ -164,7 +164,7 @@
                               {% if slot.allowed_student_levels %}
                                 <h6>{% trans "Allowed student levels" %} :</h6>
                                 <ul>
-                                {% for l in  slot.allowed_student_levels %}
+                                {% for l in  slot.get_allowed_students_levels %}
                                   <li>{{ l }}</li>
                                 {% endfor %}
                                 </ul>
@@ -172,7 +172,7 @@
                               {% if slot.allowed_post_bachelor_levels %}
                                 <h6>{% trans "Allowed post bachelor levels" %} :</h6>
                                 <ul>
-                                {% for l in  slot.allowed_post_bachelor_levels %}
+                                {% for l in  slot.get_allowed_post_bachelor_levels %}
                                   <li>{{ l }}</li>
                                 {% endfor %}
                                 </ul>
