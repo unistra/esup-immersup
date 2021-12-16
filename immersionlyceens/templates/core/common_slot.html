@@ -37,6 +37,12 @@
     </span>
   </div>
 
+  <div id="date-error-dialog" style='z-index:3000;' title='{% trans "Date error" %}'>
+    <span>
+      {% trans "You can't select an end date anterior to the current slot date" %}
+    </span>
+  </div>
+
   <div class="card">
     {% block card_header %}{% endblock %}
     <div class="card-body">
@@ -384,6 +390,7 @@
   var publicationDialog;
   var cancelDialog;
   var repetitionDialog;
+  var dateErrorDialog;
   var establishment_id = parseInt("{{ form.establishment.initial }}") || "{{ establishment_id }}";
   var structure_id = parseInt("{{ form.structure.value }}") || "{{ structure_id }}";
   var highschool_id = parseInt("{{ form.highschool.id }}") || "{{ highschool_id }}";
@@ -1035,24 +1042,33 @@
     return result;
   }
 
+  function set_repetitions() {
+    let first_date = $('#id_date').datepicker('getDate')
+    let end_date = $('#id_repeat').datepicker('getDate')
+
+    if(end_date <= first_date) {
+      dateErrorDialog.dialog("open")
+      $('#id_repeat').val("")
+    }
+
+    if(first_date && end_date) {
+      let all_dates = ""
+      for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
+        all_dates +=
+          "<div class='form-group row align-items-center'>" +
+          "  <div class='col-md-1'>" +
+          "   <input type='checkbox' name='slot_date[]' checked>" +
+          "  </div>" +
+          "  <div class='col-md-2'>" + d.toLocaleDateString() + "</div>" +
+          "</div>"
+        }
+
+      $("#id_days_div").html(all_dates)
+    }
+  }
+
   $('#id_repeat').change( function() {
-      let first_date = $('#id_date').datepicker('getDate')
-      let end_date = $('#id_repeat').datepicker('getDate')
-
-      if(first_date && end_date) {
-          let all_dates = ""
-          for (let d = first_date; d <= end_date; d = addDays(d, 7)) {
-              all_dates +=
-                  "<div class='form-group row align-items-center'>" +
-                  "  <div class='col-md-1'>" +
-                  "   <input type='checkbox' name='slot_date[]' checked>" +
-                  "  </div>" +
-                  "  <div class='col-md-2'>" + d.toLocaleDateString() + "</div>" +
-                  "</div>"
-          }
-
-          $("#id_days_div").html(all_dates)
-      }
+    set_repetitions()
   })
 
 
@@ -1319,14 +1335,24 @@ $(document).ready(function(){
         click: function () {
           repetitionDialog.dialog("close");
         },
-      },
-      {
-        text: "{% trans 'Cancel' %}",
+      }],
+  });
+
+  dateErrorDialog = $("#date-error-dialog").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Ok' %}",
         "class": 'dialog-button',
         click: function () {
-          repetitionDialog.dialog("close");
+          dateErrorDialog.dialog("close");
         },
-      }],
+    }],
   });
 
   function check_date() {
@@ -1352,6 +1378,10 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+
+    if($("#id_repeat")) {
+      set_repetitions()
+    }
   });
 
   // Back button + confirm
@@ -1379,6 +1409,9 @@ $(document).ready(function(){
   toggle_face_to_face();
   $('#id_face_to_face').on('change', function() { toggle_face_to_face() });
 
+  if($("#id_date").val() && $("#id_repeat").val()) {
+    set_repetitions()
+  }
 
   {% if slot or request.POST.structure %}
     {% if slot %}
