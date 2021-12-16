@@ -24,8 +24,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Visits offer" %}
-</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Visits offer" %}</li>
       </ol>
     </nav>
   </div>
@@ -43,7 +42,7 @@
 </section>
 
 <section class="py-5 bg-gray ">
-  <div class="container-fluid mt-4" class="collapse">
+  <div class="container-fluid mt-4">
     <p class="text-center"><span class="badge badge-secondary badge-pill" data-toggle="tooltip" title="{{ visits_count }} {% trans 'available visits (see below)' %}">{{ visits_count }} {% trans 'available visits' %}</span></p>
 
     {% if visits %}
@@ -61,11 +60,11 @@
         </div>
         <div class="collapse" id="visit{{h.grouper.pk}}"  aria-labelledby="#visit{{h.grouper.pk}}" data-parent="#accordion">
           <div class="card-body" >
-          {% regroup h.list by visit as slots_list %}
-          {% for slot in slots_list %}
+            {% regroup h.list by visit as slots_list %}
+            {% for slot in slots_list %}
             {% for s in slot.list %}
-            <div id="slot">
-              <div class="card" class="collapse">
+            <div id="slot" >
+              <div class="card">
                 <div class="card-body">
                   <div class="table-responsive">
                     <table class="table table-bordered">
@@ -173,7 +172,7 @@
                           <td style="width: 10%">
                         {% if s.visit.establishment %}
                             <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Establishment' %}"></i>
-                            <span class="badge badge-pill immersup-badge" style="background-color: {{s.visit.establishment.badge_html_color }};margin: 2px;">{{ s.visit.establishment.label }}</span></span>
+                            <span class="badge badge-pill immersup-badge" style="background-color: {{s.visit.establishment.badge_html_color }};margin: 2px;">{{ s.visit.establishment.label }}</span>
                         {% endif %}
                           </td>
                           <td style="width: 10%">
@@ -195,11 +194,12 @@
               </div>
             </div>
             {% endfor %}
-          {% endfor %}
+            {% endfor %}
           </div>
         </div>
       </div>
       {% endfor %}
+    </div>
     {% else %}
     <p class="text-center">{% trans 'No visit available' %}</p>
     {% endif %}
