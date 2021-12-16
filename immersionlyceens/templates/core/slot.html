@@ -19,7 +19,7 @@
 {% block content %}
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
-  <div id="date-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot creation" %}'>
+  <div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm slot creation" %}">
     <span>
       {% trans 'This date is inside a vacation or a holiday. Are you sure that you want a slot with this date ?' %}
     </span>
@@ -714,7 +714,7 @@
               if (speakers.find(s => parseInt(s) === e['id']) !== undefined) {
                 checked = "checked"
               }
-            
+
               let name = '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
               element = '<div class="custom-checkbox custom-control">';
               element += '<input type="checkbox" name="speaker_' + e['id'] + '" value="' + e['id'] + '" ' + checked + '>';
