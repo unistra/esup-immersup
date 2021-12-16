@@ -1669,8 +1669,10 @@ class VisitSlotList(generic.TemplateView):
         context["establishment_id"] = \
             kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
 
-        context["structure_id"] = \
-            kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
+        if kwargs.get('establishment_id'):
+            context["structure_id"] = kwargs.get('structure_id', "")
+        else:
+            context["structure_id"] = self.request.session.get('current_structure_id', None)
 
         context["highschool_id"] = \
             kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
