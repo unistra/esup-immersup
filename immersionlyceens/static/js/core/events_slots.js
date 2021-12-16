@@ -38,7 +38,7 @@ function init_datatable() {
         null,
         null,
         { "search": event_type_filter},
-        null,
+        { "search": event_label_filter},
         null,
         null,
         null,

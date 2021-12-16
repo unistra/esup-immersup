@@ -2163,6 +2163,7 @@ class OffOfferEventSlotList(generic.TemplateView):
             try:
                 event = OffOfferEvent.objects.get(pk=context["event_id"])
                 context["event_type_filter"] = event.event_type.label
+                context["event_label_filter"] = event.label
             except OffOfferEvent.DoesNotExist:
                 pass
 
