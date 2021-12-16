@@ -3981,7 +3981,7 @@ msgstr "Sélectionnez une personne"
 #: immersionlyceens/templates/core/old/off_offer_event_slot.html:22
 #: immersionlyceens/templates/core/visit_slot.html:9
 msgid "Confirm event slot creation"
-msgstr "Confirmer la cration du créneau d'évènement"
+msgstr "Confirmer la création du créneau d'évènement"
 
 #: immersionlyceens/templates/core/course_slot.html:11
 msgid ""
