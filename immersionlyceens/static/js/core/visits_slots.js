@@ -13,6 +13,8 @@ function init_datatable() {
             d.structure_id = $('#id_structure').val();
           }
 
+          d.past = $('#filter_past_slots').is(':checked')
+
           return d
       },
       dataSrc: function (json) {
@@ -210,6 +212,15 @@ function init_datatable() {
       orderable: false,
       targets: [9]
     }],
+  });
+
+  // All filters reset action
+  $('#filters_reset_all').click(function () {
+    yadcf.exResetAllFilters(dt);
+  });
+
+  $('#filter_past_slots').click(function () {
+    dt.ajax.reload();
   });
 
   yadcf.init(dt, [

@@ -385,6 +385,10 @@ class APITestCase(TestCase):
             student=self.student,
             slot=self.slot
         )
+        self.immersion3 = Immersion.objects.create(
+            student=self.highschool_user,
+            slot=self.past_slot,
+        )
         self.mail_t = MailTemplate.objects.create(
             code="code",
             label="label",
@@ -497,7 +501,8 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         url = "/api/slots"
         data = {
-            'training_id': self.training.id
+            'training_id': self.training.id,
+            'past': "true",
         }
         response = self.client.get(url, data, **self.header)
         content = json.loads(response.content.decode())
@@ -534,7 +539,7 @@ class APITestCase(TestCase):
         response = client.get(url, data, **self.header)
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 5)
+        self.assertEqual(len(content['data']), 6)
 
 
     def test_API_get_trainings(self):
@@ -1089,31 +1094,31 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         s = content['data'][0]
-        self.assertEqual(self.slot.id, s['id'])
-        self.assertEqual(self.slot.published, s['published'])
-        self.assertEqual(self.slot.course.structure.code, s['structure']['code'])
+        self.assertEqual(self.past_slot.id, s['id'])
+        self.assertEqual(self.past_slot.published, s['published'])
+        self.assertEqual(self.past_slot.course.structure.code, s['structure']['code'])
         self.assertEqual(
-            f'{self.slot.course.training.label} ({self.slot.course_type.label})',
+            f'{self.past_slot.course.training.label} ({self.past_slot.course_type.label})',
             s['training_label']
         )
         self.assertEqual(
-            f'{self.slot.course.training.label} ({self.slot.course_type.full_label})',
+            f'{self.past_slot.course.training.label} ({self.past_slot.course_type.full_label})',
             s['training_label_full']
         )
-        self.assertEqual(self.slot.campus.label, s['location']['campus'])
-        self.assertEqual(self.slot.building.label, s['location']['building'])
+        self.assertEqual(self.past_slot.campus.label, s['location']['campus'])
+        self.assertEqual(self.past_slot.building.label, s['location']['building'])
 
-        self.assertEqual(self.slot.room, s['room'])
+        self.assertEqual(self.past_slot.room, s['room'])
 
-        self.assertEqual(_date(self.slot.date, 'l d/m/Y'), s['date'])
-        self.assertEqual(self.slot.start_time.strftime("%Hh%M"), s['time']['start'])
-        self.assertEqual(self.slot.end_time.strftime("%Hh%M"), s['time']['end'])
+        self.assertEqual(_date(self.past_slot.date, 'l d/m/Y'), s['date'])
+        self.assertEqual(self.past_slot.start_time.strftime("%Hh%M"), s['time']['start'])
+        self.assertEqual(self.past_slot.end_time.strftime("%Hh%M"), s['time']['end'])
 
-        self.assertEqual(self.slot.course.label, s['course']['label'])
+        self.assertEqual(self.past_slot.course.label, s['course']['label'])
         # TODO: speakers
-        self.assertEqual(self.slot.n_places, s['n_places'])
-        self.assertEqual(self.slot.registered_students(), s['n_register'])
-        self.assertEqual(self.slot.additional_information, s['additional_information'])
+        self.assertEqual(self.past_slot.n_places, s['n_places'])
+        self.assertEqual(self.past_slot.registered_students(), s['n_register'])
+        self.assertEqual(self.past_slot.additional_information, s['additional_information'])
 
         # Past Slots
         self.slot.date = self.today - timedelta(days=10)
@@ -1887,6 +1892,8 @@ class APITestCase(TestCase):
     def test_ajax_slot_registration(self):
         self.hs_record.validation = 2
         self.hs_record.save()
+
+        self.immersion3.delete()
 
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
