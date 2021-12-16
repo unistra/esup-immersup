@@ -131,12 +131,13 @@
   var slot_places = 0;
   let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   let is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
-  
+
   let event_type_filter = "{{ event_type_filter }}"
   let event_label_filter = "{{ event_label_filter }}"
   let course_label_filter = "{{ course_label_filter }}"
   let visit_purpose_filter = "{{ visit_purpose_filter }}"
   let highschool_filter = "{{ highschool_filter }}"
+  let managed_by_filter = "{{ managed_by_filter }}"
 
   function decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
@@ -147,6 +148,7 @@
   course_label_filter = decodeHTMLEntities(course_label_filter)
   visit_purpose_filter = decodeHTMLEntities(visit_purpose_filter)
   highschool_filter = decodeHTMLEntities(highschool_filter)
+  managed_by_filter = decodeHTMLEntities(managed_by_filter)
 
   // datatables variables
   let language_file = "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"

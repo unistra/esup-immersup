@@ -1672,7 +1672,23 @@ class VisitSlotList(generic.TemplateView):
             kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
 
         if kwargs.get('establishment_id'):
-            context["structure_id"] = kwargs.get('structure_id', "")
+            try:
+                establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
+                context["managed_by_filter"] = establishment.code
+            except Establishment.DoesNotExist:
+                pass
+
+            context["structure_id"] = kwargs.get('structure_id')
+
+            if context["structure_id"] == "null":
+                context["structure_id"] = ""
+            else:
+                try:
+                    structure = Structure.objects.get(pk=context["structure_id"])
+                    context["managed_by_filter"] += f" - {structure.code}"
+                except Structure.DoesNotExist:
+                    pass
+
         else:
             context["structure_id"] = self.request.session.get('current_structure_id', None)
 
@@ -2177,7 +2193,7 @@ class OffOfferEventSlotList(generic.TemplateView):
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
-                context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
+                context["structure_id"] = context.get("structure_id") or self.request.user.structures.first().id
 
             if self.request.user.is_high_school_manager():
                 context["establishments"] = Establishment.objects.none()

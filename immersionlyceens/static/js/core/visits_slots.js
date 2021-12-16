@@ -33,7 +33,7 @@ function init_datatable() {
     searchCols: [
         null,
         { "search": highschool_filter },
-        null,
+        { "search": managed_by_filter },
         { "search": visit_purpose_filter},
         null,
         null,
@@ -58,13 +58,15 @@ function init_datatable() {
             return data.label
           },
         },
-        { data: 'structure',
+        { data: 'establishment',
           render: function(data, type, row) {
+            let txt = row.establishment.code
+
             if(row.structure && row.structure.code) {
-              return row.structure.code;
+              txt += " - " + row.structure.code;
             }
 
-            return ""
+            return txt
           },
         },
         { data: 'visit',
@@ -242,7 +244,7 @@ function init_datatable() {
         column_number: 2,
         filter_default_label: "",
         style_class: "form-control form-control-sm",
-        filter_container_id: "structure_filter",
+        filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
     },
     {
