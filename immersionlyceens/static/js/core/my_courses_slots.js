@@ -33,16 +33,21 @@ function init_datatable() {
         return (data) ? yes_text : no_text;
       },
     },
-    { "data": "structure",
+    { "data": "managed_by",
       "render": function (data, type, row) {
-        if(row.structure) {
-          return row.establishment.code + " - " + row.structure.code;
+        let txt = ""
+        if(row.establishment) {
+          txt += row.establishment.code
+
+          if(row.structure) {
+            txt += " - " + row.structure.code;
+          }
         }
         else if (row.highschool) {
-          return row.highschool.label
+          txt = row.highschool.city + " - " + row.highschool.label
         }
 
-        return ""
+        return txt
       }
     },
     { "data": "training_label" },

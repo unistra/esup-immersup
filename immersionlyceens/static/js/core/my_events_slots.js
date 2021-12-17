@@ -87,14 +87,19 @@ function init_datatable() {
       },
       { "data": "managed_by",
         "render": function (data, type, row) {
-          if(row.structure) {
-            return row.establishment.code + " - " + row.structure.code;
+          let txt = ""
+          if(row.establishment) {
+            txt += row.establishment.code
+
+            if(row.structure) {
+              txt += " - " + row.structure.code;
+            }
           }
           else if (row.highschool) {
-            return row.highschool.label
+            txt = row.highschool.city + " - " + row.highschool.label
           }
 
-          return ""
+          return txt
         }
       },
       { "data": "event.label",
