@@ -139,39 +139,41 @@ function init_datatable() {
     },
     { data: 'restrictions',
       render: function(data) {
-        let txt = ""
+        let txt = "<div>"
 
         if(data.establishment_restrictions === true) {
-          txt += establishments_txt + " :\n"
+          txt += establishments_txt + " :<br>"
           data.allowed_establishments.forEach(item => {
-            txt += "- " + item + "\n"
+            txt += "- " + item + "<br>"
           })
 
           data.allowed_highschools.forEach(item => {
-            txt += "- " + item + "\n"
+            txt += "- " + item + "<br>"
           })
         }
 
         if(data.levels_restrictions === true) {
-          if(txt) txt += "\n"
+          if(txt) txt += "<br>"
 
-          txt += levels_txt + " :\n"
+          txt += levels_txt + " :<br>"
 
           data.allowed_highschool_levels.forEach(item => {
-            txt += "- " + item + "\n"
+            txt += "- " + item + "<br>"
           })
 
           data.allowed_post_bachelor_levels.forEach(item => {
-            txt += "- " + item + "\n"
+            txt += "- " + item + "<br>"
           })
 
           data.allowed_student_levels.forEach(item => {
-            txt += "- " + item + "\n"
+            txt += "- " + item + "<br>"
           })
         }
 
-        if (txt) {
-          return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+        txt += "</div>"
+
+        if (txt !== "<div></div>") {
+          return '<span data-toggle="tooltip" data-html="true" data-title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
         } else {
           return '';
         }
@@ -182,7 +184,6 @@ function init_datatable() {
       {
         "defaultContent": "",
         "targets": "_all",
-        "className": "all",
       },
       {
         "orderable": false, "targets": 9
