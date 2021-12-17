@@ -28,6 +28,7 @@
       {% endif %}
     </div>
     <div class="card-body">
+      <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
       <form class="" role="form" action="/core/visit/{% if visit.id %}{{ visit.id }}{% elif origin_id %}{{ origin_id }}{% else %}add{% endif %}{% if duplicate %}/1{% endif %}" method="POST">
       {% csrf_token %}
         {{ form.id }}
