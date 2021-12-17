@@ -139,7 +139,7 @@ function init_datatable() {
               return txt + row.room + "</span>";
           }
           else {
-              return remote_event_text
+            return "<a href='" + row.url + "' target='_blank'>" + remote_event_text + "</a>"
           }
         }
       },
