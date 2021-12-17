@@ -770,6 +770,7 @@ def ajax_check_date_between_vacation(request):
                 return JsonResponse(response, safe=False)
 
         response['data'] = {
+            'date': _date,
             'is_between': (
                 Vacation.date_is_inside_a_vacation(formated_date.date())
                 or Holiday.date_is_a_holiday(formated_date.date())

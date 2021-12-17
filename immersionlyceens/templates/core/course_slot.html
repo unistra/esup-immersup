@@ -86,20 +86,22 @@
 {% endblock %}
 
 {% block slot_repetition_field %}
-<div class="form-group row" id="id_div_repeat">
-  <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat weekly until' %}</label>
-  <div class="col-sm-3">
-      {{ form.repeat }}
-  </div>
-  <div class="col-sm-2">
-      <button type="button" role="button" name="date_selection" class="btn btn-secondary duplicate_save_btn mb-1" onclick="repetitionDialog.dialog('open')">
-        {% trans 'Dates selection' %}
-      </button>
-  </div>
-  {% if form.repeat.errors %}
-  <div class="col-sm-5 alert alert-danger">
-    {{ form.repeat.errors }}
-  </div>
+  {% if not form.instance.id %}
+    <div class="form-group row" id="id_div_repeat">
+      <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat weekly until' %}</label>
+      <div class="col-sm-3">
+          {{ form.repeat }}
+      </div>
+      <div class="col-sm-2" id="id_div_repeat_button">
+          <button type="button" role="button" name="date_selection" class="btn btn-secondary duplicate_save_btn mb-1" onclick="repetitionDialog.dialog('open')">
+            {% trans 'Dates selection' %}
+          </button>
+      </div>
+      {% if form.repeat.errors %}
+      <div class="col-sm-5 alert alert-danger">
+        {{ form.repeat.errors }}
+      </div>
+      {% endif %}
+    </div>
   {% endif %}
-</div>
 {% endblock %}$

@@ -1036,6 +1036,27 @@
     toggle_required_fields()
   }
 
+  function check_date(date=$('#id_date').val(), dialog=true, callback) {
+    return $.ajax({
+      url: '/api/check_vacations',
+      data: {
+        date: date,
+      },
+      success: function(data) {
+        if ( data['data'] ) {
+          if (data['data']['is_between']) {
+            if(dialog) {
+              dateDialog.dialog('open');
+            }
+            else if (callback) {
+              callback(data['data']['is_between'])
+            }
+          }
+        }
+      },
+    });
+  }
+
   function addDays(date, days) {
     var result = new Date(date);
     result.setDate(result.getDate() + days);
@@ -1043,32 +1064,63 @@
   }
 
   function set_repetitions() {
+    $("#id_days_div").html("")
     let first_date = $('#id_date').datepicker('getDate')
     let end_date = $('#id_repeat').datepicker('getDate')
 
     if(end_date <= first_date) {
       dateErrorDialog.dialog("open")
       $('#id_repeat').val("")
+      $("#id_div_repeat_button").hide()
     }
 
     if(first_date && end_date) {
       let all_dates = ""
       for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
-        all_dates +=
+        $("#id_days_div").append(
           "<div class='form-group row align-items-center'>" +
           "  <div class='col-md-1'>" +
-          "   <input type='checkbox' name='slot_date[]' checked>" +
+          "   <input type='checkbox' name='slot_date[]' value='" + d.toLocaleDateString() + "' checked>" +
           "  </div>" +
-          "  <div class='col-md-2'>" + d.toLocaleDateString() + "</div>" +
+          "  <div class='col-md-3'>" + d.toLocaleDateString() + "</div>" +
+          "  <div class='col-md-4' id='id_vacation_" + d.toLocaleDateString() + "'></div>" +
           "</div>"
-        }
+        )
 
-      $("#id_days_div").html(all_dates)
+        check_date(d.toLocaleDateString(), false).then(response => {
+          let vacation_text = ""
+          let id = "id_vacation_" + response.data.date
+
+          if(response.data.is_between === true) {
+            vacation_text = "{% trans 'Vacation or holiday' %}"
+          }
+
+          $(document.getElementById(id)).html(vacation_text)
+        })
+      }
+    }
+  }
+
+  function toggle_repeat_divs() {
+    if($("#id_date").val()) {
+      $("#id_div_repeat").show()
+
+      if($("#id_repeat").val()) {
+        $("#id_div_repeat_button").show()
+        set_repetitions()
+      }
+      else {
+        $("#id_div_repeat_button").hide()
+      }
+    }
+    else {
+      $("#id_div_repeat").hide()
+      $("#id_div_repeat_button").hide()
     }
   }
 
   $('#id_repeat').change( function() {
-    set_repetitions()
+    toggle_repeat_divs()
   })
 
 
@@ -1253,6 +1305,7 @@ $(document).ready(function(){
         "class": 'dialog-button',
         click: function () {
           $('#id_date').val('');
+          toggle_repeat_divs()
           dateDialog.dialog("close");
         },
       }],
@@ -1326,7 +1379,8 @@ $(document).ready(function(){
     closeOnEscape: false,
     open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
     closeText: "hide",
-    width: 'auto',
+    width: 600,
+    height: 500,
     modal: true,
 
     buttons: [{
@@ -1355,22 +1409,6 @@ $(document).ready(function(){
     }],
   });
 
-  function check_date() {
-    $.ajax({
-      url: '/api/check_vacations',
-      data: {
-        date: $('#id_date').val(),
-      },
-      success: function(data) {
-        if ( data['data'] ) {
-          if (data['data']['is_between']) {
-            dateDialog.dialog('open');
-          }
-        }
-      },
-    });
-  }
-
   // Change input type
   $('#id_start_time').get(0).type = 'time';
   $('#id_end_time').get(0).type = 'time';
@@ -1378,10 +1416,7 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
-
-    if($("#id_repeat")) {
-      set_repetitions()
-    }
+    toggle_repeat_divs()
   });
 
   // Back button + confirm
@@ -1409,9 +1444,7 @@ $(document).ready(function(){
   toggle_face_to_face();
   $('#id_face_to_face').on('change', function() { toggle_face_to_face() });
 
-  if($("#id_date").val() && $("#id_repeat").val()) {
-    set_repetitions()
-  }
+  toggle_repeat_divs()
 
   {% if slot or request.POST.structure %}
     {% if slot %}
