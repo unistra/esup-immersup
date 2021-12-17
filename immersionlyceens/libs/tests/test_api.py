@@ -1019,7 +1019,7 @@ class APITestCase(TestCase):
         self.assertEqual(self.course.id, c['id'])
         self.assertEqual(self.course.published, c['published'])
         self.assertEqual(
-            f"{self.course.structure.code} ({self.course.structure.establishment.short_label})",
+            f"{self.course.structure.establishment.code} - {self.course.structure.code}",
             c['managed_by']
         )
         self.assertEqual(self.course.training.label, c['training_label'])

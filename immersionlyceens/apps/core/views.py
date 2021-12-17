@@ -1282,12 +1282,7 @@ class CourseSlotAdd(generic.CreateView):
                     else:
                         initials[k] = data.get(k, initials[k])
 
-                print(initials)
-
                 self.form = self.form_class(initial=initials, request=self.request)
-
-                #speakers_list = [{ "id": t.id } for t in slot.speakers.all()]
-                #context["speakers"] = json.dumps(speakers_list)
 
                 context["origin_id"] = slot.id
                 context["form"] = self.form
