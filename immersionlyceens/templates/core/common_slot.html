@@ -964,7 +964,10 @@
 
       if(slot_mode === "course" || slot_mode === "event") {
         if(establishment_id) {
-          mandatory = mandatory.concat(['establishment', 'structure'])
+          mandatory.push('establishment')
+          if(slot_mode === "course") {
+            mandatory.push('structure')
+          }
         }
         else if(highschool_id) {
           mandatory.push('highschool')

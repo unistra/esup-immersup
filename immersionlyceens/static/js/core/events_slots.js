@@ -264,6 +264,7 @@ function init_datatable() {
     {
         column_number: 2,
         filter_default_label: "",
+        filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
         filter_container_id: "event_type_filter",
         filter_reset_button_text: false,

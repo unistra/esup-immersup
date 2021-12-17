@@ -236,6 +236,7 @@ function init_datatable() {
     {
         column_number: 1,
         filter_default_label: "",
+        filter_match_mode: "exact",
         filter_container_id: "highschool_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
@@ -243,6 +244,7 @@ function init_datatable() {
     {
         column_number: 2,
         filter_default_label: "",
+        filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
         filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
@@ -250,6 +252,7 @@ function init_datatable() {
     {
         column_number: 3,
         filter_default_label: "",
+        filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
         filter_container_id: "purpose_filter",
         filter_reset_button_text: false,

@@ -178,15 +178,14 @@ function init_datatable() {
           return '';
         }
       }
-    },
-  ],
-    "columnDefs": [
-      {
-        "defaultContent": "",
-        "targets": "_all",
+    }],
+    columnDefs: [{
+        defaultContent: '-',
+        targets: '_all'
       },
       {
-        "orderable": false, "targets": 9
+        orderable: false,
+        targets: 9
       },
     ],
   });
@@ -214,18 +213,21 @@ function init_datatable() {
     }, {
       column_number: 1,
       filter_default_label: "",
+      filter_match_mode: "exact",
       filter_container_id: "structure_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }, {
       column_number: 2,
       filter_default_label: "",
+      filter_match_mode: "exact",
       style_class: "form-control form-control-sm",
       filter_container_id: "training_filter",
       filter_reset_button_text: false,
     }, {
       column_number: 3,
       filter_default_label: "",
+      filter_match_mode: "exact",
       style_class: "form-control form-control-sm",
       filter_container_id: "label_filter",
       filter_reset_button_text: false,
