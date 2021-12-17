@@ -90,8 +90,6 @@
       'ajax': {
         url: "/api/get_highschool_speakers/" + highschool_id,
           dataSrc: function (json) {
-            console.log(json)
-
             if (json['data'] !== undefined) {
               return json['data'];
             }

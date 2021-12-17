@@ -1068,7 +1068,8 @@ class APITestCase(TestCase):
         s = content['data'][0]
         self.assertEqual(self.highschool_slot.id, s['id'])
         self.assertEqual(self.highschool_slot.published, s['published'])
-        self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", s['highschool']['label'])
+        self.assertEqual(self.high_school.city, s['highschool']['city'])
+        self.assertEqual(self.high_school.label, s['highschool']['label'])
         self.assertEqual(
             f'{self.highschool_slot.course.training.label} ({self.highschool_slot.course_type.label})',
             s['training_label']

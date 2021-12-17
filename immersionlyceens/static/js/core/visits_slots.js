@@ -22,7 +22,7 @@ function init_datatable() {
           return json['data'];
         }
         return [];
-      }
+      },
     },
     order: [[4, "asc"], [1, "asc"], [2, "asc"], [3, "asc"]],
     processing: false,
@@ -290,4 +290,12 @@ function init_datatable() {
         filter_reset_button_text: false,
     },
   ])
+
+  if(highschool_filter) {
+    yadcf.exFilterColumn(dt, [
+      [1, [highschool_filter]],
+      [2, [managed_by_filter]],
+      [3, [visit_purpose_filter]],
+    ]);
+  }
 }

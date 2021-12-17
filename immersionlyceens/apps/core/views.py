@@ -2182,8 +2182,15 @@ class OffOfferEventSlotList(generic.TemplateView):
             except Structure.DoesNotExist:
                 pass
 
-        context["highschool_id"] = \
-            kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
+        if kwargs.get('highschool_id'):
+            try:
+                highschool = HighSchool.objects.get(pk=kwargs.get('highschool_id'))
+                context["highschool_id"] = highschool.id
+                context["managed_by_filter"] = f"{highschool.city} - {highschool.label}"
+            except HighSchool.DoesNotExist:
+                pass
+        else:
+            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
 
         context["event_id"] = kwargs.get('event_id', None)
 
@@ -2197,7 +2204,8 @@ class OffOfferEventSlotList(generic.TemplateView):
 
         if not self.request.user.is_superuser:
             if self.request.user.is_master_establishment_manager():
-                context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
+                if not context.get("highschool_id"):
+                    context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
 
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)

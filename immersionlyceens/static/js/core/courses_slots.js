@@ -287,4 +287,10 @@ function init_datatable() {
         filter_reset_button_text: false,
     },
   ])
+
+  if(course_label_filter) {
+    yadcf.exFilterColumn(dt, [
+      [2, [course_label_filter]],
+    ]);
+  }
 }

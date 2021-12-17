@@ -310,4 +310,9 @@ function init_datatable() {
         filter_reset_button_text: false,
     },
   ])
+
+  yadcf.exFilterColumn(dt, [
+      [1, [managed_by_filter]],
+      [2, [event_type_filter]],
+    ]);
 }
