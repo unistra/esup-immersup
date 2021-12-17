@@ -31,8 +31,7 @@
           <thead>
             <tr>
               <th id="events_published_filter" class="w-5">{% trans 'Published' %}</th>
-              <th id="events_establishment_filter">{% trans 'Establishment / High school' %}</th>
-              <th id="events_structure_filter">{% trans 'Structure' %}</th>
+              <th id="events_managed_by_filter">{% trans 'Managed by' context "events" %}</th>
               <th id="events_event_type_filter">{% trans 'Event type' %}</th>
               <th id="events_label_filter">{% trans 'Label' %}</th>
               <th id="events_speaker_filter">{% trans 'Speakers' %}</th>
@@ -42,7 +41,6 @@
           </thead>
           <tfoot>
             <tr>
-              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -94,27 +92,20 @@
           return txt;
         },
       },
-      { "data": "establishment",
-        "render": function (data, type, row) {
-          let txt = ""
-
+      {
+        "data": "managed_by",
+        "render": function(data, type, row) {
           if(row.establishment) {
-            txt += row.establishment.label
-          }
-          if(row.highschool) {
-            txt += row.highschool.city + " - " + row.highschool.label
-          }
+            let txt = row.establishment.code
+            if (row.structure) {
+              txt += " - " + row.structure.code
+            }
 
-          return txt
-        }
-      },
-      { "data": "structure",
-        "render": function (data) {
-           if (data) {
-             return data.code + " - " + data.label
-           }
-
-           return ""
+            return txt
+          }
+          else if(row.highschool) {
+            return row.highschool.city + " - " + row.highschool.label
+          }
         }
       },
       { "data": "event_type" },
@@ -194,34 +185,25 @@
     }, {
       column_number: 1,
       filter_default_label: "",
-      filter_container_id: "events_establishment_filter",
+      filter_container_id: "events_managed_by_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
-    {% if not request.user.highschool %}
     {
       column_number: 2,
-      filter_default_label: "",
-      filter_container_id: "events_structure_filter",
-      style_class: "form-control form-control-sm",
-      filter_reset_button_text: false,
-    },
-    {% endif %}
-    {
-      column_number: 3,
       filter_default_label: "",
       filter_container_id: "events_event_type_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }, {
-      column_number: 4,
+      column_number: 3,
       filter_type: "text",
       filter_default_label: "",
       filter_container_id: "events_label_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }, {
-      column_number: 5,
+      column_number: 4,
       filter_type: "text",
       filter_default_label: "",
       style_class: "form-control form-control-sm",

@@ -97,7 +97,7 @@
         <thead>
           <tr>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
-            <th><span id="managed_by_filter">{% trans 'Managed by' %}</span></th>
+            <th><span id="managed_by_filter">{% trans 'Managed by' context "events" %}</span></th>
             <th><span id="event_type_filter">{% trans 'Event type' %}</span></th>
             <th><span id="label_filter">{% trans 'Label' %}</span></th>
             <th><span id="speakers_filter">{% trans 'Speakers' %}</span></th>
@@ -332,9 +332,9 @@
           "data": "managed_by",
           "render": function(data, type, row) {
             if(row.establishment) {
-              let txt = row.establishment.short_label
+              let txt = row.establishment.code
               if (row.structure) {
-                txt += " - " + row.structure.code + " : " + row.structure.label
+                txt += " - " + row.structure.code
               }
 
               return txt

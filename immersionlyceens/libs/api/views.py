@@ -213,7 +213,7 @@ def ajax_get_courses(request):
         has_rights = False
 
         if course.structure:
-            managed_by = f"{course.structure.code} ({course.structure.establishment.short_label})"
+            managed_by = f"{course.structure.establishment.code} - {course.structure.code}"
             has_rights = (Structure.objects.filter(pk=course.structure.id) & allowed_structures).exists()
         elif course.highschool:
             managed_by = f"{course.highschool.city} - {course.highschool.label}"

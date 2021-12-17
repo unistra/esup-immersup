@@ -73,8 +73,7 @@
         <thead>
           <tr>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
-            <th><span id="establishment_filter">{% trans 'Establishment' %}</span></th>
-            <th><span id="structure_filter">{% trans 'Structure' %}</span></th>
+            <th><span id="managed_by_filter">{% trans 'Managed by' context "visits" %}</span></th>
             <th><span id="highschool_filter">{% trans 'High school' %}</span></th>
             <th><span id="purpose_filter">{% trans 'Purpose' %}</span></th>
             <th class="align-top">{% trans 'Speakers' %}</th>
@@ -85,7 +84,6 @@
         </thead>
         <tfoot>
           <tr>
-            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -280,22 +278,14 @@
             return txt;
           },
         },
-        {"data": "establishment",
-          render: function (data) {
-            if(data) {
-                return data.code + " : " + data.label
-            }
+        { "data": "establishment",
+          "render": function (data, type, row) {
+            let txt = row.establishment.code
 
-            return ""
-          }
-        },
-        {"data": "structure",
-          render: function (data) {
-            if(data) {
-                return data.code + " : " + data.label
-            }
+            if(row.structure)
+              txt += " - " + row.structure.code
 
-            return ""
+            return txt
           }
         },
         {"data": "highschool",
@@ -406,7 +396,7 @@
         column_number: 1,
         filter_default_label: "",
         filter_match_mode: "exact",
-        filter_container_id: "establishment_filter",
+        filter_container_id: "managed_by_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
@@ -414,20 +404,12 @@
         column_number: 2,
         filter_default_label: "",
         filter_match_mode: "exact",
-        filter_container_id: "structure_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 3,
-        filter_default_label: "",
-        filter_match_mode: "exact",
         filter_container_id: "highschool_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
-        column_number: 4,
+        column_number: 3,
         filter_default_label: "",
         filter_match_mode: "exact",
         filter_container_id: "purpose_filter",
