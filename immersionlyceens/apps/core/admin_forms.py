@@ -852,26 +852,27 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         if not self.request.user.is_superuser:
             # Disable establishment modification
-            if self.fields.get('establishment') and self.instance.establishment:
-                self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
-                self.fields["establishment"].empty_label = None
+            if self.fields.get('establishment'):
+                if self.instance.establishment:
+                    self.fields["establishment"].queryset = Establishment.objects.filter(id=self.instance.establishment.id)
+                    self.fields["establishment"].empty_label = None
 
-                # Lock fields when the selected establishment has a source plugin set
-                has_plugin = self.instance.establishment.data_source_plugin is not None
-                if has_plugin:
-                    self.fields["username"].disabled = True
-                    self.fields["email"].disabled = True
-                    self.fields["first_name"].disabled = True
-                    self.fields["last_name"].disabled = True
+                    # Lock fields when the selected establishment has a source plugin set
+                    has_plugin = self.instance.establishment.data_source_plugin is not None
+                    if has_plugin:
+                        self.fields["username"].disabled = True
+                        self.fields["email"].disabled = True
+                        self.fields["first_name"].disabled = True
+                        self.fields["last_name"].disabled = True
 
-                self.fields["groups"].queryset = \
-                    self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC'])
-            else:
-                self.fields["establishment"].queryset = Establishment.objects.none()
-                self.fields["groups"].queryset = \
-                    self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
+                    self.fields["groups"].queryset = \
+                        self.fields["groups"].queryset.exclude(name__in=['ETU', 'LYC', 'REF-LYC'])
+                else:
+                    self.fields["establishment"].queryset = Establishment.objects.none()
+                    self.fields["groups"].queryset = \
+                        self.fields["groups"].queryset.filter(name__in=['REF-LYC', 'INTER'])
 
-            self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
+                self.fields["establishment"].help_text = _("The establishment cannot be updated once the user created")
 
             for field in ["last_name", "first_name", "email"]:
                 if self.fields.get(field):
