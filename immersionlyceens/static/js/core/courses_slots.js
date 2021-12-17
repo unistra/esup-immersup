@@ -58,7 +58,7 @@ function init_datatable() {
                 return row.establishment.code + " - " + row.structure.code;
             }
             else if (row.highschool) {
-                return row.highschool.label;
+                return row.highschool.city + " - " + row.highschool.label;
             }
 
             return ""

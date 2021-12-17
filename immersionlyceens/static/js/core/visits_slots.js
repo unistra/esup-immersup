@@ -55,7 +55,7 @@ function init_datatable() {
         },
         { data: 'highschool',
           render: function(data, type, row) {
-            return data.label
+            return data.city + " - " + data.label;
           },
         },
         { data: 'establishment',

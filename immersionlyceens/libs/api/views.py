@@ -509,7 +509,7 @@ def slots(request):
             } if structure else None,
             'highschool': {
                 'city': highschool.city,
-                'label': f"{highschool.city} - {highschool.label}",
+                'label': highschool.label,
                 'managed_by_me': request.user.is_master_establishment_manager()\
                     or (user_highschool and highschool == user_highschool),
             } if highschool else None,

@@ -68,7 +68,7 @@ function init_datatable() {
             return txt
           }
           else if(row.highschool) {
-            return row.highschool.label
+            return row.highschool.city + " - " + row.highschool.label;
           }
         },
       },
