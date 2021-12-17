@@ -1964,6 +1964,9 @@ class OffOfferEventsList(generic.TemplateView):
                 context["structures"] = self.request.user.structures.filter(active=True)
                 context["establishment_id"] = self.request.user.establishment.id
 
+                if self.request.user.structures.filter(active=True).count() == 1:
+                    context["structure_id"] = self.request.user.structures.filter(active=True).first().id
+
             if self.request.user.is_high_school_manager():
                 context["establishments"] = Establishment.objects.none()
                 context["structures"] = Structure.objects.none()
