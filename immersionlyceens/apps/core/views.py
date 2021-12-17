@@ -1712,6 +1712,9 @@ class VisitSlotList(generic.TemplateView):
                 pass
 
         if not self.request.user.is_superuser:
+            if self.request.user.is_master_establishment_manager():
+                context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
+
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
@@ -2193,6 +2196,9 @@ class OffOfferEventSlotList(generic.TemplateView):
                 pass
 
         if not self.request.user.is_superuser:
+            if self.request.user.is_master_establishment_manager():
+                context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
+
             if self.request.user.is_establishment_manager():
                 context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
                 context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
