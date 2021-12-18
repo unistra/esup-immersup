@@ -21,7 +21,6 @@
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
   {% block confirm_slot_creation %}{% endblock %}
   {% block confirm_publication %}{% endblock %}
-  {% block dates_selection %}{% endblock %}
 
   <div id="cancel-dialog-form" style='z-index:3000;' title='{% trans "Cancel" %}'>
     <span>
@@ -51,6 +50,7 @@
       <form method="POST" class="form-group" role="form" id="add_slot">
         {% csrf_token %}
         {{ form.id }}
+        {% block dates_selection %}{% endblock %}
 
         {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
         <div class="form-group row" id="id_div_establishment">
@@ -1075,12 +1075,11 @@
     }
 
     if(first_date && end_date) {
-      let all_dates = ""
       for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
         $("#id_days_div").append(
           "<div class='form-group row align-items-center'>" +
           "  <div class='col-md-1'>" +
-          "   <input type='checkbox' name='slot_date[]' value='" + d.toLocaleDateString() + "' checked>" +
+          "   <input type='checkbox' name='slot_dates[]' value='" + d.toLocaleDateString() + "' checked>" +
           "  </div>" +
           "  <div class='col-md-3'>" + d.toLocaleDateString() + "</div>" +
           "  <div class='col-md-4' id='id_vacation_" + d.toLocaleDateString() + "'></div>" +
@@ -1391,6 +1390,8 @@ $(document).ready(function(){
         },
       }],
   });
+  // Reattach the Dialog to the form to have its dynamic inputs sent with the rest of the form
+  repetitionDialog.parent().appendTo($("#add_slot"))
 
   dateErrorDialog = $("#date-error-dialog").dialog({
     autoOpen: false,

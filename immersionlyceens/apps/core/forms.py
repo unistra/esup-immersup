@@ -132,6 +132,7 @@ class SlotForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         instance = kwargs.get('instance', None)
+        self.slot_dates = []
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 
@@ -242,14 +243,13 @@ class SlotForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        course = cleaned_data.get('course')
         structure = cleaned_data.get('structure')
-        highschool = cleaned_data.get('highschool')
         published = cleaned_data.get('published', None)
         n_places = cleaned_data.get('n_places', 0)
         face_to_face = cleaned_data.get('face_to_face', True)
         _date = cleaned_data.get('date')
         start_time = cleaned_data.get('start_time', 0)
+        repeat_until = cleaned_data.get('repeat')
 
         cleaned_data = self.clean_restrictions(cleaned_data)
         cals = Calendar.objects.all()
@@ -303,8 +303,10 @@ class SlotForm(forms.ModelForm):
         if start_time and end_time and start_time >= end_time:
             raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
 
-        return cleaned_data
+        if repeat_until:
+            self.slot_dates = self.request.POST.getlist("slot_dates")
 
+        return cleaned_data
 
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
@@ -313,6 +315,19 @@ class SlotForm(forms.ModelForm):
             instance.course.published = True
             instance.course.save()
             messages.success(self.request, _("Course published"))
+
+        if self.data.get("repeat"):
+            new_dates = self.data.getlist("slot_dates[]")
+            try:
+                new_slot_template = Slot.objects.get(pk=instance.pk)
+                for new_date in new_dates:
+                    parsed_date = datetime.strptime(new_date, "%d/%m/%Y")
+                    new_slot_template.pk = None
+                    new_slot_template.date = parsed_date
+                    new_slot_template.save()
+                    messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
+            except Slot.DoesNotExist:
+                pass
 
         return instance
 
