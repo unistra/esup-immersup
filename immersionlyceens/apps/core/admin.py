@@ -24,6 +24,7 @@ from .admin_forms import (
     ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
     PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm, OffOfferEventTypeForm,
+    HighSchoolLevelForm, PostBachelorLevelForm, StudentLevelForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -32,7 +33,8 @@ from .models import (
     GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
     ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
     Slot, Structure, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation, OffOfferEventType,
+    UniversityYear, Vacation, OffOfferEventType, HighSchoolLevel, PostBachelorLevel,
+    StudentLevel
 )
 
 
@@ -1453,6 +1455,87 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
+class HighSchoolLevelAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = HighSchoolLevelForm
+    list_display = ('label', 'active')
+    ordering = ('id', )
+
+    def has_add_permission(self, request):
+        return request.user.is_master_establishment_manager()
+
+    def has_module_permission(self, request):
+        return request.user.is_master_establishment_manager()
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager():
+            return False
+
+        if obj and not obj.can_delete():
+            return False
+
+        return True
+
+
+class PostBachelorLevelAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = PostBachelorLevelForm
+    list_display = ('label', 'active')
+    ordering = ('id', )
+
+    def has_add_permission(self, request):
+        return request.user.is_master_establishment_manager()
+
+    def has_module_permission(self, request):
+        return request.user.is_master_establishment_manager()
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager():
+            return False
+
+        if obj and not obj.can_delete():
+            return False
+
+        return True
+
+
+class StudentLevelAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = StudentLevelForm
+    list_display = ('label', 'active')
+    ordering = ('id', )
+
+    def has_add_permission(self, request):
+        return request.user.is_master_establishment_manager()
+
+    def has_module_permission(self, request):
+        return request.user.is_master_establishment_manager()
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_master_establishment_manager()
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_master_establishment_manager():
+            return False
+
+        if obj and not obj.can_delete():
+            return False
+
+        return True
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -1484,3 +1567,6 @@ admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
+admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
+admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
+admin.site.register(StudentLevel, StudentLevelAdmin)

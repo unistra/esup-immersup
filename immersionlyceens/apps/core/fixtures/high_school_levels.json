@@ -1,0 +1,34 @@
+[
+{
+    "model": "core.highschoollevel",
+    "pk": 2,
+    "fields": {
+        "label": "Seconde",
+        "active": true
+    }
+},
+{
+    "model": "core.highschoollevel",
+    "pk": 3,
+    "fields": {
+        "label": "Première",
+        "active": true
+    }
+},
+{
+    "model": "core.highschoollevel",
+    "pk": 4,
+    "fields": {
+        "label": "Terminale",
+        "active": true
+    }
+},
+{
+    "model": "core.highschoollevel",
+    "pk": 5,
+    "fields": {
+        "label": "Post-bac",
+        "active": true
+    }
+}
+]

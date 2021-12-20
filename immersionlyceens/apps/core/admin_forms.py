@@ -24,7 +24,7 @@ from .models import (
     GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
     MailTemplate, MailTemplateVars, OffOfferEventType, PublicDocument,
     PublicType, Structure, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UniversityYear, Vacation, HighSchoolLevel, PostBachelorLevel, StudentLevel,
 )
 
 
@@ -1509,4 +1509,25 @@ class OffOfferEventTypeForm(TypeFormMixin):
     """Off over event type form"""
     class Meta:
         model = OffOfferEventType
+        fields = '__all__'
+
+
+class HighSchoolLevelForm(TypeFormMixin):
+    """Off over event type form"""
+    class Meta:
+        model = HighSchoolLevel
+        fields = '__all__'
+
+
+class PostBachelorLevelForm(TypeFormMixin):
+    """Off over event type form"""
+    class Meta:
+        model = PostBachelorLevel
+        fields = '__all__'
+
+
+class StudentLevelForm(TypeFormMixin):
+    """Off over event type form"""
+    class Meta:
+        model = StudentLevel
         fields = '__all__'

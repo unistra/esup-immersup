@@ -70,6 +70,18 @@ class HighSchoolStudentRecord(models.Model):
     civility = models.SmallIntegerField(_("Civility"), default=1, choices=CIVS)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     level = models.SmallIntegerField(_("Level"), default=1, choices=LEVELS)
+
+    """
+    level = models.ForeignKey(
+        core_models.HighSchoolLevel,
+        verbose_name=_("Level"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="high_school_student_record"
+    )
+    """
+
     class_name = models.CharField(_("Class name"), blank=False, null=False, max_length=32)
 
     # For pre-bachelor levels
@@ -93,7 +105,18 @@ class HighSchoolStudentRecord(models.Model):
 
     # For post-bachelor levels
     post_bachelor_level = models.SmallIntegerField(_("Post bachelor level"),
-        default=1, null=True, blank=True, choices=POST_BACHELOR_LEVELS)
+      default=1, null=True, blank=True, choices=POST_BACHELOR_LEVELS)
+
+    """
+    post_bachelor_level = models.ForeignKey(
+        core_models.PostBachelorLevel,
+        verbose_name=_("Post bachelor level"),
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="high_school_student_record"
+    )
+    """
     origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
         default=1, null=True, blank=True, choices=POST_BACHELOR_ORIGIN_TYPES)
     current_diploma = models.CharField(
@@ -281,6 +304,16 @@ class StudentRecord(models.Model):
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     level = models.SmallIntegerField(_("Level"), default=1, blank=False, null=False, choices=LEVELS)
+    """
+    level = models.ForeignKey(
+        core_models.StudentLevel,
+        verbose_name=_("Level"),
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="student_record"
+    )
+    """
 
     origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
         default=1, null=False, blank=False, choices=BACHELOR_TYPES)

@@ -159,6 +159,48 @@ class HighSchool(models.Model):
         ordering = ['city', 'label', ]
 
 
+class HighSchoolLevel(models.Model):
+    """
+    High school pupil levels
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self):
+        return self.label
+
+    def can_delete(self):
+        return not self.high_school_student_record.exists()
+
+
+class PostBachelorLevel(models.Model):
+    """
+    Post bachelor student levels
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self):
+        return self.label
+
+    def can_delete(self):
+        return not self.high_school_student_record.exists()
+
+
+class StudentLevel(models.Model):
+    """
+    Student levels
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+
+    def __str__(self):
+        return self.label
+
+    def can_delete(self):
+        return not self.student_record.exists()
+
+
 class ImmersionUser(AbstractUser):
     """
     Main user class

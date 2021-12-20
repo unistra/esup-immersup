@@ -1,0 +1,34 @@
+[
+{
+    "model": "core.postbachelorlevel",
+    "pk": 1,
+    "fields": {
+        "label": "BTS 1",
+        "active": true
+    }
+},
+{
+    "model": "core.postbachelorlevel",
+    "pk": 2,
+    "fields": {
+        "label": "BTS 2",
+        "active": true
+    }
+},
+{
+    "model": "core.postbachelorlevel",
+    "pk": 3,
+    "fields": {
+        "label": "BTS A1",
+        "active": true
+    }
+},
+{
+    "model": "core.postbachelorlevel",
+    "pk": 4,
+    "fields": {
+        "label": "BTS A2",
+        "active": true
+    }
+}
+]
