@@ -1091,7 +1091,10 @@
           let id = "id_vacation_" + response.data.date
 
           if(response.data.is_between === true) {
-            vacation_text = "{% trans 'Vacation or holiday' %}"
+            response.data.details.forEach(detail => {
+              vacation_text += vacation_text !== "" ? "<br>" : ""
+              vacation_text += detail
+            })
           }
 
           $(document.getElementById(id)).html(vacation_text)
