@@ -36,6 +36,12 @@
     </span>
   </div>
 
+  <div id="date-error-dialog" style='z-index:3000;' title='{% trans "Date error" %}'>
+    <span>
+      {% trans "You can't select an end date anterior to the current slot date" %}
+    </span>
+  </div>
+
   <div class="card">
     {% block card_header %}{% endblock %}
     <div class="card-body">
@@ -44,6 +50,7 @@
       <form method="POST" class="form-group" role="form" id="add_slot">
         {% csrf_token %}
         {{ form.id }}
+        {% block dates_selection %}{% endblock %}
 
         {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
         <div class="form-group row" id="id_div_establishment">
@@ -175,6 +182,9 @@
             </div>
             {% endif %}
         </div>
+
+        {% block slot_repetition_field %}{% endblock %}
+
         <div class="form-group row">
             <label for="start_time" class="col-form-label col-sm-3">
               <i id='id_mandatory_start_time' class="fa fas fa-asterisk" style="display:none"></i>
@@ -381,6 +391,8 @@
   var dateDialog;
   var publicationDialog;
   var cancelDialog;
+  var repetitionDialog;
+  var dateErrorDialog;
   var establishment_id = parseInt("{{ form.establishment.initial }}") || "{{ establishment_id }}";
   var structure_id = parseInt("{{ form.structure.value }}") || "{{ structure_id }}";
   var highschool_id = parseInt("{{ form.highschool.id }}") || "{{ highschool_id }}";
@@ -901,6 +913,7 @@
       }
       else if (slot_mode === "course") {
         mandatory = mandatory.concat(['training', 'course', 'course_type'])
+        $('#id_div_repeat').show()
       }
       else if (slot_mode === "visit") {
         mandatory = mandatory.concat(['establishment', 'highschool', 'visit'])
@@ -960,7 +973,10 @@
 
       if(slot_mode === "event") mandatory = ['event']
       if(slot_mode === "visit") mandatory = ['establishment', 'highschool', 'visit']
-      if(slot_mode === "course") mandatory = ['training', 'course']
+      if(slot_mode === "course") {
+          mandatory = ['training', 'course']
+          $('#id_div_repeat').hide()
+      }
 
       if(slot_mode === "course" || slot_mode === "event") {
         if(establishment_id) {
@@ -987,6 +1003,10 @@
         $('#id_mandatory_' + e).show();
       });
     }
+  }
+
+  function open_slot_repetition_modal() {
+    $('#modal_slot_repetition').modal('show');
   }
 
   function toggle_establishments_restrictions() {
@@ -1055,6 +1075,95 @@
 
     toggle_required_fields()
   }
+
+  function check_date(date=$('#id_date').val(), dialog=true, callback) {
+    return $.ajax({
+      url: '/api/check_vacations',
+      data: {
+        date: date,
+      },
+      success: function(data) {
+        if ( data['data'] ) {
+          if (data['data']['is_between']) {
+            if(dialog) {
+              dateDialog.dialog('open');
+            }
+            else if (callback) {
+              callback(data['data']['is_between'])
+            }
+          }
+        }
+      },
+    });
+  }
+
+  function addDays(date, days) {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  function set_repetitions() {
+    $("#id_days_div").html("")
+    let first_date = $('#id_date').datepicker('getDate')
+    let end_date = $('#id_repeat').datepicker('getDate')
+
+    if(end_date <= first_date) {
+      dateErrorDialog.dialog("open")
+      $('#id_repeat').val("")
+      $("#id_div_repeat_button").hide()
+    }
+
+    if(first_date && end_date) {
+      for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
+        $("#id_days_div").append(
+          "<div class='form-group row align-items-center'>" +
+          "  <div class='col-md-1'>" +
+          "   <input type='checkbox' name='slot_dates[]' value='" + d.toLocaleDateString() + "' checked>" +
+          "  </div>" +
+          "  <div class='col-md-3'>" + d.toLocaleDateString() + "</div>" +
+          "  <div class='col-md-4' id='id_vacation_" + d.toLocaleDateString() + "'></div>" +
+          "</div>"
+        )
+
+        check_date(d.toLocaleDateString(), false).then(response => {
+          let vacation_text = ""
+          let id = "id_vacation_" + response.data.date
+
+          if(response.data.is_between === true) {
+            response.data.details.forEach(detail => {
+              vacation_text += vacation_text !== "" ? "<br>" : ""
+              vacation_text += detail
+            })
+          }
+
+          $(document.getElementById(id)).html(vacation_text)
+        })
+      }
+    }
+  }
+
+  function toggle_repeat_divs() {
+    if($("#id_date").val()) {
+      $("#id_div_repeat").show()
+
+      if($("#id_repeat").val()) {
+        $("#id_div_repeat_button").show()
+        set_repetitions()
+      }
+      else {
+        $("#id_div_repeat_button").hide()
+      }
+    }
+    else {
+      $("#id_div_repeat").hide()
+      $("#id_div_repeat_button").hide()
+    }
+  }
+
+  $('#id_repeat').change( function() {
+    toggle_repeat_divs()
+  })
 
 
 $(document).ready(function(){
@@ -1238,6 +1347,7 @@ $(document).ready(function(){
         "class": 'dialog-button',
         click: function () {
           $('#id_date').val('');
+          toggle_repeat_divs()
           dateDialog.dialog("close");
         },
       }],
@@ -1306,21 +1416,42 @@ $(document).ready(function(){
       }],
   });
 
-  function check_date() {
-    $.ajax({
-      url: '/api/check_vacations',
-      data: {
-        date: $('#id_date').val(),
-      },
-      success: function(data) {
-        if ( data['data'] ) {
-          if (data['data']['is_between']) {
-            dateDialog.dialog('open');
-          }
-        }
-      },
-    });
-  }
+  repetitionDialog = $("#dates-selection-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 600,
+    height: 500,
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Confirm' %}",
+        "class": 'dialog-button',
+        click: function () {
+          repetitionDialog.dialog("close");
+        },
+      }],
+  });
+  // Reattach the Dialog to the form to have its dynamic inputs sent with the rest of the form
+  repetitionDialog.parent().appendTo($("#add_slot"))
+
+  dateErrorDialog = $("#date-error-dialog").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Ok' %}",
+        "class": 'dialog-button',
+        click: function () {
+          dateErrorDialog.dialog("close");
+        },
+    }],
+  });
 
   // Change input type
   $('#id_start_time').get(0).type = 'time';
@@ -1329,6 +1460,7 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+    toggle_repeat_divs()
   });
 
   // Back button + confirm
@@ -1356,6 +1488,7 @@ $(document).ready(function(){
   toggle_face_to_face();
   $('#id_face_to_face').on('change', function() { toggle_face_to_face() });
 
+  toggle_repeat_divs()
 
   {% if slot or request.POST.structure %}
     {% if slot %}

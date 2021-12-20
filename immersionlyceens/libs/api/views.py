@@ -769,12 +769,22 @@ def ajax_check_date_between_vacation(request):
                 response['msg'] = gettext('Error: bad date format')
                 return JsonResponse(response, safe=False)
 
+        details = []
+        is_vacation = Vacation.date_is_inside_a_vacation(formated_date.date())
+        is_holiday = Holiday.date_is_a_holiday(formated_date.date())
+        is_sunday = formated_date.date().weekday() == 6 # sunday
+
+        if is_vacation:
+            details.append(_("Holidays"))
+        if is_holiday:
+            details.append(_("Holiday"))
+        if is_sunday:
+            details.append(_("Sunday"))
+
         response['data'] = {
-            'is_between': (
-                Vacation.date_is_inside_a_vacation(formated_date.date())
-                or Holiday.date_is_a_holiday(formated_date.date())
-                or formated_date.date().weekday() == 6  # sunday
-            ),
+            'date': _date,
+            'is_between': is_vacation or is_holiday or is_sunday,
+            'details': details
         }
     else:
         response['msg'] = gettext('Error: A date is required')

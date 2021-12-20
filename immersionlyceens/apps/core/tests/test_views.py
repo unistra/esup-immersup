@@ -472,6 +472,74 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/slot", follow=True)
 
+    def test_multiple_slots_creation(self):
+        """
+        Test Repeat feature in course slot form
+        """
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
+
+        self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
+        data = {
+            'structure': self.structure.id,
+            'training': self.training.id,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': "REPEAT_TEST",
+            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+            'repeat': (self.today + datetime.timedelta(days=29)).strftime("%Y-%m-%d"),
+            'slot_dates[]': [
+                (self.today + datetime.timedelta(days=8)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=15)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=22)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=29)).strftime("%d/%m/%Y"),
+            ],
+            'start_time': "12:00",
+            'end_time': "14:00",
+            'speakers': [self.speaker1.id],
+            'n_places': 33,
+            'additional_information': "Here is additional data.",
+            'published': "on",
+            'save': 1
+        }
+        # All dates have been selected : initial slot created + 4 copies
+        # But ... the university year ends 20 days later, so only d+8 and d+15 will be created
+        response = self.client.post("/core/slot", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
+        self.assertEqual(slots.count(), 3)
+        d = self.today + datetime.timedelta(days=1)
+        for slot in slots:
+            self.assertEqual(slot.date, d.date())
+            d += datetime.timedelta(days=7)
+
+        # Delete slots and do it again with an unchecked dates (d+15)
+        # The last 2 dates shouldn't exist
+        Slot.objects.filter(room="REPEAT_TEST").delete()
+        self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
+        data['slot_dates[]'] = [
+            (self.today + datetime.timedelta(days=8)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=22)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=29)).strftime("%d/%m/%Y"),
+        ]
+
+        response = self.client.post("/core/slot", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
+        self.assertEqual(slots.count(), 2)
+
+        dates = [
+            self.today + datetime.timedelta(days=1),
+            self.today + datetime.timedelta(days=8),
+        ]
+        dates_idx = 0
+        for slot in slots:
+            self.assertEqual(slot.date, dates[dates_idx].date())
+            dates_idx += 1
 
     def test_modify_slot(self):
         # As any other user

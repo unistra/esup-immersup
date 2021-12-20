@@ -1319,6 +1319,10 @@ class CourseSlotAdd(generic.CreateView):
         self.add_new = self.request.POST.get("save_add", False) != False
         messages.success(self.request, _("Course slot \"%s\" created.") % form.instance)
 
+        repeat_until = self.request.POST.get('repeat')
+        if repeat_until:
+            slot_dates = self.request.POST.getlist('slot_dates')
+
         return super().form_valid(form)
 
     def form_invalid(self, form):

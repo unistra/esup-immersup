@@ -23,11 +23,9 @@
 </div>
 {% endblock %}
 
-{% block slot_repetition %}
-<div id="repeat-dialog-form" style='z-index:3000;' title='{% trans "Repeat slots creation" %}'>
-  <span>
-    {% trans 'Please select a date before setting this field' %}
-  </span>
+{% block dates_selection %}
+<div id="dates-selection-form" style='z-index:3000;' title='{% trans "Select slots date" %}'>
+  <div id="id_days_div"></div>
 </div>
 {% endblock %}
 
@@ -90,18 +88,22 @@
 {% endblock %}
 
 {% block slot_repetition_field %}
-<div id="id_div_repeat" class="form-group row">
-  <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat weekly until' %}</label>
-  <div class="col-sm-3">
-      {{ form.repeat }}
-      <button class="btn btn-secondary duplicate_save_btn mb-1" name="edit" onclick="open_slot_repetition_modal()" title="{% trans 'Select dates' %}">
-          {% trans 'Select dates' %}
-      </button>
-  </div>
-  {% if form.repeat.errors %}
-  <div class="col-sm-6 alert alert-danger">
-    {{ form.repeat.errors }}
-  </div>
+  {% if not form.instance.id %}
+    <div class="form-group row" id="id_div_repeat">
+      <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat weekly until' %}</label>
+      <div class="col-sm-3">
+          {{ form.repeat }}
+      </div>
+      <div class="col-sm-2" id="id_div_repeat_button">
+          <button type="button" role="button" name="date_selection" class="btn btn-secondary duplicate_save_btn mb-1" onclick="repetitionDialog.dialog('open')">
+            {% trans 'Dates selection' %}
+          </button>
+      </div>
+      {% if form.repeat.errors %}
+      <div class="col-sm-5 alert alert-danger">
+        {{ form.repeat.errors }}
+      </div>
+      {% endif %}
+    </div>
   {% endif %}
-</div>
-{% endblock %}
+{% endblock %}$
