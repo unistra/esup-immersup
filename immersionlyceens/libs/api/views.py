@@ -775,7 +775,7 @@ def ajax_check_date_between_vacation(request):
         is_sunday = formated_date.date().weekday() == 6 # sunday
 
         if is_vacation:
-            details.append(_("Holidays"))
+            details.append(pgettext("vacations", "Holidays"))
         if is_holiday:
             details.append(_("Holiday"))
         if is_sunday:
