@@ -319,14 +319,16 @@ class SlotForm(forms.ModelForm):
         if self.data.get("repeat"):
             new_dates = self.data.getlist("slot_dates[]")
             try:
+                university_year = UniversityYear.objects.get(active=True)
                 new_slot_template = Slot.objects.get(pk=instance.pk)
                 for new_date in new_dates:
-                    parsed_date = datetime.strptime(new_date, "%d/%m/%Y")
-                    new_slot_template.pk = None
-                    new_slot_template.date = parsed_date
-                    new_slot_template.save()
-                    messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
-            except Slot.DoesNotExist:
+                    parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
+                    if parsed_date <= university_year.end_date:
+                        new_slot_template.pk = None
+                        new_slot_template.date = parsed_date
+                        new_slot_template.save()
+                        messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
+            except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
                 pass
 
         return instance

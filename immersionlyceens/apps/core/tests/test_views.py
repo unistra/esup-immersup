@@ -505,21 +505,24 @@ class CoreViewsTestCase(TestCase):
             'save': 1
         }
         # All dates have been selected : initial slot created + 4 copies
+        # But ... the university year ends 20 days later, so only d+8 and d+15 will be created
         response = self.client.post("/core/slot", data, follow=True)
         self.assertEqual(response.status_code, 200)
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
-        self.assertEqual(slots.count(), 5)
+        self.assertEqual(slots.count(), 3)
         d = self.today + datetime.timedelta(days=1)
         for slot in slots:
             self.assertEqual(slot.date, d.date())
             d += datetime.timedelta(days=7)
 
-        # Delete slots and do it again with less dates
+        # Delete slots and do it again with an unchecked dates (d+15)
+        # The last 2 dates shouldn't exist
         Slot.objects.filter(room="REPEAT_TEST").delete()
         self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
         data['slot_dates[]'] = [
             (self.today + datetime.timedelta(days=8)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=22)).strftime("%d/%m/%Y"),
             (self.today + datetime.timedelta(days=29)).strftime("%d/%m/%Y"),
         ]
 
@@ -527,12 +530,11 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
-        self.assertEqual(slots.count(), 3)
+        self.assertEqual(slots.count(), 2)
 
         dates = [
             self.today + datetime.timedelta(days=1),
             self.today + datetime.timedelta(days=8),
-            self.today + datetime.timedelta(days=29)
         ]
         dates_idx = 0
         for slot in slots:
