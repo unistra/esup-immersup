@@ -1,3 +1,4 @@
+import json
 import logging
 import uuid
 from datetime import datetime, timedelta
@@ -25,7 +26,8 @@ from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from immersionlyceens.apps.core.models import (
     Calendar, CancelType, CertificateLogo, CertificateSignature, HigherEducationInstitution,
-    Immersion, ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert,
+    Immersion, ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert, HighSchoolLevel,
+    PostBachelorLevel, StudentLevel
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -508,6 +510,12 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
+        'high_school_levels': json.dumps(
+            {l.id: {
+                'is_post_bachelor': l.is_post_bachelor,
+                'requires_bachelor_speciality': l.requires_bachelor_speciality
+            } for l in HighSchoolLevel.objects.all()}
+        )
     }
 
     return render(request, template_name, context)

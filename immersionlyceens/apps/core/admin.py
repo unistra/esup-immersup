@@ -1457,7 +1457,7 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class HighSchoolLevelAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HighSchoolLevelForm
-    list_display = ('label', 'active')
+    list_display = ('label', 'is_post_bachelor', 'active')
     ordering = ('id', )
 
     def has_add_permission(self, request):

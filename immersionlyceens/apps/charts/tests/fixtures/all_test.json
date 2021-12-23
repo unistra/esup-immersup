@@ -1017,6 +1017,131 @@
     }
   },
   {
+    "model": "core.highschoollevel",
+    "pk": 1,
+    "fields": {
+        "label": "Seconde",
+        "active": true,
+        "is_post_bachelor": false
+    }
+  },
+  {
+      "model": "core.highschoollevel",
+      "pk": 2,
+      "fields": {
+          "label": "Première",
+          "active": true,
+          "is_post_bachelor": false
+      }
+  },
+  {
+      "model": "core.highschoollevel",
+      "pk": 3,
+      "fields": {
+          "label": "Terminale",
+          "active": true,
+          "is_post_bachelor": false
+      }
+  },
+  {
+      "model": "core.highschoollevel",
+      "pk": 4,
+      "fields": {
+          "label": "Post-bac",
+          "active": true,
+          "is_post_bachelor": true
+      }
+  },
+  {
+    "model": "core.postbachelorlevel",
+    "pk": 1,
+    "fields": {
+        "label": "BTS 1",
+        "active": true
+    }
+  },
+  {
+      "model": "core.postbachelorlevel",
+      "pk": 2,
+      "fields": {
+          "label": "BTS 2",
+          "active": true
+      }
+  },
+  {
+      "model": "core.postbachelorlevel",
+      "pk": 3,
+      "fields": {
+          "label": "BTS A1",
+          "active": true
+      }
+  },
+  {
+      "model": "core.postbachelorlevel",
+      "pk": 4,
+      "fields": {
+          "label": "BTS A2",
+          "active": true
+      }
+  },
+  {
+      "model": "core.postbachelorlevel",
+      "pk": 5,
+      "fields": {
+          "label": "Autre",
+          "active": true
+      }
+  },
+  {
+    "model": "core.studentlevel",
+    "pk": 1,
+    "fields": {
+        "label": "Licence 1",
+        "active": true
+    }
+  },
+  {
+      "model": "core.studentlevel",
+      "pk": 2,
+      "fields": {
+          "label": "Licence 2",
+          "active": true
+      }
+  },
+  {
+      "model": "core.studentlevel",
+      "pk": 3,
+      "fields": {
+          "label": "Licence 3",
+          "active": true
+      }
+  },
+  {
+      "model": "core.studentlevel",
+      "pk": 4,
+      "fields": {
+          "label": "DUT 1",
+          "active": true
+      }
+  },
+  {
+      "model": "core.studentlevel",
+      "pk": 5,
+      "fields": {
+          "label": "DUT 2",
+          "active": true
+      }
+  },
+  {
+      "model": "core.studentlevel",
+      "pk": 6,
+      "fields": {
+          "label": "Autre",
+          "active": true
+      }
+  },
+
+  {
     "model": "core.publictype",
     "pk": 1,
     "fields": {
@@ -9705,7 +9830,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 2,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": false,
@@ -9735,7 +9860,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 3,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 3,
       "current_diploma": "BTSA1 - management et gestion",
       "visible_immersion_registrations": true,
@@ -9762,7 +9887,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 2,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 2,
       "current_diploma": null,
       "visible_immersion_registrations": false,
@@ -9793,7 +9918,7 @@
       "bachelor_type": 2,
       "technological_bachelor_mention": 2,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 1,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": false,
@@ -9820,7 +9945,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 2,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": false,
@@ -9851,7 +9976,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 1,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": false,
@@ -9882,7 +10007,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 1,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": true,
@@ -9913,7 +10038,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 1,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": true,
@@ -9944,7 +10069,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 1,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": true,
@@ -9975,7 +10100,7 @@
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",
-      "post_bachelor_level": 2,
+      "post_bachelor_level": null,
       "origin_bachelor_type": 1,
       "current_diploma": null,
       "visible_immersion_registrations": false,
@@ -9997,8 +10122,8 @@
       "birth_date": "2003-01-17",
       "civility": 1,
       "phone": null,
-      "level": 1,
-      "class_name": "1\u00e8re6",
+      "level": 4,
+      "class_name": "BTS A2",
       "bachelor_type": 1,
       "technological_bachelor_mention": null,
       "professional_bachelor_mention": "",

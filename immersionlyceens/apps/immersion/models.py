@@ -16,12 +16,14 @@ class HighSchoolStudentRecord(models.Model):
 
     # Use gettext on the next one because strings HAS to be translated here
     # in order to avoid sending lazy translation objects to JSON in charts API
+    """
     LEVELS = [
         (1, gettext('Pupil in year 11 / 10th grade student')),
         (2, gettext('Pupil in year 12 / 11th grade student')),
         (3, gettext('Pupil in year 13 / 12th grade student')),
         (4, gettext('Above A Level / High-School Degree'))
     ]
+    """
 
     BACHELOR_TYPES = [
         (1, _('General')),
@@ -34,6 +36,7 @@ class HighSchoolStudentRecord(models.Model):
         (4, _('DAEU'))
     )
 
+    """
     POST_BACHELOR_LEVELS = [
         (1, _('BTS1')),
         (2, _('BTS2')),
@@ -41,6 +44,7 @@ class HighSchoolStudentRecord(models.Model):
         (4, _('BTSA2')),
         (5, _('Other')),
     ]
+    """
 
     VALIDATION_STATUS = [
         (1, _('To validate')),
@@ -271,6 +275,7 @@ class StudentRecord(models.Model):
     CIVS = [(1, _('Mr')),
             (2, _('Mrs'))]
 
+    """
     LEVELS = [
         (1, _('Licence 1 (1st year above A level)')),
         (2, _('Licence 2 (2nd year above A level)')),
@@ -279,6 +284,7 @@ class StudentRecord(models.Model):
         (5, _('BTEC 2')),
         (6, _('Other')),
     ]
+    """
 
     BACHELOR_TYPES = [
         (1, _('General')),
@@ -313,6 +319,7 @@ class StudentRecord(models.Model):
 
     origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
         default=1, null=False, blank=False, choices=BACHELOR_TYPES)
+
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
 

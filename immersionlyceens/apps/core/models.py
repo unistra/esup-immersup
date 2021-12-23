@@ -165,6 +165,8 @@ class HighSchoolLevel(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
+    is_post_bachelor = models.BooleanField(_("Is a post-bachelor level"), default=False)
+    requires_bachelor_speciality = models.BooleanField(_("Requires bachelor speciality"), default=False)
 
     def __str__(self):
         return self.label
@@ -1712,10 +1714,16 @@ class Slot(models.Model):
         HighSchool, verbose_name=_("Allowed high schools"), related_name='+', blank=True
     )
 
-    # Since levels are not objects, we use array fields to handle these restrictions
-    allowed_highschool_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
-    allowed_student_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
-    allowed_post_bachelor_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    # new fields
+    allowed_highschool_levels = models.ManyToManyField(
+        HighSchoolLevel, verbose_name=_("Allowed high school levels"), related_name='+', blank=True
+    )
+    allowed_student_levels = models.ManyToManyField(
+        StudentLevel, verbose_name=_("Allowed student levels"), related_name='+', blank=True
+    )
+    allowed_post_bachelor_levels = models.ManyToManyField(
+        PostBachelorLevel, verbose_name=_("Allowed post bachelor levels"), related_name='+', blank=True
+    )
 
     def get_establishment(self):
         """
@@ -1790,51 +1798,13 @@ class Slot(models.Model):
 
 
     def get_allowed_highschool_levels(self):
-
-        #TODO: naughty rip off from HighSchoolStudentRecord model #FIXME later
-        LEVELS = [
-            (1, _('Pupil in year 11 / 10th grade student')),
-            (2, _('Pupil in year 12 / 11th grade student')),
-            (3, _('Pupil in year 13 / 12th grade student')),
-            (4, _('Above A Level / High-School Degree'))
-        ]
-        return [
-            level[1] for value in self.allowed_highschool_levels
-                for level in LEVELS if level[0] == value
-        ] if self.allowed_highschool_levels else []
+        return [level.label for level in self.allowed_highschool_levels.all()]
 
     def get_allowed_students_levels(self):
-
-        #TODO: naughty rip off from StudentRecord model #FIXME later
-        LEVELS = [
-            (1, _('Licence 1 (1st year above A level)')),
-            (2, _('Licence 2 (2nd year above A level)')),
-            (3, _('Licence 3 (3rd year above A level)')),
-            (4, _('BTEC 1')),
-            (5, _('BTEC 2')),
-            (6, _('Other')),
-        ]
-
-        return [
-            level[1] for value in self.allowed_student_levels
-                for level in LEVELS if level[0] == value
-        ] if self.allowed_student_levels else []
+        return [level.label for level in self.allowed_student_levels.all()]
 
     def get_allowed_post_bachelor_levels(self):
-
-        #TODO: naughty rip off from HighSchoolStudentRecord model #FIXME later
-        POST_BACHELOR_LEVELS = [
-            (1, _('BTS1')),
-            (2, _('BTS2')),
-            (3, _('BTSA1')),
-            (4, _('BTSA2')),
-            (5, _('Other')),
-        ]
-
-        return [
-            level[1] for value in self.allowed_post_bachelor_levels
-                for level in POST_BACHELOR_LEVELS if level[0] == value
-        ] if self.allowed_post_bachelor_levels else []
+        return [level.label for level in self.allowed_post_bachelor_levels.all()]
 
     class Meta:
         verbose_name = _('Slot')

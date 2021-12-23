@@ -38,11 +38,12 @@ from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
     Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
     PublicDocument, Slot, Structure, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation, Visit, OffOfferEvent
+    UserCourseAlert, Vacation, Visit, OffOfferEvent, HighSchoolLevel, PostBachelorLevel,
+    StudentLevel
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer,
-    TrainingHighSchoolSerializer, VisitSerializer, OffOfferEventSerializer
+    TrainingHighSchoolSerializer, VisitSerializer, OffOfferEventSerializer, HighSchoolLevelSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -550,18 +551,9 @@ def slots(request):
               'levels_restrictions': slot.levels_restrictions,
               'allowed_establishments': [e.short_label for e in slot.allowed_establishments.all()],
               'allowed_highschools': [f"{h.city} - {h.label}" for h in slot.allowed_highschools.all()],
-              'allowed_highschool_levels': [
-                  level[1] for value in slot.allowed_highschool_levels
-                  for level in HighSchoolStudentRecord.LEVELS if level[0] == value
-              ] if slot.allowed_highschool_levels else [],
-              'allowed_post_bachelor_levels': [
-                  level[1] for value in slot.allowed_post_bachelor_levels
-                  for level in HighSchoolStudentRecord.POST_BACHELOR_LEVELS if level[0] == value
-              ] if slot.allowed_post_bachelor_levels else [],
-              'allowed_student_levels': [
-                  level[1] for value in slot.allowed_student_levels
-                  for level in StudentRecord.LEVELS if level[0] == value
-              ] if slot.allowed_student_levels else [],
+              'allowed_highschool_levels': [level.label for level in slot.allowed_highschool_levels.all()],
+              'allowed_post_bachelor_levels': [level.label for level in slot.allowed_post_bachelor_levels.all()],
+              'allowed_student_levels': [level.label for level in slot.allowed_student_levels.all()],
             },
             'additional_information': slot.additional_information,
             'attendances_value': 0,
@@ -822,7 +814,7 @@ def ajax_get_student_records(request):
                 'first_name': record.student.first_name,
                 'last_name': record.student.last_name,
                 'birth_date': _date(record.birth_date, "j/m/Y"),
-                'level': HighSchoolStudentRecord.LEVELS[record.level - 1][1],
+                'level': record.level.label if record.level else None,
                 'class_name': record.class_name,
             } for record in records.order_by('student__last_name', 'student__first_name')]
         else:
@@ -1185,7 +1177,7 @@ def ajax_get_slot_registrations(request, slot_id):
                 if record:
                     immersion_data['school'] = record.highschool.label
                     immersion_data['city'] = record.highschool.city
-                    immersion_data['level'] = record.get_level_display()
+                    immersion_data['level'] = record.level.label
 
             elif immersion.student.is_student():
                 immersion_data['profile'] = gettext('Student')
@@ -1194,7 +1186,7 @@ def ajax_get_slot_registrations(request, slot_id):
                 if record:
                     uai_code, institution = record.home_institution()
                     immersion_data['school'] = institution.label if institution else uai_code
-                    immersion_data['level'] = record.get_level_display()
+                    immersion_data['level'] = record.level.label
 
             response['data'].append(immersion_data.copy())
 
@@ -1507,7 +1499,8 @@ def ajax_get_highschool_students(request, highschool_id=None):
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    is_master_or_etab_manager: bool = request.user.is_establishment_manager() or request.user.is_master_establishment_manager()
+    is_master_or_etab_manager: bool = request.user.is_establishment_manager()\
+                                      or request.user.is_master_establishment_manager()
 
     if is_master_or_etab_manager:
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
@@ -1557,7 +1550,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
             'name': f"{student.last_name} {student.first_name}",
             'birthdate': date_format(record.birth_date) if record else '-',
             'institution': '',
-            'level': record.get_level_display() if record else '-',
+            'level': record.level.label if record and record.level else '-',
             'bachelor': '',
             'post_bachelor_level': '',
             'class': '',
@@ -1571,9 +1564,9 @@ def ajax_get_highschool_students(request, highschool_id=None):
                 student_data['class'] = record.class_name
                 student_data['institution'] = record.highschool.label
 
-                if record.level == 3:
+                if record.level.is_post_bachelor:
                     student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                    student_data['post_bachelor_level'] = record.get_post_bachelor_level_display()
+                    student_data['post_bachelor_level'] = record.post_bachelor_level.label
                 else:
                     student_data['bachelor'] = record.get_bachelor_type_display()
 
@@ -1769,7 +1762,7 @@ def get_csv_highschool(request, high_school_id):
                         hs.student.last_name,
                         hs.student.first_name,
                         _date(hs.birth_date, 'd/m/Y'),
-                        HighSchoolStudentRecord.LEVELS[hs.level - 1][1],
+                        hs.level.label if hs.level else '',
                         hs.class_name,
                         HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1],
                         infield_separator.join(
@@ -1786,7 +1779,7 @@ def get_csv_highschool(request, high_school_id):
                     hs.student.last_name,
                     hs.student.first_name,
                     _date(hs.birth_date, 'd/m/Y'),
-                    HighSchoolStudentRecord.LEVELS[hs.level - 1][1] if hs.level else '',
+                    hs.level.label if hs.level else '',
                     hs.class_name,
                     HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1] if hs.bachelor_type else '',
                 ]
@@ -1852,14 +1845,14 @@ def get_csv_anonymous_immersion(request):
                         record = StudentRecord.objects.get(student=imm.student)
                         uai_code, institution = record.home_institution()
                         institution = institution.label if institution else uai_code
-                        level = StudentRecord.LEVELS[record.level - 1][1]
+                        level = record.level.label if record.level else ''
                     except StudentRecord.DoesNotExist:
                         pass
                 elif imm.student.is_high_school_student():
                     try:
                         record = HighSchoolStudentRecord.objects.get(student=imm.student)
                         institution = record.highschool.label
-                        level = HighSchoolStudentRecord.LEVELS[record.level - 1][1]
+                        level = record.level.label if record.level else ''
                     except HighSchoolStudentRecord.DoesNotExist:
                         pass
 
@@ -2562,3 +2555,23 @@ class OffOfferEventDetail(generics.DestroyAPIView):
         super().delete(request, *args, **kwargs)
 
         return JsonResponse(data={"msg": _("Off offer event successfully deleted")})
+
+
+class HighSchoolLevelList(generics.ListAPIView):
+    """
+    High school levels list
+    """
+    serializer_class = HighSchoolLevelSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+
+    def get_queryset(self):
+        queryset = HighSchoolLevel.objects.filter(active=True).order_by('id')
+        return queryset
+
+
+class HighSchoolLevelDetail(generics.RetrieveAPIView):
+    """
+    High school level detail
+    """
+    serializer_class = HighSchoolLevelSerializer
+    queryset = HighSchoolLevel.objects.all()

@@ -7,7 +7,9 @@ from django.utils.translation import gettext, gettext_lazy as _
 from django.shortcuts import redirect, render
 from immersionlyceens.decorators import groups_required
 
-from immersionlyceens.apps.core.models import HighSchool, HigherEducationInstitution
+from immersionlyceens.apps.core.models import (
+    HighSchool, HigherEducationInstitution, HighSchoolLevel, PostBachelorLevel, StudentLevel
+)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .utils import process_request_filters
@@ -52,7 +54,7 @@ def highschool_domains_charts(request):
         for h in HighSchool.objects.filter(**filter).order_by('city','label')
     ]
 
-    levels = [(0, _("All"))] + HighSchoolStudentRecord.LEVELS
+    levels = [(0, _("All"))] + [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('pk')]
 
     context = {
         'highschools': highschools,
@@ -75,7 +77,7 @@ def global_domains_charts(request):
 
     # High school levels
     # the third one ('above bachelor') will also include the higher education institutions students
-    levels = [(0, _("All"))] + HighSchoolStudentRecord.LEVELS
+    levels = [(0, _("All"))] + [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('pk')]
 
     context = {
         'highschools_ids': highschools_ids,
@@ -108,7 +110,7 @@ def trainings_charts(request):
 
     context = {
         'high_school_name': high_school_name,
-        'levels': HighSchoolStudentRecord.LEVELS,
+        'levels': [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('pk')],
         'highschools': highschools,
         'highschool_id': filter.get('pk', ''),
     }
@@ -127,7 +129,7 @@ def global_registrations_charts(request):
 
     # High school levels
     # the third one ('above bachelor') will also include the higher education institutions students
-    levels = [(0, _("All"))] + HighSchoolStudentRecord.LEVELS
+    levels = [(0, _("All"))] + [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('pk')]
 
     context = {
         'highschools_ids': highschools_ids,

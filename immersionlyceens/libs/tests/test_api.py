@@ -22,7 +22,7 @@ from rest_framework.test import APIClient, APITestCase
 from immersionlyceens.apps.core.models import (AccompanyingDocument, Building, Calendar, Campus, CancelType,
     Structure, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
-    OffOfferEvent, OffOfferEventType
+    OffOfferEvent, OffOfferEventType, HighSchoolLevel, PostBachelorLevel, StudentLevel
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.api.views import ajax_check_course_publication
@@ -35,7 +35,7 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['group', 'generalsettings']
+    fixtures = ['group', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
 
     def setUp(self):
         """
@@ -328,7 +328,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             civility=1,
             phone='0123456789',
-            level=2,
+            level=HighSchoolLevel.objects.get(pk=2),
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
@@ -344,7 +344,7 @@ class APITestCase(TestCase):
             birth_date=datetime.today(),
             civility=2,
             phone='0123456789',
-            level=3,
+            level=HighSchoolLevel.objects.get(pk=3),
             class_name='TS 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
@@ -359,7 +359,7 @@ class APITestCase(TestCase):
             uai_code='0673021V',  # Université de Strasbourg
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
-            level=StudentRecord.LEVELS[0][0],
+            level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
             allowed_global_registrations=2,
             allowed_first_semester_registrations=0,
@@ -370,7 +370,7 @@ class APITestCase(TestCase):
             uai_code='0597065J',  # Université de Lille
             civility=StudentRecord.CIVS[0][0],
             birth_date=datetime.today(),
-            level=StudentRecord.LEVELS[0][0],
+            level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
             allowed_global_registrations=2,
             allowed_first_semester_registrations=0,
@@ -604,7 +604,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs_record['id'], self.hs_record.id)
         self.assertEqual(hs_record['first_name'], self.hs_record.student.first_name)
         self.assertEqual(hs_record['last_name'], self.hs_record.student.last_name)
-        self.assertEqual(hs_record['level'], HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1])
+        self.assertEqual(hs_record['level'], self.hs_record.level.label)
         self.assertEqual(hs_record['class_name'], self.hs_record.class_name)
 
         # Validated
@@ -751,10 +751,10 @@ class APITestCase(TestCase):
                 self.assertEqual(str(self.slot.n_places), row[13])
                 self.assertEqual(self.slot.additional_information, row[14])
                 self.assertEqual(self.high_school.label, row[15])
-                self.assertEqual(HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1], row[16])
+                self.assertEqual(self.hs_record.level.label, row[16])
             elif n == 2:
                 self.assertEqual(self.student_record.uai_code, row[15])
-                self.assertEqual(StudentRecord.LEVELS[self.student_record.level - 1][1], row[16])
+                self.assertEqual(self.student_record.level.label, row[16])
             elif n == 5: # high school slot
                 self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", row[0])
                 self.assertEqual(self.highschool_training.label, row[3])
@@ -801,7 +801,7 @@ class APITestCase(TestCase):
                 self.assertEqual(self.hs_record.student.last_name, row[0])
                 self.assertEqual(self.hs_record.student.first_name, row[1])
                 self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
-                self.assertEqual(HighSchoolStudentRecord.LEVELS[self.hs_record.level - 1][1], row[3])
+                self.assertEqual(self.hs_record.level.label, row[3])
                 self.assertEqual(self.hs_record.class_name, row[4])
                 self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
                 self.assertIn(self.t_domain.label, row[6].split('|'))
@@ -1063,6 +1063,8 @@ class APITestCase(TestCase):
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
+        print(content['data'])
+
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         s = content['data'][0]
@@ -1320,14 +1322,14 @@ class APITestCase(TestCase):
         self.assertEqual(hs['firstname'], self.highschool_user.first_name)
         self.assertEqual(hs['profile'], _('High-school student'))
         self.assertEqual(hs['school'], self.hs_record.highschool.label)
-        self.assertEqual(hs['level'], self.hs_record.get_level_display())
+        self.assertEqual(hs['level'], self.hs_record.level.label)
         self.assertEqual(hs['city'], self.hs_record.highschool.city)
         self.assertEqual(hs['attendance'], self.immersion.get_attendance_status_display())
         self.assertEqual(hs['attendance_status'], self.immersion.attendance_status)
 
         stu = content['data'][1]
         self.assertEqual(stu['profile'], _('Student'))
-        self.assertEqual(stu['level'], self.student_record.get_level_display())
+        self.assertEqual(stu['level'], self.student_record.level.label)
         self.assertEqual(stu['school'], self.student_record.uai_code)
         self.assertEqual(stu['city'], '')
 
@@ -1408,9 +1410,11 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['data']), 2)
 
         # Students
-        self.hs_record.level = 3
+        level = HighSchoolLevel.objects.filter(is_post_bachelor=True).first()
+        post_bachelor_level = PostBachelorLevel.objects.first()
+        self.hs_record.level = level
         self.hs_record.origin_bachelor_type = 1
-        self.hs_record.post_bachelor_level = 1
+        self.hs_record.post_bachelor_level = post_bachelor_level
         self.hs_record.save()
 
         response = client.get(url, request, **self.header)
@@ -1421,8 +1425,8 @@ class APITestCase(TestCase):
 
         one = False
         for h in content['data']:
-            if h['level'] == HighSchoolStudentRecord.LEVELS[2][1]:
-                self.assertEqual(self.hs_record.get_post_bachelor_level_display(), h['post_bachelor_level'])
+            if h['level'] in [l.label for l in HighSchoolLevel.objects.filter(is_post_bachelor=True)]:
+                self.assertEqual(self.hs_record.post_bachelor_level.label, h['post_bachelor_level'])
                 self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
                 one = True
                 break

@@ -1266,9 +1266,9 @@ class CourseSlotAdd(generic.CreateView):
                     'levels_restrictions': slot.levels_restrictions,
                     'allowed_establishments': [e.id for e in slot.allowed_establishments.all()],
                     'allowed_highschools': [h.id for h in slot.allowed_highschools.all()],
-                    'allowed_highschool_levels': slot.allowed_highschool_levels,
-                    'allowed_student_levels': slot.allowed_student_levels,
-                    'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels,
+                    'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
+                    'allowed_student_levels': slot.allowed_student_levels.all(),
+                    'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels.all(),
                     'speakers': [s.id for s in slot.speakers.all()]
                 }
 
@@ -1789,7 +1789,7 @@ class VisitSlotAdd(generic.CreateView):
                     'face_to_face': slot.face_to_face,
                     'establishments_restrictions': False,
                     'levels_restrictions': slot.levels_restrictions,
-                    'allowed_highschool_levels': slot.allowed_highschool_levels,
+                    'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
                     'speakers': [s.id for s in slot.speakers.all()]
                 }
 
@@ -2309,9 +2309,9 @@ class OffOfferEventSlotAdd(generic.CreateView):
                     'levels_restrictions': slot.levels_restrictions,
                     'allowed_establishments': [e.id for e in slot.allowed_establishments.all()],
                     'allowed_highschools': [h.id for h in slot.allowed_highschools.all()],
-                    'allowed_highschool_levels': slot.allowed_highschool_levels,
-                    'allowed_student_levels': slot.allowed_student_levels,
-                    'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels,
+                    'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
+                    'allowed_student_levels': slot.allowed_student_levels.all(),
+                    'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels.all(),
                     'speakers': [s.id for s in slot.speakers.all()]
                 }
 

@@ -136,6 +136,7 @@ class SlotForm(forms.ModelForm):
 
         course = self.instance.course if self.instance and self.instance.course_id else None
 
+        """
         self.fields['allowed_highschool_levels'] = forms.MultipleChoiceField(
             widget=forms.SelectMultiple,
             choices=HighSchoolStudentRecord.LEVELS,
@@ -153,6 +154,7 @@ class SlotForm(forms.ModelForm):
             choices=HighSchoolStudentRecord.POST_BACHELOR_LEVELS,
             required=False
         )
+        """
 
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
@@ -251,7 +253,7 @@ class SlotForm(forms.ModelForm):
         start_time = cleaned_data.get('start_time', 0)
         repeat_until = cleaned_data.get('repeat')
 
-        cleaned_data = self.clean_restrictions(cleaned_data)
+        # cleaned_data = self.clean_restrictions(cleaned_data)
         cals = Calendar.objects.all()
 
         if cals.exists():
@@ -395,7 +397,7 @@ class VisitSlotForm(SlotForm):
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
 
-        cleaned_data = self.clean_restrictions(cleaned_data)
+        # cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 
@@ -513,7 +515,7 @@ class OffOfferEventSlotForm(SlotForm):
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
 
-        cleaned_data = self.clean_restrictions(cleaned_data)
+        # cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 

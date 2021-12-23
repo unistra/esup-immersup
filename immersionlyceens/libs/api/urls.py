@@ -90,4 +90,7 @@ urlpatterns = [
 
     path('off_offer_events/', views.OffOfferEventList.as_view(), name='off_offer_event_list'),
     path('off_offer_event/<int:pk>', views.OffOfferEventDetail.as_view(), name='off_offer_event_detail'),
+
+    path('high_school_levels', views.HighSchoolLevelList.as_view(), name='high_school_level_list'),
+    path('high_school_level/<int:pk>', views.HighSchoolLevelDetail.as_view(), name='high_school_level_detail'),
 ]

@@ -10,7 +10,7 @@ from django.test import RequestFactory, TestCase, Client
 from immersionlyceens.apps.core.models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion
+    Immersion, HighSchoolLevel, PostBachelorLevel, StudentLevel
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -23,7 +23,8 @@ class ImmersionViewsTestCase(TestCase):
     Immersion app views tests
     """
 
-    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
+    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'high_school_levels',
+                'student_levels', 'post_bachelor_levels']
 
     def setUp(self):
         """
@@ -564,17 +565,39 @@ class ImmersionViewsTestCase(TestCase):
 
 
     def test_record_duplicates(self):
-        record = HighSchoolStudentRecord.objects.create(student=self.highschool_user, highschool=self.high_school,
-            birth_date="1990-02-19", civility=1, level=1, class_name="S20", bachelor_type=1,
-            visible_immersion_registrations=False, visible_email=False, allowed_global_registrations=None,
-            allowed_first_semester_registrations=2, allowed_second_semester_registrations=2, validation=2,
-            duplicates="[5,6,4]")
+        record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date="1990-02-19",
+            civility=1,
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name="S20",
+            bachelor_type=1,
+            visible_immersion_registrations=False,
+            visible_email=False,
+            allowed_global_registrations=None,
+            allowed_first_semester_registrations=2,
+            allowed_second_semester_registrations=2,
+            validation=2,
+            duplicates="[5,6,4]"
+        )
 
-        record2 = HighSchoolStudentRecord.objects.create(student=self.highschool_user2, highschool=self.high_school,
-            birth_date="1990-02-19", civility=1, level=1, class_name="S20", bachelor_type=1,
-            visible_immersion_registrations=False, visible_email=False, allowed_global_registrations=None,
-            allowed_first_semester_registrations=2, allowed_second_semester_registrations=2, validation=2,
-            duplicates="[5,6,4]")
+        record2 = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user2,
+            highschool=self.high_school,
+            birth_date="1990-02-19",
+            civility=1,
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name="S20",
+            bachelor_type=1,
+            visible_immersion_registrations=False,
+            visible_email=False,
+            allowed_global_registrations=None,
+            allowed_first_semester_registrations=2,
+            allowed_second_semester_registrations=2,
+            validation=2,
+            duplicates="[5,6,4]"
+        )
 
         self.assertEqual(
             HighSchoolStudentRecord.get_duplicate_tuples(),

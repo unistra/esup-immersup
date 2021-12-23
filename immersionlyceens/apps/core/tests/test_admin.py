@@ -52,7 +52,7 @@ class AdminFormsTestCase(TestCase):
     Main admin forms tests class
     """
 
-    fixtures = ['group', 'group_permissions']
+    fixtures = ['group', 'group_permissions', 'high_school_levels', 'post_bachelor_levels', 'student_levels']
 
     def setUp(self):
         """

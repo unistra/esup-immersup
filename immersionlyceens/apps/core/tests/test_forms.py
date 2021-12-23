@@ -32,7 +32,7 @@ from ..models import (
     EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
     PublicDocument, PublicType, Slot, Structure, Training, TrainingDomain,
     TrainingSubdomain, UniversityYear, Vacation, Visit, OffOfferEventType,
-    OffOfferEvent
+    OffOfferEvent, HighSchoolLevel, StudentLevel, PostBachelorLevel
 )
 
 
@@ -48,7 +48,7 @@ class FormTestCase(TestCase):
     Slot forms tests class
     """
 
-    fixtures = ['group']
+    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
 
     def setUp(self):
         """
@@ -157,10 +157,17 @@ class FormTestCase(TestCase):
             convention_end_date = datetime.datetime.today() + datetime.timedelta(days=2),
         )
 
-        self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
-                        highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
-                        phone='0123456789', level=1, class_name='1ere S 3',
-                        bachelor_type=3, professional_bachelor_mention='My spe')
+        self.hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=datetime.datetime.today(),
+            civility=1,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name='1ere S 3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe'
+        )
         self.lyc_ref.highschool = self.high_school
         self.lyc_ref.save()
         self.calendar = Calendar.objects.create(label='my calendar', calendar_mode='YEAR',

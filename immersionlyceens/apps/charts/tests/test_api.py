@@ -11,6 +11,8 @@ from django.test import Client, RequestFactory, TestCase
 from django.conf import settings
 from django.contrib.auth.models import Group
 
+from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel
+
 from .. import api
 
 class ChartsTestCase(TestCase):
@@ -51,24 +53,24 @@ class ChartsTestCase(TestCase):
             [
               {
                 'name': 'Registrations count',
-                'Pupil in year 11 / 10th grade student': 3,
-                'Pupil in year 12 / 11th grade student': 2,
-                'Pupil in year 13 / 12th grade student': 0,
-                'Above A Level / High-School Degree': 0
+                HighSchoolLevel.objects.get(pk=1).label: 2,
+                HighSchoolLevel.objects.get(pk=2).label: 2,
+                HighSchoolLevel.objects.get(pk=3).label: 0,
+                HighSchoolLevel.objects.get(pk=4).label: 1
               },
               {
                  'name': 'Registrations to at least one immersion',
-                 'Pupil in year 11 / 10th grade student': 2,
-                 'Pupil in year 12 / 11th grade student': 2,
-                 'Pupil in year 13 / 12th grade student': 0,
-                 'Above A Level / High-School Degree': 0
+                 HighSchoolLevel.objects.get(pk=1).label: 2,
+                 HighSchoolLevel.objects.get(pk=2).label: 2,
+                 HighSchoolLevel.objects.get(pk=3).label: 0,
+                 HighSchoolLevel.objects.get(pk=4).label: 0
               },
               {
                   'name': 'Attended to at least one immersion',
-                  'Pupil in year 11 / 10th grade student': 1,
-                  'Pupil in year 12 / 11th grade student': 1,
-                  'Pupil in year 13 / 12th grade student': 0,
-                  'Above A Level / High-School Degree': 0
+                  HighSchoolLevel.objects.get(pk=1).label: 1,
+                  HighSchoolLevel.objects.get(pk=2).label: 1,
+                  HighSchoolLevel.objects.get(pk=3).label: 0,
+                  HighSchoolLevel.objects.get(pk=4).label: 0
               }
             ]
         )
@@ -377,20 +379,20 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['datasets'],
              [{'name': 'Attended to at least one immersion',
-               'Pupil in year 11 / 10th grade student': 2,
-               'Pupil in year 12 / 11th grade student': 2,
-               'Pupil in year 13 / 12th grade student': 0,
-               'Above A Level / High-School Degree': 0},
+               HighSchoolLevel.objects.get(pk=1).label: 2,
+               HighSchoolLevel.objects.get(pk=2).label: 2,
+               HighSchoolLevel.objects.get(pk=3).label: 0,
+               HighSchoolLevel.objects.get(pk=4).label: 0},
               {'name': 'Registrations to at least one immersion',
-               'Pupil in year 11 / 10th grade student': 3,
-               'Pupil in year 12 / 11th grade student': 4,
-               'Pupil in year 13 / 12th grade student': 2,
-               'Above A Level / High-School Degree': 0},
+               HighSchoolLevel.objects.get(pk=1).label: 3,
+               HighSchoolLevel.objects.get(pk=2).label: 4,
+               HighSchoolLevel.objects.get(pk=3).label: 1,
+               HighSchoolLevel.objects.get(pk=4).label: 1},
               {'name': 'Registrations count',
-               'Pupil in year 11 / 10th grade student': 5,
-               'Pupil in year 12 / 11th grade student': 4,
-               'Pupil in year 13 / 12th grade student': 3,
-               'Above A Level / High-School Degree': 0}]
+               HighSchoolLevel.objects.get(pk=1).label: 4,
+               HighSchoolLevel.objects.get(pk=2).label: 4,
+               HighSchoolLevel.objects.get(pk=3).label: 2,
+               HighSchoolLevel.objects.get(pk=4).label: 2}]
         )
 
         # With another level
@@ -399,11 +401,16 @@ class ChartsTestCase(TestCase):
         content = response.content.decode()
         json_content = json.loads(content)
 
-        self.assertEqual(json_content['datasets'],
-            [{'name': 'Attended to at least one immersion', 'Pupil in year 11 / 10th grade student': 2},
-             {'name': 'Registrations to at least one immersion', 'Pupil in year 11 / 10th grade student': 3},
-             {'name': 'Registrations count', 'Pupil in year 11 / 10th grade student': 5}]
-        )
+        self.assertEqual(json_content['datasets'], [{
+            'name': 'Attended to at least one immersion',
+            HighSchoolLevel.objects.get(pk=1).label: 2
+        }, {
+            'name': 'Registrations to at least one immersion',
+            HighSchoolLevel.objects.get(pk=1).label: 3
+        }, {
+            'name': 'Registrations count',
+            HighSchoolLevel.objects.get(pk=1).label: 4}
+        ])
 
         # Registration charts cats (ajax query, headers needed)
         url = "/charts/get_registration_charts_cats"
@@ -414,41 +421,41 @@ class ChartsTestCase(TestCase):
 
         self.assertEqual(json_content['attended_one']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 1,
-              'Pupil in year 12 / 11th grade student': 1,
-              'Pupil in year 13 / 12th grade student': 0,
-              'Above A Level / High-School Degree': 0},
+              HighSchoolLevel.objects.get(pk=1).label: 1,
+              HighSchoolLevel.objects.get(pk=2).label: 1,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 0},
              {'name': 'Université de Strasbourg',
-              'Pupil in year 11 / 10th grade student': 0,
-              'Pupil in year 12 / 11th grade student': 0,
-              'Pupil in year 13 / 12th grade student': 0,
-              'Above A Level / High-School Degree': 0}]
+              HighSchoolLevel.objects.get(pk=1).label: 0,
+              HighSchoolLevel.objects.get(pk=2).label: 0,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 0}]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 2,
-              'Pupil in year 12 / 11th grade student': 2,
-              'Pupil in year 13 / 12th grade student': 0,
-              'Above A Level / High-School Degree': 0},
+              HighSchoolLevel.objects.get(pk=1).label: 2,
+              HighSchoolLevel.objects.get(pk=2).label: 2,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 0},
              {'name': 'Université de Strasbourg',
-              'Pupil in year 11 / 10th grade student': 0,
-              'Pupil in year 12 / 11th grade student': 0,
-              'Pupil in year 13 / 12th grade student': 1,
-              'Above A Level / High-School Degree': 0}]
+              HighSchoolLevel.objects.get(pk=1).label: 0,
+              HighSchoolLevel.objects.get(pk=2).label: 0,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 1}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
             [{'name': 'Lycée Jean Monnet',
-              'Pupil in year 11 / 10th grade student': 3,
-              'Pupil in year 12 / 11th grade student': 2,
-              'Pupil in year 13 / 12th grade student': 0,
-              'Above A Level / High-School Degree': 0},
+              HighSchoolLevel.objects.get(pk=1).label: 2,
+              HighSchoolLevel.objects.get(pk=2).label: 2,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 1},
              {'name': 'Université de Strasbourg',
-              'Pupil in year 11 / 10th grade student': 0,
-              'Pupil in year 12 / 11th grade student': 0,
-              'Pupil in year 13 / 12th grade student': 1,
-              'Above A Level / High-School Degree': 0}]
+              HighSchoolLevel.objects.get(pk=1).label: 0,
+              HighSchoolLevel.objects.get(pk=2).label: 0,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 1}]
         )
 
         url = "/charts/get_registration_charts_cats"
@@ -457,15 +464,15 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['attended_one']['datasets'],
-            [{'Pupil in year 11 / 10th grade student': 1, 'name': 'Lycée Jean Monnet'}]
+            [{HighSchoolLevel.objects.get(pk=1).label: 1, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
-            [{'Pupil in year 11 / 10th grade student': 2, 'name': 'Lycée Jean Monnet'}]
+            [{HighSchoolLevel.objects.get(pk=1).label: 2, 'name': 'Lycée Jean Monnet'}]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
-            [{'Pupil in year 11 / 10th grade student': 3, 'name': 'Lycée Jean Monnet'}]
+            [{HighSchoolLevel.objects.get(pk=1).label: 2, 'name': 'Lycée Jean Monnet'}]
         )
 
         # Slots charts (ajax query, headers needed)

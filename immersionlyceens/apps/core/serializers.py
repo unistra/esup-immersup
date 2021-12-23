@@ -4,7 +4,9 @@
 from rest_framework import serializers
 
 from .models import (Campus, Establishment, Training, TrainingSubdomain, HighSchool,
-    Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser)
+    Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser, HighSchoolLevel,
+    PostBachelorLevel, StudentLevel
+)
 
 class ImmersionUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,4 +103,10 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OffOfferEvent
+        fields = "__all__"
+
+
+class HighSchoolLevelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HighSchoolLevel
         fields = "__all__"

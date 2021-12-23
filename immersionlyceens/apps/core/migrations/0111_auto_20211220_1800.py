@@ -18,6 +18,8 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('label', models.CharField(max_length=128, unique=True, verbose_name='Label')),
                 ('active', models.BooleanField(default=True, verbose_name='Active')),
+                ('is_post_bachelor', models.BooleanField(default=True, verbose_name='Is a post-bachelor level')),
+                ('requires_bachelor_type', models.BooleanField(default=True, verbose_name='Requires bachelor type')),
             ],
         ),
         migrations.CreateModel(

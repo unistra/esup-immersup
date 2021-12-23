@@ -15,7 +15,8 @@ from django.urls import reverse
 from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType
+    Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType, HighSchoolLevel, PostBachelorLevel,
+    StudentLevel
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -24,7 +25,8 @@ request_factory = RequestFactory()
 request = request_factory.get('/admin')
 
 class CoreViewsTestCase(TestCase):
-    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
+    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images',
+                'high_school_levels', 'student_levels', 'post_bachelor_levels']
 
     def setUp(self):
         """
@@ -966,16 +968,26 @@ class CoreViewsTestCase(TestCase):
         hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
-            birth_date=datetime.datetime.today(), civility=1,
-            phone='0123456789', level=1, class_name='1ere S 3',
-            bachelor_type=3, professional_bachelor_mention='My spe')
+            birth_date=datetime.datetime.today(),
+            civility=1,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name='1ere S 3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe'
+        )
 
         hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
             highschool=self.high_school2,
-            birth_date=datetime.datetime.today(), civility=1,
-            phone='0123456789', level=1, class_name='1ere T3',
-            bachelor_type=3, professional_bachelor_mention='My spe')
+            birth_date=datetime.datetime.today(),
+            civility=1,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name='1ere T3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe'
+        )
 
         self.client.login(username='lycref', password='pass')
         response = self.client.get("/core/hs_record_manager/%s" % hs_record.id, follow=True)
@@ -990,7 +1002,7 @@ class CoreViewsTestCase(TestCase):
             'first_name': 'Jean',
             'last_name': 'Jacques',
             'birth_date': "01/06/2002",
-            'level': '2',
+            'level': 2,
             'class_name': 'TS 3'
         }
         response = self.client.post("/core/hs_record_manager/%s" % hs_record.id, data, follow=True)
@@ -1001,7 +1013,7 @@ class CoreViewsTestCase(TestCase):
 
         self.assertEqual(highschool_user.first_name, 'Jean')
         self.assertEqual(highschool_user.last_name, 'Jacques')
-        self.assertEqual(hs_record.level, 2)
+        self.assertEqual(hs_record.level, HighSchoolLevel.objects.get(pk=2))
         self.assertEqual(hs_record.class_name, 'TS 3')
 
         # Missing field

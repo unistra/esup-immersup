@@ -12,7 +12,7 @@ from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar
+    HighSchool, Calendar, HighSchoolLevel, PostBachelorLevel, StudentLevel
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -34,7 +34,7 @@ class FormTestCase(TestCase):
     Slot forms tests class
     """
 
-    fixtures = ['group']
+    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
 
     def setUp(self):
         """
@@ -100,10 +100,17 @@ class FormTestCase(TestCase):
         self.high_school = HighSchool.objects.create(label='HS1', address='here',
                          department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
                          email='a@b.c', head_teacher_name='M. A B')
-        self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
-                        highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
-                        phone='0123456789', level=1, class_name='1ere S 3',
-                        bachelor_type=3, professional_bachelor_mention='My spe')
+        self.hs_record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date=datetime.datetime.today(),
+            civility=1,
+            phone='0123456789',
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name='1ere S 3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe'
+        )
         self.lyc_ref.highschool = self.high_school
         self.lyc_ref.save()
         self.calendar = Calendar.objects.create(label='my calendar', calendar_mode='YEAR',

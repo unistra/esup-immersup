@@ -233,6 +233,10 @@ ul
 </div>
 
 <script>
+  {% autoescape off %}
+    let high_school_levels = is_set('{{ high_school_levels }}') ? JSON.parse('{{ high_school_levels }}') : Array()
+  {% endautoescape %}
+
   function open_modal() {
     $('#modal_nuke_account').modal('show');
   }
@@ -248,7 +252,7 @@ ul
     });
 
     function switch_bachelor_data(level) {
-      if(level == 4 || level == 1 || level == 2) {
+      if(is_set(high_school_levels[level]) && high_school_levels[level]['is_post_bachelor'] === false) {
         $('#id_bachelor_data').show("slow");
         $('#id_post_bachelor_data').hide("slow");
       }
@@ -262,7 +266,7 @@ ul
       console.log("b_type => " + b_type)
       console.log("level  => " + level)
       if(b_type == 1) {
-        if ( level == 2 || level == 3 ) {
+        if ( is_set(high_school_levels[level]) && high_school_levels[level]['requires_bachelor_speciality'] === true ) {
           $('#id_general_bachelor_data').show("slow");
         } else {
           $('#id_general_bachelor_data').hide("slow");
