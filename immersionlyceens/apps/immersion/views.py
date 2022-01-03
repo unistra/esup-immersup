@@ -365,7 +365,7 @@ def home(request):
 
 
 @login_required
-@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC')
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC', 'REF-TEC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
@@ -522,7 +522,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
 
 @login_required
-@groups_required('REF-ETAB', 'ETU')
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'REF-TEC', 'ETU')
 def student_record(request, student_id=None, record_id=None):
     """
     Student record
@@ -672,7 +672,7 @@ def immersions(request):
 
 
 @login_required
-@groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB')
+@groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def immersion_attestation_download(request, immersion_id):
     """
     Attestation download

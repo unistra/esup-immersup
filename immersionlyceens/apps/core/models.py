@@ -225,6 +225,7 @@ class ImmersionUser(AbstractUser):
         lambda has_group, su: has_group and not su,
     ]
     _groups = {
+        'REF-TEC': 'operator',
         'REF-ETAB': 'establishment_manager',
         'REF-ETAB-MAITRE': 'master_establishment_manager',
         'REF-STR': 'structure_manager',

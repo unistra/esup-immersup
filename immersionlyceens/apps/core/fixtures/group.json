@@ -60,5 +60,12 @@
     "fields": {
       "name": "VIS"
     }
+  },
+  {
+    "model": "auth.group",
+    "pk": 10,
+    "fields": {
+      "name": "REF-TEC"
+    }
   }
 ]

@@ -282,7 +282,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             if request.user.is_master_establishment_manager():
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE')
                 return not ({x for x in user_groups} - set(rights))
-                # return obj.groups.filter(name__in=('REF-ETAB', 'REF-STR')).exists()
+
+            if request.user.is_operator():
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC')
+                return not ({x for x in user_groups} - set(rights))
 
             # A user can only be deleted if not superuser and the authenticated user has
             # rights on ALL his groups
@@ -324,15 +327,19 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             # A user can only be updated if not superuser and the authenticated user has
             # rights on ALL his groups
-            if request.user.is_establishment_manager():
-                user_groups = obj.groups.all().values_list('name', flat=True)
-                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
+            user_groups = obj.groups.all().values_list('name', flat=True)
 
+            if request.user.is_operator():
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC')
+                if not ({x for x in user_groups} - set(rights)):
+                    return True
+
+            if request.user.is_establishment_manager():
+                rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB')
                 if not ({x for x in user_groups} - set(rights)):
                     return True
 
             if request.user.is_high_school_manager():
-                user_groups = obj.groups.all().values_list('name', flat=True)
                 rights = settings.HAS_RIGHTS_ON_GROUP.get('REF-LYC')
                 highschool_condition = obj.highschool == request.user.highschool
 
@@ -345,6 +352,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     def has_add_permission(self, request):
         has_permission = [
             request.user.is_superuser,
+            request.user.is_operator(),
             request.user.is_establishment_manager(),
             request.user.is_master_establishment_manager()
         ]
@@ -868,10 +876,13 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
-        if len(univ_years) <= 0:
+
+        if not univ_years.exists():
             return True
+
         univ_year = univ_years[0]
 
+        # The current active year has already started
         if now >= univ_year.start_date:
             return False
 
@@ -882,10 +893,14 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
             return True
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
-        if len(univ_years) <= 0:
+
+        # No active year
+        if not univ_years.exists():
             return True
+
         univ_year = univ_years[0]
 
+        # The current active year has already started
         if now >= univ_year.start_date:
             return False
 
@@ -896,10 +911,14 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
             return True
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
-        if len(univ_years) <= 0:
+
+        # No active year
+        if not univ_years.exists():
             return True
+
         univ_year = univ_years[0]
 
+        # The current active year has already started
         if now >= univ_year.start_date:
             return False
 
@@ -916,10 +935,14 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
-        if len(univ_years) <= 0:
+
+        # No active year
+        if not univ_years.exists():
             return True
+
         univ_year = univ_years[0]
 
+        # Active year has already started
         if now >= univ_year.start_date:
             return False
 
@@ -931,10 +954,14 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
-        if len(univ_years) <= 0:
+
+        # No active year
+        if not univ_years.exists():
             return True
+
         univ_year = univ_years[0]
 
+        # Active year has already started
         if now >= univ_year.start_date:
             return False
 
@@ -946,10 +973,14 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
-        if len(univ_years) <= 0:
+
+        # No active year
+        if not univ_years.exists():
             return True
+
         univ_year = univ_years[0]
 
+        # Active year has already started
         if now >= univ_year.start_date:
             return False
 
@@ -1266,20 +1297,39 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
     summernote_fields = ('body',)
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or request.user.is_master_establishment_manager()
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
 
     def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.is_master_establishment_manager()
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or request.user.is_master_establishment_manager()
+        # Only a superuser can add a template
+        return request.user.is_superuser
 
     def has_delete_permission(self, request, obj=None):
         # Only a superuser can delete a template
-        return request.user.is_superuser or request.user.is_master_establishment_manager()
+        return request.user.is_superuser
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.is_master_establishment_manager()
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
 
     class Media:
         css = {
