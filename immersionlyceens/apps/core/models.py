@@ -174,6 +174,10 @@ class HighSchoolLevel(models.Model):
     def can_delete(self):
         return not self.high_school_student_record.exists()
 
+    class Meta:
+        verbose_name = _('High school level')
+        verbose_name_plural = _('High school levels')
+
 
 class PostBachelorLevel(models.Model):
     """
@@ -188,6 +192,10 @@ class PostBachelorLevel(models.Model):
     def can_delete(self):
         return not self.high_school_student_record.exists()
 
+    class Meta:
+        verbose_name = _('Post bachelor level')
+        verbose_name_plural = _('Post bachelor levels')
+
 
 class StudentLevel(models.Model):
     """
@@ -201,6 +209,10 @@ class StudentLevel(models.Model):
 
     def can_delete(self):
         return not self.student_record.exists()
+
+    class Meta:
+        verbose_name = _('Student level')
+        verbose_name_plural = _('Student levels')
 
 
 class ImmersionUser(AbstractUser):
