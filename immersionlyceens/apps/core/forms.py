@@ -323,12 +323,14 @@ class SlotForm(forms.ModelForm):
             try:
                 university_year = UniversityYear.objects.get(active=True)
                 new_slot_template = Slot.objects.get(pk=instance.pk)
+                slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
                 for new_date in new_dates:
                     parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
                     if parsed_date <= university_year.end_date:
                         new_slot_template.pk = None
                         new_slot_template.date = parsed_date
                         new_slot_template.save()
+                        new_slot_template.speakers.add(*slot_speakers)
                         messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
             except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
                 pass

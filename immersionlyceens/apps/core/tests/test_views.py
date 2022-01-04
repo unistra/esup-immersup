@@ -500,7 +500,7 @@ class CoreViewsTestCase(TestCase):
             ],
             'start_time': "12:00",
             'end_time': "14:00",
-            'speakers': [self.speaker1.id],
+            'speakers': [self.speaker1.id, self.speaker2.id],
             'n_places': 33,
             'additional_information': "Here is additional data.",
             'published': "on",
@@ -516,6 +516,7 @@ class CoreViewsTestCase(TestCase):
         d = self.today + datetime.timedelta(days=1)
         for slot in slots:
             self.assertEqual(slot.date, d.date())
+            self.assertEqual(slot.speakers.all().count(), 2)
             d += datetime.timedelta(days=7)
 
         # Delete slots and do it again with an unchecked dates (d+15)
@@ -541,6 +542,7 @@ class CoreViewsTestCase(TestCase):
         dates_idx = 0
         for slot in slots:
             self.assertEqual(slot.date, dates[dates_idx].date())
+            self.assertEqual(slot.speakers.all().count(), 2)
             dates_idx += 1
 
     def test_modify_slot(self):
