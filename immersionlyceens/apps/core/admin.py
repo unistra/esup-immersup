@@ -823,51 +823,6 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
-class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = UniversityYearForm
-    list_display = ('label', 'start_date', 'end_date', 'active')
-    list_filter = ('active',)
-    search_fields = ('label',)
-
-    def get_readonly_fields(self, request, obj=None):
-        fields = ['active', 'purge_date']
-        if obj:
-            if obj.purge_date is not None:
-                return list(
-                    set(
-                        [field.name for field in self.opts.local_fields]
-                        + [field.name for field in self.opts.local_many_to_many]
-                    )
-                )
-
-        return fields
-
-    # def get_actions(self, request):
-    #     # Disable delete
-    #     actions = super().get_actions(request)
-    #     del actions['delete_selected']
-    #     return actions
-
-    def has_delete_permission(self, request, obj=None):
-        if not request.user.is_master_establishment_manager():
-            return False
-
-        if obj:
-            if obj.start_date <= datetime.today().date():
-                messages.warning(
-                    request,
-                    _("""This university year can't be deleted """ """because university year has already started"""),
-                )
-                return False
-            elif obj.purge_date is not None:
-                messages.warning(
-                    request, _("""This university year can't be deleted """ """because a purge date is defined"""),
-                )
-                return False
-
-        return True
-
-
 class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
     form = HolidayForm
     list_display = ('label', 'date')
@@ -891,6 +846,7 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
+
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
 
@@ -909,6 +865,7 @@ class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         if request.user.is_superuser or request.user.is_master_establishment_manager():
             return True
+
         now = datetime.now().date()
         univ_years = UniversityYear.objects.filter(active=True)
 
@@ -1019,7 +976,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
-        elif request.user.is_master_establishment_manager():
+        elif request.user.is_master_establishment_manager() or request.user.is_operator():
             return not (UniversityYear.objects.filter(purge_date__isnull=True).count() > 0)
         else:
             return False
@@ -1028,7 +985,7 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if request.user.is_superuser:
             return True
-        if not request.user.is_master_establishment_manager():
+        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
             return False
 
         if obj:
