@@ -38,14 +38,14 @@
       </div>
       {% endif %}
       <div class="row">
-        {% if request.user.is_master_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
         <div class="col-md-3">
           <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
             <label for="establishments">{% trans 'Select an establishment' %} :</label>
             <select id="establishments" class="form-control">
               <option value="">------------</option>
               {% for establishment in establishments %}
-                <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
+                <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
                   {{ establishment.code }} - {{ establishment.label }}
                 </option>
               {% endfor %}
@@ -59,7 +59,7 @@
             <select id="structures" class="form-control">
               <option value="">------------</option>
               {% for structure in structures %}
-                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
                   {{ structure.code }} - {{ structure.label }}
                 </option>
               {% endfor %}

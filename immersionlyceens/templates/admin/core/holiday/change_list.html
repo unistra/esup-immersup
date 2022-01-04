@@ -5,10 +5,12 @@
 {% block object-tools-items %}
 
     {% settings_get 'WITH_HOLIDAY_API' as with_holidays %}
-    {% if with_holidays and request.user.is_master_establishment_manager %}
+    {% if with_holidays %}
+      {% if request.user.is_operator or request.user.is_master_establishment_manager %}
         <li>
             <a href="{% url 'import_holidays' %}" class="addlink">{% trans 'Import holidays' %}</a>
         </li>
+      {% endif %}
     {% endif %}
     {{ block.super }}
 {% endblock %}

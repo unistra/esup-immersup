@@ -30,7 +30,7 @@
       {{ form.id }}
 
       <!-- highschool -->
-      {% if user.is_master_establishment_manager %}
+      {% if user.is_master_establishment_manager or user.is_operator %}
 
       <div class="form-group row">
 

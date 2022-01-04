@@ -228,7 +228,8 @@ class BuildingForm(forms.ModelForm):
             user = self.request.user
             valid_groups = [
                 user.is_master_establishment_manager(),
-                user.is_establishment_manager()
+                user.is_establishment_manager(),
+                user.is_operator(),
             ]
             valid_user = any(valid_groups)
         except AttributeError:
@@ -895,7 +896,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 required=False
             )
 
-        if not self.request.user.is_superuser:
+        if not self.request.user.is_superuser and not self.request.user.is_operator():
             # Disable establishment modification
             if self.fields.get('establishment'):
                 if self.instance.establishment:
@@ -1026,7 +1027,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self._errors["groups"] = forms.utils.ErrorList()
                 self._errors['groups'].append(self.error_class([msg]))
 
-        if not self.request.user.is_superuser:
+        if not self.request.user.is_superuser and not self.request.user.is_operator():
             # Check and alter fields when authenticated user is
             # a member of REF-ETAB group
             if self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'):
@@ -1087,7 +1088,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
-        if not self.request.user.is_superuser:
+        if not self.request.user.is_superuser and not self.request.user.is_operator():
             conditions = [
                 self.instance.establishment and not self.instance.establishment.data_source_plugin,
                 self.instance.highschool is not None
@@ -1211,14 +1212,14 @@ class MailTemplateForm(forms.ModelForm):
             if self.instance.id:
                 self.fields['code'].disabled = True
 
-            if not self.request.user.is_master_establishment_manager() and not self.request.user.is_operator():
+            if not self.request.user.is_superuser and not self.request.user.is_operator():
                 self.fields['available_vars'].widget = forms.MultipleHiddenInput()
-                self.fields['description'].disabled = True
-                self.fields['label'].disabled = True
-            else:
-                if not self.request.user.is_superuser:
-                    self.fields['available_vars'].widget = forms.MultipleHiddenInput()
+
+                if self.request.user.is_master_establishment_manager():
                     self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
+                else:
+                    self.fields['description'].disabled = True
+                    self.fields['label'].disabled = True
 
             self.fields['available_vars'].required = False
 
