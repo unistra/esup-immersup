@@ -389,7 +389,7 @@ class EstablishmentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser
+            valid_user = user.is_superuser or user.is_operator()
         except AttributeError:
             pass
 
@@ -1123,7 +1123,6 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-
 
         if settings.USE_GEOAPI:
             city_choices = [
