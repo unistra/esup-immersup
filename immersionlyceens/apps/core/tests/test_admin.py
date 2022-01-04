@@ -118,6 +118,14 @@ class AdminFormsTestCase(TestCase):
             date_joined=timezone.now()
         )
 
+        self.operator_user = get_user_model().objects.create_user(
+            username='operator',
+            password='pass',
+            email='operator@no-reply.com',
+            first_name='operator',
+            last_name='operator'
+        )
+
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
@@ -192,6 +200,7 @@ class AdminFormsTestCase(TestCase):
         Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user_2)
+        Group.objects.get(name='REF-TEC').user_set.add(self.operator_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc_user_2)
         Group.objects.get(name='INTER').user_set.add(self.speaker_user)
@@ -225,6 +234,16 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(TrainingDomain.objects.filter(label='test').exists())
 
+        # As an operator
+        data = {'label': 'test2', 'active': True}
+        request.user = self.operator_user
+
+        form = TrainingDomainForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(TrainingDomain.objects.filter(label='test2').exists())
+
+
     def test_training_sub_domain_creation(self):
         """
         Test admin TrainingDomain creation with group rights
@@ -256,6 +275,15 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(TrainingSubdomain.objects.filter(label='sd test').exists())
+
+        # As an operator
+        data = {'label': 'sd test 2', 'training_domain': td.pk, 'active': True}
+
+        request.user = self.operator_user
+        form = TrainingSubdomainForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(TrainingSubdomain.objects.filter(label='sd test 2').exists())
 
 
     def test_campus_creation(self):
@@ -303,6 +331,19 @@ class AdminFormsTestCase(TestCase):
         self.assertIn(["A campus with this label already exists within the same establishment"], form.errors["label"])
         self.assertEqual(Campus.objects.filter(label=data_campus_1['label']).count(), 2)
 
+        # As an operator:
+        data_campus_3 = {
+            'label': 'Test Campus operator',
+            'active': True,
+            'establishment': self.master_establishment
+        }
+        request.user = self.operator_user
+        form = CampusForm(data=data_campus_3, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Campus.objects.filter(label=data_campus_3['label']).exists())
+        self.assertEqual(Campus.objects.filter(label=data_campus_3['label']).count(), 1)
+
         # Test campus admin queryset
         adminsite = CustomAdminSite(name='Repositories')
         campus_admin = CampusAdmin(admin_site=adminsite, model=Campus)
@@ -313,7 +354,11 @@ class AdminFormsTestCase(TestCase):
 
         request.user = self.ref_master_etab_user
         queryset = campus_admin.get_queryset(request=request)
-        self.assertEqual(queryset.count(), 2)
+        self.assertEqual(queryset.count(), 3)
+
+        request.user = self.operator_user
+        queryset = campus_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 3)
 
 
     def test_building_creation(self):
@@ -343,13 +388,23 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(Building.objects.filter(label=data['label']).exists())
 
-        # Another success with master establishment manager
+        # Another success with a master establishment manager
         data['label'] = "Another test"
         request.user = self.ref_master_etab_user
         form = BuildingForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Building.objects.filter(label=data['label']).exists())
+
+        # Another success with an operator
+        data['label'] = "A last test"
+        request.user = self.operator_user
+        form = BuildingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Building.objects.filter(label=data['label']).exists())
+
+        self.assertEqual(Building.objects.count(), 3)
 
 
     def test_structure_list(self):
@@ -369,6 +424,10 @@ class AdminFormsTestCase(TestCase):
         queryset = structure_admin.get_queryset(request=request)
         self.assertEqual(queryset.count(), 2)
 
+        request.user = self.operator_user
+        queryset = structure_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 2)
+
 
     def test_structure_creation(self):
         """
@@ -378,7 +437,9 @@ class AdminFormsTestCase(TestCase):
         self.ref_etab_user.save()
 
         data = {
-            'code': 'AB123', 'label': 'test', 'active': True
+            'code': 'AB123',
+            'label': 'test',
+            'active': True
         }
 
         request.user = self.ref_etab_user
@@ -410,12 +471,25 @@ class AdminFormsTestCase(TestCase):
         data["label"] = "test_fail"
         form = StructureForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn('A structure with this code already exists', form.errors["__all__"])
 
         # Validation fail (invalid user)
         request.user = self.ref_str_user
+        data["label"] = "Another test"
+        data["code"] = "CD345"
         form = StructureForm(data=data, request=request)
         self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertEqual(Structure.objects.count(), 1)
+
+        # Success as an operator
+        request.user = self.operator_user
+        form = StructureForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertEqual(Structure.objects.count(), 2)
+
 
     def test_training_creation(self):
         """
@@ -479,17 +553,35 @@ class AdminFormsTestCase(TestCase):
         self.assertIn(["A training with this label already exists within the same establishment"], form.errors["label"])
         self.assertEqual(Training.objects.filter(label=data_training_1['label']).count(), 2)
 
+        # Another training as an operator : success
+        data_training_3 = {
+            'label': 'test operator',
+            'structures': [structure_2, ],
+            'training_subdomains': [training_subdomain.pk, ],
+        }
+
+        request.user = self.operator_user
+        form = TrainingForm(data=data_training_3, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Training.objects.filter(label=data_training_3['label']).exists())
+        self.assertEqual(Training.objects.filter(label=data_training_3['label']).count(), 1)
+
         # Test training admin queryset
         adminsite = CustomAdminSite(name='Repositories')
         training_admin = TrainingAdmin(admin_site=adminsite, model=Training)
 
         request.user = self.ref_etab_user
         queryset = training_admin.get_queryset(request=request)
-        self.assertEqual(queryset.count(), 1)
+        self.assertEqual(queryset.count(), 2)
 
         request.user = self.ref_master_etab_user
         queryset = training_admin.get_queryset(request=request)
-        self.assertEqual(queryset.count(), 2)
+        self.assertEqual(queryset.count(), 3)
+
+        request.user = self.operator_user
+        queryset = training_admin.get_queryset(request=request)
+        self.assertEqual(queryset.count(), 3)
 
 
     def test_bachelor_mention_creation(self):
@@ -515,6 +607,13 @@ class AdminFormsTestCase(TestCase):
         # Success
         data = {'label': 'testBachelor', 'active': True}
         request.user = self.ref_master_etab_user
+        form = BachelorMentionForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(BachelorMention.objects.filter(label=data['label']).exists())
+
+        data = {'label': 'testBachelor 2', 'active': True}
+        request.user = self.operator_user
         form = BachelorMentionForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
@@ -548,13 +647,18 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(CancelType.objects.filter(label=data['label']).exists())
 
+        request.user = self.operator_user
+        data = {'label': 'another_cancel_type', 'active': True}
+        form = CancelTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(CancelType.objects.filter(label=data['label']).exists())
+
 
     def test_course_type_creation(self):
         """
         Test course type creation with group rights
         """
-        data = {'label': 'testCourse', 'full_label': 'testFullCourse', 'active': True}
-
         # Failures (invalid users)
         data = {'label': 'testCourse', 'full_label': 'testFullCourse', 'active': True}
         request.user = self.ref_str_user
@@ -578,13 +682,18 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(CourseType.objects.filter(label=data['label']).exists())
 
+        request.user = self.operator_user
+        data = {'label': 'another_testCourse', 'full_label': 'another test course', 'active': True}
+        form = CourseTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(CourseType.objects.filter(label=data['label']).exists())
+
 
     def test_general_bachelor_teaching_creation(self):
         """
         Test general bachelor specialty teaching creation with group rights
         """
-        data = {'label': 'test', 'active': True}
-
         # Failures (invalid users)
         data = {'label': 'test', 'active': True}
         request.user = self.ref_str_user
@@ -607,6 +716,14 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(GeneralBachelorTeaching.objects.filter(label=data['label']).exists())
+
+        data = {'label': 'another test', 'active': True}
+        request.user = self.operator_user
+        form = GeneralBachelorTeachingForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(GeneralBachelorTeaching.objects.filter(label=data['label']).exists())
+
 
     def test_public_type_creation(self):
         """
@@ -631,6 +748,13 @@ class AdminFormsTestCase(TestCase):
         data = {'label': 'testPublicType', 'active': True}
         request.user = self.ref_master_etab_user
 
+        form = PublicTypeForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(PublicType.objects.filter(label=data['label']).exists())
+
+        data = {'label': 'Another public type', 'active': True}
+        request.user = self.operator_user
         form = PublicTypeForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
@@ -744,6 +868,20 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(UniversityYear.objects.filter(label=data['label']).exists())
 
+        # As an operator
+        # Fail : already active
+        request.user = self.operator_user
+        form = UniversityYearForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+
+        UniversityYear.objects.all().delete()
+
+        # Success
+        form = UniversityYearForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(UniversityYear.objects.filter(label=data['label']).exists())
+
 
     def test_highschool_creation(self):
         """
@@ -801,16 +939,27 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
 
+        request.user = self.operator_user
+
+        data['label'] = 'Another high school'
+        form = HighSchoolForm(data=data, request=request)
+        form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
+        form.fields['zip_code'].choices = [('68100', '68100')]
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
+
+
     def test_holiday_creation(self):
         """
         Test public type mention creation with group rights
         """
-        UniversityYear(
+        university_year = UniversityYear.objects.create(
             label='Hello',
             start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
             end_date=datetime.datetime.today().date() + datetime.timedelta(days=10),
             registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-        ).save()
+        )
 
         # Failures (invalid users)
         data = {
@@ -837,6 +986,28 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Holiday.objects.filter(label=data['label']).exists())
+
+        # As an operator user
+        request.user = self.operator_user
+        data = {
+            'label': 'Holiday 2',
+            'date': datetime.datetime.today().date() + datetime.timedelta(days=4),
+        }
+        form = HolidayForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Holiday.objects.filter(label=data['label']).exists())
+
+        # Fail : University year has already begun
+        university_year.start_date = datetime.datetime.today().date() - datetime.timedelta(days=1)
+        university_year.save()
+        data = {
+            'label': 'Holiday 3',
+            'date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+        }
+        form = HolidayForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Error : the university year has already begun", form.errors['__all__'])
 
 
     def test_vacation_creation(self):
@@ -953,6 +1124,30 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(Vacation.objects.filter(label=data['label']).exists())
 
+        # As an operator user
+        request.user = self.operator_user
+        data = {
+            'label': 'Vacation 2',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=5),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=7),
+        }
+        form = VacationForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Vacation.objects.filter(label=data['label']).exists())
+
+        # Fail : University year has already begun
+        university_year.start_date = datetime.datetime.today().date() - datetime.timedelta(days=1)
+        university_year.save()
+        data = {
+            'label': 'Vacation 3',
+            'start_date': datetime.datetime.today().date() + datetime.timedelta(days=8),
+            'end_date': datetime.datetime.today().date() + datetime.timedelta(days=10),
+        }
+        form = VacationForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Error : the university year has already begun", form.errors['__all__'])
+
 
     def test_accompanying_document_creation(self):
         """
@@ -987,6 +1182,14 @@ class AdminFormsTestCase(TestCase):
         # Success
         request.user = self.ref_master_etab_user
 
+        form = AccompanyingDocumentForm(data=data, files=file, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(AccompanyingDocument.objects.filter(label=data['label']).exists())
+
+        # As an operator
+        request.user = self.operator_user
+        data['label'] = "Test document #2"
         form = AccompanyingDocumentForm(data=data, files=file, request=request)
         self.assertTrue(form.is_valid())
         form.save()
@@ -1081,6 +1284,14 @@ class AdminFormsTestCase(TestCase):
         ###########
         # Success #
         ###########
+        form = CalendarForm(data=calendar_data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
+
+        # As an operator
+        Calendar.objects.all().delete()
+        request.user = self.operator_user
         form = CalendarForm(data=calendar_data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
@@ -1233,6 +1444,14 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
 
+        # As an operator
+        Calendar.objects.all().delete()
+        request.user = self.operator_user
+        form = CalendarForm(data=calendar_data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
+
 
     def test_public_document_creation(self):
         """
@@ -1241,7 +1460,12 @@ class AdminFormsTestCase(TestCase):
         file = {'document': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf")}
 
         # Failures (invalid users)
-        data = {'label': 'test_fail', 'active': True, 'published': False}
+        data = {
+            'label': 'test_fail',
+            'active': True,
+            'published': False
+        }
+
         request.user = self.ref_str_user
         form = PublicDocumentForm(data=data, files=file, request=request)
         self.assertFalse(form.is_valid())
@@ -1272,6 +1496,12 @@ class AdminFormsTestCase(TestCase):
         form.save()
         self.assertTrue(PublicDocument.objects.filter(label='testPublicDocument').exists())
 
+        # As an operator
+        data['label'] = "Another document"
+        form = PublicDocumentForm(data=data, files=file, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertTrue(PublicDocument.objects.filter(label='Another document').exists())
 
     def test_evaluation_type_creation(self):
         """
@@ -1290,16 +1520,18 @@ class AdminFormsTestCase(TestCase):
 
         # Unique code !
         data = {'code': 'testCode', 'label': 'testLabel'}
-
         form = EvaluationTypeForm(data=data, request=request)
         self.assertFalse(form.is_valid())
 
         # Validation fail (invalid user)
-        data = {'code': 'testCode', 'label': 'test_failure'}
-        request.user = self.ref_etab_user
-        form = EvaluationTypeForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertFalse(EvaluationType.objects.filter(label='test_fail').exists())
+        data = {'code': 'testCode 2', 'label': 'test_failure'}
+
+        for user in [self.ref_etab_user, self.operator_user, self.ref_str_user, self.ref_master_etab_user]:
+            request.user = user
+            form = EvaluationTypeForm(data=data, request=request)
+            self.assertFalse(form.is_valid())
+            self.assertIn("You don't have the required privileges", form.errors["__all__"])
+            self.assertFalse(EvaluationType.objects.filter(label='test_fail').exists())
 
 
     def test_evaluation_form_link_creation(self):
@@ -1310,6 +1542,7 @@ class AdminFormsTestCase(TestCase):
 
         # Failures (invalid users)
         data = {'evaluation_type': type.pk, 'url': 'http://googlefail.fr'}
+
         request.user = self.ref_str_user
         form = EvaluationFormLinkForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1321,6 +1554,12 @@ class AdminFormsTestCase(TestCase):
         form = EvaluationFormLinkForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(EvaluationFormLink.objects.filter(url=data['url']).exists())
+
+        request.user = self.operator_user
+        form = EvaluationFormLinkForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You are not allowed to create a new Evaluation Form Link", form.errors["__all__"])
         self.assertFalse(EvaluationFormLink.objects.filter(url=data['url']).exists())
 
         request.user = self.ref_master_etab_user

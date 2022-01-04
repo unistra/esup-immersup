@@ -95,6 +95,15 @@ class FormTestCase(TestCase):
             last_name='ref_master_etab',
             establishment=self.master_establishment
         )
+
+        self.operator_user = get_user_model().objects.create_user(
+            username='operator',
+            password='pass',
+            email='operator@no-reply.com',
+            first_name='operator',
+            last_name='operator'
+        )
+
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
@@ -120,6 +129,7 @@ class FormTestCase(TestCase):
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
+        Group.objects.get(name='REF-TEC').user_set.add(self.operator_user)
 
         self.today = datetime.datetime.today()
         self.structure = Structure.objects.create(label="test structure")

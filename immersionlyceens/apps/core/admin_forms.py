@@ -595,6 +595,7 @@ class HolidayForm(forms.ModelForm):
             valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
+
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
@@ -602,10 +603,15 @@ class HolidayForm(forms.ModelForm):
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
             raise forms.ValidationError(_("You have to set an university year"))
+
         univ_year = univ_years[0]
 
         if _date:
-            if _date and (_date < univ_year.start_date or _date >= univ_year.end_date):
+            if not user.is_superuser:
+                if user.is_operator() and now > univ_year.start_date:
+                    raise forms.ValidationError(_("Error : the university year has already begun"))
+
+            if _date < univ_year.start_date or _date >= univ_year.end_date:
                 raise forms.ValidationError(_("Holiday must set between university year dates"))
 
             if _date < now:
@@ -645,6 +651,7 @@ class VacationForm(forms.ModelForm):
             valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
+
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
@@ -657,12 +664,19 @@ class VacationForm(forms.ModelForm):
         if start_date and end_date:
             if start_date >= end_date:
                 raise forms.ValidationError(_("Start date greater than end date"))
+
             if start_date < univ_year.start_date or start_date > univ_year.end_date:
                 raise forms.ValidationError(_("Vacation start date must set between university year dates"))
+
             if end_date < univ_year.start_date or end_date >= univ_year.end_date:
                 raise forms.ValidationError(_("Vacation end date must set between university year dates"))
+
             if start_date < now:
                 raise forms.ValidationError(_("Vacation start date must be set in the future"))
+
+            if not user.is_superuser:
+                if user.is_operator() and now > univ_year.start_date:
+                    raise forms.ValidationError(_("Error : the university year has already begun"))
 
             all_vacations = Vacation.objects.exclude(label=label)
             for vac in all_vacations:
