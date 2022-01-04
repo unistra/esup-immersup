@@ -1620,8 +1620,20 @@ class AdminFormsTestCase(TestCase):
         self.assertIsNone(eta.data_source_plugin) # No plugin
         self.assertIsNone(eta.data_source_settings) # No plugin settings
 
+        # Delete, recreate as an operator
+        eta.delete()
+        request.user = self.operator_user
+        form = EstablishmentForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        eta = Establishment.objects.get(code='ETA1')
+        self.assertTrue(eta.active)  # default
+        self.assertTrue(eta.master)  # first establishment creation : master = True
+
         # Delete, recreate with account plugin, and check again
         eta.delete()
+        request.user = self.superuser
+
         # see settings.AVAILABLE_ACCOUNTS_PLUGINS
         data["data_source_plugin"] = "LDAP"
         form = EstablishmentForm(data=data, request=request)
@@ -1688,6 +1700,10 @@ class AdminFormsTestCase(TestCase):
         request.user = self.ref_master_etab_user
         self.assertFalse(est_admin.has_delete_permission(request=request, obj=eta2))
 
+        # As an operator: should succeed
+        request.user = self.operator_user
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=eta2))
+
 
     def test_information_text_creation(self):
         """
@@ -1702,26 +1718,30 @@ class AdminFormsTestCase(TestCase):
             'active': True
         }
 
-        request.user = self.ref_str_user
-        form = InformationTextForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(InformationText.objects.filter(label=data['label']).exists())
-
-        request.user = self.ref_etab_user
-        form = InformationTextForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(InformationText.objects.filter(label=data['label']).exists())
+        for user in [self.ref_str_user, self.ref_etab_user, self.ref_master_etab_user, self.operator_user]:
+            request.user = user
+            form = InformationTextForm(data=data, request=request)
+            self.assertFalse(form.is_valid())
+            self.assertIn("You don't have the required privileges", form.errors["__all__"])
+            self.assertFalse(MailTemplate.objects.filter(label=data['label']).exists())
 
         # Success
-        request.user = self.ref_master_etab_user
+        request.user = self.superuser
 
         form = InformationTextForm(data=data, request=request)
         self.assertTrue(form.is_valid())
-        form.save()
+        information_text = form.save()
         self.assertTrue(InformationText.objects.filter(label=data['label']).exists())
+        self.assertEqual(information_text.label, 'my text')
+
+        # Update allowed
+        request.user = self.ref_master_etab_user
+        data['label'] = 'another text'
+        form = InformationTextForm(instance=information_text, data=data, request=request)
+        self.assertTrue(form.is_valid())
+        information_text = form.save()
+        self.assertEqual(InformationText.objects.filter(code=data['code']).count(), 1)
+        self.assertEqual(information_text.label, 'another text')
 
 
     def test_mail_template_creation(self):
@@ -1737,27 +1757,29 @@ class AdminFormsTestCase(TestCase):
             'available_vars': MailTemplateVars.objects.first()
         }
 
-
-        request.user = self.ref_str_user
-        form = MailTemplateForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(MailTemplate.objects.filter(label=data['label']).exists())
-
-        request.user = self.ref_etab_user
-        form = MailTemplateForm(data=data, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn("You don't have the required privileges", form.errors["__all__"])
-        self.assertFalse(MailTemplate.objects.filter(label=data['label']).exists())
+        for user in [self.ref_str_user, self.ref_etab_user, self.ref_master_etab_user, self.operator_user]:
+            request.user = user
+            form = MailTemplateForm(data=data, request=request)
+            self.assertFalse(form.is_valid())
+            self.assertIn("You don't have the required privileges", form.errors["__all__"])
+            self.assertFalse(MailTemplate.objects.filter(label=data['label']).exists())
 
         # Success
-        request.user = self.ref_master_etab_user
-
+        request.user = self.superuser
         form = MailTemplateForm(data=data, request=request)
         self.assertTrue(form.is_valid())
-        form.save()
+        mail_template = form.save()
         self.assertTrue(MailTemplate.objects.filter(label=data['label']).exists())
+        self.assertEqual(mail_template.body, 'test content')
+
+        # Update is allowed
+        request.user = self.ref_master_etab_user
+
+        data["body"] = "New mail body"
+        form = MailTemplateForm(instance=mail_template, data=data, request=request)
+        self.assertTrue(form.is_valid())
+        mail_template = form.save()
+        self.assertEqual(mail_template.body, "New mail body")
 
 
     def test_admin_immersionuser(self):
@@ -1794,6 +1816,16 @@ class AdminFormsTestCase(TestCase):
         # --------------------------------------
         request.user = self.ref_master_etab_user
         # Should be True
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
+
+        # --------------------------------------
+        # As an operator
+        # --------------------------------------
+        request.user = self.operator_user
+        # Should be True
+        self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_master_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))

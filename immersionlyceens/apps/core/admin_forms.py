@@ -1247,7 +1247,10 @@ class MailTemplateForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            if self.instance.pk:
+                valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
+            else:
+                valid_user = user.is_superuser
         except AttributeError:
             pass
 
@@ -1356,7 +1359,10 @@ class InformationTextForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_operator()
+            if self.instance.pk:
+                valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
+            else:
+                valid_user = user.is_superuser
         except AttributeError:
             pass
 
