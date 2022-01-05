@@ -1891,20 +1891,22 @@ class AdminFormsTestCase(TestCase):
         self.ref_str_user_2.structures.add(structure_1)
         self.ref_str_user_2.save()
 
-        request.user = self.ref_master_etab_user
+        for user in [self.ref_master_etab_user, self.operator_user]:
+            request.user = user
 
-        # Try an establishment update : forbidden
-        self.assertEqual(self.ref_etab_user.establishment, self.establishment)
-        data = {
-            'establishment': self.master_establishment
-        }
+            # Try an establishment update : forbidden
+            self.assertEqual(self.ref_etab_user.establishment, self.establishment)
 
-        form = ImmersionUserChangeForm(data, instance=self.ref_etab_user, request=request)
-        self.assertFalse(form.is_valid())
-        self.assertIn(
-            "Select a valid choice. That choice is not one of the available choices.",
-            form.errors["establishment"]
-        )
+            # Initial data + update
+            data = ImmersionUserChangeForm(instance=self.ref_etab_user, request=request).initial
+            data['establishment'] = self.master_establishment
+
+            form = ImmersionUserChangeForm(data, instance=self.ref_etab_user, request=request)
+            self.assertFalse(form.is_valid())
+            self.assertIn(
+                "Select a valid choice. That choice is not one of the available choices.",
+                form.errors["establishment"]
+            )
 
         # Bad structure choice
         request.user = self.ref_etab_user

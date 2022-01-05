@@ -910,7 +910,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 required=False
             )
 
-        if not self.request.user.is_superuser and not self.request.user.is_operator():
+        if not self.request.user.is_superuser:
             # Disable establishment modification
             if self.fields.get('establishment'):
                 if self.instance.establishment:
