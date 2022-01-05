@@ -504,6 +504,11 @@ class CoreViewsTestCase(TestCase):
             'n_places': 33,
             'additional_information': "Here is additional data.",
             'published': "on",
+            'allowed_establishments': [self.establishment.id, self.master_establishment.id],
+            'allowed_highschools': [self.high_school.id, self.high_school2.id],
+            'allowed_highschool_levels': [HighSchoolLevel.objects.order_by('id').first().pk],
+            'allowed_student_levels': [StudentLevel.objects.order_by('id').first().pk],
+            'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('id').first().pk],
             'save': 1
         }
         # All dates have been selected : initial slot created + 4 copies
@@ -543,6 +548,26 @@ class CoreViewsTestCase(TestCase):
         for slot in slots:
             self.assertEqual(slot.date, dates[dates_idx].date())
             self.assertEqual(slot.speakers.all().count(), 2)
+            self.assertEqual(
+                list(slot.allowed_establishments.order_by('id').values_list('id', flat=True)),
+                sorted([self.establishment.id, self.master_establishment.id])
+            )
+            self.assertEqual(
+                list(slot.allowed_highschools.order_by('id').values_list('id', flat=True)),
+                sorted([self.high_school.id, self.high_school2.id])
+            )
+            self.assertEqual(
+                slot.allowed_highschool_levels.first(),
+                HighSchoolLevel.objects.order_by('id').first()
+            )
+            self.assertEqual(
+                slot.allowed_student_levels.first(),
+                StudentLevel.objects.order_by('id').first()
+            )
+            self.assertEqual(
+                slot.allowed_post_bachelor_levels.first(),
+                PostBachelorLevel.objects.order_by('id').first()
+            )
             dates_idx += 1
 
     def test_modify_slot(self):

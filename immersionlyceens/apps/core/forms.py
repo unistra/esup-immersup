@@ -324,6 +324,12 @@ class SlotForm(forms.ModelForm):
                 university_year = UniversityYear.objects.get(active=True)
                 new_slot_template = Slot.objects.get(pk=instance.pk)
                 slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
+                slot_allowed_establishments = [e for e in new_slot_template.allowed_establishments.all()]
+                slot_allowed_highschools = [h for h in new_slot_template.allowed_highschools.all()]
+                slot_allowed_highschool_levels = [l for l in new_slot_template.allowed_highschool_levels.all()]
+                slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
+                slot_allowed_post_bachelor_levels = [l for l in new_slot_template.allowed_post_bachelor_levels.all()]
+
                 for new_date in new_dates:
                     parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
                     if parsed_date <= university_year.end_date:
@@ -331,6 +337,11 @@ class SlotForm(forms.ModelForm):
                         new_slot_template.date = parsed_date
                         new_slot_template.save()
                         new_slot_template.speakers.add(*slot_speakers)
+                        new_slot_template.allowed_establishments.add(*slot_allowed_establishments)
+                        new_slot_template.allowed_highschools.add(*slot_allowed_highschools)
+                        new_slot_template.allowed_highschool_levels.add(*slot_allowed_highschool_levels)
+                        new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
+                        new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
                         messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
             except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
                 pass
