@@ -132,29 +132,13 @@ class SlotForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         instance = kwargs.get('instance', None)
-        self.slot_dates = []
+
+        try:
+            getattr(self, "slot_dates")
+        except AttributeError:
+            self.slot_dates = []
 
         course = self.instance.course if self.instance and self.instance.course_id else None
-
-        """
-        self.fields['allowed_highschool_levels'] = forms.MultipleChoiceField(
-            widget=forms.SelectMultiple,
-            choices=HighSchoolStudentRecord.LEVELS,
-            required=False
-        )
-
-        self.fields['allowed_student_levels'] = forms.MultipleChoiceField(
-            widget=forms.SelectMultiple,
-            choices=StudentRecord.LEVELS,
-            required=False
-        )
-
-        self.fields['allowed_post_bachelor_levels'] = forms.MultipleChoiceField(
-            widget=forms.SelectMultiple,
-            choices=HighSchoolStudentRecord.POST_BACHELOR_LEVELS,
-            required=False
-        )
-        """
 
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
@@ -224,25 +208,6 @@ class SlotForm(forms.ModelForm):
             format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
         )
 
-
-    def clean_restrictions(self, cleaned_data):
-        try:
-            cleaned_data['allowed_highschool_levels'] = [int(x) for x in cleaned_data['allowed_highschool_levels']]
-        except (ValueError, TypeError):
-            cleaned_data['allowed_highschool_levels'] = []
-
-        try:
-            cleaned_data['allowed_student_levels'] = [int(x) for x in cleaned_data['allowed_student_levels']]
-        except (ValueError, TypeError):
-            cleaned_data['allowed_student_levels'] = []
-
-        try:
-            cleaned_data['allowed_post_bachelor_levels'] = [int(x) for x in cleaned_data['allowed_post_bachelor_levels']]
-        except (ValueError, TypeError):
-            cleaned_data['allowed_post_bachelor_levels'] = []
-
-        return cleaned_data
-
     def clean(self):
         cleaned_data = super().clean()
         structure = cleaned_data.get('structure')
@@ -251,9 +216,11 @@ class SlotForm(forms.ModelForm):
         face_to_face = cleaned_data.get('face_to_face', True)
         _date = cleaned_data.get('date')
         start_time = cleaned_data.get('start_time', 0)
-        repeat_until = cleaned_data.get('repeat')
 
-        # cleaned_data = self.clean_restrictions(cleaned_data)
+        # Slot repetition
+        if cleaned_data.get('repeat'):
+            self.slot_dates = self.request.POST.getlist("slot_dates")
+
         cals = Calendar.objects.all()
 
         if cals.exists():
@@ -292,7 +259,6 @@ class SlotForm(forms.ModelForm):
 
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
-                messages.error(self.request, msg)
                 raise forms.ValidationError({'n_places': msg})
 
         if _date and not cal.date_is_between(_date):
@@ -304,9 +270,6 @@ class SlotForm(forms.ModelForm):
         end_time = cleaned_data.get('end_time')
         if start_time and end_time and start_time >= end_time:
             raise forms.ValidationError({'start_time': _('Error: Start time must be set before end time')})
-
-        if repeat_until:
-            self.slot_dates = self.request.POST.getlist("slot_dates")
 
         return cleaned_data
 
@@ -409,8 +372,6 @@ class VisitSlotForm(SlotForm):
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
-
-        # cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 
@@ -527,8 +488,6 @@ class OffOfferEventSlotForm(SlotForm):
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
-
-        # cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 

@@ -1799,6 +1799,11 @@ class Slot(models.Model):
             raise ValidationError("You must select one of : Course, Visit or Event")
 
     def __str__(self):
+        slot_type = _("No type yet")
+        date = self.date or _("date unknown")
+        start_time = self.start_time or _("start time unknown")
+        end_time = self.end_time or _("end time unknown")
+
         if self.visit:
             slot_type = _(f"Visit - {self.visit.highschool}")
         elif self.course:
@@ -1806,7 +1811,7 @@ class Slot(models.Model):
         elif self.event:
             slot_type = _(f"Event - {self.event.label}")
 
-        return f"{slot_type} : {self.date} : {self.start_time}-{self.end_time}"
+        return f"{slot_type} : {date} : {start_time}-{end_time}"
 
 
     def get_allowed_highschool_levels(self):

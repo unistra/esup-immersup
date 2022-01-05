@@ -414,6 +414,9 @@
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   var slot_mode = "{{ slot_mode }}"
 
+  var slot_dates = "{{ slot_dates|safe }}"
+  slot_dates = slot_dates !== "None" ? slot_dates.split(",") : undefined
+
   empty_speakers()
 
   function empty_structures() {
@@ -1116,10 +1119,15 @@
 
     if(first_date && end_date) {
       for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
+        let checked = 'checked'
+        if(Array.isArray(slot_dates) && slot_dates.indexOf(d.toLocaleDateString()) == -1) {
+          checked = ''
+        }
+
         $("#id_days_div").append(
           "<div class='form-group row align-items-center'>" +
           "  <div class='col-md-1'>" +
-          "   <input type='checkbox' name='slot_dates[]' value='" + d.toLocaleDateString() + "' checked>" +
+          "   <input type='checkbox' name='slot_dates[]' value='" + d.toLocaleDateString() + "' " + checked+ ">" +
           "  </div>" +
           "  <div class='col-md-3'>" + d.toLocaleDateString() + "</div>" +
           "  <div class='col-md-4' id='id_vacation_" + d.toLocaleDateString() + "'></div>" +

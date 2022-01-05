@@ -1226,13 +1226,6 @@ class CourseSlotAdd(generic.CreateView):
                 training = Training.objects.get(pk=context["training_id"])
             except Training.DoesNotExist:
                 pass
-        """    
-        else:
-            context["establishment_id"] = self.request.session.get('current_establishment_id', None)
-            context["structure_id"] = self.request.session.get('current_structure_id', None)
-            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
-            context["tranining_id"] = self.request.session.get('current_training_id', None)
-        """
 
         if self.duplicate and object_pk:
             context = {'duplicate': True}
@@ -1300,6 +1293,11 @@ class CourseSlotAdd(generic.CreateView):
             self.form = self.form_class(initial=initials, request=self.request)
             context["form"] = self.form
 
+        if self.request.POST:
+            context["slot_dates"] = ",".join([str(i) for i in self.request.POST.getlist("slot_dates[]")])
+        else:
+            context["slot_dates"] = None
+
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "course"
         context["establishment_id"] = self.request.session.get('current_establishment_id')
@@ -1329,6 +1327,7 @@ class CourseSlotAdd(generic.CreateView):
         for k, error in form.errors.items():
             messages.error(self.request, error)
         messages.error(self.request, _("Course slot not created."))
+
         return super().form_invalid(form)
 
 
