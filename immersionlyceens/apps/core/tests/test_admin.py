@@ -1807,6 +1807,7 @@ class AdminFormsTestCase(TestCase):
         # --------------------------------------
         request.user = self.superuser
         # Should be True
+        self.assertTrue(est_admin.has_add_permission(request=request))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
@@ -1816,6 +1817,7 @@ class AdminFormsTestCase(TestCase):
         # --------------------------------------
         request.user = self.ref_master_etab_user
         # Should be True
+        self.assertTrue(est_admin.has_add_permission(request=request))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user_2))
@@ -1825,6 +1827,7 @@ class AdminFormsTestCase(TestCase):
         # --------------------------------------
         request.user = self.operator_user
         # Should be True
+        self.assertTrue(est_admin.has_add_permission(request=request))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_master_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_etab_user))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
@@ -1835,6 +1838,7 @@ class AdminFormsTestCase(TestCase):
         # --------------------------------------
         request.user = self.ref_etab_user
         # Should be True
+        self.assertTrue(est_admin.has_add_permission(request=request))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.ref_str_user))
 
         # Should NOT be True
@@ -1846,6 +1850,7 @@ class AdminFormsTestCase(TestCase):
         # --------------------------------------
         request.user = self.ref_lyc_user
         # Should be True
+        self.assertTrue(est_admin.has_add_permission(request=request))
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=self.speaker_user))
 
         # Should NOT be True
