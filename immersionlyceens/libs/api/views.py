@@ -218,7 +218,12 @@ def ajax_get_courses(request):
             has_rights = (Structure.objects.filter(pk=course.structure.id) & allowed_structures).exists()
         elif course.highschool:
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
-            has_rights = request.user.is_master_establishment_manager() or course.highschool == request.user.highschool
+
+            has_rights = any([
+                request.user.is_master_establishment_manager(),
+                request.user.is_operator(),
+                course.highschool == request.user.highschool
+            ])
 
         course_data = {
             'id': course.id,
@@ -468,12 +473,14 @@ def slots(request):
 
         allowed_visit_slot_update_conditions = [
             request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
             request.user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
             request.user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
         ]
 
         allowed_event_slot_update_conditions = [
             request.user.is_master_establishment_manager() and slot.event,
+            request.user.is_operator() and slot.event,
             request.user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
             request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures,
             request.user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
@@ -512,6 +519,7 @@ def slots(request):
                 'city': highschool.city,
                 'label': highschool.label,
                 'managed_by_me': request.user.is_master_establishment_manager()\
+                    or request.user.is_operator()\
                     or (user_highschool and highschool == user_highschool),
             } if highschool else None,
             'visit': {
@@ -1499,17 +1507,20 @@ def ajax_get_highschool_students(request, highschool_id=None):
     no_record_filter = False
     response = {'data': [], 'msg': ''}
 
-    is_master_or_etab_manager: bool = request.user.is_establishment_manager()\
-                                      or request.user.is_master_establishment_manager()
+    admin_groups = [
+        request.user.is_establishment_manager(),
+        request.user.is_master_establishment_manager(),
+        request.user.is_operator()
+    ]
 
-    if is_master_or_etab_manager:
+    if any(admin_groups):
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
     if not highschool_id:
         try:
             highschool_id = request.user.highschool.id
         except Exception:
-            if not is_master_or_etab_manager:
+            if not any(admin_groups):
                 response = {'data': [], 'msg': _('Invalid parameters')}
                 return JsonResponse(response, safe=False)
 
@@ -2341,8 +2352,10 @@ class TrainingHighSchoolList(generics.ListAPIView):
         Return user highschool is you are a REF-LYC,
         :return:
         """
-        if self.request.user.is_authenticated:
-            if self.request.user.is_master_establishment_manager():
+        user = self.request.user
+
+        if user.is_authenticated:
+            if user.is_master_establishment_manager() or user.is_operator():
                 if "pk" in self.kwargs:
                     return Training.objects.filter(highschool_id=self.kwargs.get("pk"))
                 else:
@@ -2447,6 +2460,7 @@ class VisitDetail(generics.DestroyAPIView):
         if not user.is_superuser:
             valid_conditions = [
                 user.is_master_establishment_manager(),
+                user.is_operator(),
                 user.is_establishment_manager() and obj.establishment == user.establishment,
                 user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),
             ]
@@ -2535,6 +2549,7 @@ class OffOfferEventDetail(generics.DestroyAPIView):
         if not user.is_superuser:
             valid_conditions = [
                 user.is_master_establishment_manager(),
+                user.is_operator(),
                 user.is_high_school_manager() and obj.highschool == user.highschool,
                 user.is_establishment_manager() and obj.establishment == user.establishment,
                 user.is_structure_manager() and obj.structure_id and obj.structure in user.get_authorized_structures(),

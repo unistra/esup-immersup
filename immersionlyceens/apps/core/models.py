@@ -372,7 +372,7 @@ class ImmersionUser(AbstractUser):
             return None
 
     def get_authorized_structures(self):
-        if self.is_superuser or self.is_master_establishment_manager():
+        if self.is_superuser or self.is_master_establishment_manager() or self.is_operator():
             return Structure.activated.all()
         if self.is_establishment_manager() and self.establishment:
             return Structure.activated.filter(establishment=self.establishment)

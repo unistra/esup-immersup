@@ -237,9 +237,50 @@ class FormTestCase(TestCase):
         slot = form.save()
         self.assertFalse(slot.published)
 
+        #############################
+        # As an operator
+        #############################
+
+        slot.delete()
+        self.course.published = True
+        self.course.save()
+        request.user = self.operator_user
+
+        # Unpublished slot
+        form = SlotForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # Published slot
+        valid_data = {
+            'face_to_face': True,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': 'room 1',
+            'date': self.today + datetime.timedelta(days=10),
+            'start_time': datetime.time(hour=12),
+            'end_time': datetime.time(hour=14),
+            'n_places': 10,
+            'speakers': [self.speaker1.id],
+            'published': True,
+        }
+        form = SlotForm(data=valid_data, request=request)
+        self.assertTrue(form.is_valid())
+
+        # Published slot with an unpublished course
+        self.course.published = False
+        self.course.save()
+
+        form = SlotForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        slot = form.save()
+        self.assertFalse(slot.published)
+
         #########
         # FAILS #
         #########
+        request.user = self.ref_master_etab_user
 
         invalid_data = {
             'course': self.course.id,
@@ -306,7 +347,13 @@ class FormTestCase(TestCase):
         form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
         self.assertTrue(form.is_valid())
 
+        # As an operator
+        request.user = self.operator_user
+        form = HighSchoolStudentImmersionUserForm(data=data, instance=self.highschool_user)
+        self.assertTrue(form.is_valid())
+
         # Fail : missing last_name
+        request.user = self.ref_etab_user
         data = {
             'first_name': 'hello',
         }
@@ -345,6 +392,13 @@ class FormTestCase(TestCase):
 
         # Success
         data["speakers_list"] = '[{"username": "%s", "email": "%s"}]' % (self.speaker1.username, self.speaker1.email)
+        form = VisitForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        visit = form.save()
+
+        # As an operator
+        visit.delete()
+        request.user = self.operator_user
         form = VisitForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()
@@ -418,6 +472,19 @@ class FormTestCase(TestCase):
         self.assertEqual(slot.speakers.count(), 1)
         self.assertEqual(slot.speakers.first(), self.speaker1)
 
+        # As an operator
+        slot.delete()
+        request.user = self.operator_user
+
+        form = VisitSlotForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertTrue(Slot.objects.filter(visit=visit).exists())
+        slot = Slot.objects.get(visit=visit)
+        self.assertEqual(slot.speakers.count(), 1)
+        self.assertEqual(slot.speakers.first(), self.speaker1)
+
 
     def test_event_form(self):
         """
@@ -450,7 +517,18 @@ class FormTestCase(TestCase):
         event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=self.structure)
         self.assertEqual(event.speakers.first(), self.speaker1)
 
+        # As an operator
+        event.delete()
+        request.user = self.operator_user
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=self.structure)
+        self.assertEqual(event.speakers.first(), self.speaker1)
+
+
         # Create an Event with no structure
+        request.user = self.ref_master_etab_user
         del(data["structure"])
         form = OffOfferEventForm(data=data, request=request)
         self.assertTrue(form.is_valid())
@@ -458,7 +536,18 @@ class FormTestCase(TestCase):
         event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=None)
         self.assertEqual(event.speakers.first(), self.speaker1)
 
+        # As an operator
+        event.delete()
+        request.user = self.operator_user
+        form = OffOfferEventForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+        event = OffOfferEvent.objects.get(establishment=self.master_establishment, structure=None)
+        self.assertEqual(event.speakers.first(), self.speaker1)
+
+
         # Fail : duplicate
+        request.user = self.ref_master_etab_user
         form = OffOfferEventForm(data=data, request=request)
         self.assertFalse(form.is_valid())
         self.assertIn("An event with these values already exists", form.errors["__all__"])
@@ -611,6 +700,18 @@ class FormTestCase(TestCase):
         # Success
         data["n_places"] = 10
 
+        form = OffOfferEventSlotForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertTrue(Slot.objects.filter(event=event).exists())
+        slot = Slot.objects.get(event=event)
+        self.assertEqual(slot.speakers.count(), 1)
+        self.assertEqual(slot.speakers.first(), self.speaker1)
+
+        # As an operator
+        request.user = self.operator_user
+        slot.delete()
         form = OffOfferEventSlotForm(data=data, request=request)
         self.assertTrue(form.is_valid())
         form.save()

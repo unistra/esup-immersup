@@ -35,7 +35,9 @@ request = request_factory.get('/admin')
 class APITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['group', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
+    fixtures = [
+        'group', 'group_permissions', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels'
+    ]
 
     def setUp(self):
         """
@@ -94,6 +96,16 @@ class APITestCase(TestCase):
         )
         self.ref_master_etab_user.set_password('pass')
         self.ref_master_etab_user.save()
+
+        self.operator_user = get_user_model().objects.create_user(
+            username='operator',
+            password='pass',
+            email='operator@no-reply.com',
+            first_name='operator',
+            last_name='operator'
+        )
+        self.operator_user.set_password('pass')
+        self.operator_user.save()
 
         self.highschool_user = get_user_model().objects.create_user(
             username='@EXTERNAL@_hs',
@@ -174,6 +186,7 @@ class APITestCase(TestCase):
 
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
+        Group.objects.get(name='REF-TEC').user_set.add(self.operator_user)
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='INTER').user_set.add(self.highschool_speaker)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
@@ -411,27 +424,29 @@ class APITestCase(TestCase):
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
 
-    def test_API_get_documents__ok(self):
-        request.user = self.ref_etab_user
-
+    def test_API_get_documents(self):
         url = "/api/get_available_documents/"
-        ajax_request = self.client.get(url, request, **self.header)
-        content = ajax_request.content.decode()
 
-        json_content = json.loads(content)
-        self.assertIn('msg', json_content)
-        self.assertIn('data', json_content)
-        self.assertIsInstance(json_content['data'], list)
-        self.assertIsInstance(json_content['msg'], str)
+        # Fail : Anonymous request
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)  # forbidden
 
-        docs = AccompanyingDocument.objects.filter(active=True)
-        self.assertEqual(len(json_content['data']), docs.count())
+        # Authenticated users
+        for user in [self.ref_master_etab_user, self.ref_etab_user, self.operator_user]:
+            request.user = user
 
+            response = self.client.get(url, request, **self.header)
+            self.assertEqual(response.status_code, 200)
+            content = response.content.decode()
 
-    def test_API_get_documents__wrong_request(self):
-        """No access"""
-        request = self.client.get('/api/get_available_documents/')
-        self.assertEqual(request.status_code, 403)  # forbidden
+            json_content = json.loads(content)
+            self.assertIn('msg', json_content)
+            self.assertIn('data', json_content)
+            self.assertIsInstance(json_content['data'], list)
+            self.assertIsInstance(json_content['msg'], str)
+
+            docs = AccompanyingDocument.objects.filter(active=True)
+            self.assertEqual(len(json_content['data']), docs.count())
 
 
     def test_API_ajax_check_course_publication(self):
@@ -1959,25 +1974,27 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         client = Client()
-        client.login(username='ref_master_etab', password='pass')
-        
-        response = client.get("/api/get_duplicates", **self.header, follow=True)
-        content = json.loads(response.content.decode('utf-8'))
 
-        self.assertEqual(content['data'], [
-            {'id': 0,
-             'record_ids': [self.hs_record.id, self.hs_record2.id],
-             'names': ['SCHOOL high', 'SCHOOL2 high2'],
-             'birthdates': [_date(self.hs_record.birth_date), _date(self.hs_record2.birth_date)],
-             'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],
-             'emails': ['hs@no-reply.com', 'hs2@no-reply.com'],
-             'record_links': [
-                 f'/immersion/hs_record/{self.hs_record.id}',
-                 f'/immersion/hs_record/{self.hs_record2.id}'
-             ]}
-        ])
+        for username in ['ref_master_etab', 'operator']:
+            client.login(username=username, password='pass')
 
-    def test_ajax_keep_entries(self):
+            response = client.get("/api/get_duplicates", **self.header, follow=True)
+            content = json.loads(response.content.decode('utf-8'))
+
+            self.assertEqual(content['data'], [
+                {'id': 0,
+                 'record_ids': [self.hs_record.id, self.hs_record2.id],
+                 'names': ['SCHOOL high', 'SCHOOL2 high2'],
+                 'birthdates': [_date(self.hs_record.birth_date), _date(self.hs_record2.birth_date)],
+                 'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],
+                 'emails': ['hs@no-reply.com', 'hs2@no-reply.com'],
+                 'record_links': [
+                     f'/immersion/hs_record/{self.hs_record.id}',
+                     f'/immersion/hs_record/{self.hs_record2.id}'
+                 ]}
+            ])
+
+    def test_ajax_keep_entries_master_etab(self):
         self.hs_record.duplicates = "[%s]" % self.hs_record2.id
         self.hs_record.save()
 
@@ -1986,6 +2003,30 @@ class APITestCase(TestCase):
 
         client = Client()
         client.login(username='ref_master_etab', password='pass')
+
+        data = {
+            "entries[]": [self.hs_record.id, self.hs_record2.id]
+        }
+        response = client.post("/api/keep_entries", data, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Duplicates data cleared", content['msg'])
+
+        r1 = HighSchoolStudentRecord.objects.get(pk=self.hs_record.id)
+        r2 = HighSchoolStudentRecord.objects.get(pk=self.hs_record2.id)
+
+        self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
+        self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
+
+
+    def test_ajax_keep_entries_operator(self):
+        self.hs_record.duplicates = "[%s]" % self.hs_record2.id
+        self.hs_record.save()
+
+        self.hs_record2.duplicates = "[%s]" % self.hs_record.id
+        self.hs_record2.save()
+
+        client = Client()
+        client.login(username='operator', password='pass')
 
         data = {
             "entries[]": [self.hs_record.id, self.hs_record2.id]
@@ -2091,6 +2132,20 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Visit.objects.count(), 0)
 
+        # as operator
+        visit2 = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever 2",
+            published=True
+        )
+
+        client.login(username='operator', password='pass')
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Visit.objects.count(), 0)
+
 
     def test_off_offer_event(self):
         event = OffOfferEvent.objects.create(
@@ -2159,6 +2214,22 @@ class APITestCase(TestCase):
 
         # as master_ref_etab : full access
         client.login(username='ref_master_etab', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 0)
+
+        # as operator : full access
+        event2 = OffOfferEvent.objects.create(
+            establishment=None,
+            structure=None,
+            highschool=self.high_school,
+            event_type=self.event_type,
+            label="High school event",
+            description="Whatever",
+            published=True
+        )
+
+        client.login(username='operator', password='pass')
         response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(OffOfferEvent.objects.count(), 0)
