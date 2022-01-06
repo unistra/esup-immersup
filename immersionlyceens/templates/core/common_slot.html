@@ -52,7 +52,7 @@
         {{ form.id }}
         {% block dates_selection %}{% endblock %}
 
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i id='id_mandatory_establishment' class="fa fas fa-asterisk" style="display:none"></i>
@@ -66,7 +66,7 @@
           </div>
         </div>
         {% endif %}
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i id='id_mandatory_structure' class="fa fas fa-asterisk" style="display:none"></i>
@@ -83,8 +83,10 @@
         <div class="form-group row" id="id_div_highschool">
           <label for="id_highschool" class="col-sm-3 col-form-label">
             <i id='id_mandatory_highschool' class="fa fas fa-asterisk" style="display:none"></i>
-            {% if slot_mode != 'visit' and request.user.is_master_establishment_manager %}
-              <span id="id_or"><strong>{% trans 'or' %} </strong></span>
+            {% if slot_mode != 'visit' %}
+              {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+                <span id="id_or"><strong>{% trans 'or' %} </strong></span>
+              {% endif %}
             {% endif %}
             {% trans 'high school' %} :
           </label>

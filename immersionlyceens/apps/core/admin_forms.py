@@ -47,7 +47,14 @@ class TypeFormMixin(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser or user.is_master_establishment_manager()
+
+            valid_groups = [
+                user.is_superuser,
+                user.is_master_establishment_manager(),
+                user.is_operator()
+            ]
+
+            valid_user = any(valid_groups)
         except AttributeError:
             pass
 
@@ -85,7 +92,12 @@ class CampusForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
+            valid_groups = [
+                user.is_establishment_manager(),
+                user.is_master_establishment_manager(),
+                user.is_operator()
+            ]
+            valid_user = any(valid_groups)
         except AttributeError:
             pass
 
@@ -154,7 +166,11 @@ class TrainingSubdomainForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_groups = [
+                user.is_master_establishment_manager(),
+                user.is_operator()
+            ]
+            valid_user = any(valid_groups)
         except AttributeError:
             pass
 
@@ -180,7 +196,13 @@ class BuildingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['campus'].queryset = Campus.objects.filter(active=True).order_by('label')
 
-        if self.request.user.is_superuser or self.request.user.is_master_establishment_manager():
+        valid_groups = [
+            self.request.user.is_superuser,
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ]
+
+        if any(valid_groups):
             self.fields['establishment'].queryset = Establishment.objects.all()
         else:
             if self.request.user.is_establishment_manager():
@@ -204,7 +226,12 @@ class BuildingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
+            valid_groups = [
+                user.is_master_establishment_manager(),
+                user.is_establishment_manager(),
+                user.is_operator(),
+            ]
+            valid_user = any(valid_groups)
         except AttributeError:
             pass
 
@@ -240,7 +267,13 @@ class TrainingForm(forms.ModelForm):
                 required=False
             )
 
-        if self.request.user.is_establishment_manager() or self.request.user.is_master_establishment_manager():
+        valid_groups = [
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ]
+
+        if any(valid_groups):
             self.fields["highschool"].queryset = self.fields["highschool"].queryset\
                 .filter(postbac_immersion=True)\
                 .order_by('city', 'label')
@@ -265,8 +298,15 @@ class TrainingForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or user.is_establishment_manager() \
-                        or user.is_high_school_manager()
+
+            valid_groups = [
+                user.is_establishment_manager(),
+                user.is_master_establishment_manager(),
+                user.is_high_school_manager(),
+                user.is_operator()
+            ]
+
+            valid_user = any(valid_groups)
         except AttributeError:
             pass
 
@@ -349,7 +389,7 @@ class EstablishmentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser
+            valid_user = user.is_superuser or user.is_operator()
         except AttributeError:
             pass
 
@@ -426,7 +466,14 @@ class StructureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_establishment_manager() or user.is_master_establishment_manager()
+
+            valid_groups = [
+                user.is_establishment_manager(),
+                user.is_master_establishment_manager(),
+                user.is_operator()
+            ]
+
+            valid_user = any(valid_groups)
         except AttributeError:
             pass
 
@@ -479,7 +526,7 @@ class UniversityYearForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -545,9 +592,10 @@ class HolidayForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
+
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
@@ -555,10 +603,15 @@ class HolidayForm(forms.ModelForm):
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
             raise forms.ValidationError(_("You have to set an university year"))
+
         univ_year = univ_years[0]
 
         if _date:
-            if _date and (_date < univ_year.start_date or _date >= univ_year.end_date):
+            if not user.is_superuser:
+                if user.is_operator() and now > univ_year.start_date:
+                    raise forms.ValidationError(_("Error : the university year has already begun"))
+
+            if _date < univ_year.start_date or _date >= univ_year.end_date:
                 raise forms.ValidationError(_("Holiday must set between university year dates"))
 
             if _date < now:
@@ -595,9 +648,10 @@ class VacationForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
+
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
@@ -610,12 +664,19 @@ class VacationForm(forms.ModelForm):
         if start_date and end_date:
             if start_date >= end_date:
                 raise forms.ValidationError(_("Start date greater than end date"))
+
             if start_date < univ_year.start_date or start_date > univ_year.end_date:
                 raise forms.ValidationError(_("Vacation start date must set between university year dates"))
+
             if end_date < univ_year.start_date or end_date >= univ_year.end_date:
                 raise forms.ValidationError(_("Vacation end date must set between university year dates"))
+
             if start_date < now:
                 raise forms.ValidationError(_("Vacation start date must be set in the future"))
+
+            if not user.is_superuser:
+                if user.is_operator() and now > univ_year.start_date:
+                    raise forms.ValidationError(_("Error : the university year has already begun"))
 
             all_vacations = Vacation.objects.exclude(label=label)
             for vac in all_vacations:
@@ -663,7 +724,7 @@ class CalendarForm(forms.ModelForm):
         # Test user group
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
         if not valid_user:
@@ -939,15 +1000,16 @@ class ImmersionUserChangeForm(UserChangeForm):
         forbidden_msg = _("Forbidden")
 
         if groups:
-            if groups and groups.filter(name='REF-ETAB').exists():
+            if groups and groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')).exists():
                 cleaned_data['is_staff'] = True
+
+            if groups and groups.filter(name__in='REF-ETAB').exists():
                 if establishment is None or establishment.master:
                     msg = _("Please select a non-master establishment for a user belonging to the 'REF-ETAB' group")
                     self._errors['establishment'] = self.error_class([msg])
                     del cleaned_data["establishment"]
 
             if groups and groups.filter(name='REF-ETAB-MAITRE').exists():
-                cleaned_data['is_staff'] = True
                 if establishment is None or not establishment.master:
                     msg = _("Please select a master establishment for a user belonging to the 'REF-ETAB-MAITRE' group")
                     self._errors['establishment'] = self.error_class([msg])
@@ -965,7 +1027,6 @@ class ImmersionUserChangeForm(UserChangeForm):
                 self._errors['groups'].append(self.error_class([msg]))
 
             if groups.filter(name='REF-LYC').exists():
-
                 if not highschool:
                     msg = _("This field is mandatory for a user belonging to 'REF-LYC' group")
                     self._errors["highschool"] = self.error_class([msg])
@@ -980,26 +1041,26 @@ class ImmersionUserChangeForm(UserChangeForm):
                     self._errors["groups"] = forms.utils.ErrorList()
                 self._errors['groups'].append(self.error_class([msg]))
 
-        if not self.request.user.is_superuser:
+        if not self.request.user.is_superuser and not self.request.user.is_operator():
             # Check and alter fields when authenticated user is
             # a member of REF-ETAB group
-            if self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE'):
+            if self.request.user.has_groups('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'):
                 if (self.request.user.has_groups('REF-ETAB') and self.instance.is_establishment_manager()) or \
                    (self.request.user.has_groups('REF-ETAB-MAITRE') and self.instance.is_master_establishment_manager()):
                     raise forms.ValidationError(_("You don't have enough privileges to modify this account"))
 
                 # Add groups to this list when needed
+                can_change_groups = False
+
                 if self.request.user.has_groups('REF-ETAB'):
                     can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB',)
                 elif self.request.user.has_groups('REF-ETAB-MAITRE'):
                     can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-ETAB-MAITRE', )
+                elif self.request.user.has_groups('REF-TEC'):
+                    can_change_groups = settings.HAS_RIGHTS_ON_GROUP.get('REF-TEC', )
 
                 current_groups = set(self.instance.groups.all().values_list('name', flat=True))
-
-                if groups:
-                    new_groups = set(groups.all().values_list('name', flat=True))
-                else:
-                    new_groups = set()
+                new_groups = set(groups.all().values_list('name', flat=True)) if groups else set()
 
                 forbidden_groups = [
                     g for g in current_groups.symmetric_difference(new_groups) if g not in can_change_groups
@@ -1016,6 +1077,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 raise forms.ValidationError(_("You can't modify the superuser status"))
 
         return cleaned_data
+
 
     def save(self, *args, **kwargs):
         # If REF-LYC is in new groups, send a mail to choose a password
@@ -1040,7 +1102,7 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
-        if not self.request.user.is_superuser:
+        if not self.request.user.is_superuser and not self.request.user.is_operator():
             conditions = [
                 self.instance.establishment and not self.instance.establishment.data_source_plugin,
                 self.instance.highschool is not None
@@ -1075,7 +1137,6 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-
 
         if settings.USE_GEOAPI:
             city_choices = [
@@ -1129,7 +1190,14 @@ class HighSchoolForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager() or (user.is_high_school_manager() and user.highschool)
+
+            valid_groups = [
+                user.is_operator(),
+                user.is_master_establishment_manager(),
+                user.is_high_school_manager() and user.highschool
+            ]
+
+            valid_user = any(valid_groups)
         except AttributeError as exc:
             pass
 
@@ -1157,14 +1225,14 @@ class MailTemplateForm(forms.ModelForm):
             if self.instance.id:
                 self.fields['code'].disabled = True
 
-            if not self.request.user.is_master_establishment_manager():
+            if not self.request.user.is_superuser and not self.request.user.is_operator():
                 self.fields['available_vars'].widget = forms.MultipleHiddenInput()
-                self.fields['description'].disabled = True
-                self.fields['label'].disabled = True
-            else:
-                if not self.request.user.is_superuser:
-                    self.fields['available_vars'].widget = forms.MultipleHiddenInput()
+
+                if self.request.user.is_master_establishment_manager():
                     self.fields['available_vars'].queryset = self.fields['available_vars'].queryset.order_by('code')
+                else:
+                    self.fields['description'].disabled = True
+                    self.fields['label'].disabled = True
 
             self.fields['available_vars'].required = False
 
@@ -1179,7 +1247,10 @@ class MailTemplateForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            if self.instance.pk:
+                valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
+            else:
+                valid_user = user.is_superuser
         except AttributeError:
             pass
 
@@ -1257,7 +1328,7 @@ class AccompanyingDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -1288,7 +1359,10 @@ class InformationTextForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            if self.instance.pk:
+                valid_user = user.is_superuser or user.is_master_establishment_manager() or user.is_operator()
+            else:
+                valid_user = user.is_superuser
         except AttributeError:
             pass
 
@@ -1337,7 +1411,7 @@ class PublicDocumentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -1450,7 +1524,7 @@ class CertificateLogoForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 
@@ -1491,7 +1565,7 @@ class CertificateSignatureForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_master_establishment_manager()
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
         except AttributeError:
             pass
 

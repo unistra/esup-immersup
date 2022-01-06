@@ -34,7 +34,7 @@
         {{ form.id }}
         <input type="hidden" name="duplicate" value="{{ duplicate }}">
         <input type="hidden" name="origin_id" value="{{ origin_id }}">
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -51,7 +51,7 @@
         <div class="form-group row" id="id_div_highschool">
           <label for="id_highschool" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% if request.user.is_master_establishment_manager %}
+            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
                 <strong>{% trans 'or' %} </strong>
             {% endif %}
             {% trans 'high school' %} :

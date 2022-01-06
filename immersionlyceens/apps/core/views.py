@@ -40,7 +40,7 @@ from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday,
 logger = logging.getLogger(__name__)
 
 
-@groups_required('REF-ETAB-MAITRE')
+@groups_required('REF-ETAB-MAITRE', 'REF-TEC')
 def import_holidays(request):
     """
     Import holidays from API if it has been configured
@@ -92,7 +92,7 @@ def import_holidays(request):
     return redirect(redirect_url)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def slots_list(request, establishment_id=None, highschool_id=None, structure_id=None, training_id=None, course_id=None):
     """
     Get slots list
@@ -211,7 +211,7 @@ def slots_list(request, establishment_id=None, highschool_id=None, structure_id=
     return render(request, template, context=context)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def slot(request, slot_id=None, duplicate=False, establishment_id=None, highschool_id=None, structure_id=None,
          training_id=None, course_id=None):
     slot = None
@@ -362,7 +362,7 @@ def slot(request, slot_id=None, duplicate=False, establishment_id=None, highscho
     return render(request, 'core/slot.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
@@ -382,7 +382,7 @@ def del_slot(request, slot_id):
     return HttpResponse('ok')
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE', 'REF-LYC')
 def courses_list(request):
     if request.user.is_high_school_manager() and request.user.highschool \
         and not request.user.highschool.postbac_immersion:
@@ -452,7 +452,7 @@ def courses_list(request):
     return render(request, 'core/courses_list.html', context)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def course(request, course_id=None, duplicate=False):
     """
     Course creation / update / deletion
@@ -811,7 +811,7 @@ def speaker(request, id=None):
     return render(request, 'core/speaker.html', context)
 
 
-@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def my_students(request):
     highschool = None
 
@@ -829,7 +829,7 @@ def my_students(request):
 
 
 # todo: remove this function
-@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def student_validation(request, high_school_id=None):
     if request.user.is_high_school_manager() and request.user.highschool:
         try:
@@ -896,7 +896,7 @@ def student_validation(request, high_school_id=None):
 #         return context
 
 
-@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE')
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def highschool_student_record_form_manager(request, hs_record_id):
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
     from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
@@ -993,7 +993,7 @@ def structure(request, structure_code=None):
 
 
 @groups_required(
-    'REF-STR', 'REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE'
+    'REF-STR', 'REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'
 )
 def stats(request):
     template = 'core/stats.html'
@@ -1015,7 +1015,7 @@ def stats(request):
 
 
 @login_required
-@groups_required('SRV-JUR', 'REF-ETAB', 'REF-ETAB-MAITRE')
+@groups_required('SRV-JUR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def students_presence(request):
     """
     Displays a list of students registered to slots between min_date and max_date
@@ -1037,7 +1037,7 @@ def students_presence(request):
 
 
 @login_required
-@groups_required('REF-ETAB-MAITRE')
+@groups_required('REF-ETAB-MAITRE', 'REF-TEC')
 def duplicated_accounts(request):
     """
     Manage duplicated accounts
@@ -1048,7 +1048,7 @@ def duplicated_accounts(request):
     return render(request, 'core/duplicated_accounts.html', context)
 
 
-@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
 class TrainingList(generic.TemplateView):
     template_name = "core/training/list.html"
 
@@ -1113,7 +1113,7 @@ class TrainingUpdate(generic.UpdateView):
 
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class CourseSlotList(generic.TemplateView):
     template_name = "core/courses_slots_list.html"
 
@@ -1178,7 +1178,7 @@ class CourseSlotList(generic.TemplateView):
         return context
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class CourseSlotAdd(generic.CreateView):
     form_class = SlotForm
     template_name = "core/course_slot.html"
@@ -1331,7 +1331,7 @@ class CourseSlotAdd(generic.CreateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class CourseSlotUpdate(generic.UpdateView):
     model = Slot
     form_class = SlotForm
@@ -1463,7 +1463,7 @@ class CourseSlotUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
 class VisitList(generic.TemplateView):
     template_name = "core/visits_list.html"
 
@@ -1494,7 +1494,7 @@ class VisitList(generic.TemplateView):
         return context
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
 class VisitAdd(generic.CreateView):
     form_class = VisitForm
     template_name = "core/visit.html"
@@ -1575,7 +1575,7 @@ class VisitAdd(generic.CreateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
 class VisitUpdate(generic.UpdateView):
     model = Visit
     form_class = VisitForm
@@ -1656,7 +1656,7 @@ class VisitUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
 class VisitSlotList(generic.TemplateView):
     template_name = "core/visits_slots_list.html"
 
@@ -1729,7 +1729,7 @@ class VisitSlotList(generic.TemplateView):
         return context
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
 class VisitSlotAdd(generic.CreateView):
     form_class = VisitSlotForm
     template_name = "core/visit_slot.html"
@@ -1840,7 +1840,7 @@ class VisitSlotAdd(generic.CreateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
 class VisitSlotUpdate(generic.UpdateView):
     model = Slot
     form_class = VisitSlotForm
@@ -1940,7 +1940,7 @@ class VisitSlotUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventsList(generic.TemplateView):
     template_name = "core/off_offer_events_list.html"
 
@@ -1979,7 +1979,7 @@ class OffOfferEventsList(generic.TemplateView):
         return context
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventAdd(generic.CreateView):
     form_class = OffOfferEventForm
     template_name = "core/off_offer_event.html"
@@ -2068,7 +2068,7 @@ class OffOfferEventAdd(generic.CreateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventUpdate(generic.UpdateView):
     model = OffOfferEvent
     form_class = OffOfferEventForm
@@ -2151,7 +2151,7 @@ class OffOfferEventUpdate(generic.UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventSlotList(generic.TemplateView):
     template_name = "core/off_offer_events_slots_list.html"
 
@@ -2232,7 +2232,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         return context
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventSlotAdd(generic.CreateView):
     form_class = OffOfferEventSlotForm
     template_name = "core/off_offer_event_slot.html"
@@ -2363,7 +2363,7 @@ class OffOfferEventSlotAdd(generic.CreateView):
         return super().form_invalid(form)
 
 
-@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC'), name="dispatch")
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventSlotUpdate(generic.UpdateView):
     model = Slot
     form_class = OffOfferEventSlotForm

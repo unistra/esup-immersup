@@ -693,7 +693,8 @@ class VisitForm(forms.ModelForm):
         self.fields["structure"].queryset = Structure.activated.all()
 
         if not self.request.user.is_superuser:
-            self.fields["establishment"].initial = self.request.user.establishment.id
+            if self.request.user.establishment:
+                self.fields["establishment"].initial = self.request.user.establishment.id
 
             if self.request.user.is_establishment_manager():
                 self.fields["establishment"].queryset = \
@@ -822,7 +823,8 @@ class OffOfferEventForm(forms.ModelForm):
 
         if not self.request.user.is_superuser:
             # Keep this ?
-            # self.fields["establishment"].initial = self.request.user.establishment.id
+            #if self.request.user.establishment:
+            #    self.fields["establishment"].initial = self.request.user.establishment.id
 
             if self.request.user.is_master_establishment_manager():
                 self.fields["highschool"].queryset = \
