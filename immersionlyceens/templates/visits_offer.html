@@ -70,7 +70,7 @@
                     <table class="table table-bordered">
                       <tbody>
                         <tr>
-                          <td style="width: 15%">
+                          <td style="width: 12%">
                             <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i>
                             {{ s.date | date:"l d F Y"}}
                           </td>
@@ -80,10 +80,10 @@
                           </td>
                           <td>
                             {% if  s.face_to_face %}
-                            <i class="us us-meeting us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
+                            <i class="us us-map-marker us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
                             {% trans 'Meeting place' %} : {{ s.room }}
                             {% else %}
-                            <i class="us us-meeting us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Remote visit' %}"></i>
+                            <i class="us us-computer us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Remote visit' %}"></i>
                             {% trans 'Remote visit' %}
                             {% endif %}
                           </td>
@@ -100,7 +100,7 @@
                           {% endif %}
                             </ul>
                           </td>
-                          <td rowspan="2" width="15%">
+                          <td rowspan="2">
                           {% if s.establishments_restrictions or s.levels_restrictions %}
                             <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
                             {% if s.allowed_establishments.all%}
