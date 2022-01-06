@@ -135,7 +135,7 @@
                               <td style="width: 15%" rowspan="2">
                               {% if slot.establishments_restrictions or slot.levels_restrictions %}
                                 <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
-                                {% trans "Restrictions" %}
+                                {% trans "Restrictions" %} :
                                 {% if slot.allowed_establishments.all%}
                                 <h6>{% trans "Allowed establishments" %} :</h6>
                                 <ul>
@@ -205,7 +205,16 @@
                               </td>
                             </tr>
                             <tr>
-                              <td><i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>{% trans 'Campus' %} : {{ slot.campus }}</td>
+                              <td>
+                              <p>
+                              <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>
+                              {{ slot.campus }}
+                              </p>
+                              <p>
+                              <i class="fa fas fa-address-card text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Organizing structure' %}"></i>
+                              {{ slot.course.structure.label }}
+                              </p>
+                              </td>
                               <td><i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
                               {% if slot.building.url %}
                                 <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
