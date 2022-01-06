@@ -70,7 +70,7 @@
                     <table class="table table-bordered">
                       <tbody>
                         <tr>
-                          <td style="width: 12%">
+                          <td style="width: 15%">
                             <i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i>
                             {{ s.date | date:"l d F Y"}}
                           </td>
@@ -80,15 +80,15 @@
                           </td>
                           <td>
                             {% if  s.face_to_face %}
-                            <i class="us us-map-marker us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
+                            <i class="fa fas fa-map-marker text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
                             {% trans 'Meeting place' %} : {{ s.room }}
                             {% else %}
-                            <i class="us us-computer us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Remote visit' %}"></i>
+                            <i class="fa fas fa-desktop text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Remote visit' %}"></i>
                             {% trans 'Remote visit' %}
                             {% endif %}
                           </td>
                           <td style="width: 15%" rowspan="2">
-                            <i class="us us-duo us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
+                            <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                             {% trans 'Speaker(s)' %} :
                             <ul>
                           {% if s.speakers.all%}
@@ -100,9 +100,10 @@
                           {% endif %}
                             </ul>
                           </td>
-                          <td rowspan="2">
+                          <td rowspan="2" width="25%">
                           {% if s.establishments_restrictions or s.levels_restrictions %}
-                            <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                            <i class="fa fas fa-ban text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                            {% trans 'Restrictions' %}
                             {% if s.allowed_establishments.all%}
                             <h6>{% trans "Allowed establishments" %} :</h6>
                             <ul>
@@ -121,7 +122,7 @@
                             {% endif %}
                             {% endif %}
                           {% if s.levels_restrictions %}
-                            {% if s.allowed_highschool_levels %}
+                            {% if s.allowed_highschool_levels.all %}
                               <h6>{% trans "Allowed highschool levels" %} :</h6>
                               <ul>
                               {% for l in  s.get_allowed_highschool_levels %}
@@ -129,7 +130,7 @@
                               {% endfor %}
                               </ul>
                             {% endif %}
-                            {% if s.allowed_student_levels %}
+                            {% if s.allowed_student_levels.all %}
                               <h6>{% trans "Allowed student levels" %} :</h6>
                               <ul>
                               {% for l in  s.get_allowed_student_levels %}
@@ -137,7 +138,7 @@
                               {% endfor %}
                               </ul>
                             {% endif %}
-                            {% if s.allowed_post_bachelor_levels %}
+                            {% if s.allowed_post_bachelor_levels.all %}
                               <h6>{% trans "Allowed post bachelor levels" %} :</h6>
                               <ul>
                               {% for l in  s.get_allowed_post_bachelor_levels %}
@@ -145,6 +146,7 @@
                               {% endfor %}
                               </ul>
                             {% endif %}
+                          </td>
                           {% endif %}
                           <td>
                             {% if s.cancelled %}
@@ -181,7 +183,7 @@
                             {{ s.visit.structure.label }}
                         {% endif %}
                           </td>
-                          <td style="width: 10%">
+                          <td style="width: 15%">
                             <i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Purpose' %}"></i>
                             {{ s.visit.purpose }}
                           </td>
