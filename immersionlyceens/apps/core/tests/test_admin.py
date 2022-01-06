@@ -360,6 +360,34 @@ class AdminFormsTestCase(TestCase):
         queryset = campus_admin.get_queryset(request=request)
         self.assertEqual(queryset.count(), 3)
 
+    def test_campus_admin(self):
+        """
+        Test campus admin authorizations
+        """
+        adminsite = CustomAdminSite(name='Repositories')
+        campus_admin = CampusAdmin(admin_site=adminsite, model=Campus)
+
+        testCampus = Campus.objects.create(label='testCampus', active=True, establishment=self.master_establishment)
+
+        success_user_list = [self.operator_user, self.ref_master_etab_user, self.superuser]
+        fail_user_list = [self.ref_etab_user, self.ref_str_user, self.ref_lyc_user]
+
+        # No building attached to the campus : success
+        for user in success_user_list:
+            request.user = user
+            self.assertTrue(campus_admin.has_delete_permission(request=request, obj=testCampus))
+
+        # Bad user : fail
+        for user in fail_user_list:
+            request.user = user
+            self.assertFalse(campus_admin.has_delete_permission(request=request, obj=testCampus))
+
+        # Building attached to the campus : fail
+        Building.objects.create(label='test building', campus=testCampus)
+        for user in success_user_list + fail_user_list:
+            request.user = user
+            self.assertFalse(campus_admin.has_delete_permission(request=request, obj=testCampus))
+
 
     def test_building_creation(self):
         """

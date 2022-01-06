@@ -513,6 +513,7 @@ class CampusAdmin(AdminWithRequest, admin.ModelAdmin):
         if not any(valid_groups):
             return False
 
+        # establishment manager : can't delete a campus if it's not attached to his/her own establishment
         if obj and request.user.establishment and request.user.is_establishment_manager() and not \
                 request.user.establishment == obj.establishment:
             return False
@@ -567,7 +568,7 @@ class BuildingAdmin(AdminWithRequest, admin.ModelAdmin):
         return qs
 
     def has_delete_permission(self, request, obj=None):
-        if not request.user.is_establishment_manager():
+        if not request.user.is_master_establishment_manager() and not request.user.is_operator():
             return False
 
         if obj and Slot.objects.filter(building=obj).exists():
