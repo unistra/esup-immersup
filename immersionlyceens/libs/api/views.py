@@ -451,14 +451,12 @@ def slots(request):
         user_filter = {user_filter_key: request.user.structures.all()}
         slots = slots.filter(**user_filter)
 
-    if past_slots:
-        slots = slots.exclude(date__lt=today.date(), immersions__isnull=True).distinct()
-    else:
+    if not past_slots:
         slots = slots.filter(
             Q(date__isnull=True)
             | Q(date__gte=today.date())
             | Q(date=today.date(), end_time__gte=today.time())
-            | Q(immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
+            | Q(face_to_face=True, immersions__attendance_status=0, immersions__cancellation_type__isnull=True)
         ).distinct()
 
     all_data = []
