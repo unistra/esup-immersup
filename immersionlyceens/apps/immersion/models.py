@@ -361,7 +361,25 @@ class VisitorRecord(models.Model):
                   'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
               },
     )
+    civil_liability_insurance = models.FileField(
+        _("Civil liability insurance"),
+        upload_to=get_file_path,
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+              % {
+                  'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
+                  'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+              },
+    )
+
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
+    allowed_global_registrations = models.SmallIntegerField(
+        _("Number of allowed year registrations (excluding visits and events)"), null=True, blank=True)
+    allowed_first_semester_registrations = models.SmallIntegerField(
+        _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
+    allowed_second_semester_registrations = models.SmallIntegerField(
+        _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
 
     def __str__(self):
         return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")
