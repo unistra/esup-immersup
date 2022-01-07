@@ -1634,7 +1634,7 @@ class StudentLevelForm(TypeFormMixin):
         super().__init__(*args, **kwargs)
 
         if self.instance and self.instance.id:
-            if StudentRecord.objects.filter(student_level=self.instance).exists():
+            if StudentRecord.objects.filter(level=self.instance).exists():
                 self.initial['active'] = True
                 self.fields['active'].disabled = True
                 self.fields['active'].help_text = _("Field locked : a student record uses this level")
