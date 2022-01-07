@@ -16,6 +16,7 @@ import re
 import uuid
 from functools import partial
 from os.path import dirname, join
+from typing import Optional, Any
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
@@ -177,6 +178,7 @@ class ImmersionUser(AbstractUser):
         'LYC': 'high_school_student',
         'INTER': 'speaker',
         'SRV-JUR': 'legal_department_staff',
+        'VIS': 'visitor',
     }
 
     def __init__(self, *args, **kwargs):
@@ -311,6 +313,12 @@ class ImmersionUser(AbstractUser):
     def get_student_record(self):
         try:
             return self.student_record
+        except ObjectDoesNotExist:
+            return None
+
+    def get_visitor_record(self) -> Optional[Any]:
+        try:
+            return self.visitor_record
         except ObjectDoesNotExist:
             return None
 
