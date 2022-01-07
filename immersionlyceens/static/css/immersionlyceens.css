@@ -284,3 +284,9 @@ a.unlink:hover {
   color: hsl(0, 0%, var(--switch));
   background-color: attr(background-color);
 } */
+
+#result_list div.drag {
+        background: url(../img/updown_icon.png) 50% center no-repeat;
+        background-size: contain;
+        cursor: pointer;
+}

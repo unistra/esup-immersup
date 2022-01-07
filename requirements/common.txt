@@ -18,3 +18,4 @@ djangorestframework<4.0
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
 django-storages[boto3]
+django-admin-sortable2

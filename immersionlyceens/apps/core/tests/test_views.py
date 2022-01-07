@@ -506,9 +506,9 @@ class CoreViewsTestCase(TestCase):
             'published': "on",
             'allowed_establishments': [self.establishment.id, self.master_establishment.id],
             'allowed_highschools': [self.high_school.id, self.high_school2.id],
-            'allowed_highschool_levels': [HighSchoolLevel.objects.order_by('id').first().pk],
-            'allowed_student_levels': [StudentLevel.objects.order_by('id').first().pk],
-            'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('id').first().pk],
+            'allowed_highschool_levels': [HighSchoolLevel.objects.order_by('order').first().pk],
+            'allowed_student_levels': [StudentLevel.objects.order_by('order').first().pk],
+            'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('order').first().pk],
             'save': 1
         }
         # All dates have been selected : initial slot created + 4 copies
@@ -558,15 +558,15 @@ class CoreViewsTestCase(TestCase):
             )
             self.assertEqual(
                 slot.allowed_highschool_levels.first(),
-                HighSchoolLevel.objects.order_by('id').first()
+                HighSchoolLevel.objects.order_by('order').first()
             )
             self.assertEqual(
                 slot.allowed_student_levels.first(),
-                StudentLevel.objects.order_by('id').first()
+                StudentLevel.objects.order_by('order').first()
             )
             self.assertEqual(
                 slot.allowed_post_bachelor_levels.first(),
-                PostBachelorLevel.objects.order_by('id').first()
+                PostBachelorLevel.objects.order_by('order').first()
             )
             dates_idx += 1
 
@@ -998,7 +998,7 @@ class CoreViewsTestCase(TestCase):
             birth_date=datetime.datetime.today(),
             civility=1,
             phone='0123456789',
-            level=HighSchoolLevel.objects.get(pk=1),
+            level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe'
@@ -1010,7 +1010,7 @@ class CoreViewsTestCase(TestCase):
             birth_date=datetime.datetime.today(),
             civility=1,
             phone='0123456789',
-            level=HighSchoolLevel.objects.get(pk=1),
+            level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere T3',
             bachelor_type=3,
             professional_bachelor_mention='My spe'
@@ -1029,7 +1029,7 @@ class CoreViewsTestCase(TestCase):
             'first_name': 'Jean',
             'last_name': 'Jacques',
             'birth_date': "01/06/2002",
-            'level': 2,
+            'level': HighSchoolLevel.objects.order_by('order')[1].id,
             'class_name': 'TS 3'
         }
         response = self.client.post("/core/hs_record_manager/%s" % hs_record.id, data, follow=True)
@@ -1040,7 +1040,7 @@ class CoreViewsTestCase(TestCase):
 
         self.assertEqual(highschool_user.first_name, 'Jean')
         self.assertEqual(highschool_user.last_name, 'Jacques')
-        self.assertEqual(hs_record.level, HighSchoolLevel.objects.get(pk=2))
+        self.assertEqual(hs_record.level, HighSchoolLevel.objects.order_by('order')[1]) # second level
         self.assertEqual(hs_record.class_name, 'TS 3')
 
         # Missing field

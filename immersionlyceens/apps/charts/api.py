@@ -57,7 +57,7 @@ def highschool_charts(request, highschool_id):
     }
 
     series = []
-    for level in HighSchoolLevel.objects.order_by('id'):
+    for level in HighSchoolLevel.objects.order_by('order'):
         series.append(
             {
                 "name": level.label,
@@ -79,7 +79,7 @@ def highschool_charts(request, highschool_id):
 
     qs = ImmersionUser.objects.filter(high_school_student_record__highschool__id=highschool_id)
 
-    for level in HighSchoolLevel.objects.order_by('id'):
+    for level in HighSchoolLevel.objects.order_by('order'):
         users = qs.filter(high_school_student_record__level=level.id)
         datasets[0][level.label] = users.count() # plaform
         datasets[1][level.label] = users.filter(
@@ -218,7 +218,7 @@ def global_domains_charts(request):
             qs = qs.exclude(student__student_record__isnull=False)
         elif level == 3:
             # 3rd high school students level + all higher education levels
-            higher_levels = [l.id for l in StudentLevel.objects.order_by('id')]
+            higher_levels = [l.id for l in StudentLevel.objects.order_by('order')]
             qs = qs.filter(
                 Q(student__high_school_student_record__level=level)
                 | Q(student__student_record__level__in=higher_levels))
@@ -377,7 +377,7 @@ def get_registration_charts(request, level_value=0):
     if level_value == 0 or level_value not in [s.id for s in HighSchoolLevel.objects.all()]:
         level_value = 0 # force it
         student_levels = [
-            l.label for l in HighSchoolLevel.objects.order_by('id')
+            l.label for l in HighSchoolLevel.objects.order_by('order')
         ]
     else:
         student_levels = [
@@ -437,7 +437,7 @@ def get_registration_charts(request, level_value=0):
     qs = ImmersionUser.objects.all()
 
     if level_value == 0:
-        levels =  [l for l in HighSchoolLevel.objects.order_by('id')]
+        levels =  [l for l in HighSchoolLevel.objects.order_by('order')]
     else:
         l = HighSchoolLevel.objects.get(pk=level_value)
         levels = [l]
@@ -488,7 +488,7 @@ def get_registration_charts_cats(request):
         level_value = 0 # force it if not in allowed values
         student_levels = []
         levels = []
-        for l in HighSchoolLevel.objects.order_by('id'):
+        for l in HighSchoolLevel.objects.order_by('order'):
             student_levels.append(l.label)
             levels.append(l)
     else:
