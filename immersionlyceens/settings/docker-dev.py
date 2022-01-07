@@ -11,7 +11,7 @@ from .base import *
 # Debug configuration #
 #######################
 
-DEBUG = environ.get('DEBUG', True)
+DEBUG = True
 
 
 ##########################
@@ -51,7 +51,7 @@ CAS_FORCE_SSL_SERVICE_URL = environ.get('CAS_FORCE_SSL_SERVICE_URL', False)
 # Allowed hosts & Security #
 ############################
 
-ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
+ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
 
 #####################
 # Log configuration #
