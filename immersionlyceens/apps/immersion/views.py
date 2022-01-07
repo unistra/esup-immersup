@@ -2,7 +2,7 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 from io import BytesIO
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from django.conf import settings
 from django.contrib import messages
@@ -14,7 +14,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import password_validators_help_text_html, validate_password
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -38,7 +38,7 @@ from .forms import (
     HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
     NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, VisitorRecordForm,
 )
-from .models import HighSchoolStudentRecord, StudentRecord
+from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
 logger = logging.getLogger(__name__)
 
@@ -716,11 +716,30 @@ class VisitorRecordView(FormView):
 
     def get_context_data(self, **kwargs):
         context: Dict[str, Any] = super().get_context_data()
+        record_id: Optional[int] = self.kwargs.get("record_id")
 
         # user_record = StudentForm()
+        calendars: QuerySet = Calendar.objects.all()
+        calendar: Optional[Calendar] = None
+        if calendars:
+            calendar = calendars.first()
+
+        if self.request.user.is_visitor():
+            visitor = self.request.user
+            record: Optional[VisitorRecord] = visitor.get_visitor_record()
+
+            if not record:
+                record = VisitorRecord(
+                    visitor=visitor,
+                )
+
+            print(record)
+            # if not record:
+            #     record =
 
         context.update({
-            "back_url": self.request.session.get("back")
+            "back_url": self.request.session.get("back"),
+            "calendar": calendar,
         })
         return context
 
