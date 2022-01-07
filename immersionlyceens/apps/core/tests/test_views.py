@@ -25,8 +25,7 @@ request_factory = RequestFactory()
 request = request_factory.get('/admin')
 
 class CoreViewsTestCase(TestCase):
-    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images',
-                'high_school_levels', 'student_levels', 'post_bachelor_levels']
+    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
 
     def setUp(self):
         """
@@ -482,6 +481,7 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_etab', password='pass')
 
         self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
+
         data = {
             'structure': self.structure.id,
             'training': self.training.id,

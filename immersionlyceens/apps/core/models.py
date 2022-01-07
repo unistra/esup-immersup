@@ -163,11 +163,13 @@ class HighSchool(models.Model):
 def get_object_default_order(object_class):
     try:
         cls = apps.get_model('core', object_class)
+        print(f"class : {cls}")
         if cls.objects.all().count() == 0:
             return 1
         else:
             return cls.objects.all().aggregate(Max('order'))['order__max'] + 1
-    except Exception:
+    except Exception as e:
+        print(e)
         pass
 
     return None
@@ -178,7 +180,7 @@ class HighSchoolLevel(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=False,
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
         default=get_object_default_order('HighSchoolLevel')
     )
     is_post_bachelor = models.BooleanField(_("Is a post-bachelor level"), default=False)
@@ -202,7 +204,7 @@ class PostBachelorLevel(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=False,
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
         default=get_object_default_order('PostBachelorLevel')
     )
 
@@ -224,7 +226,7 @@ class StudentLevel(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
-    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=False,
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
         default=get_object_default_order('StudentLevel')
     )
 

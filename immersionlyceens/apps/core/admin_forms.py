@@ -59,8 +59,6 @@ class TypeFormMixin(forms.ModelForm):
         except AttributeError:
             pass
 
-        print(valid_user)
-
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))
 
@@ -1599,6 +1597,7 @@ class HighSchoolLevelForm(TypeFormMixin):
 
         if self.instance and self.instance.id:
             if HighSchoolStudentRecord.objects.filter(level=self.instance).exists():
+                self.initial['active'] = True
                 self.fields['active'].disabled = True
                 self.fields['active'].help_text = _("Field locked : a high school record uses this level")
 
@@ -1617,6 +1616,7 @@ class PostBachelorLevelForm(TypeFormMixin):
 
         if self.instance and self.instance.id:
             if HighSchoolStudentRecord.objects.filter(post_bachelor_level=self.instance).exists():
+                self.initial['active'] = True
                 self.fields['active'].disabled = True
                 self.fields['active'].help_text = _("Field locked : a high school record uses this level")
 
@@ -1635,6 +1635,7 @@ class StudentLevelForm(TypeFormMixin):
 
         if self.instance and self.instance.id:
             if StudentRecord.objects.filter(student_level=self.instance).exists():
+                self.initial['active'] = True
                 self.fields['active'].disabled = True
                 self.fields['active'].help_text = _("Field locked : a student record uses this level")
 

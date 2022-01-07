@@ -154,8 +154,8 @@ class SlotForm(forms.ModelForm):
 
         self.fields["allowed_highschools"].queryset = HighSchool.agreed.order_by('city', 'label')
         self.fields["allowed_highschool_levels"].queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')
-        self.fields["allowed_student_levels"].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
-        self.fields["allowed_post_bachelor_levels"].queryset = StudentLevel.objects.filter(active=True).order_by('order')
+        self.fields["allowed_student_levels"].queryset = StudentLevel.objects.filter(active=True).order_by('order')
+        self.fields["allowed_post_bachelor_levels"].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
 
         if can_choose_establishment:
             allowed_establishments = Establishment.activated.user_establishments(self.request.user)
