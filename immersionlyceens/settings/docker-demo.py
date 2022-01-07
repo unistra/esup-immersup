@@ -20,7 +20,7 @@ DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 # Allowed hosts & Security #
 ############################
 
-ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
+ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
 
 #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
 
