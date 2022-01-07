@@ -17,6 +17,7 @@ urlpatterns = [
     path('hs_record/<int:record_id>', views.high_school_student_record, name='modify_hs_record'),
 
     path('visitor_record', views.VisitorRecordView.as_view(), name="visitor_record"),
+    path('visitor_record/<int:record_id>', views.VisitorRecordView.as_view(), name="visitor_record"),
 
     path('immersions', views.immersions, name='immersions'),
     path('login', views.customLogin, name='login'),
