@@ -360,9 +360,12 @@ class VisitorRecordForm(forms.ModelForm):
 
     class Meta:
         model = VisitorRecord
-        fields = ['civility', 'birth_date', 'phone',
-                  'visitor'
-                  ]
+        fields = [
+            'civility', 'birth_date', 'phone', 'visitor',
+            'motivation', 'identity_document', 'civil_liability_insurance',
+            'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
+            'allowed_global_registrations',
+        ]
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
