@@ -17,6 +17,7 @@ import uuid
 from functools import partial
 from os.path import dirname, join
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.postgres.fields import ArrayField
@@ -159,12 +160,29 @@ class HighSchool(models.Model):
         ordering = ['city', 'label', ]
 
 
+def get_object_default_order(object_class):
+    try:
+        cls = apps.get_model('core', object_class)
+        print(f"class : {cls}")
+        if cls.objects.all().count() == 0:
+            return 1
+        else:
+            return cls.objects.all().aggregate(Max('order'))['order__max'] + 1
+    except Exception as e:
+        print(e)
+        pass
+
+    return None
+
 class HighSchoolLevel(models.Model):
     """
     High school pupil levels
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=get_object_default_order('HighSchoolLevel')
+    )
     is_post_bachelor = models.BooleanField(_("Is a post-bachelor level"), default=False)
     requires_bachelor_speciality = models.BooleanField(_("Requires bachelor speciality"), default=False)
 
@@ -177,6 +195,7 @@ class HighSchoolLevel(models.Model):
     class Meta:
         verbose_name = _('High school level')
         verbose_name_plural = _('High school levels')
+        ordering = ['order']
 
 
 class PostBachelorLevel(models.Model):
@@ -185,6 +204,9 @@ class PostBachelorLevel(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=get_object_default_order('PostBachelorLevel')
+    )
 
     def __str__(self):
         return self.label
@@ -195,6 +217,7 @@ class PostBachelorLevel(models.Model):
     class Meta:
         verbose_name = _('Post bachelor level')
         verbose_name_plural = _('Post bachelor levels')
+        ordering = ['order']
 
 
 class StudentLevel(models.Model):
@@ -203,6 +226,9 @@ class StudentLevel(models.Model):
     """
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=get_object_default_order('StudentLevel')
+    )
 
     def __str__(self):
         return self.label
@@ -213,6 +239,7 @@ class StudentLevel(models.Model):
     class Meta:
         verbose_name = _('Student level')
         verbose_name_plural = _('Student levels')
+        ordering = ['order']
 
 
 class ImmersionUser(AbstractUser):
@@ -656,7 +683,6 @@ class Building(models.Model):
     )
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
-
 
     def __str__(self):
         return self.label

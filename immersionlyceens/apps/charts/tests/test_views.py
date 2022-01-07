@@ -74,7 +74,7 @@ class ChartsViewsTestCase(TestCase):
         )
         self.assertEqual(response.context['highschool_id'], '')
         self.assertEqual(response.context['levels'],
-            [(0, 'All')] + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('id')]
+            [(0, 'All')] + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')]
         )
 
         self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
@@ -97,7 +97,7 @@ class ChartsViewsTestCase(TestCase):
 
         # This list MUST match the fixtures HighSchoolLevel objects
         self.assertEqual(response.context['levels'], [(0, 'All')]
-            + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('id')])
+            + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['level_filter'], 0)
 
         # Post with filters
@@ -123,7 +123,7 @@ class ChartsViewsTestCase(TestCase):
              {'id': 5, 'label': 'Lycée Marie Curie', 'city': 'STRASBOURG'}]
             )
         self.assertEqual(response.context['highschool_id'], '')
-        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('id')])
+        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['high_school_name'], None)
 
         # As high school referent
@@ -133,7 +133,7 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschools'],
             [{'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'}])
         self.assertEqual(response.context['highschool_id'], 2)
-        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('id')])
+        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['high_school_name'], "Lycée Jean Monnet")
 
 
@@ -146,7 +146,7 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
         self.assertEqual(response.context['levels'], [(0, 'All')]
-            + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('id')])
+            + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['part1_level_filter'], 0)
         self.assertEqual(response.context['level_filter'], 0)
 

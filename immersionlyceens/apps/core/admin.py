@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from adminsortable2.admin import SortableAdminMixin
 
 from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
@@ -1502,10 +1503,11 @@ class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
         return True
 
 
-class HighSchoolLevelAdmin(AdminWithRequest, admin.ModelAdmin):
+class HighSchoolLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = HighSchoolLevelForm
-    list_display = ('label', 'is_post_bachelor', 'active')
-    ordering = ('id', )
+    list_display = ('id', 'order', 'label', 'is_post_bachelor', 'active')
+    ordering = ('order', )
+    sortable_by = ('order', )
 
     def has_add_permission(self, request):
         return request.user.is_superuser
@@ -1517,7 +1519,12 @@ class HighSchoolLevelAdmin(AdminWithRequest, admin.ModelAdmin):
         return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
+        valid_groups = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser
+        ]
+        return any(valid_groups)
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_superuser:
@@ -1528,11 +1535,15 @@ class HighSchoolLevelAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return True
 
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
-class PostBachelorLevelAdmin(AdminWithRequest, admin.ModelAdmin):
+
+class PostBachelorLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = PostBachelorLevelForm
-    list_display = ('label', 'active')
-    ordering = ('id', )
+    list_display = ('id', 'order', 'label', 'active')
+    ordering = ('order', )
+    sortable_by = ('order',)
 
     def has_add_permission(self, request):
         return request.user.is_master_establishment_manager() or request.user.is_operator()
@@ -1544,7 +1555,12 @@ class PostBachelorLevelAdmin(AdminWithRequest, admin.ModelAdmin):
         return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
+        valid_groups = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser
+        ]
+        return any(valid_groups)
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_master_establishment_manager() and not request.user.is_operator():
@@ -1555,11 +1571,15 @@ class PostBachelorLevelAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return True
 
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
-class StudentLevelAdmin(AdminWithRequest, admin.ModelAdmin):
+
+class StudentLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     form = StudentLevelForm
-    list_display = ('label', 'active')
-    ordering = ('id', )
+    list_display = ('id', 'order', 'label', 'active')
+    ordering = ('order', )
+    sortable_by = ('order',)
 
     def has_add_permission(self, request):
         return request.user.is_master_establishment_manager() or request.user.is_operator()
@@ -1571,7 +1591,12 @@ class StudentLevelAdmin(AdminWithRequest, admin.ModelAdmin):
         return request.user.is_master_establishment_manager() or request.user.is_operator()
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_master_establishment_manager() or request.user.is_operator()
+        valid_groups = [
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_superuser
+        ]
+        return any(valid_groups)
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_master_establishment_manager() and not request.user.is_operator():
@@ -1581,6 +1606,9 @@ class StudentLevelAdmin(AdminWithRequest, admin.ModelAdmin):
             return False
 
         return True
+
+    class Media:
+        css = {'all': ('css/immersionlyceens.min.css',)}
 
 
 admin.site = CustomAdminSite(name='Repositories')

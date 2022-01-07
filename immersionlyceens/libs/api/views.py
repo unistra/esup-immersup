@@ -2578,7 +2578,7 @@ class HighSchoolLevelList(generics.ListAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
 
     def get_queryset(self):
-        queryset = HighSchoolLevel.objects.filter(active=True).order_by('id')
+        queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')
         return queryset
 
 

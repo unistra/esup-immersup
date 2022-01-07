@@ -269,7 +269,9 @@ THIRD_PARTY_APPS = [
     'django_summernote',
     'django_json_widget',
     'django_admin_listfilter_dropdown',
+    'adminsortable2',
     'shibboleth',
+
 ]
 
 LOCAL_APPS = [

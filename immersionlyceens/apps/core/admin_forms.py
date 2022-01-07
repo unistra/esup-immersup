@@ -27,6 +27,7 @@ from .models import (
     UniversityYear, Vacation, HighSchoolLevel, PostBachelorLevel, StudentLevel,
 )
 
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 
 class CustomStructureMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
@@ -1588,21 +1589,56 @@ class OffOfferEventTypeForm(TypeFormMixin):
 
 
 class HighSchoolLevelForm(TypeFormMixin):
-    """Off over event type form"""
+    """
+    High school level form
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.id:
+            if HighSchoolStudentRecord.objects.filter(level=self.instance).exists():
+                self.initial['active'] = True
+                self.fields['active'].disabled = True
+                self.fields['active'].help_text = _("Field locked : a high school record uses this level")
+
     class Meta:
         model = HighSchoolLevel
         fields = '__all__'
 
 
 class PostBachelorLevelForm(TypeFormMixin):
-    """Off over event type form"""
+    """
+    Post bachelor level form
+    """
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.id:
+            if HighSchoolStudentRecord.objects.filter(post_bachelor_level=self.instance).exists():
+                self.initial['active'] = True
+                self.fields['active'].disabled = True
+                self.fields['active'].help_text = _("Field locked : a high school record uses this level")
+
     class Meta:
         model = PostBachelorLevel
         fields = '__all__'
 
 
 class StudentLevelForm(TypeFormMixin):
-    """Off over event type form"""
+    """
+    Student level form
+    """
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.id:
+            if StudentRecord.objects.filter(student_level=self.instance).exists():
+                self.initial['active'] = True
+                self.fields['active'].disabled = True
+                self.fields['active'].help_text = _("Field locked : a student record uses this level")
+
     class Meta:
         model = StudentLevel
         fields = '__all__'
