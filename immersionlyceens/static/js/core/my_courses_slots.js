@@ -111,15 +111,17 @@ function init_datatable() {
     },
     { "data": "attendances_status",
       "render": function(data, type, row) {
-        var msg = "";
+        let msg = "";
+        let edit_mode = 0;
 
-        if(row.attendances_value == 1) {
-          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +","+row.n_places+")\" title=\"" + attendances_text + "\">" +
+        if(row.attendances_value === 1 && row.can_update_course_slot) {
+          edit_mode = 1
+          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\"" + attendances_text + "\">" +
               "<i class='fa fas fa-edit fa-2x'></i>" +
               "</button>";
         }
-        else if (row.attendances_value != -1) {
-          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +","+row.n_places+")\" title=\"" + registered_text + "\">" +
+        else if (row.attendances_value !== -1) {
+          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\"" + registered_text + "\">" +
                 "<i class='fa fas fa-eye fa-2x'></i>" +
                 "</button>";
         }

@@ -95,20 +95,25 @@
           </div>
         {% endif %}
         {# Speaker #}
-        {% if authorized_groups|in_groups:"INTER" %}
+        {% if authorized_groups|in_groups:"INTER,REF-LYC" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultSpeaker" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownConsultSpeaker">
-              <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
-              <a class="dropdown-item" href="{% url 'myslots' slots_type='courses' %}">{% trans 'My courses slots' %}</a>
-              {% if not request.user.highschool %}
-              <a class="dropdown-item" href="{% url 'myvisits' %}">{% trans 'My visits' %}</a>
-              <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My visits slots' %}</a>
+              {% if authorized_groups|in_groups:"INTER" %}
+                <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
+                <a class="dropdown-item" href="{% url 'myslots' slots_type='courses' %}">{% trans 'My courses slots' %}</a>
+                {% if not request.user.highschool %}
+                  <a class="dropdown-item" href="{% url 'myvisits' %}">{% trans 'My visits' %}</a>
+                  <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My visits slots' %}</a>
+                {% endif %}
+                <a class="dropdown-item" href="{% url 'myevents' %}">{% trans 'My events' %}</a>
+                <a class="dropdown-item" href="{% url 'myslots' slots_type='events' %}">{% trans 'My events slots' %}</a>
               {% endif %}
-              <a class="dropdown-item" href="{% url 'myevents' %}">{% trans 'My events' %}</a>
-              <a class="dropdown-item" href="{% url 'myslots' slots_type='events' %}">{% trans 'My events slots' %}</a>
+              {% if authorized_groups|in_groups:"REF-LYC" %}
+                <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My high school visits slots' %}</a>
+              {% endif %}
             </div>
           </div>
         {% endif %}
