@@ -40,6 +40,7 @@ class CourseForm(forms.ModelForm):
             can_choose_establishment = any([
                 self.request.user.is_establishment_manager(),
                 self.request.user.is_master_establishment_manager(),
+                self.request.user.is_operator(),
                 self.request.user.is_structure_manager()
             ])
 
@@ -68,7 +69,7 @@ class CourseForm(forms.ModelForm):
                 and self.request.user.highschool.postbac_immersion:
                 allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
                 self.fields['highschool'].empty_label = None
-            elif self.request.user.is_master_establishment_manager():
+            elif self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
                 allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
 
             self.fields["highschool"].queryset = allowed_highschools.order_by('city', 'label')
@@ -149,6 +150,7 @@ class SlotForm(forms.ModelForm):
         can_choose_establishment = any([
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator(),
             self.request.user.is_structure_manager()
         ])
 
@@ -192,7 +194,7 @@ class SlotForm(forms.ModelForm):
                 and self.request.user.highschool.postbac_immersion:
             allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
             self.fields['highschool'].empty_label = None
-        elif self.request.user.is_master_establishment_manager():
+        elif self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
             allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
 
         self.fields["highschool"].queryset = allowed_highschools.order_by('city', 'label')
@@ -829,7 +831,7 @@ class OffOfferEventForm(forms.ModelForm):
             #if self.request.user.establishment:
             #    self.fields["establishment"].initial = self.request.user.establishment.id
 
-            if self.request.user.is_master_establishment_manager():
+            if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
                 self.fields["highschool"].queryset = \
                     HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 

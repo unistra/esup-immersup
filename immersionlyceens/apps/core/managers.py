@@ -15,7 +15,7 @@ class ActiveManager(models.Manager):
 
 class EstablishmentQuerySet(models.QuerySet):
     def user_establishments(self, user):
-        if user.is_master_establishment_manager():
+        if user.is_master_establishment_manager() or user.is_operator():
             return self
         elif (user.is_establishment_manager() or user.is_structure_manager()) and user.establishment:
             return self.filter(pk=user.establishment.id)

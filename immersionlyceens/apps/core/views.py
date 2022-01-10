@@ -93,276 +93,6 @@ def import_holidays(request):
 
 
 @groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
-def slots_list(request, establishment_id=None, highschool_id=None, structure_id=None, training_id=None, course_id=None):
-    """
-    Get slots list
-    get filters : structure and trainings
-    """
-    if request.user.is_high_school_manager() and request.user.highschool \
-        and not request.user.highschool.postbac_immersion:
-        return HttpResponseRedirect("/")
-
-    template = 'core/slots_list.html'
-    course_label_filter = ""
-
-    try:
-        int(establishment_id)
-    except (ValueError, TypeError):
-        establishment_id = None
-
-    try:
-        int(highschool_id)
-    except (ValueError, TypeError):
-        highschool_id = None
-
-    try:
-        int(structure_id)
-    except (ValueError, TypeError):
-        structure_id = None
-
-    try:
-        int(training_id)
-    except (ValueError, TypeError):
-        training_id = None
-
-    try:
-        course = Course.objects.get(pk=int(course_id))
-        course_label_filter = course.label
-    except (ValueError, TypeError, Course.DoesNotExist):
-        course_id = None
-
-    allowed_highschools = HighSchool.objects.none()
-    allowed_establishments = Establishment.objects.none()
-    allowed_strs = Structure.objects.none()
-
-    if request.user.is_superuser or request.user.is_master_establishment_manager():
-        allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
-        allowed_establishments = Establishment.activated.all()
-        allowed_strs = request.user.get_authorized_structures()
-    elif request.user.is_establishment_manager():
-        allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
-        allowed_strs = request.user.get_authorized_structures()
-    elif request.user.is_structure_manager():
-        allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
-        allowed_strs = request.user.get_authorized_structures()
-    elif request.user.is_high_school_manager():
-        allowed_highschools = HighSchool.objects.filter(pk=request.user.highschool.id)
-
-    if establishment_id and establishment_id not in allowed_establishments.values_list('pk', flat=True):
-        establishment_id = None
-
-    if not establishment_id:
-        if allowed_establishments.count() == 1:
-            establishment_id = allowed_establishments.first().id
-        else:
-            establishment_id = request.session.get("current_establishment_id", None)
-
-    if highschool_id and highschool_id not in allowed_highschools.values_list('pk', flat=True):
-        highschool_id = None
-
-    if not highschool_id:
-        if request.user.is_high_school_manager() and allowed_highschools.count() == 1:
-            highschool_id = allowed_highschools.first().id
-        else:
-            highschool_id = request.session.get("current_highschool_id", None)
-
-    if structure_id and structure_id not in allowed_strs.values_list('pk', flat=True):
-        structure_id = None
-
-    if not structure_id:
-        if allowed_strs.count() == 1:
-            structure_id = allowed_strs.first().id
-        else:
-            structure_id = request.session.get("current_structure_id", None)
-
-    contact_form = ContactForm()
-
-    context = {
-        'structures': allowed_strs.order_by('code'),
-        "establishments": allowed_establishments,
-        "highschools": allowed_highschools,
-        'establishment_id': establishment_id,
-        'structure_id': structure_id,
-        'highschool_id': highschool_id,
-        'training_id': training_id or request.session.get("current_training_id", None),
-        'course_id': course_id,
-        'course_label_filter': course_label_filter,
-        'trainings': [],
-        'contact_form': contact_form,
-        'cancel_types': CancelType.objects.filter(active=True),
-    }
-
-    if structure_id:
-        # Make sure the training is active and belongs to the selected structure
-        if training_id and Training.objects.filter(id=training_id, structures=structure_id, active=True).exists():
-            context['training_id'] = training_id
-
-        trainings = Training.objects.prefetch_related('training_subdomains') \
-                .filter(structures=structure_id, active=True) \
-                .order_by('label')
-
-        for training in trainings:
-            context['trainings'].append({
-                'id': training.id,
-                'label': training.label,
-                'subdomain': [s.label for s in training.training_subdomains.filter(active=True)],
-            })
-
-    return render(request, template, context=context)
-
-
-@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
-def slot(request, slot_id=None, duplicate=False, establishment_id=None, highschool_id=None, structure_id=None,
-         training_id=None, course_id=None):
-    slot = None
-    speakers_idx = None
-    allowed_establishments = None
-    allowed_highschools = None
-
-    if slot_id:
-        try:
-            slot = Slot.objects.get(id=slot_id)
-            speakers_idx = [t.id for t in slot.speakers.all()]
-
-            allowed_establishments = [e.id for e in slot.allowed_establishments.all()]
-            allowed_highschools = [h.id for h in slot.allowed_highschools.all()]
-
-            if duplicate:
-                slot.id = None
-
-            update_conditions = [
-                request.user.is_master_establishment_manager(),
-                slot.course.structure and slot.course.structure in request.user.get_authorized_structures(),
-                slot.course.highschool and slot.course.highschool == request.user.highschool
-            ]
-
-            if not any(update_conditions):
-                messages.error(request, _("This slot belongs to another structure"))
-                return redirect('/core/slots/')
-
-            request.session["current_structure_id"] = \
-                slot.course.structure.id if slot.course and slot.course.structure else None
-            request.session["current_highschool_id"] = \
-                slot.course.highschool.id if slot.course and slot.course.highschool else None
-            request.session["current_establishment_id"] = \
-                slot.course.structure.establishment.id if slot.course and slot.course.structure else None
-            request.session["current_training_id"] = \
-                slot.course.training.id if slot.course and slot.course.training else None
-
-        except Slot.DoesNotExist:  # id not found : make an empty slot
-            messages.warning(request, _("This slot id does not exist"))
-            return redirect('/core/slots/')
-
-    structures = request.user.get_authorized_structures().order_by('code')
-
-    if request.method == 'POST' and any(
-        [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
-    ):
-        slot_form = SlotForm(request.POST, instance=slot, request=request)
-        speakers = []
-        speaker_prefix = 'speaker_'
-        for speaker_id in [e.replace(speaker_prefix, '') for e in request.POST if speaker_prefix in e]:
-            speakers.append(speaker_id)
-
-        # if published, speakers count must be > 0
-        # else no speaker needed
-        published = request.POST.get('published') == 'on'
-
-        if slot_form.is_valid() and (not published or len(speakers) > 0):
-            new_slot = slot_form.save()
-
-            # Update session variables
-            request.session["current_structure_id"] = \
-                new_slot.course.structure.id if new_slot.course and new_slot.course.structure else None
-            request.session["current_highschool_id"] = \
-                new_slot.course.highschool.id if new_slot.course and new_slot.course.highschool else None
-            request.session["current_establishment_id"] = \
-                new_slot.course.structure.establishment.id if new_slot.course and new_slot.course.structure else None
-            request.session["current_training_id"] = \
-                new_slot.course.training.id if new_slot.course and new_slot.course.training else None
-
-            for speaker in speakers:
-                new_slot.speakers.add(speaker)
-
-            if duplicate or not slot:
-                messages.success(request, _("Slot successfully added"))
-            elif slot and slot.id:
-                messages.success(request, _("Slot successfully updated"))
-
-            if published:
-                course = Course.objects.get(id=request.POST.get('course'))
-                if course and course.published:
-                    messages.success(request, _("Course published"))
-        else:
-            context = {
-                "campus": Campus.objects.filter(active=True).order_by('label'),
-                "course": Course.objects.get(id=request.POST.get('course', None)),
-                "structures": structures,
-                "slot_form": slot_form,
-                "ready_load": True,
-                "errors": slot_form.errors,
-                "speaker_error": len(speakers) < 1,
-                "speakers_idx": [int(t) for t in speakers],
-            }
-            return render(request, 'core/slot.html', context=context)
-
-        # Student notification on slot update
-        if request.POST.get('notify_student') == 'on':
-            sent_msg = 0
-            immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
-            for immersion in immersions:
-                if not immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF', immersion=immersion,
-                                                      slot=slot):
-                    sent_msg += 1
-
-            if sent_msg:
-                messages.success(request, _("Notifications have been sent (%s)") % sent_msg)
-
-        if request.POST.get('save'):
-            structure = new_slot.course.structure if new_slot.course.structure else None
-            highschool = new_slot.course.highschool if new_slot.course.highschool else None
-
-            request.session["current_structure_id"] = structure.id if structure else None
-            request.session["current_establishment_id"] = structure.establishment.id if structure else None
-            request.session["current_highschool_id"] = highschool.id if highschool else None
-
-            return HttpResponseRedirect(reverse('slots_list'))
-        elif request.POST.get('save_add'):
-            return redirect('slot')
-        elif request.POST.get('duplicate'):
-            return redirect('duplicate_slot', slot_id=slot_form.instance.id, duplicate=1)
-        else:
-            return redirect('/')
-    elif slot:
-        initials = {
-            'allowed_establishments': allowed_establishments,
-            'allowed_highschools': allowed_highschools
-        }
-        slot_form = SlotForm(instance=slot, initial=initials, request=request)
-    else:
-        slot_form = SlotForm(request=request)
-
-    context = {
-        "establishment_id": establishment_id,
-        "highschool_id": highschool_id,
-        "structure_id": structure_id,
-        "training_id": training_id,
-        "course_id": course_id,
-        "slot_form": slot_form,
-        "ready_load": True,
-    }
-
-    if slot:
-        context['slot'] = slot
-        context['course'] = slot.course
-        context['speakers_idx'] = speakers_idx
-        context['allowed_establishments'] = allowed_establishments
-        context['allowed_highschools'] = allowed_highschools
-
-    return render(request, 'core/slot.html', context=context)
-
-
-@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
@@ -394,7 +124,7 @@ def courses_list(request):
     allowed_establishments = Establishment.objects.none()
     allowed_strs = Structure.objects.none()
 
-    if request.user.is_master_establishment_manager():
+    if request.user.is_master_establishment_manager() or request.user.is_operator():
         allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
         allowed_establishments = Establishment.activated.all()
         allowed_strs = request.user.get_authorized_structures()
@@ -1058,7 +788,7 @@ class TrainingList(generic.TemplateView):
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context: Dict[str, Any] = super().get_context_data(**kwargs)
         context["can_update"] = True
-        if self.request.user.is_master_establishment_manager():
+        if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
             context["highschools"] = HighSchool.objects.filter(postbac_immersion=True).order_by("city", "label")
 
         return context
@@ -1355,7 +1085,7 @@ class CourseSlotUpdate(generic.UpdateView):
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        if user.is_master_establishment_manager():
+        if user.is_master_establishment_manager() or user.is_operator():
             return Slot.objects.filter(course__isnull=False)
 
         if user.is_establishment_manager():
@@ -1586,7 +1316,7 @@ class VisitUpdate(generic.UpdateView):
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        if user.is_master_establishment_manager():
+        if user.is_master_establishment_manager() or user.is_operator():
             return Visit.objects.all()
 
         if user.is_establishment_manager():
@@ -1715,7 +1445,7 @@ class VisitSlotList(generic.TemplateView):
                 pass
 
         if not self.request.user.is_superuser:
-            if self.request.user.is_master_establishment_manager():
+            if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
                 context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
 
             if self.request.user.is_establishment_manager():
@@ -1863,7 +1593,7 @@ class VisitSlotUpdate(generic.UpdateView):
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        if user.is_master_establishment_manager():
+        if user.is_master_establishment_manager() or user.is_operator():
             return Slot.objects.filter(visit__isnull=False)
 
         if user.is_establishment_manager():
@@ -2079,7 +1809,7 @@ class OffOfferEventUpdate(generic.UpdateView):
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        if user.is_master_establishment_manager():
+        if user.is_master_establishment_manager() or user.is_operator():
             return OffOfferEvent.objects.all()
 
         if user.is_establishment_manager():
@@ -2209,7 +1939,7 @@ class OffOfferEventSlotList(generic.TemplateView):
                 pass
 
         if not self.request.user.is_superuser:
-            if self.request.user.is_master_establishment_manager():
+            if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
                 if not context.get("highschool_id"):
                     context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
 
@@ -2387,7 +2117,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        if user.is_master_establishment_manager():
+        if user.is_master_establishment_manager() or user.is_operator():
             return Slot.objects.filter(event__isnull=False)
 
         if user.is_establishment_manager():

@@ -204,8 +204,13 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        is_hs_manager_or_master: bool = self.request.user.is_establishment_manager() or \
-                self.request.user.is_master_establishment_manager()
+        valid_groups = [
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ]
+
+        is_hs_manager_or_master: bool = any(valid_groups)
 
         self.fields["student"].widget = forms.HiddenInput()
         self.fields["highschool"].queryset = HighSchool.agreed.order_by('city','label')
