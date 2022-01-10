@@ -70,6 +70,9 @@
                 {% for e in training.grouper.distinct_establishments %}
                   <span class="badge badge-pill immersup-badge" style="background-color: {{e.badge_html_color }};margin: 2px;">{{ e.label }}</span>
                 {% endfor %}
+                {% if training.grouper.highschool %}
+                  <span class="badge badge-pill immersup-badge" style="background-color: {{training.grouper.highschool.badge_html_color }};margin: 2px;">{{ training.grouper.highschool }}</span>
+                {% endif %}
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="training{{training.grouper.pk}}">
                 <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.grouper.label }}
                 </button>
@@ -211,23 +214,33 @@
                             </tr>
                             <tr>
                               <td>
+                              {% if slot.campus %}
                               <p>
                               <i class="fa fas fa-university text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Campus' %}"></i>
                               {{ slot.campus }}
                               </p>
+                              {% endif %}
+                              {% if slot.course.structure.label %}
                               <p>
                               <i class="fa fas fa-address-card text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Organizing structure' %}"></i>
                               {{ slot.course.structure.label }}
                               </p>
+                              {% endif %}
                               </td>
-                              <td><i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
+                              <td>
+                              {% if slot.building %}
+                              <i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
+                              {% endif %}
                               {% if slot.building.url %}
                                 <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
                               {% endif %}
                               </td>
                               <td>
+                              {% if slot.room %}
                               <i class="fa fas fa-map-marker text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Meeting place' %}"></i>
-                              {{ slot.room }}</td>
+                              {{ slot.room }}
+                              {% endif %}
+                              </td>
                               <td>{% if slot.additional_information %}{% trans 'Additional information' %} : <p>{{ slot.additional_information }}</p>{% endif %}</td>
                             </tr>
                           </tbody>
