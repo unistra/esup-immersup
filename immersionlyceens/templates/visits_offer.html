@@ -146,8 +146,12 @@
                               {% endfor %}
                               </ul>
                             {% endif %}
-                          </td>
                           {% endif %}
+                          {% if not s.establishments_restrictions and not s.levels_restrictions %}
+                            <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                            {% trans "Slot open to all" %}
+                          {% endif %}
+                          </td>
                           <td>
                             {% if s.cancelled %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>

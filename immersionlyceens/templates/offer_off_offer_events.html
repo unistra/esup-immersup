@@ -125,7 +125,7 @@
                             {% endfor %}
                             </ul>
                             {% endif %}
-                            {% endif %}
+                          {% endif %}
                           {% if s.levels_restrictions %}
                             {% if s.allowed_highschool_levels.all %}
                               <h6>{% trans "Allowed highschool levels" %} :</h6>
@@ -151,6 +151,10 @@
                               {% endfor %}
                               </ul>
                             {% endif %}
+                          {% endif %}
+                          {% if not s.establishments_restrictions and not s.levels_restrictions %}
+                            <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                            {% trans "Slot open to all" %}
                           {% endif %}
                           </td>
                           <td>
