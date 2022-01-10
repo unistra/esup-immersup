@@ -335,6 +335,7 @@ def slots(request):
     response = {'msg': '', 'data': []}
     can_update_attendances = False
     today = datetime.datetime.today()
+    user = request.user
     user_filter = False
     filters = {}
 
@@ -372,26 +373,29 @@ def slots(request):
     except (TypeError, ValueError):
         training_id = None
 
-    if request.user.is_speaker():
+    if user.is_speaker():
         user_filter = True
-        filters["speakers"] = request.user
+        filters["speakers"] = user
 
     if not user_filter:
         if visits and not establishment_id and not structure_id:
-            try:
-                establishment_id = request.user.establishment.id
-            except Exception as e:
-                response['msg'] = gettext("Error : a valid establishment or structure must be selected")
-                return JsonResponse(response, safe=False)
+            if user.is_high_school_manager():
+                filters["visit__highschool__id"] = user.highschool.id
+            else:
+                try:
+                    establishment_id = user.establishment.id
+                except Exception as e:
+                    response['msg'] = gettext("Error : a valid establishment or structure must be selected")
+                    return JsonResponse(response, safe=False)
 
         elif events and not establishment_id and not highschool_id:
             try:
-                establishment_id = request.user.establishment.id
+                establishment_id = user.establishment.id
             except Exception as e:
                 pass
 
             try:
-                highschool_id = request.user.highschool.id
+                highschool_id = user.highschool.id
             except Exception as e:
                 pass
 
@@ -447,8 +451,8 @@ def slots(request):
 
         user_filter_key = "course__training__structures__in"
 
-    if not request.user.is_superuser and request.user.is_structure_manager():
-        user_filter = {user_filter_key: request.user.structures.all()}
+    if not user.is_superuser and user.is_structure_manager():
+        user_filter = {user_filter_key: user.structures.all()}
         slots = slots.filter(**user_filter)
 
     if not past_slots:
@@ -460,28 +464,35 @@ def slots(request):
         ).distinct()
 
     all_data = []
-    allowed_structures = request.user.get_authorized_structures()
-    user_establishment = request.user.establishment
-    user_highschool = request.user.highschool
+    allowed_structures = user.get_authorized_structures()
+    user_establishment = user.establishment
+    user_highschool = user.highschool
 
     for slot in slots.order_by('date', 'start_time'):
         establishment = slot.get_establishment()
         structure = slot.get_structure()
         highschool = slot.get_highschool()
 
+        allowed_course_slot_update_conditions = [
+            user.is_master_establishment_manager() and slot.course,
+            user.is_operator() and slot.course,
+            user.is_establishment_manager() and slot.course and slot.course.structure.establishment == user_establishment,
+            user.is_structure_manager() and slot.course and slot.course.structure in allowed_structures
+        ]
+
         allowed_visit_slot_update_conditions = [
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator(),
-            request.user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
-            request.user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
+            user.is_master_establishment_manager(),
+            user.is_operator(),
+            user.is_establishment_manager() and slot.visit and slot.visit.establishment == user_establishment,
+            user.is_structure_manager() and slot.visit and slot.visit.structure in allowed_structures
         ]
 
         allowed_event_slot_update_conditions = [
-            request.user.is_master_establishment_manager() and slot.event,
-            request.user.is_operator() and slot.event,
-            request.user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
-            request.user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures,
-            request.user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
+            user.is_master_establishment_manager() and slot.event,
+            user.is_operator() and slot.event,
+            user.is_establishment_manager() and slot.event and slot.event.establishment == user_establishment,
+            user.is_structure_manager() and slot.event and slot.event.structure in allowed_structures,
+            user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
         ]
 
         if slot.course:
@@ -494,6 +505,7 @@ def slots(request):
         data = {
             'id': slot.id,
             'published': slot.published,
+            'can_update_course_slot': slot.course and any(allowed_course_slot_update_conditions),
             'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
             'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
             'course': {
@@ -516,8 +528,8 @@ def slots(request):
             'highschool': {
                 'city': highschool.city,
                 'label': highschool.label,
-                'managed_by_me': request.user.is_master_establishment_manager()\
-                    or request.user.is_operator()\
+                'managed_by_me': user.is_master_establishment_manager()\
+                    or user.is_operator()\
                     or (user_highschool and highschool == user_highschool),
             } if highschool else None,
             'visit': {
@@ -566,6 +578,17 @@ def slots(request):
             'attendances_status': '',
             'is_past': False,
         }
+
+        # Update attendances rights depending on slot data and current user
+        """
+        valid_conditions = [
+            user.is_superuser,
+            user.is_operator(),
+            user.is_master_establishment_manager(),
+            establishement and user.is_establishment_manager() and user.establishement == establishment,
+            establishement and user.is_establishment_manager() and user.establishement == establishment,
+        ]
+        """
 
         if data['datetime'] and data['datetime'] <= today:
             data['is_past'] = True

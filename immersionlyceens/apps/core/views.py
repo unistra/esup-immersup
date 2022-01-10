@@ -688,7 +688,7 @@ def myevents(request):
     return render(request, 'core/my_events.html', context)
 
 
-@groups_required('INTER',)
+@groups_required('INTER','REF-LYC', )
 def myslots(request, slots_type=None):
     contact_form = ContactForm()
 
@@ -697,10 +697,13 @@ def myslots(request, slots_type=None):
     }
 
     if slots_type == "visits":
+        context["slot_mode"] = "visit"
         return render(request, 'core/my_visits_slots.html', context)
     elif slots_type == "events":
+        context["slot_mode"] = "event"
         return render(request, 'core/my_events_slots.html', context)
     elif slots_type == "courses":
+        context["slot_mode"] = "course"
         return render(request, 'core/my_courses_slots.html', context)
 
 
