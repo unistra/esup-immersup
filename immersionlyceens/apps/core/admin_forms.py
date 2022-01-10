@@ -15,19 +15,21 @@ from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext_lazy as _
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 
 from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, CertificateLogo, CertificateSignature, CourseType,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, Holiday, ImmersionUser, InformationText,
-    MailTemplate, MailTemplateVars, OffOfferEventType, PublicDocument,
-    PublicType, Structure, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation, HighSchoolLevel, PostBachelorLevel, StudentLevel,
+    GeneralSettings, HighSchool, HighSchoolLevel, Holiday, ImmersionUser,
+    InformationText, MailTemplate, MailTemplateVars, OffOfferEventType,
+    PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 
 class CustomStructureMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
@@ -1211,6 +1213,9 @@ class HighSchoolForm(forms.ModelForm):
     class Meta:
         model = HighSchool
         fields = '__all__'
+        widgets = {
+            'badge_html_color': TextInput(attrs={'type': 'color'}),
+        }
 
 
 class MailTemplateForm(forms.ModelForm):

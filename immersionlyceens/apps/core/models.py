@@ -150,6 +150,7 @@ class HighSchool(models.Model):
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
     immersions_proposal = PostBacImmersionManager()
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
+    badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
 
     def __str__(self):
         return f"{self.city} - {self.label}"

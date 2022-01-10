@@ -931,7 +931,8 @@ class AdminFormsTestCase(TestCase):
             'convention_start_date': datetime.datetime.today().date(),
             'convention_end_date': '',
             'postbac_immersion': True,
-            'mailing_list': 'test@mailing-list.fr'
+            'mailing_list': 'test@mailing-list.fr',
+            'badge_html_color': '#112233'
         }
 
         form = HighSchoolForm(data=data, request=request)
@@ -2021,8 +2022,8 @@ class AdminFormsTestCase(TestCase):
         self.assertFalse(new_user.structures.exists())
         self.assertEqual(new_user.username, new_user.email)
         self.assertFalse(new_user.is_staff)
-    
-    
+
+
     def test_admin_training(self):
         training_domain_data = {'label': 'domain', 'active': True}
         training_subdomain_data = {'label': 'subdomain', 'active': True}
