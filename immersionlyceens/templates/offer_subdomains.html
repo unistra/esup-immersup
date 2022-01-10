@@ -180,6 +180,11 @@
                               {% endif %}
                               </td>
                             {% endif %}
+                            {% if not slot.establishments_restrictions and not slot.levels_restrictions %}
+
+                            <i class="fa fas fa-universal-access text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Restrictions' %}"></i>
+                            {% trans "Slot open to all" %}
+                            {% endif %}
                               <td>
                             {% if slot.cancelled %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
