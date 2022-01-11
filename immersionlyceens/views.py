@@ -349,7 +349,7 @@ def visits_offer(request):
     filters["date__gte"] = today
     visits = Slot.objects.prefetch_related(
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'date')
+            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
 
     visits_count = visits.count()
     context = {
