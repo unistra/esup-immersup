@@ -1328,6 +1328,10 @@ class OffOfferEvent(models.Model):
         return event_str
 
 
+    def event_label(self):
+        return f"{self.label} - {self.description}"
+
+
     def can_delete(self):
         today = timezone.now().date()
         try:
@@ -1392,9 +1396,9 @@ class OffOfferEvent(models.Model):
 
     def get_etab_or_high_school(self):
         if not self.highschool:
-            return self.establishment.label
+            return self.establishment
         else:
-            return f'{self.highschool.label} : {self.highschool.city}'
+            return self.highschool
 
     class Meta:
         constraints = [

@@ -131,7 +131,8 @@ def fix_lang_code(code):
 
 @register.filter()
 def grouper_sort(grouper):
-    grouper.sort()
+    print(grouper)
+    grouper.sort(key=grouper)
     return grouper
 
 
