@@ -996,7 +996,6 @@ class CoreViewsTestCase(TestCase):
             student=self.highschool_user,
             highschool=self.high_school,
             birth_date=datetime.datetime.today(),
-            civility=1,
             phone='0123456789',
             level=HighSchoolLevel.objects.order_by('order').first(),
             class_name='1ere S 3',
