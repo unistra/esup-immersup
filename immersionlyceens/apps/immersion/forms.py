@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple, Any, Dict, Optional
 
 from django import forms
 from django.conf import settings
@@ -102,6 +102,48 @@ class RegistrationForm(UserCreationForm):
     class Meta:
         model = ImmersionUser
         fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
+
+
+class PersonForm(forms.ModelForm):
+    required_fields: Tuple[str, ...] = ("last_name", "first_name")
+
+    def __init__(self, *args, **kwargs) -> None:
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+        for field_name in self.required_fields:
+            self.fields[field_name].required = True
+
+        self.fields["email"].help_text = _(
+            "Warning : changing the email will require an account reactivation")
+
+        for field_name in self.fields:
+            self.fields[field_name].widget.attrs["class"] = "form-control"
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data: Dict[str, Any] = super().clean()
+
+        email: str = cleaned_data.get("email", "").strip().lower()
+        if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError(
+                _("Error : an account already exists with this email address"))
+        cleaned_data["email"] = email
+        return cleaned_data
+
+    class Meta:
+        model = ImmersionUser
+        fields = ("last_name", "first_name", "email", "id",)
+
+
+class VisitorForm(PersonForm):
+    required_fields: Tuple[str, ...] = ("last_name", "first_name", "email",)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            record: Optional[VisitorRecordForm] = self.instance.get_visitor_record()
+            if record and record.validation == 2:
+                for field_name in ("first_name", "last_name"):
+                    self.fields[field_name].disable = True
 
 
 class StudentForm(forms.ModelForm):
@@ -353,14 +395,14 @@ class VisitorRecordForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         fields: List[str] = ["civility", "phone"]
-
         for field in fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
+        self.fields["visitor"].widget = forms.HiddenInput()
 
     class Meta:
         model = VisitorRecord
-        fields = [
+        fields = ['id',
             'civility', 'birth_date', 'phone', 'visitor',
             'motivation', 'identity_document', 'civil_liability_insurance',
             'allowed_first_semester_registrations', 'allowed_second_semester_registrations',

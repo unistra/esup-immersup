@@ -17,7 +17,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import reverse, resolve
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, FormView
@@ -36,7 +36,7 @@ from immersionlyceens.libs.utils import check_active_year, get_general_setting
 
 from .forms import (
     HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
-    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, VisitorRecordForm,
+    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, VisitorRecordForm, VisitorForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
@@ -714,11 +714,31 @@ class VisitorRecordView(FormView):
     template_name = "immersion/visitor_record.html"
     form_class = VisitorRecordForm
 
+    def get_form(self, form_class=None):
+        record_id: Optional[int] = self.kwargs.get("record_id")
+        if self.request.user.is_visitor():
+            record = self.request.user.get_visitor_record()
+            print(f"record: {record}")
+            print(f"bdaay      : {record.birth_date}")
+            print(f"motivation : {record.motivation}")
+            print(f"civility   : {record.civility}")
+            if record is not None:
+                print(f"hello => {self.request.method}")
+                form = VisitorRecordForm(self.get_form_kwargs(), instance=record)
+                print(form.fields["civility"])
+                # print(form)
+                return form
+        elif record_id:
+            record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+            return VisitorRecordForm(self.get_form_kwargs(), instance=record)
+        return super().get_form()
+
     def get_context_data(self, **kwargs):
         context: Dict[str, Any] = super().get_context_data()
         record_id: Optional[int] = self.kwargs.get("record_id")
+        user_form: Optional[VisitorForm] = None
+        visitor: Optional[ImmersionUser] = None
 
-        # user_record = StudentForm()
         calendars: QuerySet = Calendar.objects.all()
         calendar: Optional[Calendar] = None
         if calendars:
@@ -726,20 +746,58 @@ class VisitorRecordView(FormView):
 
         if self.request.user.is_visitor():
             visitor = self.request.user
-            record: Optional[VisitorRecord] = visitor.get_visitor_record()
-
-            if not record:
-                record = VisitorRecord(
-                    visitor=visitor,
-                )
-
-            print(record)
-            # if not record:
-            #     record =
+            user_form = VisitorForm(request=self.request, instance=visitor)
+        elif record_id:
+            record: VisitorRecord = VisitorRecord.objects.get(pk=record_id)
+            visitor = record.visitor
+            user_form = VisitorForm(self.request.POST, self.request.FILE, instance=visitor, request=self.request)
+            # todo: VisitorRecordForm, visitor, VisitorForm
 
         context.update({
+            "visitor": visitor,
+            "user_form": user_form,
             "back_url": self.request.session.get("back"),
             "calendar": calendar,
         })
         return context
 
+    def post(self, request, *args, **kwargs):
+        # multi validation for multiple
+        form = self.get_form()
+        form_user: VisitorForm
+        record_id: Optional[int] = self.kwargs.get("record_id")
+
+        if request.user.is_visitor():
+            form_user = VisitorForm(request.POST, request.FILES , instance=request.user, request=request, )
+        elif record_id:
+            record: VisitorRecord = VisitorRecord.objects.get(pk=record_id)
+            form_user = VisitorForm(request.POST, request.FILES, instance=record.visitor, request=request)
+        else:
+            form_user = VisitorForm(request.POST, request.FILES, request=request)
+
+        if form.is_valid() and form_user.is_valid():
+            form.save()
+            form_user.save()
+
+            print(form.errors)
+            print(form_user.errors)
+            return self.form_valid(form)
+        else:
+            print("INVALD")
+            for form_ in (form, form_user):
+                for err_field, err_list in form_.errors.get_json_data().items():
+                    for error in err_list:
+                        if error.get("message"):
+                            messages.error(self.request, error.get("message"))
+                            print(f'err: {error.get("message")} ==> {form_.__class__}')
+
+            return self.form_invalid(form)
+
+    def get_success_url(self) -> str:
+        if self.request.user.is_visitor:
+            return reverse("immersion:visitor_record")
+        else:
+            return reverse("immersion:visitor_record_by_id", **self.kwargs)
+
+
+# Un objet Visitor record avec ce champ Visitor existe déjà.
