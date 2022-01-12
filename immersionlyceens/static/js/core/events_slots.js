@@ -311,8 +311,17 @@ function init_datatable() {
     },
   ])
 
-  yadcf.exFilterColumn(dt, [
-      [1, [managed_by_filter]],
-      [2, [event_type_filter]],
-    ]);
+  if(managed_by_filter || event_type_filter) {
+    let filter_array = Array()
+
+    if(managed_by_filter) {
+      filter_array.push([1, [managed_by_filter]])
+    }
+
+    if(event_type_filter) {
+      filter_array.push([2, [event_type_filter]])
+    }
+
+    yadcf.exFilterColumn(dt, filter_array);
+  }
 }

@@ -1911,6 +1911,8 @@ class OffOfferEventSlotList(generic.TemplateView):
 
         if context["structure_id"] == "null":
             context["structure_id"] = ""
+        elif context["structure_id"] is None:
+            context["structure_id"] = self.request.session.get('current_structure_id', None)
         else:
             try:
                 structure = Structure.objects.get(pk=context["structure_id"])
