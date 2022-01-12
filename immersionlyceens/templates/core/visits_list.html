@@ -38,14 +38,14 @@
       </div>
       {% endif %}
       <div class="row">
-        {% if request.user.is_master_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
         <div class="col-md-3">
           <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
             <label for="establishments">{% trans 'Select an establishment' %} :</label>
             <select id="establishments" class="form-control">
               <option value="">------------</option>
               {% for establishment in establishments %}
-                <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
+                <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
                   {{ establishment.code }} - {{ establishment.label }}
                 </option>
               {% endfor %}
@@ -59,7 +59,7 @@
             <select id="structures" class="form-control">
               <option value="">------------</option>
               {% for structure in structures %}
-                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
                   {{ structure.code }} - {{ structure.label }}
                 </option>
               {% endfor %}
@@ -73,8 +73,7 @@
         <thead>
           <tr>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
-            <th><span id="establishment_filter">{% trans 'Establishment' %}</span></th>
-            <th><span id="structure_filter">{% trans 'Structure' %}</span></th>
+            <th><span id="managed_by_filter">{% trans 'Managed by' context "visits" %}</span></th>
             <th><span id="highschool_filter">{% trans 'High school' %}</span></th>
             <th><span id="purpose_filter">{% trans 'Purpose' %}</span></th>
             <th class="align-top">{% trans 'Speakers' %}</th>
@@ -85,7 +84,6 @@
         </thead>
         <tfoot>
           <tr>
-            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -198,6 +196,7 @@
   }
 
   function load_visits() {
+    yadcf.exResetAllFilters(dt);
     dt.clear().draw()
     dt.ajax.reload()
   }
@@ -279,22 +278,14 @@
             return txt;
           },
         },
-        {"data": "establishment",
-          render: function (data) {
-            if(data) {
-                return data.code + " : " + data.label
-            }
+        { "data": "establishment",
+          "render": function (data, type, row) {
+            let txt = row.establishment.code
 
-            return ""
-          }
-        },
-        {"data": "structure",
-          render: function (data) {
-            if(data) {
-                return data.code + " : " + data.label
-            }
+            if(row.structure)
+              txt += " - " + row.structure.code
 
-            return ""
+            return txt
           }
         },
         {"data": "highschool",
@@ -348,6 +339,24 @@
             let slot_url = '/core/visits_slots/'
             let add_slot_url = '/core/visit_slot/add/'
 
+            if(is_set(row.establishment) && is_set(row.id) && is_set(row.highschool)) {
+                let structure_id = is_set(row.structure) ? row.structure.id : null
+                slot_url += row.establishment.id + "/" + structure_id + "/" + row.highschool.id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + structure_id + "/" + row.highschool.id + "/" + row.id
+            }
+
+            // direct link to slots list
+            if(row.slots_count) {
+              icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this visit' %}\">" +
+                       "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                       "</a>\n";
+            }
+
+            // direct link to new slot form
+            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this visit' %}\">" +
+                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                     "</a>\n";
+
             icons += "<a href='/core/visit/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                 "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                 "</a>\n";
@@ -361,21 +370,6 @@
                   "<i class=\"fa fas fa-trash fa-2x\"></i>" +
                   "</button>";
             }
-
-            if(is_set(row.establishment) && is_set(row.structure) && is_set(row.id) && is_set(row.highschool)) {
-                slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
-                add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.highschool.id + "/" + row.id
-            }
-
-            // direct link to slots list
-            icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this visit' %}\">" +
-                     "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
-                     "</a>\n";
-
-            // direct link to new slot form
-            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this visit' %}\">" +
-                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
-                     "</a>\n";
 
             return icons;
           },
@@ -401,27 +395,23 @@
       {
         column_number: 1,
         filter_default_label: "",
-        filter_container_id: "establishment_filter",
+        filter_match_mode: "exact",
+        filter_container_id: "managed_by_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
         column_number: 2,
         filter_default_label: "",
-        filter_container_id: "structure_filter",
+        filter_match_mode: "exact",
+        filter_container_id: "highschool_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
       {
         column_number: 3,
         filter_default_label: "",
-        filter_container_id: "highschool_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      {
-        column_number: 4,
-        filter_default_label: "",
+        filter_match_mode: "exact",
         filter_container_id: "purpose_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,

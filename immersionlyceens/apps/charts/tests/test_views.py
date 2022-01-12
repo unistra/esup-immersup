@@ -13,6 +13,8 @@ from django.contrib.auth.models import Group
 
 from .. import views
 
+from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel
+
 class ChartsViewsTestCase(TestCase):
     """
     Tests for Charts app views
@@ -72,12 +74,7 @@ class ChartsViewsTestCase(TestCase):
         )
         self.assertEqual(response.context['highschool_id'], '')
         self.assertEqual(response.context['levels'],
-            [(0, 'All'),
-             (1, 'Pupil in year 11 / 10th grade student'),
-             (2, 'Pupil in year 12 / 11th grade student'),
-             (3, 'Pupil in year 13 / 12th grade student'),
-             (4, 'Above A Level / High-School Degree'),
-             ]
+            [(0, 'All')] + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')]
         )
 
         self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
@@ -97,10 +94,10 @@ class ChartsViewsTestCase(TestCase):
 
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
-        self.assertEqual(response.context['levels'], [(0, 'All'),
-            (1, 'Pupil in year 11 / 10th grade student'),
-            (2, 'Pupil in year 12 / 11th grade student'),
-            (3, 'Pupil in year 13 / 12th grade student'), (4, 'Above A Level / High-School Degree')])
+
+        # This list MUST match the fixtures HighSchoolLevel objects
+        self.assertEqual(response.context['levels'], [(0, 'All')]
+            + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['level_filter'], 0)
 
         # Post with filters
@@ -126,14 +123,7 @@ class ChartsViewsTestCase(TestCase):
              {'id': 5, 'label': 'Lycée Marie Curie', 'city': 'STRASBOURG'}]
             )
         self.assertEqual(response.context['highschool_id'], '')
-        self.assertEqual(response.context['levels'],
-            [
-                (1, 'Pupil in year 11 / 10th grade student'),
-                (2, 'Pupil in year 12 / 11th grade student'),
-                (3, 'Pupil in year 13 / 12th grade student'),
-                (4, 'Above A Level / High-School Degree'),
-            ]
-        )
+        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['high_school_name'], None)
 
         # As high school referent
@@ -143,14 +133,7 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschools'],
             [{'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'}])
         self.assertEqual(response.context['highschool_id'], 2)
-        self.assertEqual(response.context['levels'],
-            [
-                (1, 'Pupil in year 11 / 10th grade student'),
-                (2, 'Pupil in year 12 / 11th grade student'),
-                (3, 'Pupil in year 13 / 12th grade student'),
-                (4, 'Above A Level / High-School Degree'),
-            ]
-        )
+        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['high_school_name'], "Lycée Jean Monnet")
 
 
@@ -162,8 +145,8 @@ class ChartsViewsTestCase(TestCase):
 
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
-        self.assertEqual(response.context['levels'], [(0, 'All'), (1, 'Pupil in year 11 / 10th grade student'), (2, 'Pupil in year 12 / 11th grade student'),
-            (3, 'Pupil in year 13 / 12th grade student'), (4, 'Above A Level / High-School Degree')])
+        self.assertEqual(response.context['levels'], [(0, 'All')]
+            + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
         self.assertEqual(response.context['part1_level_filter'], 0)
         self.assertEqual(response.context['level_filter'], 0)
 

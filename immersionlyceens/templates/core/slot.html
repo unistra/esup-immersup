@@ -19,9 +19,15 @@
 {% block content %}
 <div id="feedback" class="container"></div>
 <div class="container-fluid" style="padding-top: 20px; width: 70%;">
-  <div id="date-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot creation" %}'>
+  <div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm slot creation" %}">
     <span>
       {% trans 'This date is inside a vacation or a holiday. Are you sure that you want a slot with this date ?' %}
+    </span>
+  </div>
+
+  <div id="repeat-dialog-form" style='z-index:3000;' title='{% trans "Repeat slots creation" %}'>
+    <span>
+      {% trans 'Please select a date before setting this field' %}
     </span>
   </div>
 
@@ -62,7 +68,7 @@
         {% csrf_token %}
         {{ slot_form.id }}
         <input type="hidden" name="face_to_face" value="1">
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -79,7 +85,7 @@
         <div class="form-group row" id="id_div_highschool">
           <label for="id_highschool" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% if request.user.is_master_establishment_manager %}
+            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
                 <span id="id_or"><strong>{% trans 'or' %} </strong></span>
             {% endif %}
             {% trans 'high school' %} :
@@ -91,7 +97,7 @@
             {{ slot_form.highschool.errors }}
           </div>
         </div>
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -194,6 +200,17 @@
               {{ slot_form.date.errors }}
             </div>
             {% endif %}
+        </div>
+        <div class="form-group row">
+          <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat until' %}</label>
+          <div class="col-sm-3">
+              {{ slot_form.repeat }}
+          </div>
+          {% if slot_form.repeat.errors %}
+          <div class="col-sm-6 alert alert-danger">
+            {{ slot_form.repeat.errors }}
+          </div>
+          {% endif %}
         </div>
         <div class="form-group row">
             <label for="id_start_time" class="col-form-label col-sm-3">{% trans 'Start time' %}</label>
@@ -714,7 +731,7 @@
               if (speakers.find(s => parseInt(s) === e['id']) !== undefined) {
                 checked = "checked"
               }
-            
+
               let name = '' + e['first_name'] + ' ' + e['last_name'].toUpperCase();
               element = '<div class="custom-checkbox custom-control">';
               element += '<input type="checkbox" name="speaker_' + e['id'] + '" value="' + e['id'] + '" ' + checked + '>';

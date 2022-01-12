@@ -4,16 +4,19 @@ import os
 from wsgiref.util import FileWrapper
 
 from django.conf import settings
+from django.db.models.query_utils import Q
 from django.http import (
     HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
     HttpResponseNotFound, StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
+from django.views import generic
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
-    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert,
+    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -32,7 +35,7 @@ def home(request):
         procedure_txt = ''
 
     try:
-        offer_txt = InformationText.objects.get(code="INFO_BULLE_OFFRE", active=True).content
+        offer_txt = InformationText.objects.get(code="INFO_BULimmersionlyceens/apps/core/views.pyLE_OFFRE", active=True).content
     except InformationText.DoesNotExist:
         offer_txt = ''
 
@@ -314,6 +317,90 @@ def offer_subdomain(request, subdomain_id):
     }
 
     return render(request, 'offer_subdomains.html', context)
+
+
+def visits_offer(request):
+    """ Visits Offer view """
+
+    filters = {}
+    today = timezone.now().date()
+
+    try:
+        visits_txt = InformationText.objects.get(code="INTRO_VISITE", active=True).content
+    except InformationText.DoesNotExist:
+        visits_txt = ''
+
+    # Published visits only & no course nor event slot
+    filters["course__isnull"] = True
+    filters["event__isnull"] = True
+    filters["visit__published"] = True
+
+    # If user is highschool student filter on highschool
+    try:
+        if request.user.is_high_school_student() and not request.user.is_superuser:
+            user_highschool = request.user.get_high_school_student_record().highschool
+            filters["visit__highschool"] = user_highschool
+            filters["allowed_highschools"] = Q(establishment_restrictions=False) | Q(allowed_highschools__contains=user_highschool)
+            # TODO: add level restrictions !!!
+    except:
+        # AnonymousUser
+        pass
+    # TODO: implement class method in model to retrieve >=today slots for visits
+    filters["date__gte"] = today
+    visits = Slot.objects.prefetch_related(
+            'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
+            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
+
+    visits_count = visits.count()
+    context = {
+        'visits_count': visits_count,
+        'visits_txt': visits_txt,
+        'visits': visits,
+    }
+    return render(request, 'visits_offer.html', context)
+
+
+def offer_off_offer_events(request):
+    """ Visits Offer view """
+
+    filters = {}
+    today = timezone.now().date()
+
+    try:
+        events_txt = InformationText.objects.get(code="INTRO_EVENEMENTHO", active=True).content
+    except InformationText.DoesNotExist:
+        events_txt = ''
+
+    # Published event only & no course nor visit slot
+    filters["course__isnull"] = True
+    filters["visit__isnull"] = True
+    filters["event__published"] = True
+
+    # If user is highschool student filter on highschool
+    try:
+        if request.user.is_high_school_student() and not request.user.is_superuser:
+            user_highschool = request.user.get_high_school_student_record().highschool
+            filters["event__highschool"] = user_highschool
+            filters["allowed_highschools"] = Q(establishment_restrictions=False) | Q(allowed_highschools__contains=user_highschool)
+            # TODO: add level restrictions !!!
+    except:
+        # AnonymousUser
+        pass
+    # TODO: implement class method in model to retrieve >=today slots for visits
+    filters["date__gte"] = today
+    events = Slot.objects.prefetch_related(
+            'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
+            .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date' )
+
+    events_count = events.count()
+    context = {
+        'events_count': events_count,
+        'events_txt': events_txt,
+        'events': events,
+    }
+    return render(request, 'offer_off_offer_events.html', context)
+
+
 
 def error_500(request):
     return render(request, '500.html', status=500)

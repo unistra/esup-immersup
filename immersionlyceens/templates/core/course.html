@@ -28,10 +28,11 @@
       {% endif %}
     </div>
     <div class="card-body">
+      <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
       <form class="" role="form" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
       {% csrf_token %}
         {{ course_form.id }}
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
@@ -48,7 +49,7 @@
         <div class="form-group row" id="id_div_highschool">
           <label for="id_highschool" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>
-            {% if request.user.is_master_establishment_manager %}
+            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
                 <strong>{% trans 'or' %} </strong>
             {% endif %}
             {% trans 'high school' %} :
@@ -60,7 +61,7 @@
             {{ course_form.highschool.errors }}
           </div>
         </div>
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk"></i>

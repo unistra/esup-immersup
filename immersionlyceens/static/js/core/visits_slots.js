@@ -13,6 +13,8 @@ function init_datatable() {
             d.structure_id = $('#id_structure').val();
           }
 
+          d.past = $('#filter_past_slots').is(':checked')
+
           return d
       },
       dataSrc: function (json) {
@@ -20,7 +22,7 @@ function init_datatable() {
           return json['data'];
         }
         return [];
-      }
+      },
     },
     order: [[4, "asc"], [1, "asc"], [2, "asc"], [3, "asc"]],
     processing: false,
@@ -30,8 +32,8 @@ function init_datatable() {
     search: true,
     searchCols: [
         null,
-        null,
-        null,
+        { "search": highschool_filter },
+        { "search": managed_by_filter },
         { "search": visit_purpose_filter},
         null,
         null,
@@ -53,16 +55,18 @@ function init_datatable() {
         },
         { data: 'highschool',
           render: function(data, type, row) {
-            return data.label
+            return data.city + " - " + data.label;
           },
         },
-        { data: 'structure',
+        { data: 'establishment',
           render: function(data, type, row) {
+            let txt = row.establishment.code
+
             if(row.structure && row.structure.code) {
-              return row.structure.code;
+              txt += " - " + row.structure.code;
             }
 
-            return ""
+            return txt
           },
         },
         { data: 'visit',
@@ -129,6 +133,46 @@ function init_datatable() {
             }
           }
         },
+        { data: 'restrictions',
+          render: function(data) {
+            let txt = ""
+
+            if(data.establishment_restrictions === true) {
+              txt += establishments_txt + " :\n"
+              data.allowed_establishments.forEach(item => {
+                txt += "- " + item + "\n"
+              })
+
+              data.allowed_highschools.forEach(item => {
+                txt += "- " + item + "\n"
+              })
+            }
+
+            if(data.levels_restrictions === true) {
+              if(txt) txt += "\n"
+
+              txt += levels_txt + " :\n"
+
+              data.allowed_highschool_levels.forEach(item => {
+                txt += "- " + item + "\n"
+              })
+
+              data.allowed_post_bachelor_levels.forEach(item => {
+                txt += "- " + item + "\n"
+              })
+
+              data.allowed_student_levels.forEach(item => {
+                txt += "- " + item + "\n"
+              })
+            }
+
+            if (txt) {
+              return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+            } else {
+              return '';
+            }
+          }
+        },
         { data: 'id',
           render: function(data, type, row) {
             if (row['can_update_visit_slot']) {
@@ -172,6 +216,15 @@ function init_datatable() {
     }],
   });
 
+  // All filters reset action
+  $('#filters_reset_all').click(function () {
+    yadcf.exResetAllFilters(dt);
+  });
+
+  $('#filter_past_slots').click(function () {
+    dt.ajax.reload();
+  });
+
   yadcf.init(dt, [
     {
         column_number: 0,
@@ -183,6 +236,7 @@ function init_datatable() {
     {
         column_number: 1,
         filter_default_label: "",
+        filter_match_mode: "exact",
         filter_container_id: "highschool_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
@@ -190,13 +244,15 @@ function init_datatable() {
     {
         column_number: 2,
         filter_default_label: "",
+        filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
-        filter_container_id: "structure_filter",
+        filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
     },
     {
         column_number: 3,
         filter_default_label: "",
+        filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
         filter_container_id: "purpose_filter",
         filter_reset_button_text: false,
@@ -234,4 +290,12 @@ function init_datatable() {
         filter_reset_button_text: false,
     },
   ])
+
+  if(highschool_filter) {
+    yadcf.exFilterColumn(dt, [
+      [1, [highschool_filter]],
+      [2, [managed_by_filter]],
+      [3, [visit_purpose_filter]],
+    ]);
+  }
 }

@@ -7,7 +7,7 @@
 
 {% block head-javascript %}
 {{ block.super }}
-<script src="{% static 'js/core/courses_slots.js' %}"></script>
+<script src="{% static 'js/core/courses_slots.min.js' %}"></script>
 {% endblock %}
 
 {% block slot_deletion %}
@@ -50,7 +50,7 @@
 <thead>
   <tr>
     <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
-    <th id="managed_by_filter" class="align-top">{% trans 'Managed By' %}</th>
+    <th id="managed_by_filter" class="align-top">{% trans 'Managed By' context "slots" %}</th>
     <th id="course_filter" class="align-top">{% trans 'Course label' %}</th>
     <th id="course_type_filter" class="align-top">{% trans 'Course type' %}</th>
     <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
@@ -59,11 +59,13 @@
     <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
     <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
     <th class="align-top">{% trans 'Info.' %}</th>
+    <th class="align-top">{% trans 'Restr.' %}</th>
     <th class="align-top">{% trans 'Control' %}</th>
   </tr>
 </thead>
 <tbody>
   <tr>
+    <td></td>
     <td></td>
     <td></td>
     <td></td>

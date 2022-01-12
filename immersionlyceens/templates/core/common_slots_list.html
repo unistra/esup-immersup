@@ -37,18 +37,30 @@
     {% block card_header %}{% endblock %}
       <div class="card-body">
         {% block card_title %}{% endblock %}
-        {% block past_slots %}{% endblock %}
+        <div>
+          <form class="form-inline">
+            <div class="form-group">
+              <div class="form-group form-check mx-sm-3 mb-2">
+                <input type="checkbox" id="filter_past_slots" class="form-check-input">
+                <label for="filter_past_slots" class="form-check-label ml-md-2"> {% trans 'Include past slots with attendances' %}</label>
+              </div>
+              <div class="form-group mb-2">
+                <input type="button" id="filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
+              </div>
+            </div>
+          </form>
+        </div>
         {% if not request.user.is_speaker %}
           <div class="row">
             {% if slot_mode != "visit" %}
-              {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager %}
+              {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
                 <div class="col-md-3">
                   <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
                     <label for="id_highschool">{% trans 'Select a high school' %} :</label>
                     <select id="id_highschool" class="form-control">
                       <option value="">------------</option>
                       {% for highschool in highschools %}
-                        <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
+                        <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
                           {{ highschool }}
                         </option>
                       {% endfor %}
@@ -57,7 +69,7 @@
                 </div>
               {% endif %}
             {% endif %}
-            {% if request.user.is_master_establishment_manager %}
+            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
               {% if slot_mode != "visit" %}
                 <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
               {% endif %}
@@ -65,11 +77,11 @@
                 <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
                   <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
                   <select id="id_establishment" class="form-control">
-                    {% if request.user.is_master_establishment_manager %}
+                    {% if request.user.is_master_establishment_manager or request.user.is_operator %}
                       <option value="">------------</option>
                     {% endif %}
                     {% for establishment in establishments %}
-                      <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
+                      <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
                         {{ establishment.code }} - {{ establishment.label }}
                       </option>
                     {% endfor %}
@@ -77,7 +89,7 @@
                 </div>
               </div>
             {% endif %}
-            {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager %}
+            {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
               <div class="col-md-5" id="id_div_structures">
                 <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
                   <label for="id_structure">{% trans 'Select a structure' %} :</label>
@@ -119,9 +131,24 @@
   var slot_places = 0;
   let is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   let is_highschool_manager = "{{ request.user.is_high_school_manager }}" === "True"
+
   let event_type_filter = "{{ event_type_filter }}"
+  let event_label_filter = "{{ event_label_filter }}"
   let course_label_filter = "{{ course_label_filter }}"
   let visit_purpose_filter = "{{ visit_purpose_filter }}"
+  let highschool_filter = "{{ highschool_filter }}"
+  let managed_by_filter = "{{ managed_by_filter }}"
+
+  function decodeHTMLEntities(text) {
+    return $("<textarea/>").html(text).text();
+  }
+
+  event_type_filter = decodeHTMLEntities(event_type_filter)
+  event_label_filter = decodeHTMLEntities(event_label_filter)
+  course_label_filter = decodeHTMLEntities(course_label_filter)
+  visit_purpose_filter = decodeHTMLEntities(visit_purpose_filter)
+  highschool_filter = decodeHTMLEntities(highschool_filter)
+  managed_by_filter = decodeHTMLEntities(managed_by_filter)
 
   // datatables variables
   let language_file = "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
@@ -137,6 +164,8 @@
   let all_text = "{% trans 'All' %}"
   let remote_visit_text = "{% trans 'Remote visit' %}"
   let remote_event_text = "{% trans 'Remote event' %}"
+  let establishments_txt = "{% trans 'Establishments' %}"
+  let levels_txt = "{% trans 'Levels' %}"
 
   let deleteDialog = $("#delete-dialog-form").dialog({
     autoOpen: false,
@@ -384,6 +413,7 @@ function delete_slot(slot_id) {
 }
 
 function reload_data() {
+  yadcf.exResetAllFilters(dt);
   dt.clear().draw();
   dt.ajax.reload();
 }

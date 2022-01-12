@@ -17,6 +17,8 @@ function init_datatable() {
           d.highschool_id = $('#id_highschool').val();
         }
 
+        d.past = $('#filter_past_slots').is(':checked')
+
         return d
       },
       dataSrc: function (json) {
@@ -34,9 +36,9 @@ function init_datatable() {
     search: true,
     searchCols: [
         null,
-        null,
+        { "search": managed_by_filter},
         { "search": event_type_filter},
-        null,
+        { "search": event_label_filter},
         null,
         null,
         null,
@@ -55,17 +57,18 @@ function init_datatable() {
           return (data) ? yes_text : no_text;
         }
       },
-      { data: 'structure',
+      { data: 'managed_by',
         render: function(data, type, row) {
           if(row.establishment) {
-            let txt = row.establishment.short_label
+            let txt = row.establishment.code
             if (row.structure) {
-              txt += " - " + row.structure.label
+              txt += " - " + row.structure.code;
             }
+
             return txt
           }
           else if(row.highschool) {
-            return row.highschool.label
+            return row.highschool.city + " - " + row.highschool.label;
           }
         },
       },
@@ -150,6 +153,46 @@ function init_datatable() {
           }
         }
       },
+      { data: 'restrictions',
+        render: function(data) {
+          let txt = ""
+
+          if(data.establishment_restrictions === true) {
+            txt += establishments_txt + " :\n"
+            data.allowed_establishments.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_highschools.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+          }
+
+          if(data.levels_restrictions === true) {
+            if(txt) txt += "\n"
+
+            txt += levels_txt + " :\n"
+
+            data.allowed_highschool_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_post_bachelor_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_student_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+          }
+
+          if (txt) {
+            return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+          } else {
+            return '';
+          }
+        }
+      },
       { data: 'id',
         render: function(data, type, row) {
           if (row['can_update_event_slot']) {
@@ -193,6 +236,15 @@ function init_datatable() {
     }],
   });
 
+  // All filters reset action
+  $('#filters_reset_all').click(function () {
+    yadcf.exResetAllFilters(dt);
+  });
+
+  $('#filter_past_slots').click(function () {
+    dt.ajax.reload();
+  });
+
   yadcf.init(dt, [
     {
         column_number: 0,
@@ -212,6 +264,7 @@ function init_datatable() {
     {
         column_number: 2,
         filter_default_label: "",
+        filter_match_mode: "exact",
         style_class: "form-control form-control-sm",
         filter_container_id: "event_type_filter",
         filter_reset_button_text: false,
@@ -257,4 +310,18 @@ function init_datatable() {
         filter_reset_button_text: false,
     },
   ])
+
+  if(managed_by_filter || event_type_filter) {
+    let filter_array = Array()
+
+    if(managed_by_filter) {
+      filter_array.push([1, [managed_by_filter]])
+    }
+
+    if(event_type_filter) {
+      filter_array.push([2, [event_type_filter]])
+    }
+
+    yadcf.exFilterColumn(dt, filter_array);
+  }
 }

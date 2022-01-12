@@ -40,13 +40,6 @@ ul
       </div>
       <div class="card-body">
         <div class="form-group row">
-          <label for="id_civility" class="col-sm-3 col-md-4 col-form-label">
-            {% trans 'Civility' %} * :
-          </label>
-          <div class="col-sm-6 col-md-6">{{ record_form.civility }}</div>
-          <div class="col-sm-3 col-md-2">{{ record_form.civility.errors }}</div>
-        </div>
-        <div class="form-group row">
           <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Lastname' %} * :
           </label>
@@ -223,7 +216,7 @@ ul
         <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4">{% trans 'Back' %}</a>
 
-      {% if authorized_groups|in_groups:"REF-ETAB-MAITRE" %}
+      {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
         <input type="button" class="btn btn-primary btn-sm ml-4" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
       {% endif %}
     </div>
@@ -233,6 +226,10 @@ ul
 </div>
 
 <script>
+  {% autoescape off %}
+    let high_school_levels = is_set('{{ high_school_levels }}') ? JSON.parse('{{ high_school_levels }}') : Array()
+  {% endautoescape %}
+
   function open_modal() {
     $('#modal_nuke_account').modal('show');
   }
@@ -248,7 +245,7 @@ ul
     });
 
     function switch_bachelor_data(level) {
-      if(level == 4 || level == 1 || level == 2) {
+      if(is_set(high_school_levels[level]) && high_school_levels[level]['is_post_bachelor'] === false) {
         $('#id_bachelor_data').show("slow");
         $('#id_post_bachelor_data').hide("slow");
       }
@@ -262,7 +259,7 @@ ul
       console.log("b_type => " + b_type)
       console.log("level  => " + level)
       if(b_type == 1) {
-        if ( level == 2 || level == 3 ) {
+        if ( is_set(high_school_levels[level]) && high_school_levels[level]['requires_bachelor_speciality'] === true ) {
           $('#id_general_bachelor_data').show("slow");
         } else {
           $('#id_general_bachelor_data').hide("slow");

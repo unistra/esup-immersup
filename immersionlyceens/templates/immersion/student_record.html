@@ -47,13 +47,6 @@
       </div>
       <div class="card-body">
         <div class="form-group row">
-          <label for="id_civility" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Civility' %} :
-          </label>
-          <div class="col-sm-3">{{ record_form.civility }}</div>
-          <div class="col-sm-6">{{ record_form.civility.errors }}</div>
-        </div>
-        <div class="form-group row">
           <label for="id_lastname" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Lastname' %} :
           </label>
@@ -165,7 +158,7 @@
         <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4" style='margin-left:40px;'>{% trans 'Back' %}</a>
       </div>
-      {% if authorized_groups|in_groups:"REF-ETAB-MAITRE" %}
+      {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
         <div class="col-sm-10 text-right">
           <input type="button" class="btn btn-secondary btn-sm" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
         </div>

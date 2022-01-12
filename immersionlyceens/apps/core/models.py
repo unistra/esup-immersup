@@ -18,6 +18,7 @@ from functools import partial
 from os.path import dirname, join
 from typing import Optional, Any
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.postgres.fields import ArrayField
@@ -150,6 +151,7 @@ class HighSchool(models.Model):
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
     immersions_proposal = PostBacImmersionManager()
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
+    badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
 
     def __str__(self):
         return f"{self.city} - {self.label}"
@@ -158,6 +160,88 @@ class HighSchool(models.Model):
         verbose_name = _('High school')
         unique_together = ('label', 'city')
         ordering = ['city', 'label', ]
+
+
+def get_object_default_order(object_class):
+    try:
+        cls = apps.get_model('core', object_class)
+        print(f"class : {cls}")
+        if cls.objects.all().count() == 0:
+            return 1
+        else:
+            return cls.objects.all().aggregate(Max('order'))['order__max'] + 1
+    except Exception as e:
+        print(e)
+        pass
+
+    return None
+
+class HighSchoolLevel(models.Model):
+    """
+    High school pupil levels
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=get_object_default_order('HighSchoolLevel')
+    )
+    is_post_bachelor = models.BooleanField(_("Is a post-bachelor level"), default=False)
+    requires_bachelor_speciality = models.BooleanField(_("Requires bachelor speciality"), default=False)
+
+    def __str__(self):
+        return self.label
+
+    def can_delete(self):
+        return not self.high_school_student_record.exists()
+
+    class Meta:
+        verbose_name = _('High school level')
+        verbose_name_plural = _('High school levels')
+        ordering = ['order']
+
+
+class PostBachelorLevel(models.Model):
+    """
+    Post bachelor student levels
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=get_object_default_order('PostBachelorLevel')
+    )
+
+    def __str__(self):
+        return self.label
+
+    def can_delete(self):
+        return not self.high_school_student_record.exists()
+
+    class Meta:
+        verbose_name = _('Post bachelor level')
+        verbose_name_plural = _('Post bachelor levels')
+        ordering = ['order']
+
+
+class StudentLevel(models.Model):
+    """
+    Student levels
+    """
+    label = models.CharField(_("Label"), max_length=128, unique=True)
+    active = models.BooleanField(_("Active"), default=True)
+    order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
+        default=get_object_default_order('StudentLevel')
+    )
+
+    def __str__(self):
+        return self.label
+
+    def can_delete(self):
+        return not self.student_record.exists()
+
+    class Meta:
+        verbose_name = _('Student level')
+        verbose_name_plural = _('Student levels')
+        ordering = ['order']
 
 
 class ImmersionUser(AbstractUser):
@@ -170,6 +254,7 @@ class ImmersionUser(AbstractUser):
         lambda has_group, su: has_group and not su,
     ]
     _groups = {
+        'REF-TEC': 'operator',
         'REF-ETAB': 'establishment_manager',
         'REF-ETAB-MAITRE': 'master_establishment_manager',
         'REF-STR': 'structure_manager',
@@ -323,7 +408,7 @@ class ImmersionUser(AbstractUser):
             return None
 
     def get_authorized_structures(self):
-        if self.is_superuser or self.is_master_establishment_manager():
+        if self.is_superuser or self.is_master_establishment_manager() or self.is_operator():
             return Structure.activated.all()
         if self.is_establishment_manager() and self.establishment:
             return Structure.activated.filter(establishment=self.establishment)
@@ -607,7 +692,6 @@ class Building(models.Model):
     )
     url = models.URLField(_("Url"), max_length=200, blank=True, null=True)
     active = models.BooleanField(_("Active"), default=True)
-
 
     def __str__(self):
         return self.label
@@ -1252,6 +1336,10 @@ class OffOfferEvent(models.Model):
         return event_str
 
 
+    def event_label(self):
+        return f"{self.label} - {self.description}"
+
+
     def can_delete(self):
         today = timezone.now().date()
         try:
@@ -1313,6 +1401,12 @@ class OffOfferEvent(models.Model):
     def clean(self):
         if [self.establishment, self.highschool].count(None) != 1:
             raise ValidationError("You must select one of : Establishment or High school")
+
+    def get_etab_or_high_school(self):
+        if not self.highschool:
+            return self.establishment
+        else:
+            return self.highschool
 
     class Meta:
         constraints = [
@@ -1672,10 +1766,16 @@ class Slot(models.Model):
         HighSchool, verbose_name=_("Allowed high schools"), related_name='+', blank=True
     )
 
-    # Since levels are not objects, we use array fields to handle these restrictions
-    allowed_highschool_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
-    allowed_student_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
-    allowed_post_bachelor_levels = ArrayField(models.SmallIntegerField(), blank=True, null=True)
+    # new fields
+    allowed_highschool_levels = models.ManyToManyField(
+        HighSchoolLevel, verbose_name=_("Allowed high school levels"), related_name='+', blank=True
+    )
+    allowed_student_levels = models.ManyToManyField(
+        StudentLevel, verbose_name=_("Allowed student levels"), related_name='+', blank=True
+    )
+    allowed_post_bachelor_levels = models.ManyToManyField(
+        PostBachelorLevel, verbose_name=_("Allowed post bachelor levels"), related_name='+', blank=True
+    )
 
     def get_establishment(self):
         """
@@ -1721,6 +1821,7 @@ class Slot(models.Model):
         """
         :return: number of available seats for instance slot
         """
+        # TODO: check if we need to filter published slots only ???
         s = self.n_places - Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
         return 0 if s < 0 else s
 
@@ -1729,6 +1830,7 @@ class Slot(models.Model):
         """
         :return: number of registered students for instance slot
         """
+        # TODO: check if we need to filter published slots only ???
         return Immersion.objects.filter(slot=self.pk, cancellation_type__isnull=True).count()
 
 
@@ -1737,6 +1839,11 @@ class Slot(models.Model):
             raise ValidationError("You must select one of : Course, Visit or Event")
 
     def __str__(self):
+        slot_type = _("No type yet")
+        date = self.date or _("date unknown")
+        start_time = self.start_time or _("start time unknown")
+        end_time = self.end_time or _("end time unknown")
+
         if self.visit:
             slot_type = _(f"Visit - {self.visit.highschool}")
         elif self.course:
@@ -1744,8 +1851,17 @@ class Slot(models.Model):
         elif self.event:
             slot_type = _(f"Event - {self.event.label}")
 
-        return f"{slot_type} : {self.date} : {self.start_time}-{self.end_time}"
+        return f"{slot_type} : {date} : {start_time}-{end_time}"
 
+
+    def get_allowed_highschool_levels(self):
+        return [level.label for level in self.allowed_highschool_levels.all()]
+
+    def get_allowed_students_levels(self):
+        return [level.label for level in self.allowed_student_levels.all()]
+
+    def get_allowed_post_bachelor_levels(self):
+        return [level.label for level in self.allowed_post_bachelor_levels.all()]
 
     class Meta:
         verbose_name = _('Slot')

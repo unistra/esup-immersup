@@ -38,7 +38,7 @@
       </div>
       {% endif %}
       <div class="row">
-        {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager %}
+        {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
           <div class="col-md-3">
             <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
               <label for="highschools">{% trans 'Select a high school' %} :</label>
@@ -53,15 +53,15 @@
             </div>
           </div>
         {% endif %}
-        {% if request.user.is_master_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
           <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
         {% endif %}
-        {% if request.user.is_master_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
           <div class="col-md-3">
             <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
               <label for="establishments">{% trans 'Select an establishment' %} :</label>
               <select id="establishments" class="form-control">
-                {% if request.user.is_master_establishment_manager %}
+                {% if request.user.is_master_establishment_manager or request.user.is_operator %}
                 <option value="">------------</option>
                 {% endif %}
                 {% for establishment in establishments %}
@@ -73,14 +73,12 @@
             </div>
           </div>
         {% endif %}
-        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
           <div class="col-md-5" id="id_div_structures">
             <div id="id_div_structure" style="padding-bottom:10px; padding-top:20px;">
               <label for="structures">{% trans 'Select a structure' %} :</label>
               <select id="structures" class="form-control">
-                {% if not request.user.is_structure_manager %}
                 <option value="">------------</option>
-                {% endif %}
                 {% for structure in structures %}
                   <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
                     {{ structure.code }} - {{ structure.label }}
@@ -97,7 +95,7 @@
         <thead>
           <tr>
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
-            <th><span id="managed_by_filter">{% trans 'Managed by' %}</span></th>
+            <th><span id="managed_by_filter">{% trans 'Managed by' context "events" %}</span></th>
             <th><span id="event_type_filter">{% trans 'Event type' %}</span></th>
             <th><span id="label_filter">{% trans 'Label' %}</span></th>
             <th><span id="speakers_filter">{% trans 'Speakers' %}</span></th>
@@ -211,11 +209,7 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
-        let options = ""
-
-        if(!is_structure_manager) {
-          options = '<option value="">---------</option>'
-        }
+        let options = '<option value="">---------</option>'
 
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
@@ -243,6 +237,7 @@
   }
 
   function load_events() {
+    yadcf.exResetAllFilters(dt);
     dt.clear().draw()
 
     let data = Object()
@@ -331,9 +326,9 @@
           "data": "managed_by",
           "render": function(data, type, row) {
             if(row.establishment) {
-              let txt = row.establishment.short_label
+              let txt = row.establishment.code
               if (row.structure) {
-                txt += " - " + row.structure.code + " : " + row.structure.label
+                txt += " - " + row.structure.code
               }
 
               return txt
@@ -397,6 +392,28 @@
             let slot_url = '/core/off_offer_events_slots/'
             let add_slot_url = '/core/off_offer_event_slot/add/'
 
+            if(is_set(row.establishment) && is_set(row.id)) {
+                let structure_id = is_set(row.structure) ? row.structure.id : null
+                slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + structure_id + "/" + row.id
+            }
+            else if (is_set(row.highschool) && is_set(row.id)) {
+                slot_url += row.highschool.id + "/" + row.id
+                add_slot_url += row.highschool.id + "/" + row.id
+            }
+
+            // direct link to slots list
+            if(row.slots_count) {
+              icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this event' %}\">" +
+                       "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                       "</a>\n";
+            }
+            
+            // direct link to new slot form
+            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
+                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                     "</a>\n";
+
             icons += "<a href='/core/off_offer_event/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
                 "<i class=\"fa fas fa-copy fa-2x\"></i>" +
                 "</a>\n";
@@ -410,25 +427,6 @@
                   "<i class=\"fa fas fa-trash fa-2x\"></i>" +
                   "</button>";
             }
-
-            if(is_set(row.establishment) && is_set(row.structure) && is_set(row.id)) {
-                slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
-                add_slot_url += row.establishment.id + "/" + row.structure.id + "/" + row.id
-            }
-            else if (is_set(row.highschool) && is_set(row.id)) {
-                slot_url += row.highschool.id + "/" + row.id
-                add_slot_url += row.highschool.id + "/" + row.id
-            }
-
-            // direct link to slots list
-            icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this event' %}\">" +
-                     "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
-                     "</a>\n";
-
-            // direct link to new slot form
-            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this event' %}\">" +
-                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
-                     "</a>\n";
 
             return icons;
           },

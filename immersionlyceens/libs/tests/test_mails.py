@@ -15,7 +15,7 @@ from ..mails.variables_parser import parser
 from immersionlyceens.apps.core.models import (
     UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
     Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
-    CancelType
+    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -23,7 +23,8 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 class APITestCase(TestCase):
     """Tests for API"""
 
-    fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype']
+    fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype',
+                'high_school_levels', 'post_bachelor_levels', 'student_levels']
 
     def setUp(self):
         # TODO : use test fixtures
@@ -150,9 +151,8 @@ class APITestCase(TestCase):
             student=self.highschool_user,
             highschool=self.high_school,
             birth_date=datetime.datetime.today(),
-            civility=1,
             phone='0123456789',
-            level=1,
+            level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',

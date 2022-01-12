@@ -33,16 +33,21 @@ function init_datatable() {
         return (data) ? yes_text : no_text;
       },
     },
-    { "data": "structure.code",
+    { "data": "managed_by",
       "render": function (data, type, row) {
-        if(row.structure) {
-          return row.structure.code + " (" + row.structure.establishment + ")"
+        let txt = ""
+        if(row.establishment) {
+          txt += row.establishment.code
+
+          if(row.structure) {
+            txt += " - " + row.structure.code;
+          }
         }
         else if (row.highschool) {
-          return row.highschool.label
+          txt = row.highschool.city + " - " + row.highschool.label
         }
 
-        return ""
+        return txt
       }
     },
     { "data": "training_label" },
@@ -106,15 +111,17 @@ function init_datatable() {
     },
     { "data": "attendances_status",
       "render": function(data, type, row) {
-        var msg = "";
+        let msg = "";
+        let edit_mode = 0;
 
-        if(row.attendances_value == 1) {
-          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +","+row.n_places+")\" title=\"" + attendances_text + "\">" +
+        if(row.attendances_value === 1 && row.can_update_course_slot) {
+          edit_mode = 1
+          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\"" + attendances_text + "\">" +
               "<i class='fa fas fa-edit fa-2x'></i>" +
               "</button>";
         }
-        else if (row.attendances_value != -1) {
-          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +","+row.n_places+")\" title=\"" + registered_text + "\">" +
+        else if (row.attendances_value !== -1) {
+          msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\"" + registered_text + "\">" +
                 "<i class='fa fas fa-eye fa-2x'></i>" +
                 "</button>";
         }
@@ -132,15 +139,55 @@ function init_datatable() {
         }
       },
     },
-  ],
-    "columnDefs": [
-      {
-        "defaultContent": "",
-        "targets": "_all",
-        "className": "all",
+    { data: 'restrictions',
+      render: function(data) {
+        let txt = "<div>"
+
+        if(data.establishment_restrictions === true) {
+          txt += establishments_txt + " :<br>"
+          data.allowed_establishments.forEach(item => {
+            txt += "- " + item + "<br>"
+          })
+
+          data.allowed_highschools.forEach(item => {
+            txt += "- " + item + "<br>"
+          })
+        }
+
+        if(data.levels_restrictions === true) {
+          if(txt) txt += "<br>"
+
+          txt += levels_txt + " :<br>"
+
+          data.allowed_highschool_levels.forEach(item => {
+            txt += "- " + item + "<br>"
+          })
+
+          data.allowed_post_bachelor_levels.forEach(item => {
+            txt += "- " + item + "<br>"
+          })
+
+          data.allowed_student_levels.forEach(item => {
+            txt += "- " + item + "<br>"
+          })
+        }
+
+        txt += "</div>"
+
+        if (txt !== "<div></div>") {
+          return '<span data-toggle="tooltip" data-html="true" data-title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+        } else {
+          return '';
+        }
+      }
+    }],
+    columnDefs: [{
+        defaultContent: '-',
+        targets: '_all'
       },
       {
-        "orderable": false, "targets": 9
+        orderable: false,
+        targets: 9
       },
     ],
   });
@@ -168,18 +215,21 @@ function init_datatable() {
     }, {
       column_number: 1,
       filter_default_label: "",
+      filter_match_mode: "exact",
       filter_container_id: "structure_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }, {
       column_number: 2,
       filter_default_label: "",
+      filter_match_mode: "exact",
       style_class: "form-control form-control-sm",
       filter_container_id: "training_filter",
       filter_reset_button_text: false,
     }, {
       column_number: 3,
       filter_default_label: "",
+      filter_match_mode: "exact",
       style_class: "form-control form-control-sm",
       filter_container_id: "label_filter",
       filter_reset_button_text: false,

@@ -19,7 +19,7 @@ from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
     Building, Calendar, Campus, Structure, Course, CourseType, Establishment,
     HighSchool, ImmersionUser, Slot, Training, UniversityYear, Visit, OffOfferEvent,
-    OffOfferEventType
+    OffOfferEventType, HighSchoolLevel, PostBachelorLevel, StudentLevel
 )
 
 from ..immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -40,6 +40,7 @@ class CourseForm(forms.ModelForm):
             can_choose_establishment = any([
                 self.request.user.is_establishment_manager(),
                 self.request.user.is_master_establishment_manager(),
+                self.request.user.is_operator(),
                 self.request.user.is_structure_manager()
             ])
 
@@ -68,7 +69,7 @@ class CourseForm(forms.ModelForm):
                 and self.request.user.highschool.postbac_immersion:
                 allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
                 self.fields['highschool'].empty_label = None
-            elif self.request.user.is_master_establishment_manager():
+            elif self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
                 allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
 
             self.fields["highschool"].queryset = allowed_highschools.order_by('city', 'label')
@@ -126,31 +127,19 @@ class SlotForm(forms.ModelForm):
     structure = forms.ModelChoiceField(queryset=Structure.objects.all(), required=False)
     training = forms.ModelChoiceField(queryset=Training.objects.all(), required=False)
     highschool = forms.ModelChoiceField(queryset=HighSchool.agreed.filter(postbac_immersion=True), required=False)
+    repeat = forms.DateField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         instance = kwargs.get('instance', None)
 
+        try:
+            getattr(self, "slot_dates")
+        except AttributeError:
+            self.slot_dates = []
+
         course = self.instance.course if self.instance and self.instance.course_id else None
-
-        self.fields['allowed_highschool_levels'] = forms.MultipleChoiceField(
-            widget=forms.SelectMultiple,
-            choices=HighSchoolStudentRecord.LEVELS,
-            required=False
-        )
-
-        self.fields['allowed_student_levels'] = forms.MultipleChoiceField(
-            widget=forms.SelectMultiple,
-            choices=StudentRecord.LEVELS,
-            required=False
-        )
-
-        self.fields['allowed_post_bachelor_levels'] = forms.MultipleChoiceField(
-            widget=forms.SelectMultiple,
-            choices=HighSchoolStudentRecord.POST_BACHELOR_LEVELS,
-            required=False
-        )
 
         for elem in ['establishment', 'highschool', 'structure', 'visit', 'event', 'training', 'course', 'course_type',
             'campus', 'building', 'room', 'start_time', 'end_time', 'n_places', 'additional_information', 'url',
@@ -161,10 +150,14 @@ class SlotForm(forms.ModelForm):
         can_choose_establishment = any([
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator(),
             self.request.user.is_structure_manager()
         ])
 
         self.fields["allowed_highschools"].queryset = HighSchool.agreed.order_by('city', 'label')
+        self.fields["allowed_highschool_levels"].queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')
+        self.fields["allowed_student_levels"].queryset = StudentLevel.objects.filter(active=True).order_by('order')
+        self.fields["allowed_post_bachelor_levels"].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
 
         if can_choose_establishment:
             allowed_establishments = Establishment.activated.user_establishments(self.request.user)
@@ -201,7 +194,7 @@ class SlotForm(forms.ModelForm):
                 and self.request.user.highschool.postbac_immersion:
             allowed_highschools = HighSchool.agreed.filter(pk=self.request.user.highschool.id)
             self.fields['highschool'].empty_label = None
-        elif self.request.user.is_master_establishment_manager():
+        elif self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
             allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
 
         self.fields["highschool"].queryset = allowed_highschools.order_by('city', 'label')
@@ -216,37 +209,23 @@ class SlotForm(forms.ModelForm):
         if instance:
             self.fields['date'].value = instance.date
 
-
-    def clean_restrictions(self, cleaned_data):
-        try:
-            cleaned_data['allowed_highschool_levels'] = [int(x) for x in cleaned_data['allowed_highschool_levels']]
-        except (ValueError, TypeError):
-            cleaned_data['allowed_highschool_levels'] = []
-
-        try:
-            cleaned_data['allowed_student_levels'] = [int(x) for x in cleaned_data['allowed_student_levels']]
-        except (ValueError, TypeError):
-            cleaned_data['allowed_student_levels'] = []
-
-        try:
-            cleaned_data['allowed_post_bachelor_levels'] = [int(x) for x in cleaned_data['allowed_post_bachelor_levels']]
-        except (ValueError, TypeError):
-            cleaned_data['allowed_post_bachelor_levels'] = []
-
-        return cleaned_data
+        self.fields["repeat"].widget = forms.DateInput(
+            format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
+        )
 
     def clean(self):
         cleaned_data = super().clean()
-        course = cleaned_data.get('course')
         structure = cleaned_data.get('structure')
-        highschool = cleaned_data.get('highschool')
         published = cleaned_data.get('published', None)
         n_places = cleaned_data.get('n_places', 0)
         face_to_face = cleaned_data.get('face_to_face', True)
         _date = cleaned_data.get('date')
         start_time = cleaned_data.get('start_time', 0)
 
-        cleaned_data = self.clean_restrictions(cleaned_data)
+        # Slot repetition
+        if cleaned_data.get('repeat'):
+            self.slot_dates = self.request.POST.getlist("slot_dates")
+
         cals = Calendar.objects.all()
 
         if cals.exists():
@@ -285,7 +264,6 @@ class SlotForm(forms.ModelForm):
 
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
-                messages.error(self.request, msg)
                 raise forms.ValidationError({'n_places': msg})
 
         if _date and not cal.date_is_between(_date):
@@ -300,7 +278,6 @@ class SlotForm(forms.ModelForm):
 
         return cleaned_data
 
-
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
 
@@ -308,6 +285,34 @@ class SlotForm(forms.ModelForm):
             instance.course.published = True
             instance.course.save()
             messages.success(self.request, _("Course published"))
+
+        if self.data.get("repeat"):
+            new_dates = self.data.getlist("slot_dates[]")
+            try:
+                university_year = UniversityYear.objects.get(active=True)
+                new_slot_template = Slot.objects.get(pk=instance.pk)
+                slot_speakers = [speaker for speaker in new_slot_template.speakers.all()]
+                slot_allowed_establishments = [e for e in new_slot_template.allowed_establishments.all()]
+                slot_allowed_highschools = [h for h in new_slot_template.allowed_highschools.all()]
+                slot_allowed_highschool_levels = [l for l in new_slot_template.allowed_highschool_levels.all()]
+                slot_allowed_student_levels = [l for l in new_slot_template.allowed_student_levels.all()]
+                slot_allowed_post_bachelor_levels = [l for l in new_slot_template.allowed_post_bachelor_levels.all()]
+
+                for new_date in new_dates:
+                    parsed_date = datetime.strptime(new_date, "%d/%m/%Y").date()
+                    if parsed_date <= university_year.end_date:
+                        new_slot_template.pk = None
+                        new_slot_template.date = parsed_date
+                        new_slot_template.save()
+                        new_slot_template.speakers.add(*slot_speakers)
+                        new_slot_template.allowed_establishments.add(*slot_allowed_establishments)
+                        new_slot_template.allowed_highschools.add(*slot_allowed_highschools)
+                        new_slot_template.allowed_highschool_levels.add(*slot_allowed_highschool_levels)
+                        new_slot_template.allowed_student_levels.add(*slot_allowed_student_levels)
+                        new_slot_template.allowed_post_bachelor_levels.add(*slot_allowed_post_bachelor_levels)
+                        messages.success(self.request, _("Course slot \"%s\" created.") % new_slot_template)
+            except (Slot.DoesNotExist, UniversityYear.DoesNotExist):
+                pass
 
         return instance
 
@@ -318,7 +323,7 @@ class SlotForm(forms.ModelForm):
             'course_type', 'campus', 'building', 'room', 'url', 'date', 'start_time', 'end_time', 'n_places',
             'additional_information', 'published', 'face_to_face', 'establishments_restrictions', 'levels_restrictions',
             'allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels', 'allowed_student_levels',
-            'allowed_post_bachelor_levels', 'speakers')
+            'allowed_post_bachelor_levels', 'speakers', 'repeat')
         widgets = {
             'additional_information': forms.Textarea(attrs={'placeholder': _('Enter additional information'),}),
             'n_places': forms.NumberInput(attrs={'min': 1, 'max': 200, 'value': 0}),
@@ -330,7 +335,7 @@ class SlotForm(forms.ModelForm):
             'end_time': TimeInput(format='%H:%M'),
         }
 
-        localized_fields = ('date',)
+        localized_fields = ('date', 'repeat')
 
 
 class VisitSlotForm(SlotForm):
@@ -372,8 +377,6 @@ class VisitSlotForm(SlotForm):
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
-
-        cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 
@@ -491,8 +494,6 @@ class OffOfferEventSlotForm(SlotForm):
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
 
-        cleaned_data = self.clean_restrictions(cleaned_data)
-
         cals = Calendar.objects.all()
 
         if cals.exists():
@@ -527,7 +528,6 @@ class OffOfferEventSlotForm(SlotForm):
             if not n_places or n_places <= 0:
                 msg = _("Please enter a valid number for 'n_places' field")
                 self.add_error('n_places', msg)
-                raise forms.ValidationError({'n_places': msg})
 
         if _date and not cal.date_is_between(_date):
             raise forms.ValidationError(
@@ -698,7 +698,8 @@ class VisitForm(forms.ModelForm):
         self.fields["structure"].queryset = Structure.activated.all()
 
         if not self.request.user.is_superuser:
-            self.fields["establishment"].initial = self.request.user.establishment.id
+            if self.request.user.establishment:
+                self.fields["establishment"].initial = self.request.user.establishment.id
 
             if self.request.user.is_establishment_manager():
                 self.fields["establishment"].queryset = \
@@ -827,9 +828,10 @@ class OffOfferEventForm(forms.ModelForm):
 
         if not self.request.user.is_superuser:
             # Keep this ?
-            # self.fields["establishment"].initial = self.request.user.establishment.id
+            #if self.request.user.establishment:
+            #    self.fields["establishment"].initial = self.request.user.establishment.id
 
-            if self.request.user.is_master_establishment_manager():
+            if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
                 self.fields["highschool"].queryset = \
                     HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
 

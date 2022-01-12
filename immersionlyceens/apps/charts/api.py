@@ -13,7 +13,7 @@ from immersionlyceens.decorators import groups_required, is_ajax_request, is_pos
 
 from immersionlyceens.apps.core.models import (
     Structure, Immersion, ImmersionUser, TrainingDomain, TrainingSubdomain, HigherEducationInstitution,
-    HighSchool, Training, Slot, Course
+    HighSchool, Training, Slot, Course, HighSchoolLevel, PostBachelorLevel, StudentLevel
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -57,21 +57,21 @@ def highschool_charts(request, highschool_id):
     }
 
     series = []
-    for level in HighSchoolStudentRecord.LEVELS:
+    for level in HighSchoolLevel.objects.order_by('order'):
         series.append(
             {
-                "name": level[1],
+                "name": level.label,
                 "type": "ColumnSeries",
                 "stacked": True,
 
                 "dataFields": {
-                    "valueY": level[1],
+                    "valueY": level.label,
                     "categoryX": "name",
                 },
                 "columns": {
                     "template": {
                         "width": "30%",
-                        "tooltipText": level[1] + "\n{valueY}",
+                        "tooltipText": level.label + "\n{valueY}",
                     },
                 }
             },
@@ -79,12 +79,12 @@ def highschool_charts(request, highschool_id):
 
     qs = ImmersionUser.objects.filter(high_school_student_record__highschool__id=highschool_id)
 
-    for level in HighSchoolStudentRecord.LEVELS:
-        users = qs.filter(high_school_student_record__level=level[0])
-        datasets[0][level[1]] = users.count() # plaform
-        datasets[1][level[1]] = users.filter(
+    for level in HighSchoolLevel.objects.order_by('order'):
+        users = qs.filter(high_school_student_record__level=level.id)
+        datasets[0][level.label] = users.count() # plaform
+        datasets[1][level.label] = users.filter(
             immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count() # registered
-        datasets[2][level[1]] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
+        datasets[2][level.label] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
 
     response = {
         'axes': axes,
@@ -125,7 +125,13 @@ def highschool_domains_charts(request, highschool_id, level=0):
             cancellation_type__isnull=True
         )
 
-        if level in [1,2,3]:
+        try:
+            high_school_level = HighSchoolLevel.objects.get(pk=level)
+        except HighSchoolLevel.DoesNotExist:
+            high_school_level = None
+            level = 0
+
+        if high_school_level and not high_school_level.is_post_bachelor:
             qs = qs.filter(student__high_school_student_record__level=level)
 
         if qs.count():
@@ -206,12 +212,13 @@ def global_domains_charts(request):
         )
 
         # Level filter
+        # FixMe : find a way to define these levels
         if level in [1, 2]:  # high schools levels only : exclude higher education students
             qs = qs.filter(student__high_school_student_record__level=level)
             qs = qs.exclude(student__student_record__isnull=False)
         elif level == 3:
             # 3rd high school students level + all higher education levels
-            higher_levels = [l[0] for l in StudentRecord.LEVELS]
+            higher_levels = [l.id for l in StudentLevel.objects.order_by('order')]
             qs = qs.filter(
                 Q(student__high_school_student_record__level=level)
                 | Q(student__student_record__level__in=higher_levels))
@@ -340,7 +347,7 @@ def get_trainings_charts(request, highschool_id=None):
                 # institutions students (any level)
                 'unique_students_lvl3': base_students_qs.filter(
                     Q(high_school_student_record__level=3) |
-                    Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))\
+                    Q(student_record__level__in=[s.id for s in StudentLevel.objects.all()]))\
                     .distinct().count(),
                 # registrations on all slots (not cancelled)
                 'all_registrations': base_immersions_qs.count(),
@@ -349,7 +356,7 @@ def get_trainings_charts(request, highschool_id=None):
                 # For REF-ETAB users, also includes higher education institutions students
                 'registrations_lvl3': base_immersions_qs.filter(
                     Q(student__high_school_student_record__level=3) |
-                    Q(student__student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))\
+                    Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.all()]))\
                     .count()
             }
 
@@ -367,14 +374,14 @@ def get_registration_charts(request, level_value=0):
 
     # TODO : Merge with highschool_charts ?
 
-    if level_value == 0 or level_value not in [l[0] for l in HighSchoolStudentRecord.LEVELS]:
+    if level_value == 0 or level_value not in [s.id for s in HighSchoolLevel.objects.all()]:
         level_value = 0 # force it
         student_levels = [
-            l[1] for l in HighSchoolStudentRecord.LEVELS
+            l.label for l in HighSchoolLevel.objects.order_by('order')
         ]
     else:
         student_levels = [
-            HighSchoolStudentRecord.LEVELS[level_value-1][1]
+            HighSchoolLevel.objects.get(pk=level_value).label
         ]
 
     request.session["current_level_filter"] = level_value
@@ -430,22 +437,22 @@ def get_registration_charts(request, level_value=0):
     qs = ImmersionUser.objects.all()
 
     if level_value == 0:
-        levels =  [l for l in HighSchoolStudentRecord.LEVELS]
+        levels =  [l for l in HighSchoolLevel.objects.order_by('order')]
     else:
-        # dirty as there will be only one element
-        levels = [l for l in HighSchoolStudentRecord.LEVELS if l[0] == level_value]
+        l = HighSchoolLevel.objects.get(pk=level_value)
+        levels = [l]
 
     for level in levels:
-        if level[0] != 3:
-            users = qs.filter(high_school_student_record__level=level[0])
-        else: # level 3 : highschool and higher education institutions levels
-            users = qs.filter(Q(high_school_student_record__level=3) |
-                              Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))
+        if not level.is_post_bachelor:
+            users = qs.filter(high_school_student_record__level=level.pk)
+        else: # post bachelor levels : highschool and higher education institutions levels
+            users = qs.filter(Q(high_school_student_record__level__is_post_bachelor=True) |
+                              Q(student_record__level__isnull=False))
 
-        datasets[0][level[1]] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
-        datasets[1][level[1]] = users.filter(
+        datasets[0][level.label] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
+        datasets[1][level.label] = users.filter(
             immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
-        datasets[2][level[1]] = users.count()  # plaform
+        datasets[2][level.label] = users.count()  # platform
 
     response = {
         'axes': axes,
@@ -477,18 +484,19 @@ def get_registration_charts_cats(request):
     except ValueError:
         level_value = 0
 
-    if level_value == 0 or level_value not in [l[0] for l in HighSchoolStudentRecord.LEVELS]:
-        level_value = 0 # force it if not in authorized values
-        student_levels = [
-            l[1] for l in HighSchoolStudentRecord.LEVELS
-        ]
-        levels = [l for l in HighSchoolStudentRecord.LEVELS]
+    if level_value == 0 or level_value not in [l.id for l in HighSchoolLevel.objects.all()]:
+        level_value = 0 # force it if not in allowed values
+        student_levels = []
+        levels = []
+        for l in HighSchoolLevel.objects.order_by('order'):
+            student_levels.append(l.label)
+            levels.append(l)
     else:
         student_levels = [
-            HighSchoolStudentRecord.LEVELS[level_value-1][1]
+            HighSchoolLevel.objects.get(pk=level_value).label
         ]
         # dirty as there will be only one element
-        levels = [l for l in HighSchoolStudentRecord.LEVELS if l[0] == level_value]
+        levels = [HighSchoolLevel.objects.get(pk=level_value)]
 
     # Filter on highschools or higher education institutions
     if _highschools_ids:
@@ -552,16 +560,16 @@ def get_registration_charts_cats(request):
         dataset_ao = { 'name': highschool.label }
 
         for level in levels:
-            if level[0] != 3:
-                users = hs_qs.filter(high_school_student_record__level=level[0])
-            else:  # level 3 : highschool and higher education institutions levels
-                users = hs_qs.filter(Q(high_school_student_record__level=3) |
-                                     Q(student_record__level__in=[l[0] for l in StudentRecord.LEVELS]))
+            if not level.is_post_bachelor:
+                users = hs_qs.filter(high_school_student_record__level=level)
+            else:  # is_post_bachelor : highschool and higher education institutions levels
+                users = hs_qs.filter(Q(high_school_student_record__level=level) |
+                                     Q(student_record__level__in=StudentLevel.objects.all()))
 
-            dataset_pr[level[1]] = users.count()  # plaform
-            dataset_oi[level[1]] = users.filter(
+            dataset_pr[level.label] = users.count()  # plaform
+            dataset_oi[level.label] = users.filter(
                 immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
-            dataset_ao[level[1]] = users.filter(
+            dataset_ao[level.label] = users.filter(
                 immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
 
         datasets['platform_regs'].append(dataset_pr.copy())
@@ -585,15 +593,15 @@ def get_registration_charts_cats(request):
         dataset_ao = {'name': label}
 
         for level in levels:
-            if level[0] != 3:
+            if not level.is_post_bachelor:
                 users = ImmersionUser.objects.none() # we need this to keep consistent data between institutions
-            else:  # level 3 :
-                users = hii_qs.filter(student_record__level__in=[l[0] for l in StudentRecord.LEVELS])
+            else:  # post bachelor levels :
+                users = hii_qs.filter(student_record__level__in=StudentLevel.objects.all())
 
-            dataset_pr[level[1]] = users.count() # plaform
-            dataset_oi[level[1]] = users.filter(
+            dataset_pr[level.label] = users.count() # plaform
+            dataset_oi[level.label] = users.filter(
                 immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count() # registered
-            dataset_ao[level[1]] = users.filter(
+            dataset_ao[level.label] = users.filter(
                 immersions__attendance_status=1).distinct().count() # attended to 1 immersion
 
         datasets['platform_regs'].append(dataset_pr.copy())

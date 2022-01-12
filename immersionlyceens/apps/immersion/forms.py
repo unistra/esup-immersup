@@ -249,8 +249,13 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        is_hs_manager_or_master: bool = self.request.user.is_establishment_manager() or \
-                self.request.user.is_master_establishment_manager()
+        valid_groups = [
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ]
+
+        is_hs_manager_or_master: bool = any(valid_groups)
 
         self.fields["student"].widget = forms.HiddenInput()
         self.fields["highschool"].queryset = HighSchool.agreed.order_by('city','label')
@@ -277,7 +282,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             del self.fields['allowed_second_semester_registrations']
 
             if self.instance and self.instance.validation == 2:
-                for field in ["highschool", "civility", "birth_date", "class_name", "level"]:
+                for field in ["highschool", "birth_date", "class_name", "level"]:
                     self.fields[field].disabled = True
 
     def clean(self):
@@ -321,7 +326,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
 
     class Meta:
         model = HighSchoolStudentRecord
-        fields = ['civility', 'birth_date', 'phone', 'highschool', 'level', 'class_name',
+        fields = ['birth_date', 'phone', 'highschool', 'level', 'class_name',
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
                   'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student',
@@ -358,7 +363,7 @@ class StudentRecordForm(forms.ModelForm):
 
     class Meta:
         model = StudentRecord
-        fields = ['civility', 'birth_date', 'phone', 'uai_code', 'level',
+        fields = ['birth_date', 'phone', 'uai_code', 'level',
                   'origin_bachelor_type', 'current_diploma', 'student',
                   'allowed_global_registrations', 'allowed_first_semester_registrations',
                   'allowed_second_semester_registrations']

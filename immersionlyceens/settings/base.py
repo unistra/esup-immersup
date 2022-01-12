@@ -269,7 +269,9 @@ THIRD_PARTY_APPS = [
     'django_summernote',
     'django_json_widget',
     'django_admin_listfilter_dropdown',
+    'adminsortable2',
     'shibboleth',
+
 ]
 
 LOCAL_APPS = [
@@ -463,6 +465,7 @@ ADMIN_MODELS_ORDER = {
 # Define groups rights on others
 # DO NOT EDIT
 HAS_RIGHTS_ON_GROUP = {
+    'REF-TEC': ['REF-ETAB-MAITRE', 'REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
     'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
     'REF-ETAB': ['REF-STR', 'SRV-JUR', 'INTER'],
     'REF-LYC': ['INTER']

@@ -6,7 +6,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block confirm_slot_creation %}
-<div id="date-dialog-form" style='z-index:3000;' title='{% trans "Confirm event slot creation" %}'>
+<div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm visit slot creation" %}">
   <span>
     {% trans 'This date is inside a vacation or a holiday. Are you sure that you want a visit slot with this date ?' %}
   </span>
@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block confirm_publication %}
-<div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course" %}'>
+<div id="publication-dialog-form" style="z-index:3000;" title="{% trans "Confirm visit publication" %}">
   <span>
     {% trans 'This visit is unpublished. By creating this visit slot, the associated visit will be published. Do you want to continue?' %}
   </span>
@@ -49,7 +49,9 @@
 </div>
 
 <div class="form-group row">
-  <label for="id_face_to_face" class="col-form-label col-sm-3">{% trans 'Face to face' %}</label>
+  <label for="id_face_to_face" class="col-form-label col-sm-3">
+    {% trans 'Face to face' %} ?
+  </label>
   <div class="col-sm-1">
     {{ form.face_to_face }}
   </div>

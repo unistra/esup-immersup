@@ -127,3 +127,16 @@ def fix_lang_code(code):
     # TODO: other languages here ?
     else:
         return code
+
+
+@register.filter()
+def grouper_sort(grouper):
+    print(grouper)
+    grouper.sort(key=grouper)
+    return grouper
+
+
+@register.filter()
+def grouper_sort_reversed(grouper):
+    grouper.sort(reverse=True)
+    return grouper

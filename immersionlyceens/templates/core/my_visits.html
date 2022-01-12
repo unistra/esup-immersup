@@ -31,8 +31,7 @@
           <thead>
             <tr>
               <th id="visits_published_filter" class="w-5">{% trans 'Published' %}</th>
-              <th id="visits_establishment_filter">{% trans 'Establishment' %}</th>
-              <th id="visits_structure_filter">{% trans 'Structure' %}</th>
+              <th id="visits_managed_by_filter">{% trans 'Managed by' context "visits" %}</th>
               <th id="visits_highschool_filter">{% trans 'High school' %}</th>
               <th id="visits_speaker_filter">{% trans 'Speakers' %}</th>
               <th id="visits_published_slots_filter" class="align-top">{% trans 'Published slots' %}</th>
@@ -41,7 +40,6 @@
           </thead>
           <tfoot>
             <tr>
-              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -93,15 +91,15 @@
           return txt;
         },
       },
-      { "data": "establishment.label" },
-      { "data": "structure",
-        "render": function (data) {
-          if(data) {
-            return data.code + " - " + data.label
-          }
+      { "data": "establishment",
+        "render": function (data, type, row) {
+          let txt = row.establishment.code
 
-          return ""
-        },
+          if(row.structure)
+            txt += " - " + row.structure.code
+
+          return txt
+        }
       },
       { "data": "highschool",
         "render": function (data) {
@@ -169,23 +167,17 @@
     }, {
       column_number: 1,
       filter_default_label: "",
-      filter_container_id: "visits_establishment_filter",
+      filter_container_id: "visits_managed_by_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }, {
       column_number: 2,
       filter_default_label: "",
-      filter_container_id: "visits_structure_filter",
-      style_class: "form-control form-control-sm",
-      filter_reset_button_text: false,
-    }, {
-      column_number: 3,
-      filter_default_label: "",
       filter_container_id: "visits_highschool_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     }, {
-      column_number: 4,
+      column_number: 3,
       filter_type: "text",
       filter_default_label: "",
       style_class: "form-control form-control-sm",

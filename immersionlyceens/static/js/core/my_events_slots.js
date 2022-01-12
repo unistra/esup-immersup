@@ -5,18 +5,9 @@ function init_column_defs() {
       "className": "all",
     },
     {
-      "orderable": false, "targets": 9
+      "orderable": false, "targets": 8
     },
   ]
-
-  if(is_highschool_manager) {
-    def.push({
-      "targets": [ 2 ],
-      "visible": false,
-      "searchable": false
-    })
-  }
-
   return def
 }
 
@@ -30,41 +21,33 @@ function init_yadcf_filter() {
     }, {
       column_number: 1,
       filter_default_label: "",
-      filter_container_id: "establishment_filter",
+      filter_match_mode: "exact",
+      filter_container_id: "managed_by_filter",
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
     {
-      column_number: 3,
+      column_number: 2,
       filter_default_label: "",
+      filter_match_mode: "exact",
       style_class: "form-control form-control-sm",
       filter_container_id: "event_filter",
       filter_reset_button_text: false,
     }, {
-      column_number: 6,
+      column_number: 5,
       filter_type: "text",
       filter_default_label: "",
       style_class: "form-control form-control-sm",
       filter_container_id: "speaker_filter",
       filter_reset_button_text: false,
     }, {
-      column_number: 8,
+      column_number: 7,
       filter_default_label: "",
       style_class: "form-control form-control-sm",
       filter_container_id: "attendances_filter",
       filter_reset_button_text: false,
     }
   ]
-
-  if(!is_highschool_manager) {
-    filter.push({
-      column_number: 2,
-      filter_default_label: "",
-      filter_container_id: "structure_filter",
-      style_class: "form-control form-control-sm",
-      filter_reset_button_text: false,
-    })
-  }
 
   return filter
 }
@@ -73,7 +56,7 @@ function init_datatable() {
   dt = $('#slots_list').DataTable({
     'processing': false,
     'order': [
-      [4, "asc"]
+      [3, "asc"]
     ],
     'pageLength': 15,
     'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, all_text]],
@@ -104,17 +87,24 @@ function init_datatable() {
           return (data) ? yes_text : no_text;
         },
       },
-      { "data": "establishment",
-        render: function(data, type, row) {
+      { "data": "managed_by",
+        "render": function (data, type, row) {
+          let txt = ""
+
           if(row.establishment) {
-            return row.establishment.label
+            txt = row.establishment.code
+
+            if(row.structure) {
+              txt += " - " + row.structure.code;
+            }
           }
-          else if(row.highschool) {
-            return row.highschool.label
+          else if (row.highschool) {
+            txt = row.highschool.city + " - " + row.highschool.label
           }
-        },
+
+          return txt
+        }
       },
-      { "data": "structure.label" },
       { "data": "event.label",
         render: function(data, type, row) {
           let txt = data + " (" + row.event.type + ") "
@@ -149,7 +139,7 @@ function init_datatable() {
               return txt + row.room + "</span>";
           }
           else {
-              return remote_event_text
+            return "<a href='" + row.url + "' target='_blank'>" + remote_event_text + "</a>"
           }
         }
       },
@@ -184,15 +174,17 @@ function init_datatable() {
       },
       { "data": "attendances_status",
         "render": function(data, type, row) {
-          var msg = "";
+          let msg = "";
+          let edit_mode = 0;
 
-          if(row.attendances_value == 1) {
-            msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +","+row.n_places+")\" title=\""+ attendances_text +"\">" +
+          if(row.attendances_value === 1 && row.can_update_event_slot) {
+            edit_mode = 1
+            msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\""+ attendances_text +"\">" +
                 "<i class='fa fas fa-edit fa-2x'></i>" +
                 "</button>";
           }
-          else if (row.attendances_value != -1) {
-            msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ row.attendances_value +","+row.n_places+")\" title=\""+ registered_text +"\">" +
+          else if (row.attendances_value !== -1) {
+            msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\""+ registered_text +"\">" +
                   "<i class='fa fas fa-eye fa-2x'></i>" +
                   "</button>";
           }
@@ -209,6 +201,46 @@ function init_datatable() {
             return ""
           }
         },
+      },
+      { data: 'restrictions',
+        render: function(data) {
+          let txt = ""
+
+          if(data.establishment_restrictions === true) {
+            txt += establishments_txt + " :\n"
+            data.allowed_establishments.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_highschools.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+          }
+
+          if(data.levels_restrictions === true) {
+            if(txt) txt += "\n"
+
+            txt += levels_txt + " :\n"
+
+            data.allowed_highschool_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_post_bachelor_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+
+            data.allowed_student_levels.forEach(item => {
+              txt += "- " + item + "\n"
+            })
+          }
+
+          if (txt) {
+            return '<span data-toggle="tooltip" title="' + txt + '"><i class="fa fas fa-info-circle fa-2x centered-icon"></i></span>'
+          } else {
+            return '';
+          }
+        }
       },
     ],
     "columnDefs": init_column_defs()

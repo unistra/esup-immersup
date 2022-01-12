@@ -2,7 +2,7 @@ Django<4.0
 django-hijack==3.0.4
 django-tinymce
 psycopg2==2.8.6
-django-cas-sso==1.1.10
+django-cas-sso==1.2.7
 django-extensions
 django-filter
 ldap3
@@ -18,3 +18,4 @@ djangorestframework<4.0
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
 django-storages[boto3]
+django-admin-sortable2

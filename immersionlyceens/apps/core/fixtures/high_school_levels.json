@@ -1,0 +1,42 @@
+[
+{
+    "model": "core.highschoollevel",
+    "pk": 1,
+    "fields": {
+        "label": "Seconde",
+        "active": true,
+        "is_post_bachelor": false,
+        "requires_bachelor_speciality": false
+    }
+},
+{
+    "model": "core.highschoollevel",
+    "pk": 2,
+    "fields": {
+        "label": "Première",
+        "active": true,
+        "is_post_bachelor": false,
+        "requires_bachelor_speciality": true
+    }
+},
+{
+    "model": "core.highschoollevel",
+    "pk": 3,
+    "fields": {
+        "label": "Terminale",
+        "active": true,
+        "is_post_bachelor": false,
+        "requires_bachelor_speciality": true
+    }
+},
+{
+    "model": "core.highschoollevel",
+    "pk": 4,
+    "fields": {
+        "label": "Post-bac",
+        "active": true,
+        "is_post_bachelor": true,
+        "requires_bachelor_speciality": false
+    }
+}
+]

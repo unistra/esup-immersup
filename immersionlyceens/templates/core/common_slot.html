@@ -36,14 +36,23 @@
     </span>
   </div>
 
+  <div id="date-error-dialog" style='z-index:3000;' title='{% trans "Date error" %}'>
+    <span>
+      {% trans "You can't select an end date anterior to the current slot date" %}
+    </span>
+  </div>
+
   <div class="card">
     {% block card_header %}{% endblock %}
     <div class="card-body">
+      <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
+
       <form method="POST" class="form-group" role="form" id="add_slot">
         {% csrf_token %}
         {{ form.id }}
+        {% block dates_selection %}{% endblock %}
 
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_establishment">
           <label for="id_establishment" class="col-sm-3 col-form-label">
             <i id='id_mandatory_establishment' class="fa fas fa-asterisk" style="display:none"></i>
@@ -57,7 +66,7 @@
           </div>
         </div>
         {% endif %}
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager %}
+        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
         <div class="form-group row" id="id_div_structure">
           <label for="id_structure" class="col-sm-3 col-form-label">
             <i id='id_mandatory_structure' class="fa fas fa-asterisk" style="display:none"></i>
@@ -74,8 +83,10 @@
         <div class="form-group row" id="id_div_highschool">
           <label for="id_highschool" class="col-sm-3 col-form-label">
             <i id='id_mandatory_highschool' class="fa fas fa-asterisk" style="display:none"></i>
-            {% if slot_mode != 'visit' and request.user.is_master_establishment_manager %}
-              <span id="id_or"><strong>{% trans 'or' %} </strong></span>
+            {% if slot_mode != 'visit' %}
+              {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+                <span id="id_or"><strong>{% trans 'or' %} </strong></span>
+              {% endif %}
             {% endif %}
             {% trans 'high school' %} :
           </label>
@@ -173,6 +184,9 @@
             </div>
             {% endif %}
         </div>
+
+        {% block slot_repetition_field %}{% endblock %}
+
         <div class="form-group row">
             <label for="start_time" class="col-form-label col-sm-3">
               <i id='id_mandatory_start_time' class="fa fas fa-asterisk" style="display:none"></i>
@@ -235,7 +249,7 @@
         {% if slot_mode != 'visit' %}
           <div class="form-group row">
             <label for="id_establishments_restrictions" class="col-form-label col-sm-3">
-              {% trans 'Use establishments restrictions' %}
+              {% trans 'Use establishments restrictions' %} ?
             </label>
             <div class="col-sm-6">
               {{ form.establishments_restrictions }}
@@ -275,7 +289,7 @@
 
         <div class="form-group row">
           <label for="id_levels_restrictions" class="col-form-label col-sm-3">
-            {% trans 'Use levels restrictions' %}
+            {% trans 'Use levels restrictions' %} ?
           </label>
           <div class="col-sm-6">
             {{ form.levels_restrictions }}
@@ -298,6 +312,7 @@
             </label>
             {{ form.allowed_highschool_levels }}
           </div>
+          {% if slot_mode != "visit" %}
           <div class="col-sm-3">
             <label for="id_allowed_student_levels" class="col-form-label">
               {% trans 'Allowed student levels' %}
@@ -310,6 +325,7 @@
             </label>
             {{ form.allowed_post_bachelor_levels }}
           </div>
+          {% endif %}
 
           {% if form.allowed_establishments.errors %}
             <div class="col-sm-3 alert alert-danger">
@@ -335,7 +351,7 @@
 
         <div class="form-group row">
           <label for="published" class="col-form-label col-sm-3">
-            {% trans 'Published' %}
+            {% trans 'Published' %} ?
           </label>
           <div class="col-sm-1">
             {{ form.published }}
@@ -377,6 +393,8 @@
   var dateDialog;
   var publicationDialog;
   var cancelDialog;
+  var repetitionDialog;
+  var dateErrorDialog;
   var establishment_id = parseInt("{{ form.establishment.initial }}") || "{{ establishment_id }}";
   var structure_id = parseInt("{{ form.structure.value }}") || "{{ structure_id }}";
   var highschool_id = parseInt("{{ form.highschool.id }}") || "{{ highschool_id }}";
@@ -397,6 +415,9 @@
 
   var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   var slot_mode = "{{ slot_mode }}"
+
+  var slot_dates = "{{ slot_dates|safe }}"
+  slot_dates = slot_dates !== "None" ? slot_dates.split(",") : undefined
 
   empty_speakers()
 
@@ -647,11 +668,13 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
+        events = Array()
         let options = '<option value="">---------</option>'
 
         for (let i = 0; i < json.length; i++) {
           let selected = json[i]['id'] === parseInt(event_id) ? "selected='selected'" : ""
           options += `<option value="${json[i]['id']}" ${selected}>${json[i]['event_type']} : ${json[i]['label']}</option>`
+          events[json[i]['id']] = json[i]
         }
         $('select#id_event').html(options)
 
@@ -676,9 +699,12 @@
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
+        visits = Array()
+
         let options = '<option value="">---------</option>'
         for (let i = 0; i < json.length; i++) {
           options += `<option value="${json[i]['id']}">${json[i]['purpose']}</option>`
+          visits[json[i]['id']] = json[i]
         }
         $('select#id_visit').html(options)
 
@@ -763,6 +789,8 @@
           if(slot_mode === "visit") set_visits()
         }
     }
+
+    toggle_required_fields()
   });
 
   $('#id_structure').change( function() {
@@ -807,6 +835,8 @@
       $("#id_or").show()
       toggle_face_to_face()
     }
+    
+    toggle_required_fields()
   });
 
   $('#id_campus').change( function() {
@@ -841,7 +871,7 @@
     course_id = $('#id_course option:selected').val();
 
     if(course_id !== '' && courses[course_id]['published'] === false) {
-      courseDialog.dialog('open');
+      publicationDialog.dialog('open');
     }
 
     empty_speakers()
@@ -854,6 +884,11 @@
   if(is_set($("#id_event"))) {
     $("#id_event").change(function () {
       event_id = $('#id_event option:selected').val()
+
+      if(event_id !== '' && events[event_id]['published'] === false) {
+        publicationDialog.dialog('open');
+      }
+
       load_speakers(event_id);
     })
   }
@@ -861,31 +896,62 @@
   if(is_set($("#id_visit"))) {
     $("#id_visit").change(function() {
       visit_id = $('#id_visit option:selected').val()
+
+      if(visit_id !== '' && visits[visit_id]['published'] === false) {
+        publicationDialog.dialog('open');
+      }
+
       load_speakers(visit_id);
     })
   }
 
   function toggle_required_fields () {
     let published = $('#id_published').prop('checked');
-    let face_to_face = $('#id_face_to_face').prop('checked');
+    let face_to_face = $('#id_face_to_face').prop('checked') || $('#id_face_to_face').val() === "1";
+
     if (published) {
       let mandatory = ['date', 'start_time', 'end_time', 'speakers', 'n_places']
+      let not_mandatory = Array()
 
       if(slot_mode === "event") {
         mandatory.push('event')
       }
       else if (slot_mode === "course") {
         mandatory = mandatory.concat(['training', 'course', 'course_type'])
+        $('#id_div_repeat').show()
       }
       else if (slot_mode === "visit") {
         mandatory = mandatory.concat(['establishment', 'highschool', 'visit'])
       }
 
+      if(slot_mode === "course" || slot_mode === "event") {
+        if (establishment_id) {
+          mandatory.push('establishment')
+
+          if(slot_mode === "course") {
+            mandatory.push('structure')
+          }
+          else {
+            not_mandatory.push('structure')
+          }
+
+          not_mandatory.push('highschool')
+        } else if (highschool_id) {
+          mandatory.push('highschool')
+          not_mandatory = not_mandatory.concat(['establishment', 'structure'])
+        } else {
+          mandatory = mandatory.concat(['establishment', 'highschool'])
+        }
+      }
+
       if(face_to_face) {
           mandatory.push("room")
+
           if(establishment_id) {
-            mandatory.push('campus')
-            mandatory.push('building')
+            mandatory = mandatory.concat(['campus', 'building'])
+          }
+          else {
+            not_mandatory = not_mandatory.concat(['campus', 'building'])
           }
       }
       else {
@@ -896,17 +962,41 @@
         $('#id_' + e).attr('required', 'required');
         $('#id_mandatory_' + e).show();
       });
+
+      not_mandatory.forEach(function(e){
+        $('#id_' + e).removeAttr('required');
+        $('#id_mandatory_' + e).hide();
+      });
     }
     else {
       let not_mandatory = [
-        'room', 'building', 'campus', 'url', 'date', 'start_time', 'end_time', 'speakers', 'n_places'
+        'establishment', 'structure', 'highschool', 'room', 'building', 'campus', 'url', 'date', 'start_time',
+        'end_time', 'speakers', 'n_places'
       ];
 
       let mandatory = Array()
 
       if(slot_mode === "event") mandatory = ['event']
       if(slot_mode === "visit") mandatory = ['establishment', 'highschool', 'visit']
-      if(slot_mode === "course") mandatory = ['training', 'course']
+      if(slot_mode === "course") {
+          mandatory = ['training', 'course']
+          $('#id_div_repeat').hide()
+      }
+
+      if(slot_mode === "course" || slot_mode === "event") {
+        if(establishment_id) {
+          mandatory.push('establishment')
+          if(slot_mode === "course") {
+            mandatory.push('structure')
+          }
+        }
+        else if(highschool_id) {
+          mandatory.push('highschool')
+        }
+        else {
+          mandatory = mandatory.concat(['establishment', 'highschool'])
+        }
+      }
 
       not_mandatory.forEach(function(e){
         $('#id_' + e).removeAttr('required');
@@ -918,6 +1008,10 @@
         $('#id_mandatory_' + e).show();
       });
     }
+  }
+
+  function open_slot_repetition_modal() {
+    $('#modal_slot_repetition').modal('show');
   }
 
   function toggle_establishments_restrictions() {
@@ -986,6 +1080,100 @@
 
     toggle_required_fields()
   }
+
+  function check_date(date=$('#id_date').val(), dialog=true, callback) {
+    return $.ajax({
+      url: '/api/check_vacations',
+      data: {
+        date: date,
+      },
+      success: function(data) {
+        if ( data['data'] ) {
+          if (data['data']['is_between']) {
+            if(dialog) {
+              dateDialog.dialog('open');
+            }
+            else if (callback) {
+              callback(data['data']['is_between'])
+            }
+          }
+        }
+      },
+    });
+  }
+
+  function addDays(date, days) {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  function set_repetitions() {
+    $("#id_days_div").html("")
+    let first_date = $('#id_date').datepicker('getDate')
+    let end_date = $('#id_repeat').datepicker('getDate')
+
+    if(end_date <= first_date) {
+      dateErrorDialog.dialog("open")
+      $('#id_repeat').val("")
+      $("#id_div_repeat_button").hide()
+    }
+
+    if(first_date && end_date) {
+      for (let d = addDays(first_date, 7); d <= end_date; d = addDays(d, 7)) {
+        let checked = 'checked'
+        if(Array.isArray(slot_dates) && slot_dates.indexOf(d.toLocaleDateString()) == -1) {
+          checked = ''
+        }
+
+        $("#id_days_div").append(
+          "<div class='form-group row align-items-center'>" +
+          "  <div class='col-md-1'>" +
+          "   <input type='checkbox' name='slot_dates[]' value='" + d.toLocaleDateString() + "' " + checked+ ">" +
+          "  </div>" +
+          "  <div class='col-md-3'>" + d.toLocaleDateString() + "</div>" +
+          "  <div class='col-md-4' id='id_vacation_" + d.toLocaleDateString() + "'></div>" +
+          "</div>"
+        )
+
+        check_date(d.toLocaleDateString(), false).then(response => {
+          let vacation_text = ""
+          let id = "id_vacation_" + response.data.date
+
+          if(response.data.is_between === true) {
+            response.data.details.forEach(detail => {
+              vacation_text += vacation_text !== "" ? "<br>" : ""
+              vacation_text += detail
+            })
+          }
+
+          $(document.getElementById(id)).html(vacation_text)
+        })
+      }
+    }
+  }
+
+  function toggle_repeat_divs() {
+    if($("#id_date").val()) {
+      $("#id_div_repeat").show()
+
+      if($("#id_repeat").val()) {
+        $("#id_div_repeat_button").show()
+        set_repetitions()
+      }
+      else {
+        $("#id_div_repeat_button").hide()
+      }
+    }
+    else {
+      $("#id_div_repeat").hide()
+      $("#id_div_repeat_button").hide()
+    }
+  }
+
+  $('#id_repeat').change( function() {
+    toggle_repeat_divs()
+  })
 
 
 $(document).ready(function(){
@@ -1169,6 +1357,7 @@ $(document).ready(function(){
         "class": 'dialog-button',
         click: function () {
           $('#id_date').val('');
+          toggle_repeat_divs()
           dateDialog.dialog("close");
         },
       }],
@@ -1237,21 +1426,42 @@ $(document).ready(function(){
       }],
   });
 
-  function check_date() {
-    $.ajax({
-      url: '/api/check_vacations',
-      data: {
-        date: $('#id_date').val(),
-      },
-      success: function(data) {
-        if ( data['data'] ) {
-          if (data['data']['is_between']) {
-            dateDialog.dialog('open');
-          }
-        }
-      },
-    });
-  }
+  repetitionDialog = $("#dates-selection-form").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 600,
+    height: 500,
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Confirm' %}",
+        "class": 'dialog-button',
+        click: function () {
+          repetitionDialog.dialog("close");
+        },
+      }],
+  });
+  // Reattach the Dialog to the form to have its dynamic inputs sent with the rest of the form
+  repetitionDialog.parent().appendTo($("#add_slot"))
+
+  dateErrorDialog = $("#date-error-dialog").dialog({
+    autoOpen: false,
+    closeOnEscape: false,
+    open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+    closeText: "hide",
+    width: 'auto',
+    modal: true,
+
+    buttons: [{
+        text: "{% trans 'Ok' %}",
+        "class": 'dialog-button',
+        click: function () {
+          dateErrorDialog.dialog("close");
+        },
+    }],
+  });
 
   // Change input type
   $('#id_start_time').get(0).type = 'time';
@@ -1260,6 +1470,7 @@ $(document).ready(function(){
   // Date check
   $('#id_date').on('change', function() {
     check_date();
+    toggle_repeat_divs()
   });
 
   // Back button + confirm
@@ -1287,6 +1498,7 @@ $(document).ready(function(){
   toggle_face_to_face();
   $('#id_face_to_face').on('change', function() { toggle_face_to_face() });
 
+  toggle_repeat_divs()
 
   {% if slot or request.POST.structure %}
     {% if slot %}

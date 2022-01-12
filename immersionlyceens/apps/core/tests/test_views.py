@@ -15,7 +15,8 @@ from django.urls import reverse
 from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType
+    Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType, HighSchoolLevel, PostBachelorLevel,
+    StudentLevel
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -472,6 +473,102 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/slot", follow=True)
 
+    def test_multiple_slots_creation(self):
+        """
+        Test Repeat feature in course slot form
+        """
+        # As ref_etab user
+        self.client.login(username='ref_etab', password='pass')
+
+        self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
+
+        data = {
+            'structure': self.structure.id,
+            'training': self.training.id,
+            'course': self.course.id,
+            'course_type': self.course_type.id,
+            'campus': self.campus.id,
+            'building': self.building.id,
+            'room': "REPEAT_TEST",
+            'date': (self.today + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+            'repeat': (self.today + datetime.timedelta(days=29)).strftime("%Y-%m-%d"),
+            'slot_dates[]': [
+                (self.today + datetime.timedelta(days=8)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=15)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=22)).strftime("%d/%m/%Y"),
+                (self.today + datetime.timedelta(days=29)).strftime("%d/%m/%Y"),
+            ],
+            'start_time': "12:00",
+            'end_time': "14:00",
+            'speakers': [self.speaker1.id, self.speaker2.id],
+            'n_places': 33,
+            'additional_information': "Here is additional data.",
+            'published': "on",
+            'allowed_establishments': [self.establishment.id, self.master_establishment.id],
+            'allowed_highschools': [self.high_school.id, self.high_school2.id],
+            'allowed_highschool_levels': [HighSchoolLevel.objects.order_by('order').first().pk],
+            'allowed_student_levels': [StudentLevel.objects.order_by('order').first().pk],
+            'allowed_post_bachelor_levels': [PostBachelorLevel.objects.order_by('order').first().pk],
+            'save': 1
+        }
+        # All dates have been selected : initial slot created + 4 copies
+        # But ... the university year ends 20 days later, so only d+8 and d+15 will be created
+        response = self.client.post("/core/slot", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
+        self.assertEqual(slots.count(), 3)
+        d = self.today + datetime.timedelta(days=1)
+        for slot in slots:
+            self.assertEqual(slot.date, d.date())
+            self.assertEqual(slot.speakers.all().count(), 2)
+            d += datetime.timedelta(days=7)
+
+        # Delete slots and do it again with an unchecked dates (d+15)
+        # The last 2 dates shouldn't exist
+        Slot.objects.filter(room="REPEAT_TEST").delete()
+        self.assertFalse(Slot.objects.filter(room="REPEAT_TEST").exists())
+        data['slot_dates[]'] = [
+            (self.today + datetime.timedelta(days=8)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=22)).strftime("%d/%m/%Y"),
+            (self.today + datetime.timedelta(days=29)).strftime("%d/%m/%Y"),
+        ]
+
+        response = self.client.post("/core/slot", data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        slots = Slot.objects.filter(room="REPEAT_TEST").order_by('date')
+        self.assertEqual(slots.count(), 2)
+
+        dates = [
+            self.today + datetime.timedelta(days=1),
+            self.today + datetime.timedelta(days=8),
+        ]
+        dates_idx = 0
+        for slot in slots:
+            self.assertEqual(slot.date, dates[dates_idx].date())
+            self.assertEqual(slot.speakers.all().count(), 2)
+            self.assertEqual(
+                list(slot.allowed_establishments.order_by('id').values_list('id', flat=True)),
+                sorted([self.establishment.id, self.master_establishment.id])
+            )
+            self.assertEqual(
+                list(slot.allowed_highschools.order_by('id').values_list('id', flat=True)),
+                sorted([self.high_school.id, self.high_school2.id])
+            )
+            self.assertEqual(
+                slot.allowed_highschool_levels.first(),
+                HighSchoolLevel.objects.order_by('order').first()
+            )
+            self.assertEqual(
+                slot.allowed_student_levels.first(),
+                StudentLevel.objects.order_by('order').first()
+            )
+            self.assertEqual(
+                slot.allowed_post_bachelor_levels.first(),
+                PostBachelorLevel.objects.order_by('order').first()
+            )
+            dates_idx += 1
 
     def test_modify_slot(self):
         # As any other user
@@ -898,16 +995,24 @@ class CoreViewsTestCase(TestCase):
         hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
-            birth_date=datetime.datetime.today(), civility=1,
-            phone='0123456789', level=1, class_name='1ere S 3',
-            bachelor_type=3, professional_bachelor_mention='My spe')
+            birth_date=datetime.datetime.today(),
+            phone='0123456789',
+            level=HighSchoolLevel.objects.order_by('order').first(),
+            class_name='1ere S 3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe'
+        )
 
         hs_record2 = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user2,
             highschool=self.high_school2,
-            birth_date=datetime.datetime.today(), civility=1,
-            phone='0123456789', level=1, class_name='1ere T3',
-            bachelor_type=3, professional_bachelor_mention='My spe')
+            birth_date=datetime.datetime.today(),
+            phone='0123456789',
+            level=HighSchoolLevel.objects.order_by('order').first(),
+            class_name='1ere T3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe'
+        )
 
         self.client.login(username='lycref', password='pass')
         response = self.client.get("/core/hs_record_manager/%s" % hs_record.id, follow=True)
@@ -922,7 +1027,7 @@ class CoreViewsTestCase(TestCase):
             'first_name': 'Jean',
             'last_name': 'Jacques',
             'birth_date': "01/06/2002",
-            'level': '2',
+            'level': HighSchoolLevel.objects.order_by('order')[1].id,
             'class_name': 'TS 3'
         }
         response = self.client.post("/core/hs_record_manager/%s" % hs_record.id, data, follow=True)
@@ -933,7 +1038,7 @@ class CoreViewsTestCase(TestCase):
 
         self.assertEqual(highschool_user.first_name, 'Jean')
         self.assertEqual(highschool_user.last_name, 'Jacques')
-        self.assertEqual(hs_record.level, 2)
+        self.assertEqual(hs_record.level, HighSchoolLevel.objects.order_by('order')[1]) # second level
         self.assertEqual(hs_record.class_name, 'TS 3')
 
         # Missing field
