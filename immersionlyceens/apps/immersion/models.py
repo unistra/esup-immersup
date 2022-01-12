@@ -11,8 +11,6 @@ class HighSchoolStudentRecord(models.Model):
     """
     High school student class, linked to ImmersionUsers accounts
     """
-    CIVS = [(1, _('Mr')),
-            (2, _('Mrs'))]
 
     # Use gettext on the next one because strings HAS to be translated here
     # in order to avoid sending lazy translation objects to JSON in charts API
@@ -71,7 +69,6 @@ class HighSchoolStudentRecord(models.Model):
     )
 
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
-    civility = models.SmallIntegerField(_("Civility"), default=1, choices=CIVS)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     # level = models.SmallIntegerField(_("Level"), default=1, choices=LEVELS)
 

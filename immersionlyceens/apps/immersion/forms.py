@@ -237,7 +237,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             del self.fields['allowed_second_semester_registrations']
 
             if self.instance and self.instance.validation == 2:
-                for field in ["highschool", "civility", "birth_date", "class_name", "level"]:
+                for field in ["highschool", "birth_date", "class_name", "level"]:
                     self.fields[field].disabled = True
 
     def clean(self):
@@ -281,7 +281,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
 
     class Meta:
         model = HighSchoolStudentRecord
-        fields = ['civility', 'birth_date', 'phone', 'highschool', 'level', 'class_name',
+        fields = ['birth_date', 'phone', 'highschool', 'level', 'class_name',
                   'bachelor_type', 'general_bachelor_teachings', 'technological_bachelor_mention',
                   'professional_bachelor_mention', 'post_bachelor_level', 'origin_bachelor_type',
                   'current_diploma', 'visible_immersion_registrations', 'visible_email', 'student',
