@@ -585,7 +585,6 @@ class ImmersionViewsTestCase(TestCase):
             student=self.highschool_user2,
             highschool=self.high_school,
             birth_date="1990-02-19",
-            civility=1,
             level=HighSchoolLevel.objects.get(pk=1),
             class_name="S20",
             bachelor_type=1,
