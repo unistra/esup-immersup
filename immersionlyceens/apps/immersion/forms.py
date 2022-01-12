@@ -318,7 +318,7 @@ class StudentRecordForm(forms.ModelForm):
 
     class Meta:
         model = StudentRecord
-        fields = ['civility', 'birth_date', 'phone', 'uai_code', 'level',
+        fields = ['birth_date', 'phone', 'uai_code', 'level',
                   'origin_bachelor_type', 'current_diploma', 'student',
                   'allowed_global_registrations', 'allowed_first_semester_registrations',
                   'allowed_second_semester_registrations']

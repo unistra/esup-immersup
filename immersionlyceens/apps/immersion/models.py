@@ -269,8 +269,6 @@ class StudentRecord(models.Model):
     """
     Student record class, linked to ImmersionUsers accounts
     """
-    CIVS = [(1, _('Mr')),
-            (2, _('Mrs'))]
 
     """
     LEVELS = [
@@ -300,7 +298,6 @@ class StudentRecord(models.Model):
     )
 
     uai_code = models.CharField(_("Home institution code"), blank=False, null=False, max_length=256)
-    civility = models.SmallIntegerField(_("Civility"), null=False, blank=False, default=1, choices=CIVS)
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     # level = models.SmallIntegerField(_("Level"), default=1, blank=False, null=False, choices=LEVELS)

@@ -247,7 +247,6 @@ class ImmersionViewsTestCase(TestCase):
         # Student record data
         record_data = {
             "student": new_user.id,
-            "civility": 1,
             "last_name": "",
             "first_name": new_user.first_name,
             "email": new_user.email,
@@ -461,7 +460,6 @@ class ImmersionViewsTestCase(TestCase):
 
         record_data = {
             "student": self.highschool_user.id,
-            "civility": 1,
             "last_name": "",
             "first_name": self.highschool_user.first_name,
             "email": self.highschool_user.email,
