@@ -7,7 +7,7 @@
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block content %}
-
+{% authorized_groups request.user %}
 <div class="main-title inside text-center">
   <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
   <div class="container">
@@ -165,7 +165,8 @@
                             {% if s.cancelled %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                 {% if s.can_register %}
-                                    <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                    <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register again' %}</button>
+                                    <div id="feedback_{{s.pk}}" ></div>
                                 {% endif %}
                             {% elif s.already_registered %}
                                 <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
@@ -177,6 +178,7 @@
                               </span><br>
                               {% if authorized_groups|in_groups:"LYC" %}
                               <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
+                              <div id="feedback_{{s.pk}}" ></div>
                               {% endif %}
                             {% else %}
                               <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
@@ -229,8 +231,8 @@ function register(slot_id) {
       success: function (json) {
         let msg = json['msg'];
         let error = json['error'];
-
         if(error) {
+          feedback = $("#feedback_"+slot_id);
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
@@ -246,7 +248,6 @@ function register(slot_id) {
 $(document).ready(function() {
   initFeedback();
   initBadge();
-  feedback = $("#feedback");
 
   $(".close-button").on("click", function() {
     $("div.collapse").collapse('hide');

@@ -324,6 +324,8 @@ def visits_offer(request):
 
     filters = {}
     today = timezone.now().date()
+    student = None
+    course_alerts = None
 
     try:
         visits_txt = InformationText.objects.get(code="INTRO_VISITE", active=True).content
@@ -338,9 +340,12 @@ def visits_offer(request):
     # If user is highschool student filter on highschool
     try:
         if request.user.is_high_school_student() and not request.user.is_superuser:
-            user_highschool = request.user.get_high_school_student_record().highschool
+            student = request.user
+            record = student.get_high_school_student_record()
+            user_highschool = record.highschool
             filters["visit__highschool"] = user_highschool
-            filters["allowed_highschools"] = Q(establishment_restrictions=False) | Q(allowed_highschools__contains=user_highschool)
+            #filters["allowed_highschools"] = Q(establishments_restrictions=False) | Q(allowed_highschools__contains=user_highschool).values_list('pk', flat=True)
+
             # TODO: add level restrictions !!!
     except:
         # AnonymousUser
@@ -351,7 +356,85 @@ def visits_offer(request):
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
             .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
 
+
+    # determine dates range to use
+    # TODO: refactor in model !
+    try:
+        calendar = Calendar.objects.first()
+    except Exception:
+        pass
+
+    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    today = datetime.datetime.today().date()
+    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
+    try:
+        # Year mode
+        if calendar and calendar.calendar_mode == 'YEAR':
+            cal_start_date = calendar.year_registration_start_date
+            cal_end_date = calendar.year_end_date
+            reg_start_date = calendar.year_registration_start_date
+        # semester mode
+        elif calendar:
+            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+                semester = 1
+                cal_start_date = calendar.semester1_start_date
+                cal_end_date = calendar.semester2_end_date
+                reg_start_date = calendar.semester1_registration_start_date
+                reg_semester2_start_date = calendar.semester2_registration_start_date
+            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+                semester = 2
+                cal_start_date = calendar.semester2_start_date
+                cal_end_date = calendar.semester2_end_date
+                reg_start_date = calendar.semester2_registration_start_date
+
+    except AttributeError:
+        raise Exception(_('Calendar not initialized'))
+
+    # If the current user is a student, check whether he can register
+    if student and record and record.is_valid():
+        data=[]
+        process_visits={}
+        for visit in visits:
+            visit.already_registered = False
+            visit.can_register = False
+            visit.cancelled = False
+            visit.opening_soon = False
+            # Already registered / cancelled ?
+            for immersion in student.immersions.all():
+                if immersion.slot.pk == visit.pk:
+                    visit.already_registered = True
+                    visit.cancelled = immersion.cancellation_type is not None
+
+            # Can register ?
+            # not registered + free seats + dates in range + cancelled to register again
+            if not visit.already_registered or visit.cancelled:
+                if visit.available_seats() > 0:
+                    # TODO: should be rewritten used before with remaining_seats annual or by semester!
+                    if calendar.calendar_mode == 'YEAR':
+                        if reg_start_date <= today <= cal_end_date:
+                            visit.can_register = True
+                        elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
+                            visit.opening_soon = True
+                    # Check if we could register with reg_date
+                    elif semester == 1:
+                        if reg_start_date <= today and visit.date < reg_semester2_start_date:
+                            visit.can_register = True
+                        elif visit.date > reg_semester2_start_date or today < reg_start_date:
+                            visit.opening_soon = True
+                    elif semester == 2:
+                        if today >= reg_start_date:
+                            visit.can_register = True
+                        elif today < reg_start_date:
+                            visit.opening_soon = True
+
+    else:
+        for visit in visits:
+            visit.cancelled = False
+            visit.can_register = False
+            visit.already_registered = False
+
     visits_count = visits.count()
+
     context = {
         'visits_count': visits_count,
         'visits_txt': visits_txt,
@@ -381,7 +464,7 @@ def offer_off_offer_events(request):
         if request.user.is_high_school_student() and not request.user.is_superuser:
             user_highschool = request.user.get_high_school_student_record().highschool
             filters["event__highschool"] = user_highschool
-            filters["allowed_highschools"] = Q(establishment_restrictions=False) | Q(allowed_highschools__contains=user_highschool)
+            filters["allowed_highschools"] = Q(establishments_restrictions=False) | Q(allowed_highschools__highschool__contains=user_highschool)
             # TODO: add level restrictions !!!
     except:
         # AnonymousUser
