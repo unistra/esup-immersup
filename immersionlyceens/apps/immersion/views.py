@@ -722,30 +722,36 @@ class VisitorRecordView(FormView):
     template_name = "immersion/visitor_record.html"
     form_class = VisitorRecordForm
 
-    def get_form(self, form_class=None):
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs["request"] = self.request
         record_id: Optional[int] = self.kwargs.get("record_id")
+
         if self.request.user.is_visitor():
             record = self.request.user.get_visitor_record()
-            print(f"record: {record}")
-            print(f"bdaay      : {record.birth_date}")
-            print(f"motivation : {record.motivation}")
-            print(f"civility   : {record.civility}")
-            if record is not None:
-                print(f"hello => {self.request.method}")
-                form = VisitorRecordForm(self.get_form_kwargs(), instance=record)
-                print(form.fields["civility"])
-                # print(form)
-                return form
+            if record:
+                form_kwargs["instance"] = record
         elif record_id:
-            record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
-            return VisitorRecordForm(self.get_form_kwargs(), instance=record)
-        return super().get_form()
+            try:
+                record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+                form_kwargs["instance"] = record
+            except VisitorRecord.DoesNotExist:
+                # todo: handle it
+                pass
+
+        return form_kwargs
 
     def get_context_data(self, **kwargs):
         context: Dict[str, Any] = super().get_context_data()
         record_id: Optional[int] = self.kwargs.get("record_id")
         user_form: Optional[VisitorForm] = None
         visitor: Optional[ImmersionUser] = None
+        record: Optional[VisitorRecordForm]
+        hash_change_permission = any([
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ])
 
         calendars: QuerySet = Calendar.objects.all()
         calendar: Optional[Calendar] = None
@@ -754,18 +760,25 @@ class VisitorRecordView(FormView):
 
         if self.request.user.is_visitor():
             visitor = self.request.user
+            record = visitor.get_visitor_record()
+            if record:
+                messages.info(self.request, _("Current record status : %s") % record.get_validation_display())
             user_form = VisitorForm(request=self.request, instance=visitor)
         elif record_id:
             record: VisitorRecord = VisitorRecord.objects.get(pk=record_id)
             visitor = record.visitor
-            user_form = VisitorForm(self.request.POST, self.request.FILE, instance=visitor, request=self.request)
-            # todo: VisitorRecordForm, visitor, VisitorForm
+            form_kwargs = self.get_form_kwargs()
+            if "data" in form_kwargs:
+                user_form = VisitorForm(form_kwargs, instance=visitor, request=self.request)
+            else:
+                user_form = VisitorForm(instance=visitor, request=self.request)
 
         context.update({
             "visitor": visitor,
             "user_form": user_form,
             "back_url": self.request.session.get("back"),
             "calendar": calendar,
+            "can_change": hash_change_permission,  # can change number of allowed positions
         })
         return context
 
@@ -783,15 +796,17 @@ class VisitorRecordView(FormView):
         else:
             form_user = VisitorForm(request.POST, request.FILES, request=request)
 
+        print(f"FORM {form.is_valid()}")
+        print(f"FORM {form.errors}")
+        print(f"FORM USER {form_user.is_valid()}")
         if form.is_valid() and form_user.is_valid():
             form.save()
             form_user.save()
-
-            print(form.errors)
-            print(form_user.errors)
             return self.form_valid(form)
         else:
             print("INVALD")
+            print(form.errors)
+            print(form_user.errors)
             for form_ in (form, form_user):
                 for err_field, err_list in form_.errors.get_json_data().items():
                     for error in err_list:
@@ -806,6 +821,3 @@ class VisitorRecordView(FormView):
             return reverse("immersion:visitor_record")
         else:
             return reverse("immersion:visitor_record_by_id", **self.kwargs)
-
-
-# Un objet Visitor record avec ce champ Visitor existe déjà.

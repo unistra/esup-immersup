@@ -7,7 +7,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import authenticate
 
 from immersionlyceens.apps.core.models import \
-    ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention
+    (ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention, Calendar)
 from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
 
@@ -143,7 +143,7 @@ class VisitorForm(PersonForm):
             record: Optional[VisitorRecordForm] = self.instance.get_visitor_record()
             if record and record.validation == 2:
                 for field_name in ("first_name", "last_name"):
-                    self.fields[field_name].disable = True
+                    self.fields[field_name].disabled = True
 
 
 class StudentForm(forms.ModelForm):
@@ -396,19 +396,66 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
 
 class VisitorRecordForm(forms.ModelForm):
 
+    validation_disabled_fields: Tuple[str, ...] = (
+        "birth_date", "motivation", "identity_document",
+        "civil_liability_insurance",
+    )
+
+    def has_change_permission(self):
+        return any([
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ])
+
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        fields: List[str] = ["civility", "phone"]
+        fields: List[str] = ["phone", "allowed_first_semester_registrations",
+                             "allowed_second_semester_registrations", "allowed_global_registrations"]
         for field in fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
+        is_hs_manager_or_master: bool = self.has_change_permission()
         self.fields["visitor"].widget = forms.HiddenInput()
+
+        if self.instance and self.instance.validation == 2:
+            for field in self.validation_disabled_fields:
+                self.fields[field].disabled = True
+
+        if is_hs_manager_or_master:
+            self.fields["birth_date"].disabled = False
+        else:
+            for field_name in (
+                   "allowed_first_semester_registrations",
+                   "allowed_second_semester_registrations",
+                   "allowed_global_registrations"):
+                self.fields[field_name].disabled = True
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data: Dict[str, Any] = super().clean()
+
+        allowed_semester_1 = cleaned_data.get("allowed_first_semester_registrations")
+        allowed_semester_2 = cleaned_data.get("allowed_second_semester_registrations")
+        allowed_global = cleaned_data.get("allowed_global_registrations")
+
+        print(f"1S : {allowed_semester_1}")
+        print(f"2S : {allowed_semester_2}")
+        print(f"GLO: {allowed_global}")
+
+        if not allowed_semester_1 or not allowed_semester_2 or not allowed_global:
+            calendar = Calendar.objects.all().first()
+            cleaned_data["allowed_first_semester_registrations"] = calendar.nb_authorized_immersion_per_semester
+            cleaned_data["allowed_second_semester_registrations"] = calendar.nb_authorized_immersion_per_semester
+            cleaned_data["allowed_global_registrations"] = calendar.year_nb_authorized_immersion
+
+        return cleaned_data
 
     class Meta:
         model = VisitorRecord
         fields = ['id',
-            'civility', 'birth_date', 'phone', 'visitor',
+            'birth_date', 'phone', 'visitor',
             'motivation', 'identity_document', 'civil_liability_insurance',
             'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
             'allowed_global_registrations',

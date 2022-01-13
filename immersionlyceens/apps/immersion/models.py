@@ -360,7 +360,6 @@ class VisitorRecord(models.Model):
     """
     Visitor record class, linked to ImmersionUsers accounts
     """
-    CIVS: List[Tuple[int, Any]] = [(1, _('Mr')), (2, _('Mrs'))]
     VALIDATION_STATUS: List[Tuple[int, Any]] = [
         (1, _('To validate')),
         (2, _('Validated')),
@@ -376,7 +375,6 @@ class VisitorRecord(models.Model):
         on_delete=models.CASCADE,
         related_name="visitor_record"
     )
-    civility = models.SmallIntegerField(_("Civility"), null=False, blank=False, default=1, choices=CIVS)
     phone = models.CharField(_("Phone number"), max_length=14, blank=True, null=True)
     birth_date = models.DateField(_("Birth date"), null=False, blank=False)
 
