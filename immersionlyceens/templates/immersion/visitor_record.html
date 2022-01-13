@@ -50,13 +50,6 @@
       </div>
       <div class="card-body">
         <div class="form-group row">
-          <label for="id_civility" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Civility' %} :
-          </label>
-          <div class="col-sm-3">{{ form.civility }}</div>
-          <div class="col-sm-6">{{ form.civility.errors }}</div>
-        </div>
-        <div class="form-group row">
           <label for="id_lastname" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Lastname' %} :
           </label>
@@ -127,36 +120,36 @@
           <div class="col-sm-3">{{ form.civil_liability_insurance.errors }}</div>
         </div>
 
-        {% if calendar.calendar_mode == "YEAR" %}
+        {% if calendar.calendar_mode != "YEAR" %}
           <div class="form-group row align-items-center">
             <label class="col-sm-9 col-form-label">
-              {{ form.allowed_global_registrations.label }} :
+              {% trans 'Annually allowed registrations (excluding visits and events)' %} :
             </label>
-            {% if form.allowed_global_registrations.value %}
+            {% if can_change %}
               <div class="col-sm-2">{{ form.allowed_global_registrations }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ calendar.year_nb_authorized_immersion }}</div>
+              <div class="col-sm-1 col-form-label">{{ form.allowed_global_registrations.value | default:calendar.year_nb_authorized_immersion }}</div>
             {% endif %}
           </div>
         {% else %}
           <div class="form-group row align-items-center">
             <label class="col-sm-9 col-form-label">
-              {{ form.allowed_first_semester_registrations.label }} :
+              {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
             </label>
-            {% if form.allowed_first_semester_registrations.value %}
-              <div class="col-sm-2">{{ form.allowed_first_semester_registrations }}</div>
+            {% if can_change %}
+              <div class="col-sm-2">{{ form.allowed_first_semester_registrations| default:"" }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ calendar.nb_authorized_immersion_per_semester | default:'' }}</div>
+              <div class="col-sm-1 col-form-label">{{ form.allowed_first_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
             {% endif %}
           </div>
           <div class="form-group row align-items-center">
             <label class="col-sm-9 col-form-label">
-              {{ form.allowed_second_semester_registrations.label }} :
+              {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
             </label>
-            {% if form.allowed_second_semester_registrations.value %}
-              <div class="col-sm-2">{{ form.allowed_second_semester_registrations.value | default:"" }}</div>
+            {% if can_change %}
+              <div class="col-sm-2">{{ form.allowed_second_semester_registrations | default:"" }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ calendar.nb_authorized_immersion_per_semester| default:'' }}</div>
+              <div class="col-sm-1 col-form-label">{{ form.allowed_second_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
             {% endif %}
 
             <!-- year_nb_authorized_immersion -->
