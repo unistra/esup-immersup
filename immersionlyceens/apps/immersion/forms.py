@@ -1,3 +1,5 @@
+from typing import List, Tuple, Any, Dict, Optional
+
 from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -6,9 +8,9 @@ from django.contrib.auth import authenticate
 
 from immersionlyceens.apps.core.models import (
     ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention, HighSchoolLevel, PostBachelorLevel,
-    StudentLevel
+    StudentLevel, Calendar
 )
-from .models import HighSchoolStudentRecord, StudentRecord
+from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
 class LoginForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -101,6 +103,48 @@ class RegistrationForm(UserCreationForm):
     class Meta:
         model = ImmersionUser
         fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
+
+
+class PersonForm(forms.ModelForm):
+    required_fields: Tuple[str, ...] = ("last_name", "first_name")
+
+    def __init__(self, *args, **kwargs) -> None:
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+        for field_name in self.required_fields:
+            self.fields[field_name].required = True
+
+        self.fields["email"].help_text = _(
+            "Warning : changing the email will require an account reactivation")
+
+        for field_name in self.fields:
+            self.fields[field_name].widget.attrs["class"] = "form-control"
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data: Dict[str, Any] = super().clean()
+
+        email: str = cleaned_data.get("email", "").strip().lower()
+        if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError(
+                _("Error : an account already exists with this email address"))
+        cleaned_data["email"] = email
+        return cleaned_data
+
+    class Meta:
+        model = ImmersionUser
+        fields = ("last_name", "first_name", "email", "id",)
+
+
+class VisitorForm(PersonForm):
+    required_fields: Tuple[str, ...] = ("last_name", "first_name", "email",)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            record: Optional[VisitorRecordForm] = self.instance.get_visitor_record()
+            if record and record.validation == 2:
+                for field_name in ("first_name", "last_name"):
+                    self.fields[field_name].disabled = True
 
 
 class StudentForm(forms.ModelForm):
@@ -347,6 +391,66 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
     class Meta:
         model = HighSchoolStudentRecord
         fields = ['birth_date', 'level', 'class_name', 'student']
+
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),
+        }
+
+        localized_fields = ('birth_date',)
+
+
+class VisitorRecordForm(forms.ModelForm):
+
+    validation_disabled_fields: Tuple[str, ...] = (
+        "birth_date", "motivation", "identity_document",
+        "civil_liability_insurance",
+    )
+
+    def has_change_permission(self):
+        return any([
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ])
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        fields: List[str] = [
+            "phone", "allowed_first_semester_registrations",
+            "allowed_second_semester_registrations", "allowed_global_registrations",
+            "motivation"
+        ]
+        for field_name in fields:
+            self.fields[field_name].widget.attrs["class"] = 'form-control'
+        for field_name in ["identity_document", "civil_liability_insurance"]:
+            self.fields[field_name].widget.attrs["class"] = "form-control-file"
+
+        is_hs_manager_or_master: bool = self.has_change_permission()
+        self.fields["visitor"].widget = forms.HiddenInput()
+
+        if self.instance and self.instance.validation == 2:
+            for field in self.validation_disabled_fields:
+                self.fields[field].disabled = True
+
+        if is_hs_manager_or_master:
+            self.fields["birth_date"].disabled = False
+        else:
+            for field_name in (
+                   "allowed_first_semester_registrations",
+                   "allowed_second_semester_registrations",
+                   "allowed_global_registrations"):
+                self.fields[field_name].disabled = True
+
+    class Meta:
+        model = VisitorRecord
+        fields = ['id',
+            'birth_date', 'phone', 'visitor',
+            'motivation', 'identity_document', 'civil_liability_insurance',
+            'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
+            'allowed_global_registrations',
+        ]
 
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'datepicker form-control'}),

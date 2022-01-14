@@ -15,6 +15,10 @@ urlpatterns = [
     path('change_password', views.change_password, name='change_password'),
     path('hs_record', views.high_school_student_record, name='hs_record'),
     path('hs_record/<int:record_id>', views.high_school_student_record, name='modify_hs_record'),
+
+    path('visitor_record', views.VisitorRecordView.as_view(), name="visitor_record"),
+    path('visitor_record/<int:record_id>', views.VisitorRecordView.as_view(), name="visitor_record_by_id"),
+
     path('immersions', views.immersions, name='immersions'),
     path('login', views.customLogin, name='login'),
     path('login/<profile>', views.customLogin, name='login'),
