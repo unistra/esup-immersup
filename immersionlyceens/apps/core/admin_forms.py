@@ -1616,7 +1616,6 @@ class PostBachelorLevelForm(TypeFormMixin):
     Post bachelor level form
     """
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
         if self.instance and self.instance.id:
@@ -1635,7 +1634,6 @@ class StudentLevelForm(TypeFormMixin):
     Student level form
     """
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
         if self.instance and self.instance.id:
