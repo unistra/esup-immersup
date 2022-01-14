@@ -4,8 +4,10 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import authenticate
 
-from immersionlyceens.apps.core.models import \
-    ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention
+from immersionlyceens.apps.core.models import (
+    ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention, HighSchoolLevel, PostBachelorLevel,
+    StudentLevel
+)
 from .models import HighSchoolStudentRecord, StudentRecord
 
 class LoginForm(forms.Form):
@@ -224,6 +226,8 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
             widget=forms.CheckboxSelectMultiple           
         )
         self.fields['general_bachelor_teachings'].required = False
+        self.fields['level'].queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')
+        self.fields['post_bachelor_level'].queryset = PostBachelorLevel.objects.filter(active=True).order_by('order')
 
         # CSS
         excludes = ['visible_immersion_registrations', 'visible_email', 'general_bachelor_teachings', 'birth_date']
@@ -304,6 +308,8 @@ class StudentRecordForm(forms.ModelForm):
         self.fields["uai_code"].disabled = True
         self.fields['current_diploma'].widget.attrs['class'] = 'form-control'
         self.fields['current_diploma'].widget.attrs['size'] = 80
+
+        self.fields['level'].queryset = StudentLevel.objects.filter(active=True).order_by('order')
 
         # CSS
         excludes = ['birth_date']
