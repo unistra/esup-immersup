@@ -342,20 +342,27 @@ def visits_offer(request):
         if request.user.is_high_school_student() and not request.user.is_superuser:
             student = request.user
             record = student.get_high_school_student_record()
+            #print(record)
+            #print(record.highschool)
             user_highschool = record.highschool
             filters["visit__highschool"] = user_highschool
-            #filters["allowed_highschools"] = Q(establishments_restrictions=False) | Q(allowed_highschools__contains=user_highschool).values_list('pk', flat=True)
+            # Q_filter = Q(levels_restrictions=False) | Q(establishments_restrictions=False) | (Q(allowed_highschools=user_highschool) | Q(allowed_highschool_levels__contains=record.level))
+            Q_filter = Q(allowed_highschool_levels__in=[record.level.pk])
+
+
+            #filters['allowed_highschool_levels'] = Q(levels_restrictions=False) | Q(allowed_highschool_levels=record.level.all())
 
             # TODO: add level restrictions !!!
-    except:
+    except Exception as e:
         # AnonymousUser
+        print(e)
         pass
     # TODO: implement class method in model to retrieve >=today slots for visits
     filters["date__gte"] = today
     visits = Slot.objects.prefetch_related(
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
-
+            .filter(Q_filter, **filters).order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
+    print(visits.query)
 
     # determine dates range to use
     # TODO: refactor in model !
