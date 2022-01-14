@@ -765,7 +765,11 @@ class VisitorRecordView(FormView):
                 messages.info(self.request, _("Current record status : %s") % record.get_validation_display())
             user_form = VisitorForm(request=self.request, instance=visitor)
         elif record_id:
-            record: VisitorRecord = VisitorRecord.objects.get(pk=record_id)
+            try:
+                record: VisitorRecord = VisitorRecord.objects.get(pk=record_id)
+            except VisitorRecord.DoesNotExist:
+                messages.error(self.request, _("Invalid visitor record id"))
+                raise Http404
             visitor = record.visitor
             form_kwargs = self.get_form_kwargs()
             if "data" in form_kwargs:
@@ -782,31 +786,53 @@ class VisitorRecordView(FormView):
         })
         return context
 
+    def email_changed(self, user: ImmersionUser):
+        user.username = settings.USERNAME_PREFIX + user.email
+        user.set_validation_string()
+
+        try:
+            msg = user.send_message(self.request, "CPT_MIN_CHANGE_MAIL")
+            messages.warning(
+                self.request,
+                _(
+                    """You have updated the email."""
+                    """<br>Warning : the new email is also the new login."""
+                    """<br>A new activation email has been sent."""
+                ),
+            )
+        except Exception as exc:
+            logger.exception("Cannot send 'change mail' message : %s", exc)
+
     def post(self, request, *args, **kwargs):
-        # multi validation for multiple
+        # multi validation for multiple form
         form = self.get_form()
         form_user: VisitorForm
         record_id: Optional[int] = self.kwargs.get("record_id")
+        current_email: Optional[str] = None
+        user: Optional[ImmersionUser] = None
 
         if request.user.is_visitor():
+            user = request.user
             form_user = VisitorForm(request.POST, request.FILES , instance=request.user, request=request, )
         elif record_id:
-            record: VisitorRecord = VisitorRecord.objects.get(pk=record_id)
+            record: Optional[VisitorRecord] = VisitorRecord.objects.get(pk=record_id)
+            user = record.visitor
             form_user = VisitorForm(request.POST, request.FILES, instance=record.visitor, request=request)
         else:
             form_user = VisitorForm(request.POST, request.FILES, request=request)
 
-        print(f"FORM {form.is_valid()}")
-        print(f"FORM {form.errors}")
-        print(f"FORM USER {form_user.is_valid()}")
+        if user:
+            current_email = user.email
+
         if form.is_valid() and form_user.is_valid():
             form.save()
-            form_user.save()
+            saved_user = form_user.save()
+
+            if current_email != saved_user.email:
+                self.email_changed(saved_user)
+
             return self.form_valid(form)
         else:
-            print("INVALD")
-            print(form.errors)
-            print(form_user.errors)
             for form_ in (form, form_user):
                 for err_field, err_list in form_.errors.get_json_data().items():
                     for error in err_list:
@@ -817,7 +843,7 @@ class VisitorRecordView(FormView):
             return self.form_invalid(form)
 
     def get_success_url(self) -> str:
-        if self.request.user.is_visitor:
+        if self.request.user.is_visitor():
             return reverse("immersion:visitor_record")
         else:
-            return reverse("immersion:visitor_record_by_id", **self.kwargs)
+            return reverse("immersion:visitor_record_by_id", kwargs=self.kwargs)

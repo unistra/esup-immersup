@@ -38,7 +38,7 @@
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
 
-  <form class="" role="form" action="/immersion/visitor_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST" enctype="multipart/form-data">
+  <form class="" role="form" action="/immersion/visitor_record{% if form.instance %}/{{ form.instance.id }}{% endif %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
     <input id="id_visitor" type="hidden" name="visitor" value="{{ visitor.id }}"/>
 
@@ -50,40 +50,38 @@
       </div>
       <div class="card-body">
         <div class="form-group row">
-          <label for="id_lastname" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Lastname' %} :
+          <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
+            {% trans 'Lastname' %}* :
           </label>
-          <!-- todo: student_form -->
-          <div class="col-sm-3">{{ user_form.last_name }}</div>
-          <div class="col-sm-6">{{ user_form.last_name.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ user_form.last_name }}</div>
+          <div class="col-sm-3 col-md-2">{{ user_form.last_name.errors }}</div>
         </div>
         <div class="form-group row">
-          <label for="id_first_name" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Firstname' %} :
+          <label for="id_first_name" class="col-sm-3 col-md-4 col-form-label">
+            {% trans 'Firstname' %}* :
           </label>
-          <div class="col-sm-3">{{ user_form.first_name }}</div>
-          <div class="col-sm-6">{{ user_form.first_name.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ user_form.first_name }}</div>
+          <div class="col-sm-3 col-md-2">{{ user_form.first_name.errors }}</div>
         </div>
         <div class="form-group row">
-          <label for="id_email" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Email' %} :
+          <label for="id_email" class="col-sm-3 col-md-4 col-form-label">
+            {% trans 'Email' %}* :
           </label>
-          <!-- todo:  -->
-          <div class="col-sm-2">{{ user_form.email }} </div>
-          <div class="col-sm-3 warning">{{ user_form.email.help_text }}</div>
-          <div class="col-sm-3">{{ user_form.email.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ user_form.email }} </div>
+          <div class="mt-4 ml-4 warning">{{ user_form.email.help_text }}</div>
+          <div class="col-sm-3 col-md-1">{{ user_form.email.errors }}</div>
         </div>
         <div class="form-group row">
-          <label for="id_birth_date" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Birth date' %} :
+          <label for="id_birth_date" class="col-sm-3 col-md-4 col-form-label">
+            {% trans 'Birth date' %}* :
           </label>
-          <div class="col-sm-3">{{ form.birth_date }}</div>
-          <div class="col-sm-6">{{ form.birth_date.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ form.birth_date }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.birth_date.errors }}</div>
         </div>
         <div class="form-group row">
-          <label for="id_phone" class="col-sm-3 col-form-label">{% trans 'Phone number' %} :</label>
-          <div class="col-sm-3">{{ form.phone }}</div>
-          <div class="col-sm-6">{{ form.phone.errors }}</div>
+          <label for="id_phone" class="col-sm-3 col-md-4 col-form-label">{% trans 'Phone number' %} :</label>
+          <div class="col-sm-6 col-md-6">{{ form.phone }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.phone.errors }}</div>
         </div>
       </div>
       <div class="card-header text-white bg-secondary">
@@ -91,42 +89,39 @@
       </div>
       <div class="card-body">
 
-
         <div class="form-group row align-center">
-          <label for="id_motivation" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{{ form.motivation.label }} :
+          <label for="id_motivation" class="col-sm-3 col-md-4 col-form-label">
+            {{ form.motivation.label }}* :
           </label>
-          <div class="col-sm-3">
-            {{ form.motivation }}
-          </div>
-          <div class="col-sm-3">{{ record_form.motivation.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ form.motivation }}</div>
+          <div class="col-sm-3 col-md-2">{{ record_form.motivation.errors }}</div>
         </div>
         <div class="form-group row align-center">
-          <label for="id_identity_document" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{{ form.identity_document.label }} :
+          <label for="id_identity_document" class="col-sm-3 col-md-4 col-form-label">
+            {{ form.identity_document.label }}* :
           </label>
-          <div class="col-sm-3">
-            {{ form.identity_document }}
-          </div>
-          <div class="col-sm-3">{{ form.identity_document.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ form.identity_document }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.identity_document.errors }}</div>
         </div>
         <div class="form-group row align-center">
-          <label for="id_civil_liability_insurance" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{{ form.civil_liability_insurance.label }} :
+          <label for="id_civil_liability_insurance" class="col-sm-3 col-md-4 col-form-label">
+            {{ form.civil_liability_insurance.label }}* :
           </label>
-          <div class="col-sm-3">
-            {{ form.civil_liability_insurance }}
-          </div>
-          <div class="col-sm-3">{{ form.civil_liability_insurance.errors }}</div>
+          <div class="col-sm-6 col-md-6">{{ form.civil_liability_insurance }}</div>
+          <div class="col-sm-3 col-md-2">{{ form.civil_liability_insurance.errors }}</div>
         </div>
 
-        {% if calendar.calendar_mode != "YEAR" %}
+        {% if calendar.calendar_mode == "YEAR" %}
           <div class="form-group row align-items-center">
             <label class="col-sm-9 col-form-label">
               {% trans 'Annually allowed registrations (excluding visits and events)' %} :
             </label>
             {% if can_change %}
-              <div class="col-sm-2">{{ form.allowed_global_registrations }}</div>
+              <div class="col-sm-2">
+                <input id="id_allowed_global_registrations" name="allowed_global_registrations"
+                  class="form-control" type="number" value="{{form.allowed_global_registrations.value|default:calendar.year_nb_authorized_immersion}}"
+                />
+              </div>
             {% else %}
               <div class="col-sm-1 col-form-label">{{ form.allowed_global_registrations.value | default:calendar.year_nb_authorized_immersion }}</div>
             {% endif %}
@@ -137,7 +132,11 @@
               {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
             </label>
             {% if can_change %}
-              <div class="col-sm-2">{{ form.allowed_first_semester_registrations| default:"" }}</div>
+              <div class="col-sm-2">
+                <input id="id_allowed_first_semester_registrations" name="allowed_first_semester_registrations"
+                  class="form-control" type="number" value="{{form.allowed_first_semester_registrations.value|default:calendar.nb_authorized_immersion_per_semester}}"
+                />
+              </div>
             {% else %}
               <div class="col-sm-1 col-form-label">{{ form.allowed_first_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
             {% endif %}
@@ -147,7 +146,11 @@
               {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
             </label>
             {% if can_change %}
-              <div class="col-sm-2">{{ form.allowed_second_semester_registrations | default:"" }}</div>
+              <div class="col-sm-2">
+                <input id="id_allowed_second_semester_registrations" name="allowed_second_semester_registrations"
+                  class="form-control" type="number" value="{{form.allowed_second_semester_registrations.value|default:calendar.nb_authorized_immersion_per_semester}}"
+                />
+              </div>
             {% else %}
               <div class="col-sm-1 col-form-label">{{ form.allowed_second_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
             {% endif %}
@@ -162,9 +165,9 @@
         <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
         <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4" style='margin-left:40px;'>{% trans 'Back' %}</a>
       </div>
-      {% if authorized_groups|in_groups:"REF-ETAB-MAITRE" %}
+      {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
         <div class="col-sm-10 text-right">
-          <input type="button" class="btn btn-secondary btn-sm" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
+          <input type="button" class="btn btn-primary btn-sm" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
         </div>
       {% endif %}
     </div>

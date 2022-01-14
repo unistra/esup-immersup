@@ -7,7 +7,7 @@ from django.db import models
 from django.utils.translation import gettext, gettext_lazy as _
 from django.template.defaultfilters import filesizeformat
 from immersionlyceens.apps.core import models as core_models
-from immersionlyceens.apps.core.models import get_file_path
+from immersionlyceens.apps.core.models import get_file_path, Calendar
 
 logger = logging.getLogger(__name__)
 
@@ -319,7 +319,7 @@ class StudentRecord(models.Model):
     )
 
     origin_bachelor_type = models.SmallIntegerField(_("Origin bachelor type"),
-        default=1, null=False, blank=False, choices=BACHELOR_TYPES)
+                                                    default=1, null=False, blank=False, choices=BACHELOR_TYPES)
 
     current_diploma = models.CharField(
         _("Current diploma"), blank=True, null=True, max_length=128)
@@ -349,7 +349,6 @@ class StudentRecord(models.Model):
             return inst.label, inst
         except core_models.HigherEducationInstitution.DoesNotExist:
             return self.uai_code, None
-
 
     class Meta:
         verbose_name = _('Student record')
@@ -385,10 +384,10 @@ class VisitorRecord(models.Model):
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-              % {
-                  'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                  'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-              },
+                  % {
+                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
     )
     civil_liability_insurance = models.FileField(
         _("Civil liability insurance"),
@@ -396,10 +395,10 @@ class VisitorRecord(models.Model):
         blank=False,
         null=False,
         help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
-              % {
-                  'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
-                  'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
-              },
+                  % {
+                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
     )
 
     validation = models.SmallIntegerField(_("Validation"), default=1, choices=VALIDATION_STATUS)
@@ -409,6 +408,16 @@ class VisitorRecord(models.Model):
         _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
     allowed_second_semester_registrations = models.SmallIntegerField(
         _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.allowed_first_semester_registrations is None and self.allowed_second_semester_registrations is None \
+                and self.allowed_global_registrations is None:
+            calendar = Calendar.objects.all().first()
+            self.allowed_first_semester_registrations = calendar.nb_authorized_immersion_per_semester
+            self.allowed_second_semester_registrations = calendar.nb_authorized_immersion_per_semester
+            self.allowed_global_registrations = calendar.year_nb_authorized_immersion
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")

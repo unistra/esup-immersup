@@ -412,10 +412,15 @@ class VisitorRecordForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
 
-        fields: List[str] = ["phone", "allowed_first_semester_registrations",
-                             "allowed_second_semester_registrations", "allowed_global_registrations"]
-        for field in fields:
-            self.fields[field].widget.attrs['class'] = 'form-control'
+        fields: List[str] = [
+            "phone", "allowed_first_semester_registrations",
+            "allowed_second_semester_registrations", "allowed_global_registrations",
+            "motivation"
+        ]
+        for field_name in fields:
+            self.fields[field_name].widget.attrs["class"] = 'form-control'
+        for field_name in ["identity_document", "civil_liability_insurance"]:
+            self.fields[field_name].widget.attrs["class"] = "form-control-file"
 
         is_hs_manager_or_master: bool = self.has_change_permission()
         self.fields["visitor"].widget = forms.HiddenInput()
@@ -432,25 +437,6 @@ class VisitorRecordForm(forms.ModelForm):
                    "allowed_second_semester_registrations",
                    "allowed_global_registrations"):
                 self.fields[field_name].disabled = True
-
-    def clean(self) -> Dict[str, Any]:
-        cleaned_data: Dict[str, Any] = super().clean()
-
-        allowed_semester_1 = cleaned_data.get("allowed_first_semester_registrations")
-        allowed_semester_2 = cleaned_data.get("allowed_second_semester_registrations")
-        allowed_global = cleaned_data.get("allowed_global_registrations")
-
-        print(f"1S : {allowed_semester_1}")
-        print(f"2S : {allowed_semester_2}")
-        print(f"GLO: {allowed_global}")
-
-        if not allowed_semester_1 or not allowed_semester_2 or not allowed_global:
-            calendar = Calendar.objects.all().first()
-            cleaned_data["allowed_first_semester_registrations"] = calendar.nb_authorized_immersion_per_semester
-            cleaned_data["allowed_second_semester_registrations"] = calendar.nb_authorized_immersion_per_semester
-            cleaned_data["allowed_global_registrations"] = calendar.year_nb_authorized_immersion
-
-        return cleaned_data
 
     class Meta:
         model = VisitorRecord
