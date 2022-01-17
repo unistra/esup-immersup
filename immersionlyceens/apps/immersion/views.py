@@ -75,20 +75,24 @@ def customLogin(request, profile=None):
             password = form.cleaned_data['password']
 
             user = authenticate(request, username=username, password=password)
-
+            print(f"USER: {user}")
             if user is not None:
                 # Activated account ?
                 if not user.is_valid():
                     messages.error(request, _("Your account hasn't been enabled yet."))
                 else:
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
                     if user.is_high_school_student():
                         # If student has filled his record
                         if user.get_high_school_student_record():
                             return HttpResponseRedirect("/immersion")
                         else:
                             return HttpResponseRedirect("/immersion/hs_record")
+                    elif user.is_visitor():
+                        if user.get_visitor_record():
+                            return HttpResponseRedirect("/immersion")
+                        else:
+                            return HttpResponseRedirect("/immersion/visitor_record")
                     elif user.is_high_school_manager() and user.highschool:
                         return HttpResponseRedirect(reverse('home'))
             else:
@@ -99,6 +103,79 @@ def customLogin(request, profile=None):
     context = {'form': form, 'profile': profile}
 
     return render(request, 'immersion/login.html', context)
+
+
+class CustomLoginView(FormView):
+    template_name: str = "immersion/login.html"
+    invalid_no_login_template: str = "immersion/nologin.html"
+    success_url = "/immersion/login2"
+    form_class = LoginForm
+
+    def get_form_kwargs(self):
+        kwargs: Dict[str, Any] = super().get_form_kwargs()
+        kwargs.update({"profile": self.kwargs.get("profile")})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "profile": self.kwargs.get("profile"),
+        })
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        Session.objects.all().delete()
+
+        profile: Optional[str] = self.kwargs.get("profile")
+        is_reg_possible, is_year_valid, year = check_active_year()
+        if not profile and (not year or not is_year_valid):
+            self.invalid_year(year)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def invalid_year(self, year: UniversityYear):
+        messages.error(self.request, _("Sorry, the university year has not begun (or already over), you can't login yet."))
+        context = {
+            'start_date': year.start_date if year else None,
+            'end_date': year.end_date if year else None,
+            'reg_date': year.registration_start_date if year else None,
+        }
+        return render(self.request, self.invalid_no_login_template, context)
+
+    def form_valid(self, form):
+        username = form.cleaned_data['login']
+        password = form.cleaned_data['password']
+
+        user: Optional[ImmersionUser] = authenticate(
+            self.request, username=username, password=password)
+        self.user = user
+        if user is not None:
+            if not user.is_valid():
+                messages.error(self.request, _("Your account hasn't been enabled yet."))
+                return self.form_invalid(form)
+            else:
+                login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
+        else:
+            messages.error(self.request, _("Authentication error"))
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        if self.user.is_high_school_student():
+            if self.user.get_high_school_student_record():
+                return reverse("immersions")
+            else:
+                return reverse("hs_record")
+        elif self.user.is_visitor():
+            if self.user.get_visitor_record():
+                return reverse("immersions")
+            else:
+                return reverse("visitor_record")
+        elif self.user.is_high_school_manager() and self.user.highschool:
+            return reverse('home')
+        else:
+            return super().get_success_url()
 
 
 @login_optional
