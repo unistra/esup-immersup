@@ -19,6 +19,7 @@ from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, resolve
+from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, FormView
@@ -718,6 +719,7 @@ def immersion_attestation_download(request, immersion_id):
         raise Http404()
 
 
+@method_decorator(groups_required('VIS', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
 class VisitorRecordView(FormView):
     template_name = "immersion/visitor_record.html"
     form_class = VisitorRecordForm
