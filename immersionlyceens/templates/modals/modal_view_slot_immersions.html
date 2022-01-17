@@ -61,7 +61,7 @@
       </div>
       <div class="modal-footer">
         <div class="form-group row justify-content-center">
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC" %}
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
           <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
           <div class="col">
             <select class="form-control form-control mr-2 mb-2" name="cancel-type" id="select_cancel_type" disabled>
@@ -74,7 +74,7 @@
           <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
           <button type="button" id="btn_register_student" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
         {% endif %}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC" %}
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
           <button type="button" id="btn_contact_students" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
         {% endif %}
           <button type="button" class="btn btn-primary mr-2 mb-2 resp-btn" data-dismiss="modal">{% trans 'Close' %}</button>
@@ -278,13 +278,14 @@ $('#students_list').on('draw.dt', function () {
 
 $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   reload_table();
-  // show or hide register & cancel btn when slot != past
-  if ($('#modal_view_slot_immersions').data('ispast')) {
+
+  // show or hide register & cancel btn when slot != past or authenticated user can't update registrations
+  if ($('#modal_view_slot_immersions').data('ispast') || can_update_registrations === false) {
     $('#btn_cancel_registrations').hide();
     $('#btn_register_student').hide();
     $('#lbl_select_cancel_type').hide();
     $('#select_cancel_type').hide();
-  } else {
+  } else if(can_update_registrations === true) {
     $('#btn_cancel_registrations').show();
     $('#btn_register_student').show();
     $('#lbl_select_cancel_type').show();

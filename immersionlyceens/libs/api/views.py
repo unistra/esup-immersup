@@ -495,6 +495,16 @@ def slots(request):
             user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
         ]
 
+        registrations_update_conditions = [
+            user.is_master_establishment_manager(),
+            user.is_operator(),
+            user.is_establishment_manager() and establishment == user_establishment,
+            slot.published and (
+                (user.is_structure_manager() and structure in allowed_structures) or
+                (user.is_high_school_manager() and highschool and highschool == user_highschool)
+            ),
+        ]
+
         if slot.course:
             training_label = f'{slot.course.training.label} ({slot.course_type.label})'
             training_label_full = f'{slot.course.training.label} ({slot.course_type.full_label})'
@@ -508,6 +518,7 @@ def slots(request):
             'can_update_course_slot': slot.course and any(allowed_course_slot_update_conditions),
             'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
             'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
+            'can_update_registrations': any(registrations_update_conditions),
             'course': {
                'id': slot.course.id,
                'label': slot.course.label
