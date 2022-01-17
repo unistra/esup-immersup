@@ -33,6 +33,13 @@
         {% trans "Please fill this form to complete the personal record" %}
       </div>
       <div class="card-body">
+
+        <div class="form-group row">
+          <label class="col-sm-3 cpm-md-4 col-form-label" for="establishment" id="id_establishment">{% trans "Establishment" %}*</label>
+          <div class="col-sm-6 col-md-6">{{ user_form.establishment }}</div>
+          <div class="col-sm-3 col-md-2">{{ user_form.establishment.errors }}</div>
+        </div>
+
         <div class="form-group row">
           <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Lastname' %}* :

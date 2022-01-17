@@ -145,6 +145,15 @@ class VisitorForm(PersonForm):
             if record and record.validation == 2:
                 for field_name in ("first_name", "last_name"):
                     self.fields[field_name].disabled = True
+                if self.request.user.is_master_establishment_manager():
+                    self.fields["establishment"].disabled = True
+
+        if not self.request.user.is_master_establishment_manager():
+            del self.fields["establishment"]
+
+    class Meta:
+        model = ImmersionUser
+        fields = ("establishment", "last_name", "first_name", "email", "id",)
 
 
 class StudentForm(forms.ModelForm):
