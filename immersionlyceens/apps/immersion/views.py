@@ -164,14 +164,14 @@ class CustomLoginView(FormView):
     def get_success_url(self):
         if self.user.is_high_school_student():
             if self.user.get_high_school_student_record():
-                return reverse("immersions")
+                return "/immersion"
             else:
-                return reverse("hs_record")
+                return "/immersion/hs_record"
         elif self.user.is_visitor():
             if self.user.get_visitor_record():
-                return reverse("immersions")
+                return "/immersion"
             else:
-                return reverse("visitor_record")
+                return "/immersion/visitor_record"
         elif self.user.is_high_school_manager() and self.user.highschool:
             return reverse('home')
         else:
