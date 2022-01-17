@@ -118,7 +118,7 @@
           </div>
         {% endif %}
         {# Students #}
-        {% if authorized_groups|in_groups:"LYC,ETU" %}
+        {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultStudent" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
@@ -128,6 +128,8 @@
                 <a class="dropdown-item" href="{% url 'immersion:hs_record' %}">{% trans 'My record' %}</a>
               {% elif authorized_groups|in_groups:"ETU" %}
                 <a class="dropdown-item" href="{% url 'immersion:student_record' %}">{% trans 'My record' %}</a>
+              {% elif authorized_groups|in_groups:"VIS" %}
+                <a class="dropdown-item" href="{% url 'immersion:visitor_record' %}">{% trans 'My record' %}</a>
               {% endif %}
               <a class="dropdown-item" href="{% url 'immersion:immersions' %}">{% trans 'My immersions' %}</a>
             </div>
