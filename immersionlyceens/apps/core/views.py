@@ -854,6 +854,7 @@ class CourseSlotList(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
         context["slot_mode"] = "course"
+        context["contact_form"] = ContactForm()
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
@@ -1397,6 +1398,7 @@ class VisitSlotList(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
         context["slot_mode"] = "visit"
+        context["contact_form"] = ContactForm()
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
@@ -1892,6 +1894,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         context["can_update"] = True #FixMe
         context["slot_mode"] = "event"
+        context["contact_form"] = ContactForm()
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
