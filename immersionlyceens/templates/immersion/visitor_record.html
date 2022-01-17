@@ -22,7 +22,7 @@
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px;">
 
-  <form class="" role="form" action="/immersion/visitor_record{% if form.instance %}/{{ form.instance.id }}{% endif %}" method="POST" enctype="multipart/form-data">
+  <form class="" role="form" action="/immersion/visitor_record{% if form.instance and can_change %}/{{ form.instance.id }}{% endif %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
     <input id="id_visitor" type="hidden" name="visitor" value="{{ visitor.id }}"/>
 
@@ -167,6 +167,17 @@
 
 <script>
 
+
+// function open_modal(record_id) {
+//   current_student_id = record_id;
+//   $('#modal_student_details').modal('show');
+// }
+
+function open_modal() {
+  $('#modal_nuke_account').modal('show');
+}
+
+
 (() => {
     $(".datepicker").datepicker({
         changeMonth: true,
@@ -174,6 +185,8 @@
         yearRange: "1970:2010",
         defaultDate: "01/01/2003",
     })
+
+
 })()
 
 

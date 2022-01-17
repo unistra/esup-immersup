@@ -945,7 +945,7 @@ def ajax_delete_account(request):
         response = {'error': True, 'msg': gettext("Account not found")}
         return JsonResponse(response, safe=False)
 
-    if send_mail and account.groups.filter(name__in=['LYC', 'ETU']):
+    if send_mail and account.groups.filter(name__in=['LYC', 'ETU', 'VIS']):
         account.send_message(request, 'CPT_DELETE')
 
     if not request.user.is_superuser:
@@ -969,7 +969,7 @@ def ajax_delete_account(request):
             if record:
                 HighSchoolStudentRecord.clear_duplicate(record.id)
 
-        elif account.is_student():
+        elif account.is_student() or account.is_visitor():
             pass
 
         else:

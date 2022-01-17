@@ -748,7 +748,7 @@ class VisitorRecordView(FormView):
         record_id: Optional[int] = self.kwargs.get("record_id")
         user_form: Optional[VisitorForm] = None
         visitor: Optional[ImmersionUser] = None
-        record: Optional[VisitorRecordForm]
+        record: Optional[VisitorRecordForm] = None
         hash_change_permission = any([
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
@@ -779,8 +779,22 @@ class VisitorRecordView(FormView):
             else:
                 user_form = VisitorForm(instance=visitor, request=self.request)
 
+
+        # Stats for user deletion
+        today = datetime.today().date()
+        now = datetime.today().time()
+        past_immersions = visitor.immersions.filter(
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
+        ).count()
+        future_immersions = visitor.immersions.filter(
+            Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
+        ).count()
+
+        if record:
+            context.update({"record": record})  # for modal nuke purpose
         context.update({
-            "visitor": visitor,
+            "past_immersions": past_immersions, "future_immersions": future_immersions,
+            "visitor": visitor, "student": visitor,  # visitor = student for modal nuke purpose
             "user_form": user_form,
             "back_url": self.request.session.get("back"),
             "calendar": calendar,
