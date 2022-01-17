@@ -2724,7 +2724,7 @@ msgstr "Visiteur"
 
 #: immersionlyceens/apps/immersion/models.py:380
 msgid "Motivation"
-msgstr "Motivation"
+msgstr "Quelles sont vos motivations pour assister à des immersions ?"
 
 #: immersionlyceens/apps/immersion/models.py:382
 msgid "Identity document"
