@@ -166,7 +166,7 @@ function register_student(student_id, slot_id, force=false) {
       },
       success: function (json) {
         if(json['error']) {
-            if (json['msg'] == 'force_update') {
+            if (json['msg'] === 'force_update') {
               let data = {
                   'student_id': student_id,
                   'slot_id': slot_id,
@@ -176,6 +176,10 @@ function register_student(student_id, slot_id, force=false) {
             } else {
               $("#register_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
               setTimeout(function() { $("#register_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+
+              dtr.ajax.reload();
+              dt.ajax.reload();
+              reload_register_students();
             }
 
         } else {
