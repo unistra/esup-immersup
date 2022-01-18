@@ -501,7 +501,7 @@ def slots(request):
             user.is_establishment_manager() and establishment == user_establishment,
             slot.published and (
                 (user.is_structure_manager() and structure in allowed_structures) or
-                (user.is_high_school_manager() and highschool and highschool == user_highschool)
+                (slot.course and user.is_high_school_manager() and highschool and highschool == user_highschool)
             ),
         ]
 
@@ -1347,7 +1347,7 @@ def ajax_slot_registration(request):
     published_slot_update_conditions = [
         any(unpublished_slot_update_conditions),
         user.is_structure_manager() and slot_structure in allowed_structures,
-        user.is_high_school_manager() and highschool and highschool == user_highschool,
+        slot.course and user.is_high_school_manager() and highschool and highschool == user_highschool,
         user.is_high_school_student(),
         user.is_student()
     ]
@@ -1530,6 +1530,16 @@ def ajax_get_available_students(request, slot_id):
     """
     response = {'data': [], 'msg': ''}
     students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU']).exclude(immersions__slot__id=slot_id)
+
+    try:
+        slot = Slot.objects.get(pk=slot_id)
+    except Slot.DoesNotExist:
+        response['msg'] = _("Error : slot not found")
+        return JsonResponse(response, safe=False)
+
+    # Visit slot : keep only high school students matching the slot high school
+    if slot.visit and slot.visit.highschool:
+        students = students.filter(high_school_student_record__highschool=slot.visit.highschool)
 
     for student in students:
         record = None
