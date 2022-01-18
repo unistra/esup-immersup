@@ -495,6 +495,16 @@ def slots(request):
             user.is_high_school_manager() and slot.event and highschool and highschool == user_highschool,
         ]
 
+        registrations_update_conditions = [
+            user.is_master_establishment_manager(),
+            user.is_operator(),
+            user.is_establishment_manager() and establishment == user_establishment,
+            slot.published and (
+                (user.is_structure_manager() and structure in allowed_structures) or
+                (user.is_high_school_manager() and highschool and highschool == user_highschool)
+            ),
+        ]
+
         if slot.course:
             training_label = f'{slot.course.training.label} ({slot.course_type.label})'
             training_label_full = f'{slot.course.training.label} ({slot.course_type.full_label})'
@@ -508,6 +518,7 @@ def slots(request):
             'can_update_course_slot': slot.course and any(allowed_course_slot_update_conditions),
             'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
             'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
+            'can_update_registrations': any(registrations_update_conditions),
             'course': {
                'id': slot.course.id,
                'label': slot.course.label
@@ -986,7 +997,7 @@ def ajax_delete_account(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -994,6 +1005,8 @@ def ajax_cancel_registration(request):
     immersion_id = request.POST.get('immersion_id')
     reason_id = request.POST.get('reason_id')
     today = datetime.datetime.today()
+
+    #FIXME : test request.user rights on immersion.slot
 
     if not immersion_id or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
@@ -1267,13 +1280,14 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
     """
     slot_id = request.POST.get('slot_id', None)
     student_id = request.POST.get('student_id', None)
+    user = request.user
     # feedback is used to use or not django message
     # set feedback=false in ajax query when feedback
     # is used in modal or specific form !
@@ -1284,7 +1298,7 @@ def ajax_slot_registration(request):
     force = request.POST.get('force', False)
     structure = request.POST.get('structure', False)
     calendar, slot, student = None, None, None
-    can_force_reg = request.user.is_establishment_manager()
+    can_force_reg = any([user.is_establishment_manager(), user.is_master_establishment_manager(), user.is_operator()])
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
 
@@ -1302,7 +1316,7 @@ def ajax_slot_registration(request):
         except ImmersionUser.DoesNotExist:
             pass
     else:
-        student = request.user
+        student = user
 
     if slot_id:
         try:
@@ -1314,19 +1328,48 @@ def ajax_slot_registration(request):
         response = {'error': True, 'msg': _("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # Check slot is published for no ref-etab user
-    if not request.user.is_establishment_manager() and not slot.published:
+    # Valid user conditions to register a student
+    allowed_structures = user.get_authorized_structures()
+    user_establishment = user.establishment
+    user_highschool = user.highschool
+
+    establishment = slot.get_establishment()
+    slot_structure = slot.get_structure()
+    highschool = slot.get_highschool()
+
+    # Fixme : add slot restrictions here
+    unpublished_slot_update_conditions = [
+        user.is_master_establishment_manager(),
+        user.is_operator(),
+        user.is_establishment_manager() and establishment == user_establishment
+    ]
+
+    published_slot_update_conditions = [
+        any(unpublished_slot_update_conditions),
+        user.is_structure_manager() and slot_structure in allowed_structures,
+        user.is_high_school_manager() and highschool and highschool == user_highschool,
+        user.is_high_school_student(),
+        user.is_student()
+    ]
+
+    # Check registration rights depending on the (not student) authenticated user
+
+    if not slot.published and not any(unpublished_slot_update_conditions):
         response = {'error': True, 'msg': _("Registering an unpublished slot is forbidden")}
         return JsonResponse(response, safe=False)
 
+    if slot.published and not any(published_slot_update_conditions):
+        response = {'error': True, 'msg': _("Sorry, you can't add any registration to this slot")}
+        return JsonResponse(response, safe=False)
+
     # Only valid Highschool students
-    if student.is_high_school_student and not student.is_valid():
+    if student.is_high_school_student() and not student.is_valid():
         record = student.get_high_school_student_record()
         if not record or (record and not record.is_valid()):
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
             return JsonResponse(response, safe=False)
 
-    # Check if slot is not past
+    # Check if slot is not in the past
     if slot.date < today or (slot.date == today and today_time > slot.start_time):
         response = {'error': True, 'msg': _("Register to past slot is not available")}
         return JsonResponse(response, safe=False)
@@ -1362,9 +1405,7 @@ def ajax_slot_registration(request):
                     can_register = True
                     student.set_increment_registrations_(type='annual')
                 # student request & no more remaining registration count
-                elif (request.user.is_high_school_student() or request.user.is_student()) and remaining_regs_count[
-                    'annually'
-                ] <= 0:
+                elif (user.is_high_school_student() or user.is_student()) and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _(
@@ -1373,7 +1414,7 @@ def ajax_slot_registration(request):
                     }
                     return JsonResponse(response, safe=False)
                 # ref str request & no more remaining registration count for student
-                elif request.user.is_structure_manager and remaining_regs_count['annually'] <= 0:
+                elif user.is_structure_manager() and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _("This student has no more remaining slots to register to"),
@@ -1396,9 +1437,7 @@ def ajax_slot_registration(request):
                         can_register = True
                         student.set_increment_registrations_(type='semester1')
                     # student request & no more remaining registration count
-                    elif (request.user.is_high_school_student() or request.user.is_student()) and remaining_regs_count[
-                        'semester1'
-                    ] <= 0:
+                    elif (user.is_high_school_student() or user.is_student()) and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
@@ -1407,7 +1446,7 @@ def ajax_slot_registration(request):
                         }
                         return JsonResponse(response, safe=False)
                     # ref str request & no more remaining registration count for student
-                    elif request.user.is_structure_manager and remaining_regs_count['semester1'] <= 0:
+                    elif user.is_structure_manager() and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1428,9 +1467,7 @@ def ajax_slot_registration(request):
                         can_register = True
                         student.set_increment_registrations_(type='semester2')
                     # student request & no more remaining registration count
-                    elif (request.user.is_high_school_student() or request.user.is_student()) and remaining_regs_count[
-                        'semester2'
-                    ] <= 0:
+                    elif (user.is_high_school_student() or user.is_student()) and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
@@ -1439,7 +1476,7 @@ def ajax_slot_registration(request):
                         }
                         return JsonResponse(response, safe=False)
                     # ref str request & no more remaining registration count for student
-                    elif request.user.is_structure_manager and remaining_regs_count['semester2'] <= 0:
+                    elif user.is_structure_manager() and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1458,13 +1495,24 @@ def ajax_slot_registration(request):
                     student=student, slot=slot, cancellation_type=None, attendance_status=0,
                 )
 
-            student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
-            msg = _("Registration successfully added")
-            response = {'error': False, 'msg': msg}
+            error = False
+            ret = student.send_message(request, 'IMMERSION_CONFIRM', slot=slot)
+            if not ret:
+                msg = _("Registration successfully added, confirmation email sent")
+            else:
+                msg = _("Registration successfully added, confirmation email NOT sent : %s") % ret
+                error = True
+
+            response = {'error': error, 'msg': msg}
+
             # TODO: use django messages for errors as well ?
             # this is a js boolean !!!!
             if feedback == True:
-                messages.success(request, msg)
+                if error:
+                    messages.warning(request, msg)
+                else:
+                    messages.success(request, msg)
+
             request.session["last_registration_slot_id"] = slot.id
         else:
             response = {'error': True, 'msg': _("Registration is not currently allowed")}
@@ -1474,7 +1522,7 @@ def ajax_slot_registration(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_get_available_students(request, slot_id):
     """
     Get students list for manual slot registration
@@ -1615,7 +1663,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_send_email(request):
     """
     Send an email to all students registered to a specific slot
@@ -1656,7 +1704,7 @@ def ajax_send_email(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_batch_cancel_registration(request):
     """
     Cancel registrations to immersions slots
@@ -1667,6 +1715,8 @@ def ajax_batch_cancel_registration(request):
     err_msg = None
     err = False
     today = datetime.datetime.today()
+
+    # FIXME : test request.user rights on immersion.slot
 
     if not immersion_ids or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}

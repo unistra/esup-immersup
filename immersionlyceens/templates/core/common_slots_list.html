@@ -124,6 +124,7 @@
   var slot_mode = "{{ slot_mode }}"
   var current_slot_id;
   var can_update_attendances = false;
+  var can_update_registrations = false;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
   var current_highschool_id = "{{ highschool_id }}";
@@ -191,7 +192,9 @@
     }],
   });
 
-  function open_modal(slot_id, edit_mode, n_places, is_past=false) {
+  function open_modal(slot_id, edit_mode, n_places, is_past=false, update_registrations=false) {
+
+    can_update_registrations = update_registrations
     current_slot_id = slot_id;
     slot_places = n_places;
 

@@ -1074,8 +1074,6 @@ class APITestCase(TestCase):
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        print(content['data'])
-
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         s = content['data'][0]
@@ -1917,13 +1915,19 @@ class APITestCase(TestCase):
         )
 
         client = Client()
-        client.login(username='@EXTERNAL@_hs', password='pass')
+        client.login(username=self.highschool_user.username, password='pass')
 
         # Should work
-        response = client.post("/api/register", {'slot_id': self.slot3.id}, **self.header, follow=True)
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.highschool_user.id
+        }
+
+        response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
 
-        self.assertEqual("Registration successfully added", content['msg'])
+        # FIXME Careful, we use "assertIn" because there may be message templates related errors
+        self.assertIn("Registration successfully added", content['msg'])
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
             {'semester1': 2, 'semester2': 2, 'annually': 0}
@@ -1931,12 +1935,13 @@ class APITestCase(TestCase):
         self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
 
         # Fail : already registered
-        response = client.post("/api/register", {'slot_id': self.slot3.id}, **self.header, follow=True)
+        response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Already registered to this slot", content['msg'])
 
         # Fail : no more registration allowed
-        response = client.post("/api/register", {'slot_id': self.slot2.id}, **self.header, follow=True)
+        data['slot_id'] = self.slot2.id
+        response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("""You have no more remaining registration available, """
                          """you should cancel an immersion or contact immersion service""", content['msg'])
@@ -1945,17 +1950,20 @@ class APITestCase(TestCase):
         Immersion.objects.filter(student=self.highschool_user).delete()
 
         # Fail with past slot registration
-        response = client.post("/api/register", {'slot_id': self.past_slot.id}, **self.header, follow=True)
+        data['slot_id'] = self.past_slot.id
+        response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Register to past slot is not available", content['msg'])
 
         # Fail with full slot registration
-        response = client.post("/api/register", {'slot_id': self.full_slot.id}, **self.header, follow=True)
+        data['slot_id'] = self.full_slot.id
+        response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("No seat available for selected slot", content['msg'])
 
         # Fail with unpublished slot
-        response = client.post("/api/register", {'slot_id': self.unpublished_slot.id}, **self.header, follow=True)
+        data['slot_id'] = self.unpublished_slot.id
+        response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
 

@@ -188,12 +188,12 @@ function init_datatable() {
               }
 
               if(row.attendances_value === 1) {
-                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"" + attendances_text + "\">" +
+                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"edit\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+","+row.can_update_registrations+")\" title=\"" + attendances_text + "\">" +
                            "<i class='fa fas fa-edit fa-2x centered-icon'></i>" +
                            "</button>";
               }
               else if (row.attendances_value !== -1) {
-                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+")\" title=\"" + registered_text + "\">" +
+                element += "<button class=\"btn btn-light btn-sm mr-1\" name=\"view\" onclick=\"open_modal("+ data +","+row.attendances_value+","+row.n_places+","+row.is_past+","+row.can_update_registrations+")\" title=\"" + registered_text + "\">" +
                            "<i class='fa fas fa-eye fa-2x centered-icon'></i>" +
                            "</button>";
               }
