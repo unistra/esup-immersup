@@ -216,14 +216,14 @@ dtr = $('#students_list').DataTable({
         var present_color="";
         var absent_color="";
 
-        if(row.attendance_status == 1) {
+        if(row.attendance_status === 1) {
           present_color="style='color:green';";
         }
-        else if (row.attendance_status == 2) {
+        else if (row.attendance_status === 2) {
           absent_color="style='color:red';";
         }
 
-        if(can_update_attendances == true) {
+        if(can_update_attendances === true) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
@@ -347,6 +347,9 @@ $(document).ready(function(){
             if(json['error']) {
               $("#cancel_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
               setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+              $('#checkall').prop('checked', false);
+              dtr.ajax.reload();
+              dt.ajax.reload();
             } else {
               dtr.ajax.reload();
               dt.ajax.reload();

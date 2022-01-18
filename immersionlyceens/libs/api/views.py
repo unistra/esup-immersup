@@ -1742,6 +1742,7 @@ def ajax_batch_cancel_registration(request):
     reason_id = request.POST.get('reason_id')
 
     err_msg = None
+    warning_msg = ""
     err = False
     today = datetime.datetime.today()
     user = request.user
@@ -1782,7 +1783,9 @@ def ajax_batch_cancel_registration(request):
                 cancellation_reason = CancelType.objects.get(pk=reason_id)
                 immersion.cancellation_type = cancellation_reason
                 immersion.save()
-                immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+                ret = immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+                if ret:
+                    warning_msg = _("Warning : some confirmation emails have not been sent : %s") % ret
 
             except Immersion.DoesNotExist:
                 # should not happen !
@@ -1793,7 +1796,13 @@ def ajax_batch_cancel_registration(request):
                 err = True
 
         if not err:
-            response = {'error': False, 'msg': _("Immersion(s) cancelled"), 'err_msg': err_msg}
+            msg = _("Immersion(s) cancelled")
+
+            if warning_msg:
+                err = True
+                msg += f"<br>{warning_msg}"
+
+            response = {'error': err, 'msg': msg, 'err_msg': err_msg}
 
     return JsonResponse(response, safe=False)
 
