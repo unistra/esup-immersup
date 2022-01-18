@@ -1074,8 +1074,6 @@ class APITestCase(TestCase):
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
-        print(content['data'])
-
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         s = content['data'][0]

@@ -165,7 +165,6 @@ class HighSchool(models.Model):
 def get_object_default_order(object_class):
     try:
         cls = apps.get_model('core', object_class)
-        print(f"class : {cls}")
         if cls.objects.all().count() == 0:
             return 1
         else:
