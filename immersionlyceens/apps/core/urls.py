@@ -35,7 +35,8 @@ urlpatterns = [
     path(
         'hs_record_manager/<int:hs_record_id>', views.highschool_student_record_form_manager, name='hs_record_manager'
     ),
-    path('my_students', views.my_students, name='my_students'),
+    # path('my_students', views.my_students, name='my_students'),
+    path('my_students', views.MyStudents.as_view(), name='my_students'),
     path('mycourses/', views.mycourses, name='mycourses'),
     path('myvisits/', views.myvisits, name='myvisits'),
     path('myevents/', views.myevents, name='myevents'),
