@@ -28,7 +28,7 @@ ul
   padding-inline-start: 1px;
 }
 </style>
-<div class="container" style="padding-top:20px;">
+<div class="container" style="padding-top:20px; width:70%;">
   <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
         {% csrf_token %}
         {{ record_form.student }}
