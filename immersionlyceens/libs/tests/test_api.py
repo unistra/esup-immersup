@@ -471,7 +471,7 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_check_course_publication(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = f"/api/check_course_publication/{self.course.id}"
 
         # True
@@ -493,7 +493,7 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_get_course_speakers(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = f"/api/get_course_speakers/{self.course.id}"
         response = self.client.post(url, {}, **self.header)
         content = json.loads(response.content.decode())
@@ -510,7 +510,7 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_get_buildings(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = f"/api/get_buildings/{self.campus.id}"
         response = self.client.post(url, {}, **self.header)
         content = json.loads(response.content.decode())
@@ -521,7 +521,7 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_get_courses_by_training(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = f"/api/get_courses_by_training/{self.structure.id}/{self.training.id}"
         response = self.client.post(url, {}, **self.header)
         content = json.loads(response.content.decode())
@@ -534,7 +534,7 @@ class APITestCase(TestCase):
 
 
     def test_API_get_ajax_slots(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/slots"
         data = {
             'training_id': self.training.id,
@@ -579,7 +579,7 @@ class APITestCase(TestCase):
 
 
     def test_API_get_trainings(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/get_trainings"
         
         data = {
@@ -606,7 +606,7 @@ class APITestCase(TestCase):
 
 
     def test_API_get_student_records(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/get_student_records/"
 
         # No action
@@ -673,7 +673,7 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_get_reject_student(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/reject_student/"
 
         # no high school student id
@@ -724,7 +724,7 @@ class APITestCase(TestCase):
     def test_API_ajax_get_validate_student__ok(self):
         self.hs_record.validation = 1  # TO_VALIDATE
         self.hs_record.save()
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/validate_student/"
         
         data = {
@@ -904,6 +904,7 @@ class APITestCase(TestCase):
             n += 1
 
     def test_API_ajax_get_available_vars(self):
+        self.client.login(username='ref_etab', password='pass')
         request.user = self.ref_etab_user
 
         url = f"/api/get_available_vars/{self.mail_t.id}"
@@ -927,7 +928,7 @@ class APITestCase(TestCase):
 
 
     def test_API_get_person__no_data(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
 
         url = f"/api/get_person"
         data = {
@@ -951,6 +952,7 @@ class APITestCase(TestCase):
 
 
     def test_API_get_courses(self):
+        self.client.login(username='ref_etab', password='pass')
         request.user = self.ref_etab_user
 
         url = f"/api/get_courses/?structure={self.structure.id}"
@@ -985,7 +987,7 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_delete_course(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/delete_course"
 
         # No data
@@ -1183,6 +1185,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_agreed_highschools(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
 
         url = "/api/get_agreed_highschools"
         
@@ -1223,6 +1226,7 @@ class APITestCase(TestCase):
 
         # User not found
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
 
         url = f"/api/get_immersions/999"
         response = self.client.get(url, request, **self.header)
@@ -1342,6 +1346,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_slot_registrations(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
 
         url = f"/api/get_slot_registrations/{self.slot.id}"
         
@@ -1370,6 +1375,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_available_students(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
 
         self.hs_record.validation = 2
         self.hs_record.save()
@@ -1408,6 +1414,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_highschool_students(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
 
         # No records
         url = "/api/get_highschool_students/no_record"
@@ -1479,6 +1486,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_check_date_between_vacation(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
 
         # No date
         url = f"/api/check_vacations"
@@ -1525,6 +1533,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_delete_account(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/delete_account"
 
         # Fail : missing parameter
@@ -1556,6 +1565,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_cancel_registration(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/cancel_registration"
 
         # No data
@@ -1622,6 +1632,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_set_attendance(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/set_attendance"
 
         # No immersion id
@@ -1715,6 +1726,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_send_email(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/send_email"
 
         # No data
@@ -1800,6 +1812,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_send_email_us(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/send_email_contact_us"
 
         # No data
@@ -1831,6 +1844,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_students_presence(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/get_students_presence"
         
         data = {}
@@ -1852,6 +1866,7 @@ class APITestCase(TestCase):
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/set_course_alert"
 
         # Bad course id
