@@ -997,7 +997,7 @@ def ajax_delete_account(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'REF-STR')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -1005,6 +1005,8 @@ def ajax_cancel_registration(request):
     immersion_id = request.POST.get('immersion_id')
     reason_id = request.POST.get('reason_id')
     today = datetime.datetime.today()
+    user = request.user
+    allowed_structures = user.get_authorized_structures()
 
     #FIXME : test request.user rights on immersion.slot
 
@@ -1016,6 +1018,23 @@ def ajax_cancel_registration(request):
             if immersion.slot.date < today.date() or (immersion.slot.date == today.date()
                                                       and immersion.slot.start_time < today.time()):
                 response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
+                return JsonResponse(response, safe=False)
+
+            slot_establishment = immersion.slot.get_establishment()
+            slot_structure = immersion.slot.get_structure()
+            slot_highschool = immersion.slot.get_highschool()
+
+            # Check authenticated user rights on this registration
+            valid_conditions = [
+                user.is_master_establishment_manager(),
+                user.is_operator(),
+                user == immersion.student,
+                user.is_establishment_manager() and slot_establishment == user.establishment,
+                user.is_structure_manager() and slot_structure in allowed_structures
+            ]
+
+            if not any(valid_conditions):
+                response = {'error': True, 'msg': _("You don't have enough privileges to cancel this registration")}
                 return JsonResponse(response, safe=False)
 
             cancellation_reason = CancelType.objects.get(pk=reason_id)
@@ -1725,8 +1744,8 @@ def ajax_batch_cancel_registration(request):
     err_msg = None
     err = False
     today = datetime.datetime.today()
-
-    # FIXME : test request.user rights on immersion.slot
+    user = request.user
+    allowed_structures = user.get_authorized_structures()
 
     if not immersion_ids or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
@@ -1743,6 +1762,23 @@ def ajax_batch_cancel_registration(request):
                                                           immersion.slot.start_time < today.time()):
                     response = {'error': True, 'msg': _("Past immersion cannot be cancelled")}
                     return JsonResponse(response, safe=False)
+
+                slot_establishment = immersion.slot.get_establishment()
+                slot_structure = immersion.slot.get_structure()
+                slot_highschool = immersion.slot.get_highschool()
+
+                # Check authenticated user rights on this registration
+                valid_conditions = [
+                    user.is_master_establishment_manager(),
+                    user.is_operator(),
+                    user.is_establishment_manager() and slot_establishment == user.establishment,
+                    user.is_structure_manager() and slot_structure in allowed_structures
+                ]
+
+                if not any(valid_conditions):
+                    response = {'error': True, 'msg': _("You don't have enough privileges to cancel these registrations")}
+                    return JsonResponse(response, safe=False)
+
                 cancellation_reason = CancelType.objects.get(pk=reason_id)
                 immersion.cancellation_type = cancellation_reason
                 immersion.save()

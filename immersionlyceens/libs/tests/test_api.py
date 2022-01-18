@@ -61,6 +61,15 @@ class APITestCase(TestCase):
             email='test@test.com'
         )
 
+        self.establishment2 = Establishment.objects.create(
+            code='ETA2',
+            label='Etablissement 2',
+            short_label='Eta 2',
+            active=True,
+            master=False,
+            email='test2@test.com'
+        )
+
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -143,6 +152,13 @@ class APITestCase(TestCase):
             first_name='ref_str',
             last_name='ref_str',
         )
+        self.ref_str2 = get_user_model().objects.create_user(
+            username='ref_str2',
+            password='pass',
+            email='ref_str2@no-reply.com',
+            first_name='ref_str2',
+            last_name='ref_str2',
+        )
         self.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
@@ -190,6 +206,7 @@ class APITestCase(TestCase):
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
         Group.objects.get(name='INTER').user_set.add(self.highschool_speaker)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user3)
@@ -216,6 +233,13 @@ class APITestCase(TestCase):
             code="STR",
             establishment=self.establishment
         )
+
+        self.structure2 = Structure.objects.create(
+            label="test structure 2",
+            code="STR2",
+            establishment=self.establishment2
+        )
+
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
@@ -230,6 +254,7 @@ class APITestCase(TestCase):
         self.training.structures.add(self.structure)
         self.training2.structures.add(self.structure)
         self.ref_str.structures.add(self.structure)
+        self.ref_str2.structures.add(self.structure2)
 
         self.course = Course.objects.create(
             label="course 1",
@@ -1572,16 +1597,21 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Past immersion cannot be cancelled")
 
-
-        # Success
+        # Authenticated user has no rights
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
+
+        self.client.login(username='ref_str2', password='pass')
+        self.assertIsNone(self.immersion.cancellation_type)
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertEqual(content['msg'], "You don't have enough privileges to cancel this registration")
+
+        # Success
+        self.client.login(username='ref_etab', password='pass')
         self.assertIsNone(self.immersion.cancellation_type)
 
-        data = {
-            'immersion_id': self.immersion.id,
-            'reason_id': self.cancel_type.id
-        }
+        # Success
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
         self.assertFalse(content['error'])
         self.assertEqual(content['msg'], "Immersion cancelled")
@@ -1708,7 +1738,7 @@ class APITestCase(TestCase):
 
 
     def test_API_ajax_batch_cancel_registration(self):
-        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
         url = "/api/batch_cancel_registration"
 
         # No data
@@ -1741,7 +1771,19 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Past immersion cannot be cancelled")
 
+        # Authenticated user has no rights
+        self.slot.date = self.today + timedelta(days=1)
+        self.slot.save()
+
+        self.client.login(username='ref_str2', password='pass')
+        self.assertIsNone(self.immersion.cancellation_type)
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        self.assertTrue(content['error'])
+        self.assertEqual(content['msg'], "You don't have enough privileges to cancel these registrations")
+
         # Success
+        self.client.login(username='ref_etab', password='pass')
+        self.assertIsNone(self.immersion.cancellation_type)
         self.slot.date = self.today + timedelta(days=1)
         self.slot.save()
 
