@@ -6,10 +6,8 @@ import datetime
 import importlib
 import json
 import logging
-from itertools import chain, permutations
-import django_filters.rest_framework
 from functools import reduce
-
+from itertools import chain, permutations
 
 import django_filters.rest_framework
 from django.conf import settings
@@ -25,7 +23,7 @@ from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext, pgettext, gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from rest_framework import generics, status
 
 """
@@ -36,14 +34,16 @@ from rest_framework.exceptions import NotFound
 
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
-    Holiday, Immersion, ImmersionUser, MailTemplate, MailTemplateVars,
-    PublicDocument, Slot, Structure, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation, Visit, OffOfferEvent, HighSchoolLevel, PostBachelorLevel,
-    StudentLevel
+    HighSchoolLevel, Holiday, Immersion, ImmersionUser, MailTemplate,
+    MailTemplateVars, OffOfferEvent, PostBachelorLevel, PublicDocument, Slot,
+    Structure, StudentLevel, Training, TrainingDomain, UniversityYear,
+    UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, EstablishmentSerializer, StructureSerializer, CourseSerializer,
-    TrainingHighSchoolSerializer, VisitSerializer, OffOfferEventSerializer, HighSchoolLevelSerializer
+    BuildingSerializer, CampusSerializer, CourseSerializer,
+    EstablishmentSerializer, HighSchoolLevelSerializer,
+    OffOfferEventSerializer, StructureSerializer, TrainingHighSchoolSerializer,
+    VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -51,9 +51,6 @@ from immersionlyceens.apps.immersion.models import (
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request,
 )
-
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
-from immersionlyceens.decorators import groups_required, is_ajax_request, is_post_request
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
@@ -1075,7 +1072,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     immersions = Immersion.objects.prefetch_related(
         'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
-    ).filter(student_id=user_id)
+    ).filter(Q(slot__event__isnull=True,slot__visit__isnull=True), student_id=user_id)
 
     if immersion_type == "future":
         immersions = immersions.filter(
@@ -1301,6 +1298,7 @@ def ajax_slot_registration(request):
     can_force_reg = any([user.is_establishment_manager(), user.is_master_establishment_manager(), user.is_operator()])
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
+    visit_or_off_offer = False
 
     request.session.pop("last_registration_slot", None)
 
@@ -1321,6 +1319,7 @@ def ajax_slot_registration(request):
     if slot_id:
         try:
             slot = Slot.objects.get(pk=slot_id)
+            visit_or_off_offer= True if (slot.visit or slot.event) else False
         except Slot.DoesNotExist:
             pass
 
@@ -1368,8 +1367,17 @@ def ajax_slot_registration(request):
         if not record or (record and not record.is_valid()):
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
             return JsonResponse(response, safe=False)
-
-    # Check if slot is not in the past
+    elif student.is_high_school_student:
+        record = student.get_high_school_student_record()
+        # Check if slot highschool level is ok
+        if student.is_high_school_student and slot.levels_restrictions and record.level.pk not in slot.allowed_highschool_levels.values_list('pk', flat=True):
+            response = {'error': True, 'msg': _("Cannot register slot due to Highschool student level restrictions")}
+            return JsonResponse(response, safe=False)
+        # TODO: used later
+        # if student.is_high_school_student and slot.establishments_restrictions and record.highschool.pk not in slot.allowed_establishments.values_list('pk', flat=True):
+        #     response = {'error': True, 'msg': _("Cannot register slot due to Establishment restrictions")}
+            return JsonResponse(response, safe=False)
+    # Check if slot is not past
     if slot.date < today or (slot.date == today and today_time > slot.start_time):
         response = {'error': True, 'msg': _("Register to past slot is not available")}
         return JsonResponse(response, safe=False)
@@ -1395,7 +1403,7 @@ def ajax_slot_registration(request):
         if calendar and calendar.calendar_mode == 'YEAR':
             if calendar.year_registration_start_date <= today <= calendar.year_end_date:
                 # remaining regs ok
-                if remaining_regs_count['annually'] > 0:
+                if remaining_regs_count['annually'] > 0 or visit_or_off_offer:
                     can_register = True
                 # alert user he can force registering
                 elif can_force_reg and not force == 'true':
@@ -1427,7 +1435,7 @@ def ajax_slot_registration(request):
             if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
                 if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date:
                     # remaining regs ok
-                    if remaining_regs_count['semester1'] > 0:
+                    if remaining_regs_count['semester1'] > 0 or visit_or_off_offer:
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':
@@ -1457,7 +1465,7 @@ def ajax_slot_registration(request):
             elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
                 if calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date:
                     # remaining regs ok
-                    if remaining_regs_count['semester2'] > 0:
+                    if remaining_regs_count['semester2'] > 0 or visit_or_off_offer:
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':

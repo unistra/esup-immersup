@@ -64,6 +64,8 @@ for logger in LOGGING['loggers']:
     LOGGING['loggers'][logger]['level'] = 'DEBUG'
 
 
+
+
 ###########################
 # Unit test configuration #
 ###########################
