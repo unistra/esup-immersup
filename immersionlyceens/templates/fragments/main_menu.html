@@ -244,6 +244,7 @@
               <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' %}">{% trans 'Highschool member' %}</a>
               <a class="dropdown-item" href="{% url 'shibboleth_login' %}">{% trans 'Student' context "login" %}</a>
+              <a class="dropdown-item" href="{% url 'immersion:login' %}">{% trans 'Visitor' context "login" %}</a>
             </div>
           {% endif %}
         </div>

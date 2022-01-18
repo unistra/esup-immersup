@@ -46,69 +46,69 @@ from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 logger = logging.getLogger(__name__)
 
 
-def customLogin(request, profile=None):
-    """
-    Common login function for multiple users profiles
-    :param request: request object
-    :param profile: name of the profile (None = students)
-    """
-    # Clear all client sessions
-    Session.objects.all().delete()
-
-    is_reg_possible, is_year_valid, year = check_active_year()
-
-    if not profile and (not year or not is_year_valid):
-        messages.error(request, _("Sorry, the university year has not begun (or already over), you can't login yet."))
-
-        context = {
-            'start_date': year.start_date if year else None,
-            'end_date': year.end_date if year else None,
-            'reg_date': year.registration_start_date if year else None,
-        }
-        return render(request, 'immersion/nologin.html',context)
-
-    if request.method == 'POST':
-        form = LoginForm(request.POST, profile=profile)
-
-        if form.is_valid():
-            username = form.cleaned_data['login']
-            password = form.cleaned_data['password']
-
-            user = authenticate(request, username=username, password=password)
-            print(f"USER: {user}")
-            if user is not None:
-                # Activated account ?
-                if not user.is_valid():
-                    messages.error(request, _("Your account hasn't been enabled yet."))
-                else:
-                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                    if user.is_high_school_student():
-                        # If student has filled his record
-                        if user.get_high_school_student_record():
-                            return HttpResponseRedirect("/immersion")
-                        else:
-                            return HttpResponseRedirect("/immersion/hs_record")
-                    elif user.is_visitor():
-                        if user.get_visitor_record():
-                            return HttpResponseRedirect("/immersion")
-                        else:
-                            return HttpResponseRedirect("/immersion/visitor_record")
-                    elif user.is_high_school_manager() and user.highschool:
-                        return HttpResponseRedirect(reverse('home'))
-            else:
-                messages.error(request, _("Authentication error"))
-    else:
-        form = LoginForm()
-
-    context = {'form': form, 'profile': profile}
-
-    return render(request, 'immersion/login.html', context)
+# def customLogin(request, profile=None):
+#     """
+#     Common login function for multiple users profiles
+#     :param request: request object
+#     :param profile: name of the profile (None = students)
+#     """
+#     # Clear all client sessions
+#     Session.objects.all().delete()
+#
+#     is_reg_possible, is_year_valid, year = check_active_year()
+#
+#     if not profile and (not year or not is_year_valid):
+#         messages.error(request, _("Sorry, the university year has not begun (or already over), you can't login yet."))
+#
+#         context = {
+#             'start_date': year.start_date if year else None,
+#             'end_date': year.end_date if year else None,
+#             'reg_date': year.registration_start_date if year else None,
+#         }
+#         return render(request, 'immersion/nologin.html',context)
+#
+#     if request.method == 'POST':
+#         form = LoginForm(request.POST, profile=profile)
+#
+#         if form.is_valid():
+#             username = form.cleaned_data['login']
+#             password = form.cleaned_data['password']
+#
+#             user = authenticate(request, username=username, password=password)
+#             print(f"USER: {user}")
+#             if user is not None:
+#                 # Activated account ?
+#                 if not user.is_valid():
+#                     messages.error(request, _("Your account hasn't been enabled yet."))
+#                 else:
+#                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+#                     if user.is_high_school_student():
+#                         # If student has filled his record
+#                         if user.get_high_school_student_record():
+#                             return HttpResponseRedirect("/immersion")
+#                         else:
+#                             return HttpResponseRedirect("/immersion/hs_record")
+#                     elif user.is_visitor():
+#                         if user.get_visitor_record():
+#                             return HttpResponseRedirect("/immersion")
+#                         else:
+#                             return HttpResponseRedirect("/immersion/visitor_record")
+#                     elif user.is_high_school_manager() and user.highschool:
+#                         return HttpResponseRedirect(reverse('home'))
+#             else:
+#                 messages.error(request, _("Authentication error"))
+#     else:
+#         form = LoginForm()
+#
+#     context = {'form': form, 'profile': profile}
+#
+#     return render(request, 'immersion/login.html', context)
 
 
 class CustomLoginView(FormView):
     template_name: str = "immersion/login.html"
     invalid_no_login_template: str = "immersion/nologin.html"
-    success_url = "/immersion/login2"
+    success_url = "/immersion/login"
     form_class = LoginForm
 
     def get_form_kwargs(self):
