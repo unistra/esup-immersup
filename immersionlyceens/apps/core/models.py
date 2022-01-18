@@ -498,6 +498,7 @@ class ImmersionUser(AbstractUser):
         Updates student registrations remaining based on type parameter
         type values are annual/semester1/semester2
         """
+        record = None
 
         if self.is_high_school_student():
             record = self.get_high_school_student_record()

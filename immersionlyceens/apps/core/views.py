@@ -855,6 +855,7 @@ class CourseSlotList(generic.TemplateView):
         context["can_update"] = True #FixMe
         context["slot_mode"] = "course"
         context["contact_form"] = ContactForm()
+        context["cancel_types"] = CancelType.objects.filter(active=True)
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
@@ -1399,6 +1400,7 @@ class VisitSlotList(generic.TemplateView):
         context["can_update"] = True #FixMe
         context["slot_mode"] = "visit"
         context["contact_form"] = ContactForm()
+        context["cancel_types"] = CancelType.objects.filter(active=True)
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
@@ -1895,6 +1897,7 @@ class OffOfferEventSlotList(generic.TemplateView):
         context["can_update"] = True #FixMe
         context["slot_mode"] = "event"
         context["contact_form"] = ContactForm()
+        context["cancel_types"] = CancelType.objects.filter(active=True)
 
         # Defaults
         context["establishments"] = Establishment.activated.all()
