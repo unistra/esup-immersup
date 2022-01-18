@@ -1324,7 +1324,16 @@ def ajax_slot_registration(request):
         if not record or (record and not record.is_valid()):
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
             return JsonResponse(response, safe=False)
-
+    elif student.is_high_school_student:
+        record = student.get_high_school_student_record()
+        # Check if slot highschool level is ok
+        if student.is_high_school_student and slot.levels_restrictions and record.level.pk not in slot.allowed_highschool_levels.values_list('pk', flat=True):
+            response = {'error': True, 'msg': _("Cannot register slot due to Highschool student level restrictions")}
+            return JsonResponse(response, safe=False)
+        # TODO: used later
+        # if student.is_high_school_student and slot.establishments_restrictions and record.highschool.pk not in slot.allowed_establishments.values_list('pk', flat=True):
+        #     response = {'error': True, 'msg': _("Cannot register slot due to Establishment restrictions")}
+            return JsonResponse(response, safe=False)
     # Check if slot is not past
     if slot.date < today or (slot.date == today and today_time > slot.start_time):
         response = {'error': True, 'msg': _("Register to past slot is not available")}
