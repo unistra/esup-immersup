@@ -12,21 +12,23 @@ from django.contrib.auth.models import Group
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
-from django.utils.translation import pgettext
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-
-from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
-
-from immersionlyceens.apps.core.models import (AccompanyingDocument, Building, Calendar, Campus, CancelType,
-    Structure, Course, CourseType, Establishment, GeneralSettings, HighSchool, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, Slot, Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation, Visit,
-    OffOfferEvent, OffOfferEventType, HighSchoolLevel, PostBachelorLevel, StudentLevel
+from django.utils.translation import gettext_lazy as _, pgettext
+from immersionlyceens.apps.core.models import (
+    AccompanyingDocument, Building, Calendar, Campus, CancelType, Course,
+    CourseType, Establishment, GeneralSettings, HighSchool, HighSchoolLevel,
+    Immersion, ImmersionUser, MailTemplate, MailTemplateVars, OffOfferEvent,
+    OffOfferEventType, PostBachelorLevel, Slot, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
+    Visit,
 )
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 from immersionlyceens.libs.utils import get_general_setting
+from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -49,7 +51,7 @@ class APITestCase(TestCase):
         """
         self.today = timezone.now()
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-        
+
         # TODO : put all these objects in test fixtures
 
         self.establishment = Establishment.objects.create(
@@ -316,7 +318,6 @@ class APITestCase(TestCase):
             n_places=20,
             additional_information="Hello there!"
         )
-
         self.unpublished_slot = Slot.objects.create(
             course=self.course,
             course_type=self.course_type,
@@ -334,6 +335,23 @@ class APITestCase(TestCase):
         self.past_slot.speakers.add(self.speaker1),
         self.slot2.speakers.add(self.speaker1),
         self.highschool_slot.speakers.add(self.highschool_speaker),
+
+        self.highschool_restricted_level = HighSchoolLevel.objects.create(label="level label")
+        self.highschool_level_restricted_slot = Slot.objects.create(
+            course=self.highschool_course,
+            course_type=self.course_type,
+            room='room 237',
+            date=self.today,
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="High school additional information",
+            levels_restrictions=True
+        )
+
+        self.highschool_level_restricted_slot.allowed_highschool_levels.add(
+            self.highschool_restricted_level
+        )
 
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
@@ -556,7 +574,7 @@ class APITestCase(TestCase):
     def test_API_get_trainings(self):
         request.user = self.ref_etab_user
         url = "/api/get_trainings"
-        
+
         data = {
             'type': 'structure',
             'object_id': self.structure.id
@@ -701,7 +719,7 @@ class APITestCase(TestCase):
         self.hs_record.save()
         request.user = self.ref_etab_user
         url = "/api/validate_student/"
-        
+
         data = {
             'student_record_id': self.hs_record.id
         }
@@ -882,7 +900,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
 
         url = f"/api/get_available_vars/{self.mail_t.id}"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1020,7 +1038,7 @@ class APITestCase(TestCase):
         client.login(username='speaker1', password='pass')
 
         url = "/api/get_courses/"
-        
+
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1073,8 +1091,6 @@ class APITestCase(TestCase):
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
-
-        print(content['data'])
 
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
@@ -1162,7 +1178,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
 
         url = "/api/get_agreed_highschools"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1219,7 +1235,7 @@ class APITestCase(TestCase):
         self.slot.date = self.today + timedelta(days=2)
         self.slot.save()
         url = f"/api/get_immersions/{self.highschool_user.id}/future"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1246,7 +1262,7 @@ class APITestCase(TestCase):
         self.slot.date = self.today - timedelta(days=2)
         self.slot.save()
         url = f"/api/get_immersions/{self.highschool_user.id}/past"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1273,7 +1289,7 @@ class APITestCase(TestCase):
         self.immersion.cancellation_type = self.cancel_type
         self.immersion.save()
         url = f"/api/get_immersions/{self.highschool_user.id}/cancelled"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1303,7 +1319,7 @@ class APITestCase(TestCase):
         request.user = self.student
 
         url = f"/api/get_other_registrants/{self.immersion2.id}"
-        
+
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1321,7 +1337,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
 
         url = f"/api/get_slot_registrations/{self.slot.id}"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1354,7 +1370,7 @@ class APITestCase(TestCase):
         self.hs_record2.save()
 
         url = f"/api/get_available_students/{self.slot.id}"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1388,7 +1404,7 @@ class APITestCase(TestCase):
 
         # No records
         url = "/api/get_highschool_students/no_record"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1459,7 +1475,7 @@ class APITestCase(TestCase):
 
         # No date
         url = f"/api/check_vacations"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['msg'], "Error: A date is required")
@@ -1490,7 +1506,7 @@ class APITestCase(TestCase):
             d = self.today + timedelta(days=1)
         dd = _date(d, 'Y/m/d')
         url = f"/api/check_vacations?date={dd}"
-        
+
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1668,7 +1684,7 @@ class APITestCase(TestCase):
         client.login(username='student', password='pass')
 
         url = "/api/get_alerts"
-        
+
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
@@ -1792,7 +1808,7 @@ class APITestCase(TestCase):
     def test_API_ajax_get_students_presence(self):
         request.user = self.ref_etab_user
         url = "/api/get_students_presence"
-        
+
         data = {}
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
@@ -1959,6 +1975,16 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
 
+        # Fail with highschool level Restrictions
+        response = client.post("/api/register",
+                               {'slot_id': self.highschool_level_restricted_slot.id},
+                               **self.header,
+                               follow=True
+                               )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to Highschool student level restrictions", content['msg'])
+
+
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)
         # Todo : needs tests with a calendar in semester mode
 
@@ -2056,7 +2082,7 @@ class APITestCase(TestCase):
         # Success
         client.login(username='lycref', password='pass')
         response = client.get(
-            reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}), 
+            reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}),
             **self.header
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
