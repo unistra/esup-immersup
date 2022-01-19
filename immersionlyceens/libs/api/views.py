@@ -8,6 +8,7 @@ import json
 import logging
 from functools import reduce
 from itertools import chain, permutations
+from typing import Any, Dict, List, Optional
 
 import django_filters.rest_framework
 from django.conf import settings
@@ -24,6 +25,7 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
+from django.views import View
 from rest_framework import generics, status
 
 """
@@ -1583,100 +1585,235 @@ def ajax_get_available_students(request, slot_id):
     return JsonResponse(response, safe=False)
 
 
-@login_required
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_get_highschool_students(request, highschool_id=None):
-    """
-    Retrieve students from a highschool or all students if user is ref-etab manager
-    and no highschool id is specified
-    """
-    no_record_filter = False
-    response = {'data': [], 'msg': ''}
+# @login_required
+# @is_ajax_request
+# @groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
+# def ajax_get_highschool_students(request, highschool_id=None):
+#     """
+#     Retrieve students from a highschool or all students if user is ref-etab manager
+#     and no highschool id is specified
+#     """
+#     no_record_filter: bool = False
+#     response: Dict[str, Any] = {'data': [], 'msg': ''}
+#
+#     admin_groups: List[bool] = [
+#         request.user.is_establishment_manager(),
+#         request.user.is_master_establishment_manager(),
+#         request.user.is_operator()
+#     ]
+#
+#     if any(admin_groups):
+#         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
+#
+#     if not highschool_id:
+#         try:
+#             highschool_id = request.user.highschool.id
+#         except Exception:
+#             if not any(admin_groups):
+#                 response: Dict[str, Any] = {'data': [], 'msg': _('Invalid parameters')}
+#                 return JsonResponse(response, safe=False)
+#
+#     if highschool_id:
+#         students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
+#             validation_string__isnull=True, high_school_student_record__highschool__id=highschool_id
+#         )
+#     else:
+#         students = ImmersionUser.objects.prefetch_related(
+#             'high_school_student_record', 'student_record', 'visitor_record', 'immersions'
+#         ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC', 'VIS'])
+#
+#     if no_record_filter:
+#         students = students.filter(
+#             high_school_student_record__isnull=True,
+#             student_record__isnull=True,
+#             visitor_record__isnull=True
+#         )
+#     else:
+#         students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(visitor_record__isnull=False))
+#
+#     for student in students:
+#         record = None
+#         student_type = _('Unknown')
+#         link = ''
+#         try:
+#             if student.is_high_school_student():
+#                 record = student.get_high_school_student_record()
+#                 if record:
+#                     link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
+#                 student_type = pgettext("person type", "High school student")
+#             elif student.is_student():
+#                 record = student.get_student_record()
+#                 if record:
+#                     link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
+#                 student_type = pgettext("person type", "Student")
+#             else:
+#                 record = student.get_visitor_record()
+#                 record = None
+#                 if record:
+#                     link = reverse('immersion:visitor_record_by_id', kwargs={'record_id': record.id})
+#                 student_type = pgettext("person type", "Student")
+#
+#         except Exception:
+#             pass
+#
+#         student_data = {
+#             'id': student.pk,
+#             'name': f"{student.last_name} {student.first_name}",
+#             'birthdate': date_format(record.birth_date) if record else '-',
+#             'institution': '',
+#             'level': record.level.label if record and record.level else '-',
+#             'bachelor': '',
+#             'post_bachelor_level': '',
+#             'class': '',
+#             'registered': student.immersions.exists(),
+#             'record_link': link,
+#             'student_type': student_type,
+#         }
+#
+#         if record:
+#             if student.is_high_school_student():
+#                 student_data['class'] = record.class_name
+#                 student_data['institution'] = record.highschool.label
+#
+#                 if record.level.is_post_bachelor:
+#                     student_data['bachelor'] = record.get_origin_bachelor_type_display()
+#                     student_data['post_bachelor_level'] = record.post_bachelor_level.label
+#                 else:
+#                     student_data['bachelor'] = record.get_bachelor_type_display()
+#
+#             elif student.is_student():
+#                 uai_code, institution = record.home_institution()
+#                 student_data['bachelor'] = record.get_origin_bachelor_type_display()
+#                 student_data['institution'] = institution.label if institution else uai_code
+#                 student_data['post_bachelor_level'] = record.current_diploma
+#
+#         response['data'].append(student_data.copy())
+#
+#     return JsonResponse(response, safe=False)
 
-    admin_groups = [
-        request.user.is_establishment_manager(),
-        request.user.is_master_establishment_manager(),
-        request.user.is_operator()
-    ]
 
-    if any(admin_groups):
-        no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
-
-    if not highschool_id:
-        try:
-            highschool_id = request.user.highschool.id
-        except Exception:
-            if not any(admin_groups):
-                response = {'data': [], 'msg': _('Invalid parameters')}
-                return JsonResponse(response, safe=False)
-
-    if highschool_id:
-        students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
-            validation_string__isnull=True, high_school_student_record__highschool__id=highschool_id
-        )
-    else:
-        students = ImmersionUser.objects.prefetch_related(
-            'high_school_student_record', 'student_record', 'immersions'
-        ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC'])
-
-    if no_record_filter:
-        students = students.filter(high_school_student_record__isnull=True, student_record__isnull=True)
-    else:
-        students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False))
-
-    for student in students:
-        record = None
-        student_type = _('Unknown')
-        link = ''
-        try:
-            if student.is_high_school_student():
-                record = student.get_high_school_student_record()
-                if record:
-                    link = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
-                student_type = pgettext("person type", "High school student")
-            else:
-                record = student.get_student_record()
-                if record:
-                    link = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
-                student_type = pgettext("person type", "Student")
-        except Exception:
-            pass
-
-        student_data = {
-            'id': student.pk,
-            'name': f"{student.last_name} {student.first_name}",
-            'birthdate': date_format(record.birth_date) if record else '-',
-            'institution': '',
-            'level': record.level.label if record and record.level else '-',
-            'bachelor': '',
-            'post_bachelor_level': '',
-            'class': '',
-            'registered': student.immersions.exists(),
-            'record_link': link,
-            'student_type': student_type,
+@method_decorator(groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
+class AjaxGetRegisteredUsers(View):
+    def common_data(self, user: ImmersionUser) -> Dict[str, Any]:
+        return {
+            'id': user.pk,
+            'name': f"{user.last_name} {user.first_name}",
+            'registered': user.immersions.exists(),
+            'student_type': _('Unknown'),
         }
 
+    def fill_void(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        fields_name = [
+            'institution', 'level', 'bachelor', 'post_bachelor_level',
+            'class', 'registered', 'record_link', 'student_type',
+        ]
+        for name in fields_name:
+            if name not in data:
+                data.update({name: "-"})
+        return data
+
+    def get_data(self, user: ImmersionUser):
+        data = self.common_data(user)
+        if user.is_high_school_student():
+            data.update(self.hs_data(user))
+        elif user.is_student():
+            data.update(self.student_data(user))
+        else:
+            data.update(self.visitor_data(user))
+        return self.fill_void(data)
+
+    def hs_data(self, user: ImmersionUser) -> Dict[str, Any]:
+        data = {
+            "student_type": pgettext("person type", "Student"),
+        }
+        record = user.get_high_school_student_record()
         if record:
-            if student.is_high_school_student():
-                student_data['class'] = record.class_name
-                student_data['institution'] = record.highschool.label
+            data["record_link"] = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
+            data["level"] = record.level.label if record and record.level else "-"
+            data["class"] = record.class_name
+            data["institution"] = record.highschool.label
+            data["birthdate"] = date_format(record.birth_date) if record else "-"
 
-                if record.level.is_post_bachelor:
-                    student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                    student_data['post_bachelor_level'] = record.post_bachelor_level.label
-                else:
-                    student_data['bachelor'] = record.get_bachelor_type_display()
+            if record.level.is_post_bachelor:
+                data['bachelor'] = record.get_origin_bachelor_type_display()
+                data['post_bachelor_level'] = record.post_bachelor_level.label
+            else:
+                data['bachelor'] = record.get_bachelor_type_display()
+        return data
 
-            elif student.is_student():
-                uai_code, institution = record.home_institution()
-                student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                student_data['institution'] = institution.label if institution else uai_code
-                student_data['post_bachelor_level'] = record.current_diploma
+    def student_data(self, user: ImmersionUser) -> Dict[str, Any]:
+        data = {
+            "student_type": pgettext("person type", "High school student"),
+        }
+        record = user.get_student_record()
+        if record:
+            uai_code, institution = record.home_institution()
+            data["level"] = record.level.label if record and record.level else "-",
+            data["record_link"] = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
+            data["bachelor"] = record.get_origin_bachelor_type_display()
+            data["institution"] = institution.label if institution else uai_code
+            data["post_bachelor_level"] = record.current_diploma
+            data["birthdate"] = date_format(record.birth_date) if record else "-"
+        return data
 
-        response['data'].append(student_data.copy())
+    def visitor_data(self, user: ImmersionUser) -> Dict[str, Any]:
+        data = {
+            "student_type": pgettext("person type", "Visitor"),
+        }
+        record = user.get_visitor_record()
+        if record:
+            data["record_link"] = reverse('immersion:visitor_record_by_id', kwargs={'record_id': record.id})
+            data["birthdate"] = date_format(record.birth_date) if record else "-"
 
-    return JsonResponse(response, safe=False)
+        return data
+
+    def get(self, request):
+        no_record_filter: bool = False
+        highschool_id = self.kwargs.get("highschool_id")
+        response: Dict[str, Any] = {'data': [], 'msg': ''}
+
+        admin_groups: List[bool] = [
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ]
+
+        if any(admin_groups):
+            no_record_filter = resolve(self.request.path_info).url_name == 'get_students_without_record'
+
+        if not highschool_id:
+            try:
+                highschool_id = self.request.user.highschool.id
+            except Exception:
+                if not any(admin_groups):
+                    response: Dict[str, Any] = {'data': [], 'msg': _('Invalid parameters')}
+                    return JsonResponse(response, safe=False)
+
+        if highschool_id:
+            students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
+                validation_string__isnull=True, high_school_student_record__highschool__id=highschool_id
+            )
+        else:
+            students = ImmersionUser.objects.prefetch_related(
+                'high_school_student_record', 'student_record', 'visitor_record', 'immersions'
+            ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC', 'VIS'])
+
+        if no_record_filter:
+            students = students.filter(
+                high_school_student_record__isnull=True,
+                student_record__isnull=True,
+                visitor_record__isnull=True
+            )
+        else:
+            students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(
+                visitor_record__isnull=False))
+
+        # for student in students:
+        #     my_data = self.get_data(student)
+        #     response['data'].append(my_data.copy())
+
+            response["data"] = [self.get_data(user).copy() for user in students]
+        return JsonResponse(response, safe=False)
 
 
 @is_ajax_request

@@ -39,13 +39,23 @@ urlpatterns = [
     path('get_csv_structures/<int:structure_id>', views.get_csv_structures, name='get_csv_structures'),
     path('get_csv_highschool/<int:high_school_id>', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_duplicates', views.ajax_get_duplicates, name='get_duplicates'),
-    path('get_highschool_students/', views.ajax_get_highschool_students, name='get_all_students'),
+
+    #path('get_highschool_students/', views.ajax_get_highschool_students, name='get_all_students'),
+    # path(
+    #     'get_highschool_students/<int:highschool_id>/',
+    #     views.ajax_get_highschool_students,
+    #     name='get_highschool_students',
+    # ),
+    # path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
+
+    path('get_highschool_students/', views.AjaxGetRegisteredUsers.as_view(), name='get_all_students'),
     path(
         'get_highschool_students/<int:highschool_id>/',
-        views.ajax_get_highschool_students,
+        views.AjaxGetRegisteredUsers.as_view(),
         name='get_highschool_students',
     ),
-    path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
+    path('get_highschool_students/no_record', views.AjaxGetRegisteredUsers.as_view(), name='get_students_without_record'),
+
     path('get_immersions/<int:user_id>', views.ajax_get_immersions, name='get_immersions',),
     path('get_immersions/<int:user_id>/<immersion_type>', views.ajax_get_immersions, name='get_immersions',),
     # path('get_my_courses', views.ajax_get_my_courses, name='GetMyCourses'),
