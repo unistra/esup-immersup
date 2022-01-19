@@ -96,6 +96,10 @@ function set_attendance(immersion_id, value) {
       csrfmiddlewaretoken: '{{ csrf_token }}'
     },
     success: function (json) {
+      if(json['error']) {
+        $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
+        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
       dtr.ajax.reload();
       dt.ajax.reload();
     },
@@ -122,6 +126,10 @@ function set_all_attendances(value) {
       csrfmiddlewaretoken: '{{ csrf_token }}'
     },
     success: function (json) {
+      if(json['error']) {
+        $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
+        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
       reload_table();
       dt.ajax.reload();
     },

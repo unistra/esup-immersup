@@ -1670,17 +1670,37 @@ class APITestCase(TestCase):
         self.assertEqual(content['success'], '')
         self.assertEqual(content['error'], "Error: no attendance status set in parameter")
 
-        # Success
-        self.assertEqual(self.immersion.attendance_status, 0)
+
+        # Bad users
         data = {
             'immersion_id': self.immersion.id,
             'attendance_value': 1
         }
+        self.client.login(username='ref_str2', password='pass')
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        self.assertEqual(
+            f"{self.immersion.student} : you don't have enough privileges to set the attendance status",
+            content['error']
+        )
+        self.immersion.refresh_from_db()
+        self.assertEqual(self.immersion.attendance_status, 0)
+
+        self.client.login(username='ref_lyc', password='pass')
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        self.assertEqual(
+            f"{self.immersion.student} : you don't have enough privileges to set the attendance status",
+            content['error']
+        )
+        self.immersion.refresh_from_db()
+        self.assertEqual(self.immersion.attendance_status, 0)
+
+
+        # Success
+        self.client.login(username='ref_etab', password='pass')
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-        self.assertEqual(content['success'], '')
         self.assertEqual(content['error'], '')
-        self.assertEqual(content['msg'], "Attendance status updated")
+        self.assertEqual(content['success'], f"{self.immersion.student} : attendance status updated")
 
         self.immersion.refresh_from_db()
         self.assertEqual(self.immersion.attendance_status, 1)
@@ -1698,9 +1718,12 @@ class APITestCase(TestCase):
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-        self.assertEqual(content['success'], '')
         self.assertEqual(content['error'], '')
-        self.assertEqual(content['msg'], "Attendance status updated")
+        self.assertEqual(
+            content['success'],
+            f"""{self.immersion.student} : attendance status updated"""
+            f"""<br>{self.immersion2.student} : attendance status updated"""
+        )
 
         self.immersion.refresh_from_db()
         self.immersion2.refresh_from_db()
@@ -1715,7 +1738,6 @@ class APITestCase(TestCase):
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
         self.assertEqual(content['success'], '')
-        self.assertGreater(len(content['error']), 0)
         self.assertEqual(content['error'], "Error: missing immersion id parameter")
 
 

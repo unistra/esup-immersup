@@ -1263,13 +1263,15 @@ def ajax_get_slot_registrations(request, slot_id):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-STR', 'INTER', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_set_attendance(request):
     """
     Update immersion attendance status
     """
     immersion_id = request.POST.get('immersion_id', None)
     immersion_ids = request.POST.get('immersion_ids', None)
+    user = request.user
+    allowed_structures = user.get_authorized_structures()
 
     response = {'success': '', 'error': '', 'data': []}
 
@@ -1296,9 +1298,32 @@ def ajax_set_attendance(request):
             response['error'] = gettext("Error : query contains some invalid immersion ids")
 
         if immersion:
-            immersion.attendance_status = attendance_value
-            immersion.save()
-            response['msg'] = gettext("Attendance status updated")
+            response['error'] += "<br>" if response['error'] else ""
+            response['success'] += "<br>" if response['success'] else ""
+
+            slot_establishment = immersion.slot.get_establishment()
+            slot_structure = immersion.slot.get_structure()
+            slot_highschool = immersion.slot.get_highschool()
+
+            # Check authenticated user rights on this registration
+            valid_conditions = [
+                user.is_master_establishment_manager(),
+                user.is_operator(),
+                user.is_establishment_manager() and slot_establishment == user.establishment,
+                user.is_structure_manager() and slot_structure in allowed_structures,
+                user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
+                and slot_highschool and user.highschool == slot_highschool,
+            ]
+
+            if any(valid_conditions):
+                immersion.attendance_status = attendance_value
+                immersion.save()
+                response['success'] += f"{immersion.student} : {gettext('attendance status updated')}"
+            else:
+                response['error'] += "%s : %s" % (
+                    immersion.student, gettext("you don't have enough privileges to set the attendance status")
+                )
+
 
     return JsonResponse(response, safe=False)
 
