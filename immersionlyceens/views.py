@@ -467,7 +467,7 @@ def offer_off_offer_events(request):
         if request.user.is_high_school_student() and not request.user.is_superuser:
             user_highschool = request.user.get_high_school_student_record().highschool
             filters["event__highschool"] = user_highschool
-            filters["allowed_highschools"] = Q(establishments_restrictions=False) | Q(allowed_highschools__highschool__contains=user_highschool)
+            # filters["allowed_highschools"] = Q(establishments_restrictions=False) | Q(allowed_highschools__highschool__contains=user_highschool)
             # TODO: add level restrictions !!!
     except:
         # AnonymousUser

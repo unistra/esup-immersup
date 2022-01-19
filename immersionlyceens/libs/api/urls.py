@@ -32,7 +32,6 @@ urlpatterns = [
         name='get_courses_training',
     ),
     path('get_courses_by_training/<int:training_id>', views.ajax_get_courses_by_training, name='get_courses_training',),
-    # path('get_courses/<int:structure_id>/', views.ajax_get_courses, name='GetCourses'),
     path('get_courses/', views.ajax_get_courses, name='GetCourses'),
 
     path('get_csv_anonymous_immersion/', views.get_csv_anonymous_immersion, name='get_csv_anonymous_immersion'),
