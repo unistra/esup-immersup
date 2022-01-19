@@ -3152,8 +3152,8 @@ msgid "Error : query contains some invalid immersion ids"
 msgstr "Erreur : la requête contient des ids d'immersions invalides"
 
 #: immersionlyceens/libs/api/views.py:1295
-msgid "Attendance status updated"
-msgstr "Émargement mis à jour"
+msgid "attendance status updated"
+msgstr "émargement mis à jour"
 
 #: immersionlyceens/libs/api/views.py:1331
 msgid "Invalid calendar : cannot register"
