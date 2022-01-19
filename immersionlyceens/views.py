@@ -460,12 +460,10 @@ def offer_off_offer_events(request):
 
     if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
         student = request.user
-        _is_high_school_student = False
 
         # Get student/highschool student record
         if student.is_high_school_student():
             record = student.get_high_school_student_record()
-            _is_high_school_student = True
         elif student.is_student():
             record = student.get_student_record()
 
@@ -478,14 +476,6 @@ def offer_off_offer_events(request):
     filters["course__isnull"] = True
     filters["visit__isnull"] = True
     filters["event__published"] = True
-
-    # If user is highschool student filter on highschool
-    # try:
-    #     if request.user.is_high_school_student() and not request.user.is_superuser:
-    #         user_highschool = request.user.get_high_school_student_record().highschool
-    # except:
-    #     # AnonymousUser
-    #     pass
 
     # TODO: implement class method in model to retrieve >=today slots for visits
     filters["date__gte"] = today
@@ -533,7 +523,6 @@ def offer_off_offer_events(request):
             event.can_register = False
             event.cancelled = False
             event.opening_soon = False
-            event_available = True
             # Already registered / cancelled ?
             for immersion in student.immersions.all():
                 if immersion.slot.pk == event.pk:
@@ -544,26 +533,7 @@ def offer_off_offer_events(request):
             # not registered + free seats + dates in range + cancelled to register again
             if not event.already_registered or event.cancelled:
                 # TODO: refactor !!!!
-
-                # Slot has levels restrictions ?
-                if event.levels_restrictions:
-                    # Highschool student
-                    if _is_high_school_student and not record.level.pk in event.allowed_highschool_levels.values_list('pk', flat=True):
-                        event_available = False
-                    # student
-                    elif not _is_high_school_student and not record.level.pk in event.allowed_student_levels.values_list('pk', flat=True):
-                        event_available = False
-
-                # Slot has establishments/highschools restrictions?
-                if event.establishments_restrictions:
-                    # Highschool student
-                    if _is_high_school_student and not record.highschool.pk in event.allowed_highschools.values_list('pk', flat=True):
-                        event_available = False
-                    # student
-                    elif not _is_high_school_student and not record.establishment.pk in event.allowed_establishments.values_list('pk', flat=True):
-                        event_available = False
-
-                if event.available_seats() > 0 and event_available:
+                if event.available_seats() > 0 and student.can_register_slot(event):
                     # TODO: should be rewritten used before with remaining_seats annual or by semester!
                     if calendar.calendar_mode == 'YEAR':
                         if reg_start_date <= today <= cal_end_date:

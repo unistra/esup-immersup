@@ -16,7 +16,7 @@ import re
 import uuid
 from functools import partial
 from os.path import dirname, join
-from typing import Optional, Any
+from typing import Any, Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -519,6 +519,41 @@ class ImmersionUser(AbstractUser):
             return
 
         record.save()
+
+    def can_register_slot(self, slot=None):
+        try:
+            # Restrictions checks for highschool student
+            if self.is_high_school_student():
+                record = self.get_high_school_student_record()
+
+                if slot.levels_restrictions:
+                    if not record.level.pk in \
+                        slot.allowed_highschool_levels.values_list('pk', flat=True):
+                        return False
+                if slot.establishments_restrictions:
+                    if not record.highschool.pk in \
+                        slot.allowed_highschools.values_list('pk', flat=True):
+                        return False
+
+            # Restrictions checks for student
+            elif self.is_student():
+                record = self.get_student_record()
+
+                if slot.levels_restrictions:
+                    if not record.level.pk in \
+                    slot.allowed_student_levels.values_list('pk', flat=True):
+                        return False
+                    # if not record. in allowed_post_bachelor_levels.values_list('pk', flat=True):
+                    #     return False
+                if slot.establishments_restrictions:
+                    if not self.establishment.pk in \
+                        slot.allowed_establishments.values_list('pk', flat=True):
+                        return False
+
+        except Exception as e:
+            return False
+
+        return True
 
     class Meta:
         verbose_name = _('User')
