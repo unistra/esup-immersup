@@ -504,6 +504,11 @@ def slots(request):
             ),
         ]
 
+        update_attendances_conditions = [
+            registrations_update_conditions,
+            user.is_speaker() and user in slot.speakers.all()
+        ]
+
         if slot.course:
             training_label = f'{slot.course.training.label} ({slot.course_type.label})'
             training_label_full = f'{slot.course.training.label} ({slot.course_type.full_label})'
@@ -518,6 +523,7 @@ def slots(request):
             'can_update_visit_slot': slot.visit and any(allowed_visit_slot_update_conditions),
             'can_update_event_slot': slot.event and any(allowed_event_slot_update_conditions),
             'can_update_registrations': any(registrations_update_conditions),
+            'can_update_attendances': can_update_attendances and any(update_attendances_conditions),
             'course': {
                'id': slot.course.id,
                'label': slot.course.label
@@ -1273,12 +1279,20 @@ def ajax_set_attendance(request):
     user = request.user
     allowed_structures = user.get_authorized_structures()
 
+    # Control if we can cancel an immersion by clicking again on its status
+    single_immersion = True
+
     response = {'success': '', 'error': '', 'data': []}
 
     if immersion_ids:
         immersion_ids = json.loads(immersion_ids)
+        single_immersion = False
 
-    attendance_value = request.POST.get('attendance_value')
+    try:
+        attendance_value = int(request.POST.get('attendance_value'))
+    except:
+        attendance_value = None
+
     if not attendance_value:
         response['error'] = gettext("Error: no attendance status set in parameter")
         return JsonResponse(response, safe=False)
@@ -1311,12 +1325,18 @@ def ajax_set_attendance(request):
                 user.is_operator(),
                 user.is_establishment_manager() and slot_establishment == user.establishment,
                 user.is_structure_manager() and slot_structure in allowed_structures,
+                user.is_speaker() and user in immersion.slot.speakers.all(),
                 user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
                 and slot_highschool and user.highschool == slot_highschool,
             ]
 
             if any(valid_conditions):
-                immersion.attendance_status = attendance_value
+                # current status cancellation ? (= set 0)
+                if single_immersion and immersion.attendance_status == attendance_value:
+                    immersion.attendance_status = 0
+                else:
+                    immersion.attendance_status = attendance_value
+
                 immersion.save()
                 response['success'] += f"{immersion.student} : {gettext('attendance status updated')}"
             else:

@@ -1696,6 +1696,21 @@ class APITestCase(TestCase):
 
 
         # Success
+        # As a slot speaker
+        self.client.login(username='speaker1', password='pass')
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        self.assertEqual(content['error'], '')
+        self.assertEqual(content['success'], f"{self.immersion.student} : attendance status updated")
+        self.immersion.refresh_from_db()
+        self.assertEqual(self.immersion.attendance_status, 1)
+
+        # As the establishment manager
+        # reset the immersion status
+        self.immersion.attendance_status = 0
+        self.immersion.save()
+        self.immersion.refresh_from_db()
+        self.assertEqual(self.immersion.attendance_status, 0)
+
         self.client.login(username='ref_etab', password='pass')
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 

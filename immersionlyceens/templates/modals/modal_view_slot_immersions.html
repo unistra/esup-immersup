@@ -61,6 +61,10 @@
       </div>
       <div class="modal-footer">
         <div class="form-group row justify-content-center">
+        {% comment %}
+          The following groups can update (add/cancel) registrations
+        {% endcomment %}
+
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
           <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
           <div class="col">
@@ -74,6 +78,11 @@
           <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
           <button type="button" id="btn_register_student" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
         {% endif %}
+
+        {% comment %}
+          Attendances : same groups but INTER users can also update attendances for their courses/visits/events
+        {% endcomment %}
+
         {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
           <button type="button" id="btn_contact_students" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
         {% endif %}
