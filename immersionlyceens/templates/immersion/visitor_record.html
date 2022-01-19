@@ -146,14 +146,10 @@
       </div>
     </div>
     <div class="row mt-4">
-      <div class="col-sm-2">
-        <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
-        <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4" style='margin-left:40px;'>{% trans 'Back' %}</a>
-      </div>
+      <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
+      <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4" style='margin-left:40px;'>{% trans 'Back' %}</a>
       {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
-        <div class="col-sm-10 text-right">
-          <input type="button" class="btn btn-primary btn-sm" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
-        </div>
+        <input type="button" class="btn btn-primary btn-sm ml-4" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
       {% endif %}
     </div>
   </form>
