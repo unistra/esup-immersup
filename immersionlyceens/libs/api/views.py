@@ -878,7 +878,13 @@ def ajax_validate_reject_student(request, validate):
     student_record_id = request.POST.get('student_record_id')
     if student_record_id:
         hs = None
-        if request.user.is_establishment_manager():
+        all_highschools_conditions = [
+            request.user.is_establishment_manager(),
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+        ]
+
+        if any(all_highschools_conditions):
             hs = HighSchool.objects.all()
         else:
             hs = HighSchool.objects.filter(id=request.user.highschool.id)
