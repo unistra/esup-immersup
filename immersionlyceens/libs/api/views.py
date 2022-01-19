@@ -498,7 +498,9 @@ def slots(request):
             user.is_establishment_manager() and establishment == user_establishment,
             slot.published and (
                 (user.is_structure_manager() and structure in allowed_structures) or
-                (slot.course and user.is_high_school_manager() and highschool and highschool == user_highschool)
+                ((slot.course or slot.event) and user.is_high_school_manager()
+                 and highschool and highschool == user_highschool
+                )
             ),
         ]
 
@@ -1027,7 +1029,9 @@ def ajax_cancel_registration(request):
                 user.is_operator(),
                 user == immersion.student,
                 user.is_establishment_manager() and slot_establishment == user.establishment,
-                user.is_structure_manager() and slot_structure in allowed_structures
+                user.is_structure_manager() and slot_structure in allowed_structures,
+                user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
+                    and slot_highschool and user.highschool == slot_highschool,
             ]
 
             if not any(valid_conditions):
@@ -1353,7 +1357,7 @@ def ajax_slot_registration(request):
 
     establishment = slot.get_establishment()
     slot_structure = slot.get_structure()
-    highschool = slot.get_highschool()
+    slot_highschool = slot.get_highschool()
 
     # Fixme : add slot restrictions here
     unpublished_slot_update_conditions = [
@@ -1367,7 +1371,9 @@ def ajax_slot_registration(request):
         user.is_structure_manager() and slot_structure in allowed_structures,
         slot.course and user.is_high_school_manager() and highschool and highschool == user_highschool,
         user.is_high_school_student(),
-        user.is_student()
+        user.is_student(),
+        user.is_high_school_manager() and (slot.course or slot.event)
+            and slot_highschool and user.highschool == slot_highschool,
     ]
 
     # Check registration rights depending on the (not student) authenticated user
@@ -1781,7 +1787,9 @@ def ajax_batch_cancel_registration(request):
                     user.is_master_establishment_manager(),
                     user.is_operator(),
                     user.is_establishment_manager() and slot_establishment == user.establishment,
-                    user.is_structure_manager() and slot_structure in allowed_structures
+                    user.is_structure_manager() and slot_structure in allowed_structures,
+                    user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
+                        and slot_highschool and user.highschool == slot_highschool,
                 ]
 
                 if not any(valid_conditions):
