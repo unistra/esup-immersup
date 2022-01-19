@@ -7,7 +7,7 @@
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block content %}
-
+{% authorized_groups request.user %}
 <div class="main-title inside text-center">
   <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
   <div class="container">
@@ -181,7 +181,7 @@
                                 <span class="badge badge-primary badge-pill">
                                 {% trans 'Available places' %} : {{ s.available_seats }}
                                 </span><br>
-                                {% if authorized_groups|in_groups:"LYC" %}
+                                {% if authorized_groups|in_groups:"LYC,ETU" and s.can_register %}
                                 <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
                                 {% endif %}
                               {% else %}

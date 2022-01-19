@@ -393,10 +393,8 @@ def visits_offer(request):
     except AttributeError:
         raise Exception(_('Calendar not initialized'))
 
-    # If the current user is a student, check whether he can register
+    # If the current user is a higschool student, check whether he can register
     if student and record and record.is_valid():
-        data=[]
-        process_visits={}
         for visit in visits:
             visit.already_registered = False
             visit.can_register = False
@@ -438,6 +436,8 @@ def visits_offer(request):
 
     visits_count = visits.count()
 
+
+
     context = {
         'visits_count': visits_count,
         'visits_txt': visits_txt,
@@ -451,6 +451,23 @@ def offer_off_offer_events(request):
 
     filters = {}
     today = timezone.now().date()
+    student = None
+    calendar = None
+    cal_start_date = None
+    cal_end_date = None
+    reg_start_date = None
+    Q_Filter = None
+
+    if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
+        student = request.user
+        _is_high_school_student = False
+
+        # Get student/highschool student record
+        if student.is_high_school_student():
+            record = student.get_high_school_student_record()
+            _is_high_school_student = True
+        elif student.is_student():
+            record = student.get_student_record()
 
     try:
         events_txt = InformationText.objects.get(code="INTRO_EVENEMENTHO", active=True).content
@@ -463,20 +480,113 @@ def offer_off_offer_events(request):
     filters["event__published"] = True
 
     # If user is highschool student filter on highschool
-    try:
-        if request.user.is_high_school_student() and not request.user.is_superuser:
-            user_highschool = request.user.get_high_school_student_record().highschool
-            filters["event__highschool"] = user_highschool
-            # filters["allowed_highschools"] = Q(establishments_restrictions=False) | Q(allowed_highschools__highschool__contains=user_highschool)
-            # TODO: add level restrictions !!!
-    except:
-        # AnonymousUser
-        pass
+    # try:
+    #     if request.user.is_high_school_student() and not request.user.is_superuser:
+    #         user_highschool = request.user.get_high_school_student_record().highschool
+    # except:
+    #     # AnonymousUser
+    #     pass
+
     # TODO: implement class method in model to retrieve >=today slots for visits
     filters["date__gte"] = today
     events = Slot.objects.prefetch_related(
             'event__establishment', 'event__structure', 'event__highschool', 'speakers', 'immersions') \
             .filter(**filters).order_by('event__establishment__label', 'event__highschool__label', 'event__label', 'date' )
+
+    # determine dates range to use
+    # TODO: refactor in model !
+    try:
+        calendar = Calendar.objects.first()
+    except Exception:
+        pass
+
+    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    today = datetime.datetime.today().date()
+    reg_start_date = reg_end_date = datetime.date(1, 1, 1)
+    try:
+        # Year mode
+        if calendar and calendar.calendar_mode == 'YEAR':
+            cal_start_date = calendar.year_registration_start_date
+            cal_end_date = calendar.year_end_date
+            reg_start_date = calendar.year_registration_start_date
+        # semester mode
+        elif calendar:
+            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+                semester = 1
+                cal_start_date = calendar.semester1_start_date
+                cal_end_date = calendar.semester2_end_date
+                reg_start_date = calendar.semester1_registration_start_date
+                reg_semester2_start_date = calendar.semester2_registration_start_date
+            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+                semester = 2
+                cal_start_date = calendar.semester2_start_date
+                cal_end_date = calendar.semester2_end_date
+                reg_start_date = calendar.semester2_registration_start_date
+
+    except AttributeError:
+        raise Exception(_('Calendar not initialized'))
+
+    # If the current user is a stident/highschool student, check whether he can register
+    if student and record and record.is_valid():
+        for event in events:
+            event.already_registered = False
+            event.can_register = False
+            event.cancelled = False
+            event.opening_soon = False
+            event_available = True
+            # Already registered / cancelled ?
+            for immersion in student.immersions.all():
+                if immersion.slot.pk == event.pk:
+                    event.already_registered = True
+                    event.cancelled = immersion.cancellation_type is not None
+
+            # Can register ?
+            # not registered + free seats + dates in range + cancelled to register again
+            if not event.already_registered or event.cancelled:
+                # TODO: refactor !!!!
+
+                # Slot has levels restrictions ?
+                if event.levels_restrictions:
+                    # Highschool student
+                    if _is_high_school_student and not record.level.pk in event.allowed_highschool_levels.values_list('pk', flat=True):
+                        event_available = False
+                    # student
+                    elif not _is_high_school_student and not record.level.pk in event.allowed_student_levels.values_list('pk', flat=True):
+                        event_available = False
+
+                # Slot has establishments/highschools restrictions?
+                if event.establishments_restrictions:
+                    # Highschool student
+                    if _is_high_school_student and not record.highschool.pk in event.allowed_highschools.values_list('pk', flat=True):
+                        event_available = False
+                    # student
+                    elif not _is_high_school_student and not record.establishment.pk in event.allowed_establishments.values_list('pk', flat=True):
+                        event_available = False
+
+                if event.available_seats() > 0 and event_available:
+                    # TODO: should be rewritten used before with remaining_seats annual or by semester!
+                    if calendar.calendar_mode == 'YEAR':
+                        if reg_start_date <= today <= cal_end_date:
+                            event.can_register = True
+                        elif calendar.calendar_mode == 'YEAR' and reg_start_date > today:
+                            event.opening_soon = True
+                    # Check if we could register with reg_date
+                    elif semester == 1:
+                        if reg_start_date <= today and visit.date < reg_semester2_start_date:
+                            event.can_register = True
+                        elif visit.date > reg_semester2_start_date or today < reg_start_date:
+                            event.opening_soon = True
+                    elif semester == 2:
+                        if today >= reg_start_date:
+                            event.can_register = True
+                        elif today < reg_start_date:
+                            event.opening_soon = True
+    else:
+        for event in events:
+            event.cancelled = False
+            event.can_register = False
+            event.already_registered = False
+
 
     events_count = events.count()
     context = {
