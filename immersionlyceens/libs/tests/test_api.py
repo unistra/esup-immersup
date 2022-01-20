@@ -38,7 +38,8 @@ class APITestCase(TestCase):
     """Tests for API"""
 
     fixtures = [
-        'group', 'group_permissions', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels'
+        'group', 'group_permissions', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
+        'mailtemplatevars', 'mailtemplate'
     ]
 
     def setUp(self):
@@ -1860,9 +1861,8 @@ class APITestCase(TestCase):
         }
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-        # May contain template errors, but immersions are still cancelled
-        # self.assertFalse(content['error'])
-        self.assertIn("Immersion(s) cancelled", content['msg'])
+        # The following test may fail if template syntax has errors
+        self.assertEqual("Immersion(s) cancelled", content['msg'])
         self.assertIsNone(content['err_msg'])
 
 
@@ -2039,8 +2039,8 @@ class APITestCase(TestCase):
         response = client.post("/api/register", data, **self.header, follow=True)
         content = json.loads(response.content.decode('utf-8'))
 
-        # FIXME Careful, we use "assertIn" because there may be message templates related errors
-        self.assertIn("Registration successfully added", content['msg'])
+        # FIXME Careful, the following test may fail if the message template has syntax errors (use "assertIn" ?)
+        self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
         self.assertEqual(
             self.highschool_user.remaining_registrations_count(),
             {'semester1': 2, 'semester2': 2, 'annually': 0}
