@@ -2087,7 +2087,7 @@ class APITestCase(TestCase):
                                follow=True
                                )
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual("Cannot register slot due to Highschool student level restrictions", content['msg'])
+        self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
 
 
         # Todo : needs more tests with other users (ref-etab, ref-str, ...)

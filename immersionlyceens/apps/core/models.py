@@ -532,23 +532,16 @@ class ImmersionUser(AbstractUser):
                     if slot.allowed_student_levels.exists():
                         return False
 
-                    if slot.allowed_highschool_levels.exists() and not record.level.pk in \
-                        slot.allowed_highschool_levels.values_list('pk', flat=True):
+                    if record.level not in slot.allowed_highschool_levels.all():
                         return False
 
-                    if slot.allowed_post_bachelor_levels.exists() \
-                        and record.post_bachelor_level \
-                        and not record.post_bachelor_level.pk \
-                        in slot.allowed_post_bachelor_levels.values_list('pk', flat=True):
+                    # post_bachelor_level is not mandatory !
+                    if record.post_bachelor_level \
+                        and record.post_bachelor_level not in slot.allowed_post_bachelor_levels.all():
                         return False
 
                 if slot.establishments_restrictions:
-                    if slot.allowed_highschools.exists() and not record.highschool.pk in \
-                        slot.allowed_highschools.values_list('pk', flat=True):
-                        return False
-
-                    if slot.allowed_establishments.exists() and not record.highschool.pk in \
-                        slot.allowed_establishments.values_list('pk', flat=True):
+                    if record.highschool not in slot.allowed_highschools.all():
                         return False
 
             # Restrictions checks for students
@@ -561,18 +554,14 @@ class ImmersionUser(AbstractUser):
                         or slot.allowed_post_bachelor_levels.exists():
                         return False
 
-                    if slot.allowed_student_levels.exists() and not record.level.pk in \
-                        slot.allowed_student_levels.values_list('pk', flat=True):
+                    if record.level.pk not in slot.allowed_student_levels.all():
                         return False
 
                 if slot.establishments_restrictions:
                     if slot.allowed_highschools.exists():
                         return False
 
-                    if slot.allowed_establishments.exists() \
-                        and self.establishment \
-                        and not self.establishment.pk in \
-                        slot.allowed_establishments.values_list('pk', flat=True):
+                    if self.establishment not in slot.allowed_establishments.all():
                         return False
 
             # Restrictions checks for visitors
@@ -585,6 +574,8 @@ class ImmersionUser(AbstractUser):
 
         except Exception as e:
             # TODO: for now returning false more tests should be done !
+            # TODO: remove debug print
+            print(e)
             return False
 
         return True
