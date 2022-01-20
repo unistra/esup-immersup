@@ -1444,7 +1444,8 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
             return JsonResponse(response, safe=False)
 
-    elif not student.can_register_slot(slot):
+    elif not student.can_register_slot(slot)[0]:
+        #TODO: use can_register_slot[1]  (err msg) instead ?
         response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
         return JsonResponse(response, safe=False)
 

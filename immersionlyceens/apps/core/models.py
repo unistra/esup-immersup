@@ -520,8 +520,12 @@ class ImmersionUser(AbstractUser):
 
         record.save()
 
+
+
     def can_register_slot(self, slot=None):
-        # Returns always true if no restrictions are found
+
+        errors = []
+        # Returns always true if no errors are found
         try:
             # Restrictions checks for highschool students
             if self.is_high_school_student():
@@ -530,19 +534,19 @@ class ImmersionUser(AbstractUser):
 
                 if slot.levels_restrictions:
                     if slot.allowed_student_levels.exists():
-                        return False
+                        errors.append(_('Student levels restrictions in effect'))
 
                     if record.level not in slot.allowed_highschool_levels.all():
-                        return False
+                        errors.append(_('High school levels restrictions in effect'))
 
                     # post_bachelor_level is not mandatory !
                     if record.post_bachelor_level \
                         and record.post_bachelor_level not in slot.allowed_post_bachelor_levels.all():
-                        return False
+                        errors.append(_('Post bachelor restrictions in effect'))
 
                 if slot.establishments_restrictions:
                     if record.highschool not in slot.allowed_highschools.all():
-                        return False
+                        errors.append(_('High schools restrictions in effect'))
 
             # Restrictions checks for students
             elif self.is_student():
@@ -552,17 +556,17 @@ class ImmersionUser(AbstractUser):
                 if slot.levels_restrictions:
                     if slot.allowed_highschool_levels.exists() \
                         or slot.allowed_post_bachelor_levels.exists():
-                        return False
+                        errors.append(_('High schools levels or post bachelor restrictions in effect'))
 
                     if record.level.pk not in slot.allowed_student_levels.all():
-                        return False
+                        errors.append(_('Student levels restrictions in effect'))
 
                 if slot.establishments_restrictions:
                     if slot.allowed_highschools.exists():
-                        return False
+                        errors.append(_('High schools restrictions in effect'))
 
                     if self.establishment not in slot.allowed_establishments.all():
-                        return False
+                        errors.append(_('Establishments restrictions in effect'))
 
             # Restrictions checks for visitors
             elif self.is_visitor():
@@ -570,15 +574,13 @@ class ImmersionUser(AbstractUser):
                 # For now useless to get visitor record !
                 # visitors can register to "open to all" slots
                 if slot.levels_restrictions or slot.establishments_restrictions:
-                    return False
+                    return errors.append(_('Access is restricted to students or high school students'))
 
         except Exception as e:
-            # TODO: for now returning false more tests should be done !
-            # TODO: remove debug print
-            print(e)
-            return False
+            pass
 
-        return True
+
+        return [False, errors] if errors else [True, _('ok')]
 
     class Meta:
         verbose_name = _('User')

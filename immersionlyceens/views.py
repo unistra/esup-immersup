@@ -258,7 +258,7 @@ def offer_subdomain(request, subdomain_id):
                     # Can register ?
                     # not registered + free seats + dates in range + cancelled to register again
                     if not slot.already_registered or slot.cancelled:
-                        if slot.available_seats() > 0 and student.can_register_slot(slot):
+                        if slot.available_seats() > 0 and student.can_register_slot(slot)[0]:
                             # TODO: should be rewritten used before with remaining_seats annual or by semester!
                             if calendar.calendar_mode == 'YEAR':
                                 if reg_start_date <= today <= cal_end_date:
@@ -411,7 +411,7 @@ def visits_offer(request):
             # Can register ?
             # not registered + free seats + dates in range + cancelled to register again
             if not visit.already_registered or visit.cancelled:
-                if visit.available_seats() > 0 and student.can_register_slot(visit):
+                if visit.available_seats() > 0 and student.can_register_slot(visit)[0]:
                     # TODO: should be rewritten used before with remaining_seats annual or by semester!
                     if calendar.calendar_mode == 'YEAR':
                         if reg_start_date <= today <= cal_end_date:
@@ -535,7 +535,7 @@ def offer_off_offer_events(request):
             # not registered + free seats + dates in range + cancelled to register again
             if not event.already_registered or event.cancelled:
                 # TODO: refactor !!!!
-                if event.available_seats() > 0 and student.can_register_slot(event):
+                if event.available_seats() > 0 and student.can_register_slot(event)[0]:
                     # TODO: should be rewritten used before with remaining_seats annual or by semester!
                     if calendar.calendar_mode == 'YEAR':
                         if reg_start_date <= today <= cal_end_date:
