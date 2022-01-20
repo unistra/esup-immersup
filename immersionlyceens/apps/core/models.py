@@ -1863,6 +1863,51 @@ class Slot(models.Model):
     def get_allowed_post_bachelor_levels(self):
         return [level.label for level in self.allowed_post_bachelor_levels.all()]
 
+    def get_label(self):
+        """
+        Returns course label, event label or visit purpose
+        """
+        if self.is_course():
+            return self.course.label
+        if self.is_visit():
+            return self.visit.purpose
+        if self.is_event():
+            return self.event.label
+
+        return _("Unknown")
+
+    def is_course(self):
+        """
+        Returns True if slot is a course slot else False
+        """
+        return True if self.course else False
+
+    def is_visit(self):
+        """
+        Returns True if slot is a visit slot else False
+        """
+        return True if self.visit else False
+
+    def is_event(self):
+        """
+        Returns True if slot is an event slot else False
+        """
+        return True if self.event else False
+
+    def get_type(self):
+        """
+        returns:
+        'course' if slot is a course slot
+        'visit' if slot is a visit slot
+        'event' if slot is an event slot
+        """
+        if self.is_course():
+            return 'course'
+        if self.is_visit():
+            return 'visit'
+        if self.is_event():
+            return 'event'
+
     class Meta:
         verbose_name = _('Slot')
         verbose_name_plural = _('Slots')

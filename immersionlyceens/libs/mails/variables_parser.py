@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 from requests import Request
 
 from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
-    MailTemplateVars, Slot, Course, ImmersionUser)
+    MailTemplateVars, Slot, Course, ImmersionUser, Course, Visit, OffOfferEvent)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
@@ -78,22 +78,64 @@ class Parser:
         return {}
 
     @staticmethod
+    def get_event_context(event: Optional[OffOfferEvent]) -> Dict[str, Any]:
+        if event:
+            return {
+                "evenement": {
+                    "libelle": event.event_type.label,
+                    "nbplaceslibre": event.free_seats(),
+                }
+            }
+        return {}
+
+    @staticmethod
+    def get_visit_context(visit: Optional[Visit]) -> Dict[str, Any]:
+        if visit:
+            return {
+                "visite": {
+                    "libelle": visit.purpose,
+                    "nbplaceslibre": visit.free_seats(),
+                }
+            }
+        return {}
+
+    @staticmethod
     def get_slot_context(slot: Optional[Slot]) -> Dict[str, Any]:
         if slot:
+            establishment = slot.get_establishment()
+            structure = slot.get_structure()
+            highschool = slot.get_highschool()
+
             return {
                 "creneau": {
-                    "batiment": slot.building.label,
-                    "campus": slot.campus.label,
-                    "structure": slot.course.structure.label,
-                    "cours": slot.course.label,
-                    "date": date_format(slot.date),
+                    "libelle": slot.get_label(),
+                    "type": _(slot.get_type()),
+                    "etablissement": establishment.label if establishment else "",
+                    "lycee": f"{highschool.label} ({highschool.city})" if highschool else "",
+                    "structure": structure.label if structure else "",
+                    "batiment": slot.building.label if slot.building else "",
+                    "campus": slot.campus.label if slot.campus else "",
+                    "temoindistanciel": not slot.face_to_face,
+                    "lien": slot.url,
+                    "cours": {
+                        'libelle': slot.get_label(),
+                        'type': slot.course_type.full_label if slot.course_type else "",
+                        'formation': slot.course.training.label
+                    } if slot.course else {},
+                    "evenement" : {
+                        'libelle': slot.get_label(),
+                        'description': slot.event.description,
+                        'type': slot.event.event_type.label,
+                    } if slot.event else {},
+                    "visite": {
+                        'libelle': slot.get_label(),
+                    } if slot.visit else {},
+                    "date": date_format(slot.date) if slot.date else "",
                     "intervenants": ",".join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()]),
-                    "formation": slot.course.training.label,
-                    "heuredebut": slot.start_time.strftime("%-Hh%M"),
-                    "heurefin": slot.end_time.strftime("%-Hh%M"),
+                    "heuredebut": slot.start_time.strftime("%-Hh%M") if slot.start_time else "",
+                    "heurefin": slot.end_time.strftime("%-Hh%M") if slot.end_time else "",
                     "info": slot.additional_information,
                     "salle": slot.room,
-                    "type": slot.course_type.full_label,
                 }
             }
         return {}
@@ -176,8 +218,8 @@ class Parser:
                     date=date_format(s.date),
                     start_time=s.start_time.strftime("%-Hh%M"),
                     end_time=s.end_time.strftime("%-Hh%M"),
-                    course=s.course.label,
-                    course_type=s.course_type.label,
+                    course=s.course.label if s.course else "",
+                    course_type=s.course_type.label if s.course_type else "",
                     building=s.building,
                     room=s.room,
                     speakers=','.join([f"{t.first_name} {t.last_name}" for t in s.speakers.all()]),
@@ -211,6 +253,8 @@ class Parser:
         slot: Optional[Slot] = kwargs.get('slot')
         slot_list: Optional[List[Slot]] = kwargs.get('slot_list')
         course: Optional[Course] = kwargs.get('course')
+        visit: Optional[Visit] = kwargs.get('visit')
+        event: Optional[OffOfferEvent] = kwargs.get('event')
         immersion: Optional[Immersion] = kwargs.get('immersion')
 
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
@@ -231,11 +275,13 @@ class Parser:
             institution_label = tmp_var["institution_label"]
 
         context: Dict[str, Any] = {
-            "annee": year.label,
+            "annee": year.label if year else _("not set"),
             "urlPlateforme": platform_url,
         }
 
         context.update(cls.get_course_context(course))
+        context.update(cls.get_visit_context(visit))
+        context.update(cls.get_event_context(event))
         context.update(cls.get_slot_context(slot))
         context.update(cls.get_registered_students_context(registered_students))
 

@@ -27,7 +27,7 @@
     "pk": 4,
     "fields": {
       "code": "{{ creneau.batiment }}",
-      "description": "Cr\u00e9neau : b\u00e2timent dans lequel a lieu le cours"
+      "description": "Cr\u00e9neau : nom du b\u00e2timent"
     }
   },
   {
@@ -43,15 +43,15 @@
     "pk": 6,
     "fields": {
       "code": "{{ creneau.structure }}",
-      "description": "Cr\u00e9neau : structure"
+      "description": "Cr\u00e9neau : nom de la structure"
     }
   },
   {
     "model": "core.mailtemplatevars",
     "pk": 7,
     "fields": {
-      "code": "{{ creneau.cours }}",
-      "description": "Cr\u00e9neau : nom du cours"
+      "code": "{{ creneau.cours.libelle }}",
+      "description": "Cr\u00e9neau : libellé du cours"
     }
   },
   {
@@ -74,7 +74,7 @@
     "model": "core.mailtemplatevars",
     "pk": 10,
     "fields": {
-      "code": "{{ creneau.formation }}",
+      "code": "{{ creneau.cours.formation }}",
       "description": "Formation concern\u00e9e par le cr\u00e9neau"
     }
   },
@@ -114,8 +114,8 @@
     "model": "core.mailtemplatevars",
     "pk": 15,
     "fields": {
-      "code": "{{ creneau.type }}",
-      "description": "Cr\u00e9neau : type"
+      "code": "{{ creneau.cours.type }}",
+      "description": "Cr\u00e9neau : type de cours"
     }
   },
   {
@@ -276,6 +276,118 @@
     "fields": {
       "code": "{{ etudiant_date_naissance }}",
       "description": "Date de naissance de l'\u00e9tudiant"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 36,
+    "fields": {
+      "code": "{{ visite.libelle }}",
+      "description": "Libell\u00e9 (objet) de la visite"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 37,
+    "fields": {
+      "code": "{{ visite.nbplaceslibre }}",
+      "description": "Places disponibles pour la visite"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 38,
+    "fields": {
+      "code": "{{ evenement.libelle }}",
+      "description": "Libell\u00e9 de l'événement hors offre"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 39,
+    "fields": {
+      "code": "{{ evenement.nbplaceslibre }}",
+      "description": "Places disponibles pour l'événement hors offre"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 40,
+    "fields": {
+      "code": "{{ creneau.evenement.type }}",
+      "description": "Cr\u00e9neau : type d'événement hors offre"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 41,
+    "fields": {
+      "code": "{{ creneau.evenement.libelle }}",
+      "description": "Cr\u00e9neau : libellé de l'événement hors offre"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 42,
+    "fields": {
+      "code": "{{ creneau.visite.libelle }}",
+      "description": "Cr\u00e9neau : libellé (objet) de la visite"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 43,
+    "fields": {
+      "code": "{{ creneau.temoindistanciel }}",
+      "description": "Cr\u00e9neau : indique s'il s'agit d'un créneau à distance ou non"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 44,
+    "fields": {
+      "code": "{{ creneau.lien }}",
+      "description": "Cr\u00e9neau : lien s'il s'agit d'un créneau à distance"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 45,
+    "fields": {
+      "code": "{{ creneau.type }}",
+      "description": "Cr\u00e9neau : type ('visite', 'evenement' ou 'cours')"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 46,
+    "fields": {
+      "code": "{{ creneau.libelle }}",
+      "description": "Cr\u00e9neau : libellé du cours, de la visite ou de l'évenement"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 46,
+    "fields": {
+      "code": "{{ creneau.etablissement }}",
+      "description": "Cr\u00e9neau : nom de l'établissement"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 46,
+    "fields": {
+      "code": "{{ creneau.lycee }}",
+      "description": "Cr\u00e9neau : nom du lycée"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 47,
+    "fields": {
+      "code": "{{ creneau.evenement.description }}",
+      "description": "Cr\u00e9neau : description de l'événement hors offre"
     }
   }
 ]
