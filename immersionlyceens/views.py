@@ -258,7 +258,7 @@ def offer_subdomain(request, subdomain_id):
                     # Can register ?
                     # not registered + free seats + dates in range + cancelled to register again
                     if not slot.already_registered or slot.cancelled:
-                        if slot.available_seats() > 0:
+                        if slot.available_seats() > 0 and student.can_register_slot(slot):
                             # TODO: should be rewritten used before with remaining_seats annual or by semester!
                             if calendar.calendar_mode == 'YEAR':
                                 if reg_start_date <= today <= cal_end_date:
@@ -294,8 +294,10 @@ def offer_subdomain(request, subdomain_id):
     if slot_id:
         try:
             slot = Slot.objects.prefetch_related("course__training").get(pk=slot_id)
-            open_training_id = slot.course.training.id
-            open_course_id = slot.course.id
+            # TODO: Check for events & visits !!!!
+            if slot.course:
+                open_training_id = slot.course.training.id
+                open_course_id = slot.course.id
         except Slot.DoesNotExist:
             pass
 
@@ -409,7 +411,7 @@ def visits_offer(request):
             # Can register ?
             # not registered + free seats + dates in range + cancelled to register again
             if not visit.already_registered or visit.cancelled:
-                if visit.available_seats() > 0:
+                if visit.available_seats() > 0 and student.can_register_slot(visit):
                     # TODO: should be rewritten used before with remaining_seats annual or by semester!
                     if calendar.calendar_mode == 'YEAR':
                         if reg_start_date <= today <= cal_end_date:
