@@ -566,6 +566,9 @@ class ImmersionUser(AbstractUser):
                         return False
 
                 if slot.establishments_restrictions:
+                    if slot.allowed_highschools.exists():
+                        return False
+
                     if slot.allowed_establishments.exists() \
                         and self.establishment \
                         and not self.establishment.pk in \
