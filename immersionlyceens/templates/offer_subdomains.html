@@ -28,8 +28,6 @@
 {% block content %}
 {% authorized_groups request.user %}
 {% include 'modals/modal_course_alert.html' %}
-<div id="feedback" class="container mt-4 sticky-top"></div>
-
 <div class="main-title inside text-center domain-{{ subdomain.training_domain.pk }}">
     <div class="bg-main-title bg-parallax-bottom" data-scroll-speed=".3"></div>
     <div class="container">
@@ -193,6 +191,7 @@
                                 <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                               {% if slot.can_register %}
                                 <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                <div id="feedback_{{slot.pk}}" ></div>
                               {% endif %}
                             {% elif slot.already_registered %}
                                 <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
@@ -205,6 +204,7 @@
                               {% if authorized_groups|in_groups:"LYC,ETU" %}
                                   {% if slot.can_register %}
                                 <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
+                                <div id="feedback_{{slot.pk}}" ></div>
                                   {% endif %}
                               {% endif %}
                             {% else %}
@@ -232,7 +232,7 @@
                               <i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ slot.building }}
                               {% endif %}
                               {% if slot.building.url %}
-                                <a href="{{ slot.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
+                                <a href="{{ slot.building.url }}" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
                               {% endif %}
                               </td>
                               <td>
@@ -283,6 +283,7 @@ function register(slot_id) {
         let error = json['error'];
 
         if(error) {
+          feedback = $("#feedback_"+slot_id);
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {

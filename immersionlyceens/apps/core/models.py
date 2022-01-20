@@ -16,7 +16,7 @@ import re
 import uuid
 from functools import partial
 from os.path import dirname, join
-from typing import Optional, Any
+from typing import Any, Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -519,6 +519,75 @@ class ImmersionUser(AbstractUser):
             return
 
         record.save()
+
+    def can_register_slot(self, slot=None):
+        # Returns always true if no restrictions are found
+        try:
+            # Restrictions checks for highschool students
+            if self.is_high_school_student():
+
+                record = self.get_high_school_student_record()
+
+                if slot.levels_restrictions:
+                    if slot.allowed_student_levels.exists():
+                        return False
+
+                    if slot.allowed_highschool_levels.exists() and not record.level.pk in \
+                        slot.allowed_highschool_levels.values_list('pk', flat=True):
+                        return False
+
+                    if slot.allowed_post_bachelor_levels.exists() \
+                        and record.post_bachelor_level \
+                        and not record.post_bachelor_level.pk \
+                        in slot.allowed_post_bachelor_levels.values_list('pk', flat=True):
+                        return False
+
+                if slot.establishments_restrictions:
+                    if slot.allowed_highschools.exists() and not record.highschool.pk in \
+                        slot.allowed_highschools.values_list('pk', flat=True):
+                        return False
+
+                    if slot.allowed_establishments.exists() and not record.highschool.pk in \
+                        slot.allowed_establishments.values_list('pk', flat=True):
+                        return False
+
+            # Restrictions checks for students
+            elif self.is_student():
+
+                record = self.get_student_record()
+
+                if slot.levels_restrictions:
+                    if slot.allowed_highschool_levels.exists() \
+                        or slot.allowed_post_bachelor_levels.exists():
+                        return False
+
+                    if slot.allowed_student_levels.exists() and not record.level.pk in \
+                        slot.allowed_student_levels.values_list('pk', flat=True):
+                        return False
+
+                if slot.establishments_restrictions:
+                    if slot.allowed_highschools.exists():
+                        return False
+
+                    if slot.allowed_establishments.exists() \
+                        and self.establishment \
+                        and not self.establishment.pk in \
+                        slot.allowed_establishments.values_list('pk', flat=True):
+                        return False
+
+            # Restrictions checks for visitors
+            elif self.is_visitor():
+
+                # For now useless to get visitor record !
+                # visitors can register to "open to all" slots
+                if slot.levels_restrictions or slot.establishments_restrictions:
+                    return False
+
+        except Exception as e:
+            # TODO: for now returning false more tests should be done !
+            return False
+
+        return True
 
     class Meta:
         verbose_name = _('User')

@@ -7,7 +7,7 @@
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block content %}
-
+{% authorized_groups request.user %}
 <div class="main-title inside text-center">
   <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
   <div class="container">
@@ -24,8 +24,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Events offer" %}
-</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Events offer" %}</li>
       </ol>
     </nav>
   </div>
@@ -171,7 +170,8 @@
                               {% if s.cancelled %}
                                   <span class="badge badge-pill badge-danger">{% trans 'Cancelled registration' %}</span>
                                   {% if s.can_register %}
-                                      <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                  <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register again' %}</button>
+                                  <div id="feedback_{{s.pk}}" ></div>
                                   {% endif %}
                               {% elif s.already_registered %}
                                   <span class="badge badge-pill badge-success">{% trans 'Already registered' %}</span>
@@ -181,8 +181,9 @@
                                 <span class="badge badge-primary badge-pill">
                                 {% trans 'Available places' %} : {{ s.available_seats }}
                                 </span><br>
-                                {% if authorized_groups|in_groups:"LYC" %}
+                                {% if authorized_groups|in_groups:"LYC,ETU" and s.can_register %}
                                 <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
+                                <div id="feedback_{{s.pk}}" ></div>
                                 {% endif %}
                               {% else %}
                                 <span class="badge badge-pill badge-danger">{% trans 'Full' %}</span>
@@ -209,7 +210,7 @@
                               <i class="fa fas fa-building text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Building' %}"></i>{% trans 'Building' %} : {{ s.building }}
                             {% endif %}
                             {% if s.building.url %}
-                              <a href="{{ s.building.url" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
+                              <a href="{{ s.building.url }}" target="_blank" title="{% trans 'Show map url' %}"><i class="fa fas fa-map-marker subdomains-icons"></i></a>
                             {% endif %}
                             </td>
                             <td>{% if s.additional_information %} <p><i class="fa fas fa-book text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Additional information' %}"></i> {{ s.additional_information }}</p>{% endif %}</td>
@@ -249,6 +250,7 @@ function register(slot_id) {
         let error = json['error'];
 
         if(error) {
+          feedback = $("#feedback_"+slot_id);
           feedback.trigger("showFeedback", [[msg, "danger"]]);
         }
         else {
