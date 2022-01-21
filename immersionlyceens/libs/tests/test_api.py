@@ -1247,7 +1247,7 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
-        url = f"/api/get_immersions/999"
+        url = f"/api/get_immersions/99999999"
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
