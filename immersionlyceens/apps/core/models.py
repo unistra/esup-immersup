@@ -564,7 +564,7 @@ class ImmersionUser(AbstractUser):
 
             establishment_conditions = [
                 slot.allowed_establishments.exists(),
-                self.establishment in slot.allowed_establishments.all()
+                record.home_institution()[0] in slot.allowed_establishments.values_list('label', flat=True)
             ]
 
             levels_conditions = [
