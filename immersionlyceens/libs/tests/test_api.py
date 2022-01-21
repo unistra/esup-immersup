@@ -1413,22 +1413,86 @@ class APITestCase(TestCase):
         hs = content['data'][0]
         stu = content['data'][1]
 
-        self.assertEqual(self.student2.id, stu['id'])
-        self.assertEqual(self.student2.first_name, stu['firstname'])
-        self.assertEqual(self.student2.last_name, stu['lastname'])
-        self.assertEqual(pgettext('person type', 'Student'), stu['profile'])
-        self.assertEqual(self.student_record2.uai_code, stu['school'])
-        self.assertEqual('', stu['level'])
-        self.assertEqual('', stu['city'])
-        self.assertEqual('', stu['class'])
+        # High school student
         self.assertEqual(self.highschool_user2.id, hs['id'])
         self.assertEqual(self.highschool_user2.first_name, hs['firstname'])
         self.assertEqual(self.highschool_user2.last_name, hs['lastname'])
         self.assertEqual(pgettext('person type', 'High school student'), hs['profile'])
         self.assertEqual(self.hs_record2.highschool.label, hs['school'])
-        self.assertEqual('', hs['level'])
+        self.assertEqual('Terminale', hs['level'])
         self.assertEqual(self.hs_record2.highschool.city, hs['city'])
         self.assertEqual(self.hs_record2.class_name, hs['class'])
+        self.assertEqual(True, hs['can_register'])
+        self.assertEqual([], hs['reasons'])
+
+        # Student
+        self.assertEqual(self.student2.id, stu['id'])
+        self.assertEqual(self.student2.first_name, stu['firstname'])
+        self.assertEqual(self.student2.last_name, stu['lastname'])
+        self.assertEqual(pgettext('person type', 'Student'), stu['profile'])
+        self.assertEqual(self.student_record2.uai_code, stu['school'])
+        self.assertEqual('Licence 1', stu['level'])
+        self.assertEqual('', stu['city'])
+        self.assertEqual('', stu['class'])
+        self.assertEqual(True, stu['can_register'])
+        self.assertEqual([], stu['reasons'])
+
+
+    def test_API_ajax_get_available_students_with_restrictions(self):
+        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
+
+        self.hs_record.validation = 2
+        self.hs_record.save()
+        self.hs_record2.validation = 2
+        self.hs_record2.save()
+
+        # Add a highschool restriction on self.slot
+        self.slot.establishments_restrictions = True
+        self.slot.allowed_highschools.add(self.high_school)
+        self.slot.save()
+
+        url = f"/api/get_available_students/{self.slot.id}"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertEqual(len(content['data']), 2)
+
+        # Careful with the results order (last_name, first_name)
+        hs = content['data'][0]
+        stu = content['data'][1]
+
+        # =========================
+        # As a ref_etab_user, both students will be there, but with a reason for the university student
+        # =========================
+
+        # High school student
+        self.assertEqual(self.highschool_user2.id, hs['id'])
+        self.assertEqual(True, hs['can_register'])
+        self.assertEqual([], hs['reasons'])
+
+        # Student
+        self.assertEqual(self.student2.id, stu['id'])
+        self.assertEqual(False, stu['can_register'])
+        self.assertEqual(['Establishments restrictions in effect'], stu['reasons'])
+
+        # =========================
+        # As a structure referent, the university student won't be there
+        # =========================
+        request.user = self.ref_str
+        self.client.login(username='ref_str', password='pass')
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], '')
+        self.assertEqual(len(content['data']), 1)
+        hs = content['data'][0]
+        self.assertEqual(self.highschool_user2.id, hs['id'])
+        self.assertEqual(True, hs['can_register'])
+        self.assertEqual([], hs['reasons'])
 
 
     def test_API_ajax_get_highschool_students(self):

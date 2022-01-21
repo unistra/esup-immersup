@@ -213,6 +213,25 @@ class SlotForm(forms.ModelForm):
             format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
         )
 
+    def clean_restrictions(self, cleaned_data):
+        establishments_restrictions = cleaned_data.get('establishments_restrictions')
+        levels_restrictions = cleaned_data.get('levels_restrictions')
+        allowed_establishments = cleaned_data.get('allowed_establishments')
+        allowed_highschools = cleaned_data.get('allowed_highschools')
+        allowed_highschool_levels = cleaned_data.get('allowed_highschool_levels')
+        allowed_student_levels = cleaned_data.get('allowed_student_levels')
+        allowed_post_bachelor_levels = cleaned_data.get('allowed_post_bachelor_levels')
+
+        if establishments_restrictions and not allowed_establishments and not allowed_highschools:
+            cleaned_data["establishments_restrictions"] = False
+
+        if levels_restrictions and not allowed_highschool_levels and not allowed_student_levels \
+                and not allowed_post_bachelor_levels:
+            cleaned_data["levels_restrictions"] = False
+
+        return cleaned_data
+
+
     def clean(self):
         cleaned_data = super().clean()
         structure = cleaned_data.get('structure')
@@ -221,6 +240,8 @@ class SlotForm(forms.ModelForm):
         face_to_face = cleaned_data.get('face_to_face', True)
         _date = cleaned_data.get('date')
         start_time = cleaned_data.get('start_time', 0)
+
+        cleaned_data = self.clean_restrictions(cleaned_data)
 
         # Slot repetition
         if cleaned_data.get('repeat'):
@@ -378,6 +399,8 @@ class VisitSlotForm(SlotForm):
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
 
+        cleaned_data = self.clean_restrictions(cleaned_data)
+
         cals = Calendar.objects.all()
 
         if cals.exists():
@@ -493,6 +516,8 @@ class OffOfferEventSlotForm(SlotForm):
         start_time = cleaned_data.get('start_time', None)
         n_places = cleaned_data.get('n_places', None)
         _date = cleaned_data.get('date')
+
+        cleaned_data = self.clean_restrictions(cleaned_data)
 
         cals = Calendar.objects.all()
 

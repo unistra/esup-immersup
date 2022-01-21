@@ -1420,7 +1420,7 @@ def ajax_slot_registration(request):
     published_slot_update_conditions = [
         any(unpublished_slot_update_conditions),
         user.is_structure_manager() and slot_structure in allowed_structures,
-        slot.course and user.is_high_school_manager() and highschool and highschool == user_highschool,
+        slot.course and user.is_high_school_manager() and slot_highschool and slot_highschool == user_highschool,
         user.is_high_school_student(),
         user.is_student(),
         user.is_high_school_manager() and (slot.course or slot.event)
@@ -1444,10 +1444,14 @@ def ajax_slot_registration(request):
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
             return JsonResponse(response, safe=False)
 
-    elif not student.can_register_slot(slot)[0]:
-        #TODO: use can_register_slot[1]  (err msg) instead ?
-        response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
-        return JsonResponse(response, safe=False)
+    can_register_slot, reasons = student.can_register_slot(slot)
+
+    if not can_register_slot:
+        if can_force_reg and not force == 'true':
+            return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'restrictions'}, safe=False)
+        else:
+            response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
+            return JsonResponse(response, safe=False)
 
     # Check if slot is not past
     if slot.date < today or (slot.date == today and today_time > slot.start_time):
@@ -1479,7 +1483,7 @@ def ajax_slot_registration(request):
                     can_register = True
                 # alert user he can force registering
                 elif can_force_reg and not force == 'true':
-                    return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                    return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
                 # force registering
                 elif force == 'true':
                     can_register = True
@@ -1511,7 +1515,7 @@ def ajax_slot_registration(request):
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':
-                        return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
@@ -1541,7 +1545,7 @@ def ajax_slot_registration(request):
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':
-                        return JsonResponse({'error': True, 'msg': 'force_update'}, safe=False)
+                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
@@ -1609,6 +1613,7 @@ def ajax_get_available_students(request, slot_id):
     Students must have a valid record and not already registered to the slot
     """
     response = {'data': [], 'msg': ''}
+    user = request.user
     students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU']).exclude(immersions__slot__id=slot_id)
 
     try:
@@ -1617,9 +1622,47 @@ def ajax_get_available_students(request, slot_id):
         response['msg'] = _("Error : slot not found")
         return JsonResponse(response, safe=False)
 
-    # Visit slot : keep only high school students matching the slot high school
-    if slot.visit and slot.visit.highschool:
+    # Visit slot : keep only high school students matching the slot's high school
+    if slot.is_visit() and slot.visit.highschool:
         students = students.filter(high_school_student_record__highschool=slot.visit.highschool)
+
+    # Restrictions :
+    # Some users will only see a warning about restrictions not met (ref-etab, ref-etab-maitre, ref-tec)
+    # Others won't even see the filtered participants in the list (ref-lyc, ref-str)
+    # if user.is_master_establishment_manager() or user.is_establishment_manager() or user.is_operator():
+
+    if user.is_high_school_manager() or user.is_structure_manager():
+        if slot.establishments_restrictions:
+            establishment_filter = {}
+
+            if slot.allowed_establishments.exists():
+                establishment_filter['establishment__in'] = slot.allowed_establishments.all()
+
+            if slot.allowed_highschools.exists():
+                establishment_filter['high_school_student_record__highschool__in'] = slot.allowed_highschools.all()
+
+            if establishment_filter:
+                students = students.filter(reduce(lambda x, y: x | y, [
+                    Q(**{'%s' % f: value}) for f, value in establishment_filter.items()])
+                )
+
+        if slot.levels_restrictions:
+            levels_restrictions = {}
+
+            if slot.allowed_highschool_levels.exists():
+                levels_restrictions['high_school_student_record__level__in'] = slot.allowed_highschool_levels.all()
+
+            if slot.allowed_post_bachelor_levels.exists():
+                levels_restrictions['high_school_student_record__post_bachelor_level__in'] = \
+                    slot.allowed_post_bachelor_levels.all()
+
+            if slot.allowed_student_levels.exists():
+                levels_restrictions['student_record__level__in'] = slot.allowed_student_levels.all()
+
+            if levels_restrictions:
+                students = students.filter(reduce(lambda x, y: x | y, [
+                    Q(**{'%s' % f: value}) for f, value in levels_restrictions.items()])
+                )
 
     for student in students:
         record = None
@@ -1630,6 +1673,8 @@ def ajax_get_available_students(request, slot_id):
             record = student.get_student_record()
 
         if record and record.is_valid():
+            can_register, reasons = student.can_register_slot(slot)
+
             student_data = {
                 'id': student.pk,
                 'lastname': student.last_name,
@@ -1638,6 +1683,8 @@ def ajax_get_available_students(request, slot_id):
                 'class': '',
                 'level': '',
                 'city': '',
+                'can_register': can_register,
+                'reasons': reasons
             }
 
             if student.is_high_school_student():
@@ -1645,10 +1692,18 @@ def ajax_get_available_students(request, slot_id):
                 student_data['school'] = record.highschool.label
                 student_data['city'] = record.highschool.city
                 student_data['class'] = record.class_name
+
+                if record.level:
+                    student_data['level'] = record.level.label
+
+                    if record.level.is_post_bachelor:
+                        student_data['level'] += f" {record.level.post_bachelor_level.label}"
+
             elif student.is_student():
                 uai_code, institution = record.home_institution()
                 student_data['profile'] = pgettext("person type", "Student")
                 student_data['school'] = institution.label if institution else uai_code
+                student_data['level'] = record.level.label if record.level else ""
 
             response['data'].append(student_data.copy())
 
