@@ -71,7 +71,7 @@
         {% endif %}
 
         {# Off offer events #}
-        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC" or authorized_groups|in_groups:"REF-LYC" and user.highschool.postbac_immersion %}
+        {% if events_off_offer and authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC" or authorized_groups|in_groups:"REF-LYC" and user.highschool.postbac_immersion %}
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEvents" role="button" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
