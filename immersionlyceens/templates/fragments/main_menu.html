@@ -1,6 +1,7 @@
 {% load static i18n immersionlyceens_tags %}
 {% authorized_groups request.user %}
 {% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
+{% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
   <div class="container">
     <a href="/" class="navbar-brand d-md-none">Plateforme ImmerSup</a>
@@ -27,7 +28,9 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownCourses">
             <a class="dropdown-item" href="{% url 'offer' %}">{% trans 'Courses' %}</a>
+            {% if events_off_offer %}
             <a class="dropdown-item" href="{% url 'offer_off_offer_events' %}">{% trans 'Off offer Events' %}</a>
+            {% endif %}
             {% if highschool_visit %}
             <a class="dropdown-item" href="{% url 'visits_offer' %}">{% trans 'Visits' %}</a>
             {% endif %}
