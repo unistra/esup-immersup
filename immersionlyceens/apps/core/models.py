@@ -1973,11 +1973,11 @@ class Slot(models.Model):
         'event' if slot is an event slot
         """
         if self.is_course():
-            return 'course'
+            return pgettext("event type", 'course')
         if self.is_visit():
-            return 'visit'
+            return pgettext("event type", 'visit')
         if self.is_event():
-            return 'event'
+            return pgettext("event type", 'event')
 
     class Meta:
         verbose_name = _('Slot')
