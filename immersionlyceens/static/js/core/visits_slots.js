@@ -291,11 +291,21 @@ function init_datatable() {
     },
   ])
 
-  if(highschool_filter) {
-    yadcf.exFilterColumn(dt, [
-      [1, [highschool_filter]],
-      [2, [managed_by_filter]],
-      [3, [visit_purpose_filter]],
-    ]);
+  if(highschool_filter || managed_by_filter || visit_purpose_filter) {
+    let filter_array = Array()
+
+    if(highschool_filter) {
+      filter_array.push([1, [highschool_filter]])
+    }
+
+    if(managed_by_filter) {
+      filter_array.push([2, [managed_by_filter]])
+    }
+
+    if(visit_purpose_filter) {
+      filter_array.push([3, [visit_purpose_filter]])
+    }
+
+    yadcf.exFilterColumn(dt, filter_array);
   }
 }
