@@ -125,6 +125,7 @@
   var current_slot_id;
   var can_update_attendances = false;
   var can_update_registrations = false;
+  var face_to_face = false;
   var current_structure_id = "{{ structure_id }}";
   var current_establishment_id = "{{ establishment_id }}";
   var current_highschool_id = "{{ highschool_id }}";
@@ -192,11 +193,18 @@
     }],
   });
 
-  function open_modal(slot_id, edit_mode, n_places, is_past=false, update_registrations=false) {
-
+  function open_modal(slot_id, edit_mode, n_places, is_past=false, update_registrations=false, is_face_to_face=false) {
     can_update_registrations = update_registrations
     current_slot_id = slot_id;
+    face_to_face = is_face_to_face;
     slot_places = n_places;
+
+    if(face_to_face === true) {
+        $("#id_attendances").show()
+    }
+    else {
+        $("#id_attendances").hide()
+    }
 
     if(edit_mode === 1) {
       can_update_attendances = true;

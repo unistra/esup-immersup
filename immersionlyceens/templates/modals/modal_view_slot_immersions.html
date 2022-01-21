@@ -27,7 +27,7 @@
                   <th>{% trans 'Level' %}</th>
                   <th>{% trans 'Attendances' %}</th>
                 </tr>
-                <tr>
+                <tr id="id_attendances">
                   <th colspan='7'></th>
                   <th>
                     <div id="id_update_attendances" style="display:none">
@@ -168,7 +168,7 @@ dtr = $('#students_list').DataTable({
   'ajax': {
     url: "",
     dataSrc: function (json) {
-      if (json['data'] != undefined) {
+      if (json['data'] !== undefined) {
         return json['data'];
       }
     }
@@ -198,11 +198,11 @@ dtr = $('#students_list').DataTable({
     },
     {"data": "lastname",
      "render": function(data, type, row) {
-       if(type=="display") {
-         if(row.attendance_status == 1) {
+       if(type === "display") {
+         if(row.attendance_status === 1) {
            return "<span class='text-success'>"+data+"</span>";
          }
-         else if (row.attendance_status == 2) {
+         else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";
          }
        }
@@ -212,11 +212,11 @@ dtr = $('#students_list').DataTable({
     },
     {"data": "firstname",
      "render": function(data, type, row) {
-       if(type=="display") {
-         if(row.attendance_status == 1) {
+       if(type === "display") {
+         if(row.attendance_status === 1) {
            return "<span class='text-success'>"+data+"</span>";
          }
-         else if (row.attendance_status == 2) {
+         else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";
          }
        }
@@ -240,7 +240,7 @@ dtr = $('#students_list').DataTable({
           absent_color="style='color:red';";
         }
 
-        if(can_update_attendances === true) {
+        if(can_update_attendances === true && face_to_face === true) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
