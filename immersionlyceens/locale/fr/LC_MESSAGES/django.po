@@ -3224,7 +3224,7 @@ msgstr "Le statut du compte du lycée ne permet pas d'inscription"
 
 #: immersionlyceens/libs/api/views.py:1453
 msgid "Cannot register slot due to slot's restrictions"
-msgstr "Le créneau est restreint, vous ne pouvez pas pas vous inscrire"
+msgstr "Le créneau est restreint, vous ne pouvez pas vous inscrire"
 
 #: immersionlyceens/libs/api/views.py:1458
 msgid "Register to past slot is not available"

@@ -1449,6 +1449,8 @@ def ajax_slot_registration(request):
     if not can_register_slot:
         if can_force_reg and not force == 'true':
             return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'restrictions'}, safe=False)
+        elif can_force_reg and force == 'true':
+            can_register = True
         else:
             response = {'error': True, 'msg': _("Cannot register slot due to slot's restrictions")}
             return JsonResponse(response, safe=False)
