@@ -473,17 +473,23 @@ class ImmersionUser(AbstractUser):
                 slot__date__gte=calendar.semester1_start_date,
                 slot__date__lte=calendar.semester1_end_date,
                 cancellation_type__isnull=True,
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
             ).count()
             current_semester_2_regs = self.immersions.filter(
                 slot__date__gte=calendar.semester2_start_date,
                 slot__date__lte=calendar.semester2_end_date,
                 cancellation_type__isnull=True,
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
             ).count()
         else:
             current_year_regs = self.immersions.filter(
                 slot__date__gte=calendar.year_start_date,
                 slot__date__lte=calendar.year_end_date,
                 cancellation_type__isnull=True,
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
             ).count()
 
         return {
