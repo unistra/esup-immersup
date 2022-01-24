@@ -48,7 +48,7 @@ class LoginForm(forms.Form):
         cleaned_data = super().clean()
 
         # Add prefix to search in database
-        if not self.profile:
+        if not self.profile or self.profile in ["vis"]:
             login = settings.USERNAME_PREFIX + cleaned_data.get('login')
             cleaned_data['login'] = login
 
