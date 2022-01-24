@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
 from django.utils.formats import date_format
-from django.utils.translation import gettext as _
+from django.utils.translation import pgettext, gettext as _
 from requests import Request
 
 from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
@@ -159,7 +159,7 @@ class Parser:
                     "intervenants": ",".join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()]),
                     "heuredebut": slot.start_time.strftime("%-Hh%M") if slot.start_time else "",
                     "heurefin": slot.end_time.strftime("%-Hh%M") if slot.end_time else "",
-                    "info": slot.additional_information,
+                    "info": slot.additional_information or pgettext("slot data", "None"),
                     "salle": slot.room,
                     "nbplaceslibres": slot.available_seats(),
                     "listeInscrits": "<br />".join(sorted(registered_students)) if registered_students else ""
@@ -170,27 +170,33 @@ class Parser:
     @staticmethod
     def get_user_context(user: Optional[ImmersionUser]):
         if user:
+            local_account = True
+
+            if all([user.is_speaker(), user.establishment and user.establishment.data_source_plugin]):
+                local_account = False
+
             context: Dict[str, Any] = {
                 "nom": user.last_name,
                 "prenom": user.first_name,
-                "int": {
-                    "nom": user.last_name,
-                    "prenom": user.first_name
-                },
                 "referentlycee": {
-                    "nom": user.last_name,
-                    "prenom": user.first_name,
                     "lycee": f"{user.highschool.label} ({user.highschool.city}" if user.highschool else "",
                 },
                 "identifiant": user.get_cleaned_username(),
                 "jourDestructionCptMin": user.get_localized_destruction_date(),
+                "estetudiant": user.is_student(),
+                "estlyceen": user.is_high_school_student(),
+                "estvisiteur": user.is_visitor(),
+                "estintervenant": user.is_speaker(),
+                "estreflycee": user.is_high_school_manager(),
+                "estrefstructure": user.is_structure_manager(),
+                "intervenant_compte_local": local_account
             }
 
             if user.is_high_school_student():
                 try:
                     context.update({
                         "lycee": user.high_school_student_record.highschool.label,
-                        "inscrit_datedenaissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
+                        "datedenaissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
                     })
                 except HighSchoolStudentRecord.DoesNotExist:
                     pass

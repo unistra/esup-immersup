@@ -120,22 +120,6 @@
   },
   {
     "model": "core.mailtemplatevars",
-    "pk": 16,
-    "fields": {
-      "code": "{{ int.nom }}",
-      "description": "Nom de l'intervenant"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
-    "pk": 17,
-    "fields": {
-      "code": "{{ int.prenom }}",
-      "description": "Pr\u00e9nom de l'intervenant"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
     "pk": 18,
     "fields": {
       "code": "{{ identifiant }}",
@@ -216,22 +200,6 @@
   },
   {
     "model": "core.mailtemplatevars",
-    "pk": 30,
-    "fields": {
-      "code": "{{ referentlycee.nom }}",
-      "description": "Nom du r\u00e9f\u00e9rent du lyc\u00e9e"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
-    "pk": 31,
-    "fields": {
-      "code": "{{ referentlycee.prenom }}",
-      "description": "Pr\u00e9nom du r\u00e9f\u00e9rent du lyc\u00e9e"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
     "pk": 32,
     "fields": {
       "code": "{{ urlPlateforme }}",
@@ -258,7 +226,7 @@
     "model": "core.mailtemplatevars",
     "pk": 35,
     "fields": {
-      "code": "{{ inscrit_datedenaissance }}",
+      "code": "{{ datedenaissance }}",
       "description": "Date de naissance de la personne inscrite au créneau"
     }
   },
@@ -396,6 +364,62 @@
     "fields": {
       "code": "{{ referentlycee.lycee }}",
       "description": "Lycée du référent lycée connecté"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 53,
+    "fields": {
+      "code": "{{ estetudiant }}",
+      "description": "Indique si le destinataire est étudiant(e)"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 54,
+    "fields": {
+      "code": "{{ estlyceen }}",
+      "description": "Indique si le destinataire est lycéen(ne)"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 55,
+    "fields": {
+      "code": "{{ estvisiteur }}",
+      "description": "Indique si le destinataire est visiteur"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 56,
+    "fields": {
+      "code": "{{ estintervenant }}",
+      "description": "Indique si le destinataire est intervenant(e)"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 57,
+    "fields": {
+      "code": "{{ estreflycee }}",
+      "description": "Indique si le destinataire est référent(e) de lycée"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 58,
+    "fields": {
+      "code": "{{ estrefstructure }}",
+      "description": "Indique si le destinataire est référent(e) de structure"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 59,
+    "fields": {
+      "code": "{{ intervenant_compte_local }}",
+      "description": "Indique si l'intervenant(e) possède un compte local"
     }
   }
 ]
