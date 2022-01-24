@@ -5,15 +5,16 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import RequestFactory, TestCase, Client
-
+from django.test import Client, RequestFactory, TestCase
 from immersionlyceens.apps.core.models import (
-    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, HighSchoolLevel, PostBachelorLevel, StudentLevel
+    BachelorMention, Building, Calendar, Campus, Course, CourseType,
+    GeneralBachelorTeaching, HighSchool, HighSchoolLevel, Immersion,
+    ImmersionUser, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear,
 )
-
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -538,13 +539,13 @@ class ImmersionViewsTestCase(TestCase):
 
     def test_immersions(self):
         # Should redirect to login page
-        response = self.client.get('/immersion/immersions')
+        response = self.client.get('/immersion/registrations')
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/accounts/login/?next=/immersion/immersions")
+        self.assertEqual(response.url, "/accounts/login/?next=/immersion/registrations")
 
         # Simple view check
         self.client.login(username='@EXTERNAL@_hs', password='pass')
-        response = self.client.get('/immersion/immersions')
+        response = self.client.get('/immersion/registrations')
         self.assertIn("Immersions to come", response.content.decode('utf-8'))
 
 
