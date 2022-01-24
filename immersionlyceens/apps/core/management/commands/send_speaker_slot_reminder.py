@@ -44,5 +44,5 @@ class Command(BaseCommand):
 
         for slot in slots:
             for speaker in slot.speakers.all():
-                speaker.send_message(None, 'IMMERSION_RAPPEL_ENS', slot=slot)
+                speaker.send_message(None, 'IMMERSION_RAPPEL_INT', slot=slot)
 
