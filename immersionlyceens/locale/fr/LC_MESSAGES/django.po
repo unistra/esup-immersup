@@ -5406,7 +5406,7 @@ msgstr "Évènements passés"
 
 #: immersionlyceens/templates/immersion/fragments/my_events.html:91
 msgid "Cancelled events"
-msgstr "Évènements annulées"
+msgstr "Évènements annulés"
 
 #: immersionlyceens/templates/immersion/fragments/my_immersions.html:11
 msgid "Immersions to come"
