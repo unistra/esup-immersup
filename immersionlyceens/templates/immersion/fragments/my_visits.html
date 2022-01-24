@@ -1,25 +1,23 @@
 
 {% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
-<div id="accordion">
+<div id="accordion3">
   <div class="card">
-    <div class="card-header bg-primary" id="headingOne">
+    <div class="card-header bg-primary" id="headingVisitsOne">
       <h5 class="mb-0">
-        <button class="btn btn-link text-white" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+        <button class="btn btn-link text-white" data-toggle="collapse" data-target="#collapseVisitsOne" aria-expanded="true" aria-controls="collapseVisitsOne">
           {% trans 'Visits to come' %}
         </button>
       </h5>
     </div>
 
-    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+    <div id="collapseVisitsOne" class="collapse show" aria-labelledby="headingVisitsOne" data-parent="#accordion3">
       <div class="card-body">
         <div class="table-responsive">
           <table id="visits_to_come" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
             <thead>
               <tr>
-                <th>{% trans 'Training' %}</th>
-                <th>{% trans 'Course' %}</th>
-                <th>{% trans 'Type' %}</th>
+                <th>{% trans 'Label' %}</th>
                 <th>{% trans 'Campus' %}</th>
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
@@ -39,8 +37,6 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
-                <td></td>
               </tr>
             </tbody>
           </table>
@@ -49,22 +45,20 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-header bg-success" id="headingTwo">
+    <div class="card-header bg-success" id="headingVisitsTwo">
       <h5 class="mb-0">
-        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseVisitsTwo" aria-expanded="false" aria-controls="collapseVisitsTwo">
           {% trans 'Past visits' %}
         </button>
       </h5>
     </div>
-    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+    <div id="collapseVisitsTwo" class="collapse" aria-labelledby="headingVisitsTwo" data-parent="#accordion3">
       <div class="card-body">
         <div class="table-responsive">
           <table id="past_visits" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
             <thead>
               <tr>
-                <th>{% trans 'Training' %}</th>
-                <th>{% trans 'Course' %}</th>
-                <th>{% trans 'Type' %}</th>
+                <th>{% trans 'Label' %}</th>
                 <th>{% trans 'Campus' %}</th>
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
@@ -84,8 +78,6 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
-                <td></td>
               </tr>
             </tbody>
           </table>
@@ -94,22 +86,20 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-header bg-secondary" id="headingThree">
+    <div class="card-header bg-secondary" id="headingVisitsThree">
       <h5 class="mb-0">
-        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseVisitsThree" aria-expanded="false" aria-controls="collapseVisitsThree">
           {% trans 'Cancelled visits' %}
         </button>
       </h5>
     </div>
-    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+    <div id="collapseVisitsThree" class="collapse" aria-labelledby="headingVisitsThree" data-parent="#accordion3">
       <div class="card-body">
         <div class="table-responsive">
           <table id="cancelled_visits" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
             <thead>
               <tr>
-                <th>{% trans 'Training' %}</th>
-                <th>{% trans 'Course' %}</th>
-                <th>{% trans 'Type' %}</th>
+                <th>{% trans 'Label' %}</th>
                 <th>{% trans 'Campus' %}</th>
                 <th>{% trans 'Building' %}</th>
                 <th>{% trans 'Room' %}</th>
@@ -120,8 +110,6 @@
             </thead>
             <tbody>
               <tr>
-                <td></td>
-                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>

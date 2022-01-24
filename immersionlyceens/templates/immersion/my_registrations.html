@@ -17,7 +17,6 @@
 
 {% block content %}
 {% include '../modals/modal_alerts.html' %}
-<div id="feedback" class="container"></div>
 <div class="main-title inside text-center">
   <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
   <div class="container">
@@ -38,6 +37,7 @@
     </nav>
   </div>
 </section>
+<div id="feedback" class="container sticky-top"></div>
 <div class="row m-0">
   <div class="col-md-12 text-right">
     {% if alerts_cnt %}
@@ -52,6 +52,7 @@
 </div>
 {% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+{% authorized_groups request.user %}
 {% if not highschool_visit and not events_off_offer %}
 {% include './fragments/my_immersions.html'%}
 {% else %}
@@ -81,6 +82,7 @@
       {% include './fragments/my_events.html'%}
       </div>
       {% endif %}
+
       {% if highschool_visit and authorized_groups|in_groups:"LYC" %}
       <div class="tab-pane fade" id="visits" role="tabpanel" aria-labelledby="visits-tab">
       {% include './fragments/my_visits.html'%}
@@ -103,6 +105,8 @@
   var dtv_future;
   var dtv_past;
   var dtv_cancelled;
+
+
 
   function open_students_modal(immersion_id) {
     current_immersion_id = immersion_id;
@@ -138,22 +142,22 @@
             dt_future.ajax.reload();
             dt_past.ajax.reload();
             dt_cancelled.ajax.reload();
-            if ( $.fn.DataTable.isDataTable('#events_to_come')) {
+            if ( $.fn.DataTable.isDataTable('#events_to_come') ) {
               dte_future.ajax.reload();
             }
-            if ( $.fn.DataTable.isDataTable('#past_events')) {
+            if ( $.fn.DataTable.isDataTable('#past_events') ) {
               dte_past.ajax.reload();
             }
-            if ( $.fn.DataTable.isDataTable('#cancelled_events')) {
+            if ( $.fn.DataTable.isDataTable('#cancelled_events') ) {
               dte_cancelled.ajax.reload();
             }
-            if ( $.fn.DataTable.isDataTable('#visits_to_come' )) {
+            if ( $.fn.DataTable.isDataTable('#visits_to_come' ) ) {
               dtv_future.ajax.reload();
             }
-            if ( $.fn.DataTable.isDataTable('#past_visits')) {
+            if ( $.fn.DataTable.isDataTable('#past_visits') ) {
               dtv_past.ajax.reload();
             }
-            if ( $.fn.DataTable.isDataTable('#cancelled_visits')) {
+            if ( $.fn.DataTable.isDataTable('#cancelled_visits') ) {
               dtv_cancelled.ajax.reload();
             }
           }
@@ -594,9 +598,211 @@
     });
   {% endif %}
   {% if highschool_visit and authorized_groups|in_groups:"LYC" %}
+    dtv_future = $('#visits_to_come').DataTable({
+      'processing': false,
+      'order': [
+        [6, "asc"]
+      ],
+      'pageLength': 5,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_visits/" + user_id + "/future",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+        { "data": "label" },
+        { "data": "campus" },
+        { "data": "building" },
+        { "data": "room" },
+        { "data": "datetime",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.date + ", " + row.start_time + " - " + row.end_time;
+            }
 
+            return data;
+          },
+        },
+        { "data": "speakers"},
+        { "data": "info" },
+        { "data": "",
+          "render": function(data, type, row) {
+            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+                      "<i class='fa fas fa-users fa-2x'></i>" +
+                      "</button>";
+
+            if(row.cancellable == true) {
+              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+                     "<i class='fa fas fa-trash fa-2x'></i>" +
+                     "</button>";
+            }
+
+            return msg;
+          }
+        }
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+        {
+          "orderable": false, "targets": [6,7],
+        },
+      ],
+    });
+
+
+    dtv_past = $('#past_visits').DataTable({
+      'processing': false,
+      'order': [
+        [6, "desc"]
+      ],
+      'pageLength': 5,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_visits/" + user_id + "/past",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+        { "data": "label" },
+        { "data": "campus" },
+        { "data": "building" },
+        { "data": "room" },
+        { "data": "datetime",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.date + ", " + row.start_time + " - " + row.end_time;
+            }
+
+            return data;
+          },
+        },
+        { "data": "speakers",
+          "render": function (data) {
+            let txt = "";
+            $.each(data, function(index, value) {
+              txt += value+"<br>";
+            });
+            return txt;
+          },
+        },
+        { "data": "attendance",
+          "render": function(data, type, row) {
+            var msg = data;
+
+            if(row.attendance_status == 1) {
+              msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+                  "<i class='fa fas fa-download fa-2x'></i>" +
+                  "</a>";
+            }
+            return msg;
+          }
+        },
+        { "data": "" }
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+        {
+          "orderable": false, "targets": 7,
+        },
+      ],
+    });
+
+    dtv_cancelled = $('#cancelled_visits').DataTable({
+      'processing': false,
+      'order': [
+        [6, "asc"]
+      ],
+      'pageLength': 5,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_visits/" + user_id + "/cancelled",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+        { "data": "label" },
+        { "data": "campus" },
+        { "data": "building" },
+        { "data": "room" },
+        { "data": "datetime",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.date + ", " + row.start_time + " - " + row.end_time;
+            }
+
+            return data;
+          },
+        },
+        { "data": "speakers",
+          "render": function (data) {
+            let txt = "";
+            $.each(data, function(index, value) {
+              txt += value+"<br>";
+            });
+            return txt;
+          },
+        },
+        { "data": "cancellation_type",
+          "render": function(data, type, row) {
+            var msg = data;
+
+            if(row.can_register) {
+              msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+            }
+
+            if(row.free_seats == 0) {
+              msg += "<br /><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+            }
+
+            return msg;
+          }
+        },
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+      ],
+    });
   {% endif %}
-
   });
 
 

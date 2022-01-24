@@ -1304,7 +1304,7 @@ def ajax_get_events(request, user_id=None, event_type=None):
 
 @is_ajax_request
 @groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_get_visits(request, user_id=None, event_type=None):
+def ajax_get_visits(request, user_id=None, visit_type=None):
     """
     Get (high-school or not) students off offer events
     event_type in "future", "past", "cancelled" or None
@@ -1343,78 +1343,78 @@ def ajax_get_visits(request, user_id=None, event_type=None):
 
     time = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
 
-    events = Immersion.objects.prefetch_related(
-        'slot__event', 'slot__campus', 'slot__building', 'slot__speakers',
-    ).filter(Q(slot__course__isnull=True,slot__visit__isnull=True), student_id=user_id)
+    visits = Immersion.objects.prefetch_related(
+        'slot__visit', 'slot__campus', 'slot__building', 'slot__speakers',
+    ).filter(Q(slot__course__isnull=True,slot__event__isnull=True), student_id=user_id)
 
-    if event_type == "future":
-        events = events.filter(
+    if visit_type == "future":
+        visits = visits.filter(
             Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time), cancellation_type__isnull=True
         )
-    elif event_type == "past":
-        events = immersions.filter(
+    elif visit_type == "past":
+        visits = visits.filter(
             Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time), cancellation_type__isnull=True
         )
-    elif event_type == "cancelled":
-        events = immersions.filter(cancellation_type__isnull=False)
+    elif visit_type == "cancelled":
+        visits = visits.filter(cancellation_type__isnull=False)
 
-    for event in events:
+    for visit in visits:
         if calendar.calendar_mode == 'SEMESTER':
-            slot_semester = calendar.which_semester(immersion.slot.date)
+            slot_semester = calendar.which_semester(visit.slot.date)
 
         slot_datetime = datetime.datetime.strptime(
             "%s:%s:%s %s:%s"
             % (
-                event.slot.date.year,
-                event.slot.date.month,
-                event.slot.date.day,
-                event.slot.start_time.hour,
-                event.slot.start_time.minute,
+                visit.slot.date.year,
+                visit.slot.date.month,
+                visit.slot.date.day,
+                visit.slot.start_time.hour,
+                visit.slot.start_time.minute,
             ),
             "%Y:%m:%d %H:%M",
         )
 
-        event_data = {
-            'id': event.id,
-
-            'campus': event.slot.campus.label,
-            'building': event.slot.building.label,
-            'room': event.slot.room,
+        visit_data = {
+            'id': visit.id,
+            'label': visit.slot.visit.purpose,
+            'campus': visit.slot.campus.label if visit.slot.campus else "",
+            'building': visit.slot.building.label if visit.slot.building else "",
+            'room': visit.slot.room,
             'datetime': slot_datetime,
-            'date': date_format(event.slot.date),
-            'start_time': event.slot.start_time.strftime("%-Hh%M"),
-            'end_time': event.slot.end_time.strftime("%-Hh%M"),
+            'date': date_format(visit.slot.date),
+            'start_time': visit.slot.start_time.strftime("%-Hh%M"),
+            'end_time': visit.slot.end_time.strftime("%-Hh%M"),
             'speakers': [],
-            'info': event.slot.additional_information,
-            'attendance': event.get_attendance_status_display(),
-            'attendance_status': event.attendance_status,
-            'cancellable': datetime.datetime.today().date() < event.slot.date,
+            'info': visit.slot.additional_information,
+            'attendance': visit.get_attendance_status_display(),
+            'attendance_status': visit.attendance_status,
+            'cancellable': datetime.datetime.today().date() < visit.slot.date,
             'cancellation_type': '',
-            'slot_id': event.slot.id,
+            'slot_id': visit.slot.id,
             'free_seats': 0,
             'can_register': False,
         }
-        if event.slot.date < today:
-            event_data['time_type'] = "past"
-        elif event.slot.date > today or (
-            event.slot.date == today and event.slot.start_time > datetime.datetime.today().time()
+        if visit.slot.date < today:
+            visit_data['time_type'] = "past"
+        elif visit.slot.date > today or (
+            visit.slot.date == today and visit.slot.start_time > datetime.datetime.today().time()
         ):
-            event_data['time_type'] = "future"
+            visit_data['time_type'] = "future"
 
-        if event.slot.n_places:
-            event_data['free_seats'] = event.slot.n_places - event.slot.registered_students()
+        if visit.slot.n_places:
+            visit_data['free_seats'] = visit.slot.n_places - visit.slot.registered_students()
 
-        if event.cancellation_type:
-            event_data['cancellation_type'] = event.cancellation_type.label
+        if visit.cancellation_type:
+            visit_data['cancellation_type'] = visit.cancellation_type.label
 
-            if slot_datetime > datetime.datetime.today() and event.slot.available_seats() > 0:
+            if slot_datetime > datetime.datetime.today() and visit.slot.available_seats() > 0:
                 if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
-                    event_data['can_register'] = True
+                    visit_data['can_register'] = True
 
-        for speaker in event.slot.speakers.all().order_by('last_name', 'first_name'):
-            event_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
+        for speaker in visit.slot.speakers.all().order_by('last_name', 'first_name'):
+            visit_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
-        response['data'].append(event_data.copy())
+        response['data'].append(visit_data.copy())
 
     return JsonResponse(response, safe=False)
 
