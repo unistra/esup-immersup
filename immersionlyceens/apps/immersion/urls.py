@@ -33,6 +33,8 @@ urlpatterns = [
     path('register/<profile>', views.register, name='register_profile'),
 
     path('resend_activation', views.resend_activation, name='resend_activation'),
+    path('resend_activation/<profile>', views.resend_activation, name='resend_activation'),
+
     path('reset_password/<hash>', views.reset_password, name='reset_password'),
     path('student_record', views.student_record, name='student_record'),
     path('student_record/<int:record_id>', views.student_record, name='modify_student_record'),

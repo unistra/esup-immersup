@@ -46,10 +46,11 @@
           <ul>
             {% if profile == 'vis' %}
               <li><a href="{% url 'immersion:register_profile' profile='vis' %}">{% trans 'Not registered yet ?' %}</a></li>
+              <li><a href="{% url 'immersion:resend_activation' profile='vis' %}">{% trans 'I have not received the activation email' %}</a></li>
             {% else %}
               <li><a href="{% url 'immersion:register' %}">{% trans 'Not registered yet ?' %}</a></li>
+              <li><a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a></li>
             {% endif %}
-            <li><a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a></li>
           </ul>
         </div>
       </div>
