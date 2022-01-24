@@ -1185,6 +1185,239 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     return JsonResponse(response, safe=False)
 
+@is_ajax_request
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
+def ajax_get_events(request, user_id=None, event_type=None):
+    """
+    Get (high-school or not) students off offer events
+    event_type in "future", "past", "cancelled" or None
+    """
+    calendar = None
+    slot_semester = None
+    remainings = {}
+    response = {'msg': '', 'data': []}
+
+    if not user_id:
+        response['msg'] = gettext("Error : missing user id")
+        return JsonResponse(response, safe=False)
+
+    if (
+        not request.user.is_establishment_manager()
+        and not request.user.is_high_school_manager()
+        and request.user.id != user_id
+    ):
+        response['msg'] = gettext("Error : invalid user id")
+        return JsonResponse(response, safe=False)
+
+    try:
+        calendar = Calendar.objects.first()
+    except Exception:
+        pass
+
+    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    today = datetime.datetime.today().date()
+
+    try:
+        student = ImmersionUser.objects.get(pk=user_id)
+        remainings['1'], remainings['2'], remaining_annually = student.remaining_registrations_count()
+    except ImmersionUser.DoesNotExist:
+        response['msg'] = gettext("Error : no such user")
+        return JsonResponse(response, safe=False)
+
+    time = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
+
+    events = Immersion.objects.prefetch_related(
+        'slot__event', 'slot__campus', 'slot__building', 'slot__speakers',
+    ).filter(Q(slot__course__isnull=True,slot__visit__isnull=True), student_id=user_id)
+
+    if event_type == "future":
+        events = events.filter(
+            Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time), cancellation_type__isnull=True
+        )
+    elif event_type == "past":
+        events = events.filter(
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time), cancellation_type__isnull=True
+        )
+    elif event_type == "cancelled":
+        events = events.filter(cancellation_type__isnull=False)
+
+    for event in events:
+        if calendar.calendar_mode == 'SEMESTER':
+            slot_semester = calendar.which_semester(event.slot.date)
+
+        slot_datetime = datetime.datetime.strptime(
+            "%s:%s:%s %s:%s"
+            % (
+                event.slot.date.year,
+                event.slot.date.month,
+                event.slot.date.day,
+                event.slot.start_time.hour,
+                event.slot.start_time.minute,
+            ),
+            "%Y:%m:%d %H:%M",
+        )
+
+        event_data = {
+            'id': event.id,
+            'label': event.slot.event.label,
+            'campus': event.slot.campus.label if event.slot.campus else '',
+            'building': event.slot.building.label if event.slot.building else '',
+            'room': event.slot.room,
+            'datetime': slot_datetime,
+            'date': date_format(event.slot.date),
+            'start_time': event.slot.start_time.strftime("%-Hh%M"),
+            'end_time': event.slot.end_time.strftime("%-Hh%M"),
+            'speakers': [],
+            'info': event.slot.additional_information,
+            'attendance': event.get_attendance_status_display(),
+            'attendance_status': event.attendance_status,
+            'cancellable': datetime.datetime.today().date() < event.slot.date,
+            'cancellation_type': '',
+            'slot_id': event.slot.id,
+            'free_seats': 0,
+            'can_register': False,
+        }
+        if event.slot.date < today:
+            event_data['time_type'] = "past"
+        elif event.slot.date > today or (
+            event.slot.date == today and event.slot.start_time > datetime.datetime.today().time()
+        ):
+            event_data['time_type'] = "future"
+
+        if event.slot.n_places:
+            event_data['free_seats'] = event.slot.n_places - event.slot.registered_students()
+
+        if event.cancellation_type:
+            event_data['cancellation_type'] = event.cancellation_type.label
+
+            if slot_datetime > datetime.datetime.today() and event.slot.available_seats() > 0:
+                if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
+                    event_data['can_register'] = True
+
+        for speaker in event.slot.speakers.all().order_by('last_name', 'first_name'):
+            event_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
+
+        response['data'].append(event_data.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
+def ajax_get_visits(request, user_id=None, event_type=None):
+    """
+    Get (high-school or not) students off offer events
+    event_type in "future", "past", "cancelled" or None
+    """
+    calendar = None
+    slot_semester = None
+    remainings = {}
+    response = {'msg': '', 'data': []}
+
+    if not user_id:
+        response['msg'] = gettext("Error : missing user id")
+        return JsonResponse(response, safe=False)
+
+    if (
+        not request.user.is_establishment_manager()
+        and not request.user.is_high_school_manager()
+        and request.user.id != user_id
+    ):
+        response['msg'] = gettext("Error : invalid user id")
+        return JsonResponse(response, safe=False)
+
+    try:
+        calendar = Calendar.objects.first()
+    except Exception:
+        pass
+
+    # TODO: poc for now maybe refactor dirty code in a model method !!!!
+    today = datetime.datetime.today().date()
+
+    try:
+        student = ImmersionUser.objects.get(pk=user_id)
+        remainings['1'], remainings['2'], remaining_annually = student.remaining_registrations_count()
+    except ImmersionUser.DoesNotExist:
+        response['msg'] = gettext("Error : no such user")
+        return JsonResponse(response, safe=False)
+
+    time = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
+
+    events = Immersion.objects.prefetch_related(
+        'slot__event', 'slot__campus', 'slot__building', 'slot__speakers',
+    ).filter(Q(slot__course__isnull=True,slot__visit__isnull=True), student_id=user_id)
+
+    if event_type == "future":
+        events = events.filter(
+            Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time), cancellation_type__isnull=True
+        )
+    elif event_type == "past":
+        events = immersions.filter(
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time), cancellation_type__isnull=True
+        )
+    elif event_type == "cancelled":
+        events = immersions.filter(cancellation_type__isnull=False)
+
+    for event in events:
+        if calendar.calendar_mode == 'SEMESTER':
+            slot_semester = calendar.which_semester(immersion.slot.date)
+
+        slot_datetime = datetime.datetime.strptime(
+            "%s:%s:%s %s:%s"
+            % (
+                event.slot.date.year,
+                event.slot.date.month,
+                event.slot.date.day,
+                event.slot.start_time.hour,
+                event.slot.start_time.minute,
+            ),
+            "%Y:%m:%d %H:%M",
+        )
+
+        event_data = {
+            'id': event.id,
+
+            'campus': event.slot.campus.label,
+            'building': event.slot.building.label,
+            'room': event.slot.room,
+            'datetime': slot_datetime,
+            'date': date_format(event.slot.date),
+            'start_time': event.slot.start_time.strftime("%-Hh%M"),
+            'end_time': event.slot.end_time.strftime("%-Hh%M"),
+            'speakers': [],
+            'info': event.slot.additional_information,
+            'attendance': event.get_attendance_status_display(),
+            'attendance_status': event.attendance_status,
+            'cancellable': datetime.datetime.today().date() < event.slot.date,
+            'cancellation_type': '',
+            'slot_id': event.slot.id,
+            'free_seats': 0,
+            'can_register': False,
+        }
+        if event.slot.date < today:
+            event_data['time_type'] = "past"
+        elif event.slot.date > today or (
+            event.slot.date == today and event.slot.start_time > datetime.datetime.today().time()
+        ):
+            event_data['time_type'] = "future"
+
+        if event.slot.n_places:
+            event_data['free_seats'] = event.slot.n_places - event.slot.registered_students()
+
+        if event.cancellation_type:
+            event_data['cancellation_type'] = event.cancellation_type.label
+
+            if slot_datetime > datetime.datetime.today() and event.slot.available_seats() > 0:
+                if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
+                    event_data['can_register'] = True
+
+        for speaker in event.slot.speakers.all().order_by('last_name', 'first_name'):
+            event_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
+
+        response['data'].append(event_data.copy())
+
+    return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @groups_required('LYC', 'ETU')

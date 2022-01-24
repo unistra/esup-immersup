@@ -1,0 +1,126 @@
+
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+<div id="accordion2">
+  <div class="card">
+    <div class="card-header bg-primary" id="headingEventsOne">
+      <h5 class="mb-0">
+        <button class="btn btn-link text-white" data-toggle="collapse" data-target="#collapseEventOne" aria-expanded="true" aria-controls="collapseEventOne">
+          {% trans 'Events to come' %}
+        </button>
+      </h5>
+    </div>
+    <div id="collapseEventOne" class="collapse show" aria-labelledby="headingEventOne" data-parent="#accordion2">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="events_to_come" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Label' %}</th>
+                <th>{% trans 'Campus' %}</th>
+                <th>{% trans 'Building' %}</th>
+                <th>{% trans 'Room' %}</th>
+                <th>{% trans 'Date and time' %}</th>
+                <th>{% trans 'Speakers' %}</th>
+                <th>{% trans 'Additional info' %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header bg-success" id="headingEventTwo">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseEventTwo" aria-expanded="false" aria-controls="collapseEventTwo">
+          {% trans 'Past events' %}
+        </button>
+      </h5>
+    </div>
+    <div id="collapseEventTwo" class="collapse" aria-labelledby="headingEventsTwo" data-parent="#accordion2">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="past_events" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Label' %}</th>
+                <th>{% trans 'Campus' %}</th>
+                <th>{% trans 'Building' %}</th>
+                <th>{% trans 'Room' %}</th>
+                <th>{% trans 'Date and time' %}</th>
+                <th>{% trans 'Speakers' %}</th>
+                <th>{% trans 'Attendance status' %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header bg-secondary" id="headingEventsThree">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseEventsThree" aria-expanded="false" aria-controls="collapseEventsThree">
+          {% trans 'Cancelled events' %}
+        </button>
+      </h5>
+    </div>
+    <div id="collapseEventsThree" class="collapse" aria-labelledby="headingEventsThree" data-parent="#accordion2">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="cancelled_events" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans "Label" %}</th>
+                <th>{% trans 'Campus' %}</th>
+                <th>{% trans 'Building' %}</th>
+                <th>{% trans 'Room' %}</th>
+                <th>{% trans 'Date and time' %}</th>
+                <th>{% trans 'Speakers' %}</th>
+                <th>{% trans 'Cancellation type' %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,43 +3,46 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 from io import BytesIO
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, update_session_auth_hash
-from django.contrib.auth import views as auth_views
+from django.contrib.auth import (
+    authenticate, login, update_session_auth_hash, views as auth_views,
+)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
-from django.contrib.auth.password_validation import password_validators_help_text_html, validate_password
+from django.contrib.auth.password_validation import (
+    password_validators_help_text_html, validate_password,
+)
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse, resolve
+from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import TemplateView, FormView
-
-from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
-
+from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
-    Calendar, CancelType, CertificateLogo, CertificateSignature, HigherEducationInstitution,
-    Immersion, ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert, HighSchoolLevel,
-    PostBachelorLevel, StudentLevel
+    Calendar, CancelType, CertificateLogo, CertificateSignature,
+    HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
+    MailTemplate, PostBachelorLevel, StudentLevel, UniversityYear,
+    UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
+from shibboleth.decorators import login_optional
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
-    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm, VisitorRecordForm, VisitorForm,
+    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm, NewPassForm,
+    RegistrationForm, StudentForm, StudentRecordForm, VisitorForm,
+    VisitorRecordForm,
 )
 from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
@@ -731,9 +734,9 @@ def student_record(request, student_id=None, record_id=None):
 
 @login_required
 @groups_required('LYC', 'ETU')
-def immersions(request):
+def registrations(request):
     """
-    Students : display to come, past and cancelled immersions
+    Students : display to come, past and cancelled immersions/events/visits
     Also display the number of active alerts
     """
     cancellation_reasons = CancelType.objects.filter(active=True).order_by('label')
@@ -748,7 +751,7 @@ def immersions(request):
         'sent_alerts_cnt': sent_alerts_cnt,
     }
 
-    return render(request, 'immersion/my_immersions.html', context)
+    return render(request, 'immersion/my_registrations.html', context)
 
 
 @login_required

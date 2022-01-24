@@ -1,0 +1,141 @@
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+
+
+<div id="accordion">
+  <div class="card">
+    <div class="card-header bg-primary" id="headingOne">
+      <h5 class="mb-0">
+        <button class="btn btn-link text-white" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          {% trans 'Immersions to come' %}
+        </button>
+      </h5>
+    </div>
+
+    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="immersions_to_come" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Training' %}</th>
+                <th>{% trans 'Course' %}</th>
+                <th>{% trans 'Type' %}</th>
+                <th>{% trans 'Campus' %}</th>
+                <th>{% trans 'Building' %}</th>
+                <th>{% trans 'Room' %}</th>
+                <th>{% trans 'Date and time' %}</th>
+                <th>{% trans 'Speakers' %}</th>
+                <th>{% trans 'Additional info' %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header bg-success" id="headingTwo">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          {% trans 'Past immersions' %}
+        </button>
+      </h5>
+    </div>
+    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="past_immersions" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Training' %}</th>
+                <th>{% trans 'Course' %}</th>
+                <th>{% trans 'Type' %}</th>
+                <th>{% trans 'Campus' %}</th>
+                <th>{% trans 'Building' %}</th>
+                <th>{% trans 'Room' %}</th>
+                <th>{% trans 'Date and time' %}</th>
+                <th>{% trans 'Speakers' %}</th>
+                <th>{% trans 'Attendance status' %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header bg-secondary" id="headingThree">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+          {% trans 'Cancelled immersions' %}
+        </button>
+      </h5>
+    </div>
+    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="cancelled_immersions" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>{% trans 'Training' %}</th>
+                <th>{% trans 'Course' %}</th>
+                <th>{% trans 'Type' %}</th>
+                <th>{% trans 'Campus' %}</th>
+                <th>{% trans 'Building' %}</th>
+                <th>{% trans 'Room' %}</th>
+                <th>{% trans 'Date and time' %}</th>
+                <th>{% trans 'Speakers' %}</th>
+                <th>{% trans 'Cancellation type' %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

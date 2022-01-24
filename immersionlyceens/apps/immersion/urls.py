@@ -19,7 +19,7 @@ urlpatterns = [
     path('visitor_record', views.VisitorRecordView.as_view(), name="visitor_record"),
     path('visitor_record/<int:record_id>', views.VisitorRecordView.as_view(), name="visitor_record_by_id"),
 
-    path('immersions', views.immersions, name='immersions'),
+    path('registrations', views.registrations, name='registrations'),
 
     # path('login', views.customLogin, name='login'),
     # path('login/<profile>', views.customLogin, name='login'),

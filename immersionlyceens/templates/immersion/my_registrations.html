@@ -13,7 +13,7 @@
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
-{% block title %}{% trans "My immersions" %}{% endblock %}
+{% block title %}{% trans "My registrations" %}{% endblock %}
 
 {% block content %}
 {% include '../modals/modal_alerts.html' %}
@@ -33,7 +33,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "My immersions" %}</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "My registrations" %}</li>
       </ol>
     </nav>
   </div>
@@ -50,143 +50,46 @@
     {% endif %}
   </div>
 </div>
-<div id="accordion">
-  <div class="card">
-    <div class="card-header bg-primary" id="headingOne">
-      <h5 class="mb-0">
-        <button class="btn btn-link text-white" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-          {% trans 'Immersions to come' %}
-        </button>
-      </h5>
-    </div>
-
-    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table id="immersions_to_come" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-            <thead>
-              <tr>
-                <th>{% trans 'Training' %}</th>
-                <th>{% trans 'Course' %}</th>
-                <th>{% trans 'Type' %}</th>
-                <th>{% trans 'Campus' %}</th>
-                <th>{% trans 'Building' %}</th>
-                <th>{% trans 'Room' %}</th>
-                <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Speakers' %}</th>
-                <th>{% trans 'Additional info' %}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+{% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
+{% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+{% if not highschool_visit and not events_off_offer %}
+{% include './fragments/my_immersions.html'%}
+{% else %}
+<section>
+  <div class="container-fluid mt-4">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#immersions" role="tab" aria-controls="immersions" aria-selected="true">{% trans "My immersions" %}</a>
+      </li>
+      {% if events_off_offer %}
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#events" role="tab" aria-controls="events" aria-selected="false">{% trans "My events" %}</a>
+      </li>
+      {% endif %}
+      {% if highschool_visit and authorized_groups|in_groups:"LYC" %}
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#visits" role="tab" aria-controls="visits" aria-selected="false">{% trans "My visits" %}</a>
+      </li>
+      {% endif %}
+    </ul>
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active" id="immersions" role="tabpanel" aria-labelledby="immersions-tab">
+      {% include './fragments/my_immersions.html'%}
       </div>
+      {% if events_off_offer %}
+      <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+      {% include './fragments/my_events.html'%}
+      </div>
+      {% endif %}
+      {% if highschool_visit and authorized_groups|in_groups:"LYC" %}
+      <div class="tab-pane fade" id="visits" role="tabpanel" aria-labelledby="visits-tab">
+      {% include './fragments/my_visits.html'%}
+      </div>
+      {% endif %}
     </div>
   </div>
-  <div class="card">
-    <div class="card-header bg-success" id="headingTwo">
-      <h5 class="mb-0">
-        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-          {% trans 'Past immersions' %}
-        </button>
-      </h5>
-    </div>
-    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table id="past_immersions" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-            <thead>
-              <tr>
-                <th>{% trans 'Training' %}</th>
-                <th>{% trans 'Course' %}</th>
-                <th>{% trans 'Type' %}</th>
-                <th>{% trans 'Campus' %}</th>
-                <th>{% trans 'Building' %}</th>
-                <th>{% trans 'Room' %}</th>
-                <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Speakers' %}</th>
-                <th>{% trans 'Attendance status' %}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header bg-secondary" id="headingThree">
-      <h5 class="mb-0">
-        <button class="btn btn-link collapsed text-white" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-          {% trans 'Cancelled immersions' %}
-        </button>
-      </h5>
-    </div>
-    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table id="cancelled_immersions" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-            <thead>
-              <tr>
-                <th>{% trans 'Training' %}</th>
-                <th>{% trans 'Course' %}</th>
-                <th>{% trans 'Type' %}</th>
-                <th>{% trans 'Campus' %}</th>
-                <th>{% trans 'Building' %}</th>
-                <th>{% trans 'Room' %}</th>
-                <th>{% trans 'Date and time' %}</th>
-                <th>{% trans 'Speakers' %}</th>
-                <th>{% trans 'Cancellation type' %}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
+</section>
+{% endif %}
 <script>
   var feedback;
   var current_immersion_id;
@@ -194,6 +97,12 @@
   var dt_future;
   var dt_past;
   var dt_cancelled;
+  var dte_future;
+  var dte_past;
+  var dte_cancelled;
+  var dtv_future;
+  var dtv_past;
+  var dtv_cancelled;
 
   function open_students_modal(immersion_id) {
     current_immersion_id = immersion_id;
@@ -229,6 +138,12 @@
             dt_future.ajax.reload();
             dt_past.ajax.reload();
             dt_cancelled.ajax.reload();
+            dte_future.ajax.reload();
+            dte_past.ajax.reload();
+            dte_cancelled.ajax.reload();
+            /*dtv_future.ajax.reload();
+            dtv_past.ajax.reload();
+            dtv_cancelled.ajax.reload();*/
           }
         },
         error: function(json) {
@@ -459,6 +374,213 @@
         },
       ],
     });
+
+
+    dte_future = $('#events_to_come').DataTable({
+      'processing': false,
+      'order': [
+        [6, "asc"]
+      ],
+      'pageLength': 5,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_events/" + user_id + "/future",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+        { "data": "label" },
+        { "data": "campus" },
+        { "data": "building" },
+        { "data": "room" },
+        { "data": "datetime",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.date + ", " + row.start_time + " - " + row.end_time;
+            }
+
+            return data;
+          },
+        },
+        { "data": "speakers"},
+        { "data": "info" },
+        { "data": "",
+          "render": function(data, type, row) {
+            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+                      "<i class='fa fas fa-users fa-2x'></i>" +
+                      "</button>";
+
+            if(row.cancellable == true) {
+              msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
+                     "<i class='fa fas fa-trash fa-2x'></i>" +
+                     "</button>";
+            }
+
+            return msg;
+          }
+        }
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+        {
+          "orderable": false, "targets": [6,7],
+        },
+      ],
+    });
+
+
+    dte_past = $('#past_events').DataTable({
+      'processing': false,
+      'order': [
+        [6, "desc"]
+      ],
+      'pageLength': 5,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_events/" + user_id + "/past",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+        { "data": "label" },
+        { "data": "campus" },
+        { "data": "building" },
+        { "data": "room" },
+        { "data": "datetime",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.date + ", " + row.start_time + " - " + row.end_time;
+            }
+
+            return data;
+          },
+        },
+        { "data": "speakers",
+          "render": function (data) {
+            let txt = "";
+            $.each(data, function(index, value) {
+              txt += value+"<br>";
+            });
+            return txt;
+          },
+        },
+        { "data": "attendance",
+          "render": function(data, type, row) {
+            var msg = data;
+
+            if(row.attendance_status == 1) {
+              msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
+                  "<i class='fa fas fa-download fa-2x'></i>" +
+                  "</a>";
+            }
+            return msg;
+          }
+        },
+        { "data": "" }
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+        {
+          "orderable": false, "targets": 7,
+        },
+      ],
+    });
+
+    dte_cancelled = $('#cancelled_events').DataTable({
+      'processing': false,
+      'order': [
+        [6, "asc"]
+      ],
+      'pageLength': 5,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': true,
+      'ajax': {
+        url: "/api/get_events/" + user_id + "/cancelled",
+        dataSrc: function (json) {
+          if (json['data'] != undefined) {
+            return json['data'];
+          }
+        }
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+        { "data": "label" },
+        { "data": "campus" },
+        { "data": "building" },
+        { "data": "room" },
+        { "data": "datetime",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.date + ", " + row.start_time + " - " + row.end_time;
+            }
+
+            return data;
+          },
+        },
+        { "data": "speakers",
+          "render": function (data) {
+            let txt = "";
+            $.each(data, function(index, value) {
+              txt += value+"<br>";
+            });
+            return txt;
+          },
+        },
+        { "data": "cancellation_type",
+          "render": function(data, type, row) {
+            var msg = data;
+
+            if(row.can_register) {
+              msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+            }
+
+            if(row.free_seats == 0) {
+              msg += "<br /><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+            }
+
+            return msg;
+          }
+        },
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all",
+          "className": "all",
+        },
+      ],
+    });
+
 
   });
 

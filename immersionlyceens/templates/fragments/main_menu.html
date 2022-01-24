@@ -134,7 +134,7 @@
               {% elif authorized_groups|in_groups:"VIS" %}
                 <a class="dropdown-item" href="{% url 'immersion:visitor_record' %}">{% trans 'My record' %}</a>
               {% endif %}
-              <a class="dropdown-item" href="{% url 'immersion:immersions' %}">{% trans 'My immersions' %}</a>
+              <a class="dropdown-item" href="{% url 'immersion:registrations' %}">{% trans 'My registrations' %}</a>
             </div>
           </div>
         {% endif %}
