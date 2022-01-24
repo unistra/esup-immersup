@@ -72,6 +72,7 @@ class Parser:
             return {
                 "cours": {
                     "libelle": course.label,
+                    "formation": course.training.label,
                     "nbplaceslibre": course.free_seats(),
                 }
             }
@@ -101,10 +102,34 @@ class Parser:
 
     @staticmethod
     def get_slot_context(slot: Optional[Slot]) -> Dict[str, Any]:
+        def get_registered_students(slot: Optional[Slot]) -> Dict[str, Any]:
+            # Move to Slot model ?
+            institution_label: str = _("Unknown home institution")
+            registered_students: List[str] = []
+
+            for registration in slot.immersions.filter(cancellation_type__isnull=True):
+                if registration.student.is_high_school_student():
+                    record = registration.student.get_high_school_student_record()
+                    if record and record.highschool:
+                        institution_label = record.highschool.label
+                elif registration.student.is_student():
+                    record = registration.student.get_student_record()
+                    if record:
+                        uai_code, institution = record.home_institution()
+                        institution_label = institution.label if institution else uai_code
+
+                registered_students.append(
+                    f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
+                )
+
+            return registered_students
+
+
         if slot:
             establishment = slot.get_establishment()
             structure = slot.get_structure()
             highschool = slot.get_highschool()
+            registered_students = get_registered_students(slot)
 
             return {
                 "creneau": {
@@ -136,18 +161,27 @@ class Parser:
                     "heurefin": slot.end_time.strftime("%-Hh%M") if slot.end_time else "",
                     "info": slot.additional_information,
                     "salle": slot.room,
+                    "nbplaceslibres": slot.available_seats(),
+                    "listeInscrits": "<br />".join(sorted(registered_students)) if registered_students else ""
                 }
             }
         return {}
 
     @staticmethod
-    def get_user_context(user: Optional[ImmersionUser], institution_label: Optional[str], record: Optional[Union[StudentRecord, HighSchoolStudentRecord]]):
+    def get_user_context(user: Optional[ImmersionUser]):
         if user:
             context: Dict[str, Any] = {
                 "nom": user.last_name,
                 "prenom": user.first_name,
-                "int": {"nom": user.last_name, "prenom": user.first_name},
-                "referentlycee": {"nom": user.last_name, "prenom": user.first_name},
+                "int": {
+                    "nom": user.last_name,
+                    "prenom": user.first_name
+                },
+                "referentlycee": {
+                    "nom": user.last_name,
+                    "prenom": user.first_name,
+                    "lycee": f"{user.highschool.label} ({user.highschool.city}" if user.highschool else "",
+                },
                 "identifiant": user.get_cleaned_username(),
                 "jourDestructionCptMin": user.get_localized_destruction_date(),
             }
@@ -156,16 +190,21 @@ class Parser:
                 try:
                     context.update({
                         "lycee": user.high_school_student_record.highschool.label,
-                        "etudiant_date_naissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
+                        "inscrit_datedenaissance": date_format(user.high_school_student_record.birth_date, 'd/m/Y'),
                     })
                 except HighSchoolStudentRecord.DoesNotExist:
                     pass
             elif user.is_student():
-                # TODO: maybe instead of lycee use a home_institution tpl var ???
-                context.update({"lycee": institution_label})
+                record = user.get_student_record()
+
                 if record:
+                    uai_code, institution = record.home_institution()
+                    institution_label = institution.label if institution else uai_code
+
+                    # TODO: maybe instead of lycee use a home_institution tpl var ???
                     context.update({
-                        "etudiant_date_naissance": date_format(record.birth_date, 'd/m/Y')
+                        "lycee": institution_label,
+                        "inscrit_datedenaissance": date_format(record.birth_date, 'd/m/Y')
                     })
             elif user.highschool:
                 context.update({"lycee": user.highschool.label})
@@ -262,18 +301,6 @@ class Parser:
         platform_url: str = cls.get_platform_url(request)
         year: Optional[UniversityYear] = cls.get_year()
 
-        record: Optional[Union[HighSchoolStudentRecord, StudentRecord]] = None
-        institution_label: Optional[Any] = None
-        registered_students: Optional[List[str]] = None
-
-        tmp_var: Dict[str, Any] = cls.get_registered_students(slot)
-        if "record" in tmp_var:
-            record = tmp_var["record"]
-        if "registered_students" in tmp_var:
-            registered_students = tmp_var["registered_students"]
-        if "institution_label" in tmp_var:
-            institution_label = tmp_var["institution_label"]
-
         context: Dict[str, Any] = {
             "annee": year.label if year else _("not set"),
             "urlPlateforme": platform_url,
@@ -283,11 +310,10 @@ class Parser:
         context.update(cls.get_visit_context(visit))
         context.update(cls.get_event_context(event))
         context.update(cls.get_slot_context(slot))
-        context.update(cls.get_registered_students_context(registered_students))
 
         context.update(cls.get_cancellation_type_context(immersion))
 
-        context.update(cls.get_user_context(user, institution_label, record))
+        context.update(cls.get_user_context(user))
         context.update(cls.get_user_request_context(user, request, platform_url))
 
         context.update(cls.get_slot_list_context(slot_list))
@@ -299,7 +325,6 @@ class Parser:
 
     @staticmethod
     def get_registered_students(slot: Optional[Slot]) -> Dict[str, Any]:
-        record: Optional[Union[HighSchoolStudentRecord, StudentRecord]] = None
         if slot:
             institution_label: str = _("Unknown home institution")
             registered_students: List[str] = []
@@ -319,19 +344,8 @@ class Parser:
                     f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
                 )
 
-            return {
-                "registered_students": registered_students,
-                "record": record,
-                "institution_label": institution_label,
+            return registered_students
 
-            }
-        return {}
+        return []
 
-    @staticmethod
-    def get_registered_students_context(registered_students: Optional[List[str]]) -> Dict[str, Any]:
-        if registered_students:
-            return {
-                "listeInscrits": "<br />".join(sorted(registered_students))
-            }
-        return {}
 
