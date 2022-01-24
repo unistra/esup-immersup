@@ -8,7 +8,7 @@ pylint ignore:
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from django.conf import settings
 from django.contrib import messages
@@ -544,21 +544,40 @@ def speaker(request, id=None):
     return render(request, 'core/speaker.html', context)
 
 
-@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
-def my_students(request):
-    highschool = None
+# @groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
+# def my_students(request):
+#     highschool = None
+#
+#     try:
+#         highschool = request.user.highschool
+#     except Exception:
+#         pass
+#
+#     context = {
+#         'highschool': highschool,
+#         'is_establishment_manager': request.user.is_establishment_manager(),
+#     }
+#
+#     return render(request, 'core/highschool_students.html', context)
 
-    try:
-        highschool = request.user.highschool
-    except Exception:
-        pass
 
-    context = {
-        'highschool': highschool,
-        'is_establishment_manager': request.user.is_establishment_manager(),
-    }
+@method_decorator(groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
+class MyStudents(generic.TemplateView):
+    template_name: str = "core/highschool_students.html"
 
-    return render(request, 'core/highschool_students.html', context)
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
+        highschool: Optional[HighSchool] = None
+        try:
+            highschool = self.request.user.highschool
+        except Exception:
+            pass
+
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "highschool": highschool,
+            'is_establishment_manager': self.request.user.is_establishment_manager(),
+        })
+        return context
 
 
 # todo: remove this function
