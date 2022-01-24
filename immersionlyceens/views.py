@@ -180,6 +180,9 @@ def offer_subdomain(request, subdomain_id):
             record = student.get_high_school_student_record()
         elif student.is_student():
             record = student.get_student_record()
+        elif student.is_visitor():
+            record = student.get_visitor_record()
+
         remaining_regs_count = student.remaining_registrations_count()
 
         course_alerts = UserCourseAlert.objects.filter(email=request.user.email, email_sent=False).values_list(
@@ -470,6 +473,8 @@ def offer_off_offer_events(request):
             record = student.get_high_school_student_record()
         elif student.is_student():
             record = student.get_student_record()
+        elif student.is_visitor():
+            record = student.get_visitor_record()
 
     try:
         events_txt = InformationText.objects.get(code="INTRO_EVENEMENTHO", active=True).content

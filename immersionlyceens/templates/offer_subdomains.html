@@ -100,7 +100,7 @@
                       {% if request.user.is_anonymous or request.user.email and d.course.id not in course_alerts and authorized_groups|in_groups:"LYC,ETU" %}
                         <a href="#" class="badge badge-info pull-right" id='id_alert_{{ d.course.id }}' onclick="open_alert_modal({{ d.course.id }})">{% trans 'Notify me when a place is available' %}</a>
                       {% endif %}
-                      {% if authorized_groups|in_groups:"LYC,ETU" %}
+                      {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
                         <a href="#" class="badge badge-success pull-right" id='id_alert_set_{{ d.course.id }}' {% if request.user.is_anonymous or d.course.id not in course_alerts %}style='display:none;'{% endif %}>
                           {% trans 'Availability alert set' %}
                         </a>
@@ -201,7 +201,7 @@
                                 <span class="badge badge-primary badge-pill">
                                 {% trans 'Available places' %} : {{ slot.available_seats }}
                                 </span><br>
-                              {% if authorized_groups|in_groups:"LYC,ETU" %}
+                              {% if authorized_groups|in_groups:"LYC,ETU,VIS" %}
                                   {% if slot.can_register %}
                                 <button type="button" class="badge badge-pill badge-primary" onclick="register({{ slot.id }})">{% trans 'Register' %}</button>
                                 <div id="feedback_{{slot.pk}}" ></div>
