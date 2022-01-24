@@ -589,6 +589,7 @@ class ImmersionUser(AbstractUser):
 
         # Restrictions checks for visitors
         if self.is_visitor():
+            print('la')
             # For now useless to get visitor record !
             # visitors can register to "open to all" slots
             if slot.levels_restrictions or slot.establishments_restrictions:

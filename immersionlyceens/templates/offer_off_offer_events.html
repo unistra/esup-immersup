@@ -181,7 +181,7 @@
                                 <span class="badge badge-primary badge-pill">
                                 {% trans 'Available places' %} : {{ s.available_seats }}
                                 </span><br>
-                                {% if authorized_groups|in_groups:"LYC,ETU" and s.can_register %}
+                                {% if authorized_groups|in_groups:"LYC,ETU,VIS" and s.can_register %}
                                 <button type="button" class="badge badge-pill badge-primary" onclick="register({{ s.id }})">{% trans 'Register' %}</button>
                                 <div id="feedback_{{s.pk}}" ></div>
                                 {% endif %}
