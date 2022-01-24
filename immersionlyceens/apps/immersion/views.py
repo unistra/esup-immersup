@@ -238,7 +238,7 @@ def shibbolethLogin(request, profile=None):
     return HttpResponseRedirect("/")
 
 
-def register(request):
+def register(request, profile=None):
     # Is current university year valid ?
     is_reg_possible, is_year_valid, year = check_active_year()
 
@@ -253,6 +253,7 @@ def register(request):
 
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
+        redirect_url_name: str = "/immersion/login"
 
         if form.is_valid():
             new_user = form.save(commit=False)
@@ -262,8 +263,13 @@ def register(request):
             new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
 
+            group_name: str = "LYC"
+            if profile and profile == "vis":
+                group_name = "VIS"
+                redirect_url_name = "/immersion/login/vis"
+
             try:
-                Group.objects.get(name='LYC').user_set.add(new_user)
+                Group.objects.get(name=group_name).user_set.add(new_user)
             except Exception:
                 logger.exception(f"Cannot add 'LYC' group to user {new_user}")
                 messages.error(request, _("Group error"))
@@ -274,7 +280,7 @@ def register(request):
                 logger.exception("Cannot send activation message : %s", e)
 
             messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
-            return HttpResponseRedirect("/immersion/login")
+            return HttpResponseRedirect(redirect_url_name)
         else:
             for err_field, err_list in form.errors.get_json_data().items():
                 for error in err_list:
