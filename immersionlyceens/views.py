@@ -468,12 +468,13 @@ def offer_off_offer_events(request):
     if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
         student = request.user
 
-        # Get student/highschool student record
+        # Get student/highschool/visitor record
         if student.is_high_school_student():
             record = student.get_high_school_student_record()
         elif student.is_student():
             record = student.get_student_record()
         elif student.is_visitor():
+            #TODO: really needed ?
             record = student.get_visitor_record()
 
     try:

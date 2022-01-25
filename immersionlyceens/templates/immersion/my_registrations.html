@@ -176,7 +176,7 @@
     dt_future = $('#immersions_to_come').DataTable({
       'processing': false,
       'order': [
-        [6, "asc"]
+        [5, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -199,8 +199,7 @@
         { "data": "course" },
         { "data": "type" },
         { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -243,7 +242,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": [8,9],
+          "orderable": false, "targets": [7,8],
         },
       ],
     });
@@ -251,7 +250,7 @@
     dt_past = $('#past_immersions').DataTable({
       'processing': false,
       'order': [
-        [6, "desc"]
+        [5, "desc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -274,8 +273,7 @@
         { "data": "course" },
         { "data": "type" },
         { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -315,7 +313,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": 9,
+          "orderable": false, "targets": 8,
         },
       ],
     });
@@ -323,7 +321,7 @@
     dt_cancelled = $('#cancelled_immersions').DataTable({
       'processing': false,
       'order': [
-        [6, "asc"]
+        [5, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -346,8 +344,7 @@
         { "data": "course" },
         { "data": "type" },
         { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -395,7 +392,7 @@
     dte_future = $('#events_to_come').DataTable({
       'processing': false,
       'order': [
-        [6, "asc"]
+        [3, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -416,8 +413,7 @@
       'columns': [
         { "data": "label" },
         { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -452,7 +448,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": [6,7],
+          "orderable": false, "targets": [5,6],
         },
       ],
     });
@@ -461,7 +457,7 @@
     dte_past = $('#past_events').DataTable({
       'processing': false,
       'order': [
-        [6, "desc"]
+        [3, "desc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -482,8 +478,7 @@
       'columns': [
         { "data": "label" },
         { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -523,7 +518,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": 7,
+          "orderable": false, "targets": 6,
         },
       ],
     });
@@ -531,7 +526,7 @@
     dte_cancelled = $('#cancelled_events').DataTable({
       'processing': false,
       'order': [
-        [6, "asc"]
+        [3, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -552,8 +547,7 @@
       'columns': [
         { "data": "label" },
         { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -601,7 +595,7 @@
     dtv_future = $('#visits_to_come').DataTable({
       'processing': false,
       'order': [
-        [6, "asc"]
+        [3, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -621,9 +615,8 @@
       },
       'columns': [
         { "data": "label" },
-        { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "highschool" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -658,7 +651,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": [6,7],
+          "orderable": false, "targets": [5,6],
         },
       ],
     });
@@ -667,7 +660,7 @@
     dtv_past = $('#past_visits').DataTable({
       'processing': false,
       'order': [
-        [6, "desc"]
+        [3, "desc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -687,9 +680,8 @@
       },
       'columns': [
         { "data": "label" },
-        { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "highschool" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
@@ -729,7 +721,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": 7,
+          "orderable": false, "targets": 5,
         },
       ],
     });
@@ -737,7 +729,7 @@
     dtv_cancelled = $('#cancelled_visits').DataTable({
       'processing': false,
       'order': [
-        [6, "asc"]
+        [3, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -757,9 +749,8 @@
       },
       'columns': [
         { "data": "label" },
-        { "data": "campus" },
-        { "data": "building" },
-        { "data": "room" },
+        { "data": "highschool" },
+        { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {

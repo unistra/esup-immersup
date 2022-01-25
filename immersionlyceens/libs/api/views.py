@@ -1067,7 +1067,8 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
+#TODO: check rights
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def ajax_get_immersions(request, user_id=None, immersion_type=None):
     """
     Get (high-school or not) students immersions
@@ -1137,6 +1138,16 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             ),
             "%Y:%m:%d %H:%M",
         )
+        if not immersion.slot.face_to_face:
+            meeting_place=_('Remote course')
+        elif immersion.slot.building and immersion.slot.room:
+            meeting_place=f'{immersion.slot.building} - {immersion.slot.room}'
+        elif immersion.slot.building and not immersion.slot.room:
+            meeting_place=immersion.slot.buildings
+        elif not immersion.slot.building and immersion.slot.room:
+            meeting_place=immersion.slot.room
+        else:
+            meeting_place=''
 
         immersion_data = {
             'id': immersion.id,
@@ -1144,6 +1155,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'course': immersion.slot.course.label,
             'type': immersion.slot.course_type.label,
             'type_full': immersion.slot.course_type.full_label,
+            'meeting_place': meeting_place,
             'campus': immersion.slot.campus.label if immersion.slot.campus else '',
             'building': immersion.slot.building.label if immersion.slot.building else '',
             'room': immersion.slot.room,
@@ -1186,7 +1198,8 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     return JsonResponse(response, safe=False)
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
+#TODO: check rights
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def ajax_get_events(request, user_id=None, event_type=None):
     """
     Get (high-school or not) students off offer events
@@ -1257,11 +1270,23 @@ def ajax_get_events(request, user_id=None, event_type=None):
             "%Y:%m:%d %H:%M",
         )
 
+        if not event.slot.face_to_face:
+            meeting_place=_('Remote event')
+        elif event.slot.building and event.slot.room:
+            meeting_place=f'{event.slot.building} - {event.slot.room}'
+        elif event.slot.building and not event.slot.room:
+            meeting_place=event.slot.buildings
+        elif not event.slot.building and event.slot.room:
+            meeting_place=event.slot.room
+        else:
+            meeting_place=''
+
         event_data = {
             'id': event.id,
             'label': event.slot.event.label,
             'campus': event.slot.campus.label if event.slot.campus else '',
             'building': event.slot.building.label if event.slot.building else '',
+            'meeting_place': meeting_place,
             'room': event.slot.room,
             'datetime': slot_datetime,
             'date': date_format(event.slot.date),
@@ -1303,7 +1328,8 @@ def ajax_get_events(request, user_id=None, event_type=None):
 
 
 @is_ajax_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
+#TODO: check rights
+@groups_required('REF-ETAB', 'LYC', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
 def ajax_get_visits(request, user_id=None, visit_type=None):
     """
     Get (high-school or not) students off offer events
@@ -1374,11 +1400,23 @@ def ajax_get_visits(request, user_id=None, visit_type=None):
             "%Y:%m:%d %H:%M",
         )
 
+        if not visit.slot.face_to_face:
+            meeting_place=_('Remote visit')
+        elif visit.slot.building and visit.slot.room:
+            meeting_place=f'{visit.slot.building} - {visit.slot.room}'
+        elif visit.slot.building and not visit.slot.room:
+            meeting_place=visit.slot.buildings
+        elif not visit.slot.building and visit.slot.room:
+            meeting_place=visit.slot.room
+        else:
+            meeting_place=''
+
         visit_data = {
             'id': visit.id,
             'label': visit.slot.visit.purpose,
-            'campus': visit.slot.campus.label if visit.slot.campus else "",
+            'highschool': f'{visit.slot.visit.highschool.label} - {visit.slot.visit.highschool.city}',
             'building': visit.slot.building.label if visit.slot.building else "",
+            'meeting_place': meeting_place,
             'room': visit.slot.room,
             'datetime': slot_datetime,
             'date': date_format(visit.slot.date),
