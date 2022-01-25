@@ -360,13 +360,18 @@ class StudentRecordForm(forms.ModelForm):
 
         self.fields['level'].queryset = StudentLevel.objects.filter(active=True).order_by('order')
 
+
         # CSS
         excludes = ['birth_date']
         for field in self.fields:
             if field not in excludes:
                 self.fields[field].widget.attrs['class'] = 'form-control'
 
-        if not self.request or not self.request.user.is_establishment_manager():
+        if not self.request or (
+            not self.request.user.is_establishment_manager() and
+            not self.request.user.is_master_establishment_manager() and
+            not self.request.user.is_operator()
+        ):
             del self.fields['allowed_global_registrations']
             del self.fields['allowed_first_semester_registrations']
             del self.fields['allowed_second_semester_registrations']
