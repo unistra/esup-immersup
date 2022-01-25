@@ -170,7 +170,7 @@
     "model": "core.mailtemplatevars",
     "pk": 25,
     "fields": {
-      "code": "{{ listeInscrits }}",
+      "code": "{{ creneau.listeInscrits }}",
       "description": "Liste des inscrits (noms, pr\u00e9noms et établissements d'origine)"
     }
   },

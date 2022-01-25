@@ -102,7 +102,7 @@ class Parser:
 
     @staticmethod
     def get_slot_context(slot: Optional[Slot]) -> Dict[str, Any]:
-        def get_registered_students(slot: Optional[Slot]) -> Dict[str, Any]:
+        def get_registered_students(slot):
             # Move to Slot model ?
             institution_label: str = _("Unknown home institution")
             registered_students: List[str] = []
@@ -111,7 +111,7 @@ class Parser:
                 if registration.student.is_high_school_student():
                     record = registration.student.get_high_school_student_record()
                     if record and record.highschool:
-                        institution_label = record.highschool.label
+                        institution_label = f"{record.highschool.label} ({record.highschool.city})"
                 elif registration.student.is_student():
                     record = registration.student.get_student_record()
                     if record:

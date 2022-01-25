@@ -170,7 +170,7 @@ def get_object_default_order(object_class):
         else:
             return cls.objects.all().aggregate(Max('order'))['order__max'] + 1
     except Exception as e:
-        print(e)
+        # Falling here because "Models aren't loaded yet"
         pass
 
     return None
