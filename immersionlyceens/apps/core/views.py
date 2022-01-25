@@ -585,23 +585,18 @@ class MyStudents(generic.TemplateView):
     template_name: str = "core/highschool_students.html"
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
-        highschool: Optional[HighSchool] = None
-        try:
-            highschool = self.request.user.highschool
-        except Exception:
-            pass
-
         can_show_users_without_record: bool = any([
-            self.request.user.is_operator,
-            self.request.user.is_master_establishment_manager,
-            self.request.user.is_establishment_manager,
+            self.request.user.is_operator(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_establishment_manager(),
         ])
 
         context: Dict[str, Any] = super().get_context_data(**kwargs)
         context.update({
-            "highschool": highschool,
+            "highschool": self.request.user.highschool,
             'can_show_users_without_record': can_show_users_without_record,
         })
+
         return context
 
 
@@ -1238,10 +1233,13 @@ class CourseSlotUpdate(generic.UpdateView):
                     errors_list.append(ret)
 
             if sent_msg:
-                messages.success(self.request, _("Notifications have been sent (%s)") % sent_msg)
+                messages.success(self.request, gettext("Notifications have been sent (%s)") % sent_msg)
 
             if errors_list:
-                messages.warning(self.request, _("%s error(s) occured :") % (not_sent_msg) + "<br /".join(errors_list))
+                messages.warning(
+                    self.request,
+                    gettext("{} error(s) occurred :".format(not_sent_msg))  + "<br /".join(errors_list)
+                )
 
         return super().form_valid(form)
 

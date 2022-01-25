@@ -11,6 +11,9 @@ from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, Un
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
+from django.utils.safestring import mark_safe
+from django.utils.html import format_html
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +45,7 @@ class Parser:
                 platform_url = get_general_setting("PLATFORM_URL")
             except (ValueError, NameError):
                 logger.warning("Warning : PLATFORM_URL not set in core General Settings")
-                platform_url = "https://<plateforme immersion>"
+                platform_url = format_html("https://<plateforme immersion>")
         return platform_url
 
     @staticmethod
@@ -141,7 +144,7 @@ class Parser:
                     "batiment": slot.building.label if slot.building else "",
                     "campus": slot.campus.label if slot.campus else "",
                     "temoindistanciel": not slot.face_to_face,
-                    "lien": slot.url,
+                    "lien": format_html(slot.url) if slot.url else "",
                     "cours": {
                         'libelle': slot.get_label(),
                         'type': slot.course_type.full_label if slot.course_type else "",
@@ -232,12 +235,12 @@ class Parser:
         if user:
             if request:
                 return {
-                    "lienValidation": '<a href="{0}">{0}</a>'.format(
+                    "lienValidation": format_html('<a href="{0}">{0}</a>',
                         request.build_absolute_uri(
                             reverse('immersion:activate', kwargs={'hash': user.validation_string})
                         )
                     ),
-                    "lienMotDePasse": '<a href="{0}">{0}</a>'.format(
+                    "lienMotDePasse": format_html('<a href="{0}">{0}</a>',
                         request.build_absolute_uri(
                             reverse("immersion:reset_password", kwargs={'hash': user.recovery_string})
                         )
@@ -245,10 +248,10 @@ class Parser:
                 }
             else:
                 return {
-                    'lienValidation': "<a href='{0}{1}'>{0}{1}</a>".format(
+                    'lienValidation': format_html("<a href='{0}{1}'>{0}{1}</a>",
                         platform_url, reverse('immersion:activate', kwargs={'hash': user.validation_string})
                     ),
-                    'lienMotDePasse': "<a href='{0}{1}'>{0}{1}</a>".format(
+                    'lienMotDePasse': format_html("<a href='{0}{1}'>{0}{1}</a>",
                         platform_url, reverse('immersion:reset_password', kwargs={'hash': user.recovery_string})
                     )
                 }
