@@ -2490,7 +2490,7 @@ msgstr "Notifications envoyées (%s)"
 
 #: immersionlyceens/apps/core/views.py:1224
 #, python-format
-msgid "%s error(s) occured :"
+msgid "%s error(s) occurred :"
 msgstr "%s erreur(s) :"
 
 #: immersionlyceens/apps/core/views.py:1230
@@ -4953,7 +4953,7 @@ msgid "Did you really want to reject this high school student?"
 msgstr "Voulez-vous vraiment rejeter ce•tte lycéen•ne ?"
 
 #: immersionlyceens/templates/core/student_validation.html:43
-msgid "An error occured. The validation or rejection failed."
+msgid "An error occurred. The validation or rejection failed."
 msgstr "Erreur lors de la validation ou de rejet du lycéen"
 
 #: immersionlyceens/templates/core/student_validation.html:46
