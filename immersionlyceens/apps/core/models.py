@@ -24,7 +24,7 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import Max, Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
