@@ -808,7 +808,7 @@ def immersion_attestation_download(request, immersion_id):
         raise Http404()
 
 
-@method_decorator(groups_required('VIS', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+@method_decorator(groups_required('VIS', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
 class VisitorRecordView(FormView):
     template_name = "immersion/visitor_record.html"
     form_class = VisitorRecordForm
