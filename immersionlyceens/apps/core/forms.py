@@ -802,6 +802,7 @@ class VisitForm(forms.ModelForm):
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
+                    speaker_user.set_recovery_string()
                     send_creation_msg = True
 
                 try:
@@ -953,6 +954,7 @@ class OffOfferEventForm(forms.ModelForm):
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
+                    speaker_user.set_recovery_string()
                     send_creation_msg = True
 
                 try:

@@ -308,6 +308,7 @@ def course(request, course_id=None, duplicate=False):
                             )
 
                             messages.success(request, gettext("User '{}' created").format(speaker['username']))
+                            speaker_user.set_recovery_string()
                             send_creation_msg = True
 
                         try:
