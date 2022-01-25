@@ -1193,6 +1193,9 @@ class CourseSlotUpdate(generic.UpdateView):
 
         if self.request.POST.get('notify_student') == 'on':
             sent_msg = 0
+            not_sent_msg = 0
+            errors_list = []
+
             immersions = Immersion.objects.filter(slot=self.object, cancellation_type__isnull=True)
 
             for immersion in immersions:
@@ -1205,9 +1208,15 @@ class CourseSlotUpdate(generic.UpdateView):
 
                 if not ret:
                     sent_msg += 1
+                elif ret not in errors_list:
+                    not_sent_msg += 1
+                    errors_list.append(ret)
 
             if sent_msg:
                 messages.success(self.request, _("Notifications have been sent (%s)") % sent_msg)
+
+            if errors_list:
+                messages.warning(self.request, _("%s error(s) occured :") % (not_sent_msg) + "<br /".join(errors_list))
 
         return super().form_valid(form)
 

@@ -43,7 +43,7 @@
     "pk": 6,
     "fields": {
       "code": "{{ creneau.structure }}",
-      "description": "Cr\u00e9neau : nom de la structure"
+      "description": "Cr\u00e9neau : nom de la structure organisatrice"
     }
   },
   {
@@ -120,22 +120,6 @@
   },
   {
     "model": "core.mailtemplatevars",
-    "pk": 16,
-    "fields": {
-      "code": "{{ int.nom }}",
-      "description": "Nom de l'intervenant"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
-    "pk": 17,
-    "fields": {
-      "code": "{{ int.prenom }}",
-      "description": "Pr\u00e9nom de l'intervenant"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
     "pk": 18,
     "fields": {
       "code": "{{ identifiant }}",
@@ -184,18 +168,10 @@
   },
   {
     "model": "core.mailtemplatevars",
-    "pk": 24,
-    "fields": {
-      "code": "{{ listeInscrits.etablissement }}",
-      "description": "Liste des inscrits : \u00e9tablissement"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
     "pk": 25,
     "fields": {
-      "code": "{{ listeInscrits }}",
-      "description": "Liste des inscrits (noms et pr\u00e9noms)"
+      "code": "{{ creneau.listeInscrits }}",
+      "description": "Liste des inscrits (noms, pr\u00e9noms et établissements d'origine)"
     }
   },
   {
@@ -216,34 +192,10 @@
   },
   {
     "model": "core.mailtemplatevars",
-    "pk": 28,
-    "fields": {
-      "code": "{{ password }}",
-      "description": "Mot de passe"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
     "pk": 29,
     "fields": {
       "code": "{{ prenom }}",
       "description": "Pr\u00e9nom du destinataire"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
-    "pk": 30,
-    "fields": {
-      "code": "{{ referentlycee.nom }}",
-      "description": "Nom du r\u00e9f\u00e9rent du lyc\u00e9e"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
-    "pk": 31,
-    "fields": {
-      "code": "{{ referentlycee.prenom }}",
-      "description": "Pr\u00e9nom du r\u00e9f\u00e9rent du lyc\u00e9e"
     }
   },
   {
@@ -274,8 +226,8 @@
     "model": "core.mailtemplatevars",
     "pk": 35,
     "fields": {
-      "code": "{{ etudiant_date_naissance }}",
-      "description": "Date de naissance de l'\u00e9tudiant"
+      "code": "{{ datedenaissance }}",
+      "description": "Date de naissance de la personne inscrite au créneau"
     }
   },
   {
@@ -299,7 +251,7 @@
     "pk": 38,
     "fields": {
       "code": "{{ evenement.libelle }}",
-      "description": "Libell\u00e9 de l'événement hors offre"
+      "description": "Libell\u00e9 de l'évènement hors offre"
     }
   },
   {
@@ -307,7 +259,7 @@
     "pk": 39,
     "fields": {
       "code": "{{ evenement.nbplaceslibre }}",
-      "description": "Places disponibles pour l'événement hors offre"
+      "description": "Places disponibles pour l'évènement hors offre"
     }
   },
   {
@@ -315,7 +267,7 @@
     "pk": 40,
     "fields": {
       "code": "{{ creneau.evenement.type }}",
-      "description": "Cr\u00e9neau : type d'événement hors offre"
+      "description": "Cr\u00e9neau : type d'évènement hors offre"
     }
   },
   {
@@ -323,7 +275,7 @@
     "pk": 41,
     "fields": {
       "code": "{{ creneau.evenement.libelle }}",
-      "description": "Cr\u00e9neau : libellé de l'événement hors offre"
+      "description": "Cr\u00e9neau : libellé de l'évènement hors offre"
     }
   },
   {
@@ -362,24 +314,8 @@
     "model": "core.mailtemplatevars",
     "pk": 46,
     "fields": {
-      "code": "{{ creneau.libelle }}",
-      "description": "Cr\u00e9neau : libellé du cours, de la visite ou de l'évenement"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
-    "pk": 46,
-    "fields": {
-      "code": "{{ creneau.etablissement }}",
-      "description": "Cr\u00e9neau : nom de l'établissement"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
-    "pk": 46,
-    "fields": {
       "code": "{{ creneau.lycee }}",
-      "description": "Cr\u00e9neau : nom du lycée"
+      "description": "Cr\u00e9neau : nom du lycée organisateur"
     }
   },
   {
@@ -387,7 +323,103 @@
     "pk": 47,
     "fields": {
       "code": "{{ creneau.evenement.description }}",
-      "description": "Cr\u00e9neau : description de l'événement hors offre"
+      "description": "Cr\u00e9neau : description de l'évènement hors offre"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 48,
+    "fields": {
+      "code": "{{ cours.formation }}",
+      "description": "Formation li\u00e9e au cours"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 49,
+    "fields": {
+      "code": "{{ creneau.nbplaceslibres }}",
+      "description": "Places disponibles dans le créneau"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 50,
+    "fields": {
+      "code": "{{ creneau.libelle }}",
+      "description": "Cr\u00e9neau : libellé du cours, de la visite ou de l'évènement"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 51,
+    "fields": {
+      "code": "{{ creneau.etablissement }}",
+      "description": "Cr\u00e9neau : établissement organisateur"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 52,
+    "fields": {
+      "code": "{{ referentlycee.lycee }}",
+      "description": "Lycée du référent lycée connecté"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 53,
+    "fields": {
+      "code": "{{ estetudiant }}",
+      "description": "Indique si le destinataire est étudiant(e)"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 54,
+    "fields": {
+      "code": "{{ estlyceen }}",
+      "description": "Indique si le destinataire est lycéen(ne)"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 55,
+    "fields": {
+      "code": "{{ estvisiteur }}",
+      "description": "Indique si le destinataire est visiteur"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 56,
+    "fields": {
+      "code": "{{ estintervenant }}",
+      "description": "Indique si le destinataire est intervenant(e)"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 57,
+    "fields": {
+      "code": "{{ estreflycee }}",
+      "description": "Indique si le destinataire est référent(e) de lycée"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 58,
+    "fields": {
+      "code": "{{ estrefstructure }}",
+      "description": "Indique si le destinataire est référent(e) de structure"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 59,
+    "fields": {
+      "code": "{{ intervenant_compte_local }}",
+      "description": "Indique si l'intervenant(e) possède un compte local"
     }
   }
 ]

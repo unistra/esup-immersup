@@ -5,7 +5,7 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.utils.formats import date_format
-from django.test import Client, RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.conf import settings
 from django.contrib.auth.models import Group
 
@@ -174,6 +174,7 @@ class APITestCase(TestCase):
         self.global_eval_link = EvaluationFormLink.objects.create(
             evaluation_type=self.global_eval_type, active=True, url='http://disp.evaluation.test/')
 
+    @override_settings(LANGUAGE_CODE='fr-FR')
     def test_variables(self):
         # user : ${prenom} ${nom} ${jourDestructionCptMin} ${lienValidation} ${identifiant}
         # university year : ${annee}
@@ -207,6 +208,7 @@ class APITestCase(TestCase):
         # Slots : registered users list
         message_body = MailTemplate.objects.get(code='IMMERSION_RAPPEL_INT')
         parsed_body = parser(message_body.body, user=self.speaker1, slot=self.slot)
+
         self.assertIn(self.speaker1.first_name, parsed_body)
         self.assertIn(self.speaker1.last_name, parsed_body)
         self.assertIn(self.highschool_user.first_name, parsed_body)
