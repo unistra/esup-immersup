@@ -742,7 +742,7 @@ def student_record(request, student_id=None, record_id=None):
 
 
 @login_required
-@groups_required('LYC', 'ETU')
+@groups_required('LYC', 'ETU', 'VIS')
 def registrations(request):
     """
     Students : display to come, past and cancelled immersions/events/visits
