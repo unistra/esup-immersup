@@ -526,6 +526,7 @@ def speaker(request, id=None):
         speaker_form = ImmersionUserCreationForm(request.POST, instance=speaker, initial=initial, request=request)
         if speaker_form.is_valid():
             new_speaker = speaker_form.save()
+            new_speaker.set_recovery_string()
             Group.objects.get(name='INTER').user_set.add(new_speaker)
 
             if speaker:
@@ -534,6 +535,18 @@ def speaker(request, id=None):
                     messages.warning(request, _("Warning : the username is now the new speaker's email address"))
             else:
                 messages.success(request, _("Speaker successfully created."))
+
+                # Send creation message
+                return_msg = new_speaker.send_message(request, 'CPT_CREATE_INTER')
+
+                if not return_msg:
+                    messages.success(
+                        request,
+                        gettext("A confirmation email has been sent to {}").format(new_speaker.email),
+                    )
+                else:
+                    messages.warning(request, gettext("Couldn't send email : %s" % return_msg))
+
             return redirect(reverse('my_high_school_speakers', kwargs={'high_school_id': high_school.id}))
         else:
             messages.error(request, speaker_form.errors)
