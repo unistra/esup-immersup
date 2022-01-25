@@ -290,6 +290,8 @@ def course(request, course_id=None, duplicate=False):
                 # speakers to add
                 for speaker in speakers_list:
                     if isinstance(speaker, dict):
+                        send_creation_msg = False
+
                         try:
                             speaker_user = ImmersionUser.objects.get(
                                 Q(username=speaker['username']) | Q(email=speaker['email'])
@@ -306,6 +308,16 @@ def course(request, course_id=None, duplicate=False):
                             )
 
                             messages.success(request, gettext("User '{}' created").format(speaker['username']))
+                            send_creation_msg = True
+
+                        try:
+                            Group.objects.get(name='INTER').user_set.add(speaker_user)
+                        except Exception:
+                            messages.error(
+                                request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                            )
+
+                        if send_creation_msg:
                             return_msg = speaker_user.send_message(request, 'CPT_CREATE_INTER')
 
                             if not return_msg:
@@ -314,14 +326,7 @@ def course(request, course_id=None, duplicate=False):
                                     gettext("A confirmation email has been sent to {}").format(speaker['email']),
                                 )
                             else:
-                                messages.warning(request, return_msg)
-
-                        try:
-                            Group.objects.get(name='INTER').user_set.add(speaker_user)
-                        except Exception:
-                            messages.error(
-                                request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
-                            )
+                                messages.warning(request, gettext("Couldn't send email : %s" % return_msg))
 
                         if speaker_user:
                             new_course.speakers.add(speaker_user)

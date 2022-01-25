@@ -789,6 +789,8 @@ class VisitForm(forms.ModelForm):
         # speakers to add
         for speaker in speakers_list:
             if isinstance(speaker, dict):
+                send_creation_msg = False
+
                 try:
                     speaker_user = ImmersionUser.objects.get(Q(username=speaker['username'])|Q(email=speaker['email']))
                 except ImmersionUser.DoesNotExist:
@@ -800,6 +802,16 @@ class VisitForm(forms.ModelForm):
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
+                    send_creation_msg = True
+
+                try:
+                    Group.objects.get(name='INTER').user_set.add(speaker_user)
+                except Exception:
+                    messages.error(
+                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                    )
+
+                if send_creation_msg:
                     return_msg = speaker_user.send_message(self.request, 'CPT_CREATE_INTER')
 
                     if not return_msg:
@@ -808,14 +820,7 @@ class VisitForm(forms.ModelForm):
                             gettext("A confirmation email has been sent to {}").format(speaker['email']),
                         )
                     else:
-                        messages.warning(self.request, return_msg)
-
-                try:
-                    Group.objects.get(name='INTER').user_set.add(speaker_user)
-                except Exception:
-                    messages.error(
-                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
-                    )
+                        messages.warning(self.request, gettext("Couldn't send email : %s" % return_msg))
 
                 if speaker_user:
                     instance.speakers.add(speaker_user)
@@ -934,6 +939,8 @@ class OffOfferEventForm(forms.ModelForm):
         # speakers to add
         for speaker in speakers_list:
             if isinstance(speaker, dict):
+                send_creation_msg = False
+
                 try:
                     speaker_user = ImmersionUser.objects.get(
                         Q(username=speaker['username']) | Q(email=speaker['email']))
@@ -946,6 +953,16 @@ class OffOfferEventForm(forms.ModelForm):
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
+                    send_creation_msg = True
+
+                try:
+                    Group.objects.get(name='INTER').user_set.add(speaker_user)
+                except Exception:
+                    messages.error(
+                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                    )
+
+                if send_creation_msg:
                     return_msg = speaker_user.send_message(self.request, 'CPT_CREATE_INTER')
 
                     if not return_msg:
@@ -954,14 +971,7 @@ class OffOfferEventForm(forms.ModelForm):
                             gettext("A confirmation email has been sent to {}").format(speaker['email']),
                         )
                     else:
-                        messages.warning(self.request, return_msg)
-
-                try:
-                    Group.objects.get(name='INTER').user_set.add(speaker_user)
-                except Exception:
-                    messages.error(
-                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
-                    )
+                        messages.warning(self.request, gettext("Couldn't send email : %s" % return_msg))
 
                 if speaker_user:
                     instance.speakers.add(speaker_user)
