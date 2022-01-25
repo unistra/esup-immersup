@@ -182,7 +182,7 @@ class HighSchoolLevel(models.Model):
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
     order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
-        default=get_object_default_order('HighSchoolLevel')
+        default=partial(get_object_default_order, 'HighSchoolLevel')
     )
     is_post_bachelor = models.BooleanField(_("Is a post-bachelor level"), default=False)
     requires_bachelor_speciality = models.BooleanField(_("Requires bachelor speciality"), default=False)
@@ -206,7 +206,7 @@ class PostBachelorLevel(models.Model):
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
     order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
-        default=get_object_default_order('PostBachelorLevel')
+        default=partial(get_object_default_order, 'PostBachelorLevel')
     )
 
     def __str__(self):
@@ -228,7 +228,7 @@ class StudentLevel(models.Model):
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
     order = models.PositiveSmallIntegerField(_("Display order"), blank=False, null=True,
-        default=get_object_default_order('StudentLevel')
+        default=partial(get_object_default_order, 'StudentLevel')
     )
 
     def __str__(self):
