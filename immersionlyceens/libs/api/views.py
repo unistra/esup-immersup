@@ -2610,7 +2610,7 @@ def ajax_send_email_contact_us(request):
         send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
     except Exception as e:
         response['error'] = True
-        response['msg'] += _("%s : error") % recipient
+        response['msg'] += gettext("%s : error") % recipient
 
     try:
         template = MailTemplate.objects.get(code='CONTACTUS_NOTIFICATION', active=True)
@@ -2630,7 +2630,7 @@ def ajax_send_email_contact_us(request):
             send_email(email, template.subject, message_body)
         except Exception as e:
             logger.exception(e)
-            msg = _("Error while sending mail : %s" % e)
+            response['msg'] += gettext("Couldn't send email : %s" % e)
 
     return JsonResponse(response, safe=False)
 

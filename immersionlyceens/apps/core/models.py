@@ -360,7 +360,7 @@ class ImmersionUser(AbstractUser):
             send_email(self.email, template.subject, message_body)
         except Exception as e:
             logger.exception(e)
-            msg = _("Error while sending mail : %s" % e)
+            msg = _("Couldn't send email : %s" % e)
             return msg
 
         return None
