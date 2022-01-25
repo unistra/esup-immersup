@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-25 10:38+0100\n"
+"POT-Creation-Date: 2022-01-25 13:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -972,13 +972,13 @@ msgstr "Entrez les noms du bâtiment et de la salle"
 
 #: immersionlyceens/apps/core/forms.py:457
 #: immersionlyceens/apps/core/forms.py:472
-#: immersionlyceens/apps/core/views.py:1690
+#: immersionlyceens/apps/core/views.py:1699
 msgid "Visit published"
 msgstr "Visite publiée"
 
 #: immersionlyceens/apps/core/forms.py:570
 #: immersionlyceens/apps/core/forms.py:589
-#: immersionlyceens/apps/core/views.py:2226
+#: immersionlyceens/apps/core/views.py:2235
 msgid "Event published"
 msgstr "Evènement publié"
 
@@ -2377,8 +2377,8 @@ msgstr "Signature pour l'attestation de présence"
 
 #: immersionlyceens/apps/core/views.py:106
 #: immersionlyceens/apps/core/views.py:1099
-#: immersionlyceens/apps/core/views.py:1610
-#: immersionlyceens/apps/core/views.py:2137
+#: immersionlyceens/apps/core/views.py:1619
+#: immersionlyceens/apps/core/views.py:2146
 msgid "This slot belongs to another structure"
 msgstr "Ce créneau appartient à une autre structure"
 
@@ -2483,8 +2483,8 @@ msgid "Course slot not created."
 msgstr "Créneau de cours non créé."
 
 #: immersionlyceens/apps/core/views.py:1101
-#: immersionlyceens/apps/core/views.py:1612
-#: immersionlyceens/apps/core/views.py:2139
+#: immersionlyceens/apps/core/views.py:1621
+#: immersionlyceens/apps/core/views.py:2148
 msgid "Slot not found"
 msgstr "Créneau non trouvé"
 
@@ -2493,88 +2493,93 @@ msgstr "Créneau non trouvé"
 msgid "Course slot \"%s\" updated."
 msgstr "Créneau de cours \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1210
+#: immersionlyceens/apps/core/views.py:1216
 #, python-format
 msgid "Notifications have been sent (%s)"
 msgstr "Notifications envoyées (%s)"
 
-#: immersionlyceens/apps/core/views.py:1216
+#: immersionlyceens/apps/core/views.py:1219
+#, python-format
+msgid "%s error(s) occured :"
+msgstr "%s erreur(s) :"
+
+#: immersionlyceens/apps/core/views.py:1225
 #, python-format
 msgid "Course slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau de cours \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1323
+#: immersionlyceens/apps/core/views.py:1332
 #, python-format
 msgid "Visit \"%s\" created."
 msgstr "Visite \"%s\" créée."
 
-#: immersionlyceens/apps/core/views.py:1328
+#: immersionlyceens/apps/core/views.py:1337
 msgid "Visit not created."
 msgstr "Visite non créée."
 
-#: immersionlyceens/apps/core/views.py:1398
+#: immersionlyceens/apps/core/views.py:1407
 #, python-format
 msgid "Visit \"%s\" updated."
 msgstr "Visite \"%s\" mise à jour."
 
-#: immersionlyceens/apps/core/views.py:1409
+#: immersionlyceens/apps/core/views.py:1418
 #, python-format
 msgid "Visit \"%s\" not updated."
 msgstr "Echec de la mise jour de la visite \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1588
+#: immersionlyceens/apps/core/views.py:1597
 #, python-format
 msgid "Visit slot \"%s\" created."
 msgstr "Créneau de visite \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:1595
+#: immersionlyceens/apps/core/views.py:1604
 msgid "Visit slot not created."
 msgstr "Créneau de visite non créé."
 
-#: immersionlyceens/apps/core/views.py:1681
+#: immersionlyceens/apps/core/views.py:1690
 #, python-format
 msgid "Visit slot \"%s\" updated."
 msgstr "Créneau de visite \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1695
+#: immersionlyceens/apps/core/views.py:1704
 #, python-format
 msgid "Visit slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau de visite \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1812
+#: immersionlyceens/apps/core/views.py:1821
 #, python-format
 msgid "Off offer event \"%s\" created."
 msgstr "Evènement hors offre \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:1823
+#: immersionlyceens/apps/core/views.py:1832
 msgid "Off offer event not created."
 msgstr "Evènement hors offre non créé."
 
-#: immersionlyceens/apps/core/views.py:1893
+#: immersionlyceens/apps/core/views.py:1902
 #, python-format
 msgid "Off offer event \"%s\" updated."
 msgstr "Evènement hors offre \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1906
+#: immersionlyceens/apps/core/views.py:1915
 #, python-format
 msgid "Off offer event \"%s\" not updated."
 msgstr "Echec de la mise à jour de l'évènement hors offre \"%s\""
 
-#: immersionlyceens/apps/core/views.py:2115
+#: immersionlyceens/apps/core/views.py:2124
 #, python-format
 msgid "Event slot \"%s\" created."
 msgstr "Créneau d'évènement \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:2122
+#: immersionlyceens/apps/core/views.py:2131
 msgid "Event slot not created."
 msgstr "Créneau d'évènement non créé."
 
-#: immersionlyceens/apps/core/views.py:2214
+#: immersionlyceens/apps/core/views.py:2223
 #, python-format
 msgid "Event slot \"%s\" updated."
 msgstr "Créneau d'évènement \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:2232
+#: immersionlyceens/apps/core/views.py:2241
 #, python-format
 msgid "Event slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau d'évènement \"%s\"."
@@ -3626,18 +3631,24 @@ msgstr "Des créneaux sont liés à cet évènement : suppression impossible"
 msgid "Off offer event successfully deleted"
 msgstr "Evènement hors offre supprimé avec succès"
 
-#: immersionlyceens/libs/mails/variables_parser.py:242
-#: immersionlyceens/libs/mails/variables_parser.py:249
+#: immersionlyceens/libs/mails/variables_parser.py:107
+#: immersionlyceens/libs/mails/variables_parser.py:335
+msgid "Unknown home institution"
+msgstr "Etablissement d'origine inconnu"
+
+#: immersionlyceens/libs/mails/variables_parser.py:162
+msgctxt "slot data"
+msgid "None"
+msgstr "Aucune"
+
+#: immersionlyceens/libs/mails/variables_parser.py:287
+#: immersionlyceens/libs/mails/variables_parser.py:294
 msgid "Link improperly configured"
 msgstr "Lien non renseigné"
 
-#: immersionlyceens/libs/mails/variables_parser.py:278
+#: immersionlyceens/libs/mails/variables_parser.py:311
 msgid "not set"
 msgstr "non défini"
-
-#: immersionlyceens/libs/mails/variables_parser.py:304
-msgid "Unknown home institution"
-msgstr "Etablissement d'origine inconnu"
 
 #: immersionlyceens/libs/validators.py:15
 #, python-format
