@@ -19,36 +19,19 @@
 },
 {
     "model": "core.mailtemplate",
-    "pk": 3,
-    "fields": {
-        "code": "CPT_MIN_CREATE_ETU",
-        "label": "Mail création compte minima pour un étudiant",
-        "description": "Mail envoyé lors de la création d’un compte (Etudiant) avec un lien de validation pour activer le compte",
-        "subject": "Création de votre compte Immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous venez de créer un compte Immersion pour l'année {{ annee }}. </p><p>Connectez vous avec vos identifiants ENT de votre établissement d'origine. Attention, vous devez valider votre compte avant le {{ jourDestructionCptMin }}, après cela votre compte sera détruit.</p><p>Veuillez cliquer sur ce lien pour valider votre compte : {{ lienValidation }}</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
-            20,
-            23,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
     "pk": 4,
     "fields": {
-        "code": "CPT_MIN_CREATE_LYCEEN",
+        "code": "CPT_MIN_CREATE",
         "label": "Mail création compte minima pour un lycéen",
         "description": "Mail envoyé lors de la création d’un compte (Lycéens) avec un lien de validation pour activer le compte",
         "subject": "Création de votre compte Immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p><span style=\"font-size: 14px;\">Vous venez de créer un compte Immersion pour l'année {{ annee }}. </span></p><p><span style=\"font-weight: normal; font-size: 14px;\">{% if annee == '2021-2022' %} c'est cool d'être en 2021-2022, il peut y avoir des immersions {% endif %}</span><br></p><p><span style=\"font-size: 14px;\">Vos identifiants sont votre courriel ({{ identifiant }}) et le mot de passe que vous avez entré.</span><br></p><p><span style=\"font-size: 14px;\">Attention, vous devez valider votre compte avant le {{ jourDestructionCptMin }}, après cela votre compte sera détruit.</span></p><p><span style=\"font-size: 14px;\">Veuillez cliquer sur le lien suivant pour valider votre compte : </span></p><p><span style=\"font-size: 14px;\">{{ lienValidation }}</span></p><p><span style=\"font-size: 14px;\">Cordialement,</span></p><p><span style=\"font-size: 14px;\">Le service en ligne d'immersions</span></p>",
+        "body": "<p><span style=\"font-size: 14px;\">Bonjour {{ prenom }} {{ nom }}, </span></p><p><span style=\"font-size: 14px;\">Vous venez de créer un compte Immersion en tant que {% if estlyceen %}Lycéen{% elif estvisiteur %}Visiteur{% endif%} pour l'année {{ annee }}. </span></p><p><span style=\"font-size: 14px;\">Vos identifiants sont votre courriel ({{ identifiant }}) et le mot de passe que vous avez entré.</span><br></p><p><span style=\"font-size: 14px;\">Attention, vous devez valider votre compte avant le {{ jourDestructionCptMin }}, après cela votre compte sera détruit.</span></p><p><span style=\"font-size: 14px;\">Veuillez cliquer sur le lien suivant pour valider votre compte : </span></p><p><span style=\"font-size: 14px;\">{{ lienValidation }}</span></p><p><span style=\"font-size: 14px;\">Cordialement,</span></p><p><span style=\"font-size: 14px;\">Le service en ligne d'immersions</span></p>",
         "active": true,
         "available_vars": [
             1,
+            53,
+            54,
+            55,
             18,
             20,
             23,
@@ -124,12 +107,15 @@
         "label": "Mail création compte intervenant",
         "description": "Mail envoyé lors de la création d’un compte Intervenant",
         "subject": "Votre compte immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>Vous pouvez vous connecter en utilisant vos identifiants ENT habituels. </p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>{% if intervenant_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br>Pour initialiser votre mot de passe, merci de vous connecter à l'adresse suivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en utilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
-            16,
-            17,
+            18,
+            59,
+            33,
+            27,
+            29,
             32
         ]
     }
@@ -149,8 +135,8 @@
             18,
             33,
             19,
-            30,
-            31,
+            27,
+            29,
             32
         ]
     }
@@ -167,8 +153,8 @@
         "active": true,
         "available_vars": [
             1,
-            30,
-            31,
+            27,
+            29,
             32
         ]
     }
@@ -204,8 +190,8 @@
         "available_vars": [
             1,
             19,
-            30,
-            31,
+            27,
+            29,
             32
         ]
     }
@@ -356,16 +342,13 @@
             13,
             9,
             44,
+            25,
             46,
             14,
             6,
             43,
             45,
             42,
-            16,
-            17,
-            25,
-            24,
             32
         ]
     }

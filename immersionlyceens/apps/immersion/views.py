@@ -212,7 +212,7 @@ def shibbolethLogin(request, profile=None):
             messages.error(request, _("Group error"))
 
         try:
-            msg = new_user.send_message(request, 'CPT_MIN_CREATE_ETU')
+            msg = new_user.send_message(request, 'CPT_MIN_CREATE')
         except Exception as e:
             logger.exception("Cannot send activation message : %s", e)
 
@@ -275,7 +275,7 @@ def register(request, profile=None):
                 messages.error(request, _("Group error"))
 
             try:
-                msg = new_user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
+                msg = new_user.send_message(request, 'CPT_MIN_CREATE')
             except Exception as e:
                 logger.exception("Cannot send activation message : %s", e)
 
@@ -442,7 +442,7 @@ def resend_activation(request, profile=None):
                 else:
                     return HttpResponseRedirect("/immersion/login")
             else:
-                msg = user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
+                msg = user.send_message(request, 'CPT_MIN_CREATE')
                 messages.success(request, _("The activation message have been resent."))
 
     context = {'email': email, 'profile': profile}

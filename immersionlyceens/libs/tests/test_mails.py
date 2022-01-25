@@ -179,7 +179,7 @@ class APITestCase(TestCase):
         # user : ${prenom} ${nom} ${jourDestructionCptMin} ${lienValidation} ${identifiant}
         # university year : ${annee}
 
-        message_body = MailTemplate.objects.get(code='CPT_MIN_CREATE_LYCEEN')
+        message_body = MailTemplate.objects.get(code='CPT_MIN_CREATE')
         parsed_body = parser(message_body.body, user=self.highschool_user)
 
         self.assertIn(self.highschool_user.first_name, parsed_body)

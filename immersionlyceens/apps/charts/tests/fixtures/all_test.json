@@ -1733,29 +1733,9 @@
   },
   {
     "model": "core.mailtemplate",
-    "pk": 3,
-    "fields": {
-      "code": "CPT_MIN_CREATE_ETU",
-      "label": "Mail cr\u00e9ation compte minima pour un \u00e9tudiant",
-      "description": "Mail envoy\u00e9 lors de la cr\u00e9ation d\u2019un compte (Etudiant) avec un lien de validation pour activer le compte",
-      "subject": "Cr\u00e9ation de votre compte Immersion",
-      "body": "<p>Bonjour ${prenom} ${nom}, </p><p>Vous venez de cr\u00e9er un compte Immersion pour l'ann\u00e9e ${annee}. Connectez vous avec vos identifiants ENT de votre \u00e9tablissement d'origine. Attention, vous devez valider votre compte avant le ${jourDestructionCptMin}, apr\u00e8s cela votre compte sera d\u00e9truit.Veuillez cliquer sur ce lien pour valider votre compte ${lienValidation}</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
-      "active": true,
-      "available_vars": [
-        29,
-        27,
-        23,
-        20,
-        1,
-        32
-      ]
-    }
-  },
-  {
-    "model": "core.mailtemplate",
     "pk": 4,
     "fields": {
-      "code": "CPT_MIN_CREATE_LYCEEN",
+      "code": "CPT_MIN_CREATE",
       "label": "Mail cr\u00e9ation compte minima pour un lyc\u00e9en",
       "description": "Mail envoy\u00e9 lors de la cr\u00e9ation d\u2019un compte (Lyc\u00e9ens) avec un lien de validation pour activer le compte",
       "subject": "Cr\u00e9ation de votre compte Immersion",
