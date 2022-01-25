@@ -590,10 +590,16 @@ class MyStudents(generic.TemplateView):
         except Exception:
             pass
 
+        can_show_users_without_record: bool = any([
+            self.request.user.is_operator,
+            self.request.user.is_master_establishment_manager,
+            self.request.user.is_establishment_manager,
+        ])
+
         context: Dict[str, Any] = super().get_context_data(**kwargs)
         context.update({
             "highschool": highschool,
-            'is_establishment_manager': self.request.user.is_establishment_manager(),
+            'can_show_users_without_record': can_show_users_without_record,
         })
         return context
 

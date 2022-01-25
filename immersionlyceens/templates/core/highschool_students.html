@@ -34,7 +34,7 @@
       {% endif %}
     </div>
     <div class="card-body">
-      {% if request.user.is_establishment_manager %}
+      {% if can_show_users_without_record %}
       <form class="form-inline">
         <div class="form-group">
           <div class="form-group form-check mx-sm-3 mb-2">
