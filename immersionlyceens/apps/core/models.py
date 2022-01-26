@@ -1234,6 +1234,14 @@ class Course(models.Model):
     def get_alerts_count(self):
         return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
 
+
+
+    def get_etab_or_high_school(self):
+        if not self.highschool:
+            return self.structure
+        else:
+            return self.highschool
+
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')

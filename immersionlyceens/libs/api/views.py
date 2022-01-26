@@ -1157,6 +1157,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'id': immersion.id,
             'training': immersion.slot.course.training.label,
             'establishments': [],
+            'organizing_structure': str(immersion.slot.course.get_etab_or_high_school().label),
             'course': immersion.slot.course.label,
             'type': immersion.slot.course_type.label,
             'type_full': immersion.slot.course_type.full_label,
