@@ -1,13 +1,13 @@
 import json
 import logging
-from typing import Tuple, List, Any
+from typing import Any, List, Tuple
 
 from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext, gettext_lazy as _
 from django.template.defaultfilters import filesizeformat
+from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.apps.core import models as core_models
-from immersionlyceens.apps.core.models import get_file_path, Calendar
+from immersionlyceens.apps.core.models import Calendar, get_file_path
 
 logger = logging.getLogger(__name__)
 
@@ -428,6 +428,9 @@ class VisitorRecord(models.Model):
 
     def __str__(self):
         return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")
+
+    def is_valid(self):
+        return self.validation == 2
 
     class Meta:
         verbose_name = _('Visitor record')

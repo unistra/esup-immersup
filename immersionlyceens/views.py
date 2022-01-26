@@ -173,7 +173,8 @@ def offer_subdomain(request, subdomain_id):
     remaining_regs_count = None
     course_alerts = None
 
-    if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
+    if not request.user.is_anonymous \
+        and (request.user.is_high_school_student() or request.user.is_student() or request.user.is_visitor()):
         student = request.user
         # Get student record yet
         if student.is_high_school_student():
@@ -465,7 +466,9 @@ def offer_off_offer_events(request):
     reg_start_date = None
     Q_Filter = None
 
-    if not request.user.is_anonymous and (request.user.is_high_school_student() or request.user.is_student()):
+    if not request.user.is_anonymous \
+        and (request.user.is_high_school_student() or request.user.is_student() or request.user.is_visitor()):
+
         student = request.user
 
         # Get student/highschool/visitor record
