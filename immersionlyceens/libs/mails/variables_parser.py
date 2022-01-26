@@ -39,13 +39,15 @@ class Parser:
         platform_url: str = ""
         if request:
             # The following won't work in 'commands'
-            platform_url = request.build_absolute_uri(reverse('home'))
+            url = request.build_absolute_uri(reverse('home'))
+            platform_url = format_html(f"<a href='{url}'>{url}</a>")
         else:
             try:
                 platform_url = get_general_setting("PLATFORM_URL")
             except (ValueError, NameError):
                 logger.warning("Warning : PLATFORM_URL not set in core General Settings")
                 platform_url = format_html("https://<plateforme immersion>")
+
         return platform_url
 
     @staticmethod
@@ -144,7 +146,7 @@ class Parser:
                     "batiment": slot.building.label if slot.building else "",
                     "campus": slot.campus.label if slot.campus else "",
                     "temoindistanciel": not slot.face_to_face,
-                    "lien": format_html(slot.url) if slot.url else "",
+                    "lien": format_html(f"<a href='{slot.url}'>{slot.url}</a>") if slot.url else "",
                     "cours": {
                         'libelle': slot.get_label(),
                         'type': slot.course_type.full_label if slot.course_type else "",
