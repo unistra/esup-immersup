@@ -289,7 +289,7 @@ def register(request, profile=None):
     else:
         form = RegistrationForm()
 
-    context = {'form': form}
+    context = {'form': form, "profile": profile}
 
     return render(request, 'immersion/registration.html', context)
 
