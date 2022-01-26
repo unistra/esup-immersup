@@ -1010,7 +1010,7 @@ def ajax_delete_account(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'REF-STR')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'REF-STR', 'VIS')
 def ajax_cancel_registration(request):
     """
     Cancel a registration to an immersion slot
@@ -1468,7 +1468,7 @@ def ajax_get_visits(request, user_id=None, visit_type=None):
 
 
 @is_ajax_request
-@groups_required('LYC', 'ETU')
+@groups_required('LYC', 'ETU', 'VIS')
 def ajax_get_other_registrants(request, immersion_id):
     immersion = None
     response = {'msg': '', 'data': []}
@@ -1634,7 +1634,7 @@ def ajax_set_attendance(request):
 @is_ajax_request
 @login_required
 @is_post_request
-@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'VIS')
 def ajax_slot_registration(request):
     """
     Add a registration to an immersion slot
@@ -2807,7 +2807,7 @@ def ajax_get_alerts(request):
 
 @is_ajax_request
 @is_post_request
-@groups_required('ETU', 'LYC')
+@groups_required('ETU', 'LYC', 'VIS')
 def ajax_cancel_alert(request):
     """
     Remove an alert
