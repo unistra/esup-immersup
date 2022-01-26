@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-25 21:26+0100\n"
+"POT-Creation-Date: 2022-01-26 10:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2772,6 +2772,8 @@ msgid "Record for {self.student.first_name} {self.student.last_name}"
 msgstr "Fiche de {self.student.first_name} {self.student.last_name}"
 
 #: immersionlyceens/apps/immersion/models.py:273
+#: immersionlyceens/templates/immersion/hs_record.html:13
+#: immersionlyceens/templates/immersion/hs_record.html:17
 msgid "High school student record"
 msgstr "Fiche lycéen"
 
@@ -2790,8 +2792,6 @@ msgstr ""
 "Nombre d'inscriptions autorisées sur l'année (hors visites et évènements)"
 
 #: immersionlyceens/apps/immersion/models.py:356
-#: immersionlyceens/templates/immersion/hs_record.html:13
-#: immersionlyceens/templates/immersion/hs_record.html:17
 #: immersionlyceens/templates/immersion/student_record.html:13
 #: immersionlyceens/templates/immersion/student_record.html:17
 msgid "Student record"
@@ -3639,22 +3639,22 @@ msgstr "Des créneaux sont liés à cet évènement : suppression impossible"
 msgid "Off offer event successfully deleted"
 msgstr "Evènement hors offre supprimé avec succès"
 
-#: immersionlyceens/libs/mails/variables_parser.py:110
-#: immersionlyceens/libs/mails/variables_parser.py:338
+#: immersionlyceens/libs/mails/variables_parser.py:112
+#: immersionlyceens/libs/mails/variables_parser.py:340
 msgid "Unknown home institution"
 msgstr "Etablissement d'origine inconnu"
 
-#: immersionlyceens/libs/mails/variables_parser.py:165
+#: immersionlyceens/libs/mails/variables_parser.py:167
 msgctxt "slot data"
 msgid "None"
 msgstr "Aucune"
 
-#: immersionlyceens/libs/mails/variables_parser.py:290
-#: immersionlyceens/libs/mails/variables_parser.py:297
+#: immersionlyceens/libs/mails/variables_parser.py:292
+#: immersionlyceens/libs/mails/variables_parser.py:299
 msgid "Link improperly configured"
 msgstr "Lien non renseigné"
 
-#: immersionlyceens/libs/mails/variables_parser.py:314
+#: immersionlyceens/libs/mails/variables_parser.py:316
 msgid "not set"
 msgstr "non défini"
 
@@ -6210,5 +6210,5 @@ msgstr "Pas de visite disponible"
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
 
-msgid "release"
-msgstr "libérer-délivrer"
+#~ msgid "release"
+#~ msgstr "libérer-délivrer"
