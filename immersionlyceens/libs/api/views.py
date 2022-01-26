@@ -1791,7 +1791,7 @@ def ajax_slot_registration(request):
                     if slot.is_course():
                         student.set_increment_registrations_(type='annual')
                 # student request & no more remaining registration count
-                elif (user.is_high_school_student() or user.is_student()) and remaining_regs_count['annually'] <= 0:
+                elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _(
@@ -1824,7 +1824,7 @@ def ajax_slot_registration(request):
                         if slot.is_course():
                             student.set_increment_registrations_(type='semester1')
                     # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student()) and remaining_regs_count['semester1'] <= 0:
+                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
@@ -1855,7 +1855,7 @@ def ajax_slot_registration(request):
                         if slot.is_course():
                             student.set_increment_registrations_(type='semester2')
                     # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student()) and remaining_regs_count['semester2'] <= 0:
+                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
