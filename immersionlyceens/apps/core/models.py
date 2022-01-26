@@ -542,8 +542,8 @@ class ImmersionUser(AbstractUser):
         if self.is_high_school_student():
             record = self.get_high_school_student_record()
 
-            if not record:
-                errors.append(_("High school record not found"))
+            if not record or not record.is_valid():
+                errors.append(_("High school record not found or not valid"))
                 return False, errors
 
             high_school_conditions = [
@@ -593,7 +593,12 @@ class ImmersionUser(AbstractUser):
 
         # Restrictions checks for visitors
         if self.is_visitor():
-            # For now useless to get visitor record !
+            record = self.get_visitor_record()
+
+            if not record or not record.is_valid():
+                errors.append(_("Visitor record not found or not valid"))
+                return False, errors
+
             # visitors can register to "open to all" slots
             if slot.levels_restrictions or slot.establishments_restrictions:
                 errors.append(_('Slot restrictions in effect'))

@@ -425,12 +425,8 @@ class VisitorRecord(models.Model):
     def is_valid(self):
         return self.validation == 2
 
-
     def __str__(self):
         return gettext(f"Record for {self.visitor.first_name} {self.visitor.last_name}")
-
-    def is_valid(self):
-        return self.validation == 2
 
     class Meta:
         verbose_name = _('Visitor record')

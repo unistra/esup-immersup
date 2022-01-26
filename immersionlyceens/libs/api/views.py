@@ -1919,7 +1919,7 @@ def ajax_get_available_students(request, slot_id):
     response = {'data': [], 'msg': ''}
     user = request.user
     students = ImmersionUser.objects\
-        .filter(groups__name__in=['LYC', 'ETU', 'VIS'])\
+        .filter(groups__name__in=['LYC', 'ETU', 'VIS'], validation_string__isnull=True)\
         .exclude(immersions__slot__id=slot_id)
 
     try:
