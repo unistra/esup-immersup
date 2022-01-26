@@ -195,7 +195,14 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-        { "data": "training" },
+        { "data": "training",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.training + "<br>" + row.establishments;
+            }
+            return data;
+          },
+        },
         { "data": "course" },
         { "data": "type" },
         { "data": "campus" },
@@ -203,7 +210,7 @@
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
-              return row.date + ", " + row.start_time + " - " + row.end_time;
+              return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
             return data;
@@ -269,7 +276,14 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-        { "data": "training" },
+        { "data": "training",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.training + "<br>" + row.establishments;
+            }
+            return data;
+          },
+        },
         { "data": "course" },
         { "data": "type" },
         { "data": "campus" },
@@ -277,7 +291,7 @@
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
-              return row.date + ", " + row.start_time + " - " + row.end_time;
+              return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
             return data;
@@ -295,7 +309,6 @@
         { "data": "attendance",
           "render": function(data, type, row) {
             var msg = data;
-
             if(row.attendance_status == 1) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
@@ -340,7 +353,14 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-        { "data": "training" },
+        { "data": "training",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.training + "<br>" + row.establishments;
+            }
+            return data;
+          },
+        },
         { "data": "course" },
         { "data": "type" },
         { "data": "campus" },
@@ -348,7 +368,7 @@
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
-              return row.date + ", " + row.start_time + " - " + row.end_time;
+              return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
             return data;
@@ -368,11 +388,11 @@
             var msg = data;
 
             if(row.can_register) {
-              msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+              msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
             if(row.free_seats == 0) {
-              msg += "<br /><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
+              msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 
             return msg;
@@ -411,13 +431,20 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-        { "data": "label" },
+        { "data": "label",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.label + "<br>" + row.establishment;
+            }
+            return data;
+          },
+        },
         { "data": "campus" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
-              return row.date + ", " + row.start_time + " - " + row.end_time;
+              return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
             return data;
@@ -476,13 +503,20 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-        { "data": "label" },
+        { "data": "label",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.label + "<br>" + row.establishment;
+            }
+            return data;
+          },
+        },
         { "data": "campus" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
-              return row.date + ", " + row.start_time + " - " + row.end_time;
+              return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
             return data;
@@ -545,13 +579,20 @@
           url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
       },
       'columns': [
-        { "data": "label" },
+        { "data": "label",
+          "render": function(data, type, row) {
+            if(type == "display" || type == "filter") {
+              return row.label + "<br>" + row.establishment;
+            }
+            return data;
+          },
+        },
         { "data": "campus" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
             if(type == "display" || type == "filter") {
-              return row.date + ", " + row.start_time + " - " + row.end_time;
+              return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
             return data;

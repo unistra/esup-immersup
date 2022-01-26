@@ -1141,7 +1141,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         if not immersion.slot.face_to_face:
             meeting_place=_('Remote course')
         elif immersion.slot.building and immersion.slot.room:
-            meeting_place=f'{immersion.slot.building} - {immersion.slot.room}'
+            meeting_place=f'{immersion.slot.building} <br> {immersion.slot.room}'
         elif immersion.slot.building and not immersion.slot.room:
             meeting_place=immersion.slot.buildings
         elif not immersion.slot.building and immersion.slot.room:
@@ -1152,6 +1152,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         immersion_data = {
             'id': immersion.id,
             'training': immersion.slot.course.training.label,
+            'establishments': [],
             'course': immersion.slot.course.label,
             'type': immersion.slot.course_type.label,
             'type_full': immersion.slot.course_type.full_label,
@@ -1192,6 +1193,9 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
         for speaker in immersion.slot.speakers.all().order_by('last_name', 'first_name'):
             immersion_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
+
+        for establishment in immersion.slot.course.training.distinct_establishments():
+            immersion_data['establishments'].append(f"{establishment.label} - {establishment.city}")
 
         response['data'].append(immersion_data.copy())
 
@@ -1273,7 +1277,7 @@ def ajax_get_events(request, user_id=None, event_type=None):
         if not event.slot.face_to_face:
             meeting_place=_('Remote event')
         elif event.slot.building and event.slot.room:
-            meeting_place=f'{event.slot.building} - {event.slot.room}'
+            meeting_place=f'{event.slot.building} <br> {event.slot.room}'
         elif event.slot.building and not event.slot.room:
             meeting_place=event.slot.buildings
         elif not event.slot.building and event.slot.room:
@@ -1284,6 +1288,7 @@ def ajax_get_events(request, user_id=None, event_type=None):
         event_data = {
             'id': event.id,
             'label': event.slot.event.label,
+            'establishment': str(event.slot.event.get_etab_or_high_school()),
             'campus': event.slot.campus.label if event.slot.campus else '',
             'building': event.slot.building.label if event.slot.building else '',
             'meeting_place': meeting_place,
