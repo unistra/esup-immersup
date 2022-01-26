@@ -1426,6 +1426,7 @@ def ajax_get_visits(request, user_id=None, visit_type=None):
             'id': visit.id,
             'label': visit.slot.visit.purpose,
             'highschool': f'{visit.slot.visit.highschool.label} - {visit.slot.visit.highschool.city}',
+            'organizing_establishment': visit.slot.visit.establishment.label if visit.slot.visit.establishment else '',
             'building': visit.slot.building.label if visit.slot.building else "",
             'meeting_place': meeting_place,
             'room': visit.slot.room,

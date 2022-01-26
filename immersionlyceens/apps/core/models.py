@@ -1350,6 +1350,7 @@ class Visit(models.Model):
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

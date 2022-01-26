@@ -639,7 +639,7 @@
     dtv_future = $('#visits_to_come').DataTable({
       'processing': false,
       'order': [
-        [3, "asc"]
+        [4, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -660,6 +660,7 @@
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
+        { "data": "organizing_establishment" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
@@ -695,7 +696,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": [5,6],
+          "orderable": false, "targets": [6,7],
         },
       ],
     });
@@ -704,7 +705,7 @@
     dtv_past = $('#past_visits').DataTable({
       'processing': false,
       'order': [
-        [3, "desc"]
+        [4, "desc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -725,6 +726,7 @@
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
+        { "data": "organizing_establishment" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
@@ -765,7 +767,7 @@
           "className": "all",
         },
         {
-          "orderable": false, "targets": 5,
+          "orderable": false, "targets": 6,
         },
       ],
     });
@@ -773,7 +775,7 @@
     dtv_cancelled = $('#cancelled_visits').DataTable({
       'processing': false,
       'order': [
-        [3, "asc"]
+        [4, "asc"]
       ],
       'pageLength': 5,
       'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -794,6 +796,7 @@
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
+        { "data": "organizing_establishment" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
