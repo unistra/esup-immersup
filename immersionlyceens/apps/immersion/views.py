@@ -127,8 +127,6 @@ class CustomLoginView(FormView):
         return context
 
     def dispatch(self, request, *args, **kwargs):
-        Session.objects.all().delete()
-
         profile: Optional[str] = self.kwargs.get("profile")
         is_reg_possible, is_year_valid, year = check_active_year()
         if not profile and (not year or not is_year_valid):
@@ -149,8 +147,8 @@ class CustomLoginView(FormView):
         username = form.cleaned_data['login']
         password = form.cleaned_data['password']
 
-        user: Optional[ImmersionUser] = authenticate(
-            self.request, username=username, password=password)
+        user: Optional[ImmersionUser] = authenticate(self.request, username=username, password=password)
+
         self.user = user
         if user is not None:
             if not user.is_valid():
@@ -165,17 +163,17 @@ class CustomLoginView(FormView):
         return super().form_valid(form)
 
     def get_success_url(self):
+        go_home = [
+            self.user.is_high_school_manager() and self.user.highschool,
+            self.user.is_speaker(),
+            self.user.is_establishment_manager()
+        ]
+
         if self.user.is_high_school_student():
-            if self.user.get_high_school_student_record():
-                return "/immersion"
-            else:
-                return "/immersion/hs_record"
+            return "/immersion" if self.user.get_high_school_student_record() else "/immersion/hs_record"
         elif self.user.is_visitor():
-            if self.user.get_visitor_record():
-                return "/immersion"
-            else:
-                return "/immersion/visitor_record"
-        elif self.user.is_high_school_manager() and self.user.highschool:
+            return "/immersion" if self.user.get_visitor_record() else "/immersion/visitor_record"
+        elif any(go_home):
             return reverse('home')
         else:
             return super().get_success_url()
