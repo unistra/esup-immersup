@@ -1138,8 +1138,12 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             ),
             "%Y:%m:%d %H:%M",
         )
+        # Remote slot ?
         if not immersion.slot.face_to_face:
-            meeting_place=_('Remote course')
+            if not immersion.slot.can_show_url() or not immersion.slot.url:
+                meeting_place=_('Remote course')
+            else:
+                meeting_place=f'{_("Remote course")}<br><a href="{immersion.slot.url}">{_("Website address")}</a>'
         elif immersion.slot.building and immersion.slot.room:
             meeting_place=f'{immersion.slot.building} <br> {immersion.slot.room}'
         elif immersion.slot.building and not immersion.slot.room:
@@ -1274,6 +1278,7 @@ def ajax_get_events(request, user_id=None, event_type=None):
             "%Y:%m:%d %H:%M",
         )
 
+        event.slot.can_show_url()
         if not event.slot.face_to_face:
             meeting_place=_('Remote event')
         elif event.slot.building and event.slot.room:

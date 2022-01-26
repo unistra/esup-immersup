@@ -1985,6 +1985,30 @@ class Slot(models.Model):
         if self.is_event():
             return pgettext("event type", 'event')
 
+    def can_show_url(self):
+        # Showing remote course url if today date >= NB_DAYS_SLOT_REMINDER
+        today = datetime.datetime.today().date()
+        default_value = 4
+
+        # Default settings value
+        try:
+            days = settings.DEFAULT_NB_DAYS_SLOT_REMINDER
+        except AttributeError:
+            days = default_value
+
+        # Configured value
+        try:
+            days = int(get_general_setting('NB_DAYS_SLOT_REMINDER'))
+        except (ValueError, NameError):
+            pass
+
+        # If configured value is invalid
+        if days <= 0:
+            days = default_value
+
+        return self.date >= today - datetime.timedelta(days=days)
+
+
     class Meta:
         verbose_name = _('Slot')
         verbose_name_plural = _('Slots')
