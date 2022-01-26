@@ -1701,6 +1701,7 @@ def ajax_slot_registration(request):
         slot.course and user.is_high_school_manager() and slot_highschool and slot_highschool == user_highschool,
         user.is_high_school_student(),
         user.is_student(),
+        user.is_visitor(),
         user.is_high_school_manager() and (slot.course or slot.event)
             and slot_highschool and user.highschool == slot_highschool,
     ]
@@ -1716,10 +1717,25 @@ def ajax_slot_registration(request):
         return JsonResponse(response, safe=False)
 
     # Only valid Highschool students
-    if student.is_high_school_student() and not student.is_valid():
-        record = student.get_high_school_student_record()
-        if not record or (record and not record.is_valid()):
+    if student.is_high_school_student():
+        if not student.is_valid():
             response = {'error': True, 'msg': _("Cannot register slot due to Highschool student account state")}
+            return JsonResponse(response, safe=False)
+
+        record = student.get_high_school_student_record()
+        if not record or not record.is_valid():
+            response = {'error': True, 'msg': _("Cannot register slot due to Highschool student record state")}
+            return JsonResponse(response, safe=False)
+
+    # Only valid Visitors records
+    if student.is_visitor():
+        if not student.is_valid():
+            response = {'error': True, 'msg': _("Cannot register slot due to visitor account state")}
+            return JsonResponse(response, safe=False)
+
+        record = student.get_visitor_record()
+        if not record or not record.is_valid():
+            response = {'error': True, 'msg': _("Cannot register slot due to visitor record state")}
             return JsonResponse(response, safe=False)
 
     can_register_slot, reasons = student.can_register_slot(slot)
@@ -1897,7 +1913,9 @@ def ajax_get_available_students(request, slot_id):
     """
     response = {'data': [], 'msg': ''}
     user = request.user
-    students = ImmersionUser.objects.filter(groups__name__in=['LYC', 'ETU']).exclude(immersions__slot__id=slot_id)
+    students = ImmersionUser.objects\
+        .filter(groups__name__in=['LYC', 'ETU', 'VIS'])\
+        .exclude(immersions__slot__id=slot_id)
 
     try:
         slot = Slot.objects.get(pk=slot_id)
@@ -1954,6 +1972,8 @@ def ajax_get_available_students(request, slot_id):
             record = student.get_high_school_student_record()
         elif student.is_student():
             record = student.get_student_record()
+        elif student.is_visitor():
+            record = student.get_visitor_record()
 
         if record and record.is_valid():
             can_register, reasons = student.can_register_slot(slot)
@@ -1987,6 +2007,10 @@ def ajax_get_available_students(request, slot_id):
                 student_data['profile'] = pgettext("person type", "Student")
                 student_data['school'] = institution.label if institution else uai_code
                 student_data['level'] = record.level.label if record.level else ""
+
+            elif student.is_visitor():
+                student_data['profile'] = pgettext("person type", "Visitor")
+
 
             response['data'].append(student_data.copy())
 

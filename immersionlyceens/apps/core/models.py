@@ -377,7 +377,7 @@ class ImmersionUser(AbstractUser):
         return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def get_login_page(self):
-        if self.is_high_school_manager and self.highschool:
+        if self.is_high_school_manager() and self.highschool:
             return "/immersion/login/ref-lyc"
         else:
             return "/immersion/login"
@@ -464,6 +464,8 @@ class ImmersionUser(AbstractUser):
             record = self.get_high_school_student_record()
         elif self.is_student():
             record = self.get_student_record()
+        elif self.is_visitor():
+            record = self.get_visitor_record()
 
         if not record or not record.is_valid():
             return remaining
@@ -509,6 +511,8 @@ class ImmersionUser(AbstractUser):
             record = self.get_high_school_student_record()
         elif self.is_student():
             record = self.get_student_record()
+        elif self.is_visitor():
+            record = self.get_visitor_record()
 
         if not record or not record.is_valid():
             return
