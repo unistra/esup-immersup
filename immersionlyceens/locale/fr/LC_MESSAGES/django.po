@@ -3322,8 +3322,8 @@ msgid ""
 "You have no more remaining registration available, you should cancel an "
 "immersion or contact immersion service"
 msgstr ""
-"Vous avez dépassé votre quota d'inscription vous devez soit annuler l'une de "
-"vos immersions soit contacter le service immersion"
+"Vous avez dépassé votre quota d'inscription, vous devez soit annuler l'une de "
+"vos immersions, soit contacter le service immersion"
 
 #: immersionlyceens/libs/api/views.py:1806
 #: immersionlyceens/libs/api/views.py:1839
