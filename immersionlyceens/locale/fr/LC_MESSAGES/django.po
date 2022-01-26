@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-26 10:36+0100\n"
+"POT-Creation-Date: 2022-01-26 10:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1245,7 +1245,7 @@ msgstr "Couleur de badge (HTML)"
 #: immersionlyceens/templates/core/speaker.html:50
 #: immersionlyceens/templates/immersion/confirm_creation.html:36
 #: immersionlyceens/templates/immersion/hs_record.html:59
-#: immersionlyceens/templates/immersion/registration.html:45
+#: immersionlyceens/templates/immersion/registration.html:50
 #: immersionlyceens/templates/immersion/student_record.html:51
 #: immersionlyceens/templates/immersion/visitor_record.html:53
 #: immersionlyceens/templates/modals/modal_contact_us.html:32
@@ -2578,7 +2578,7 @@ msgstr "Identifiant"
 #: immersionlyceens/apps/immersion/forms.py:23
 #: immersionlyceens/templates/immersion/change_password.html:29
 #: immersionlyceens/templates/immersion/login.html:28
-#: immersionlyceens/templates/immersion/registration.html:64
+#: immersionlyceens/templates/immersion/registration.html:69
 #: immersionlyceens/templates/immersion/reset_password.html:19
 msgid "Password"
 msgstr "Mot de passe"
@@ -4470,7 +4470,7 @@ msgstr "Lycéen"
 #: immersionlyceens/templates/core/student_validation.html:118
 #: immersionlyceens/templates/core/student_validation.html:151
 #: immersionlyceens/templates/immersion/confirm_creation.html:30
-#: immersionlyceens/templates/immersion/registration.html:36
+#: immersionlyceens/templates/immersion/registration.html:41
 #: immersionlyceens/templates/modals/modal_register_students_list.html:29
 msgid "First name"
 msgstr "Prénom"
@@ -4483,7 +4483,7 @@ msgstr "Prénom"
 #: immersionlyceens/templates/core/student_validation.html:119
 #: immersionlyceens/templates/core/student_validation.html:152
 #: immersionlyceens/templates/immersion/confirm_creation.html:24
-#: immersionlyceens/templates/immersion/registration.html:27
+#: immersionlyceens/templates/immersion/registration.html:32
 #: immersionlyceens/templates/modals/modal_register_students_list.html:28
 msgid "Last name"
 msgstr "Nom"
@@ -4857,7 +4857,7 @@ msgstr "Données de l'intervenant"
 #: immersionlyceens/templates/immersion/login.html:37
 #: immersionlyceens/templates/immersion/nologin.html:35
 #: immersionlyceens/templates/immersion/recovery.html:30
-#: immersionlyceens/templates/immersion/registration.html:92
+#: immersionlyceens/templates/immersion/registration.html:97
 #: immersionlyceens/templates/immersion/resend_activation.html:32
 #: immersionlyceens/templates/immersion/resend_activation.html:34
 #: immersionlyceens/templates/immersion/student_record.html:144
@@ -4870,7 +4870,7 @@ msgstr "Retour"
 #: immersionlyceens/templates/immersion/change_password.html:41
 #: immersionlyceens/templates/immersion/confirm_creation.html:48
 #: immersionlyceens/templates/immersion/hs_record.html:217
-#: immersionlyceens/templates/immersion/registration.html:91
+#: immersionlyceens/templates/immersion/registration.html:96
 #: immersionlyceens/templates/immersion/reset_password.html:36
 #: immersionlyceens/templates/immersion/student_record.html:143
 #: immersionlyceens/templates/immersion/visitor_record.html:149
@@ -5372,7 +5372,7 @@ msgid "Old password"
 msgstr "Ancien mot de passe"
 
 #: immersionlyceens/templates/immersion/change_password.html:35
-#: immersionlyceens/templates/immersion/registration.html:75
+#: immersionlyceens/templates/immersion/registration.html:80
 #: immersionlyceens/templates/immersion/reset_password.html:28
 msgid "Password (confirmation)"
 msgstr "Mot de passe (confirmation)"
@@ -5623,19 +5623,25 @@ msgstr "Mon courriel"
 msgid "Send me instructions !"
 msgstr "Envoyer les instructions"
 
-#: immersionlyceens/templates/immersion/registration.html:12
-msgid "Immersion Lycéens - New account"
-msgstr "Immersion Lycéens - Nouveau compte"
+#: immersionlyceens/templates/immersion/registration.html:14
+msgid "Immersion Lycéens - New account visitor"
+msgstr "Immersion Lycéens - Nouveau compte visiteur"
 
-#: immersionlyceens/templates/immersion/registration.html:20
+#: immersionlyceens/templates/immersion/registration.html:16
+msgid "Immersion Lycéens - New account high school student"
+msgstr "Immersion Lycéens - Nouveau compte lycéen"
+
+#: immersionlyceens/templates/immersion/registration.html:25
 msgid "Please fill this form to create your visitor account"
-msgstr "Veuillez compléter le formulaire suivant pour créer votre compte visiteur"
+msgstr ""
+"Veuillez compléter le formulaire suivant pour créer votre compte visiteur"
 
-#: immersionlyceens/templates/immersion/registration.html:22
+#: immersionlyceens/templates/immersion/registration.html:27
 msgid "Please fill this form to create your high school student account"
-msgstr "Veuillez compléter le formulaire suivant pour créer votre compte lycéen"
+msgstr ""
+"Veuillez compléter le formulaire suivant pour créer votre compte lycéen"
 
-#: immersionlyceens/templates/immersion/registration.html:54
+#: immersionlyceens/templates/immersion/registration.html:59
 msgid "Email (confirmation)"
 msgstr "Courriel (confirmation)"
 

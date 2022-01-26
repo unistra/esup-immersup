@@ -9,7 +9,12 @@
     <div class="container">
       <div class="row">
         <div class="col">
-          <h1>{% trans 'Immersion Lycéens - New account' %}</h1>
+          <h1>
+          {% if profile == "vis"%}
+            {% trans 'Immersion Lycéens - New account visitor' %}
+          {% else %}
+            {% trans 'Immersion Lycéens - New account high school student' %}
+          {% endif %}</h1>
         </div>
       </div>
     </div>
