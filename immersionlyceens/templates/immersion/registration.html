@@ -16,7 +16,11 @@
   </div>
   <section class="py-5">
     <div class="container">
-      <h3>{% trans 'Please fill this form to create your account' %} :</h3>
+      {% if profile == "vis" %}
+        <h3>{% trans 'Please fill this form to create your visitor account' %} :</h3>
+      {% else %}
+        <h3>{% trans 'Please fill this form to create your high school student account' %} :</h3>
+      {% endif %}
       <form method="post">
         {% csrf_token %}
         <div class="form-group row justify-content-center">
