@@ -1547,6 +1547,9 @@ def ajax_get_slot_registrations(request, slot_id):
                     immersion_data['school'] = institution.label if institution else uai_code
                     immersion_data['level'] = record.level.label
 
+            elif immersion.student.is_visitor():
+                immersion_data['profile'] = gettext('Visitor')
+
             response['data'].append(immersion_data.copy())
 
     return JsonResponse(response, safe=False)
