@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-27 15:57+0100\n"
+"POT-Creation-Date: 2022-01-27 16:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -147,6 +147,9 @@ msgstr "Statistiques"
 #: immersionlyceens/templates/core/student_validation.html:378
 #: immersionlyceens/templates/core/students_presence.html:91
 #: immersionlyceens/templates/core/training/list.html:146
+#: immersionlyceens/templates/core/visitor_validation.html:243
+#: immersionlyceens/templates/core/visitor_validation.html:290
+#: immersionlyceens/templates/core/visitor_validation.html:332
 #: immersionlyceens/templates/core/visits_list.html:244
 #: immersionlyceens/templates/immersion/my_registrations.html:182
 #: immersionlyceens/templates/immersion/my_registrations.html:264
@@ -206,6 +209,8 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/templates/core/student_validation.html:255
 #: immersionlyceens/templates/core/training/list.html:121
 #: immersionlyceens/templates/core/training/list.html:172
+#: immersionlyceens/templates/core/visitor_validation.html:194
+#: immersionlyceens/templates/core/visitor_validation.html:221
 #: immersionlyceens/templates/core/visits_list.html:220
 #: immersionlyceens/templates/core/visits_list.html:273
 #: immersionlyceens/templates/modals/modal_alerts.html:67
@@ -251,6 +256,8 @@ msgstr "Oui"
 #: immersionlyceens/templates/core/student_validation.html:263
 #: immersionlyceens/templates/core/training/list.html:129
 #: immersionlyceens/templates/core/training/list.html:172
+#: immersionlyceens/templates/core/visitor_validation.html:202
+#: immersionlyceens/templates/core/visitor_validation.html:229
 #: immersionlyceens/templates/core/visits_list.html:228
 #: immersionlyceens/templates/core/visits_list.html:275
 #: immersionlyceens/templates/modals/modal_alerts.html:75
@@ -951,12 +958,12 @@ msgid "Error: Start time must be set before end time"
 msgstr "Erreur: L'heure de fin doit être postérieure à l'heure de début"
 
 #: immersionlyceens/apps/core/forms.py:308
-#: immersionlyceens/apps/core/views.py:1212
+#: immersionlyceens/apps/core/views.py:1217
 msgid "Course published"
 msgstr "Cours publié"
 
 #: immersionlyceens/apps/core/forms.py:334
-#: immersionlyceens/apps/core/views.py:1092
+#: immersionlyceens/apps/core/views.py:1097
 #, python-format
 msgid "Course slot \"%s\" created."
 msgstr "Créneau de cours \"%s\" créé."
@@ -975,13 +982,13 @@ msgstr "Entrez les noms du bâtiment et de la salle"
 
 #: immersionlyceens/apps/core/forms.py:457
 #: immersionlyceens/apps/core/forms.py:472
-#: immersionlyceens/apps/core/views.py:1722
+#: immersionlyceens/apps/core/views.py:1727
 msgid "Visit published"
 msgstr "Visite publiée"
 
 #: immersionlyceens/apps/core/forms.py:570
 #: immersionlyceens/apps/core/forms.py:589
-#: immersionlyceens/apps/core/views.py:2258
+#: immersionlyceens/apps/core/views.py:2263
 msgid "Event published"
 msgstr "Evènement publié"
 
@@ -2350,9 +2357,9 @@ msgid "Signature for attendance certificate"
 msgstr "Signature pour l'attestation de présence"
 
 #: immersionlyceens/apps/core/views.py:106
-#: immersionlyceens/apps/core/views.py:1119
-#: immersionlyceens/apps/core/views.py:1642
-#: immersionlyceens/apps/core/views.py:2169
+#: immersionlyceens/apps/core/views.py:1124
+#: immersionlyceens/apps/core/views.py:1647
+#: immersionlyceens/apps/core/views.py:2174
 msgid "This slot belongs to another structure"
 msgstr "Ce créneau appartient à une autre structure"
 
@@ -2402,157 +2409,157 @@ msgstr "Votre compte n'est lié à aucun lycée"
 msgid "This high school id does not exist"
 msgstr "Ce lycée n'existe pas"
 
-#: immersionlyceens/apps/core/views.py:682
+#: immersionlyceens/apps/core/views.py:687
 msgid "This student is not in your high school"
 msgstr "Ce lycéen n'est pas dans votre lycée"
 
-#: immersionlyceens/apps/core/views.py:690
+#: immersionlyceens/apps/core/views.py:695
 msgid "High school student record modified"
 msgstr "Fiche lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:701
+#: immersionlyceens/apps/core/views.py:706
 msgid "High school student user modified"
 msgstr "Compte lycéen modifié"
 
-#: immersionlyceens/apps/core/views.py:706
+#: immersionlyceens/apps/core/views.py:711
 msgid "High school student user modification failure"
 msgstr "Erreur de modification de compte lycéen"
 
-#: immersionlyceens/apps/core/views.py:708
+#: immersionlyceens/apps/core/views.py:713
 msgid "High school student record modification failure"
 msgstr "Erreur de modification de fiche lycéen"
 
-#: immersionlyceens/apps/core/views.py:733
-#: immersionlyceens/apps/core/views.py:747
+#: immersionlyceens/apps/core/views.py:738
+#: immersionlyceens/apps/core/views.py:752
 #: immersionlyceens/libs/api/views.py:2841
 #: immersionlyceens/libs/api/views.py:2895
 msgid "Invalid parameter"
 msgstr "Paramètre invalide"
 
-#: immersionlyceens/apps/core/views.py:740
+#: immersionlyceens/apps/core/views.py:745
 msgid "Structure settings successfully saved"
 msgstr "Paramètre enregistré avec succès"
 
-#: immersionlyceens/apps/core/views.py:854
+#: immersionlyceens/apps/core/views.py:859
 #, python-format
 msgid "Training %s created."
 msgstr "Formation %s créée."
 
-#: immersionlyceens/apps/core/views.py:858
+#: immersionlyceens/apps/core/views.py:863
 msgid "Training not created."
 msgstr "Formation non créée."
 
-#: immersionlyceens/apps/core/views.py:878
+#: immersionlyceens/apps/core/views.py:883
 #, python-format
 msgid "Training \"%s\" updated."
 msgstr "Formation \"%s\" mise à jour."
 
-#: immersionlyceens/apps/core/views.py:882
+#: immersionlyceens/apps/core/views.py:887
 #, python-format
 msgid "Training \"%s\" not updated."
 msgstr "Formation \"%s\" non mise à jour."
 
-#: immersionlyceens/apps/core/views.py:1103
+#: immersionlyceens/apps/core/views.py:1108
 msgid "Course slot not created."
 msgstr "Créneau de cours non créé."
 
-#: immersionlyceens/apps/core/views.py:1121
-#: immersionlyceens/apps/core/views.py:1644
-#: immersionlyceens/apps/core/views.py:2171
+#: immersionlyceens/apps/core/views.py:1126
+#: immersionlyceens/apps/core/views.py:1649
+#: immersionlyceens/apps/core/views.py:2176
 msgid "Slot not found"
 msgstr "Créneau non trouvé"
 
-#: immersionlyceens/apps/core/views.py:1198
+#: immersionlyceens/apps/core/views.py:1203
 #, python-format
 msgid "Course slot \"%s\" updated."
 msgstr "Créneau de cours \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1236
+#: immersionlyceens/apps/core/views.py:1241
 #, python-format
 msgid "Notifications have been sent (%s)"
 msgstr "Notifications envoyées (%s)"
 
-#: immersionlyceens/apps/core/views.py:1241
+#: immersionlyceens/apps/core/views.py:1246
 msgid "{} error(s) occurred :"
 msgstr "{} erreur(s) :"
 
-#: immersionlyceens/apps/core/views.py:1248
+#: immersionlyceens/apps/core/views.py:1253
 #, python-format
 msgid "Course slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau de cours \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1355
+#: immersionlyceens/apps/core/views.py:1360
 #, python-format
 msgid "Visit \"%s\" created."
 msgstr "Visite \"%s\" créée."
 
-#: immersionlyceens/apps/core/views.py:1360
+#: immersionlyceens/apps/core/views.py:1365
 msgid "Visit not created."
 msgstr "Visite non créée."
 
-#: immersionlyceens/apps/core/views.py:1430
+#: immersionlyceens/apps/core/views.py:1435
 #, python-format
 msgid "Visit \"%s\" updated."
 msgstr "Visite \"%s\" mise à jour."
 
-#: immersionlyceens/apps/core/views.py:1441
+#: immersionlyceens/apps/core/views.py:1446
 #, python-format
 msgid "Visit \"%s\" not updated."
 msgstr "Echec de la mise jour de la visite \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1620
+#: immersionlyceens/apps/core/views.py:1625
 #, python-format
 msgid "Visit slot \"%s\" created."
 msgstr "Créneau de visite \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:1627
+#: immersionlyceens/apps/core/views.py:1632
 msgid "Visit slot not created."
 msgstr "Créneau de visite non créé."
 
-#: immersionlyceens/apps/core/views.py:1713
+#: immersionlyceens/apps/core/views.py:1718
 #, python-format
 msgid "Visit slot \"%s\" updated."
 msgstr "Créneau de visite \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1727
+#: immersionlyceens/apps/core/views.py:1732
 #, python-format
 msgid "Visit slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau de visite \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1844
+#: immersionlyceens/apps/core/views.py:1849
 #, python-format
 msgid "Off offer event \"%s\" created."
 msgstr "Evènement hors offre \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:1855
+#: immersionlyceens/apps/core/views.py:1860
 msgid "Off offer event not created."
 msgstr "Evènement hors offre non créé."
 
-#: immersionlyceens/apps/core/views.py:1925
+#: immersionlyceens/apps/core/views.py:1930
 #, python-format
 msgid "Off offer event \"%s\" updated."
 msgstr "Evènement hors offre \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1938
+#: immersionlyceens/apps/core/views.py:1943
 #, python-format
 msgid "Off offer event \"%s\" not updated."
 msgstr "Echec de la mise à jour de l'évènement hors offre \"%s\""
 
-#: immersionlyceens/apps/core/views.py:2147
+#: immersionlyceens/apps/core/views.py:2152
 #, python-format
 msgid "Event slot \"%s\" created."
 msgstr "Créneau d'évènement \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:2154
+#: immersionlyceens/apps/core/views.py:2159
 msgid "Event slot not created."
 msgstr "Créneau d'évènement non créé."
 
-#: immersionlyceens/apps/core/views.py:2246
+#: immersionlyceens/apps/core/views.py:2251
 #, python-format
 msgid "Event slot \"%s\" updated."
 msgstr "Créneau d'évènement \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:2264
+#: immersionlyceens/apps/core/views.py:2269
 #, python-format
 msgid "Event slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau d'évènement \"%s\"."
@@ -2656,6 +2663,9 @@ msgstr "rejeté"
 #: immersionlyceens/templates/core/student_validation.html:87
 #: immersionlyceens/templates/core/student_validation.html:120
 #: immersionlyceens/templates/core/student_validation.html:153
+#: immersionlyceens/templates/core/visitor_validation.html:65
+#: immersionlyceens/templates/core/visitor_validation.html:94
+#: immersionlyceens/templates/core/visitor_validation.html:123
 #: immersionlyceens/templates/immersion/hs_record.html:67
 #: immersionlyceens/templates/immersion/student_record.html:59
 #: immersionlyceens/templates/immersion/visitor_record.html:61
@@ -3642,6 +3652,10 @@ msgstr "Des créneaux sont liés à cet évènement : suppression impossible"
 msgid "Off offer event successfully deleted"
 msgstr "Evènement hors offre supprimé avec succès"
 
+#: immersionlyceens/libs/api/views.py:3327
+msgid "No operator given or wrong operator (to_validate, validated, rejected)"
+msgstr ""
+
 #: immersionlyceens/libs/mails/variables_parser.py:112
 #: immersionlyceens/libs/mails/variables_parser.py:342
 msgid "Unknown home institution"
@@ -4412,6 +4426,8 @@ msgstr "Tous les inscrits"
 #: immersionlyceens/templates/core/student_validation.html:25
 #: immersionlyceens/templates/core/student_validation.html:31
 #: immersionlyceens/templates/core/student_validation.html:39
+#: immersionlyceens/templates/core/visitor_validation.html:25
+#: immersionlyceens/templates/core/visitor_validation.html:31
 msgid "Student profiles"
 msgstr "Profils lycéens"
 
@@ -4472,6 +4488,9 @@ msgstr "Lycéen"
 #: immersionlyceens/templates/core/student_validation.html:85
 #: immersionlyceens/templates/core/student_validation.html:118
 #: immersionlyceens/templates/core/student_validation.html:151
+#: immersionlyceens/templates/core/visitor_validation.html:63
+#: immersionlyceens/templates/core/visitor_validation.html:92
+#: immersionlyceens/templates/core/visitor_validation.html:121
 #: immersionlyceens/templates/immersion/confirm_creation.html:30
 #: immersionlyceens/templates/immersion/registration.html:41
 #: immersionlyceens/templates/modals/modal_register_students_list.html:29
@@ -4485,6 +4504,9 @@ msgstr "Prénom"
 #: immersionlyceens/templates/core/student_validation.html:86
 #: immersionlyceens/templates/core/student_validation.html:119
 #: immersionlyceens/templates/core/student_validation.html:152
+#: immersionlyceens/templates/core/visitor_validation.html:64
+#: immersionlyceens/templates/core/visitor_validation.html:93
+#: immersionlyceens/templates/core/visitor_validation.html:122
 #: immersionlyceens/templates/immersion/confirm_creation.html:24
 #: immersionlyceens/templates/immersion/registration.html:32
 #: immersionlyceens/templates/modals/modal_register_students_list.html:28
@@ -4946,10 +4968,12 @@ msgid "Did you really want to validate this high school student?"
 msgstr "Voulez-vous vraiment valider ce•tte lycéen•ne ?"
 
 #: immersionlyceens/templates/core/student_validation.html:33
+#: immersionlyceens/templates/core/visitor_validation.html:33
 msgid "Did you really want to reject this high school student?"
 msgstr "Voulez-vous vraiment rejeter ce•tte lycéen•ne ?"
 
 #: immersionlyceens/templates/core/student_validation.html:43
+#: immersionlyceens/templates/core/visitor_validation.html:43
 msgid "An error occurred. The validation or rejection failed."
 msgstr "Erreur lors de la validation ou de rejet du lycéen"
 
@@ -4975,11 +4999,15 @@ msgstr "Profils lycéens rejetés"
 
 #: immersionlyceens/templates/core/student_validation.html:310
 #: immersionlyceens/templates/core/student_validation.html:410
+#: immersionlyceens/templates/core/visitor_validation.html:270
+#: immersionlyceens/templates/core/visitor_validation.html:358
 msgid "Validate"
 msgstr "Valider"
 
 #: immersionlyceens/templates/core/student_validation.html:312
 #: immersionlyceens/templates/core/student_validation.html:362
+#: immersionlyceens/templates/core/visitor_validation.html:272
+#: immersionlyceens/templates/core/visitor_validation.html:316
 msgid "Reject"
 msgstr "Rejeter"
 
@@ -5113,6 +5141,32 @@ msgstr "Mettre à jour un créneau de visite"
 #: immersionlyceens/templates/core/visit_slot.html:31
 msgid "Add a new visit slot"
 msgstr "Ajouter un nouveau créneau de visite"
+
+#: immersionlyceens/templates/core/visitor_validation.html:19
+#: immersionlyceens/templates/core/visitor_validation.html:39
+msgid "Visitor profiles"
+msgstr "Profile visiteur"
+
+#: immersionlyceens/templates/core/visitor_validation.html:27
+msgid "Did you really want to validate this visitor?"
+msgstr "Voulez-vous vraiment valider cette visite ?"
+
+#: immersionlyceens/templates/core/visitor_validation.html:46
+msgid "Visitor validated"
+msgstr "Visiteur validé"
+
+#: immersionlyceens/templates/core/visitor_validation.html:49
+msgid "Visitor rejected"
+msgstr "Visiteur rejeté"
+
+#: immersionlyceens/templates/core/visitor_validation.html:56
+msgid "Visitor profiles to validate"
+msgstr "Profils visiteurs à valider"
+
+#: immersionlyceens/templates/core/visitor_validation.html:85
+#: immersionlyceens/templates/core/visitor_validation.html:114
+msgid "Visitor student profiles"
+msgstr "Valider les profils visiteurs"
 
 #: immersionlyceens/templates/core/visits_list.html:17
 #: immersionlyceens/templates/core/visits_list.html:30
