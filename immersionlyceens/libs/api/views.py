@@ -1536,7 +1536,7 @@ def ajax_get_slot_registrations(request, slot_id):
             }
 
             if immersion.student.is_high_school_student():
-                immersion_data['profile'] = gettext('High-school student')
+                immersion_data['profile'] = pgettext("person type", "High school student")
                 record = immersion.student.get_high_school_student_record()
 
                 if record:
@@ -1545,7 +1545,7 @@ def ajax_get_slot_registrations(request, slot_id):
                     immersion_data['level'] = record.level.label
 
             elif immersion.student.is_student():
-                immersion_data['profile'] = gettext('Student')
+                immersion_data['profile'] = pgettext("person type", "Student")
                 record = immersion.student.get_student_record()
 
                 if record:
@@ -1554,7 +1554,7 @@ def ajax_get_slot_registrations(request, slot_id):
                     immersion_data['level'] = record.level.label
 
             elif immersion.student.is_visitor():
-                immersion_data['profile'] = gettext('Visitor')
+                immersion_data['profile'] = pgettext("person type", "Visitor")
 
             response['data'].append(immersion_data.copy())
 
