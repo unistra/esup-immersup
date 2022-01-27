@@ -107,5 +107,5 @@ urlpatterns = [
 
     path('visitor/records/<operator>', views.VisitorRecordValidation.as_view(), name="visitors_records"),
 
-    path('visitor/<visitor_id>/record/<operation>', views.VisitorRecordRejectValidate.as_view(), name="validate_reject_visitor"),
+    path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(), name="validate_reject_visitor"),
 ]
