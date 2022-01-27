@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-27 16:07+0100\n"
+"POT-Creation-Date: 2022-01-27 16:12+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4968,7 +4968,6 @@ msgid "Did you really want to validate this high school student?"
 msgstr "Voulez-vous vraiment valider ce•tte lycéen•ne ?"
 
 #: immersionlyceens/templates/core/student_validation.html:33
-#: immersionlyceens/templates/core/visitor_validation.html:33
 msgid "Did you really want to reject this high school student?"
 msgstr "Voulez-vous vraiment rejeter ce•tte lycéen•ne ?"
 
@@ -5149,7 +5148,11 @@ msgstr "Profile visiteur"
 
 #: immersionlyceens/templates/core/visitor_validation.html:27
 msgid "Did you really want to validate this visitor?"
-msgstr "Voulez-vous vraiment valider cette visite ?"
+msgstr "Voulez-vous vraiment valider ce visiteur ?"
+
+#: immersionlyceens/templates/core/visitor_validation.html:33
+msgid "Did you really want to reject this visitor?"
+msgstr "Voulez-vous vraiment rejeter ce visiteur ?"
 
 #: immersionlyceens/templates/core/visitor_validation.html:46
 msgid "Visitor validated"
