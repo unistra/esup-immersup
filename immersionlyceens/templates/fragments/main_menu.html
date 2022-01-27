@@ -243,6 +243,12 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
               <span class="dropdown-item text-center">{% trans "You are"%} : </span>
+              <a class="dropdown-item dropdown-toggle" id="navbarDropdownSubMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans "Member of "%} : </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownSubMenu">
+                {% for establishment in core_establishments %}
+                  <a class="dropdown-item" href="{% if establishment.data_source_plugin %}{% url 'shibboleth_login' %}{% else %}{% url 'immersion:login' profile='speaker' %}{% endif %}">{{ establishment.label }}</a>
+                {% endfor %}
+              </div>
               <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
