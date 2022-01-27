@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-27 16:19+0100\n"
+"POT-Creation-Date: 2022-01-27 16:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -481,15 +481,15 @@ msgstr "Signature du certificat"
 #: immersionlyceens/apps/core/admin_forms.py:603
 #: immersionlyceens/apps/core/admin_forms.py:659
 #: immersionlyceens/apps/core/admin_forms.py:734
-#: immersionlyceens/apps/core/admin_forms.py:1209
-#: immersionlyceens/apps/core/admin_forms.py:1265
-#: immersionlyceens/apps/core/admin_forms.py:1343
-#: immersionlyceens/apps/core/admin_forms.py:1377
-#: immersionlyceens/apps/core/admin_forms.py:1426
-#: immersionlyceens/apps/core/admin_forms.py:1451
-#: immersionlyceens/apps/core/admin_forms.py:1498
-#: immersionlyceens/apps/core/admin_forms.py:1539
-#: immersionlyceens/apps/core/admin_forms.py:1580
+#: immersionlyceens/apps/core/admin_forms.py:1216
+#: immersionlyceens/apps/core/admin_forms.py:1272
+#: immersionlyceens/apps/core/admin_forms.py:1350
+#: immersionlyceens/apps/core/admin_forms.py:1384
+#: immersionlyceens/apps/core/admin_forms.py:1433
+#: immersionlyceens/apps/core/admin_forms.py:1458
+#: immersionlyceens/apps/core/admin_forms.py:1505
+#: immersionlyceens/apps/core/admin_forms.py:1546
+#: immersionlyceens/apps/core/admin_forms.py:1587
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -798,7 +798,7 @@ msgstr "Vous ne pouvez pas modifier ces groupes : %s"
 msgid "You can't modify the superuser status"
 msgstr "Vous ne pouvez pas modifier le statut super-utilisateur"
 
-#: immersionlyceens/apps/core/admin_forms.py:1172
+#: immersionlyceens/apps/core/admin_forms.py:1179
 #: immersionlyceens/apps/core/models.py:68
 #: immersionlyceens/apps/core/models.py:136
 #: immersionlyceens/apps/core/models.py:2130
@@ -807,7 +807,7 @@ msgstr "Vous ne pouvez pas modifier le statut super-utilisateur"
 msgid "Department"
 msgstr "Département"
 
-#: immersionlyceens/apps/core/admin_forms.py:1175
+#: immersionlyceens/apps/core/admin_forms.py:1182
 #: immersionlyceens/apps/core/models.py:69
 #: immersionlyceens/apps/core/models.py:137
 #: immersionlyceens/apps/core/models.py:2129
@@ -820,7 +820,7 @@ msgstr "Département"
 msgid "City"
 msgstr "Ville"
 
-#: immersionlyceens/apps/core/admin_forms.py:1178
+#: immersionlyceens/apps/core/admin_forms.py:1185
 #: immersionlyceens/apps/core/models.py:70
 #: immersionlyceens/apps/core/models.py:138
 #: immersionlyceens/apps/core/models.py:2131
@@ -828,21 +828,21 @@ msgstr "Ville"
 msgid "Zip code"
 msgstr "Code postal"
 
-#: immersionlyceens/apps/core/admin_forms.py:1188
+#: immersionlyceens/apps/core/admin_forms.py:1195
 msgid "This field is available when 'Offer post-bachelor immersions is enabled"
 msgstr ""
 "Ce champ est activé si 'Propose son offre post-bac à l'immersion' est coché"
 
-#: immersionlyceens/apps/core/admin_forms.py:1277
+#: immersionlyceens/apps/core/admin_forms.py:1284
 msgid "The message body contains forbidden variables : "
 msgstr "Le corps du message contient des variables non autorisées : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1286
+#: immersionlyceens/apps/core/admin_forms.py:1293
 msgid "The message body contains unknown variable(s) : "
 msgstr "Le corps du message contient des variables inconnues : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1320
-#: immersionlyceens/apps/core/admin_forms.py:1406
+#: immersionlyceens/apps/core/admin_forms.py:1327
+#: immersionlyceens/apps/core/admin_forms.py:1413
 #, python-format
 msgid ""
 "Please keep filesize under %(maxupload)s. Current filesize %(current_size)s"
@@ -850,23 +850,23 @@ msgstr ""
 "Veuillez téléverser des fichiers dont la taille n'excède pas %(maxupload)s. "
 "Taille actuelle : %(current_size)s"
 
-#: immersionlyceens/apps/core/admin_forms.py:1327
-#: immersionlyceens/apps/core/admin_forms.py:1412
-#: immersionlyceens/apps/core/admin_forms.py:1523
-#: immersionlyceens/apps/core/admin_forms.py:1564
+#: immersionlyceens/apps/core/admin_forms.py:1334
+#: immersionlyceens/apps/core/admin_forms.py:1419
+#: immersionlyceens/apps/core/admin_forms.py:1530
+#: immersionlyceens/apps/core/admin_forms.py:1571
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:1473
+#: immersionlyceens/apps/core/admin_forms.py:1480
 msgid "You are not allowed to create a new Evaluation Form Link"
 msgstr "Vous ne pouvez pas créer de nouveau lien de formulaire d'évaluation"
 
-#: immersionlyceens/apps/core/admin_forms.py:1607
-#: immersionlyceens/apps/core/admin_forms.py:1625
+#: immersionlyceens/apps/core/admin_forms.py:1614
+#: immersionlyceens/apps/core/admin_forms.py:1632
 msgid "Field locked : a high school record uses this level"
 msgstr "Verrouillé : une fiche lycéen(ne) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:1643
+#: immersionlyceens/apps/core/admin_forms.py:1650
 msgid "Field locked : a student record uses this level"
 msgstr "Verrouillé : une fiche étudiant(te) utilise ce niveau"
 
@@ -5167,9 +5167,12 @@ msgid "Visitor profiles to validate"
 msgstr "Profils visiteurs à valider"
 
 #: immersionlyceens/templates/core/visitor_validation.html:85
+msgid "Validated visitor profils"
+msgstr "Profils visiteurs validés"
+
 #: immersionlyceens/templates/core/visitor_validation.html:114
-msgid "Visitor student profiles"
-msgstr "Valider les profils visiteurs"
+msgid "Rejected visitor profiles"
+msgstr "Profils visiteurs rejetés"
 
 #: immersionlyceens/templates/core/visits_list.html:17
 #: immersionlyceens/templates/core/visits_list.html:30
@@ -6296,6 +6299,9 @@ msgstr "Pas de visite disponible"
 #: immersionlyceens/views.py:530
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
+
+#~ msgid "Visitor student profiles"
+#~ msgstr "Valider les profils visiteurs"
 
 #~ msgid "High-school student"
 #~ msgstr "Lycéen"
