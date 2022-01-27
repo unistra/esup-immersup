@@ -7,6 +7,8 @@ from .models import (Campus, Establishment, Training, TrainingSubdomain, HighSch
     Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser, HighSchoolLevel,
     PostBachelorLevel, StudentLevel
 )
+from ..immersion.models import VisitorRecord
+
 
 class ImmersionUserSerializer(serializers.ModelSerializer):
     class Meta:
