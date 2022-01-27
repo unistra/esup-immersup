@@ -1118,7 +1118,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         )
     elif immersion_type == "past":
         immersions = immersions.filter(
-            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time), cancellation_type__isnull=True
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__start_time__lte=time), cancellation_type__isnull=True
         )
     elif immersion_type == "cancelled":
         immersions = immersions.filter(cancellation_type__isnull=False)
@@ -1258,7 +1258,7 @@ def ajax_get_events(request, user_id=None, event_type=None):
         )
     elif event_type == "past":
         events = events.filter(
-            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time), cancellation_type__isnull=True
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__start_time__lte=time), cancellation_type__isnull=True
         )
     elif event_type == "cancelled":
         events = events.filter(cancellation_type__isnull=False)
@@ -1392,7 +1392,7 @@ def ajax_get_visits(request, user_id=None, visit_type=None):
         )
     elif visit_type == "past":
         visits = visits.filter(
-            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lte=time), cancellation_type__isnull=True
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__start_time__lte=time), cancellation_type__isnull=True
         )
     elif visit_type == "cancelled":
         visits = visits.filter(cancellation_type__isnull=False)
