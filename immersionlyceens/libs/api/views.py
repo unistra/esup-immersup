@@ -3291,7 +3291,7 @@ class VisitorRecordRejectValidate(View):
         record_id: str = self.kwargs["record_id"]
         operation: str = self.kwargs["operation"]
         validation_value: int = 1
-        validation_email_template: int = ""
+        validation_email_template: str = ""
 
         if operation == "validate":
             validation_value = 2
@@ -3303,7 +3303,14 @@ class VisitorRecordRejectValidate(View):
             data["msg"] = "Error - Bad operation selected. Allowed: validate, reject"
             return JsonResponse(data)
 
-        record: Optional[VisitorRecord] = VisitorRecord.objects.get(id=record_id)
+        try:
+            record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+        except VisitorRecord.DoesNotExist:
+            data["msg"] = f"Error - No record with id: {record_id}."
+            return JsonResponse(data)
 
-
+        record.validation = validation_value
+        record.save()
+        record.visitor.send_message(self.request, validation_email_template)
+        data["data"] = {"record_id": record.id}
         return JsonResponse(data)
