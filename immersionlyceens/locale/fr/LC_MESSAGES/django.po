@@ -5144,7 +5144,7 @@ msgstr "Ajouter un nouveau créneau de visite"
 #: immersionlyceens/templates/core/visitor_validation.html:19
 #: immersionlyceens/templates/core/visitor_validation.html:39
 msgid "Visitor profiles"
-msgstr "Profile visiteur"
+msgstr "Profils visiteurs"
 
 #: immersionlyceens/templates/core/visitor_validation.html:27
 msgid "Did you really want to validate this visitor?"
