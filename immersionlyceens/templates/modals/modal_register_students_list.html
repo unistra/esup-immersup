@@ -86,7 +86,7 @@ dtl = $('#register_students_list').DataTable({
     }
   },
   'searching': true,
-  'paging': false,
+  'paging': true,
   'ordering': true,
   'language': {
     url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
@@ -190,8 +190,6 @@ function register_student(student_id, slot_id, force=false) {
       success: function (json) {
         if(json['error']) {
             if (json['msg'] === 'force_update') {
-              console.log(json)
-
               if(json['reason'] === "registrations") {
                   $('#id_registrations').show()
                   $('#id_restrictions').hide()
