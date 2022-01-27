@@ -1143,7 +1143,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             if not immersion.slot.can_show_url() or not immersion.slot.url:
                 meeting_place=_('Remote course')
             else:
-                meeting_place=f'{_("Remote course")}<br><a href="{immersion.slot.url}">{_("Website address")}</a>'
+                meeting_place=f'{_("Remote course")}<br><a href="{immersion.slot.url}">{_("Login link")}</a>'
         elif immersion.slot.building and immersion.slot.room:
             meeting_place=f'{immersion.slot.building} <br> {immersion.slot.room}'
         elif immersion.slot.building and not immersion.slot.room:
@@ -1200,6 +1200,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             immersion_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
         for establishment in immersion.slot.course.training.distinct_establishments():
+            print(establishment)
             immersion_data['establishments'].append(f"{establishment.label} - {establishment.city}")
 
         response['data'].append(immersion_data.copy())
@@ -1283,7 +1284,7 @@ def ajax_get_events(request, user_id=None, event_type=None):
             if not event.slot.can_show_url() or not event.slot.url:
                 meeting_place=_('Remote event')
             else:
-                meeting_place=f'{_("Remote event")}<br><a href="{event.slot.url}">{_("Website address")}</a>'
+                meeting_place=f'{_("Remote event")}<br><a href="{event.slot.url}">{_("Login link")}</a>'
         elif event.slot.building and event.slot.room:
             meeting_place=f'{event.slot.building} <br> {event.slot.room}'
         elif event.slot.building and not event.slot.room:
@@ -1418,7 +1419,7 @@ def ajax_get_visits(request, user_id=None, visit_type=None):
             if not visit.slot.can_show_url() or not visit.slot.url:
                 meeting_place=_('Remote visit')
             else:
-                meeting_place=f'{_("Remote visit")}<br><a href="{visit.slot.url}">{_("Website address")}</a>'
+                meeting_place=f'{_("Remote visit")}<br><a href="{visit.slot.url}">{_("Login link")}</a>'
         elif visit.slot.building and visit.slot.room:
             meeting_place=f'{visit.slot.building} - {visit.slot.room}'
         elif visit.slot.building and not visit.slot.room:
