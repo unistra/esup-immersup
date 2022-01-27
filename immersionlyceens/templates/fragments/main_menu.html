@@ -173,7 +173,7 @@
                   <a class="dropdown-item" href="{% url 'student_validation_global' %}">{% trans 'Validate student profiles' %}</a>
 
                 {% endif %}
-                {% if authorized_groups|in_groups:"REF-ETAB-MAITRE" %}
+                {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-ETAB,REF-TEC" %}
                   <a class="dropdown-item" href="{% url 'visitor_validation' %}">{% trans 'Validate visitor profiles' %}</a>
                 {% endif %}
 
