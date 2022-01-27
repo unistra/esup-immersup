@@ -1123,6 +1123,13 @@ class ImmersionUserChangeForm(UserChangeForm):
                 user.set_recovery_string()
                 user.send_message(self.request, "CPT_CREATE_LYCEE")
 
+        if inter_group and str(inter_group.id) in new_groups - current_groups:
+            # INTER group spotted : if the password is not set, send an email
+            user = self.instance
+            if not user.last_login:
+                user.set_recovery_string()
+                user.send_message(self.request, "CPT_CREATE_INTER")
+
         self.instance = super().save(*args, **kwargs)
 
         if self.request.user.is_high_school_manager():
