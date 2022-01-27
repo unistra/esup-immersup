@@ -204,7 +204,7 @@
         "label": "Mail modification de créneau",
         "description": "Mail envoyé lors de la modification d'un créneau à tous les inscrits",
         "subject": "Modification de votre créneau d'immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous êtes inscrits à {% if creneau.type == 'cours' %}un cours{% elif creneau.type == 'visite' %}une visite au lycée {{ creneau.lycee }}{% elif creneau.type == 'evenement' %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}<br>{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.type == 'cours' %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.type == 'visite' %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.type == 'evenement' %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau a été modifié :</p><p>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br></p><p>Informations complémentaires :{{ creneau.info }} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous êtes inscrits à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}<br>{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau a été modifié :</p><p>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br></p><p>Informations complémentaires :{{ creneau.info }} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
@@ -226,11 +226,13 @@
             14,
             6,
             43,
-            45,
             42,
             27,
             29,
-            32
+            32,
+            60,
+            61,
+            62
         ]
     }
 },
@@ -242,7 +244,7 @@
         "label": "Mail de confirmation d'inscription",
         "description": "Mail envoyé à un inscrit lors de l'inscription à un créneau",
         "subject": "Confirmation d'inscription",
-        "body": "Bonjour {{ prenom }} {{ nom }},<br><br>Vous allez participer à {% if creneau.type == 'cours' %}un cours{% elif creneau.type == 'visite' %}une visite au lycée {{ creneau.lycee }}{% elif creneau.type == 'evenement' %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}<br>{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.type == 'cours' %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.type == 'visite' %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.type == 'evenement' %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<br><br>Cordialement,<br><br>Le service en ligne d'immersions<br>",
+        "body": "Bonjour {{ prenom }} {{ nom }},<br><br>Vous allez participer à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}<br>{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<br><br>Cordialement,<br><br>Le service en ligne d'immersions<br>",
         "active": true,
         "available_vars": [
             1,
@@ -266,7 +268,6 @@
             14,
             6,
             43,
-            45,
             42,
             38,
             39,
@@ -274,7 +275,10 @@
             29,
             32,
             36,
-            37
+            37,
+            60,
+            61,
+            62
         ]
     }
 },
@@ -286,7 +290,7 @@
         "label": "Mail de rappel de participation à un créneau",
         "description": "Mail envoyé à un inscrit n jours avant le créneau",
         "subject": "Rappel immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous êtes inscrit(e) à {% if creneau.type == 'cours' %}un cours{% elif creneau.type == 'visite' %}une visite au lycée {{ creneau.lycee }}{% elif creneau.type == 'evenement' %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.type == 'cours' %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.type == 'visite' %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.type == 'evenement' %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel sur le lien suivant : {{ creneau.lien }}{% else %}{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<br></p><p>Si vous ne pouvez pas y participer, merci de vous désinscrire. </p><p> Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous êtes inscrit(e) à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel sur le lien suivant : {{ creneau.lien }}{% else %}{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<br></p><p>Si vous ne pouvez pas y participer, merci de vous désinscrire. </p><p> Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
@@ -309,11 +313,13 @@
             14,
             6,
             43,
-            45,
             42,
             27,
             29,
-            32
+            32,
+            60,
+            61,
+            62
         ]
     }
 },
@@ -325,7 +331,7 @@
         "label": "Mail de rappel de participation à un créneau pour les intervenants",
         "description": "Mail envoyé à un intervenant n jours avant le créneau",
         "subject": "Rappel : votre cours en immersion",
-        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous avez été désigné comme intervenant sur {% if creneau.type == 'cours' %}le cours{% elif creneau.type == 'visite' %}la visite au lycée {{ creneau.lycee }}{% elif creneau.type == 'evenement' %}l' évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br></p>{% if creneau.type == 'cours' %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.type == 'visite' %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.type == 'evenement' %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel sur le lien suivant : {{ creneau.lien }}{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<p>Voici la liste des inscrits : <br>{{ creneau.listeInscrits }}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p></p>",
+        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous avez été désigné comme intervenant sur {% if creneau.estuncours %}le cours{% elif creneau.estunevisite %}la visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}l' évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br></p>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel sur le lien suivant : {{ creneau.lien }}{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment %}Bâtiment : {{ creneau.batiment }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<p>Voici la liste des inscrits : <br>{{ creneau.listeInscrits }}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p></p>",
         "active": true,
         "available_vars": [
             1,
@@ -349,11 +355,13 @@
             14,
             6,
             43,
-            45,
             42,
             27,
             29,
-            32
+            32,
+            60,
+            61,
+            62
         ]
     }
 },
@@ -446,7 +454,10 @@
             21,
             27,
             29,
-            32
+            32,
+            60,
+            61,
+            62
         ]
     }
 },

@@ -1997,11 +1997,11 @@ class Slot(models.Model):
         'event' if slot is an event slot
         """
         if self.is_course():
-            return pgettext("event type", 'course')
+            return 'course'
         if self.is_visit():
-            return pgettext("event type", 'visit')
+            return 'visit'
         if self.is_event():
-            return pgettext("event type", 'event')
+            return 'event'
 
     def can_show_url(self):
         # Showing remote course url if today date >= NB_DAYS_SLOT_REMINDER

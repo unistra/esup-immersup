@@ -304,14 +304,6 @@
   },
   {
     "model": "core.mailtemplatevars",
-    "pk": 45,
-    "fields": {
-      "code": "{{ creneau.type }}",
-      "description": "Cr\u00e9neau : type ('visite', 'evenement' ou 'cours')"
-    }
-  },
-  {
-    "model": "core.mailtemplatevars",
     "pk": 46,
     "fields": {
       "code": "{{ creneau.lycee }}",
@@ -420,6 +412,30 @@
     "fields": {
       "code": "{{ intervenant_compte_local }}",
       "description": "Indique si l'intervenant(e) possède un compte local"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 60,
+    "fields": {
+      "code": "{{ creneau.estuncours }}",
+      "description": "Indique si le créneau est un cours"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 61,
+    "fields": {
+      "code": "{{ creneau.estunevisite }}",
+      "description": "Indique si le créneau est une visite"
+    }
+  },
+  {
+    "model": "core.mailtemplatevars",
+    "pk": 62,
+    "fields": {
+      "code": "{{ creneau.estunevenement }}",
+      "description": "Indique si le créneau est un évènement"
     }
   }
 ]

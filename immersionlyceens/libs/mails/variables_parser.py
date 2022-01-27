@@ -139,7 +139,9 @@ class Parser:
             return {
                 "creneau": {
                     "libelle": slot.get_label(),
-                    "type": _(slot.get_type()),
+                    "estuncours": slot.is_course(),
+                    "estunevisite": slot.is_visit(),
+                    "estunevenement": slot.is_event(),
                     "etablissement": establishment.label if establishment else "",
                     "lycee": f"{highschool.label} ({highschool.city})" if highschool else "",
                     "structure": structure.label if structure else "",
