@@ -1157,7 +1157,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'id': immersion.id,
             'training': immersion.slot.course.training.label,
             'establishments': [],
-            'organizing_structure': immersion.slot.course.get_etab_or_high_school().label if not immersion.slot.course.highschool else str(immersion.slot.course.get_etab_or_high_school()),
+            'organizing_structure': immersion.slot.course.get_etab_or_high_school().label if not immersion.slot.course.highschool else '',
             'course': immersion.slot.course.label,
             'type': immersion.slot.course_type.label,
             'type_full': immersion.slot.course_type.full_label,
@@ -1199,11 +1199,14 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         for speaker in immersion.slot.speakers.all().order_by('last_name', 'first_name'):
             immersion_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
-        for establishment in immersion.slot.course.training.distinct_establishments():
-            if immersion.slot.course.highschool:
-                immersion_data['establishments'].append(f"{establishment.label} - {establishment.city}")
-            else:
-                immersion_data['establishments'].append(f"{establishment.label}")
+        establishments = immersion.slot.course.training.distinct_establishments()
+
+        for establishment in establishments:
+            immersion_data['establishments'].append(f"{establishment.label}")
+
+        if not establishments:
+            immersion_data['establishments'].append(str(immersion.slot.course.get_etab_or_high_school()))
+
 
 
         response['data'].append(immersion_data.copy())
