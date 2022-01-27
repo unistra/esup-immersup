@@ -1296,7 +1296,8 @@ def ajax_get_events(request, user_id=None, event_type=None):
         event_data = {
             'id': event.id,
             'label': event.slot.event.label,
-            'establishment': str(event.slot.event.get_etab_or_high_school()),
+            'establishment': event.slot.event.establishment.label \
+                if not event.slot.event.highschool else str(event.slot.event.highschool),
             'campus': event.slot.campus.label if event.slot.campus else '',
             'building': event.slot.building.label if event.slot.building else '',
             'meeting_place': meeting_place,
