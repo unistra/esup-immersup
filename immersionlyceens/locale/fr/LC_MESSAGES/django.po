@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-27 16:12+0100\n"
+"POT-Creation-Date: 2022-01-27 16:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -121,7 +121,7 @@ msgid "Available seats"
 msgstr "Nombre total de places"
 
 #: immersionlyceens/apps/charts/apps.py:6
-#: immersionlyceens/templates/fragments/main_menu.html:185
+#: immersionlyceens/templates/fragments/main_menu.html:189
 msgid "Charts"
 msgstr "Statistiques"
 
@@ -5296,86 +5296,90 @@ msgstr "Voir les inscrits par date"
 msgid "View potential duplicates"
 msgstr "Voir les doublons potentiels"
 
-#: immersionlyceens/templates/fragments/main_menu.html:188
+#: immersionlyceens/templates/fragments/main_menu.html:177
+msgid "Validate visitor profiles"
+msgstr "Valider les profils visiteurs"
+
+#: immersionlyceens/templates/fragments/main_menu.html:192
 msgid "Highschool registrations/participations"
 msgstr "Lycées - inscriptions/participations"
 
-#: immersionlyceens/templates/fragments/main_menu.html:189
+#: immersionlyceens/templates/fragments/main_menu.html:193
 msgid "By domains registrations"
 msgstr "Lycées - inscriptions par domaine"
 
-#: immersionlyceens/templates/fragments/main_menu.html:190
+#: immersionlyceens/templates/fragments/main_menu.html:194
 msgid "Highshcool - registrations by trainings"
 msgstr "Lycées - inscriptions par formation"
 
-#: immersionlyceens/templates/fragments/main_menu.html:192
+#: immersionlyceens/templates/fragments/main_menu.html:196
 msgid "Registrations and participation"
 msgstr "Inscriptions et participation"
 
-#: immersionlyceens/templates/fragments/main_menu.html:193
+#: immersionlyceens/templates/fragments/main_menu.html:197
 msgid "Hosts - registrations by domains"
 msgstr "Accueil - inscriptions par domaines"
 
-#: immersionlyceens/templates/fragments/main_menu.html:194
+#: immersionlyceens/templates/fragments/main_menu.html:198
 msgid "Hosts - registrations by structures"
 msgstr "Accueil - inscriptions par structure"
 
-#: immersionlyceens/templates/fragments/main_menu.html:202
+#: immersionlyceens/templates/fragments/main_menu.html:206
 msgid "Extractions"
 msgstr "Extractions"
 
-#: immersionlyceens/templates/fragments/main_menu.html:208
+#: immersionlyceens/templates/fragments/main_menu.html:212
 msgid "Administration"
 msgstr "Administration"
 
-#: immersionlyceens/templates/fragments/main_menu.html:223
+#: immersionlyceens/templates/fragments/main_menu.html:227
 #: immersionlyceens/templates/modals/modal_register_students_list.html:30
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:24
 msgid "Profile"
 msgstr "Profil"
 
-#: immersionlyceens/templates/fragments/main_menu.html:224
+#: immersionlyceens/templates/fragments/main_menu.html:228
 msgid "Admin"
 msgstr "Admin"
 
-#: immersionlyceens/templates/fragments/main_menu.html:230
+#: immersionlyceens/templates/fragments/main_menu.html:234
 msgid "Change password"
 msgstr "Changer le mot de passe"
 
-#: immersionlyceens/templates/fragments/main_menu.html:236
+#: immersionlyceens/templates/fragments/main_menu.html:240
 msgid "Logout"
 msgstr "Déconnexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:241
+#: immersionlyceens/templates/fragments/main_menu.html:245
 msgid "Sign in"
 msgstr "Connexion"
 
-#: immersionlyceens/templates/fragments/main_menu.html:245
+#: immersionlyceens/templates/fragments/main_menu.html:249
 msgid "You are"
 msgstr "Vous êtes"
 
-#: immersionlyceens/templates/fragments/main_menu.html:246
+#: immersionlyceens/templates/fragments/main_menu.html:250
 msgid "University member"
 msgstr "Membre de l'université"
 
-#: immersionlyceens/templates/fragments/main_menu.html:247
+#: immersionlyceens/templates/fragments/main_menu.html:251
 msgid "Highschool manager"
 msgstr "Référent Lycée"
 
-#: immersionlyceens/templates/fragments/main_menu.html:248
+#: immersionlyceens/templates/fragments/main_menu.html:252
 msgid "External speaker"
 msgstr "Intervenant extérieur"
 
-#: immersionlyceens/templates/fragments/main_menu.html:249
+#: immersionlyceens/templates/fragments/main_menu.html:253
 msgid "Highschool member"
 msgstr "Lycéen"
 
-#: immersionlyceens/templates/fragments/main_menu.html:250
+#: immersionlyceens/templates/fragments/main_menu.html:254
 msgctxt "login"
 msgid "Student"
 msgstr "Etudiant"
 
-#: immersionlyceens/templates/fragments/main_menu.html:251
+#: immersionlyceens/templates/fragments/main_menu.html:255
 msgctxt "login"
 msgid "Visitor"
 msgstr "Visiteur"
