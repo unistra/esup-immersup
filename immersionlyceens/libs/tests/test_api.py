@@ -1378,7 +1378,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs['id'], self.immersion.id)
         self.assertEqual(hs['lastname'], self.highschool_user.last_name)
         self.assertEqual(hs['firstname'], self.highschool_user.first_name)
-        self.assertEqual(hs['profile'], _('High-school student'))
+        self.assertEqual(hs['profile'], 'High school student')
         self.assertEqual(hs['school'], self.hs_record.highschool.label)
         self.assertEqual(hs['level'], self.hs_record.level.label)
         self.assertEqual(hs['city'], self.hs_record.highschool.city)
@@ -1386,7 +1386,7 @@ class APITestCase(TestCase):
         self.assertEqual(hs['attendance_status'], self.immersion.attendance_status)
 
         stu = content['data'][1]
-        self.assertEqual(stu['profile'], _('Student'))
+        self.assertEqual(stu['profile'], 'Student')
         self.assertEqual(stu['level'], self.student_record.level.label)
         self.assertEqual(stu['school'], self.student_record.uai_code)
         self.assertEqual(stu['city'], '')
