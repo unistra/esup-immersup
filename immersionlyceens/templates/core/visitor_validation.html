@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+{% comment %} Comment following line if using english ! {% endcomment %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
+{% endblock %}
+{% block title %}
+{% trans "Visitor profiles" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+
+  <div id="vdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
+    <span>
+      {% trans 'Did you really want to validate this visitor?' %}
+    </span>
+  </div>
+
+  <div id="rdialog-form" style='z-index:3000;' title='{% trans "Student profiles" %}'>
+    <span>
+      {% trans 'Did you really want to reject this high school student?' %}
+    </span>
+  </div>
+
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Visitor profiles" %}
+    </div>
+    <div class="card-body">
+      <div class="alert alert-danger hide" id="fail_message">
+        {% trans "An error occurred. The validation or rejection failed." %}
+      </div>
+      <div class="alert alert-success hide" id="validate_message">
+        {% trans "Visitor validated" %}
+      </div>
+      <div class="alert alert-success hide" id="reject_message">
+        {% trans "Visitor rejected" %}
+      </div>
+
+      <div>
+        <!-- TO VALIDATE -->
+        <div class="card mb-4">
+          <div class="card-header text-white bg-secondary">
+              {% trans "Visitor profiles to validate" %}
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="to_validate" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+                <thead>
+                  <tr>
+                    <th id="first_name_filter_to_validate">{% trans "First name" %}</th>
+                    <th id="last_name_filter_to_validate">{% trans "Last name" %}</th>
+                    <th id="birthdate_filter_to_validate">{% trans "Birth date" %}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALIDATED -->
+        <div class="card mb-4">
+          <div class="card-header text-white bg-secondary">
+              {% trans "Visitor student profiles" %}
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="validated" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+                <thead>
+                  <tr>
+                    <th id="first_name_filter_validated">{% trans "First name" %}</th>
+                    <th id="last_name_filter_validated">{% trans "Last name" %}</th>
+                    <th id="birthdate_filter_validated">{% trans "Birth date" %}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REJECTED -->
+        <div class="card mb-4">
+          <div class="card-header text-white bg-secondary">
+              {% trans "Visitor student profiles" %}
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="rejected" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+                <thead>
+                  <tr>
+                    <th id="first_name_filter_rejected">{% trans "First name" %}</th>
+                    <th id="last_name_filter_rejected">{% trans "Last name" %}</th>
+                    <th id="birthdate_filter_rejected">{% trans "Birth date" %}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+var t1, t2;
+var dts = {};
+var vdialog, rdialog;
+
+$(document).ready(function () {
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+
+
+    $('#id_high_school').change(function(event){
+        let value = $(event.target).val();
+        if (value)
+        {
+            reload_to_validate();
+            reload_validate();
+            reload_rejected();
+        }
+    });
+
+    vdialog = $("#vdialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            validate_student($("#vdialog-form").data('param'));
+            vdialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            vdialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    rdialog = $("#rdialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            reject_student($("#rdialog-form").data('param'));
+            rdialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            rdialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    function load_to_validate() {
+        dts['to_validate'] = $('#to_validate').DataTable({
+            processing: false,
+            order: [[1, 'asc']],
+            pageLength: 25,
+            // lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
+            serverSide: false,
+            responsive: false,
+            info: true,
+            ordering: true,
+            search: true,
+            ajax: {
+                type: "GET",
+                url: "/api/visitor/records/to_validate",
+                dataSrc: function(json) {
+                    if (json['data'] != undefined) {
+                        return json['data'];
+                    }
+                },
+            },
+            searching: true,
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
+            columns: [
+                {data: 'first_name', render: function(data, type, row) {
+                    let elem = '<a href="/immersion/visitor_record/' + row['id'] + '">' + data + '</a>';
+                    return elem;
+                }},
+                {data: 'last_name',},
+                {data: 'birth_date',},
+                {data: 'id', render: function(data) {
+                        let element = '';
+                        element += '<button class="btn btn-success mr-2 btn_validate" id="btn_validate_'+data+'"' +
+                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                        element += '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
+                        return element;
+                    }
+                },
+            ],
+            columnDefs: [{
+                defaultContent: '',
+                targets: '_all',
+            }]
+        });
+    }
+
+
+    function load_validate () {
+        dts['validated'] = $('#validated').DataTable({
+            processing: false,
+            order: [[1, 'asc']],
+            pageLength: 25,
+            // lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
+            serverSide: false,
+            responsive: false,
+            info: true,
+            ordering: true,
+            search: true,
+            ajax: {
+                type: "GET",
+                url: "/api/visitor/records/validated",
+                dataSrc: function(json) {
+                    if (json['data'] != undefined) {
+                        return json['data'];
+                    }
+                },
+            },
+            searching: true,
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
+            columns: [
+                {data: 'first_name', render: function(data, type, row) {
+                    let elem = '<a href="/immersion/visitor_record/' + row['id'] + '">' + data + '</a>';
+                    return elem;
+                }},
+                {data: 'last_name',},
+                {data: 'birth_date',},
+                {data: 'id', render: function(data) {
+                        return '<button class="btn btn-danger btn_reject" id="btn_reject_'+data+'"' +
+                            'onclick="rdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Reject" %}</button>';
+                    }
+                }
+            ],
+            columnDefs: [{
+                defaultContent: '',
+                targets: '_all',
+            }],
+        });
+    }
+
+    function load_rejected () {
+        dts['rejected'] = $('#rejected').DataTable({
+            processing: false,
+            order: [[1, 'asc']],
+            pageLength: 25,
+            // lengthMenu: [[5,10,25,-1], [5,10,25, "{% trans 'All' %}"]],
+            serverSide: false,
+            responsive: false,
+            info: true,
+            ordering: true,
+            search: true,
+            ajax: {
+                type: "GET",
+                url: "/api/visitor/records/rejected",
+                dataSrc: function(json) {
+                    if (json['data'] !== undefined) {
+                        return json['data'];
+                    }
+                },
+            },
+            searching: true,
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
+            columns: [
+                {data: 'first_name', render: function(data, type, row) {
+                    let elem = '<a href="/immersion/visitor_record/' + row['id'] + '">' + data + '</a>';
+                    return elem;
+                }},
+                {data: 'last_name',},
+                {data: 'birth_date',},
+                {data: 'id', render: function(data) {
+                        return '<button class="btn btn-success btn_validate" id="btn_validate_'+data+'"' +
+                            'onclick="vdialog.data(\'param\', '+data+').dialog(\'open\')">{% trans "Validate" %}</button>';
+                    }
+                }
+            ],
+            columnDefs: [{
+                defaultContent: '',
+                targets: '_all',
+            }],
+        });
+    }
+
+    // First load
+    load_to_validate();
+    load_validate();
+    load_rejected();
+
+    for (const [name, dt] of Object.entries(dts)) {
+        yadcf.init(dt, [
+            {
+                column_number: 0,
+                filter_default_label: '',
+                filter_type: 'text',
+                filter_container_id: 'first_name_filter_' + name,
+                style_class: 'form-control form-control-sm',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 1,
+                filter_default_label: '',
+                filter_type: 'text',
+                filter_container_id: 'last_name_filter_' + name,
+                style_class: 'form-control form-control-sm',
+                filter_reset_button_text: false,
+            },
+            {
+                column_number: 2,
+                filter_default_label: '',
+                filter_type: 'text',
+                filter_container_id: 'birthdate_filter_' + name,
+                style_class: 'form-control form-control-sm ',
+                filter_reset_button_text: false,
+            },
+        ]);
+    }
+});
+
+
+function reload_to_validate() {
+    $('#to_validate').DataTable().clear();
+    $('#to_validate').DataTable().ajax.reload();
+}
+function reload_validate() {
+    $('#validated').DataTable().clear();
+    $('#validated').DataTable().ajax.reload();
+}
+function reload_rejected() {
+    $('#rejected').DataTable().clear();
+    $('#rejected').DataTable().ajax.reload();
+}
+
+function validate_student( student_record_id ) {
+  $.post({
+    url: "/api/visitor/record/" + student_record_id + "/validate",
+    success: function(data) {
+        if (data !== undefined) {
+
+            reload_to_validate();
+            reload_validate();
+            reload_rejected();
+
+            $('#validate_message').show();
+            if (t1) { clearTimeout(t1); }
+            t1 = setTimeout(function(){
+                    $('#validate_message').fadeOut(1000, function(){
+                        $('#validate_message').hide();
+                    });
+                },
+                {%  settings_get 'MESSAGES_TIMEOUT' %}
+            );
+        } else {
+            $('#fail_message').show();
+            setTimeout(function(){
+                $('#fail_message').fadeOut(
+                    1000,
+                    function() {
+                        $('#fail_message').hide();
+                    }
+                )
+            }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+        }
+    },
+    error: function() {
+        $('#fail_message').show();
+        setTimeout(function(){
+            $('#fail_message').fadeOut(
+                1000,
+                function() {
+                    $('#fail_message').hide();
+                }
+            )
+        }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+    }
+  });
+}
+
+function reject_student( student_record_id ) {
+  $.post({
+      url: "/api/visitor/record/" + student_record_id + "/reject",
+      success: function(data) {
+          if (data !== undefined) {
+
+              reload_to_validate();
+              reload_validate();
+              reload_rejected();
+
+              $('#reject_message').show();
+              if (t2) { clearTimeout(t2); }
+              t2 = setTimeout(function(){
+                      $('#reject_message').fadeOut(1000, function(){
+                          $('#reject_message').hide();
+                      });
+                  },
+                  {%  settings_get 'MESSAGES_TIMEOUT' %}
+              );
+
+              let elem = $('#btn_reject_' + student_record_id + '').parent().parent();
+              elem.fadeOut(
+                  500,
+                  function() {
+                      elem.hide();
+                      reload_validate();
+                  }
+              );
+
+          } else {
+              $('#fail_message').show();
+              setTimeout(function(){
+                  $('#fail_message').fadeOut(
+                      1000,
+                      function() {
+                          $('#fail_message').hide();
+                      }
+                  )
+              }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          }
+      },
+      error: function() {
+          $('#fail_message').show();
+          setTimeout(function(){
+              $('#fail_message').fadeOut(
+                  1000,
+                  function() {
+                      $('#fail_message').hide();
+                  }
+              )
+          }, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
+  });
+}
+
+</script>
+{% endblock %}

@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.core.exceptions import FieldError
 from django.core.validators import validate_email
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.http import HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
@@ -25,7 +25,7 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
-from django.views import View
+from django.views import View, generic
 from rest_framework import generics, status
 
 """
@@ -48,7 +48,7 @@ from immersionlyceens.apps.core.serializers import (
     VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, StudentRecord,
+    HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
 from immersionlyceens.decorators import (
     groups_required, is_ajax_request, is_post_request,
@@ -3298,3 +3298,66 @@ class HighSchoolLevelDetail(generics.RetrieveAPIView):
     """
     serializer_class = HighSchoolLevelSerializer
     queryset = HighSchoolLevel.objects.all()
+
+
+class VisitorRecordValidation(View):
+    def get(self, request, *args, **kwargs):
+        data: Dict[str, Any] = {"msg": "", "data": None}
+
+        operator: Optional[Any] = kwargs.get('operator')
+        visitor_records: Optional[QuerySet] = None
+
+        if operator == "to_validate":
+            visitor_records = VisitorRecord.objects.filter(validation=1)
+        elif operator == "validated":
+            visitor_records = VisitorRecord.objects.filter(validation=2)
+        elif operator == "rejected":
+            visitor_records = VisitorRecord.objects.filter(validation=3)
+
+        if visitor_records is not None:
+            data["data"] = []
+            for record in visitor_records:
+                data["data"].append({
+                    "id": record.id,
+                    "first_name": record.visitor.first_name,
+                    "last_name": record.visitor.last_name,
+                    "birth_date": record.birth_date,
+                })
+        else:
+            data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected)")
+
+        return JsonResponse(data)
+
+
+#@method_decorator(groups_required("REF-ETAB-MAITRE"), name="dispatch")
+class VisitorRecordRejectValidate(View):
+    def post(self, request, *args, **kwargs):
+        data: Dict[str, Any] = {"msg": "", "data": None}
+
+        # cant be none. No routes allowed for that
+        record_id: str = self.kwargs["record_id"]
+        operation: str = self.kwargs["operation"]
+        validation_value: int = 1
+        validation_email_template: str = ""
+
+        if operation == "validate":
+            validation_value = 2
+            validation_email_template = "CPT_MIN_VALIDE_VISITEUR"
+        elif operation == "reject":
+            validation_value = 3
+            validation_email_template = "CPT_MIN_REJET_VISITEUR"
+        else:
+            data["msg"] = "Error - Bad operation selected. Allowed: validate, reject"
+            return JsonResponse(data)
+
+        try:
+            record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+        except VisitorRecord.DoesNotExist:
+            data["msg"] = f"Error - No record with id: {record_id}."
+            return JsonResponse(data)
+
+        record.validation = validation_value
+        record.save()
+        record.visitor.send_message(self.request, validation_email_template)
+        data["data"] = {"record_id": record.id}
+        return JsonResponse(data)

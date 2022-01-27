@@ -60,6 +60,7 @@ urlpatterns = [
     path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
 
     path('stats/', views.stats, name="stats"),
+    path('visitor_validation/', views.VisitorValidationView.as_view(), name="visitor_validation"),
     path('student_validation/', views.student_validation, name='student_validation_global'),
     path('student_validation/<int:high_school_id>/', views.student_validation, name='student_validation'),
     path('students_presence', views.students_presence, name="students_presence"),

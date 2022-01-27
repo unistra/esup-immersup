@@ -104,4 +104,8 @@ urlpatterns = [
 
     path('high_school_levels', views.HighSchoolLevelList.as_view(), name='high_school_level_list'),
     path('high_school_level/<int:pk>', views.HighSchoolLevelDetail.as_view(), name='high_school_level_detail'),
+
+    path('visitor/records/<operator>', views.VisitorRecordValidation.as_view(), name="visitors_records"),
+
+    path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(), name="validate_reject_visitor"),
 ]
