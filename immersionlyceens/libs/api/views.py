@@ -1143,7 +1143,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             if not immersion.slot.can_show_url() or not immersion.slot.url:
                 meeting_place=_('Remote course')
             else:
-                meeting_place=f'{_("Remote course")}<br><a href="{immersion.slot.url}">{_("Login link")}</a>'
+                meeting_place='{}<br><a href="{}">{}</a>'.format(_("Remote course"),immersion.slot.url,_("Login link"))
         elif immersion.slot.building and immersion.slot.room:
             meeting_place=f'{immersion.slot.building} <br> {immersion.slot.room}'
         elif immersion.slot.building and not immersion.slot.room:
