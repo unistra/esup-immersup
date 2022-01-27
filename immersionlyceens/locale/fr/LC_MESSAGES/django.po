@@ -5321,7 +5321,7 @@ msgstr "Référent Lycée"
 
 #: immersionlyceens/templates/fragments/main_menu.html:248
 msgid "External speaker"
-msgstr "Entervenant extérieur"
+msgstr "Intervenant extérieur"
 
 #: immersionlyceens/templates/fragments/main_menu.html:249
 msgid "Highschool member"
