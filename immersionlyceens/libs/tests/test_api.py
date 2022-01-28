@@ -2531,3 +2531,65 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["last_name"], self.visitor.last_name)
         self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
 
+    def test_API_visitor_record_operation__wrong_operation(self):
+        url = f"/api/visitor/record/{self.visitor_record.id}/wrong"
+        response = self.client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsNone(content["data"])
+        self.assertGreater(len(content["msg"]), 0)
+
+        # no change
+        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        self.assertEqual(record.validation, self.visitor_record.validation)
+
+    def test_API_visitor_record_operation__validate(self):
+        url = f"/api/visitor/record/{self.visitor_record.id}/validate"
+        response = self.client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsInstance(content["data"], dict)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIn("record_id", content["data"])
+        self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
+
+        # value changed
+        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        self.assertEqual(record.validation, 2)
+
+    def test_API_visitor_record_operation__reject(self):
+        url = f"/api/visitor/record/{self.visitor_record.id}/reject"
+        response = self.client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsInstance(content["data"], dict)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIn("record_id", content["data"])
+        self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
+
+        # value changed
+        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        self.assertEqual(record.validation, 3)
+
+    def test_API_visitor_record_operation__bad_record_id(self):
+        url = f"/api/visitor/record/99999999999/validate"
+        response = self.client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsNone(content["data"])
+        self.assertGreater(len(content["msg"]), 0)
+
