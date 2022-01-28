@@ -3304,14 +3304,14 @@ class VisitorRecordValidation(View):
     def get(self, request, *args, **kwargs):
         data: Dict[str, Any] = {"msg": "", "data": None}
 
-        operator: Optional[Any] = kwargs.get('operator')
+        operation: str = kwargs['operator']
         visitor_records: Optional[QuerySet] = None
 
-        if operator == "to_validate":
+        if operation == "to_validate":
             visitor_records = VisitorRecord.objects.filter(validation=1)
-        elif operator == "validated":
+        elif operation == "validated":
             visitor_records = VisitorRecord.objects.filter(validation=2)
-        elif operator == "rejected":
+        elif operation == "rejected":
             visitor_records = VisitorRecord.objects.filter(validation=3)
 
         if visitor_records is not None:
@@ -3329,7 +3329,7 @@ class VisitorRecordValidation(View):
         return JsonResponse(data)
 
 
-#@method_decorator(groups_required("REF-ETAB-MAITRE"), name="dispatch")
+@method_decorator(groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-TEC"), name="dispatch")
 class VisitorRecordRejectValidate(View):
     def post(self, request, *args, **kwargs):
         data: Dict[str, Any] = {"msg": "", "data": None}
