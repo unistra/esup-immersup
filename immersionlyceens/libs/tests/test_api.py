@@ -23,7 +23,7 @@ from immersionlyceens.apps.core.models import (
     Visit,
 )
 from immersionlyceens.apps.immersion.models import (
-    HighSchoolStudentRecord, StudentRecord,
+    HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
 from immersionlyceens.libs.api.views import ajax_check_course_publication
 from immersionlyceens.libs.utils import get_general_setting
@@ -86,6 +86,16 @@ class APITestCase(TestCase):
             convention_end_date=self.today + timedelta(days=10),
             postbac_immersion=True
         )
+
+        self.visitor = get_user_model().objects.create_user(
+            username="visitor",
+            password="pass",
+            email="visitor@no-reply.com",
+            first_name="Godefroy",
+            last_name="De Monmiraille",
+        )
+        self.visitor.set_password("pass")
+        self.visitor.save()
 
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
@@ -216,6 +226,7 @@ class APITestCase(TestCase):
         Group.objects.get(name='ETU').user_set.add(self.student)
         Group.objects.get(name='ETU').user_set.add(self.student2)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
+        Group.objects.get(name='VIS').user_set.add(self.visitor)
 
         self.calendar = Calendar.objects.create(
             label="Calendrier1",
@@ -428,6 +439,13 @@ class APITestCase(TestCase):
             allowed_global_registrations=2,
             allowed_first_semester_registrations=0,
             allowed_second_semester_registrations=0,
+        )
+        self.visitor_record = VisitorRecord.objects.create(
+            visitor=self.visitor,
+            birth_date=datetime.today(),
+            allowed_first_semester_registrations=2,
+            allowed_second_semester_registrations=2,
+            allowed_global_registrations=4,
         )
 
         self.immersion = Immersion.objects.create(
@@ -2424,3 +2442,92 @@ class APITestCase(TestCase):
         response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(OffOfferEvent.objects.count(), 0)
+
+    def test_API__get_visitor_records__bad_operation(self):
+        url = "/api/visitor/records/wrong"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+        self.assertIsNone(content["data"])
+        self.assertIsInstance(content["msg"], str)
+        self.assertGreater(len(content["msg"]), 0)
+
+    def test_API__get_visitor_records__to_validate(self):
+        url = "/api/visitor/records/to_validate"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+
+        self.assertIsInstance(content["msg"], str)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIsInstance(content["data"], list)
+        data = content["data"]
+        self.assertEqual(len(data), 1)
+        self.assertIsInstance(data[0], dict)
+        for field_name in ("id", "first_name", "last_name", "birth_date"):
+            self.assertIn(field_name, data[0])
+
+        self.assertEqual(data[0]["id"], self.visitor_record.id)
+        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
+
+    def test_API__get_visitor_records__validated(self):
+        self.visitor_record.validation = 2
+        self.visitor_record.save()
+        url = "/api/visitor/records/validated"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+
+        self.assertIsInstance(content["msg"], str)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIsInstance(content["data"], list)
+        data = content["data"]
+        self.assertEqual(len(data), 1)
+        self.assertIsInstance(data[0], dict)
+        for field_name in ("id", "first_name", "last_name", "birth_date"):
+            self.assertIn(field_name, data[0])
+
+        self.assertEqual(data[0]["id"], self.visitor_record.id)
+        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
+
+    def test_API__get_visitor_records__rejected(self):
+        self.visitor_record.validation = 3
+        self.visitor_record.save()
+        url = "/api/visitor/records/rejected"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+
+        self.assertIsInstance(content["msg"], str)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIsInstance(content["data"], list)
+        data = content["data"]
+        self.assertEqual(len(data), 1)
+        self.assertIsInstance(data[0], dict)
+        for field_name in ("id", "first_name", "last_name", "birth_date"):
+            self.assertIn(field_name, data[0])
+
+        self.assertEqual(data[0]["id"], self.visitor_record.id)
+        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
+
