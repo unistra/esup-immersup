@@ -83,6 +83,16 @@
     const base64Mark = btoa(markTemplate('{{ stage }}'));
     document.getElementsByTagName('header')[0].style.backgroundImage = `url("data:image/svg+xml;base64,${base64Mark}")`;
     {% endif %}
+
+    $('#mainNav .dropdown-menu').on('click', function(e) {
+       e.stopPropagation();
+    });
+
+    $('.dropdown-collapsible').on('click', function(e) {
+       e.preventDefault();
+       $(this).siblings('.collapse').collapse('hide');
+       $(this).next('.collapse').collapse('toggle');
+    });
     </script>
 
     {% block foot-javascript %}{% endblock %}

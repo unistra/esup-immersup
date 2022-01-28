@@ -243,13 +243,15 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
               <span class="dropdown-item text-center">{% trans "You are"%} : </span>
-              <a class="dropdown-item dropdown-toggle" id="navbarDropdownSubMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans "Member of "%} : </a>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownSubMenu">
+              <a class="dropdown-item dropdown-collapsible dropdown-toggle" data-toggle="collapse" href="#navbarDropdownSubMenu1" role="button" aria-expanded="false" aria-controls="navbarDropdownSubMenu1">{% trans "Member of "%} ... </a>
+              <div class="collapse bg-light" id="navbarDropdownSubMenu1">
                 {% for establishment in core_establishments %}
-                  <a class="dropdown-item" href="{% if establishment.data_source_plugin %}{% url 'shibboleth_login' %}{% else %}{% url 'immersion:login' profile='speaker' %}{% endif %}">{{ establishment.label }}</a>
+                  <a class="dropdown-item pl-4" href="{% if establishment.data_source_plugin %}{% url 'shibboleth_login' %}{% else %}{% url 'immersion:login' profile='speaker' %}{% endif %}">
+                    <i class="us us-arrow-right us-fw"></i> {{ establishment.label }}
+                  </a>
                 {% endfor %}
               </div>
-              <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %}</a>
+              <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' %}">{% trans 'Highschool member' %}</a>
