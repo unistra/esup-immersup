@@ -842,6 +842,8 @@ class VisitorRecordView(FormView):
             self.request.user.is_operator()
         ])
 
+        self.request.session['back'] = self.request.headers.get('Referer')
+
         calendars: QuerySet = Calendar.objects.all()
         calendar: Optional[Calendar] = None
         if calendars:
@@ -876,6 +878,9 @@ class VisitorRecordView(FormView):
         future_immersions = visitor.immersions.filter(
             Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
         ).count()
+
+
+        print(f'BACK: {self.request.session.get("back")}')
 
         if record:
             context.update({"record": record})  # for modal nuke purpose
