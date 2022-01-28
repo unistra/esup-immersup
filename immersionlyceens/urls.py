@@ -35,7 +35,7 @@ urlpatterns = [
     path('offer/<int:subdomain_id>', offer_subdomain, name='offer_subdomain'),
     path('offer_off_offer_events', offer_off_offer_events, name='offer_off_offer_events'),
     path('procedure', procedure, name='procedure'),
-    path('shib_secure', include('shibboleth.urls', namespace='shibboleth')),
+    path('shib_secure/', include('shibboleth.urls', namespace='shibboleth')),
     path('shib/', shibbolethLogin, name='shibboleth_login'),
     path('summernote/', include('django_summernote.urls')),
     path('visits_offer', visits_offer, name='visits_offer')

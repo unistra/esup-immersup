@@ -415,7 +415,7 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_AFFILIATION": (False, "affiliation"),
 }
 
-SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
+SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout?return=%s"
 SHIBBOLETH_LOGOUT_REDIRECT_URL = "/"
 
 CREATE_UNKNOWN_USER = False
