@@ -195,9 +195,19 @@ def shibbolethLogin(request, profile=None):
              "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
         return HttpResponseRedirect("/")
 
+    try:
+        affiliations = shib_attrs.pop("affiliation", "").split(";")
+    except Exception as e:
+        logger.warning(e)
+        affiliations = []
 
-    if request.POST.get('submit'):
+    is_student = any(list(filter(lambda a: a.startswith("student@"), affiliations)))
+    is_employee = any(list(filter(lambda a: a.startswith("employee@"), affiliations)))
+
+    # Account creation confirmed
+    if is_student and request.POST.get('submit'):
         shib_attrs.pop("uai_code", None)
+
         new_user = ImmersionUser.objects.create(**shib_attrs)
         new_user.set_validation_string()
         new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
@@ -219,6 +229,19 @@ def shibbolethLogin(request, profile=None):
 
 
     if request.user.is_anonymous:
+        err = None
+
+        if is_employee:
+            err = _("Your account must be first created by a master establishment manager or an operator.")
+        elif not is_student:
+            err = _("The attributes sent by Shibboleth show you may not be a student.")
+
+        if err:
+            err += _("<br>If you think this is a mistake, please use the 'contact' link at the " +
+                     "<br>bottom of this page, specifying your institution.")
+            messages.error(request, err)
+            return HttpResponseRedirect("/")
+
         context = shib_attrs
         return render(request, "immersion/confirm_creation.html", context)
     else:
@@ -226,7 +249,19 @@ def shibbolethLogin(request, profile=None):
         if not request.user.is_valid():
             messages.error(request, _("Your account hasn't been enabled yet."))
         else:
-            if request.user.is_student():
+            # Existing account or external student
+            staff_accounts = [
+                request.user.is_operator(),
+                request.user.is_master_establishment_manager(),
+                request.user.is_establishment_manager(),
+                request.user.is_structure_manager(),
+                request.user.is_structure_manager(),
+                request.user.is_speaker(),
+            ]
+
+            if is_employee and any(staff_accounts):
+                return HttpResponseRedirect("/")
+            elif is_student and request.user.is_student():
                 # If student has filled his record
                 if request.user.get_student_record():
                     return HttpResponseRedirect("/immersion")

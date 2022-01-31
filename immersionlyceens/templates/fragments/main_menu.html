@@ -240,6 +240,11 @@
                   <i class="fa fas fa-sign-out"></i> {% trans "Logout" %}
                 </a>
               </div>
+              <div class="dropdown-item text-right">
+                <a class="text-decoration-none" href="{% url 'shibboleth:logout' %}">
+                  <i class="fa fas fa-sign-out"></i> {% trans "Shibboleth Logout" %}
+                </a>
+              </div>
             </div>
           {% else %}
             {% trans 'Sign in' %}
@@ -247,7 +252,15 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
               <span class="dropdown-item text-center">{% trans "You are"%} : </span>
-              <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %}</a>
+              <a class="dropdown-item dropdown-collapsible dropdown-toggle" data-toggle="collapse" href="#navbarDropdownSubMenu1" role="button" aria-expanded="false" aria-controls="navbarDropdownSubMenu1">{% trans "Member of "%} ... </a>
+              <div class="collapse bg-light" id="navbarDropdownSubMenu1">
+                {% for establishment in core_establishments %}
+                  <a class="dropdown-item pl-4" href="{% if establishment.data_source_plugin %}{% url 'shibboleth_login' %}{% else %}{% url 'immersion:login' profile='speaker' %}{% endif %}">
+                    <i class="us us-arrow-right us-fw"></i> {{ establishment.label }}
+                  </a>
+                {% endfor %}
+              </div>
+              <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' %}">{% trans 'Highschool member' %}</a>

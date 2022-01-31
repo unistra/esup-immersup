@@ -204,6 +204,7 @@ class ImmersionViewsTestCase(TestCase):
             'HTTP_GIVENNAME': 'student',
             'HTTP_SN': 'user',
             'HTTP_MAIL': 'new_student@domain.fr',
+            'HTTP_AFFILIATION': 'student@domain.fr;member@domain.fr'
         }
         response = self.client.get('/shib/', request, **header, follow=True)
         self.assertIn("Missing attributes, account not created.", response.content.decode('utf-8'))
@@ -211,13 +212,16 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/shib/', data={'submit': 1}, request=request, **header, follow=True)
         self.assertIn("Missing attributes, account not created.", response.content.decode('utf-8'))
 
+        # FIXME : test use cases where a non-student try to authenticate
+
         # Tests with all attributes
         header = {
             'HTTP_REMOTE_USER': 'new_student@domain.fr',
             'HTTP_GIVENNAME': 'student',
             'HTTP_SN': 'user',
             'HTTP_MAIL': 'new_student@domain.fr',
-            'HTTP_SUPANNETABLISSEMENT': '{UAI}0673021V'
+            'HTTP_SUPANNETABLISSEMENT': '{UAI}0673021V',
+            'HTTP_AFFILIATION': 'student@domain.fr;member@domain.fr'
         }
 
         response = self.client.get('/shib/', request, **header)

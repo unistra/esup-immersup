@@ -175,6 +175,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
+                'immersionlyceens.apps.context_processors.establishments'
             ],
         },
     },
@@ -411,9 +412,10 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_SN": (False, "last_name"),
     "HTTP_MAIL": (False, "email"),
     "HTTP_SUPANNETABLISSEMENT": (False, "uai_code"),
+    "HTTP_AFFILIATION": (False, "affiliation"),
 }
 
-SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
+SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout?return=%s"
 SHIBBOLETH_LOGOUT_REDIRECT_URL = "/"
 
 CREATE_UNKNOWN_USER = False
