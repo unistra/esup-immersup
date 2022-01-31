@@ -1464,29 +1464,34 @@ class VisitSlotList(generic.TemplateView):
         context["establishment_id"] = \
             kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
 
-        if kwargs.get('establishment_id'):
+        try:
+            establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
+            context["managed_by_filter"] = establishment.code
+        except Establishment.DoesNotExist:
+            pass
+
+        context["structure_id"] = kwargs.get('structure_id')
+
+        if context["structure_id"] == "null":
+            context["structure_id"] = ""
+        elif context["structure_id"] is None:
+            context["structure_id"] = self.request.session.get('current_structure_id', None)
+        else:
             try:
-                establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
-                context["managed_by_filter"] = establishment.code
-            except Establishment.DoesNotExist:
+                structure = Structure.objects.get(pk=context["structure_id"])
+                context["managed_by_filter"] += f" - {structure.code}"
+            except Structure.DoesNotExist:
                 pass
 
-            context["structure_id"] = kwargs.get('structure_id')
-
-            if context["structure_id"] == "null":
-                context["structure_id"] = ""
-            else:
-                try:
-                    structure = Structure.objects.get(pk=context["structure_id"])
-                    context["managed_by_filter"] += f" - {structure.code}"
-                except Structure.DoesNotExist:
-                    pass
-
+        if kwargs.get('highschool_id', None):
+            try:
+                highschool = HighSchool.objects.get(pk=context["highschool_id"])
+                context["highschool_filter"] = str(highschool)
+            except HighSchool.DoesNotExist:
+                pass
         else:
-            context["structure_id"] = self.request.session.get('current_structure_id', None)
+            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
 
-        context["highschool_id"] = \
-            kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
 
         context["visit_id"] = kwargs.get('visit_id', None)
 
@@ -1495,13 +1500,6 @@ class VisitSlotList(generic.TemplateView):
                 visit = Visit.objects.get(pk=context["visit_id"])
                 context["visit_purpose_filter"] = visit.purpose
             except Visit.DoesNotExist:
-                pass
-
-        if context["highschool_id"]:
-            try:
-                highschool = HighSchool.objects.get(pk=context["highschool_id"])
-                context["highschool_filter"] = str(highschool)
-            except HighSchool.DoesNotExist:
                 pass
 
         if not self.request.user.is_superuser:
