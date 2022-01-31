@@ -208,6 +208,8 @@ def shibbolethLogin(request, profile=None):
     if is_student and request.POST.get('submit'):
         shib_attrs.pop("uai_code", None)
 
+        shib_attrs["username"] = shib_attrs["email"]
+
         new_user = ImmersionUser.objects.create(**shib_attrs)
         new_user.set_validation_string()
         new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
@@ -245,6 +247,18 @@ def shibbolethLogin(request, profile=None):
         context = shib_attrs
         return render(request, "immersion/confirm_creation.html", context)
     else:
+        # Update user attributes
+        try:
+            user = ImmersionUser.objects.get(username=shib_attrs["username"])
+            user.last_name = shib_attrs["last_name"]
+            user.first_name = shib_attrs["first_name"]
+            user.email = shib_attrs["email"]
+            user.username = shib_attrs["email"]
+            user.save()
+        except (ImmersionUser.DoesNotExist(), KeyError):
+            err = _("Unable to find a matching user in database")
+            return HttpResponseRedirect("/")
+
         # Activated account ?
         if not request.user.is_valid():
             messages.error(request, _("Your account hasn't been enabled yet."))
