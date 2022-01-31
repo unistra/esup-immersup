@@ -409,7 +409,7 @@ SHIBBOLETH_REMOTE_USER_ATTR = "HTTP_REMOTE_USER"
 # Old : "HTTP_REMOTE_USER": (False, "username"),
 
 SHIBBOLETH_ATTRIBUTE_MAP = {
-    "HTTP_REMOTE_USER": (False, "email"),
+    "HTTP_REMOTE_USER": (False, "username"),
     "HTTP_GIVENNAME": (False, "first_name"),
     "HTTP_SN": (False, "last_name"),
     "HTTP_MAIL": (False, "email"),

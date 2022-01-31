@@ -208,8 +208,6 @@ def shibbolethLogin(request, profile=None):
     if is_student and request.POST.get('submit'):
         shib_attrs.pop("uai_code", None)
 
-        shib_attrs["username"] = shib_attrs["email"]
-
         new_user = ImmersionUser.objects.create(**shib_attrs)
         new_user.set_validation_string()
         new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
@@ -253,9 +251,9 @@ def shibbolethLogin(request, profile=None):
             user.last_name = shib_attrs["last_name"]
             user.first_name = shib_attrs["first_name"]
             user.email = shib_attrs["email"]
-            user.username = shib_attrs["email"]
+            user.username = shib_attrs["username"]
             user.save()
-        except (ImmersionUser.DoesNotExist(), KeyError):
+        except (ImmersionUser.DoesNotExist, KeyError):
             err = _("Unable to find a matching user in database")
             return HttpResponseRedirect("/")
 
