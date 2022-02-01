@@ -17,7 +17,7 @@
               <table id="immersions_table" class="table table-sm table-bordered nowrap dt-body-nowrap" style="width:100%;">
               <thead>
                 <tr>
-                  <th >{% trans 'Training' %}</th>
+                  <th>{% trans 'Training' %}</th>
                   <th>{% trans 'Course' %}</th>
                   <th>{% trans 'Type' %}</th>
                   <th>{% trans 'Place' %}</th>
@@ -71,7 +71,7 @@ dtr = $('#immersions_table').DataTable({
   'ajax': {
     url: "",
     dataSrc: function (json) {
-      if (json['data'] != undefined) {
+      if (json['data'] !== undefined) {
         return json['data'];
       }
     }
@@ -92,7 +92,7 @@ dtr = $('#immersions_table').DataTable({
     },
     { "data": "datetime",
       "render": function(data, type, row) {
-        if(type == "display" || type == "filter") {
+        if(type === "display" || type === "filter") {
           return row.date + "<br />" + row.start_time + " - " + row.end_time;
         }
 

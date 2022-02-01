@@ -598,16 +598,6 @@ def slots(request):
         }
 
         # Update attendances rights depending on slot data and current user
-        """
-        valid_conditions = [
-            user.is_superuser,
-            user.is_operator(),
-            user.is_master_establishment_manager(),
-            establishement and user.is_establishment_manager() and user.establishement == establishment,
-            establishement and user.is_establishment_manager() and user.establishement == establishment,
-        ]
-        """
-
         if data['datetime'] and data['datetime'] <= today:
             data['is_past'] = True
             if not slot.immersions.filter(cancellation_type__isnull=True).exists():
@@ -1083,11 +1073,16 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         response['msg'] = gettext("Error : missing user id")
         return JsonResponse(response, safe=False)
 
-    if (
-        not request.user.is_establishment_manager()
-        and not request.user.is_high_school_manager()
-        and request.user.id != user_id
-    ):
+    # Valid conditions to view user's immersions : staff and the user himself
+    valid_conditions = [
+        request.user.is_master_establishment_manager(),
+        request.user.is_operator(),
+        request.user.is_establishment_manager(),
+        request.user.is_high_school_manager() and request.user.highschool.postbac_immersion,
+        request.user.id == user_id
+    ]
+
+    if not any(valid_conditions):
         response['msg'] = gettext("Error : invalid user id")
         return JsonResponse(response, safe=False)
 
@@ -2054,7 +2049,8 @@ def ajax_get_highschool_students(request, highschool_id=None):
     admin_groups: List[bool] = [
         request.user.is_establishment_manager(),
         request.user.is_master_establishment_manager(),
-        request.user.is_operator()
+        request.user.is_operator(),
+        request.user.is_high_school_manager() and request.user.highschool.postbac_immersion
     ]
 
     if any(admin_groups):
