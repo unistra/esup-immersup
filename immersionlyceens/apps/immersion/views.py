@@ -470,7 +470,7 @@ def activate(request, hash=None):
     return HttpResponseRedirect("/immersion/login")
 
 
-def resend_activation(request, profile=None):
+def resend_activation(request):
     email = ""
 
     if request.method == "POST":
@@ -483,17 +483,12 @@ def resend_activation(request, profile=None):
         else:
             if user.is_valid():
                 messages.error(request, _("This account has already been activated, please login."))
-                if profile:
-                    return HttpResponseRedirect(f"/immersion/login/{profile}")
-                else:
-                    return HttpResponseRedirect("/immersion/login")
+                return HttpResponseRedirect("/immersion/login")
             else:
                 msg = user.send_message(request, 'CPT_MIN_CREATE')
                 messages.success(request, _("The activation message have been resent."))
 
-    context = {'email': email, 'profile': profile}
-
-    return render(request, 'immersion/resend_activation.html', context)
+    return render(request, 'immersion/resend_activation.html', {'email': email})
 
 
 @login_required

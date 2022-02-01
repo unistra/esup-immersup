@@ -306,6 +306,7 @@ class ImmersionViewsTestCase(TestCase):
             'email': 'mon_email@mondomaine.fr',
             'password1': 'passw',
             'password2': 'passw_2',
+            'registration_type': 'hs',
         }
 
         # Will fail (passwords don't match, missing email2)
