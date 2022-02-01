@@ -9,7 +9,7 @@ ldap3
 requests
 django-summernote<0.8.20.0
 django-shibboleth-remoteuser
-WeasyPrint==52.5
+WeasyPrint==54.1
 sentry-sdk
 django-json-widget
 jsonschema
