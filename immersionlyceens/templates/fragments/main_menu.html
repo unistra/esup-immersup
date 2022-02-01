@@ -228,7 +228,7 @@
                 <strong>{% if user.is_superuser %}{% trans "Admin" %}<br />{% endif %}{{ request.user.groups.all|join:", "}}</strong>
               </span>
               <span class="dropbown-divider"></span>
-              {% if authorized_groups|in_groups:"LYC,REF-LYC" %}
+              {% if authorized_groups|in_groups:"LYC,REF-LYC,VIS" %}
               <div class="dropdown-item text-right">
                 <a class="text-decoration-none" href="{% url 'immersion:change_password' %}">
                   <i class="fa fas fa-key"></i> {% trans "Change password" %}

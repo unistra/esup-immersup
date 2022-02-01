@@ -416,8 +416,9 @@ def reset_password(request, hash=None):
         return HttpResponseRedirect("/immersion/login")
 
 
+# todo: refactor this into class :)
 @login_required
-@groups_required("LYC", "REF-LYC")
+@groups_required("LYC", "REF-LYC", "VIS")
 def change_password(request):
     """
     Change password view for high-school students and high-school managers
