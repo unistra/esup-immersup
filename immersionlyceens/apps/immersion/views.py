@@ -300,7 +300,9 @@ def register(request, profile=None):
         form = RegistrationForm(request.POST)
         redirect_url_name: str = "/immersion/login"
 
-        if form.is_valid():
+        registration_type: Optional[str] = request.POST.get("registration_type")
+
+        if form.is_valid() and registration_type:
             new_user = form.save(commit=False)
             # adjustments here
             new_user.username = form.cleaned_data.get("username")
@@ -309,14 +311,13 @@ def register(request, profile=None):
             new_user.save()
 
             group_name: str = "LYC"
-            if profile and profile == "vis":
+            if registration_type == "vis":
                 group_name = "VIS"
-                redirect_url_name = "/immersion/login/vis"
 
             try:
                 Group.objects.get(name=group_name).user_set.add(new_user)
             except Exception:
-                logger.exception(f"Cannot add 'LYC' group to user {new_user}")
+                logger.exception(f"Cannot add '{group_name}' group to user {new_user}")
                 messages.error(request, _("Group error"))
 
             try:
