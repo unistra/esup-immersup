@@ -540,7 +540,7 @@ MAX_UPLOAD_SIZE = "20971520"
 # 500MB - 429916160
 
 # Highschool students settings
-USERNAME_PREFIX = "@EXTERNAL@_"
+# USERNAME_PREFIX = "@EXTERNAL@_"
 DESTRUCTION_DELAY = 5  # in days
 
 # Some general settings default values

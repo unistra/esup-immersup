@@ -349,7 +349,7 @@ def recovery(request):
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
 
-            if not user.username.startswith(settings.USERNAME_PREFIX) and not user.is_high_school_manager():
+            if not user.is_high_school_manager():
                 messages.warning(request, _("Please use your establishment credentials."))
             else:
                 user.set_recovery_string()
@@ -562,7 +562,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             student = studentform.save()
 
             if current_email != student.email:
-                student.username = settings.USERNAME_PREFIX + student.email
+                student.username = student.email
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
@@ -938,7 +938,7 @@ class VisitorRecordView(FormView):
         return context
 
     def email_changed(self, user: ImmersionUser):
-        user.username = settings.USERNAME_PREFIX + user.email
+        user.username = user.email
         user.set_validation_string()
 
         try:

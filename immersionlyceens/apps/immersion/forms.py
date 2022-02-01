@@ -36,7 +36,7 @@ class LoginForm(forms.Form):
 
     def get_user(self):
         cleaned_data = super().clean()
-        login = settings.USERNAME_PREFIX + cleaned_data.get('login')
+        login = cleaned_data.get('login')
         password = cleaned_data.get('password')
 
         user = authenticate(username=login, password=password)
@@ -49,7 +49,7 @@ class LoginForm(forms.Form):
 
         # Add prefix to search in database
         if not self.profile or self.profile in ["vis"]:
-            login = settings.USERNAME_PREFIX + cleaned_data.get('login')
+            login = cleaned_data.get('login')
             cleaned_data['login'] = login
 
         return cleaned_data
@@ -89,7 +89,7 @@ class RegistrationForm(UserCreationForm):
             raise forms.ValidationError(
                 _("Error : an account already exists with this email address"))
 
-        username = settings.USERNAME_PREFIX + email
+        username = email
 
         # Shouldn't get there if the email unicity test fails
         if ImmersionUser.objects.filter(username=username).exists():
