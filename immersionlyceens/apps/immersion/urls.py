@@ -30,7 +30,6 @@ urlpatterns = [
     path('recovery', views.recovery, name='recovery'),
 
     path('register', views.register, name='register'),
-    path('register/<profile>', views.register, name='register_profile'),
 
     path('resend_activation', views.resend_activation, name='resend_activation'),
 

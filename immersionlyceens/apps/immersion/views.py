@@ -283,7 +283,7 @@ def shibbolethLogin(request, profile=None):
     return HttpResponseRedirect("/")
 
 
-def register(request, profile=None):
+def register(request):
     # Is current university year valid ?
     is_reg_possible, is_year_valid, year = check_active_year()
 
@@ -335,7 +335,7 @@ def register(request, profile=None):
     else:
         form = RegistrationForm()
 
-    context = {'form': form, "profile": profile}
+    context = {'form': form}
 
     return render(request, 'immersion/registration.html', context)
 
