@@ -247,7 +247,7 @@ class APITestCase(TestCase):
 
         # high school referent account creation : check recovery string
         self.lyc_ref.set_recovery_string()
-        message_body = MailTemplate.objects.get(code='CPT_CREATE_LYCEE')
+        message_body = MailTemplate.objects.get(code='CPT_CREATE')
         parsed_body = parser(message_body.body, user=self.lyc_ref)
         self.assertIn(self.lyc_ref.recovery_string, parsed_body)
 

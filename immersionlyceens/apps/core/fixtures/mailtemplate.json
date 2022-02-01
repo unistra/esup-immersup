@@ -107,16 +107,16 @@
         "label": "Mail création compte intervenant",
         "description": "Mail envoyé lors de la création d’un compte Intervenant",
         "subject": "Votre compte immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>{% if intervenant_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br>Pour initialiser votre mot de passe, merci de vous connecter à l'adresse suivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en utilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>{% if utilisateur_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br>Pour initialiser votre mot de passe, merci de vous connecter à l'adresse suivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en utilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
             18,
-            59,
             33,
             27,
             29,
-            32
+            32,
+            59
         ]
     }
 },
@@ -214,6 +214,9 @@
             7,
             15,
             8,
+            60,
+            62,
+            61,
             47,
             41,
             40,
@@ -229,10 +232,7 @@
             42,
             27,
             29,
-            32,
-            60,
-            61,
-            62
+            32
         ]
     }
 },
@@ -256,6 +256,9 @@
             7,
             15,
             8,
+            60,
+            62,
+            61,
             47,
             41,
             40,
@@ -275,10 +278,7 @@
             29,
             32,
             36,
-            37,
-            60,
-            61,
-            62
+            37
         ]
     }
 },
@@ -300,6 +300,9 @@
             7,
             15,
             8,
+            60,
+            62,
+            61,
             51,
             47,
             41,
@@ -316,10 +319,7 @@
             42,
             27,
             29,
-            32,
-            60,
-            61,
-            62
+            32
         ]
     }
 },
@@ -341,6 +341,9 @@
             7,
             15,
             8,
+            60,
+            62,
+            61,
             51,
             47,
             41,
@@ -358,10 +361,7 @@
             42,
             27,
             29,
-            32,
-            60,
-            61,
-            62
+            32
         ]
     }
 },
@@ -397,7 +397,6 @@
             14,
             6,
             43,
-            45,
             42,
             38,
             39,
@@ -445,6 +444,9 @@
             7,
             15,
             8,
+            60,
+            62,
+            61,
             11,
             12,
             13,
@@ -454,10 +456,7 @@
             21,
             27,
             29,
-            32,
-            60,
-            61,
-            62
+            32
         ]
     }
 },
@@ -567,6 +566,27 @@
             19,
             27,
             29
+        ]
+    }
+},
+{
+    "model": "core.mailtemplate",
+    "pk": 27,
+    "fields": {
+        "code": "CPT_CREATE",
+        "label": "Mail création compte",
+        "description": "Mail envoyé lors de la création d’un compte",
+        "subject": "Votre compte immersion",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>{% if utilisateur_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br>Pour\r\n initialiser votre mot de passe, merci de vous connecter à l'adresse \r\nsuivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en \r\nutilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "active": true,
+        "available_vars": [
+            1,
+            18,
+            33,
+            27,
+            29,
+            32,
+            59
         ]
     }
 }

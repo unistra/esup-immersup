@@ -179,7 +179,7 @@ class Parser:
         if user:
             local_account = True
 
-            if all([user.is_speaker(), user.establishment and user.establishment.data_source_plugin]):
+            if all([user.establishment and user.establishment.data_source_plugin]):
                 local_account = False
 
             context: Dict[str, Any] = {
@@ -196,7 +196,7 @@ class Parser:
                 "estintervenant": user.is_speaker(),
                 "estreflycee": user.is_high_school_manager(),
                 "estrefstructure": user.is_structure_manager(),
-                "intervenant_compte_local": local_account
+                "utilisateur_compte_local": local_account
             }
 
             if user.is_high_school_student():

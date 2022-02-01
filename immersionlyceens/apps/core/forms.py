@@ -802,7 +802,8 @@ class VisitForm(forms.ModelForm):
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
-                    speaker_user.set_recovery_string()
+                    if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
+                        speaker_user.set_recovery_string()
                     send_creation_msg = True
 
                 try:
@@ -813,7 +814,7 @@ class VisitForm(forms.ModelForm):
                     )
 
                 if send_creation_msg:
-                    return_msg = speaker_user.send_message(self.request, 'CPT_CREATE_INTER')
+                    return_msg = speaker_user.send_message(self.request, 'CPT_CREATE')
 
                     if not return_msg:
                         messages.success(
@@ -954,7 +955,9 @@ class OffOfferEventForm(forms.ModelForm):
                         establishment=instance.establishment
                     )
                     messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
-                    speaker_user.set_recovery_string()
+                    if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
+                        speaker_user.set_recovery_string()
+
                     send_creation_msg = True
 
                 try:
@@ -965,7 +968,7 @@ class OffOfferEventForm(forms.ModelForm):
                     )
 
                 if send_creation_msg:
-                    return_msg = speaker_user.send_message(self.request, 'CPT_CREATE_INTER')
+                    return_msg = speaker_user.send_message(self.request, 'CPT_CREATE')
 
                     if not return_msg:
                         messages.success(

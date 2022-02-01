@@ -1,441 +1,442 @@
-[{
+[
+{
     "model": "core.mailtemplatevars",
     "pk": 1,
     "fields": {
-      "code": "{{ annee }}",
-      "description": "Ann\u00e9e"
+        "code": "{{ annee }}",
+        "description": "Année"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 2,
     "fields": {
-      "code": "{{ cours.libelle }}",
-      "description": "Libell\u00e9 du cours"
+        "code": "{{ cours.libelle }}",
+        "description": "Libellé du cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 3,
     "fields": {
-      "code": "{{ cours.nbplaceslibre }}",
-      "description": "Places disponibles dans le cours"
+        "code": "{{ cours.nbplaceslibre }}",
+        "description": "Places disponibles dans le cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 4,
     "fields": {
-      "code": "{{ creneau.batiment }}",
-      "description": "Cr\u00e9neau : nom du b\u00e2timent"
+        "code": "{{ creneau.batiment }}",
+        "description": "Créneau : nom du bâtiment"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 5,
     "fields": {
-      "code": "{{ creneau.campus }}",
-      "description": "Cr\u00e9neau : campus"
+        "code": "{{ creneau.campus }}",
+        "description": "Créneau : campus"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 6,
     "fields": {
-      "code": "{{ creneau.structure }}",
-      "description": "Cr\u00e9neau : nom de la structure organisatrice"
+        "code": "{{ creneau.structure }}",
+        "description": "Créneau : nom de la structure organisatrice"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 7,
     "fields": {
-      "code": "{{ creneau.cours.libelle }}",
-      "description": "Cr\u00e9neau : libellé du cours"
+        "code": "{{ creneau.cours.libelle }}",
+        "description": "Créneau : libellé du cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 8,
     "fields": {
-      "code": "{{ creneau.date }}",
-      "description": "Cr\u00e9neau : date"
+        "code": "{{ creneau.date }}",
+        "description": "Créneau : date"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 9,
     "fields": {
-      "code": "{{ creneau.intervenants }}",
-      "description": "Liste des intervenants du cr\u00e9neau"
+        "code": "{{ creneau.intervenants }}",
+        "description": "Liste des intervenants du créneau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 10,
     "fields": {
-      "code": "{{ creneau.cours.formation }}",
-      "description": "Formation concern\u00e9e par le cr\u00e9neau"
+        "code": "{{ creneau.cours.formation }}",
+        "description": "Formation concernée par le créneau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 11,
     "fields": {
-      "code": "{{ creneau.heuredebut }}",
-      "description": "Cr\u00e9neau : heure de d\u00e9but"
+        "code": "{{ creneau.heuredebut }}",
+        "description": "Créneau : heure de début"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 12,
     "fields": {
-      "code": "{{ creneau.heurefin }}",
-      "description": "Cr\u00e9neau : heure de fin"
+        "code": "{{ creneau.heurefin }}",
+        "description": "Créneau : heure de fin"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 13,
     "fields": {
-      "code": "{{ creneau.info }}",
-      "description": "Cr\u00e9neau : autres informations"
+        "code": "{{ creneau.info }}",
+        "description": "Créneau : autres informations"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 14,
     "fields": {
-      "code": "{{ creneau.salle }}",
-      "description": "Cr\u00e9neau : salle"
+        "code": "{{ creneau.salle }}",
+        "description": "Créneau : salle"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 15,
     "fields": {
-      "code": "{{ creneau.cours.type }}",
-      "description": "Cr\u00e9neau : type de cours"
+        "code": "{{ creneau.cours.type }}",
+        "description": "Créneau : type de cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 18,
     "fields": {
-      "code": "{{ identifiant }}",
-      "description": "Identifiant"
+        "code": "{{ identifiant }}",
+        "description": "Identifiant"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 19,
     "fields": {
-      "code": "{{ lycee }}",
-      "description": "Nom du lyc\u00e9e"
+        "code": "{{ lycee }}",
+        "description": "Nom du lycée"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 20,
     "fields": {
-      "code": "{{ jourDestructionCptMin }}",
-      "description": "Date de destruction automatique du compte"
+        "code": "{{ jourDestructionCptMin }}",
+        "description": "Date de destruction automatique du compte"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 21,
     "fields": {
-      "code": "{{ lienCreneau }}",
-      "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du cr\u00e9neau"
+        "code": "{{ lienCreneau }}",
+        "description": "Lien vers l'enquête pour l'évaluation du créneau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 22,
     "fields": {
-      "code": "{{ lienGlobal }}",
-      "description": "Lien vers l'enqu\u00eate pour l'\u00e9valuation du dispositif"
+        "code": "{{ lienGlobal }}",
+        "description": "Lien vers l'enquête pour l'évaluation du dispositif"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 23,
     "fields": {
-      "code": "{{ lienValidation }}",
-      "description": "Lien vers la page de validation du compte"
+        "code": "{{ lienValidation }}",
+        "description": "Lien vers la page de validation du compte"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 25,
     "fields": {
-      "code": "{{ creneau.listeInscrits }}",
-      "description": "Liste des inscrits (noms, pr\u00e9noms et établissements d'origine)"
+        "code": "{{ creneau.listeInscrits }}",
+        "description": "Liste des inscrits (noms, prénoms et établissements d'origine)"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 26,
     "fields": {
-      "code": "{{ motifAnnulation }}",
-      "description": "Motif de l'annulation"
+        "code": "{{ motifAnnulation }}",
+        "description": "Motif de l'annulation"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 27,
     "fields": {
-      "code": "{{ nom }}",
-      "description": "Nom du destinataire"
+        "code": "{{ nom }}",
+        "description": "Nom du destinataire"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 29,
     "fields": {
-      "code": "{{ prenom }}",
-      "description": "Pr\u00e9nom du destinataire"
+        "code": "{{ prenom }}",
+        "description": "Prénom du destinataire"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 32,
     "fields": {
-      "code": "{{ urlPlateforme }}",
-      "description": "Adresse (URL) de la plateforme"
+        "code": "{{ urlPlateforme }}",
+        "description": "Adresse (URL) de la plateforme"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 33,
     "fields": {
-      "code": "{{ lienMotDePasse }}",
-      "description": "Lien vers la page de r\u00e9initialisation du mot de passe"
+        "code": "{{ lienMotDePasse }}",
+        "description": "Lien vers la page de réinitialisation du mot de passe"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 34,
     "fields": {
-      "code": "{{ creneaux.liste }}",
-      "description": "Affichage de cr\u00e9neaux sous forme de liste"
+        "code": "{{ creneaux.liste }}",
+        "description": "Affichage de créneaux sous forme de liste"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 35,
     "fields": {
-      "code": "{{ datedenaissance }}",
-      "description": "Date de naissance de la personne inscrite au créneau"
+        "code": "{{ datedenaissance }}",
+        "description": "Date de naissance de la personne inscrite au créneau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 36,
     "fields": {
-      "code": "{{ visite.libelle }}",
-      "description": "Libell\u00e9 (objet) de la visite"
+        "code": "{{ visite.libelle }}",
+        "description": "Libellé (objet) de la visite"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 37,
     "fields": {
-      "code": "{{ visite.nbplaceslibre }}",
-      "description": "Places disponibles pour la visite"
+        "code": "{{ visite.nbplaceslibre }}",
+        "description": "Places disponibles pour la visite"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 38,
     "fields": {
-      "code": "{{ evenement.libelle }}",
-      "description": "Libell\u00e9 de l'évènement hors offre"
+        "code": "{{ evenement.libelle }}",
+        "description": "Libellé de l'évènement hors offre"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 39,
     "fields": {
-      "code": "{{ evenement.nbplaceslibre }}",
-      "description": "Places disponibles pour l'évènement hors offre"
+        "code": "{{ evenement.nbplaceslibre }}",
+        "description": "Places disponibles pour l'évènement hors offre"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 40,
     "fields": {
-      "code": "{{ creneau.evenement.type }}",
-      "description": "Cr\u00e9neau : type d'évènement hors offre"
+        "code": "{{ creneau.evenement.type }}",
+        "description": "Créneau : type d'évènement hors offre"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 41,
     "fields": {
-      "code": "{{ creneau.evenement.libelle }}",
-      "description": "Cr\u00e9neau : libellé de l'évènement hors offre"
+        "code": "{{ creneau.evenement.libelle }}",
+        "description": "Créneau : libellé de l'évènement hors offre"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 42,
     "fields": {
-      "code": "{{ creneau.visite.libelle }}",
-      "description": "Cr\u00e9neau : libellé (objet) de la visite"
+        "code": "{{ creneau.visite.libelle }}",
+        "description": "Créneau : libellé (objet) de la visite"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 43,
     "fields": {
-      "code": "{{ creneau.temoindistanciel }}",
-      "description": "Cr\u00e9neau : indique s'il s'agit d'un créneau à distance ou non"
+        "code": "{{ creneau.temoindistanciel }}",
+        "description": "Créneau : indique s'il s'agit d'un créneau à distance ou non"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 44,
     "fields": {
-      "code": "{{ creneau.lien }}",
-      "description": "Cr\u00e9neau : lien s'il s'agit d'un créneau à distance"
+        "code": "{{ creneau.lien }}",
+        "description": "Créneau : lien s'il s'agit d'un créneau à distance"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 46,
     "fields": {
-      "code": "{{ creneau.lycee }}",
-      "description": "Cr\u00e9neau : nom du lycée organisateur"
+        "code": "{{ creneau.lycee }}",
+        "description": "Créneau : nom du lycée organisateur"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 47,
     "fields": {
-      "code": "{{ creneau.evenement.description }}",
-      "description": "Cr\u00e9neau : description de l'évènement hors offre"
+        "code": "{{ creneau.evenement.description }}",
+        "description": "Créneau : description de l'évènement hors offre"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 48,
     "fields": {
-      "code": "{{ cours.formation }}",
-      "description": "Formation li\u00e9e au cours"
+        "code": "{{ cours.formation }}",
+        "description": "Formation liée au cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 49,
     "fields": {
-      "code": "{{ creneau.nbplaceslibres }}",
-      "description": "Places disponibles dans le créneau"
+        "code": "{{ creneau.nbplaceslibres }}",
+        "description": "Places disponibles dans le créneau"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 50,
     "fields": {
-      "code": "{{ creneau.libelle }}",
-      "description": "Cr\u00e9neau : libellé du cours, de la visite ou de l'évènement"
+        "code": "{{ creneau.libelle }}",
+        "description": "Créneau : libellé du cours, de la visite ou de l'évènement"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 51,
     "fields": {
-      "code": "{{ creneau.etablissement }}",
-      "description": "Cr\u00e9neau : établissement organisateur"
+        "code": "{{ creneau.etablissement }}",
+        "description": "Créneau : établissement organisateur"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 52,
     "fields": {
-      "code": "{{ referentlycee.lycee }}",
-      "description": "Lycée du référent lycée connecté"
+        "code": "{{ referentlycee.lycee }}",
+        "description": "Lycée du référent lycée connecté"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 53,
     "fields": {
-      "code": "{{ estetudiant }}",
-      "description": "Indique si le destinataire est étudiant(e)"
+        "code": "{{ estetudiant }}",
+        "description": "Indique si le destinataire est étudiant(e)"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 54,
     "fields": {
-      "code": "{{ estlyceen }}",
-      "description": "Indique si le destinataire est lycéen(ne)"
+        "code": "{{ estlyceen }}",
+        "description": "Indique si le destinataire est lycéen(ne)"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 55,
     "fields": {
-      "code": "{{ estvisiteur }}",
-      "description": "Indique si le destinataire est visiteur"
+        "code": "{{ estvisiteur }}",
+        "description": "Indique si le destinataire est visiteur"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 56,
     "fields": {
-      "code": "{{ estintervenant }}",
-      "description": "Indique si le destinataire est intervenant(e)"
+        "code": "{{ estintervenant }}",
+        "description": "Indique si le destinataire est intervenant(e)"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 57,
     "fields": {
-      "code": "{{ estreflycee }}",
-      "description": "Indique si le destinataire est référent(e) de lycée"
+        "code": "{{ estreflycee }}",
+        "description": "Indique si le destinataire est référent(e) de lycée"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 58,
     "fields": {
-      "code": "{{ estrefstructure }}",
-      "description": "Indique si le destinataire est référent(e) de structure"
+        "code": "{{ estrefstructure }}",
+        "description": "Indique si le destinataire est référent(e) de structure"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 59,
     "fields": {
-      "code": "{{ intervenant_compte_local }}",
-      "description": "Indique si l'intervenant(e) possède un compte local"
+        "code": "{{ utilisateur_compte_local }}",
+        "description": "Indique si l'utilisateur(trice) possède un compte local"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 60,
     "fields": {
-      "code": "{{ creneau.estuncours }}",
-      "description": "Indique si le créneau est un cours"
+        "code": "{{ creneau.estuncours }}",
+        "description": "Indique si le créneau est un cours"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 61,
     "fields": {
-      "code": "{{ creneau.estunevisite }}",
-      "description": "Indique si le créneau est une visite"
+        "code": "{{ creneau.estunevisite }}",
+        "description": "Indique si le créneau est une visite"
     }
-  },
-  {
+},
+{
     "model": "core.mailtemplatevars",
     "pk": 62,
     "fields": {
-      "code": "{{ creneau.estunevenement }}",
-      "description": "Indique si le créneau est un évènement"
+        "code": "{{ creneau.estunevenement }}",
+        "description": "Indique si le créneau est un évènement"
     }
-  }
+}
 ]

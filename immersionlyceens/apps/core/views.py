@@ -308,7 +308,8 @@ def course(request, course_id=None, duplicate=False):
                             )
 
                             messages.success(request, gettext("User '{}' created").format(speaker['username']))
-                            speaker_user.set_recovery_string()
+                            if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
+                                speaker_user.set_recovery_string()
                             send_creation_msg = True
 
                         try:
@@ -319,7 +320,7 @@ def course(request, course_id=None, duplicate=False):
                             )
 
                         if send_creation_msg:
-                            return_msg = speaker_user.send_message(request, 'CPT_CREATE_INTER')
+                            return_msg = speaker_user.send_message(request, 'CPT_CREATE')
 
                             if not return_msg:
                                 messages.success(
@@ -527,7 +528,10 @@ def speaker(request, id=None):
         speaker_form = ImmersionUserCreationForm(request.POST, instance=speaker, initial=initial, request=request)
         if speaker_form.is_valid():
             new_speaker = speaker_form.save()
-            new_speaker.set_recovery_string()
+
+            if not new_speaker.establishment or not new_speaker.establishment.data_source_plugin:
+                new_speaker.set_recovery_string()
+
             Group.objects.get(name='INTER').user_set.add(new_speaker)
 
             if speaker:
@@ -538,7 +542,7 @@ def speaker(request, id=None):
                 messages.success(request, _("Speaker successfully created."))
 
                 # Send creation message
-                return_msg = new_speaker.send_message(request, 'CPT_CREATE_INTER')
+                return_msg = new_speaker.send_message(request, 'CPT_CREATE')
 
                 if not return_msg:
                     messages.success(

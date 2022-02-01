@@ -1116,19 +1116,13 @@ class ImmersionUserChangeForm(UserChangeForm):
                 self.instance.username = self.instance.email
             # TODO: send CPT_CREATE_INTER in case of a new user
 
-        if ref_lyc_group and str(ref_lyc_group.id) in new_groups - current_groups:
-            # REF-LYC group spotted : if the password is not set, send an email to the user
-            user = self.instance
-            if not user.last_login:
+        # New account : send an account creation message
+        user = self.instance
+        if not user.last_login:
+            if not user.establishment or not user.establishment.data_source_plugin:
                 user.set_recovery_string()
-                user.send_message(self.request, "CPT_CREATE_LYCEE")
 
-        if inter_group and str(inter_group.id) in new_groups - current_groups:
-            # INTER group spotted : if the password is not set, send an email
-            user = self.instance
-            if not user.last_login:
-                user.set_recovery_string()
-                user.send_message(self.request, "CPT_CREATE_INTER")
+            user.send_message(self.request, "CPT_CREATE")
 
         self.instance = super().save(*args, **kwargs)
 
