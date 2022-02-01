@@ -78,7 +78,20 @@ class Establishment(models.Model):
         choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
     )
     data_source_settings = models.JSONField(_("Accounts source plugin settings"), null=True, blank=True)
-
+    logo = models.ImageField(
+        _("Logo"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+    signature = models.ImageField(
+        _("Signature"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
@@ -152,6 +165,20 @@ class HighSchool(models.Model):
     immersions_proposal = PostBacImmersionManager()
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
+    logo = models.ImageField(
+        _("Logo"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
+    signature = models.ImageField(
+        _("Signature"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
+    )
 
     def __str__(self):
         return f"{self.city} - {self.label}"

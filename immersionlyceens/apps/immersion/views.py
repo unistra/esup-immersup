@@ -809,7 +809,7 @@ def registrations(request):
 
 
 @login_required
-@groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def immersion_attestation_download(request, immersion_id):
     """
     Attestation download
@@ -831,11 +831,17 @@ def immersion_attestation_download(request, immersion_id):
             slot=immersion.slot,
         )
 
-        certificate_logo = CertificateLogo.objects.get(pk=1)
-        certificate_sig = CertificateSignature.objects.get(pk=1)
+
+        slot_entity = immersion.slot.get_establishment() \
+            if immersion.slot.get_establishment() else immersion.slot.get_highschool()
+
+        certificate_logo = slot_entity if slot_entity.logo \
+            else CertificateLogo.objects.get(pk=1)
+        certificate_sig = slot_entity if slot_entity.signature \
+            else CertificateSignature.objects.get(pk=1)
 
         context = {
-            'city': get_general_setting('PDF_CERTIFICATE_CITY'),
+            'city': slot_entity.city.capitalize(),
             'certificate_header': MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True).body,
             'certificate_body': certificate_body,
             'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
