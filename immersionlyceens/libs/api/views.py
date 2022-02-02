@@ -1059,7 +1059,7 @@ def ajax_cancel_registration(request):
 @is_ajax_request
 #TODO: check rights
 @groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
-def ajax_get_immersions(request, user_id=None, immersion_type=None):
+def ajax_get_immersions(request, user_id=None):
     """
     Returns students immersions
     GET parameters:
@@ -1070,7 +1070,6 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     slot_type = request.GET.get('slot_type') or None
     immersion_type = request.GET.get('immersion_type') or None
-
     calendar = None
     slot_semester = None
     remainings = {}
@@ -1113,7 +1112,6 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     filters = {
         'student_id': user_id,
-        'cancellation_type__isnull': True,
     }
 
     prefetch = [
@@ -1123,7 +1121,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
     ]
 
     if slot_type:
-        filters += [f'slot__{a}__isnull=True' for a in filter(lambda a:a != slot_type, all_types)]
+        filters.update({f'slot__{a}__isnull': True for a in filter(lambda a:a != slot_type, all_types)})
         prefetch.append(f'slot__{slot_type}')
 
         if slot_type == 'course':
@@ -1139,12 +1137,12 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     if immersion_type == "cancelled":
         filters["cancellation_type__isnull"] = False
-
+    elif immersion_type:
+        filters["cancellation_type__isnull"] = True
 
     immersions = Immersion.objects\
         .prefetch_related(*prefetch)\
-        .filter(**filters)\
-        .order_by('slot__date', 'slot__start_time')
+        .filter(**filters)
 
     if immersion_type == "future":
         immersions = immersions.filter(
@@ -1177,7 +1175,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         )
         # Remote course slot not used for now
         if not slot.face_to_face:
-            meeting_place = gettext('Remote %s') % pgettext("lowercase", slot.get_type())
+            meeting_place = gettext('Remote')
 
             if slot.url and slot.can_show_url():
                 meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
@@ -1192,8 +1190,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
             'label': slot.get_label(),
             'establishment': establishment.label if establishment else "",
             'highschool': f'{highschool.label} - {highschool.city}' if highschool else "",
-            'organizing_establishment': establishment.label if establishment else '',
-            'organizing_structure': structure.label if structure else "",
+            'structure': structure.label if structure else "",
             'meeting_place': meeting_place,
             'campus': slot.campus.label if slot.campus else '',
             'building': slot.building.label if slot.building else '',

@@ -183,9 +183,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_immersions/" + user_id + "/future",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'future'
+            d.slot_type = 'course'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -197,20 +202,20 @@
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
-              return row.training + "<br>" + row.establishments;
+            if(type === "display" || type === "filter") {
+              return row.course.training + "<br>" + row.establishments;
             }
             return data;
           },
         },
-        { "data": "organizing_structure" },
-        { "data": "course" },
-        { "data": "type" },
+        { "data": "structure" },
+        { "data": "course.label" },
+        { "data": "course.type" },
         { "data": "campus" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
@@ -233,7 +238,7 @@
                       "<i class='fa fas fa-users fa-2x'></i>" +
                       "</button>";
 
-            if(row.cancellable == true) {
+            if(row.cancellable === true) {
               msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
@@ -265,9 +270,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_immersions/" + user_id + "/past",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'past'
+            d.slot_type = 'course'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -279,20 +289,20 @@
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
-              return row.training + "<br>" + row.establishments;
+            if(type === "display" || type === "filter") {
+              return row.course.training + "<br>" + row.establishments;
             }
             return data;
           },
         },
-        { "data": "organizing_structure" },
-        { "data": "course" },
-        { "data": "type" },
+        { "data": "structure" },
+        { "data": "course.label" },
+        { "data": "course.type" },
         { "data": "campus" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
@@ -311,7 +321,7 @@
         { "data": "attendance",
           "render": function(data, type, row) {
             var msg = data;
-            if(row.attendance_status == 1) {
+            if(row.attendance_status === 1) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
                   "</a>";
@@ -343,9 +353,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_immersions/" + user_id + "/cancelled",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'cancelled'
+            d.slot_type = 'course'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -357,20 +372,20 @@
       'columns': [
         { "data": "training",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
-              return row.training + "<br>" + row.establishments;
+            if(type === "display" || type === "filter") {
+              return row.course.training + "<br>" + row.establishments;
             }
             return data;
           },
         },
-        { "data": "organizing_structure" },
-        { "data": "course" },
-        { "data": "type" },
+        { "data": "structure" },
+        { "data": "course.label" },
+        { "data": "course.type" },
         { "data": "campus" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
@@ -394,7 +409,7 @@
               msg += "<br><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
-            if(row.free_seats == 0) {
+            if(row.free_seats === 0) {
               msg += "<br><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 
@@ -422,9 +437,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_events/" + user_id + "/future",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'future'
+            d.slot_type = 'event'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -436,8 +456,8 @@
       'columns': [
         { "data": "label",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
-              return row.label + "<br>" + row.establishment;
+            if(type === "display" || type === "filter") {
+              return row.label + "<br>" + (row.establishment || row.highschool);
             }
             return data;
           },
@@ -446,7 +466,7 @@
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
@@ -461,7 +481,7 @@
                       "<i class='fa fas fa-users fa-2x'></i>" +
                       "</button>";
 
-            if(row.cancellable == true) {
+            if(row.cancellable === true) {
               msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
@@ -494,9 +514,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_events/" + user_id + "/past",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'past'
+            d.slot_type = 'event'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -508,8 +533,8 @@
       'columns': [
         { "data": "label",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
-              return row.label + "<br>" + row.establishment;
+            if(type === "display" || type === "filter") {
+              return row.label + "<br>" + (row.establishment || row.highschool);
             }
             return data;
           },
@@ -518,7 +543,7 @@
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
@@ -538,7 +563,7 @@
           "render": function(data, type, row) {
             var msg = data;
 
-            if(row.attendance_status == 1) {
+            if(row.attendance_status === 1) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
                   "</a>";
@@ -570,9 +595,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_events/" + user_id + "/cancelled",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'cancelled'
+            d.slot_type = 'event'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -584,8 +614,8 @@
       'columns': [
         { "data": "label",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
-              return row.label + "<br>" + row.establishment;
+            if(type === "display" || type === "filter") {
+              return row.label + "<br>" + (row.establishment || row.highschool);
             }
             return data;
           },
@@ -594,7 +624,7 @@
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + "<br>" + row.start_time + " - " + row.end_time;
             }
 
@@ -618,7 +648,7 @@
               msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
-            if(row.free_seats == 0) {
+            if(row.free_seats === 0) {
               msg += "<br /><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 
@@ -646,9 +676,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_visits/" + user_id + "/future",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'future'
+            d.slot_type = 'visit'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -660,11 +695,11 @@
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
-        { "data": "organizing_establishment" },
+        { "data": "establishment" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + ", " + row.start_time + " - " + row.end_time;
             }
 
@@ -679,7 +714,7 @@
                       "<i class='fa fas fa-users fa-2x'></i>" +
                       "</button>";
 
-            if(row.cancellable == true) {
+            if(row.cancellable === true) {
               msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
                      "<i class='fa fas fa-trash fa-2x'></i>" +
                      "</button>";
@@ -712,9 +747,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_visits/" + user_id + "/past",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'past'
+            d.slot_type = 'visit'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -726,11 +766,11 @@
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
-        { "data": "organizing_establishment" },
+        { "data": "establishment" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + ", " + row.start_time + " - " + row.end_time;
             }
 
@@ -750,7 +790,7 @@
           "render": function(data, type, row) {
             var msg = data;
 
-            if(row.attendance_status == 1) {
+            if(row.attendance_status === 1) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
                   "</a>";
@@ -782,9 +822,14 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_visits/" + user_id + "/cancelled",
+        url: "/api/get_immersions/" + user_id,
+        data: function(d) {
+            d.immersion_type = 'cancelled'
+            d.slot_type = 'visit'
+            return d
+        },
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -796,11 +841,11 @@
       'columns': [
         { "data": "label" },
         { "data": "highschool" },
-        { "data": "organizing_establishment" },
+        { "data": "establishment" },
         { "data": "meeting_place" },
         { "data": "datetime",
           "render": function(data, type, row) {
-            if(type == "display" || type == "filter") {
+            if(type === "display" || type === "filter") {
               return row.date + ", " + row.start_time + " - " + row.end_time;
             }
 
@@ -824,7 +869,7 @@
               msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
             }
 
-            if(row.free_seats == 0) {
+            if(row.free_seats === 0) {
               msg += "<br /><span class='badge badge-pill badge-danger'>{% trans 'Full' %}</span>";
             }
 

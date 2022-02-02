@@ -18,6 +18,8 @@
               <thead>
                 <tr>
                   <th>{% trans 'Type' %}</th>
+                  <th>{% trans 'Managed by' %}</th>
+                  <th>{% trans 'High school' %}</th>
                   <th>{% trans 'Details' %}</th>
                   <th>{% trans 'Place' %}</th>
                   <th>{% trans 'Date and time' %}</th>
@@ -29,6 +31,8 @@
               </thead>
               <tbody>
                 <tr>
+                  <td></td>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -60,7 +64,7 @@ $.fn.dataTableExt.errMode = 'console';
 dtr = $('#immersions_table').DataTable({
   'processing': false,
   'order': [
-    [4, "asc"]
+    [5, "asc"]
   ],
   'pageLength': 10,
   'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -80,6 +84,20 @@ dtr = $('#immersions_table').DataTable({
   },
   'columns': [
     { "data": "translated_type" },
+    { "data": "",
+      "render": function(data, type, row) {
+        if (type === "display" || type === "filter") {
+          if(row.type === "visit") {
+            return row.establishment + (row.structure ? "<br>" + row.structure : "")
+          }
+          else {
+            return (row.establishment + (row.structure ? "<br>" + row.structure : "")) || row.highschool;
+          }
+        }
+        return data;
+      }
+    },
+    { "data": "highschool" },
     { "data": "",
       "render": function(data, type, row) {
         let txt
