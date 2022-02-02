@@ -298,7 +298,7 @@ msgstr "Vous n'avez pas les droits suffisants pour supprimer ce compte"
 #: immersionlyceens/apps/core/admin.py:277
 msgid "This account is linked to courses/visits/events, you can't delete it"
 msgstr ""
-"Ce compte est lié à des cours/visites/événements, il ne peut pas être "
+"Ce compte est lié à des cours/visites/évènements, il ne peut pas être "
 "supprimé"
 
 #: immersionlyceens/apps/core/admin.py:433
@@ -1050,7 +1050,7 @@ msgstr "Courriel non envoyé : %s"
 
 #: immersionlyceens/apps/core/forms.py:913
 msgid "An event with these values already exists"
-msgstr "Un événement avec ces valeurs existe déjà"
+msgstr "Un évènement avec ces valeurs existe déjà"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:32
 msgid "Cannot parse annual statistics, purge cancelled"
@@ -1902,7 +1902,7 @@ msgstr "Description"
 #: immersionlyceens/templates/core/off_offer_events_slots_list.html:38
 #: immersionlyceens/templates/core/old/off_offer_events_slots_list.html:104
 msgid "Event type"
-msgstr "Type d'événement"
+msgstr "Type d'évènement"
 
 #: immersionlyceens/apps/core/models.py:1519
 msgid "Off-offer event"
@@ -3163,7 +3163,7 @@ msgstr "Compte utilisateur non trouvé"
 
 #: immersionlyceens/libs/api/views.py:978
 msgid "You can't delete this account (this user has slots)"
-msgstr "Vous ne pouvez pas supprimer ce compte (créneaux/événements présents)"
+msgstr "Vous ne pouvez pas supprimer ce compte (créneaux/évènements présents)"
 
 #: immersionlyceens/libs/api/views.py:983
 #: immersionlyceens/libs/api/views.py:988
@@ -4644,7 +4644,7 @@ msgstr "Nouvel intervenant"
 
 #: immersionlyceens/templates/core/my_high_school_speakers.html:44
 msgid "Has courses or events"
-msgstr "A des cours/événements"
+msgstr "A des cours/évènements"
 
 #: immersionlyceens/templates/core/my_high_school_speakers.html:110
 msgid "Edit"
@@ -5254,7 +5254,7 @@ msgstr "Liste des créneaux de visites"
 
 #: immersionlyceens/templates/fragments/main_menu.html:78
 msgid "Events"
-msgstr "Evénements"
+msgstr "Evènements"
 
 #: immersionlyceens/templates/fragments/main_menu.html:82
 msgid "Off offer events slots list"
@@ -6159,7 +6159,7 @@ msgstr "Pas d'offre disponible"
 #: immersionlyceens/templates/offer_off_offer_events.html:16
 #: immersionlyceens/templates/offer_off_offer_events.html:27
 msgid "Events offer"
-msgstr "Offre d'evénements"
+msgstr "Offre d'évènements"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:17
 msgid "by establishments"
@@ -6167,11 +6167,11 @@ msgstr "par établissements"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:46
 msgid "available events (see below)"
-msgstr "evénements disponibles (voir ci-dessous)"
+msgstr "évènements disponibles (voir ci-dessous)"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:46
 msgid "available events"
-msgstr "evénements disponibles"
+msgstr "évènements disponibles"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:105
 #: immersionlyceens/templates/offer_off_offer_events.html:106
@@ -6243,7 +6243,7 @@ msgstr "Voir l'adresse de la carte"
 
 #: immersionlyceens/templates/offer_off_offer_events.html:232
 msgid "No off offer event available"
-msgstr "Pas d'offre d'evénements hors offre disponible"
+msgstr "Pas d'offre d'évènements hors offre disponible"
 
 #: immersionlyceens/templates/offer_subdomains.html:39
 msgid "Close all"

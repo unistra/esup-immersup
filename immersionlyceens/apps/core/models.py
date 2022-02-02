@@ -711,8 +711,7 @@ class Training(models.Model):
         return not self.courses.all().exists()
 
     def distinct_establishments(self):
-        return Establishment.objects.filter(structures__in=self.structures.all()) \
-                                    .distinct()
+        return Establishment.objects.filter(structures__in=self.structures.all()).distinct()
 
 
     class Meta:
