@@ -1070,6 +1070,7 @@ def ajax_get_immersions(request, user_id=None):
 
     slot_type = request.GET.get('slot_type') or None
     immersion_type = request.GET.get('immersion_type') or None
+    user = request.user
     calendar = None
     slot_semester = None
     remainings = {}
@@ -1081,11 +1082,11 @@ def ajax_get_immersions(request, user_id=None):
 
     # Valid conditions to view user's immersions : staff and the user himself
     valid_conditions = [
-        request.user.is_master_establishment_manager(),
-        request.user.is_operator(),
-        request.user.is_establishment_manager(),
-        request.user.is_high_school_manager() and request.user.highschool.postbac_immersion,
-        request.user.id == user_id
+        user.is_master_establishment_manager(),
+        user.is_operator(),
+        user.is_establishment_manager(),
+        user.is_high_school_manager() and user.highschool and user.highschool.postbac_immersion,
+        user.id == user_id
     ]
 
     if not any(valid_conditions):
@@ -1158,6 +1159,8 @@ def ajax_get_immersions(request, user_id=None):
         highschool = slot.get_highschool()
         establishment = slot.get_establishment()
         structure = slot.get_structure()
+        campus = slot.campus.label if slot.campus else ""
+        building = slot.building.label if slot.building else ""
 
         if calendar.calendar_mode == 'SEMESTER':
             slot_semester = calendar.which_semester(immersion.slot.date)
@@ -1180,8 +1183,8 @@ def ajax_get_immersions(request, user_id=None):
             if slot.url and slot.can_show_url():
                 meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
         else:
-            meeting_place = slot.campus.label if slot.campus else ""
-            meeting_place += " <br> ".join(list(filter(lambda x:x, [slot.building, slot.room])))
+            meeting_place = campus
+            meeting_place += " <br> ".join(list(filter(lambda x:x, [building, slot.room])))
 
         immersion_data = {
             'id': immersion.id,
@@ -1192,8 +1195,8 @@ def ajax_get_immersions(request, user_id=None):
             'highschool': f'{highschool.label} - {highschool.city}' if highschool else "",
             'structure': structure.label if structure else "",
             'meeting_place': meeting_place,
-            'campus': slot.campus.label if slot.campus else '',
-            'building': slot.building.label if slot.building else '',
+            'campus': campus,
+            'building': building,
             'room': slot.room,
             'establishments': [],
             'course': {
@@ -1202,11 +1205,14 @@ def ajax_get_immersions(request, user_id=None):
                 'type': slot.course_type.label,
                 'type_full': slot.course_type.full_label
             } if slot.course else {},
-
             'event': {
                 'label': slot.event.label,
                 'type': slot.event.event_type.label
             } if slot.event else {},
+            'visit': {
+                'label': slot.visit.purpose,
+                'purpose': slot.visit.purpose,
+            } if slot.visit else {},
             'datetime': slot_datetime,
             'date': date_format(slot.date),
             'start_time': slot.start_time.strftime("%-Hh%M"),
@@ -2095,7 +2101,7 @@ def ajax_get_highschool_students(request, highschool_id=None):
         request.user.is_establishment_manager(),
         request.user.is_master_establishment_manager(),
         request.user.is_operator(),
-        request.user.is_high_school_manager() and request.user.highschool.postbac_immersion
+        request.user.is_high_school_manager() and request.user.highschool and request.user.highschool.postbac_immersion
     ]
 
     if any(admin_groups):
