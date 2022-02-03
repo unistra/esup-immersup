@@ -361,7 +361,7 @@ REST_FRAMEWORK = {
 # Admin page settings #
 #######################
 
-ADMIN_SITE_HEADER = _('ImmerSup')
+ADMIN_SITE_HEADER = "ImmerSup %s" % __import__('immersionlyceens').get_version()
 ADMIN_SITE_TITLE = _('ImmerSup Admin Page')
 ADMIN_SITE_INDEX_TITLE = _('Welcome to ImmerSup administration page')
 
