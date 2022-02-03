@@ -1183,7 +1183,7 @@ def ajax_get_immersions(request, user_id=None):
             if slot.url and slot.can_show_url():
                 meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
         else:
-            meeting_place = " <br> ".join(list(filter(lambda x:x, [campus, building, slot.room])))
+            meeting_place = " <br> ".join(list(filter(lambda x:x, [building, slot.room])))
 
         immersion_data = {
             'id': immersion.id,

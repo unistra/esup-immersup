@@ -21,6 +21,7 @@
                   <th>{% trans 'Managed by' %}</th>
                   <th>{% trans 'High school' %}</th>
                   <th>{% trans 'Details' %}</th>
+                  <th>{% trans 'Campus' %}</th>
                   <th>{% trans 'Place' %}</th>
                   <th>{% trans 'Date and time' %}</th>
                   <th>{% trans 'Speakers' %}</th>
@@ -64,7 +65,7 @@ $.fn.dataTableExt.errMode = 'console';
 dtr = $('#immersions_table').DataTable({
   'processing': false,
   'order': [
-    [5, "asc"]
+    [6, "asc"]
   ],
   'pageLength': 10,
   'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -114,6 +115,7 @@ dtr = $('#immersions_table').DataTable({
         return txt
       }
     },
+    { "data": "campus" },
     { "data": "meeting_place" },
     { "data": "datetime",
       "render": function(data, type, row) {
