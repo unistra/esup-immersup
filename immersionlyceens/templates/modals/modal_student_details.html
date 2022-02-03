@@ -17,9 +17,10 @@
               <table id="immersions_table" class="table table-sm table-bordered nowrap dt-body-nowrap" style="width:100%;">
               <thead>
                 <tr>
-                  <th >{% trans 'Training' %}</th>
-                  <th>{% trans 'Course' %}</th>
                   <th>{% trans 'Type' %}</th>
+                  <th>{% trans 'Managed by' %}</th>
+                  <th>{% trans 'High school' %}</th>
+                  <th>{% trans 'Details' %}</th>
                   <th>{% trans 'Place' %}</th>
                   <th>{% trans 'Date and time' %}</th>
                   <th>{% trans 'Speakers' %}</th>
@@ -30,6 +31,7 @@
               </thead>
               <tbody>
                 <tr>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -62,16 +64,16 @@ $.fn.dataTableExt.errMode = 'console';
 dtr = $('#immersions_table').DataTable({
   'processing': false,
   'order': [
-    [4, "asc"]
+    [5, "asc"]
   ],
-  'pageLength': 5,
+  'pageLength': 10,
   'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
   'serverSide': false,
   'responsive': true,
   'ajax': {
     url: "",
     dataSrc: function (json) {
-      if (json['data'] != undefined) {
+      if (json['data'] !== undefined) {
         return json['data'];
       }
     }
@@ -81,18 +83,41 @@ dtr = $('#immersions_table').DataTable({
       url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
   },
   'columns': [
-    { "data": "training" },
-    { "data": "course" },
-    { "data": "type" },
+    { "data": "translated_type" },
     { "data": "",
       "render": function(data, type, row) {
-        return row.campus + "<br />" +
-          row.building + ", " + row.room;
+        if (type === "display" || type === "filter") {
+          if(row.type === "visit") {
+            return row.establishment + (row.structure ? "<br>" + row.structure : "")
+          }
+          else {
+            return (row.establishment + (row.structure ? "<br>" + row.structure : "")) || row.highschool;
+          }
+        }
+        return data;
       }
     },
+    { "data": "highschool" },
+    { "data": "",
+      "render": function(data, type, row) {
+        let txt
+        if(row.type === 'course') {
+          txt = row.course.training + "<br>" + row.course.type + " - " + row.course.label
+        }
+        else if(row.type === 'visit') {
+          txt = row.label
+        }
+        else if(row.type === 'event') {
+          txt = row.event.type + "<br>" + row.event.label
+        }
+
+        return txt
+      }
+    },
+    { "data": "meeting_place" },
     { "data": "datetime",
       "render": function(data, type, row) {
-        if(type == "display" || type == "filter") {
+        if(type === "display" || type === "filter") {
           return row.date + "<br />" + row.start_time + " - " + row.end_time;
         }
 

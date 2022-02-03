@@ -598,16 +598,6 @@ def slots(request):
         }
 
         # Update attendances rights depending on slot data and current user
-        """
-        valid_conditions = [
-            user.is_superuser,
-            user.is_operator(),
-            user.is_master_establishment_manager(),
-            establishement and user.is_establishment_manager() and user.establishement == establishment,
-            establishement and user.is_establishment_manager() and user.establishement == establishment,
-        ]
-        """
-
         if data['datetime'] and data['datetime'] <= today:
             data['is_past'] = True
             if not slot.immersions.filter(cancellation_type__isnull=True).exists():
@@ -1069,11 +1059,18 @@ def ajax_cancel_registration(request):
 @is_ajax_request
 #TODO: check rights
 @groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
-def ajax_get_immersions(request, user_id=None, immersion_type=None):
+def ajax_get_immersions(request, user_id=None):
     """
-    Get (high-school or not) students immersions
-    immersion_type in "future", "past", "cancelled" or None
+    Returns students immersions
+    GET parameters:
+    immersion_type in "future", "past", "cancelled" or None (= all)
+    slot_type in "course", "visit", "event" or None (= all)
     """
+    all_types = ['course', 'visit', 'event'] # Fixme : do something with this in Slot class
+
+    slot_type = request.GET.get('slot_type') or None
+    immersion_type = request.GET.get('immersion_type') or None
+    user = request.user
     calendar = None
     slot_semester = None
     remainings = {}
@@ -1083,11 +1080,16 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
         response['msg'] = gettext("Error : missing user id")
         return JsonResponse(response, safe=False)
 
-    if (
-        not request.user.is_establishment_manager()
-        and not request.user.is_high_school_manager()
-        and request.user.id != user_id
-    ):
+    # Valid conditions to view user's immersions : staff and the user himself
+    valid_conditions = [
+        user.is_master_establishment_manager(),
+        user.is_operator(),
+        user.is_establishment_manager(),
+        user.is_high_school_manager() and user.highschool and user.highschool.postbac_immersion,
+        user.id == user_id
+    ]
+
+    if not any(valid_conditions):
         response['msg'] = gettext("Error : invalid user id")
         return JsonResponse(response, safe=False)
 
@@ -1098,6 +1100,7 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     today = datetime.datetime.today().date()
+    now = datetime.datetime.today().time()
 
     try:
         student = ImmersionUser.objects.get(pk=user_id)
@@ -1108,106 +1111,149 @@ def ajax_get_immersions(request, user_id=None, immersion_type=None):
 
     time = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
 
-    immersions = Immersion.objects.prefetch_related(
-        'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
-    ).filter(Q(slot__event__isnull=True,slot__visit__isnull=True), student_id=user_id)
+    filters = {
+        'student_id': user_id,
+    }
+
+    prefetch = [
+        'slot__campus',
+        'slot__building',
+        'slot__speakers'
+    ]
+
+    if slot_type:
+        filters.update({f'slot__{a}__isnull': True for a in filter(lambda a:a != slot_type, all_types)})
+        prefetch.append(f'slot__{slot_type}')
+
+        if slot_type == 'course':
+            prefetch += ['slot__course__training', 'slot__course_type']
+    else:
+        prefetch += [
+            'slot__course',
+            'slot__course__training',
+            'slot__course_type',
+            'slot__event',
+            'slot__visit',
+        ]
+
+    if immersion_type == "cancelled":
+        filters["cancellation_type__isnull"] = False
+    elif immersion_type:
+        filters["cancellation_type__isnull"] = True
+
+    immersions = Immersion.objects\
+        .prefetch_related(*prefetch)\
+        .filter(**filters)
 
     if immersion_type == "future":
         immersions = immersions.filter(
-            Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time), cancellation_type__isnull=True
+            Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gte=time)
         )
     elif immersion_type == "past":
         immersions = immersions.filter(
-            Q(slot__date__lt=today) | Q(slot__date=today, slot__start_time__lte=time), cancellation_type__isnull=True
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__start_time__lte=time)
         )
-    elif immersion_type == "cancelled":
-        immersions = immersions.filter(cancellation_type__isnull=False)
 
     for immersion in immersions:
+        slot = immersion.slot
+        highschool = slot.get_highschool()
+        establishment = slot.get_establishment()
+        structure = slot.get_structure()
+        campus = slot.campus.label if slot.campus else ""
+        building = slot.building.label if slot.building else ""
+
         if calendar.calendar_mode == 'SEMESTER':
             slot_semester = calendar.which_semester(immersion.slot.date)
 
         slot_datetime = datetime.datetime.strptime(
             "%s:%s:%s %s:%s"
             % (
-                immersion.slot.date.year,
-                immersion.slot.date.month,
-                immersion.slot.date.day,
-                immersion.slot.start_time.hour,
-                immersion.slot.start_time.minute,
+                slot.date.year,
+                slot.date.month,
+                slot.date.day,
+                slot.start_time.hour,
+                slot.start_time.minute,
             ),
             "%Y:%m:%d %H:%M",
         )
         # Remote course slot not used for now
-        if not immersion.slot.face_to_face:
-            if not immersion.slot.can_show_url() or not immersion.slot.url:
-                meeting_place=_('Remote course')
-            else:
-                meeting_place='{}<br><a href="{}">{}</a>'.format(_("Remote course"),immersion.slot.url,_("Login link"))
-        elif immersion.slot.building and immersion.slot.room:
-            meeting_place=f'{immersion.slot.building} <br> {immersion.slot.room}'
-        elif immersion.slot.building and not immersion.slot.room:
-            meeting_place=immersion.slot.buildings
-        elif not immersion.slot.building and immersion.slot.room:
-            meeting_place=immersion.slot.room
+        if not slot.face_to_face:
+            meeting_place = gettext('Remote')
+
+            if slot.url and slot.can_show_url():
+                meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
         else:
-            meeting_place=''
+            meeting_place = campus
+            meeting_place += " <br> ".join(list(filter(lambda x:x, [building, slot.room])))
 
         immersion_data = {
             'id': immersion.id,
-            'training': immersion.slot.course.training.label,
-            'establishments': [],
-            'organizing_structure': immersion.slot.course.get_etab_or_high_school().label if not immersion.slot.course.highschool else '',
-            'course': immersion.slot.course.label,
-            'type': immersion.slot.course_type.label,
-            'type_full': immersion.slot.course_type.full_label,
+            'type': slot.get_type(),
+            'translated_type': gettext(slot.get_type().title()),
+            'label': slot.get_label(),
+            'establishment': establishment.label if establishment else "",
+            'highschool': f'{highschool.label} - {highschool.city}' if highschool else "",
+            'structure': structure.label if structure else "",
             'meeting_place': meeting_place,
-            'campus': immersion.slot.campus.label if immersion.slot.campus else '',
-            'building': immersion.slot.building.label if immersion.slot.building else '',
-            'room': immersion.slot.room,
+            'campus': campus,
+            'building': building,
+            'room': slot.room,
+            'establishments': [],
+            'course': {
+                'label': slot.course.label,
+                'training': slot.course.training.label,
+                'type': slot.course_type.label,
+                'type_full': slot.course_type.full_label
+            } if slot.course else {},
+            'event': {
+                'label': slot.event.label,
+                'type': slot.event.event_type.label
+            } if slot.event else {},
+            'visit': {
+                'label': slot.visit.purpose,
+                'purpose': slot.visit.purpose,
+            } if slot.visit else {},
             'datetime': slot_datetime,
-            'date': date_format(immersion.slot.date),
-            'start_time': immersion.slot.start_time.strftime("%-Hh%M"),
-            'end_time': immersion.slot.end_time.strftime("%-Hh%M"),
+            'date': date_format(slot.date),
+            'start_time': slot.start_time.strftime("%-Hh%M"),
+            'end_time': slot.end_time.strftime("%-Hh%M"),
             'speakers': [],
-            'info': immersion.slot.additional_information,
+            'info': slot.additional_information,
             'attendance': immersion.get_attendance_status_display(),
             'attendance_status': immersion.attendance_status,
-            'cancellable': datetime.datetime.today().date() < immersion.slot.date,
+            'cancellable': today < slot.date,
             'cancellation_type': '',
-            'slot_id': immersion.slot.id,
+            'slot_id': slot.id,
             'free_seats': 0,
             'can_register': False,
         }
-        if immersion.slot.date < today:
+
+        if slot.date < today or (slot.date == today and slot.start_time < now):
             immersion_data['time_type'] = "past"
-        elif immersion.slot.date > today or (
-            immersion.slot.date == today and immersion.slot.start_time > datetime.datetime.today().time()
-        ):
+        elif slot.date > today or slot.start_time > now:
             immersion_data['time_type'] = "future"
 
-        if immersion.slot.n_places:
-            immersion_data['free_seats'] = immersion.slot.n_places - immersion.slot.registered_students()
+        if slot.n_places:
+            immersion_data['free_seats'] = slot.n_places - slot.registered_students()
 
         if immersion.cancellation_type:
             immersion_data['cancellation_type'] = immersion.cancellation_type.label
 
-            if slot_datetime > datetime.datetime.today() and immersion.slot.available_seats() > 0:
+            if slot_datetime > datetime.datetime.today() and slot.available_seats() > 0:
                 if slot_semester and remainings[str(slot_semester)] or not slot_semester and remaining_annually:
                     immersion_data['can_register'] = True
 
-        for speaker in immersion.slot.speakers.all().order_by('last_name', 'first_name'):
+        for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
             immersion_data['speakers'].append(f"{speaker.last_name} {speaker.first_name}")
 
-        establishments = immersion.slot.course.training.distinct_establishments()
+        if slot.course:
+            establishments = slot.course.training.distinct_establishments()
 
-        for establishment in establishments:
-            immersion_data['establishments'].append(f"{establishment.label}")
+            for est in establishments:
+                immersion_data['establishments'].append(f"{est.label}")
 
-        if not establishments:
-            immersion_data['establishments'].append(str(immersion.slot.course.get_etab_or_high_school()))
-
-
+            if not establishments:
+                immersion_data['establishments'].append(str(slot.course.get_etab_or_high_school()))
 
         response['data'].append(immersion_data.copy())
 
@@ -2054,7 +2100,8 @@ def ajax_get_highschool_students(request, highschool_id=None):
     admin_groups: List[bool] = [
         request.user.is_establishment_manager(),
         request.user.is_master_establishment_manager(),
-        request.user.is_operator()
+        request.user.is_operator(),
+        request.user.is_high_school_manager() and request.user.highschool and request.user.highschool.postbac_immersion
     ]
 
     if any(admin_groups):

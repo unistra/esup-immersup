@@ -1299,12 +1299,13 @@ class APITestCase(TestCase):
     def test_API_ajax_get_immersions(self):
         # Wrong user
         request.user = self.student
-        client = Client()
-        client.login(username='student', password='pass')
+        self.client.login(username='student', password='pass')
 
-        url = f"/api/get_immersions/{self.speaker1.id}"
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': self.highschool_user.id}),
+            **self.header
+        )
 
-        response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['msg'], "Error : invalid user id")
         self.assertEqual(content['data'], [])
@@ -1313,16 +1314,20 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
-        url = f"/api/get_immersions/99999999"
-        response = self.client.get(url, request, **self.header)
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': 99999999}),
+            **self.header
+        )
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['data'], [])
         self.assertEqual(content['msg'], "Error : no such user")
 
         # No user
-        url = "/api/get_immersions/0"
-        response = self.client.get(url, request, **self.header)
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': 0}),
+            **self.header
+        )
         content = json.loads(response.content.decode())
         self.assertEqual(content['msg'], "Error : missing user id")
         self.assertEqual(content['data'], [])
@@ -1330,19 +1335,22 @@ class APITestCase(TestCase):
         # Get future immersions
         self.slot.date = self.today + timedelta(days=2)
         self.slot.save()
-        url = f"/api/get_immersions/{self.highschool_user.id}/future"
 
-        response = self.client.get(url, request, **self.header)
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': self.highschool_user.id}),
+            {'immersion_type': 'future'},
+            **self.header
+        )
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         i = content['data'][0]
         self.assertEqual(self.immersion.id, i['id'])
-        self.assertEqual(self.immersion.slot.course.training.label, i['training'])
-        self.assertEqual(self.immersion.slot.course.label, i['course'])
-        self.assertEqual(self.immersion.slot.course_type.label, i['type'])
-        self.assertEqual(self.immersion.slot.course_type.full_label, i['type_full'])
+        self.assertEqual(self.immersion.slot.course.training.label, i['course']['training'])
+        self.assertEqual(self.immersion.slot.course.label, i['course']['label'])
+        self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
+        self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
@@ -1357,19 +1365,22 @@ class APITestCase(TestCase):
         # Get past immersions
         self.slot.date = self.today - timedelta(days=2)
         self.slot.save()
-        url = f"/api/get_immersions/{self.highschool_user.id}/past"
 
-        response = self.client.get(url, request, **self.header)
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': self.highschool_user.id}),
+            {'immersion_type': 'past'},
+            **self.header
+        )
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         i = content['data'][0]
         self.assertEqual(self.immersion.id, i['id'])
-        self.assertEqual(self.immersion.slot.course.training.label, i['training'])
-        self.assertEqual(self.immersion.slot.course.label, i['course'])
-        self.assertEqual(self.immersion.slot.course_type.label, i['type'])
-        self.assertEqual(self.immersion.slot.course_type.full_label, i['type_full'])
+        self.assertEqual(self.immersion.slot.course.training.label, i['course']['training'])
+        self.assertEqual(self.immersion.slot.course.label, i['course']['label'])
+        self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
+        self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])
@@ -1384,19 +1395,23 @@ class APITestCase(TestCase):
         # Get cancelled immersions
         self.immersion.cancellation_type = self.cancel_type
         self.immersion.save()
-        url = f"/api/get_immersions/{self.highschool_user.id}/cancelled"
 
-        response = self.client.get(url, request, **self.header)
+        response = self.client.get(
+            reverse('get_immersions', kwargs={'user_id': self.highschool_user.id}),
+            {'immersion_type': 'cancelled'},
+            **self.header
+        )
+
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], '')
         self.assertGreater(len(content['data']), 0)
         i = content['data'][0]
         self.assertEqual(self.immersion.id, i['id'])
-        self.assertEqual(self.immersion.slot.course.training.label, i['training'])
-        self.assertEqual(self.immersion.slot.course.label, i['course'])
-        self.assertEqual(self.immersion.slot.course_type.label, i['type'])
-        self.assertEqual(self.immersion.slot.course_type.full_label, i['type_full'])
+        self.assertEqual(self.immersion.slot.course.training.label, i['course']['training'])
+        self.assertEqual(self.immersion.slot.course.label, i['course']['label'])
+        self.assertEqual(self.immersion.slot.course_type.label, i['course']['type'])
+        self.assertEqual(self.immersion.slot.course_type.full_label, i['course']['type_full'])
         self.assertEqual(self.immersion.slot.campus.label, i['campus'])
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['room'])

@@ -5254,7 +5254,7 @@ msgstr "Liste des créneaux de visites"
 
 #: immersionlyceens/templates/fragments/main_menu.html:78
 msgid "Events"
-msgstr "Evénements"
+msgstr "Evènements"
 
 #: immersionlyceens/templates/fragments/main_menu.html:82
 msgid "Off offer events slots list"
