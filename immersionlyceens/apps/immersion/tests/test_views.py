@@ -360,10 +360,10 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("No account found with this email address", response.content.decode('utf-8'))
 
         # Success
-        response = self.client.post('/immersion/recovery', {'email': 'hs@no-reply.com'})
+        response = self.client.post('/immersion/recovery', {'email': "lycref-immersion@no-reply.com"})
         self.assertIn("An email has been sent with the procedure to set a new password.", response.content.decode('utf-8'))
 
-        user = ImmersionUser.objects.get(username="hs")
+        user = ImmersionUser.objects.get(username="lycref")
         self.assertNotEqual(user.recovery_string, None)
 
     def test_reset_password(self):
