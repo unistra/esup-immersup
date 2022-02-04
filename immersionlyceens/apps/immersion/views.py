@@ -283,7 +283,7 @@ def shibbolethLogin(request, profile=None):
     return HttpResponseRedirect("/")
 
 
-def register(request, profile=None):
+def register(request):
     # Is current university year valid ?
     is_reg_possible, is_year_valid, year = check_active_year()
 
@@ -300,7 +300,9 @@ def register(request, profile=None):
         form = RegistrationForm(request.POST)
         redirect_url_name: str = "/immersion/login"
 
-        if form.is_valid():
+        registration_type: Optional[str] = request.POST.get("registration_type")
+
+        if form.is_valid() and registration_type:
             new_user = form.save(commit=False)
             # adjustments here
             new_user.username = form.cleaned_data.get("username")
@@ -309,14 +311,13 @@ def register(request, profile=None):
             new_user.save()
 
             group_name: str = "LYC"
-            if profile and profile == "vis":
+            if registration_type == "vis":
                 group_name = "VIS"
-                redirect_url_name = "/immersion/login/vis"
 
             try:
                 Group.objects.get(name=group_name).user_set.add(new_user)
             except Exception:
-                logger.exception(f"Cannot add 'LYC' group to user {new_user}")
+                logger.exception(f"Cannot add '{group_name}' group to user {new_user}")
                 messages.error(request, _("Group error"))
 
             try:
@@ -334,7 +335,7 @@ def register(request, profile=None):
     else:
         form = RegistrationForm()
 
-    context = {'form': form, "profile": profile}
+    context = {'form': form}
 
     return render(request, 'immersion/registration.html', context)
 
@@ -348,7 +349,7 @@ def recovery(request):
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
 
-            if not user.username.startswith(settings.USERNAME_PREFIX) and not user.is_high_school_manager():
+            if not user.is_high_school_manager():
                 messages.warning(request, _("Please use your establishment credentials."))
             else:
                 user.set_recovery_string()
@@ -415,8 +416,9 @@ def reset_password(request, hash=None):
         return HttpResponseRedirect("/immersion/login")
 
 
+# todo: refactor this into class :)
 @login_required
-@groups_required("LYC", "REF-LYC")
+@groups_required("LYC", "REF-LYC", "VIS")
 def change_password(request):
     """
     Change password view for high-school students and high-school managers
@@ -469,7 +471,7 @@ def activate(request, hash=None):
     return HttpResponseRedirect("/immersion/login")
 
 
-def resend_activation(request, profile=None):
+def resend_activation(request):
     email = ""
 
     if request.method == "POST":
@@ -482,17 +484,12 @@ def resend_activation(request, profile=None):
         else:
             if user.is_valid():
                 messages.error(request, _("This account has already been activated, please login."))
-                if profile:
-                    return HttpResponseRedirect(f"/immersion/login/{profile}")
-                else:
-                    return HttpResponseRedirect("/immersion/login")
+                return HttpResponseRedirect("/immersion/login")
             else:
                 msg = user.send_message(request, 'CPT_MIN_CREATE')
                 messages.success(request, _("The activation message have been resent."))
 
-    context = {'email': email, 'profile': profile}
-
-    return render(request, 'immersion/resend_activation.html', context)
+    return render(request, 'immersion/resend_activation.html', {'email': email})
 
 
 @login_required
@@ -566,7 +563,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             student = studentform.save()
 
             if current_email != student.email:
-                student.username = settings.USERNAME_PREFIX + student.email
+                student.username = student.email
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
@@ -948,7 +945,7 @@ class VisitorRecordView(FormView):
         return context
 
     def email_changed(self, user: ImmersionUser):
-        user.username = settings.USERNAME_PREFIX + user.email
+        user.username = user.email
         user.set_validation_string()
 
         try:

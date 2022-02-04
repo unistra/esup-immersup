@@ -130,7 +130,7 @@ class APITestCase(TestCase):
         self.operator_user.save()
 
         self.highschool_user = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs',
+            username='hs',
             password='pass',
             email='hs@no-reply.com',
             first_name='high',
@@ -140,7 +140,7 @@ class APITestCase(TestCase):
         self.highschool_user.save()
 
         self.highschool_user2 = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs2',
+            username='hs2',
             password='pass',
             email='hs2@no-reply.com',
             first_name='high2',
@@ -150,7 +150,7 @@ class APITestCase(TestCase):
         self.highschool_user2.save()
 
         self.highschool_user3 = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs3', password='pass',
+            username='hs3', password='pass',
             email='hs3@no-reply.com',
             first_name='high3',
             last_name='SCHOOL3',

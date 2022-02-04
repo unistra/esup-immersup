@@ -32,7 +32,7 @@ class ImmersionViewsTestCase(TestCase):
         SetUp for Immersion app tests
         """
         self.highschool_user = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs',
+            username='hs',
             password='pass',
             email='hs@no-reply.com',
             first_name='high',
@@ -45,7 +45,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Set a second high school student for duplicates search
         self.highschool_user2 = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs2',
+            username='hs2',
             password='pass',
             email='hs2@no-reply.com',
             first_name='high',
@@ -306,6 +306,7 @@ class ImmersionViewsTestCase(TestCase):
             'email': 'mon_email@mondomaine.fr',
             'password1': 'passw',
             'password2': 'passw_2',
+            'registration_type': 'hs',
         }
 
         # Will fail (passwords don't match, missing email2)
@@ -332,7 +333,7 @@ class ImmersionViewsTestCase(TestCase):
             response.content.decode('utf-8'))
 
         # Check some attributes
-        new_account = ImmersionUser.objects.get(username="@EXTERNAL@_mon_email@mondomaine.fr")
+        new_account = ImmersionUser.objects.get(username="mon_email@mondomaine.fr")
         self.assertNotEqual(new_account.validation_string, None)
         self.assertNotEqual(new_account.destruction_date, None)
         self.assertIsInstance(new_account.destruction_date, datetime.date)
@@ -359,10 +360,10 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("No account found with this email address", response.content.decode('utf-8'))
 
         # Success
-        response = self.client.post('/immersion/recovery', {'email': 'hs@no-reply.com'})
+        response = self.client.post('/immersion/recovery', {'email': "lycref-immersion@no-reply.com"})
         self.assertIn("An email has been sent with the procedure to set a new password.", response.content.decode('utf-8'))
 
-        user = ImmersionUser.objects.get(username="@EXTERNAL@_hs")
+        user = ImmersionUser.objects.get(username="lycref")
         self.assertNotEqual(user.recovery_string, None)
 
     def test_reset_password(self):
@@ -392,7 +393,7 @@ class ImmersionViewsTestCase(TestCase):
 
     def test_change_password(self):
         # Simple get change password page
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/change_password', follow=True)
         self.assertIn("Password change", response.content.decode('utf-8'))
 
@@ -449,7 +450,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(response.url, "/accounts/login/?next=/immersion/")
 
         # Logged
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.post('/immersion/')
         self.assertEqual(response.status_code, 200)
 
@@ -457,7 +458,7 @@ class ImmersionViewsTestCase(TestCase):
         # First check that high school student record doesn't exist yet
         self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user).exists())
 
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/hs_record')
 
         self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
@@ -520,7 +521,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(record.validation, 1)
 
         # Test record duplication with another student
-        self.client.login(username='@EXTERNAL@_hs2', password='pass')
+        self.client.login(username='hs2', password='pass')
         self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user2).exists())
         response = self.client.get('/immersion/hs_record')
         self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
@@ -548,14 +549,14 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(response.url, "/accounts/login/?next=/immersion/registrations")
 
         # Simple view check
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/registrations')
         self.assertIn("Immersions to come", response.content.decode('utf-8'))
 
 
     def test_immersion_attestation_download(self):
         # as a student
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/pdf')

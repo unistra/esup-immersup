@@ -401,7 +401,8 @@ class ImmersionUser(AbstractUser):
         return _date(self.destruction_date, "l j F Y")
 
     def get_cleaned_username(self):
-        return self.get_username().replace(settings.USERNAME_PREFIX, '')
+        return self.get_username()
+        # return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def get_login_page(self):
         if self.is_high_school_manager() and self.highschool:

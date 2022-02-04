@@ -81,7 +81,7 @@ class CoreViewsTestCase(TestCase):
         )
 
         self.highschool_user = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs',
+            username='hs',
             password='pass',
             email='hs@no-reply.com',
             first_name='high',
@@ -94,7 +94,7 @@ class CoreViewsTestCase(TestCase):
 
         # Set a second high school student for duplicates search
         self.highschool_user2 = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs2',
+            username='hs2',
             password='pass',
             email='hs2@no-reply.com',
             first_name='high',
@@ -349,14 +349,14 @@ class CoreViewsTestCase(TestCase):
         self.assertIsNone(response.context["highschool_id"])
 
         # As any other user
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get("/core/slots/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slots/")
 
     def test_add_slot(self):
         # As any other user
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get("/core/slot")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slot")
@@ -572,7 +572,7 @@ class CoreViewsTestCase(TestCase):
 
     def test_modify_slot(self):
         # As any other user
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get("/core/slot/%s" % self.slot.id)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/slot/%s" % self.slot.id)
@@ -671,7 +671,7 @@ class CoreViewsTestCase(TestCase):
 
     def test_courses_list(self):
         # As any other user
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get("/core/courses_list")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/courses_list")
@@ -707,7 +707,7 @@ class CoreViewsTestCase(TestCase):
 
     def test_course(self):
         # As any other user
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get("/core/course")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/?next=/core/course")
