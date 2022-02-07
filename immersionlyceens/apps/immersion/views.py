@@ -306,7 +306,7 @@ def register(request):
 
         registration_type: Optional[str] = request.POST.get("registration_type")
 
-        if form.is_valid() and registration_type:
+        if form.is_valid():
             new_user = form.save(commit=False)
             # adjustments here
             new_user.username = form.cleaned_data.get("username")

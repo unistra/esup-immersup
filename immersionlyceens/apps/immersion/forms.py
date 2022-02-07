@@ -69,9 +69,6 @@ class RegistrationForm(UserCreationForm):
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
-        # self.email2.widget.attrs['class'] = 'form-control'
-
-
     def clean(self):
         cleaned_data = super().clean()
 
