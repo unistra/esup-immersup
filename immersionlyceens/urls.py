@@ -10,7 +10,7 @@ from .apps.core import views as core_views
 from .views import (
     accompanying, home, offer, offer_off_offer_events, offer_subdomain,
     procedure, serve_accompanying_document, serve_public_document,
-    visits_offer,
+    visits_offer, charter_not_signed
 )
 
 admin.autodiscover()
@@ -19,6 +19,7 @@ admin.autodiscover()
 urlpatterns = [
     path('', home, name='home'),
     path('accompanying', accompanying, name='accompanying'),
+    path('charter_not_signed', charter_not_signed, name='charter_not_signed'),
     path('accounts/', include('django_cas.urls', namespace='django_cas')),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('admin/', admin.site.urls),

@@ -3138,3 +3138,29 @@ class VisitorRecordRejectValidate(View):
         record.visitor.send_message(self.request, validation_email_template)
         data["data"] = {"record_id": record.id}
         return JsonResponse(data)
+
+
+@is_ajax_request
+@is_post_request
+@groups_required("REF-ETAB", "REF-LYC")
+def signCharter(request):
+    data = {"msg": "", "error": ""}
+    charter_sign = get_general_setting('CHARTER_SIGN') # useful somewhere ?
+    success = False
+    user = request.user
+
+    if user.establishment:
+        user.establishment.signed_charter = True
+        user.establishment.save()
+        success = True
+    elif user.highschool:
+        user.highschool.signed_charter = True
+        user.highschool.save()
+        success = True
+
+    if success:
+        data["msg"] = _("Charter successfully signed")
+    else:
+        data["error"] = _("Charter not signed")
+
+    return JsonResponse(data)

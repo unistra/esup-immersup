@@ -40,9 +40,6 @@ urlpatterns = [
     path('myvisits/', views.myvisits, name='myvisits'),
     path('myevents/', views.myevents, name='myevents'),
     path('myslots/<str:slots_type>', views.myslots, name='myslots'),
-
-
-
     path('slots/', views.CourseSlotList.as_view(), name='courses_slots'),
     path('slots/<int:highschool_id>/<int:training_id>/<int:course_id>', views.CourseSlotList.as_view(),
          name='high_school_filtered_course_slots_list'),
@@ -106,4 +103,5 @@ urlpatterns = [
          name='add_high_school_event_slot'),
     path('off_offer_event_slot/add/<int:establishment_id>/<str:structure_id>/<int:event_id>',
          views.OffOfferEventSlotAdd.as_view(), name='add_establishment_event_slot'),
+    path('charter', views.charter, name='charter')
 ]

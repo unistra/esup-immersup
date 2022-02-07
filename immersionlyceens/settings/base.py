@@ -198,6 +198,7 @@ MIDDLEWARE = [
     # 'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
     'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
     'hijack.middleware.HijackUserMiddleware',
+    'middlewares.charter_management.ImmersionCharterManagement.ImmersionCharterManagement',
 ]
 
 AUTHENTICATION_BACKENDS = (
