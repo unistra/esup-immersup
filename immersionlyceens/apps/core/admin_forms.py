@@ -1491,7 +1491,7 @@ class GeneralSettingsForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser
+            valid_user = user.is_superuser or user.is_operator()
         except AttributeError:
             pass
 

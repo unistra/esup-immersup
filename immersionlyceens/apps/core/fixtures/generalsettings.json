@@ -153,5 +153,29 @@
       "value": true
     }
   }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 15,
+  "fields": {
+      "setting": "ACTIVATE_STUDENTS",
+      "parameters": {
+          "type": "boolean",
+          "value": true,
+          "description": "Activation des étudiants"
+      }
+  }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 16,
+  "fields": {
+      "setting": "ACTIVATE_VISITORS",
+      "parameters": {
+          "type": "boolean",
+          "value": true,
+          "description": "Activation des visiteurs"
+      }
+  }
 }
 ]
