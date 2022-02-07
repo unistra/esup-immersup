@@ -206,6 +206,10 @@ def shibbolethLogin(request, profile=None):
 
     # Account creation confirmed
     if is_student and request.POST.get('submit'):
+        if not get_general_setting('ACTIVATE_STUDENTS'):
+            messages.error(request, _("Students deactivated"))
+            return HttpResponseRedirect("/")
+
         shib_attrs.pop("uai_code", None)
 
         new_user = ImmersionUser.objects.create(**shib_attrs)
