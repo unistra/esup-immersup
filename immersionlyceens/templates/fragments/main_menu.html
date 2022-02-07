@@ -2,6 +2,8 @@
 {% authorized_groups request.user %}
 {% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
+{% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
+{% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
 <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
   <div class="container">
     <a href="/" class="navbar-brand d-md-none">Plateforme ImmerSup</a>
@@ -264,8 +266,12 @@
               <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' %}">{% trans 'Highschool member' %}</a>
+              {% if students_activated %}
               <a class="dropdown-item" href="{% url 'shibboleth_login' %}">{% trans 'Student' context "login" %}</a>
+              {% endif %}
+              {% if visitors_activated %}
               <a class="dropdown-item" href="{% url 'immersion:login' %}">{% trans 'Visitor' context "login" %}</a>
+              {% endif %}
             </div>
           {% endif %}
         </div>

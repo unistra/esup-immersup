@@ -311,7 +311,7 @@ def register(request):
             new_user.save()
 
             group_name: str = "LYC"
-            if registration_type == "vis":
+            if get_general_setting('ACTIVATE_VISTORS') and registration_type == "vis":
                 group_name = "VIS"
 
             try:
