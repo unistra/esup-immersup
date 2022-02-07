@@ -311,8 +311,13 @@ def register(request):
             new_user.save()
 
             group_name: str = "LYC"
-            if get_general_setting('ACTIVATE_VISTORS') and registration_type == "vis":
-                group_name = "VIS"
+
+            try:
+                if get_general_setting('ACTIVATE_VISITORS') and registration_type == "vis":
+                    group_name = "VIS"
+            except:
+                # Should only happen if ACTIVATE_VISITORS setting is not present
+                pass
 
             try:
                 Group.objects.get(name=group_name).user_set.add(new_user)
