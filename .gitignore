@@ -69,3 +69,5 @@ lefthook.yml
 
 # pylintrc
 .pylintrc
+
+assets/
