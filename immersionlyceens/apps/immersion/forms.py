@@ -1,16 +1,18 @@
-from typing import List, Tuple, Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
 from django.conf import settings
-from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import authenticate
-
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    ImmersionUser, HighSchool, GeneralBachelorTeaching, BachelorMention, HighSchoolLevel, PostBachelorLevel,
-    StudentLevel, Calendar
+    BachelorMention, Calendar, GeneralBachelorTeaching, HighSchool,
+    HighSchoolLevel, ImmersionUser, PostBachelorLevel, StudentLevel,
 )
+from immersionlyceens.libs.utils import get_general_setting
+
 from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
+
 
 class LoginForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -66,9 +68,6 @@ class RegistrationForm(UserCreationForm):
 
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
-
-        # self.email2.widget.attrs['class'] = 'form-control'
-
 
     def clean(self):
         cleaned_data = super().clean()
@@ -195,7 +194,7 @@ class HighSchoolStudentForm(forms.ModelForm):
         self.fields["last_name"].required = True
         self.fields["first_name"].required = True
         self.fields["email"].required = True
-        
+
         self.fields["email"].help_text = _(
             "Warning : changing the email will require an account reactivation")
 
@@ -272,7 +271,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         self.fields['technological_bachelor_mention'].queryset = BachelorMention.objects.filter(active=True)
         self.fields['general_bachelor_teachings'] = forms.ModelMultipleChoiceField(
             queryset=GeneralBachelorTeaching.objects.filter(active=True).order_by('label'),
-            widget=forms.CheckboxSelectMultiple           
+            widget=forms.CheckboxSelectMultiple
         )
         self.fields['general_bachelor_teachings'].required = False
         self.fields['level'].queryset = HighSchoolLevel.objects.filter(active=True).order_by('order')

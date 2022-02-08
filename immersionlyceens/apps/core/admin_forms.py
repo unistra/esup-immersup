@@ -1491,9 +1491,24 @@ class GeneralSettingsForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser
+            valid_user = user.is_superuser or user.is_operator()
         except AttributeError:
             pass
+
+        if self.cleaned_data['setting']=='ACTIVATE_STUDENTS' \
+            and not self.cleaned_data['parameters']['value']:
+
+            if ImmersionUser.objects.filter(groups__name='ETU').first():
+                raise forms.ValidationError(
+                    _("Students users exist you can't deactivate students"))
+
+        if self.cleaned_data['setting']=='ACTIVATE_VISITORS' \
+            and not self.cleaned_data['parameters']['value']:
+
+            if ImmersionUser.objects.filter(groups__name='VIS').first():
+                raise forms.ValidationError(
+                    _("Visitors users exist you can't deactivate visitors"))
+
 
         if not valid_user:
             raise forms.ValidationError(_("You don't have the required privileges"))

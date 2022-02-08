@@ -6,35 +6,34 @@ import json
 
 from django.conf import settings
 from django.contrib.admin.sites import AdminSite
-from django.http import QueryDict
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.http import QueryDict
 from django.test import Client, RequestFactory, TestCase
 
 from ...immersion.models import HighSchoolStudentRecord
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, CourseTypeForm, EvaluationFormLinkForm,
-    EvaluationTypeForm, GeneralBachelorTeachingForm, HighSchoolForm,
-    HolidayForm, PublicDocumentForm, PublicTypeForm, StructureForm,
-    TrainingDomainForm, TrainingSubdomainForm, UniversityYearForm,
-    VacationForm,
+    EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
+    HighSchoolForm, HolidayForm, PublicDocumentForm, PublicTypeForm,
+    StructureForm, TrainingDomainForm, TrainingSubdomainForm,
+    UniversityYearForm, VacationForm,
 )
 from ..forms import (
-    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, SlotForm, VisitForm, VisitSlotForm, OffOfferEventForm,
-    OffOfferEventSlotForm
+    HighSchoolStudentImmersionUserForm, MyHighSchoolForm, OffOfferEventForm,
+    OffOfferEventSlotForm, SlotForm, VisitForm, VisitSlotForm,
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
-    PublicDocument, PublicType, Slot, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation, Visit, OffOfferEventType,
-    OffOfferEvent, HighSchoolLevel, StudentLevel, PostBachelorLevel
+    EvaluationType, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
+    Holiday, OffOfferEvent, OffOfferEventType, PostBachelorLevel,
+    PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, Visit,
 )
-
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')

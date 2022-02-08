@@ -206,6 +206,10 @@ def shibbolethLogin(request, profile=None):
 
     # Account creation confirmed
     if is_student and request.POST.get('submit'):
+        if not get_general_setting('ACTIVATE_STUDENTS'):
+            messages.error(request, _("Students deactivated"))
+            return HttpResponseRedirect("/")
+
         shib_attrs.pop("uai_code", None)
 
         new_user = ImmersionUser.objects.create(**shib_attrs)
@@ -302,7 +306,7 @@ def register(request):
 
         registration_type: Optional[str] = request.POST.get("registration_type")
 
-        if form.is_valid() and registration_type:
+        if form.is_valid():
             new_user = form.save(commit=False)
             # adjustments here
             new_user.username = form.cleaned_data.get("username")
@@ -311,8 +315,13 @@ def register(request):
             new_user.save()
 
             group_name: str = "LYC"
-            if registration_type == "vis":
-                group_name = "VIS"
+
+            try:
+                if get_general_setting('ACTIVATE_VISITORS') and registration_type == "vis":
+                    group_name = "VIS"
+            except:
+                # Should only happen if ACTIVATE_VISITORS setting is not present
+                pass
 
             try:
                 Group.objects.get(name=group_name).user_set.add(new_user)

@@ -11,9 +11,9 @@ from django.utils.translation import gettext_lazy as _
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, HighSchool, Holiday,
-    ImmersionUser, PublicDocument, PublicType, Slot, Structure, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
+    Holiday, ImmersionUser, PublicDocument, PublicType, Slot, Structure,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -438,3 +438,8 @@ class CourseTestCase(TestCase):
         course = Course.objects.create(label='my super course', training=t, structure=c)
 
         self.assertEqual(str(course),'my super course')
+
+class GeneralSettingsTestCase(TestCase):
+    def test_str_general_settings(self):
+        g = GeneralSettings.objects.create(setting="MySetting", parameters=[{'my_setting': 'myvalue'}])
+        self.assertEqual(str(g), 'MySetting')

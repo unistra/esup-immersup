@@ -66,3 +66,8 @@ pyvenv.cfg
 .env.demo
 .pre-commit-config.yaml
 lefthook.yml
+
+# pylintrc
+.pylintrc
+
+assets/
