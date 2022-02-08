@@ -15,13 +15,13 @@ from ..mails.variables_parser import parser
 from immersionlyceens.apps.core.models import (
     UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
     Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
-    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel
+    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
-class APITestCase(TestCase):
-    """Tests for API"""
+class MailsTestCase(TestCase):
+    """Mail templates tests"""
 
     fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype',
                 'high_school_levels', 'post_bachelor_levels', 'student_levels']
@@ -30,6 +30,30 @@ class APITestCase(TestCase):
         # TODO : use test fixtures
 
         self.today = datetime.datetime.today()
+
+        self.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            signed_charter=True,
+        )
 
         self.highschool_user = get_user_model().objects.create_user(
             username='the_username',
@@ -49,6 +73,7 @@ class APITestCase(TestCase):
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
+            highschool=self.high_school,
         )
 
         self.ref_str = get_user_model().objects.create_user(
@@ -57,6 +82,7 @@ class APITestCase(TestCase):
             email='ref_str@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
+            establishment=self.establishment,
         )
 
         self.lyc_ref = get_user_model().objects.create_user(
@@ -65,6 +91,7 @@ class APITestCase(TestCase):
             email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school,
         )
 
         self.university_year = UniversityYear.objects.create(
@@ -132,20 +159,6 @@ class APITestCase(TestCase):
         )
         self.slot.speakers.add(self.speaker1),
         self.slot2.speakers.add(self.speaker1),
-        self.high_school = HighSchool.objects.create(
-            label='HS1',
-            address='here',
-            department=67,
-            city='STRASBOURG',
-            zip_code=67000,
-            phone_number='0123456789',
-            email='a@b.c',
-            head_teacher_name='M. A B',
-            convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10),
-        )
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
 
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
@@ -174,7 +187,7 @@ class APITestCase(TestCase):
         self.global_eval_link = EvaluationFormLink.objects.create(
             evaluation_type=self.global_eval_type, active=True, url='http://disp.evaluation.test/')
 
-    @override_settings(LANGUAGE_CODE='fr-FR')
+
     def test_variables(self):
         # user : ${prenom} ${nom} ${jourDestructionCptMin} ${lienValidation} ${identifiant}
         # university year : ${annee}

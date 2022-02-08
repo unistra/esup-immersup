@@ -581,6 +581,14 @@ def offer_off_offer_events(request):
     return render(request, 'offer_off_offer_events.html', context)
 
 
+def charter_not_signed(request):
+    """
+    Charter not signed static page
+    """
+    context = {
+    }
+    return render(request, 'charter_not_signed.html', context)
+
 
 def error_500(request):
     return render(request, '500.html', status=500)

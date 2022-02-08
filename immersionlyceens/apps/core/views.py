@@ -35,7 +35,7 @@ from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, Sl
 from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm, TrainingForm
 
 from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
-    Training, UniversityYear, Establishment, Visit, OffOfferEvent)
+    Training, UniversityYear, Establishment, Visit, OffOfferEvent, InformationText)
 
 logger = logging.getLogger(__name__)
 
@@ -2271,3 +2271,24 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
     def form_invalid(self, form):
         messages.error(self.request, _("Event slot \"%s\" not updated.") % form.instance)
         return super().form_invalid(form)
+
+
+def charter(request):
+    user = request.user
+    establishment_or_highschool = ""
+
+    try:
+        charter_txt = InformationText.objects.get(code="CHARTE_ETABLISSEMENT_ACCUEIL", active=True).content
+    except InformationText.DoesNotExist:
+        charter_txt = ''
+
+    if user.is_establishment_manager() and user.establishment:
+        establishment_or_highschool = user.establishment.label
+    elif user.is_high_school_manager() and user.highschool:
+        establishment_or_highschool = user.highschool
+
+    context = {
+        'establishment_or_highschool': establishment_or_highschool,
+        'charter_txt': charter_txt
+    }
+    return render(request, 'core/charter.html', context)

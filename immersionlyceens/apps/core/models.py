@@ -74,6 +74,7 @@ class Establishment(models.Model):
     email = models.EmailField(_('Email'))
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
     master = models.BooleanField(_("Master"), default=True)
+    signed_charter = models.BooleanField(_("Signed charter"), default=False)
     data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
         choices=settings.AVAILABLE_ACCOUNTS_PLUGINS,
     )
@@ -179,6 +180,7 @@ class HighSchool(models.Model):
         null=True,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
+    signed_charter = models.BooleanField(_("Signed charter"), default=False)
 
     def __str__(self):
         return f"{self.city} - {self.label}"

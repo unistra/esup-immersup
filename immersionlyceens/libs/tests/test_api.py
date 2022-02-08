@@ -61,7 +61,8 @@ class APITestCase(TestCase):
             short_label='Eta 1',
             active=True,
             master=True,
-            email='test@test.com'
+            email='test@test.com',
+            signed_charter=True,
         )
 
         self.establishment2 = Establishment.objects.create(
@@ -70,7 +71,8 @@ class APITestCase(TestCase):
             short_label='Eta 2',
             active=True,
             master=False,
-            email='test2@test.com'
+            email='test2@test.com',
+            signed_charter=True,
         )
 
         self.high_school = HighSchool.objects.create(
@@ -84,7 +86,8 @@ class APITestCase(TestCase):
             head_teacher_name='M. A B',
             convention_start_date=self.today - timedelta(days=10),
             convention_end_date=self.today + timedelta(days=10),
-            postbac_immersion=True
+            postbac_immersion=True,
+            signed_charter=True,
         )
 
         self.visitor = get_user_model().objects.create_user(
@@ -164,6 +167,7 @@ class APITestCase(TestCase):
             email='ref_str@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
+            establishment=self.establishment,
         )
         self.ref_str2 = get_user_model().objects.create_user(
             username='ref_str2',
@@ -171,6 +175,7 @@ class APITestCase(TestCase):
             email='ref_str2@no-reply.com',
             first_name='ref_str2',
             last_name='ref_str2',
+            establishment=self.establishment,
         )
         self.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
@@ -178,6 +183,7 @@ class APITestCase(TestCase):
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
+            establishment=self.establishment,
         )
         self.highschool_speaker = get_user_model().objects.create_user(
             username='highschool_speaker',

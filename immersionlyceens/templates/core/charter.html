@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% block head-css %}
+{% endblock %}
+{% block head-javascript %}
+    <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Charter" %}
+{% endblock %}
+{% block content %}
+<div id="top_indicator" class="hide w-100 bg-success pt-2 pb-1 fixed-top">
+  <p id="top_indicator__content" class="text-center text-light"></p>
+</div>
+
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'Charter' %}</h1>
+        <p class="text-uppercase">
+          {% trans 'Please read and sign the charter for you establishment' %} : {{ establishment_or_highschool }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Charter' %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-5 col-sm-offset-1">
+        <section id="charter_txt">
+        {{ charter_txt|safe }}
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="form-group row justify-content-center">
+    <button class="btn btn-secondary btn-sm" type="button" id="id_sign">{% trans 'Accept and sign the charter' %}</button>
+</div>
+
+<script>
+function show_top_indicator(text, mode) {
+  let fade = 1000;
+  let display = {% settings_get 'MESSAGES_TIMEOUT' %};
+  $('#top_indicator__content').html(text);
+  $('#top_indicator').removeClass('hide');
+
+  if(mode == "error") {
+    $('#top_indicator').removeClass('bg-success');
+    $('#top_indicator').addClass('bg-danger');
+  }
+  else {
+    $('#top_indicator').removeClass('bg-danger');
+    $('#top_indicator').addClass('bg-success');
+  }
+
+  $('#top_indicator').show();
+  setTimeout(function(){
+      $('#top_indicator').fadeOut(fade, function(){
+          $('#top_indicator').hide();
+      });
+  }, display);
+}
+
+$(document).ready(function() {
+  $('#top_indicator').hide();
+
+  $("#id_sign").on("click", function() {
+    $.ajax({
+      url: "{% url 'sign_charter' %}",
+      type: 'POST',
+      data: {
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error) {
+          show_top_indicator(msg, "error");
+        }
+        else {
+          show_top_indicator(msg, "success");
+          // window.location = "{% url 'home' %}";
+        }
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+  })
+})
+</script>
+{% endblock %}
+

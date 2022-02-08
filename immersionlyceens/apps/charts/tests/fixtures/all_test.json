@@ -365,7 +365,8 @@
       "email": "lyceejeanmonnet@strasbourg.eu",
       "head_teacher_name": "le directeur",
       "convention_start_date": "2019-09-01",
-      "convention_end_date": "2022-08-30"
+      "convention_end_date": "2022-08-30",
+      "signed_charter": true
     }
   },
   {
@@ -384,7 +385,8 @@
       "email": "lyceecouffignal@strasbourg.eu",
       "head_teacher_name": "M. Le directeur",
       "convention_start_date": "2019-01-21",
-      "convention_end_date": "2021-01-27"
+      "convention_end_date": "2021-01-27",
+      "signed_charter": true
     }
   },
   {
@@ -403,7 +405,8 @@
       "email": "armelle.mathis@unistra.fr",
       "head_teacher_name": "M. Le directeur",
       "convention_start_date": "2018-02-21",
-      "convention_end_date": "2019-02-21"
+      "convention_end_date": "2019-02-21",
+      "signed_charter": true
     }
   },
   {
@@ -422,7 +425,8 @@
       "email": "lycee@strasbourg.eu",
       "head_teacher_name": "M. le directeur",
       "convention_start_date": "2019-10-01",
-      "convention_end_date": "2022-01-27"
+      "convention_end_date": "2022-01-27",
+      "signed_charter": true
     }
   },
   {
@@ -441,7 +445,8 @@
       "email": "kleber@ac-strasbourg.eu",
       "head_teacher_name": "M Letheux Sylvain",
       "convention_start_date": "2020-01-24",
-      "convention_end_date": "2022-02-24"
+      "convention_end_date": "2022-02-24",
+      "signed_charter": true
     }
   },
   {
@@ -2490,6 +2495,54 @@
         "value": "https://dynamic-forms.app.unistra.fr/form/1/read/1",
         "description": "desc",
         "type": "text"
+      }
+    }
+  },
+  {
+    "model": "core.generalsettings",
+    "pk": 11,
+    "fields": {
+      "setting": "PDF_CERTIFICATE_CITY",
+      "parameters" : {
+        "description": "Ville a afficher dans le certificat de pr\u00e9sence",
+        "type": "text",
+        "value": "Strasbourg"
+      }
+    }
+  },
+  {
+    "model": "core.generalsettings",
+    "pk": 12,
+    "fields": {
+      "setting": "CHARTER_SIGN",
+      "parameters" : {
+        "description": "Activation de la signature de la charte",
+        "type": "boolean",
+        "value": true
+      }
+    }
+  },
+  {
+    "model": "core.generalsettings",
+    "pk": 13,
+    "fields": {
+      "setting": "HIGHSCHOOL_VISIT",
+      "parameters" : {
+        "description": "Activation de visites en Lyc\u00e9e",
+        "type": "boolean",
+        "value": true
+      }
+    }
+  },
+  {
+    "model": "core.generalsettings",
+    "pk": 14,
+    "fields": {
+      "setting": "EVENTS_OFF_OFFER",
+      "parameters" : {
+        "description": "Activation de l'utilisation d'\u00e9v\u00e8nement hors offre",
+        "type": "boolean",
+        "value": true
       }
     }
   },
