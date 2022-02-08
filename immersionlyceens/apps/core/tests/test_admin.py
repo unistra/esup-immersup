@@ -2165,5 +2165,15 @@ class AdminFormsTestCase(TestCase):
         form = GeneralSettingsForm(data=data, request=request)
         self.assertTrue(form.is_valid())
 
+        # Wrong format for setting parameters
+        data = {"setting": "DUMMY_PARAMETER", "parameters": \
+            {"type": "wrong type", "missing_value": "value", "description": "dummy wrong format setting"}}
+
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
+
+        self.assertIn(error, form.errors['parameters'][0])
+
 
 
