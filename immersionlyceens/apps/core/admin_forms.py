@@ -392,7 +392,7 @@ class EstablishmentForm(forms.ModelForm):
 
         try:
             user = self.request.user
-            valid_user = user.is_superuser or user.is_operator()
+            valid_user = user.is_superuser or user.is_operator() or user.is_master_establishment_manager()
         except AttributeError:
             pass
 
