@@ -20,7 +20,7 @@ from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, CourseTypeForm, EstablishmentForm,
     EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
-    HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
     ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
     PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
@@ -28,10 +28,10 @@ from ..admin_forms import (
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, HighSchool, Holiday, ImmersionUser,
-    InformationText, MailTemplate, MailTemplateVars, PublicDocument,
-    PublicType, Structure, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday,
+    ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
+    PublicDocument, PublicType, Structure, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -202,6 +202,22 @@ class AdminFormsTestCase(TestCase):
             date_joined=timezone.now()
         )
 
+        self.student = get_user_model().objects.create_user(
+            username='student',
+            password='pass',
+            email='student@no-reply.com',
+            first_name='student',
+            last_name='STUDENT',
+        )
+
+        self.visitor = get_user_model().objects.create_user(
+            username='visitor',
+            password='pass',
+            email='visitor@no-reply.com',
+            first_name='visitor',
+            last_name='VISITOR',
+        )
+
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
         Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
@@ -211,6 +227,8 @@ class AdminFormsTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc_user_2)
         Group.objects.get(name='INTER').user_set.add(self.speaker_user)
         Group.objects.get(name='INTER').user_set.add(self.speaker_user_2)
+        Group.objects.get(name='ETU').user_set.add(self.student)
+        Group.objects.get(name='VIS').user_set.add(self.visitor)
 
     def test_training_domain_creation(self):
         """
@@ -2084,3 +2102,68 @@ class AdminFormsTestCase(TestCase):
             "High school and structure can't be set together. Please choose one.",
             form.errors["__all__"]
         )
+
+
+    def test_general_settings(self):
+        # User =! admin nor operator
+        data = {"setting": "MY_SETTING", "parameters": \
+            {"type": "text", "value": "value", "description": "my super setting"}}
+        request.user = self.ref_str_user
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+        self.assertFalse(GeneralSettings.objects.filter(setting='MY_SETTING').exists())
+
+        # Operator user
+        request.user = self.operator_user
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(len(str(form.errors)), 0)
+        form.save()
+        self.assertTrue(GeneralSettings.objects.filter(setting='MY_SETTING').exists())
+
+        # Add ACTIVATE_STUDENTS setting
+        data = {"setting": "ACTIVATE_STUDENTS", "parameters": \
+            {"type": "boolean", "value": True, "description": "activate students"}}
+
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(len(str(form.errors)), 0)
+        form.save()
+
+        # ACTIVATE_STUDENTS exists
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("General setting with this Setting name already exists.", form.errors['setting'])
+
+        # ACTIVATE_STUDENTS try to deactivate with students in database
+        g = GeneralSettings.objects.get(setting='ACTIVATE_STUDENTS')
+
+        data = {"setting": "ACTIVATE_STUDENTS", "parameters": \
+            {"type": "boolean", "value": False, "description": "activate students"}}
+
+        form = GeneralSettingsForm(data=data, instance=g, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Students users exist you can't deactivate students", form.errors["__all__"])
+
+        # ACTIVATE_STUDENTS working when no students in database
+        self.student.delete()
+        form = GeneralSettingsForm(data=data, instance=g, request=request)
+        self.assertTrue(form.is_valid())
+
+        # ACTIVATE_VISITORS try to deactivate with visitors in database
+
+        data = {"setting": "ACTIVATE_VISITORS", "parameters": \
+            {"type": "boolean", "value": False, "description": "activate visitors"}}
+
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Visitors users exist you can't deactivate visitors", form.errors["__all__"])
+
+        # ACTIVATE_VISITORS working when no visitors in database
+        self.visitor.delete()
+        form = GeneralSettingsForm(data=data, request=request)
+        self.assertTrue(form.is_valid())
+
+
+
