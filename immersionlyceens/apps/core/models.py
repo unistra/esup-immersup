@@ -72,6 +72,7 @@ class Establishment(models.Model):
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     email = models.EmailField(_('Email'))
+    mailing_list = models.EmailField(_('Mailing list'))
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
     master = models.BooleanField(_("Master"), default=True)
     data_source_plugin = models.CharField(_("Accounts source plugin"), max_length=256, null=True, blank=True,
