@@ -630,9 +630,9 @@ class GeneralBachelorTeachingAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
     form = EstablishmentForm
-    list_display = ('code', 'label', 'master', 'active', )
+    list_display = ('code', 'label', 'master', 'active', 'signed_charter')
     list_filter = ('active',)
-    ordering = ('master', 'label', )
+    ordering = ('code', 'master', 'label', 'active', 'signed_charter')
     search_fields = ('label',)
 
     formfield_overrides = {
@@ -1119,6 +1119,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'referents_list',
         'convention_start_date',
         'convention_end_date',
+        'signed_charter',
     )
     list_filter = (
         'postbac_immersion',

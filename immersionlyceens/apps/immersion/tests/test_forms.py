@@ -12,7 +12,7 @@ from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, HighSchoolLevel, PostBachelorLevel, StudentLevel
+    HighSchool, Calendar, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -40,6 +40,27 @@ class FormTestCase(TestCase):
         """
         SetUp for Admin Forms tests
         """
+        self.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            signed_charter=True, )
+
         self.highschool_user = get_user_model().objects.create_user(
             username='hs',
             password='pass',
@@ -53,6 +74,7 @@ class FormTestCase(TestCase):
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
+            establishment=self.establishment,
         )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
@@ -60,6 +82,7 @@ class FormTestCase(TestCase):
             email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school,
         )
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
@@ -67,6 +90,7 @@ class FormTestCase(TestCase):
             email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
+            establishment=self.establishment,
         )
 
         self.client = Client()
@@ -96,10 +120,8 @@ class FormTestCase(TestCase):
             building=self.building, room='room 1', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.speakers.add(self.speaker1),
-        self.high_school = HighSchool.objects.create(label='HS1', address='here',
-                         department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-                         email='a@b.c', head_teacher_name='M. A B')
+        self.slot.speakers.add(self.speaker1)
+
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
@@ -110,8 +132,6 @@ class FormTestCase(TestCase):
             bachelor_type=3,
             professional_bachelor_mention='My spe'
         )
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
         self.calendar = Calendar.objects.create(label='my calendar', calendar_mode='YEAR',
                         year_start_date=self.today + datetime.timedelta(days=1),
                         year_end_date=self.today + datetime.timedelta(days=100),

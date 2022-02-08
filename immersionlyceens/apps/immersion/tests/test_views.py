@@ -10,7 +10,7 @@ from immersionlyceens.apps.core.models import (
     BachelorMention, Building, Calendar, Campus, Course, CourseType,
     GeneralBachelorTeaching, HighSchool, HighSchoolLevel, Immersion,
     ImmersionUser, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Establishment
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -31,6 +31,46 @@ class ImmersionViewsTestCase(TestCase):
         """
         SetUp for Immersion app tests
         """
+        self.today = datetime.datetime.today()
+
+        self.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            signed_charter=True,
+        )
+
+        self.high_school2 = HighSchool.objects.create(
+            label='HS2',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='d@e.fr',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            signed_charter=True,
+        )
+
         self.highschool_user = get_user_model().objects.create_user(
             username='@EXTERNAL@_hs',
             password='pass',
@@ -73,6 +113,7 @@ class ImmersionViewsTestCase(TestCase):
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
+            establishment=self.establishment,
         )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
@@ -80,6 +121,7 @@ class ImmersionViewsTestCase(TestCase):
             email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school,
         )
         self.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
@@ -87,6 +129,7 @@ class ImmersionViewsTestCase(TestCase):
             email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
+            establishment=self.establishment,
         )
 
         self.ref_etab_user.set_password('pass')
@@ -108,7 +151,6 @@ class ImmersionViewsTestCase(TestCase):
 
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
 
-        self.today = datetime.datetime.today()
         self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
@@ -128,19 +170,8 @@ class ImmersionViewsTestCase(TestCase):
             building=self.building, room='room 1', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.speakers.add(self.speaker1),
-        self.high_school = HighSchool.objects.create(
-            label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-            email='a@b.c', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10))
+        self.slot.speakers.add(self.speaker1)
 
-        self.high_school2 = HighSchool.objects.create(
-            label='HS2', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-            email='d@e.fr', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10))
-
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
         self.calendar = Calendar.objects.create(
             label='my calendar',
             calendar_mode='YEAR',

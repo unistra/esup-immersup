@@ -40,7 +40,8 @@ class CoreViewsTestCase(TestCase):
             short_label='Eta 1',
             active=True,
             master=True,
-            email='test1@test.com'
+            email='test1@test.com',
+            signed_charter=True,
         )
 
         self.establishment = Establishment.objects.create(
@@ -49,7 +50,8 @@ class CoreViewsTestCase(TestCase):
             short_label='Eta 2',
             active=True,
             master=False,
-            email='test2@test.com'
+            email='test2@test.com',
+            signed_charter=True,
         )
         
         self.high_school = HighSchool.objects.create(
@@ -63,7 +65,8 @@ class CoreViewsTestCase(TestCase):
             head_teacher_name='M. A B',
             convention_start_date=self.today - datetime.timedelta(days=10),
             convention_end_date=self.today + datetime.timedelta(days=10),
-            postbac_immersion=True
+            postbac_immersion=True,
+            signed_charter=True,
         )
 
         self.high_school2 = HighSchool.objects.create(
@@ -77,7 +80,8 @@ class CoreViewsTestCase(TestCase):
             head_teacher_name='M. A B',
             convention_start_date=self.today - datetime.timedelta(days=10),
             convention_end_date=self.today + datetime.timedelta(days=10),
-            postbac_immersion=False
+            postbac_immersion=False,
+            signed_charter=True,
         )
 
         self.highschool_user = get_user_model().objects.create_user(

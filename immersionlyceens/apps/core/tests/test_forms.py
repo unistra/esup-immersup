@@ -57,13 +57,29 @@ class FormTestCase(TestCase):
         self.master_establishment = Establishment.objects.create(
             code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test1@test.com',
             address= 'address', department='departmeent', city='city',
-            zip_code= 'zip_code', phone_number= '+33666'
+            zip_code= 'zip_code', phone_number= '+33666',
+            signed_charter=True,
         )
 
         self.establishment = Establishment.objects.create(
             code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False,
             email='test2@test.com',address= 'address2', department='departmeent2', city='city2',
-            zip_code= 'zip_code2', phone_number= '+33666666'
+            zip_code= 'zip_code2', phone_number= '+33666666',
+            signed_charter=True,
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=datetime.datetime.today() - datetime.timedelta(days=2),
+            convention_end_date=datetime.datetime.today() + datetime.timedelta(days=2),
+            signed_charter=True,
         )
 
         self.highschool_user = get_user_model().objects.create_user(
@@ -73,20 +89,25 @@ class FormTestCase(TestCase):
             first_name='high',
             last_name='SCHOOL',
         )
+
         self.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
+            establishment=self.establishment,
         )
+
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
             email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school,
         )
+
         self.ref_master_etab_user = get_user_model().objects.create_user(
             username='ref_master_etab',
             password='pass',
@@ -154,19 +175,6 @@ class FormTestCase(TestCase):
         self.slot.speakers.add(self.speaker1)
         self.ref_str_user.structures.add(self.structure)
 
-        self.high_school = HighSchool.objects.create(
-            label='HS1',
-            address='here',
-            department=67,
-            city='STRASBOURG',
-            zip_code=67000,
-            phone_number='0123456789',
-            email='a@b.c',
-            head_teacher_name='M. A B',
-            convention_start_date=datetime.datetime.today() - datetime.timedelta(days=2),
-            convention_end_date = datetime.datetime.today() + datetime.timedelta(days=2),
-        )
-
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
@@ -177,8 +185,7 @@ class FormTestCase(TestCase):
             bachelor_type=3,
             professional_bachelor_mention='My spe'
         )
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
+
         self.calendar = Calendar.objects.create(label='my calendar', calendar_mode='YEAR',
                         year_start_date=self.today + datetime.timedelta(days=1),
                         year_end_date=self.today + datetime.timedelta(days=100),

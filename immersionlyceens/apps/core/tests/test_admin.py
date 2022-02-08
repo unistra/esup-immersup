@@ -71,7 +71,8 @@ class AdminFormsTestCase(TestCase):
             short_label='Eta 1',
             active=True,
             master=True,
-            email='test1@test.com'
+            email='test1@test.com',
+            signed_charter=True,
         )
 
         self.establishment = Establishment.objects.create(
@@ -80,7 +81,8 @@ class AdminFormsTestCase(TestCase):
             short_label='Eta 2',
             active=True,
             master=False,
-            email='test2@test.com'
+            email='test2@test.com',
+            signed_charter=True,
         )
 
         self.high_school = HighSchool.objects.create(
@@ -92,7 +94,8 @@ class AdminFormsTestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            postbac_immersion=True
+            postbac_immersion=True,
+            signed_charter=True,
         )
 
         self.high_school_2 = HighSchool.objects.create(
@@ -104,7 +107,8 @@ class AdminFormsTestCase(TestCase):
             phone_number='0123456789',
             email='d@e.f',
             head_teacher_name='M. C D',
-            postbac_immersion=False
+            postbac_immersion=False,
+            signed_charter=True,
         )
 
         self.ref_master_etab_user = get_user_model().objects.create_user(
@@ -144,6 +148,7 @@ class AdminFormsTestCase(TestCase):
             first_name='ref_str',
             last_name='ref_str',
             date_joined=timezone.now(),
+            establishment=self.master_establishment,
         )
 
         self.ref_str_user_2 = get_user_model().objects.create_user(
@@ -153,6 +158,7 @@ class AdminFormsTestCase(TestCase):
             first_name='ref_str_2',
             last_name='ref_str_2',
             date_joined=timezone.now(),
+            establishment=self.establishment,
         )
 
         self.ref_lyc_user = get_user_model().objects.create_user(
@@ -183,7 +189,7 @@ class AdminFormsTestCase(TestCase):
             first_name='speaker1',
             last_name='speaker1',
             highschool=self.high_school,
-            date_joined=timezone.now()
+            date_joined=timezone.now(),
         )
 
         self.speaker_user_2 = get_user_model().objects.create_user(
