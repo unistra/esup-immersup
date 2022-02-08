@@ -16,7 +16,7 @@ from .utils import process_request_filters
 
 logger = logging.getLogger(__name__)
 
-@groups_required('REF-ETAB', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
 def highschool_charts(request):
     """
     High school(s) charts by student levels
@@ -39,7 +39,7 @@ def highschool_charts(request):
     return render(request, 'charts/highschool_charts.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
 def highschool_domains_charts(request):
     """
     High school(s) charts by domains
@@ -65,7 +65,7 @@ def highschool_domains_charts(request):
     return render(request, 'charts/highschool_domains_charts.html', context=context)
 
 
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def global_domains_charts(request):
     """
     All institutions charts by domains, with filters on institutions
@@ -91,7 +91,7 @@ def global_domains_charts(request):
     return render(request, 'charts/global_domains_charts.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
 def trainings_charts(request):
     """
     Registration statistics by trainings
@@ -117,7 +117,7 @@ def trainings_charts(request):
     return render(request, 'charts/trainings_charts.html', context=context)
 
 
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def global_registrations_charts(request):
     """
     Registration and participation charts by student levels
@@ -144,7 +144,7 @@ def global_registrations_charts(request):
     return render(request, 'charts/registrations_charts.html', context=context)
 
 
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def global_slots_charts(request):
     """
     Slots statistics by structures and trainings

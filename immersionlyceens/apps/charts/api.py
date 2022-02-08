@@ -21,7 +21,7 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, Stud
 
 logger = logging.getLogger(__name__)
 
-@groups_required("REF-ETAB", "REF-LYC")
+@groups_required("REF-ETAB", "REF-LYC", "REF-ETAB-MAITRE", "REF-TEC")
 def highschool_charts(request, highschool_id):
     """
     Data for amcharts 4
@@ -95,7 +95,7 @@ def highschool_charts(request, highschool_id):
     return JsonResponse(response, safe=False)
 
 
-@groups_required("REF-ETAB", "REF-LYC")
+@groups_required("REF-ETAB", "REF-LYC", "REF-ETAB-MAITRE", "REF-TEC")
 def highschool_domains_charts(request, highschool_id, level=0):
     """
     Data for amcharts 4
@@ -162,7 +162,7 @@ def highschool_domains_charts(request, highschool_id, level=0):
 
 
 @is_post_request
-@groups_required('REF-ETAB')
+@groups_required('REF-ETAB', "REF-ETAB-MAITRE", "REF-TEC")
 def global_domains_charts(request):
     """
     Data for amcharts 4
@@ -254,7 +254,7 @@ def global_domains_charts(request):
 
 
 @is_ajax_request
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
 def get_charts_filters_data(request):
     response = {'msg': '', 'data': []}
 
@@ -304,7 +304,7 @@ def get_charts_filters_data(request):
 
 
 @is_ajax_request
-@groups_required("REF-ETAB","REF-LYC")
+@groups_required("REF-ETAB", "REF-LYC", "REF-ETAB-MAITRE", "REF-TEC")
 def get_trainings_charts(request, highschool_id=None):
     """
     Statistics by training
@@ -365,7 +365,7 @@ def get_trainings_charts(request, highschool_id=None):
     return JsonResponse(response, safe=False)
 
 
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
 def get_registration_charts(request, level_value=0):
     """
     Data for amcharts 4
@@ -465,7 +465,7 @@ def get_registration_charts(request, level_value=0):
 
 @is_post_request
 @is_ajax_request
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
 def get_registration_charts_cats(request):
     """
     Data for amcharts 4
@@ -631,7 +631,7 @@ def get_registration_charts_cats(request):
     return JsonResponse(response, safe=False)
 
 @is_ajax_request
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
 def get_slots_charts(request):
     """
     Data for amcharts 4
@@ -684,7 +684,7 @@ def get_slots_charts(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required("REF-ETAB")
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
 def get_slots_data(request, csv_mode=False):
     """
     Data for datatables or csv extraction
