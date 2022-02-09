@@ -72,7 +72,7 @@ class Establishment(models.Model):
     fax = models.CharField(_("Fax"), max_length=20, null=True, blank=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     email = models.EmailField(_('Email'))
-    mailing_list = models.EmailField(_('Mailing list'))
+    mailing_list = models.EmailField(_('Mailing list'), blank=True, null=True)
     active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
     master = models.BooleanField(_("Master"), default=True)
     signed_charter = models.BooleanField(_("Signed charter"), default=False)
