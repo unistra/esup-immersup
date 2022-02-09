@@ -8,8 +8,8 @@ from datetime import datetime
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
-from ...models import (ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course, UserCourseAlert, 
-    Vacation, Holiday)
+from ...models import (ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course, UserCourseAlert,
+    Vacation, Holiday, Visit, OffOfferEvent)
     
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             logger.info(_("No slot to delete"))
 
         # Delete ENS, LYC, ETU ImmersionUser
-        deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'ENS']).delete()
+        deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'ENS', 'VIS']).delete()
         if deleted[0]:
             logger.info(_(f"{deleted[0]} account(s) deleted"))
         else:
@@ -85,10 +85,43 @@ class Command(BaseCommand):
         else:
             logger.info(_('University year updated'))
 
-        # Update course publishement
+        # Update course, visitor, event publishement
         updated = Course.objects.filter(published=True).update(published=False)
         if updated == 0:
             logger.info(_('No course to update'))
         else:
             logger.info(_(f'{updated} course(s) updated'))
 
+        updated = Visit.objects.filter(published=True).update(published=False)
+        if updated == 0:
+            logger.info(_('No visit to update'))
+        else:
+            logger.info(_(f'{updated} visit(s) updated'))
+
+        updated = OffOfferEvent.objects.filter(published=True).update(published=False)
+        if updated == 0:
+            logger.info(_('No visit to update'))
+        else:
+            logger.info(_(f'{updated} visit(s) updated'))
+
+
+        # deactivate immersion users with goup INTER and in an establishment LDAP
+        deleted = ImmersionUser.objects.filter(
+            groups__in=("INTER",),
+            events__establishment__data_source_plugin="LDAP"
+        ).delete()
+        if deleted[0]:
+            logger.info(_(f"{deleted[0]} user(s) with group INTER and with LDAP establishment deleted"))
+        else:
+            logger.info(_("no user with group INTER and with LDAP establishment to delete"))
+
+
+        # Delete immersion user with group INTER and in an establishment without SI
+        updated = ImmersionUser.objects.filter(
+            groups__in=("INTER",),
+            events__establishment__data_source_plugin__isnull=True
+        ).update(is_active=False)
+        if updated:
+            logger.info(_(f"{updated} user(s) with group INTER and with establishment without SI deactivated"))
+        else:
+            logger.info(_("no user with group INTER and with LDAP establishment to deactivate"))
