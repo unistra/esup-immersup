@@ -11,6 +11,7 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
 {% trans "Trainings statistics" %}
@@ -45,6 +46,23 @@
     </div>
     <div class="card-body">
       <div class="table-responsive">
+        {% with levels|length as levels_count %}
+          <div>
+            {% trans 'Toggle counts columns' %} :
+            {% for level in levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:4 }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+          <div>
+            {% trans 'Toggle registrations columns' %} :
+            {% for level in levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:5|add:levels_count }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+        {% endwith %}
+        <br />
         <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
             <tr>
@@ -52,13 +70,13 @@
               <th id="subdomain_filter" class="align-top">{% trans 'Subdomain' %}</th>
               <th id="domain_filter" class="align-top">{% trans 'Domain' %}</th>
               <th class="align-top">{% trans 'Students cnt' %}</th>
-              <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.0.1 }}</th>
-              <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.1.1 }}</th>
-              <th class="align-top">{% trans 'Students cnt' %}<br />{{ levels.2.1 }}</th>
+              {% for level in levels %}
+                <th class="align-top">{% trans 'Students cnt' %}<br />{{ level.label }}</th>
+              {% endfor %}
               <th class="align-top">{% trans 'Registrations' %}</th>
-              <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.0.1 }}</th>
-              <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.1.1 }}</th>
-              <th class="align-top">{% trans 'Registrations' %}<br />{{ levels.2.1 }}</th>
+              {% for level in levels %}
+                <th class="align-top">{% trans 'Registrations' %}<br />{{ level.label }}</th>
+              {% endfor %}
             </tr>
           </thead>
           <tbody>
@@ -67,13 +85,10 @@
               <td></td>
               <td></td>
               <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              {% for level in levels %}
+                <td></td>
+                <td></td>
+              {% endfor %}
             </tr>
           </tbody>
         </table>
@@ -84,109 +99,109 @@
 <script type="text/javascript">
   var highschool_id = "{{ highschool_id }}";
   var dt;
+  var data;
+  var columns;
+  var response;
+  var response_data;
 
   $(document).ready(function () {
-    $.fn.dataTableExt.errMode = 'console';
-    dt = $('#statistics_table').DataTable({
-      'processing': false,
-      'order': [
-        [0, "asc"],
-        [1, "asc"],
-        [2, "asc"],
-      ],
-      'pageLength': 15,
-      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
-      'serverSide': false,
-      'responsive': true,
-      'ajax': {
-        url: "",
-        dataSrc: function (json) {
-          if (json['data'] != undefined) {
-            return json['data'];
-          }
+
+    // Datatable definition HAS TO WAIT for the ajax call to end : columns definitions are in the results
+
+    function load_datatable() {
+      let url = "/charts/get_trainings_charts"
+
+      if (highschool_id) {
+        url = url + "/" + highschool_id;
+      }
+
+      response = $.ajax(url).done(function () {
+        data = JSON.parse(response.responseText);
+
+        $.fn.dataTableExt.errMode = 'console';
+
+        if(is_set(dt)) {
+          dt.clear().rows.add(data.data).draw();
         }
-      },
-    'searching': true,
-    'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
-    },
-    'columns': [
-      { "data": "training_label" },
-      { "data": "subdomain_label" },
-      { "data": "domain_label" },
-      { "data": "unique_students" },
-      { "data": "unique_students_lvl1" },
-      { "data": "unique_students_lvl2" },
-      { "data": "unique_students_lvl3" },
-      { "data": "all_registrations" },
-      { "data": "registrations_lvl1" },
-      { "data": "registrations_lvl2" },
-      { "data": "registrations_lvl3" },
-    ],
-    "columnDefs": [
-      {
-        "defaultContent": "",
-        "targets": "_all",
-        "className": "all",
-      },
-      {
-        "orderable": false, "targets": [3,4,5,6,7,8,9,10],
-      },
-    ],
-  });
+        else {
+          dt = $('#statistics_table').DataTable({
+            'processing': false,
+            'order': [
+              [0, "asc"],
+              [1, "asc"],
+              [2, "asc"],
+            ],
+            'pageLength': 15,
+            'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+            'serverSide': false,
+            'responsive': true,
+            'data': data.data,
+            'columns': data.columns,
+            'searching': true,
+            'language': {
+              url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+            },
 
-  // All filters reset action
-  $('#filters_reset_all').click(function () {
-    yadcf.exResetAllFilters(dt);
-  });
+            "columnDefs": [
+              {
+                "defaultContent": "",
+                "targets": "_all",
+                "className": "all",
+              },
+            ],
+          });
 
-  // Filters init
-  yadcf.init(dt, [
-    {
-      column_number: 0,
-      filter_default_label: "",
-      filter_match_mode: "exact",
-      filter_container_id: "training_filter",
-      style_class: "form-control form-control-sm",
-      filter_reset_button_text: false,
-    }, {
-      column_number: 1,
-      filter_default_label: "",
-      filter_match_mode: "exact",
-      filter_container_id: "subdomain_filter",
-      style_class: "form-control form-control-sm",
-      filter_reset_button_text: false,
-    }, {
-      column_number: 2,
-      filter_default_label: "",
-      filter_match_mode: "exact",
-      filter_container_id: "domain_filter",
-      style_class: "form-control form-control-sm",
-      filter_reset_button_text: false,
-    },
-  ]);
+          // All filters reset action
+          $('#filters_reset_all').click(function () {
+            yadcf.exResetAllFilters(dt);
+          });
 
-  function init_table(highschool_id) {
-    current_url = dt.ajax.url();
-
-    if (highschool_id) {
-      dt.ajax.url("/charts/get_trainings_charts/" + highschool_id);
-
-    } else {
-      dt.ajax.url("/charts/get_trainings_charts");
+          // Filters init
+          yadcf.init(dt, [
+            {
+              column_number: 0,
+              filter_default_label: "",
+              filter_match_mode: "exact",
+              filter_container_id: "training_filter",
+              style_class: "form-control form-control-sm",
+              filter_reset_button_text: false,
+            }, {
+              column_number: 1,
+              filter_default_label: "",
+              filter_match_mode: "exact",
+              filter_container_id: "subdomain_filter",
+              style_class: "form-control form-control-sm",
+              filter_reset_button_text: false,
+            }, {
+              column_number: 2,
+              filter_default_label: "",
+              filter_match_mode: "exact",
+              filter_container_id: "domain_filter",
+              style_class: "form-control form-control-sm",
+              filter_reset_button_text: false,
+            },
+          ]);
+        }
+      });
     }
 
-    if(current_url != "") {
-      dt.ajax.reload();
-    }
-  }
+    load_datatable()
 
-  $('#id_highschools').change(function() {
-    let highschool_id = $('#id_highschools option:selected').val();
-    init_table(highschool_id);
+    $('#id_highschools').change(function() {
+      highschool_id = $('#id_highschools option:selected').val();
+      load_datatable();
+    });
+
+    $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+
+        // Get the column API object
+        var column = dt.column( $(this).attr('data-column') );
+
+        // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
   });
 
-  init_table(highschool_id);
-});
 </script>
 {% endblock %}
