@@ -321,12 +321,34 @@ def get_trainings_charts(request, highschool_id=None):
     elif highschool_id:
         high_school_filter_id = highschool_id
 
+    # Columns definition
+    # We need this because high school levels can be deactivated
+    response['columns'] = [
+        { "data": 'training_label' },
+        { "data": 'subdomain_label' },
+        { "data": 'domain_label' },
+        { "data": 'unique_students' },
+        *[{
+            'data': f"unique_students_lvl{level.id}",
+            'visible': False
+          } for level in HighSchoolLevel.objects.filter(active=True)
+        ],
+        { "data": 'all_registrations' },
+        *[{
+            'data': f"registrations_lvl{level.id}",
+            'visible': False
+          } for level in HighSchoolLevel.objects.filter(active=True)
+        ]
+    ]
+
     for training in trainings:
         for subdomain in training.training_subdomains.all():
-            base_students_qs = ImmersionUser.objects.prefetch_related('immersions__slot__course__training')\
+            base_students_qs = ImmersionUser.objects\
+                .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
                 .filter(immersions__slot__course__training=training, immersions__cancellation_type__isnull=True)
 
-            base_immersions_qs = Immersion.objects.prefetch_related('slot__course__training', 'student')\
+            base_immersions_qs = Immersion.objects\
+                .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
                 .filter(slot__course__training=training, cancellation_type__isnull=True)
 
             if high_school_filter_id:
@@ -341,24 +363,28 @@ def get_trainings_charts(request, highschool_id=None):
                 'domain_label': subdomain.training_domain.label,
                 # students registered to at least one immersion for this training
                 'unique_students': base_students_qs.distinct().count(),
-                'unique_students_lvl1': base_students_qs.filter(high_school_student_record__level=1).distinct().count(),
-                'unique_students_lvl2': base_students_qs.filter(high_school_student_record__level=2).distinct().count(),
-                # For REF-ETAB users, the level 3 (above bachelor) also includes higher education
-                # institutions students (any level)
-                'unique_students_lvl3': base_students_qs.filter(
-                    Q(high_school_student_record__level=3) |
-                    Q(student_record__level__in=[s.id for s in StudentLevel.objects.all()]))\
-                    .distinct().count(),
                 # registrations on all slots (not cancelled)
                 'all_registrations': base_immersions_qs.count(),
-                'registrations_lvl1': base_immersions_qs.filter(student__high_school_student_record__level=1).count(),
-                'registrations_lvl2': base_immersions_qs.filter(student__high_school_student_record__level=2).count(),
-                # For REF-ETAB users, also includes higher education institutions students
-                'registrations_lvl3': base_immersions_qs.filter(
-                    Q(student__high_school_student_record__level=3) |
-                    Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.all()]))\
-                    .count()
             }
+
+            # Fixme clean the row table above
+            for level in HighSchoolLevel.objects.filter(active=True):
+                if not level.is_post_bachelor:
+                    row[f"unique_students_lvl{level.id}"] = base_students_qs.filter(
+                        high_school_student_record__level=level).distinct().count()
+
+                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                        student__high_school_student_record__level=level).count()
+                else:
+                    row[f"unique_students_lvl{level.id}"] = base_students_qs.filter(
+                        Q(high_school_student_record__level=level) |
+                        Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                        .distinct().count()
+
+                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                        Q(student__high_school_student_record__level=level) |
+                        Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                        .count()
 
             response['data'].append(row.copy())
 

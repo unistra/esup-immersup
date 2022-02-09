@@ -110,7 +110,7 @@ def trainings_charts(request):
 
     context = {
         'high_school_name': high_school_name,
-        'levels': [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('order')],
+        'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
         'highschools': highschools,
         'highschool_id': filter.get('pk', ''),
     }

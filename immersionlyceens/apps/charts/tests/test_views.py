@@ -21,7 +21,10 @@ class ChartsViewsTestCase(TestCase):
     """
 
     # This file contains a complete set of users, slots, etc
-    fixtures = ['immersionlyceens/apps/charts/tests/fixtures/all_test.json']
+    fixtures = [
+        'immersionlyceens/apps/charts/tests/fixtures/all_test.json',
+        'high_school_levels', 'post_bachelor_levels', 'student_levels'
+    ]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -123,7 +126,11 @@ class ChartsViewsTestCase(TestCase):
              {'id': 5, 'label': 'Lycée Marie Curie', 'city': 'STRASBOURG'}]
             )
         self.assertEqual(response.context['highschool_id'], '')
-        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
+
+        self.assertEqual(
+            [level for level in response.context['levels']],
+            [level for level in HighSchoolLevel.objects.filter(active=True).order_by('order')]
+        )
         self.assertEqual(response.context['high_school_name'], None)
 
         # As high school referent
@@ -133,7 +140,10 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschools'],
             [{'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'}])
         self.assertEqual(response.context['highschool_id'], 2)
-        self.assertEqual(response.context['levels'], [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
+        self.assertEqual(
+            [level for level in response.context['levels']],
+            [level for level in HighSchoolLevel.objects.filter(active=True).order_by('order')]
+        )
         self.assertEqual(response.context['high_school_name'], "Lycée Jean Monnet")
 
 
