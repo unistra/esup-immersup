@@ -650,8 +650,19 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
         return actions
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.is_operator()
+        return request.user.is_superuser \
+               or request.user.is_operator() \
+               or request.user.is_master_establishment_manager()
 
+    def get_readonly_fields(self, request, obj=None):
+        if request.user.is_master_establishment_manager():
+            return super().get_readonly_fields(request, obj) + (
+                'code', 'label', 'short_label', 'department', 'city', 'zip_code', 'phone_number', 'fax',
+                'badge_html_color', 'email', 'data_source_plugin',
+                'data_source_settings', 'logo', 'signature', 'objects', 'activated',
+                'address', 'address2', 'address3'
+            )
+        return super().get_readonly_fields(request, obj)
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_superuser and not request.user.is_operator():
