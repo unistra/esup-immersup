@@ -8,8 +8,8 @@ from datetime import datetime
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
-from ...models import (ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course, UserCourseAlert, 
-    Vacation, Holiday)
+from ...models import (ImmersionUser, Immersion, Slot, Calendar, UniversityYear, Course, UserCourseAlert,
+    Vacation, Holiday, Visit, OffOfferEvent)
     
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             logger.info(_("No slot to delete"))
 
         # Delete ENS, LYC, ETU ImmersionUser
-        deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'ENS']).delete()
+        deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'ENS', 'VIS']).delete()
         if deleted[0]:
             logger.info(_(f"{deleted[0]} account(s) deleted"))
         else:
@@ -85,10 +85,23 @@ class Command(BaseCommand):
         else:
             logger.info(_('University year updated'))
 
-        # Update course publishement
+        # Update course, visitor, event publishement
         updated = Course.objects.filter(published=True).update(published=False)
         if updated == 0:
             logger.info(_('No course to update'))
         else:
             logger.info(_(f'{updated} course(s) updated'))
+
+        updated = Visit.objects.filter(published=True).update(published=False)
+        if updated == 0:
+            logger.info(_('No visit to update'))
+        else:
+            logger.info(_(f'{updated} visit(s) updated'))
+
+        updated = OffOfferEvent.objects.filter(published=True).update(published=False)
+        if updated == 0:
+            logger.info(_('No visit to update'))
+        else:
+            logger.info(_(f'{updated} visit(s) updated'))
+
 
