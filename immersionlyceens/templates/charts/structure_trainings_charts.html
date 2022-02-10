@@ -46,18 +46,25 @@
       <div class="table-responsive">
         {% with high_school_levels|length as levels_count %}
           <div>
-            {% trans 'Toggle counts columns' %} :
+            {% trans 'Toggle levels counts columns' %} :
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
-              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:4 }}">{{ level.label }}</a>
+              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:2 }}">{{ level.label }}</a>
             {% endfor %}
           </div>
           <div>
-            {% trans 'Toggle registrations columns' %} :
+            {% trans 'Toggle levels registrations columns' %} :
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:5|add:levels_count }}">{{ level.label }}</a>
             {% endfor %}
+          </div>
+            <div>
+            {% trans 'Toggle students and visitors columns' %} :
+              <a class="toggle-vis" href='' data-column="{{ levels_count|add:2 }}">{% trans 'Unique students' %}</a>
+              - <a class="toggle-vis" href='' data-column="{{ levels_count|add:3 }}">{% trans 'Unique visitors' %}</a>
+              - <a class="toggle-vis" href='' data-column="{{ levels_count|add:levels_count|add:5 }}">{% trans 'Students registrations' %}</a>
+              - <a class="toggle-vis" href='' data-column="{{ levels_count|add:levels_count|add:6 }}">{% trans 'Visitors registrations' %}</a>
           </div>
         {% endwith %}
         <br />
@@ -65,20 +72,25 @@
           <thead>
             <tr>
               <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
-              <th id="subdomain_filter" class="align-top">{% trans 'Subdomain' %}</th>
-              <th id="domain_filter" class="align-top">{% trans 'Domain' %}</th>
-              <th class="align-top">{% trans 'Students cnt' %}</th>
+              <th class="align-top">{% trans 'Persons cnt' %}</th>
               {% for level in high_school_levels %}
                 <th class="align-top">{% trans 'Students cnt' %}<br />{{ level.label }}</th>
               {% endfor %}
+              <th class="align-top">{% trans 'Students cnt' %}</th>
+              <th class="align-top">{% trans 'Visitors cnt' %}</th>
               <th class="align-top">{% trans 'Registrations' %}</th>
               {% for level in high_school_levels %}
                 <th class="align-top">{% trans 'Registrations' %}<br />{{ level.label }}</th>
               {% endfor %}
+              <th class="align-top">{% trans 'Students<br>registrations' %}</th>
+              <th class="align-top">{% trans 'Visitor<br>registrations' %}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td></td>
+              <td></td>
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -104,9 +116,8 @@
   $(document).ready(function () {
 
     // Datatable definition HAS TO WAIT for the ajax call to end : columns definitions are in the results
-
     function load_datatable() {
-      let url = "/charts/get_trainings_charts";
+      let url = "/charts/get_structure_trainings_charts";
 
       response = $.ajax({
           'url': url,
