@@ -27,7 +27,7 @@
     "model": "core.mailtemplatevars",
     "pk": 4,
     "fields": {
-        "code": "{{ creneau.batiment }}",
+        "code": "{{ creneau.batiment.libelle }}",
         "description": "Créneau : nom du bâtiment"
     }
 },
@@ -437,6 +437,14 @@
     "fields": {
         "code": "{{ creneau.estunevenement }}",
         "description": "Indique si le créneau est un évènement"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 63,
+    "fields": {
+        "code": "{{ creneau.batiment.url }}",
+        "description": "Créneau : lien du bâtiment"
     }
 }
 ]

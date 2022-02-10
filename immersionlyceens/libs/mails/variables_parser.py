@@ -145,7 +145,10 @@ class Parser:
                     "etablissement": establishment.label if establishment else "",
                     "lycee": f"{highschool.label} ({highschool.city})" if highschool else "",
                     "structure": structure.label if structure else "",
-                    "batiment": slot.building.label if slot.building else "",
+                    "batiment": {
+                        'libelle': slot.building.label,
+                        'lien': slot.building.url,
+                    } if slot.building else {},
                     "campus": slot.campus.label if slot.campus else "",
                     "temoindistanciel": not slot.face_to_face,
                     "lien": format_html(f"<a href='{slot.url}'>{slot.url}</a>") if slot.url else "",
