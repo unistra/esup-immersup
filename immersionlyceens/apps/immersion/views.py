@@ -844,7 +844,7 @@ def immersion_attestation_download(request, immersion_id):
             user=student,
             request=request,
             message_body=tpl_header.body,
-            vars=[v for v in tpl.available_vars.all()],
+            vars=[v for v in tpl_header.available_vars.all()],
             immersion=immersion,
             slot=immersion.slot,
         )
@@ -853,7 +853,7 @@ def immersion_attestation_download(request, immersion_id):
             user=student,
             request=request,
             message_body=tpl_footer.body,
-            vars=[v for v in tpl.available_vars.all()],
+            vars=[v for v in tpl_footer.available_vars.all()],
             immersion=immersion,
             slot=immersion.slot,
         )
