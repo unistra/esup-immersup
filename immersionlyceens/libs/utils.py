@@ -1,10 +1,9 @@
 # pylint: disable=E1101
 """File for utils content"""
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
-from django.template import engines, Engine, Template
-
+from django.template import Engine, Template, engines
 from immersionlyceens.apps.core import models as core_models
 
 
