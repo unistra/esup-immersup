@@ -196,7 +196,7 @@ ul
             {% if record_form.allowed_first_semester_registrations %}
               <div class="col-sm-2">{{ record_form.allowed_first_semester_registrations }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ record.allowed_first_semester_registrations }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }} / {{ record.allowed_first_semester_registrations }}</div>
             {% endif %}
           </div>
           <div class="form-group row align-items-center">
@@ -206,10 +206,14 @@ ul
             {% if record_form.allowed_second_semester_registrations %}
               <div class="col-sm-2">{{ record_form.allowed_second_semester_registrations }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ record.allowed_second_semester_registrations }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations }}</div>
             {% endif %}
           </div>
         {% endif %}
+      </div>
+
+      <div class="form-group row">
+
       </div>
     </div>
     <div class="row mt-4">

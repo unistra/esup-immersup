@@ -644,6 +644,21 @@ def high_school_student_record(request, student_id=None, record_id=None):
         Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
     ).count()
 
+    immersion_number = None
+    immersions = student.immersions.all()
+    if calendar.CALENDAR_MODE == "YEAR":
+        immersion_number = immersions.count()
+    else:
+        immersions_semesters_count = [0, 0]
+        for imm in immersions:
+            immersions_semesters_count[calendar.which_semester(imm.slot.date) - 1] += 1
+        immersion_number = {
+            "semester_1": immersions_semesters_count[0],
+            "semester_2": immersions_semesters_count[1],
+        }
+
+
+
     context = {
         'calendar': calendar,
         'student_form': studentform,
@@ -658,7 +673,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 'is_post_bachelor': l.is_post_bachelor,
                 'requires_bachelor_speciality': l.requires_bachelor_speciality
             } for l in HighSchoolLevel.objects.all()}
-        )
+        ),
+        'immersion_number': immersion_number
     }
 
     return render(request, template_name, context)
