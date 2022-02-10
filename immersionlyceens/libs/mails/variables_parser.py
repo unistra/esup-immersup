@@ -147,7 +147,7 @@ class Parser:
                     "structure": structure.label if structure else "",
                     "batiment": {
                         'libelle': slot.building.label,
-                        'lien': slot.building.url,
+                        'lien': format_html(f"<a href='{slot.building.url}'>{slot.building.url}</a>"),
                     } if slot.building else {},
                     "campus": slot.campus.label if slot.campus else "",
                     "temoindistanciel": not slot.face_to_face,
