@@ -337,7 +337,7 @@ def get_trainings_charts(request):
 
     # Next columns definition
     # We need this because some high school levels can be deactivated
-    response['columns'] += [
+    response['columns'] = [
         {"data": 'training_label'},
         {"data": 'subdomain_label'},
         {"data": 'domain_label'},
