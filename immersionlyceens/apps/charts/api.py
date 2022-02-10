@@ -360,7 +360,7 @@ def get_trainings_charts(request):
             base_students_qs = ImmersionUser.objects\
                 .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
                 .filter(
-                    *students_filter,
+                    **students_filter,
                     immersions__slot__course__training=training,
                     immersions__cancellation_type__isnull=True
                 )
@@ -368,7 +368,7 @@ def get_trainings_charts(request):
             base_immersions_qs = Immersion.objects\
                 .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
                 .filter(
-                    *immersions_filter,
+                    **immersions_filter,
                     slot__course__training=training,
                     cancellation_type__isnull=True
                 )
