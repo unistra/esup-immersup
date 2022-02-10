@@ -828,10 +828,31 @@ def immersion_attestation_download(request, immersion_id):
         student = immersion.student
 
         tpl = MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True)
+        tpl_header = MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True)
+        tpl_footer =  MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True)
+
         certificate_body = parser(
             user=student,
             request=request,
             message_body=tpl.body,
+            vars=[v for v in tpl.available_vars.all()],
+            immersion=immersion,
+            slot=immersion.slot,
+        )
+
+        certificate_header = parser(
+            user=student,
+            request=request,
+            message_body=tpl_header.body,
+            vars=[v for v in tpl.available_vars.all()],
+            immersion=immersion,
+            slot=immersion.slot,
+        )
+
+        certificate_footer = parser(
+            user=student,
+            request=request,
+            message_body=tpl_footer.body,
             vars=[v for v in tpl.available_vars.all()],
             immersion=immersion,
             slot=immersion.slot,
@@ -848,9 +869,9 @@ def immersion_attestation_download(request, immersion_id):
 
         context = {
             'city': slot_entity.city.capitalize() if slot_entity else get_general_setting('PDF_CERTIFICATE_CITY'),
-            'certificate_header': MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True).body,
+            'certificate_header': certificate_header,
             'certificate_body': certificate_body,
-            'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
+            'certificate_footer': certificate_footer,
             'certificate_logo': certificate_logo,
             'certificate_sig': certificate_sig,
         }
