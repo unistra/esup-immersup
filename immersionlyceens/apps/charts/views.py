@@ -117,6 +117,26 @@ def trainings_charts(request):
     return render(request, 'charts/trainings_charts.html', context=context)
 
 
+@groups_required('REF-STR')
+def structure_trainings_charts(request):
+    """
+    Registration statistics by trainings for structures
+    FIXME : try to refactor *_training_charts ? => needs a datatable template with dynamic columns definitions
+    """
+
+    structures = [
+        {'id': s.id, 'label': s.label}
+        for s in request.user.structures.all().order_by('label')
+    ]
+
+    context = {
+        'structures': structures,
+        "structure_id": structures[0]['id'] if structures else '',
+        'high_school_levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
+    }
+    return render(request, 'charts/structure_trainings_charts.html', context=context)
+
+
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def global_registrations_charts(request):
     """

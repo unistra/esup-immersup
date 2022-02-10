@@ -304,29 +304,61 @@ def get_charts_filters_data(request):
 
 
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-LYC", "REF-ETAB-MAITRE", "REF-TEC")
-def get_trainings_charts(request, highschool_id=None):
+@groups_required("REF-ETAB", "REF-LYC", "REF-ETAB-MAITRE", "REF-TEC", "REF-STR")
+def get_trainings_charts(request):
     """
     Statistics by training
      - for a single high school (if referent)
      - REF-ETAB users can choose a high school or leave empty for all institutions
     """
+
+    highschool_id = request.GET.get("highschool_id")
+    structure_id = request.GET.get("structure_id")
+
     response = {'msg': '', 'data': []}
+    students_filter = {}
+    immersions_filter = {}
     high_school_filter_id = None
     trainings = Training.objects.prefetch_related('training_subdomains__training_domain').filter(active=True)
 
-    # Additional filter if the user is a high school referent
-    if request.user.is_high_school_manager() and request.user.highschool:
-        high_school_filter_id = request.user.highschool.id
-    elif highschool_id:
-        high_school_filter_id = highschool_id
-
-    # Columns definition
-    # We need this because high school levels can be deactivated
+    # Default first columns definition
     response['columns'] = [
-        { "data": 'training_label' },
-        { "data": 'subdomain_label' },
-        { "data": 'domain_label' },
+        {"data": 'training_label'},
+        {"data": 'subdomain_label'},
+        {"data": 'domain_label'}
+    ]
+
+    # Default table ordering
+    response['order'] = [
+      [0, "asc"],
+      [1, "asc"],
+      [2, "asc"],
+    ]
+
+    # override highschool id if request.user is a high school manager
+    if request.user.is_high_school_manager() and request.user.highschool:
+        highschool_id = request.user.highschool.id
+
+    if highschool_id:
+        students_filter['high_school_student_record__highschool__id'] = highschool_id
+        immersions_filter['student__high_school_student_record__highschool__id'] = highschool_id
+    elif structure_id and request.user.is_structure_manager() and request.user.structures.exists():
+        trainings = trainings.filter(structures=structure_id)
+
+        # First columns definitions for structures
+        """
+        response['columns'] = [
+            {"data": 'training_label'},
+        ]
+        """
+
+        response['order'] = [
+            [0, "asc"],
+        ]
+
+    # Next columns definition
+    # We need this because some high school levels can be deactivated
+    response['columns'] += [
         { "data": 'unique_students' },
         *[{
             'data': f"unique_students_lvl{level.id}",
@@ -345,17 +377,19 @@ def get_trainings_charts(request, highschool_id=None):
         for subdomain in training.training_subdomains.all():
             base_students_qs = ImmersionUser.objects\
                 .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
-                .filter(immersions__slot__course__training=training, immersions__cancellation_type__isnull=True)
+                .filter(
+                    *students_filter,
+                    immersions__slot__course__training=training,
+                    immersions__cancellation_type__isnull=True
+                )
 
             base_immersions_qs = Immersion.objects\
                 .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
-                .filter(slot__course__training=training, cancellation_type__isnull=True)
-
-            if high_school_filter_id:
-                base_students_qs = base_students_qs.filter(
-                    high_school_student_record__highschool__id=high_school_filter_id)
-                base_immersions_qs = base_immersions_qs.filter(
-                    student__high_school_student_record__highschool__id=high_school_filter_id)
+                .filter(
+                    *immersions_filter,
+                    slot__course__training=training,
+                    cancellation_type__isnull=True
+                )
 
             row = {
                 'training_label': training.label,

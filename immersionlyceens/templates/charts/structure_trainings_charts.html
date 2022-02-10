@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Structure trainings statistics" %}
+{% endblock %}
+
+{% block section_title %}
+    <h3 class="ml-2">
+      {% trans "Structure statistics - registrations by trainings in my structure(s)" %}
+    </h3>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% if structures|length > 1 %}
+        <label for="id_structures">{% trans 'Select a structure' %} :</label>
+          <select id="id_structures">
+            {% for structure in structures %}
+              <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                {{ structure.label }}
+              </option>
+            {% endfor %}
+          </select>
+      {% else %}
+        {% with structure=structures|first %}
+          {{ structure.label }}
+        {% endwith %}
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        {% with high_school_levels|length as levels_count %}
+          <div>
+            {% trans 'Toggle counts columns' %} :
+            {% for level in high_school_levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:4 }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+          <div>
+            {% trans 'Toggle registrations columns' %} :
+            {% for level in high_school_levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:5|add:levels_count }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+        {% endwith %}
+        <br />
+        <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
+              <th id="subdomain_filter" class="align-top">{% trans 'Subdomain' %}</th>
+              <th id="domain_filter" class="align-top">{% trans 'Domain' %}</th>
+              <th class="align-top">{% trans 'Students cnt' %}</th>
+              {% for level in high_school_levels %}
+                <th class="align-top">{% trans 'Students cnt' %}<br />{{ level.label }}</th>
+              {% endfor %}
+              <th class="align-top">{% trans 'Registrations' %}</th>
+              {% for level in high_school_levels %}
+                <th class="align-top">{% trans 'Registrations' %}<br />{{ level.label }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              {% for level in high_school_levels %}
+                <td></td>
+                <td></td>
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var structure_id = "{{ structure_id }}";
+  var dt;
+  var data;
+  var response;
+  var response_data;
+
+  $(document).ready(function () {
+
+    // Datatable definition HAS TO WAIT for the ajax call to end : columns definitions are in the results
+
+    function load_datatable() {
+      let url = "/charts/get_trainings_charts";
+
+      response = $.ajax({
+          'url': url,
+          'data': { 'structure_id': structure_id }
+      }).done(function () {
+        data = JSON.parse(response.responseText);
+        $.fn.dataTableExt.errMode = 'console';
+
+        if(is_set(dt)) {
+          dt.clear().rows.add(data.data).draw();
+        }
+        else {
+          dt = $('#statistics_table').DataTable({
+            'processing': false,
+            'order': data.order,
+            'pageLength': 15,
+            'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+            'serverSide': false,
+            'responsive': true,
+            'data': data.data,
+            'columns': data.columns,
+            'searching': true,
+            'language': {
+              url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+            },
+
+            "columnDefs": [
+              {
+                "defaultContent": "",
+                "targets": "_all",
+                "className": "all",
+              },
+            ],
+          });
+
+          // All filters reset action
+          $('#filters_reset_all').click(function () {
+            yadcf.exResetAllFilters(dt);
+          });
+
+          // Filters init
+          yadcf.init(dt, [
+            {
+              column_number: 0,
+              filter_default_label: "",
+              filter_match_mode: "exact",
+              filter_container_id: "training_filter",
+              style_class: "form-control form-control-sm",
+              filter_reset_button_text: false,
+            },
+          ]);
+        }
+      });
+    }
+
+    load_datatable()
+
+    $('#id_structures').change(function() {
+      structure_id = $('#id_structures option:selected').val();
+      load_datatable();
+    });
+
+    $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+
+        // Get the column API object
+        var column = dt.column( $(this).attr('data-column') );
+
+        // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
+  });
+
+</script>
+{% endblock %}

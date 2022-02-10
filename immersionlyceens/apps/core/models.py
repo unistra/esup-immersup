@@ -650,10 +650,8 @@ class TrainingDomain(models.Model):
     label = models.CharField(_("Label"), max_length=128, unique=True)
     active = models.BooleanField(_("Active"), default=True)
 
-
     def __str__(self):
         return self.label
-
 
     def validate_unique(self, exclude=None):
         try:
