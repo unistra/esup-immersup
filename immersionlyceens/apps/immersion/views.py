@@ -657,8 +657,6 @@ def high_school_student_record(request, student_id=None, record_id=None):
             "semester_2": immersions_semesters_count[1],
         }
 
-
-
     context = {
         'calendar': calendar,
         'student_form': studentform,
@@ -794,6 +792,19 @@ def student_record(request, student_id=None, record_id=None):
         Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
     ).count()
 
+    immersion_number = None
+    immersions = student.immersions.all()
+    if calendar.CALENDAR_MODE == "YEAR":
+        immersion_number = immersions.count()
+    else:
+        immersions_semesters_count = [0, 0]
+        for imm in immersions:
+            immersions_semesters_count[calendar.which_semester(imm.slot.date) - 1] += 1
+        immersion_number = {
+            "semester_1": immersions_semesters_count[0],
+            "semester_2": immersions_semesters_count[1],
+        }
+
     context = {
         'calender': calendar,
         'student_form': studentform,
@@ -803,6 +814,7 @@ def student_record(request, student_id=None, record_id=None):
         'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
+        'immersion_number': immersion_number,
     }
 
     return render(request, template_name, context)
@@ -975,8 +987,18 @@ class VisitorRecordView(FormView):
             Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
         ).count()
 
-
-        print(f'BACK: {self.request.session.get("back")}')
+        immersion_number = None
+        immersions = visitor.immersions.all()
+        if calendar.CALENDAR_MODE == "YEAR":
+            immersion_number = immersions.count()
+        else:
+            immersions_semesters_count = [0, 0]
+            for imm in immersions:
+                immersions_semesters_count[calendar.which_semester(imm.slot.date) - 1] += 1
+            immersion_number = {
+                "semester_1": immersions_semesters_count[0],
+                "semester_2": immersions_semesters_count[1],
+            }
 
         if record:
             context.update({"record": record})  # for modal nuke purpose
@@ -987,6 +1009,7 @@ class VisitorRecordView(FormView):
             "back_url": self.request.session.get("back"),
             "calendar": calendar,
             "can_change": hash_change_permission,  # can change number of allowed positions
+            "immersion_number": immersion_number,
         })
         return context
 
