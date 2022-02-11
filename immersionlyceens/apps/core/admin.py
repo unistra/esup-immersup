@@ -668,7 +668,6 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
                 'data_source_settings', 'objects', 'activated',
                 'address', 'address2', 'address3'
             )
-            #  liste de diffuson, logo, signature, entête de pied de page du certificat
 
         return super().get_readonly_fields(request, obj)
 
