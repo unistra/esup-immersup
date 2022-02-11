@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from adminsortable2.admin import SortableAdminMixin
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
@@ -7,35 +8,33 @@ from django.db.models import JSONField, Q
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
-from django_json_widget.widgets import JSONEditorWidget
-from django_summernote.admin import SummernoteModelAdmin
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
-from adminsortable2.admin import SortableAdminMixin
-
 from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
+from django_json_widget.widgets import JSONEditorWidget
+from django_summernote.admin import SummernoteModelAdmin
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
     CampusForm, CancelTypeForm, CertificateLogoForm, CertificateSignatureForm,
     CourseTypeForm, EstablishmentForm, EvaluationFormLinkForm,
     EvaluationTypeForm, GeneralBachelorTeachingForm, GeneralSettingsForm,
-    HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
+    HighSchoolForm, HighSchoolLevelForm, HolidayForm, ImmersionUserChangeForm,
     ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
-    PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
-    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm, OffOfferEventTypeForm,
-    HighSchoolLevelForm, PostBachelorLevelForm, StudentLevelForm
+    OffOfferEventTypeForm, PostBachelorLevelForm, PublicDocumentForm,
+    PublicTypeForm, StructureForm, StudentLevelForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
     Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday, Immersion,
-    ImmersionUser, InformationText, MailTemplate, PublicDocument, PublicType,
-    Slot, Structure, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation, OffOfferEventType, HighSchoolLevel, PostBachelorLevel,
-    StudentLevel
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
+    Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
+    OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -1397,6 +1396,31 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def setting_description(self, obj):
         return obj.parameters.get('description', '')
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return any([
+            request.user.is_superuser,
+            request.user.is_operator()
+        ])
+
+    def has_view_permission(self, request, obj=None):
+        return any([
+            request.user.is_superuser,
+            request.user.is_operator()
+        ])
+
+    def has_change_permission(self, request, obj=None):
+        return any([
+            request.user.is_superuser,
+            request.user.is_operator()
+        ])
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
 
     form = GeneralSettingsForm
     list_display = ('setting', 'setting_value', 'setting_type', 'setting_description')
