@@ -655,7 +655,7 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
                or request.user.is_master_establishment_manager()
 
     def get_readonly_fields(self, request, obj=None):
-        if request.user.is_master_establishment_manager():
+        if not request.user.is_master_establishment_manager() and not request.user.is_operator() and not request.user.is_superuser:
             return super().get_readonly_fields(request, obj) + (
                 'code', 'label', 'short_label', 'department', 'city', 'zip_code', 'phone_number', 'fax',
                 'badge_html_color', 'email', 'data_source_plugin',
