@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from typing import Any, Dict
 
-from django import forms
+from django import forms, template
 from django.conf import settings
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
@@ -1282,6 +1282,13 @@ class MailTemplateForm(forms.ModelForm):
         # Check for unknown variables in body
         all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)
         unknown_vars = [v for v in all_vars if not MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()]
+
+        # Check for body syntax errors
+        try:
+            template.Template(body).render(template.Context())
+        except template.TemplateSyntaxError as e:
+            body_syntax_error_msg = _("The message body contains syntax error(s) : ") + str(e)
+            body_errors_list.append(self.error_class([body_syntax_error_msg]))
 
         if unknown_vars:
             unknown_vars_msg = _("The message body contains unknown variable(s) : ") + ', '.join(unknown_vars)
