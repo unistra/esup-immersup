@@ -94,6 +94,8 @@ class Establishment(models.Model):
         null=True,
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
+    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
+    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
     objects = models.Manager()  # default manager
     activated = ActiveManager.from_queryset(EstablishmentQuerySet)()
 
@@ -182,6 +184,8 @@ class HighSchool(models.Model):
         help_text=_('Only files with type (%(authorized_types)s)') % {'authorized_types': 'gif, jpg, png'},
     )
     signed_charter = models.BooleanField(_("Signed charter"), default=False)
+    certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
+    certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
 
     def __str__(self):
         return f"{self.city} - {self.label}"
