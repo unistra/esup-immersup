@@ -7,6 +7,7 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.utils.formats import date_format
+from django.urls import reverse
 from django.test import Client, RequestFactory, TestCase
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -284,9 +285,7 @@ class ChartsTestCase(TestCase):
               'registrations_lvl4': 0}]
         )
         # with an highschool id as a paramater
-        url = "/charts/get_trainings_charts/2"
-        response = self.client.get(url, {}, **header)
-
+        response = self.client.get(reverse('charts:get_trainings_charts'), {'highschool_id': 2}, **header)
         content = response.content.decode()
         json_content = json.loads(content)
 

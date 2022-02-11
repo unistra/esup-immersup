@@ -443,7 +443,7 @@
     "model": "core.mailtemplatevars",
     "pk": 63,
     "fields": {
-        "code": "{{ creneau.batiment.url }}",
+        "code": "{{ creneau.batiment.lien }}",
         "description": "Créneau : lien du bâtiment"
     }
 }

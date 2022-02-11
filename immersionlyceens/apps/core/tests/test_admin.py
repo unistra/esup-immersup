@@ -1834,6 +1834,12 @@ class AdminFormsTestCase(TestCase):
         mail_template = form.save()
         self.assertEqual(mail_template.body, "New mail body")
 
+        # Bad template syntax error
+        data["body"] = "Bad syntax in body {% elif %}"
+        form = MailTemplateForm(instance=mail_template, data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("The message body contains syntax error(s) : Invalid block tag on line 1: 'elif'. Did you forget to register or load this tag?", form.errors["__all__"])
+
 
     def test_admin_immersionuser(self):
         """
