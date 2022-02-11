@@ -77,7 +77,9 @@ def highschool_charts(request, highschool_id):
             },
         )
 
-    qs = ImmersionUser.objects.filter(high_school_student_record__highschool__id=highschool_id)
+    qs = ImmersionUser.objects\
+        .prefetch_related('high_school_student_record__highschool', 'immersions__cancellation_type')\
+        .filter(high_school_student_record__highschool__id=highschool_id)
 
     for level in HighSchoolLevel.objects.order_by('order'):
         users = qs.filter(high_school_student_record__level=level.id)
@@ -305,7 +307,7 @@ def get_charts_filters_data(request):
 
 @is_ajax_request
 @groups_required("REF-ETAB", "REF-LYC", "REF-ETAB-MAITRE", "REF-TEC")
-def get_trainings_charts(request):
+def get_highschool_trainings_charts(request):
     """
     Statistics by training
      - for a single high school (if referent)
@@ -315,9 +317,14 @@ def get_trainings_charts(request):
     highschool_id = request.GET.get("highschool_id")
 
     response = {'msg': '', 'data': []}
-    students_filter = {}
-    immersions_filter = {}
-    high_school_filter_id = None
+
+    students_filter = {
+        'high_school_student_record__isnull': False
+    }
+    immersions_filter = {
+        'student__high_school_student_record__isnull': False
+    }
+
     trainings = Training.objects.prefetch_related('training_subdomains__training_domain').filter(active=True)
 
     # Default table ordering
@@ -498,6 +505,236 @@ def get_structure_trainings_charts(request):
                     .count()
 
         response['data'].append(row.copy())
+
+    return JsonResponse(response, safe=False)
+
+
+@is_ajax_request
+@groups_required("REF-ETAB", "REF-LYC", "REF-ETAB-MAITRE", "REF-TEC")
+def get_global_trainings_charts(request):
+    """
+    Statistics by training for establishments and highschools
+    """
+    user = request.user
+    response = {'msg': '', 'data': []}
+
+    students_filter = {
+        'high_school_student_record__isnull': False
+    }
+    immersions_filter = {
+        'student__high_school_student_record__isnull': False
+    }
+
+    trainings_filter = {
+        'active': True,
+    }
+
+    # Default table ordering
+    response['order'] = [
+      [0, "asc"],
+      [1, "asc"],
+      [2, "asc"],
+    ]
+
+    structure_col_conditions = [
+        user.is_master_establishment_manager(),
+        user.is_establishment_manager(),
+        user.is_operator(),
+    ]
+
+    response['columns'] = []
+    response['yadcf'] = []
+    """
+    response['columnDefs'] = [
+      {
+        "defaultContent": "",
+        "targets": "_all",
+        "className": "all",
+      },
+    ]
+    """
+
+    if user.is_master_establishment_manager() or user.is_operator():
+        response['columns'].append({
+            "data": 'establishment',
+            "name": _("Establishment"),
+            "filter": "establishment_filter"
+        })
+        response['yadcf'].append({
+          'column_selector': _("Establishment") + ":name",
+          'filter_default_label': "",
+          'filter_match_mode': "exact",
+          'filter_container_id': "establishment_filter",
+          'style_class': "form-control form-control-sm",
+          'filter_reset_button_text': False,
+        })
+
+    # Limit to current highschool or establishment for these users
+    if user.is_high_school_manager() and user.highschool:
+        trainings_filter['highschool'] = user.highschool
+    elif any(structure_col_conditions):
+        if user.is_establishment_manager() and user.establishment:
+            trainings_filter['structures__in'] = user.get_authorized_structures()
+
+        response['columns'].append({
+            "data": "structure",
+            "name": _("Structure(s)"),
+            "filter": "structure_filter"
+        })
+        response['yadcf'].append({
+            'column_selector': _("Structure(s)") + ":name",
+            'text_data_delimiter': "<br>",
+            'filter_default_label': "",
+            'filter_match_mode': "contains",
+            'filter_container_id': "structure_filter",
+            'style_class': "form-control form-control-sm",
+            'filter_reset_button_text': False,
+        })
+
+
+    # Next columns definition
+    # We need this because some high school levels can be deactivated
+    response['columns'] += [{
+            "data": 'domain_label',
+            "name": _("Domain/Subdomain"),
+            "filter": "domain_filter"
+        },
+        {
+            "data": 'training_label',
+            "name": _("Training"),
+            "filter": "training_filter"
+        },
+        {
+            "data": 'unique_persons',
+            "name": _("Persons cnt")
+        },
+        *[{
+            "data": f"unique_students_lvl{level.id}",
+            "name": f"{_('Students cnt')}<br>{level.label}",
+            "visible": False
+          } for level in HighSchoolLevel.objects.filter(active=True)
+        ],
+        {
+            "data": "unique_students",
+            "name": _("Students cnt"),
+            "visible": False,
+        },
+        {
+            "data": "unique_visitors",
+            "name": _("Visitors cnt"),
+            "visible": False
+        },
+        {
+            "data": 'all_registrations',
+            "name": _("Registrations"),
+        },
+        *[{
+            'data': f"registrations_lvl{level.id}",
+            "name": f"{_('Registrations')}<br>{level.label}",
+            'visible': False
+          } for level in HighSchoolLevel.objects.filter(active=True)
+        ],
+        {
+            "data": "students_registrations",
+            "name": _("Students<br>registrations"),
+            "visible": False
+        },
+        {
+            "data": "visitors_registrations",
+            "name": _("Visitors<br>registrations"),
+            "visible": False
+        },
+    ]
+
+    response['yadcf'] += [{
+            'column_selector': _("Domain/Subdomain") + ":name",
+            'text_data_delimiter': "<br>",
+            'filter_default_label': "",
+            'filter_match_mode': "contains",
+            'filter_container_id': "domain_filter",
+            'style_class': "form-control form-control-sm",
+            'filter_reset_button_text': False,
+        },
+        {
+            'column_selector': _("Training") + ":name",
+            'filter_default_label': "",
+            'filter_match_mode': "exact",
+            'filter_container_id': "training_filter",
+            'style_class': "form-control form-control-sm",
+            'filter_reset_button_text': False,
+        }
+    ]
+
+    trainings = Training.objects.prefetch_related(
+        'training_subdomains__training_domain',
+        'structures',
+        'highschool',
+    ).filter(**trainings_filter)
+
+    for training in trainings:
+        for subdomain in training.training_subdomains.all():
+            structure = ""
+
+            if training.highschool:
+                establishment = _("High school") + f" {training.highschool.label} ({training.highschool.city})"
+            else:
+                establishment = "<br>".join(set(sorted([s.establishment.label for s in training.structures.all()])))
+                structure = "<br>".join(sorted([s.label for s in training.structures.filter(active=True)]))
+
+            base_persons_qs = ImmersionUser.objects\
+                .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
+                .filter(
+                    **students_filter,
+                    immersions__slot__course__training=training,
+                    immersions__cancellation_type__isnull=True
+                )
+
+            base_immersions_qs = Immersion.objects\
+                .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
+                .filter(
+                    **immersions_filter,
+                    slot__course__training=training,
+                    cancellation_type__isnull=True
+                )
+
+            row = {
+                'establishment': establishment,
+                'structure': structure,
+                'training_label': training.label,
+                'domain_label': "<br>".join([subdomain.label, subdomain.training_domain.label]),
+                # persons (pupils, students, visitors) registered to at least one immersion for this training
+                'unique_persons': base_persons_qs.distinct().count(),
+                # students registered to at least one immersion for this training
+                'unique_students': base_persons_qs.filter(student_record__isnull=False).distinct().count(),
+                # visitors registered to at least one immersion for this training
+                'unique_visitors': base_persons_qs.filter(visitor_record__isnull=False).distinct().count(),
+                # registrations on all slots (not cancelled)
+                'all_registrations': base_immersions_qs.count(),
+                # students registrations count
+                'students_registrations': base_immersions_qs.filter(student__student_record__isnull=False).count(),
+                # visitors registrations count
+                'visitors_registrations': base_immersions_qs.filter(student__visitor_record__isnull=False).count(),
+            }
+
+            for level in HighSchoolLevel.objects.filter(active=True):
+                if not level.is_post_bachelor:
+                    row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
+                        high_school_student_record__level=level).distinct().count()
+
+                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                        student__high_school_student_record__level=level).count()
+                else:
+                    row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
+                        Q(high_school_student_record__level=level) |
+                        Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                        .distinct().count()
+
+                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                        Q(student__high_school_student_record__level=level) |
+                        Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                        .count()
+
+            response['data'].append(row.copy())
 
     return JsonResponse(response, safe=False)
 

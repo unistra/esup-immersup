@@ -13,7 +13,7 @@ from django.contrib.auth.models import Group
 
 from .. import views
 
-from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel
+from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
 
 class ChartsViewsTestCase(TestCase):
     """
@@ -29,8 +29,19 @@ class ChartsViewsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
+        self.master_establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test1@test.com',
+            signed_charter=True,
+        )
+
         self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
         self.ref_etab_user.set_password('hiddenpassword')
+        self.ref_etab_user.establishment = self.master_establishment
         self.ref_etab_user.save()
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
@@ -117,7 +128,7 @@ class ChartsViewsTestCase(TestCase):
         request = self.factory.get("/")
         request.user = self.ref_etab_user
         # As ref-etab user
-        response = self.client.get("/charts/trainings_charts", request)
+        response = self.client.get("/charts/highschool_trainings_charts", request)
         self.assertEqual(response.context['highschools'],
             [{'id': 3, 'label': 'Lycée Coufignal', 'city': 'COLMAR'},
              {'id': 4, 'label': 'Lycée Jean Monnet', 'city': "L'ABERGEMENT-DE-VAREY"},
@@ -135,7 +146,7 @@ class ChartsViewsTestCase(TestCase):
 
         # As high school referent
         self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
-        response = self.client.get("/charts/trainings_charts", request)
+        response = self.client.get("/charts/highschool_trainings_charts", request)
 
         self.assertEqual(response.context['highschools'],
             [{'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'}])

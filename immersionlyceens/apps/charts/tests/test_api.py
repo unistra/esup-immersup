@@ -12,7 +12,7 @@ from django.test import Client, RequestFactory, TestCase
 from django.conf import settings
 from django.contrib.auth.models import Group
 
-from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel
+from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
 
 from .. import api
 
@@ -20,15 +20,25 @@ class ChartsTestCase(TestCase):
     """Tests for API"""
 
     # This file contains a complete set of users, slots, etc
-    fixtures = [
+    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels',
         'immersionlyceens/apps/charts/tests/fixtures/all_test.json',
-        'high_school_levels', 'post_bachelor_levels', 'student_levels'
     ]
 
     def setUp(self):
         self.factory = RequestFactory()
 
+        self.master_establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test1@test.com',
+            signed_charter=True,
+        )
+
         self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
+        self.ref_etab_user.establishment = self.master_establishment
         self.ref_etab_user.set_password('hiddenpassword')
         self.ref_etab_user.save()
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
@@ -39,45 +49,44 @@ class ChartsTestCase(TestCase):
         Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
 
         self.client = Client()
+        self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
 
-    def test_charts_api(self):
-        # TODO: refactor this hell test! :O Sorry but 500 lines that's not acceptable!
+    def test_highschool_charts_api(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')
-        header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
         # Highschool charts
         url = "/charts/get_highschool_charts/2"
         response = self.client.get(url)
-
         content = response.content.decode()
         json_content = json.loads(content)
 
-        self.assertEqual(json_content['datasets'],
-            [
-              {
-                'name': 'Registrations count',
-                HighSchoolLevel.objects.get(pk=1).label: 2,
-                HighSchoolLevel.objects.get(pk=2).label: 2,
-                HighSchoolLevel.objects.get(pk=3).label: 0,
-                HighSchoolLevel.objects.get(pk=4).label: 1
-              },
-              {
-                 'name': 'Registrations to at least one immersion',
-                 HighSchoolLevel.objects.get(pk=1).label: 2,
-                 HighSchoolLevel.objects.get(pk=2).label: 2,
-                 HighSchoolLevel.objects.get(pk=3).label: 0,
-                 HighSchoolLevel.objects.get(pk=4).label: 0
-              },
-              {
-                  'name': 'Attended to at least one immersion',
-                  HighSchoolLevel.objects.get(pk=1).label: 1,
-                  HighSchoolLevel.objects.get(pk=2).label: 1,
-                  HighSchoolLevel.objects.get(pk=3).label: 0,
-                  HighSchoolLevel.objects.get(pk=4).label: 0
-              }
-            ]
-        )
+        self.assertEqual(json_content['datasets'], [
+          {
+            'name': 'Registrations count',
+            HighSchoolLevel.objects.get(pk=1).label: 2,
+            HighSchoolLevel.objects.get(pk=2).label: 2,
+            HighSchoolLevel.objects.get(pk=3).label: 0,
+            HighSchoolLevel.objects.get(pk=4).label: 1
+          },
+          {
+             'name': 'Registrations to at least one immersion',
+             HighSchoolLevel.objects.get(pk=1).label: 2,
+             HighSchoolLevel.objects.get(pk=2).label: 2,
+             HighSchoolLevel.objects.get(pk=3).label: 0,
+             HighSchoolLevel.objects.get(pk=4).label: 0
+          },
+          {
+              'name': 'Attended to at least one immersion',
+              HighSchoolLevel.objects.get(pk=1).label: 1,
+              HighSchoolLevel.objects.get(pk=2).label: 1,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 0
+          }
+        ])
+
+    def test_highschool_domains_charts_api(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
 
         # Highschool domain charts
         url = "/charts/get_highschool_domains_charts/2/0"
@@ -111,6 +120,8 @@ class ChartsTestCase(TestCase):
               ]}
         ])
 
+    def test_highschool_global_domains_charts_api(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
         # Global domain charts
         url = "/charts/get_global_domains_charts"
         response = self.client.post(url, {})
@@ -149,9 +160,13 @@ class ChartsTestCase(TestCase):
                            {'name': 'Mathématiques', 'count': 7}]}]
         )
 
+
+    def test_charts_filters_data_api(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
+
         # Charts filter data (ajax request : use headers)
         url = "/charts/get_charts_filters_data"
-        response = self.client.get(url, {}, **header)
+        response = self.client.get(url, {}, **self.header)
 
         content = response.content.decode()
         json_content = json.loads(content)
@@ -170,10 +185,13 @@ class ChartsTestCase(TestCase):
                'department': ['Bas-Rhin'], 'country': ['France']}]
         )
 
+
+    def test_highschool_trainings_charts_api(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
+
         # Training charts (ajax request : use headers)
-        # logged as ref-etab
-        url = "/charts/get_trainings_charts"
-        response = self.client.get(url, {}, **header)
+        url = "/charts/get_highschool_trainings_charts"
+        response = self.client.get(url, {}, **self.header)
 
         content = response.content.decode()
         json_content = json.loads(content)
@@ -234,29 +252,29 @@ class ChartsTestCase(TestCase):
              {'training_label': 'Licence Maths-Eco',
               'subdomain_label': 'Economie, Gestion',
               'domain_label': 'Droit, Economie, Gestion',
-              'unique_students': 4,
-              'all_registrations': 6,
+              'unique_students': 3,
+              'all_registrations': 5,
               'unique_students_lvl1': 1,
-              'unique_students_lvl2': 2,
-              'unique_students_lvl3': 0,
-              'unique_students_lvl4': 1,
               'registrations_lvl1': 2,
+              'unique_students_lvl2': 2,
               'registrations_lvl2': 3,
+              'unique_students_lvl3': 0,
               'registrations_lvl3': 0,
-              'registrations_lvl4': 1},
+              'unique_students_lvl4': 0,
+              'registrations_lvl4': 0},
              {'training_label': 'Licence Maths-Eco',
               'subdomain_label': 'Mathématiques',
               'domain_label': 'Sciences et Technologies',
-              'unique_students': 4,
-              'all_registrations': 6,
+              'unique_students': 3,
+              'all_registrations': 5,
               'unique_students_lvl1': 1,
-              'unique_students_lvl2': 2,
-              'unique_students_lvl3': 0,
-              'unique_students_lvl4': 1,
               'registrations_lvl1': 2,
+              'unique_students_lvl2': 2,
               'registrations_lvl2': 3,
+              'unique_students_lvl3': 0,
               'registrations_lvl3': 0,
-              'registrations_lvl4': 1},
+              'unique_students_lvl4': 0,
+              'registrations_lvl4': 0},
              {'training_label': 'Licence Mathématiques',
               'subdomain_label': 'Mathématiques',
               'domain_label': 'Sciences et Technologies',
@@ -285,7 +303,11 @@ class ChartsTestCase(TestCase):
               'registrations_lvl4': 0}]
         )
         # with an highschool id as a paramater
-        response = self.client.get(reverse('charts:get_trainings_charts'), {'highschool_id': 2}, **header)
+        response = self.client.get(
+            reverse('charts:get_highschool_trainings_charts'),
+            {'highschool_id': 2},
+            **self.header
+        )
         content = response.content.decode()
         json_content = json.loads(content)
 
@@ -399,12 +421,14 @@ class ChartsTestCase(TestCase):
         # logged as ref-lyc : highschool id not needed
         # Result data should be the same
         self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
-        url = "/charts/get_trainings_charts"
-        response = self.client.get(url, {}, **header)
+        url = "/charts/get_highschool_trainings_charts"
+        response = self.client.get(url, {}, **self.header)
         content = response.content.decode()
         json_content = json.loads(content)
         self.assertEqual(json_content['data'], data)
 
+
+    def test_registration_charts_charts_api(self):
         # Registration charts
         self.client.login(username='test-ref-etab', password='hiddenpassword')
         url = "/charts/get_registration_charts/0"
@@ -448,10 +472,14 @@ class ChartsTestCase(TestCase):
             HighSchoolLevel.objects.get(pk=1).label: 4}
         ])
 
+
+    def test_registration_charts_cats_api(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
+
         # Registration charts cats (ajax query, headers needed)
         url = "/charts/get_registration_charts_cats"
         response = self.client.post(url,
-            {'highschools_ids[]': [2], 'higher_institutions_ids[]': ['0673021V']}, **header)
+            {'highschools_ids[]': [2], 'higher_institutions_ids[]': ['0673021V']}, **self.header)
         content = response.content.decode()
         json_content = json.loads(content)
 
@@ -494,8 +522,7 @@ class ChartsTestCase(TestCase):
               HighSchoolLevel.objects.get(pk=4).label: 1}]
         )
 
-        url = "/charts/get_registration_charts_cats"
-        response = self.client.post(url, {'highschools_ids[]': [2], 'level': 1}, **header)
+        response = self.client.post(url, {'highschools_ids[]': [2], 'level': 1}, **self.header)
         content = response.content.decode()
         json_content = json.loads(content)
 
@@ -511,9 +538,12 @@ class ChartsTestCase(TestCase):
             [{HighSchoolLevel.objects.get(pk=1).label: 2, 'name': 'Lycée Jean Monnet'}]
         )
 
+    def test_slots_charts_api(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
+
         # Slots charts (ajax query, headers needed)
         url = "/charts/get_slots_charts"
-        response = self.client.get(url, **header)
+        response = self.client.get(url, **self.header)
         content = response.content.decode()
         json_content = json.loads(content)
 
@@ -549,9 +579,12 @@ class ChartsTestCase(TestCase):
              ]
         )
 
+    def test_slots_data_api(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
+
         # Slots data
         url = "/charts/get_slots_data"
-        response = self.client.get(url, **header)
+        response = self.client.get(url, **self.header)
         content = response.content.decode()
         json_content = json.loads(content)
 
@@ -682,7 +715,7 @@ class ChartsTestCase(TestCase):
 
         # Slots data, csv format
         url = "/charts/get_slots_data/csv"
-        response = self.client.get(url, **header)
+        response = self.client.get(url, **self.header)
         content = response.content.decode()
         self.assertIn("UFR Mathématiques et Informatique,Licence Mathématiques,Analyse S1,1,10", content)
 

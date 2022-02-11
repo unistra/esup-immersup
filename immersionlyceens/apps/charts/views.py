@@ -92,7 +92,7 @@ def global_domains_charts(request):
 
 
 @groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def trainings_charts(request):
+def highschool_trainings_charts(request):
     """
     Registration statistics by trainings
     """
@@ -114,7 +114,7 @@ def trainings_charts(request):
         'highschools': highschools,
         'highschool_id': filter.get('pk', ''),
     }
-    return render(request, 'charts/trainings_charts.html', context=context)
+    return render(request, 'charts/highschool_trainings_charts.html', context=context)
 
 
 @groups_required('REF-STR')
@@ -135,6 +135,18 @@ def structure_trainings_charts(request):
         'high_school_levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
     }
     return render(request, 'charts/structure_trainings_charts.html', context=context)
+
+
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'REF-TEC', 'REF-LYC')
+def global_trainings_charts(request):
+    """
+    Registration statistics by trainings for establishments and highschools
+    """
+
+    context = {
+        'high_school_levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
+    }
+    return render(request, 'charts/global_trainings_charts.html', context=context)
 
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')

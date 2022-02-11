@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Trainings statistics" %}
+{% endblock %}
+
+{% block section_title %}
+    <h3 class="ml-2">
+      {% trans "Highschools statistics - registrations by trainings" %}{% if high_school_name %} - {{ high_school_name }}{% endif %}
+    </h3>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding-top:20px;">
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <div>
+          {% trans 'Toggle counts columns' %} :
+          {% for level in high_school_levels %}
+            {% if forloop.counter0 %} - {% endif %}
+            <a class="toggle-vis" href='' data-column="{% trans 'Students cnt' %}<br>{{ level.label }}">{{ level.label }}</a>
+          {% endfor %}
+        </div>
+        <div>
+          {% trans 'Toggle registrations columns' %} :
+          {% for level in high_school_levels %}
+            {% if forloop.counter0 %} - {% endif %}
+            <a class="toggle-vis" href='' data-column="{% trans 'Registrations' %}<br>{{ level.label }}">{{ level.label }}</a>
+          {% endfor %}
+        </div>
+        <br />
+        <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+          <thead><tr></tr></thead>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var dt;
+  var tableName = "#statistics_table";
+  var data;
+  var str;
+  var columns;
+  var response;
+  var response_data;
+
+  $(document).ready(function () {
+
+    // Datatable definition HAS TO WAIT for the ajax call to end : columns definitions are in the results
+
+    function load_datatable() {
+      let url = "/charts/get_global_trainings_charts"
+
+      response = $.ajax(url).done(function () {
+        let header;
+        data = JSON.parse(response.responseText);
+
+        $.fn.dataTableExt.errMode = 'console';
+
+        if(is_set(dt)) {
+          dt.clear().rows.add(data.data).draw();
+        }
+        else {
+          $.each(data.columns, function (k, colObj) {
+            header = colObj.filter ? "<th id='" + colObj.filter + "'>" : "<th>"
+            str = header + colObj.name + '</th>';
+            $(str).appendTo(tableName+'>thead>tr');
+          });
+
+          dt = $('#statistics_table').DataTable({
+            'processing': false,
+            'order': [
+              [0, "asc"],
+              [1, "asc"],
+              [2, "asc"],
+            ],
+            'pageLength': 15,
+            'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+            'serverSide': false,
+            'responsive': true,
+            'data': data.data,
+            'columns': data.columns,
+            'searching': true,
+            'language': {
+              url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+            },
+
+            "columnDefs": [
+              {
+                "defaultContent": "",
+                "targets": "_all",
+                "className": "all",
+              },
+            ]
+          });
+
+          // All filters reset action
+          $('#filters_reset_all').click(function () {
+            yadcf.exResetAllFilters(dt);
+          });
+
+          // Filters init : use yadcf data from ajax query
+          yadcf.init(dt, data.yadcf);
+        }
+      });
+    }
+
+    load_datatable()
+
+    $('#id_highschools').change(function() {
+      highschool_id = $('#id_highschools option:selected').val();
+      load_datatable();
+    });
+
+    $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+
+        // Get the column API object
+        var column = dt.column( $(this).attr('data-column')+":name" );
+
+        // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
+  });
+
+</script>
+{% endblock %}
