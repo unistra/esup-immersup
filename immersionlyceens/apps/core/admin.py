@@ -1401,7 +1401,10 @@ class GeneralSettingsAdmin(AdminWithRequest, admin.ModelAdmin):
         return request.user.is_superuser
 
     def has_module_permission(self, request):
-        return request.user.is_superuser
+        return any([
+            request.user.is_superuser,
+            request.user.is_operator()
+        ])
 
     def has_view_permission(self, request, obj=None):
         return any([
