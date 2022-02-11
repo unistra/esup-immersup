@@ -3,6 +3,7 @@ import csv
 import json
 import logging
 
+from collections import defaultdict
 from functools import reduce
 from django.db.models import Q
 from django.views.generic import TemplateView
@@ -672,69 +673,73 @@ def get_global_trainings_charts(request):
     ).filter(**trainings_filter)
 
     for training in trainings:
+        structure = ""
+
+        if training.highschool:
+            establishment = _("High school") + f" {training.highschool.label} ({training.highschool.city})"
+        else:
+            establishment = "<br>".join(set(sorted([s.establishment.label for s in training.structures.all()])))
+            structure = "<br>".join(sorted([s.label for s in training.structures.filter(active=True)]))
+
+        base_persons_qs = ImmersionUser.objects\
+            .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
+            .filter(
+                **students_filter,
+                immersions__slot__course__training=training,
+                immersions__cancellation_type__isnull=True
+            )
+
+        base_immersions_qs = Immersion.objects\
+            .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
+            .filter(
+                **immersions_filter,
+                slot__course__training=training,
+                cancellation_type__isnull=True
+            )
+
+        # Get domains and add subdomains as a list under each, will join them right below in "domain_label"
+        domain_labels = defaultdict(list)
         for subdomain in training.training_subdomains.all():
-            structure = ""
+            domain_labels[subdomain.training_domain.label].append(f"- {subdomain.label}")
 
-            if training.highschool:
-                establishment = _("High school") + f" {training.highschool.label} ({training.highschool.city})"
+        row = {
+            'establishment': establishment,
+            'structure': structure,
+            'training_label': training.label,
+            'domain_label': "<br>".join([x for dom, subs in sorted(domain_labels.items()) for x in [dom] + subs]),
+            # persons (pupils, students, visitors) registered to at least one immersion for this training
+            'unique_persons': base_persons_qs.distinct().count(),
+            # students registered to at least one immersion for this training
+            'unique_students': base_persons_qs.filter(student_record__isnull=False).distinct().count(),
+            # visitors registered to at least one immersion for this training
+            'unique_visitors': base_persons_qs.filter(visitor_record__isnull=False).distinct().count(),
+            # registrations on all slots (not cancelled)
+            'all_registrations': base_immersions_qs.count(),
+            # students registrations count
+            'students_registrations': base_immersions_qs.filter(student__student_record__isnull=False).count(),
+            # visitors registrations count
+            'visitors_registrations': base_immersions_qs.filter(student__visitor_record__isnull=False).count(),
+        }
+
+        for level in HighSchoolLevel.objects.filter(active=True):
+            if not level.is_post_bachelor:
+                row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
+                    high_school_student_record__level=level).distinct().count()
+
+                row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                    student__high_school_student_record__level=level).count()
             else:
-                establishment = "<br>".join(set(sorted([s.establishment.label for s in training.structures.all()])))
-                structure = "<br>".join(sorted([s.label for s in training.structures.filter(active=True)]))
+                row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
+                    Q(high_school_student_record__level=level) |
+                    Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                    .distinct().count()
 
-            base_persons_qs = ImmersionUser.objects\
-                .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
-                .filter(
-                    **students_filter,
-                    immersions__slot__course__training=training,
-                    immersions__cancellation_type__isnull=True
-                )
+                row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                    Q(student__high_school_student_record__level=level) |
+                    Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                    .count()
 
-            base_immersions_qs = Immersion.objects\
-                .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
-                .filter(
-                    **immersions_filter,
-                    slot__course__training=training,
-                    cancellation_type__isnull=True
-                )
-
-            row = {
-                'establishment': establishment,
-                'structure': structure,
-                'training_label': training.label,
-                'domain_label': "<br>".join([subdomain.label, subdomain.training_domain.label]),
-                # persons (pupils, students, visitors) registered to at least one immersion for this training
-                'unique_persons': base_persons_qs.distinct().count(),
-                # students registered to at least one immersion for this training
-                'unique_students': base_persons_qs.filter(student_record__isnull=False).distinct().count(),
-                # visitors registered to at least one immersion for this training
-                'unique_visitors': base_persons_qs.filter(visitor_record__isnull=False).distinct().count(),
-                # registrations on all slots (not cancelled)
-                'all_registrations': base_immersions_qs.count(),
-                # students registrations count
-                'students_registrations': base_immersions_qs.filter(student__student_record__isnull=False).count(),
-                # visitors registrations count
-                'visitors_registrations': base_immersions_qs.filter(student__visitor_record__isnull=False).count(),
-            }
-
-            for level in HighSchoolLevel.objects.filter(active=True):
-                if not level.is_post_bachelor:
-                    row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
-                        high_school_student_record__level=level).distinct().count()
-
-                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
-                        student__high_school_student_record__level=level).count()
-                else:
-                    row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
-                        Q(high_school_student_record__level=level) |
-                        Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
-                        .distinct().count()
-
-                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
-                        Q(student__high_school_student_record__level=level) |
-                        Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
-                        .count()
-
-            response['data'].append(row.copy())
+        response['data'].append(row.copy())
 
     return JsonResponse(response, safe=False)
 
