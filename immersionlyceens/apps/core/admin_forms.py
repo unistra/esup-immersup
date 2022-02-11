@@ -438,6 +438,8 @@ class EstablishmentForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
+            'certificate_header': SummernoteWidget(),
+            'certificate_footer': SummernoteWidget(),
         }
 
 
@@ -1216,6 +1218,8 @@ class HighSchoolForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'badge_html_color': TextInput(attrs={'type': 'color'}),
+            'certificate_header': SummernoteWidget(),
+            'certificate_footer': SummernoteWidget(),
         }
 
 
