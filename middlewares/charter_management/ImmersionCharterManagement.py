@@ -31,9 +31,10 @@ class ImmersionCharterManagement:
             already_signed_charter = any([
                 user.is_superuser,
                 user.is_operator(),
-                user.is_student, # FIXME WHEN WE KNOW HOW TO LINK A STUDENT WITH THE ESTABLISHMENT
+                user.is_student(), # FIXME WHEN WE KNOW HOW TO LINK A STUDENT WITH THE ESTABLISHMENT
                 user.establishment and (user.establishment.master or user.establishment.signed_charter),
-                highschool and highschool.postbac_immersion and highschool.signed_charter
+                highschool and highschool.postbac_immersion and highschool.signed_charter,
+                highschool and not highschool.postbac_immersion,
             ])
 
             if not already_signed_charter:
