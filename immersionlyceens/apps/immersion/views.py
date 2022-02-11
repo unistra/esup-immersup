@@ -166,7 +166,10 @@ class CustomLoginView(FormView):
         go_home = [
             self.user.is_high_school_manager() and self.user.highschool,
             self.user.is_speaker(),
-            self.user.is_establishment_manager()
+            self.user.is_establishment_manager(),
+            self.user.is_structure_manager(),
+            self.user.is_high_school_manager(),
+            self.user.is_legal_department_staff(),
         ]
 
         if self.user.is_high_school_student():
