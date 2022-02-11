@@ -111,11 +111,10 @@
     function load_datatable() {
       let url = "/charts/get_highschool_trainings_charts"
 
-      if (highschool_id) {
-        url = url + "/" + highschool_id;
-      }
-
-      response = $.ajax(url).done(function () {
+      response = $.ajax({
+          'url': url,
+          'data': { 'highschool_id': highschool_id }
+      }).done(function () {
         data = JSON.parse(response.responseText);
 
         $.fn.dataTableExt.errMode = 'console';
