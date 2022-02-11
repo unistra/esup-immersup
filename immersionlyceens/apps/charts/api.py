@@ -77,7 +77,9 @@ def highschool_charts(request, highschool_id):
             },
         )
 
-    qs = ImmersionUser.objects.filter(high_school_student_record__highschool__id=highschool_id)
+    qs = ImmersionUser.objects\
+        .prefetch_related('high_school_student_record__highschool', 'immersions__cancellation_type')\
+        .filter(high_school_student_record__highschool__id=highschool_id)
 
     for level in HighSchoolLevel.objects.order_by('order'):
         users = qs.filter(high_school_student_record__level=level.id)
