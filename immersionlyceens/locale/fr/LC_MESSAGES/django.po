@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-10 17:01+0100\n"
+"POT-Creation-Date: 2022-02-11 09:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -483,13 +483,13 @@ msgstr "Signature du certificat"
 #: immersionlyceens/apps/core/admin_forms.py:734
 #: immersionlyceens/apps/core/admin_forms.py:1210
 #: immersionlyceens/apps/core/admin_forms.py:1266
-#: immersionlyceens/apps/core/admin_forms.py:1344
-#: immersionlyceens/apps/core/admin_forms.py:1378
-#: immersionlyceens/apps/core/admin_forms.py:1427
-#: immersionlyceens/apps/core/admin_forms.py:1452
-#: immersionlyceens/apps/core/admin_forms.py:1514
-#: immersionlyceens/apps/core/admin_forms.py:1555
-#: immersionlyceens/apps/core/admin_forms.py:1596
+#: immersionlyceens/apps/core/admin_forms.py:1351
+#: immersionlyceens/apps/core/admin_forms.py:1385
+#: immersionlyceens/apps/core/admin_forms.py:1434
+#: immersionlyceens/apps/core/admin_forms.py:1459
+#: immersionlyceens/apps/core/admin_forms.py:1521
+#: immersionlyceens/apps/core/admin_forms.py:1562
+#: immersionlyceens/apps/core/admin_forms.py:1603
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -837,12 +837,17 @@ msgstr ""
 msgid "The message body contains forbidden variables : "
 msgstr "Le corps du message contient des variables non autorisées : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1287
+#: immersionlyceens/apps/core/admin_forms.py:1290
+#| msgid "The message body contains unknown variable(s) : "
+msgid "The message body contains syntax error(s) : "
+msgstr "Le corps du message contient des erreurs de syntaxe : "
+
+#: immersionlyceens/apps/core/admin_forms.py:1294
 msgid "The message body contains unknown variable(s) : "
 msgstr "Le corps du message contient des variables inconnues : "
 
-#: immersionlyceens/apps/core/admin_forms.py:1321
-#: immersionlyceens/apps/core/admin_forms.py:1407
+#: immersionlyceens/apps/core/admin_forms.py:1328
+#: immersionlyceens/apps/core/admin_forms.py:1414
 #, python-format
 msgid ""
 "Please keep filesize under %(maxupload)s. Current filesize %(current_size)s"
@@ -850,35 +855,35 @@ msgstr ""
 "Veuillez téléverser des fichiers dont la taille n'excède pas %(maxupload)s. "
 "Taille actuelle : %(current_size)s"
 
-#: immersionlyceens/apps/core/admin_forms.py:1328
-#: immersionlyceens/apps/core/admin_forms.py:1413
-#: immersionlyceens/apps/core/admin_forms.py:1539
-#: immersionlyceens/apps/core/admin_forms.py:1580
+#: immersionlyceens/apps/core/admin_forms.py:1335
+#: immersionlyceens/apps/core/admin_forms.py:1420
+#: immersionlyceens/apps/core/admin_forms.py:1546
+#: immersionlyceens/apps/core/admin_forms.py:1587
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
-#: immersionlyceens/apps/core/admin_forms.py:1474
+#: immersionlyceens/apps/core/admin_forms.py:1481
 msgid "You are not allowed to create a new Evaluation Form Link"
 msgstr "Vous ne pouvez pas créer de nouveau lien de formulaire d'évaluation"
 
-#: immersionlyceens/apps/core/admin_forms.py:1503
+#: immersionlyceens/apps/core/admin_forms.py:1510
 msgid "Students users exist you can't deactivate students"
 msgstr ""
 "Des étudiants sont enregistrés, vous ne pouvez pas désactiver cette "
 "fonctionnalité"
 
-#: immersionlyceens/apps/core/admin_forms.py:1510
+#: immersionlyceens/apps/core/admin_forms.py:1517
 msgid "Visitors users exist you can't deactivate visitors"
 msgstr ""
 "Des visiteurs sont enregistrés, vous ne pouvez pas désactiver cette "
 "fonctionnalité"
 
-#: immersionlyceens/apps/core/admin_forms.py:1623
-#: immersionlyceens/apps/core/admin_forms.py:1641
+#: immersionlyceens/apps/core/admin_forms.py:1630
+#: immersionlyceens/apps/core/admin_forms.py:1648
 msgid "Field locked : a high school record uses this level"
 msgstr "Verrouillé : une fiche lycéen(ne) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:1659
+#: immersionlyceens/apps/core/admin_forms.py:1666
 msgid "Field locked : a student record uses this level"
 msgstr "Verrouillé : une fiche étudiant(te) utilise ce niveau"
 
@@ -1166,11 +1171,13 @@ msgstr "{updated} visite(s) mise(s) à jour"
 msgid ""
 "{deleted[0]} user(s) with group INTER and with LDAP establishment deleted"
 msgstr ""
-"{deleted[0]} utilisateur(s) du groupe INTER et un établissement lié au SI supprimé(s)"
+"{deleted[0]} utilisateur(s) du groupe INTER et un établissement lié au SI "
+"supprimé(s)"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:116
 msgid "no user with group INTER and with LDAP establishment to delete"
-msgstr "aucun utilisateur du groupe INTER et un établissement lié au SI à supprimer"
+msgstr ""
+"aucun utilisateur du groupe INTER et un établissement lié au SI à supprimer"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:125
 #, python-brace-format
@@ -1178,12 +1185,13 @@ msgid ""
 "{updated} user(s) with group INTER and with establishment without SI "
 "deactivated"
 msgstr ""
-"{updated} utilisateur(s) avec le groupe INTER et un établissement non lié au SI "
-"désactivé(s)"
+"{updated} utilisateur(s) avec le groupe INTER et un établissement non lié au "
+"SI désactivé(s)"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:127
 msgid "no user with group INTER and with LDAP establishment to deactivate"
-msgstr "aucun utilisateur du groupe INTER et un établissement lié au SI à désactiver"
+msgstr ""
+"aucun utilisateur du groupe INTER et un établissement lié au SI à désactiver"
 
 #: immersionlyceens/apps/core/management/commands/annual_statistics.py:27
 msgid "No active year found, can't update statistics"
