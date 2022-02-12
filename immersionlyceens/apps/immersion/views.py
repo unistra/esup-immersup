@@ -649,15 +649,13 @@ def high_school_student_record(request, student_id=None, record_id=None):
 
     immersion_number = None
     immersions = student.immersions.all()
-    if calendar.CALENDAR_MODE == "YEAR":
+
+    if calendar.calendar_mode == "YEAR":
         immersion_number = immersions.count()
     else:
-        immersions_semesters_count = [0, 0]
-        for imm in immersions:
-            immersions_semesters_count[calendar.which_semester(imm.slot.date) - 1] += 1
         immersion_number = {
-            "semester_1": immersions_semesters_count[0],
-            "semester_2": immersions_semesters_count[1],
+            "semester_1": immersions.filter(slot__date__lte=calendar.semester1_end_date).count(),
+            "semester_2": immersions.filter(slot__date__gte=calendar.semester2_start_date).count(),
         }
 
     context = {
@@ -797,15 +795,12 @@ def student_record(request, student_id=None, record_id=None):
 
     immersion_number = None
     immersions = student.immersions.all()
-    if calendar.CALENDAR_MODE == "YEAR":
+    if calendar.calendar_mode == "YEAR":
         immersion_number = immersions.count()
     else:
-        immersions_semesters_count = [0, 0]
-        for imm in immersions:
-            immersions_semesters_count[calendar.which_semester(imm.slot.date) - 1] += 1
         immersion_number = {
-            "semester_1": immersions_semesters_count[0],
-            "semester_2": immersions_semesters_count[1],
+            "semester_1": immersions.filter(slot__date__lte=calendar.semester1_end_date).count(),
+            "semester_2": immersions.filter(slot__date__gte=calendar.semester2_start_date).count(),
         }
 
     context = {
@@ -971,15 +966,12 @@ class VisitorRecordView(FormView):
 
         immersion_number = None
         immersions = visitor.immersions.all()
-        if calendar.CALENDAR_MODE == "YEAR":
+        if calendar.calendar_mode == "YEAR":
             immersion_number = immersions.count()
         else:
-            immersions_semesters_count = [0, 0]
-            for imm in immersions:
-                immersions_semesters_count[calendar.which_semester(imm.slot.date) - 1] += 1
             immersion_number = {
-                "semester_1": immersions_semesters_count[0],
-                "semester_2": immersions_semesters_count[1],
+                "semester_1": immersions.filter(slot__date__lte=calendar.semester1_end_date).count(),
+                "semester_2": immersions.filter(slot__date__gte=calendar.semester2_start_date).count(),
             }
 
         if record:
