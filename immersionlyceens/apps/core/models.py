@@ -368,6 +368,20 @@ class ImmersionUser(AbstractUser):
 
         return False
 
+    def is_local_account(self) -> bool:
+        """
+        Determine is
+        :return:
+        """
+        if self.is_visitor() or self.is_high_school_student() or self.is_high_school_manager():
+            return True
+        elif self.is_speaker() and self.highschool:
+            return True
+        elif self.is_structure_manager() or self.is_establishment_manager() or self.is_legal_department_staff() or self.is_speaker():
+            if self.establishment and self.establishment.data_source_plugin == "Sans SI":
+                return True
+        return False
+
     def authorized_groups(self):
         # user_filter = {} if self.is_superuser else {'user__id': self.pk}
         user_filter = {'user__id': self.pk}

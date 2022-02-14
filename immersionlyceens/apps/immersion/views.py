@@ -430,7 +430,7 @@ def reset_password(request, hash=None):
 
 # todo: refactor this into class :)
 @login_required
-@groups_required("LYC", "REF-LYC", "VIS")
+@groups_required("LYC", "REF-LYC", "VIS", "INTER", "REF-ETAB", "REF-STR", "SRV-JUR")
 def change_password(request):
     """
     Change password view for high-school students and high-school managers
