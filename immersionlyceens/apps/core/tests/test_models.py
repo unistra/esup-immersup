@@ -384,6 +384,35 @@ class HighSchoolTestCase(TestCase):
 
 
 class ImmersionUserTestCase(TestCase):
+    fixtures = ["group"]
+
+    def setUp(self) -> None:
+        self.today = datetime.datetime.today()
+        self.sans_si = Establishment.objects.create(
+            code='ETA', label='Etablissement', short_label='Eta', active=True, master=False, email='test@test.com',
+            address='address', department='departmeent', city='city', zip_code='zip_code', phone_number='+33666',
+            data_source_plugin=None,
+        )
+        self.esta = Establishment.objects.create(
+            code='ETA2', label='Etablissement2', short_label='Eta2', active=True, master=False, email='test@test.com',
+            address='address', department='departmeent', city='city', zip_code='zip_code', phone_number='+33666',
+            data_source_plugin="LDAP"
+        )
+        self.hs = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            postbac_immersion=True,
+            signed_charter=True,
+        )
+
     def test_str_user(self):
         iu = ImmersionUser.objects.create_user(
             username='user',
@@ -395,6 +424,56 @@ class ImmersionUserTestCase(TestCase):
         iu.set_password('pass')
         iu.save()
         self.assertEqual(str(iu), 'bofh john')
+
+    def test_is_local_account(self):
+        user = ImmersionUser.objects.create_user(
+            username="test",
+            email="test@test.fr",
+            password="pass",
+            establishment=self.esta
+        )
+
+        Group.objects.get(name='VIS').user_set.add(user)
+        self.assertTrue(user.is_local_account())
+
+        user.groups.clear()
+        Group.objects.get(name='LYC').user_set.add(user)
+        self.assertTrue(user.is_local_account())
+
+        user.groups.clear()
+        Group.objects.get(name='REF-LYC').user_set.add(user)
+        self.assertTrue(user.is_local_account())
+
+        user.groups.clear()
+        Group.objects.get(name='INTER').user_set.add(user)
+        user.highschool = self.hs
+        self.assertTrue(user.is_local_account())
+
+        user.highschool = None
+        self.assertFalse(user.is_local_account())
+        user.establishment = self.sans_si
+        self.assertTrue(user.is_local_account())
+
+        user.groups.clear()
+        Group.objects.get(name='REF-ETAB').user_set.add(user)
+        self.assertTrue(user.is_local_account())
+
+        user.groups.clear()
+        Group.objects.get(name='REF-STR').user_set.add(user)
+        self.assertTrue(user.is_local_account())
+
+        user.groups.clear()
+        Group.objects.get(name='SRV-JUR').user_set.add(user)
+        self.assertTrue(user.is_local_account())
+
+        user.establishment = self.esta
+        self.assertFalse(user.is_local_account())
+
+        user.groups.clear()
+        user.establishment = self.sans_si
+        Group.objects.get(name='ETU').user_set.add(user)
+        self.assertFalse(user.is_local_account())
+
 
 class TrainingDomainTestCase(TestCase):
     def test_str_training_domain(self):

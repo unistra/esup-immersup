@@ -378,7 +378,7 @@ class ImmersionUser(AbstractUser):
         elif self.is_speaker() and self.highschool:
             return True
         elif self.is_structure_manager() or self.is_establishment_manager() or self.is_legal_department_staff() or self.is_speaker():
-            if self.establishment and self.establishment.data_source_plugin == "Sans SI":
+            if self.establishment is not None and self.establishment.data_source_plugin is None:
                 return True
         return False
 
