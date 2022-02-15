@@ -635,7 +635,7 @@ def student_validation(request, high_school_id=None):
     return render(request, 'core/student_validation.html', context)
 
 
-@method_decorator(groups_required("REF-ETAB-MAITRE","REF-ETAB","REF-TEC"), name="dispatch")
+@method_decorator(groups_required("REF-ETAB-MAITRE"), name="dispatch")
 class VisitorValidationView(generic.TemplateView):
     template_name = "core/visitor_validation.html"
 
