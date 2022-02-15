@@ -3098,7 +3098,7 @@ class VisitorRecordValidation(View):
                     "id": record.id,
                     "first_name": record.visitor.first_name,
                     "last_name": record.visitor.last_name,
-                    "birth_date": record.birth_date,
+                    "birth_date": _date(record.birth_date, 'd/m/Y'),
                 })
         else:
             data["msg"] = _("No operator given or wrong operator (to_validate, validated, rejected)")
