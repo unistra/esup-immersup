@@ -361,7 +361,15 @@ def recovery(request):
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
 
-            if not user.is_high_school_manager():
+            profiles_than_can_auth = (
+                user.is_high_school_manager(),
+                user.is_establishment_manager(),
+                user.is_structure_manager(),
+                user.is_speaker(),
+                user.is_legal_department_staff(),
+            )
+
+            if not any(profiles_than_can_auth):
                 messages.warning(request, _("Please use your establishment credentials."))
             else:
                 user.set_recovery_string()
