@@ -1067,8 +1067,9 @@ class CoreViewsTestCase(TestCase):
         self.client.login(username='ref_str', password='pass')
         response = self.client.get("/core/structure", follow=True)
         self.assertEqual(response.status_code, 200)
+        self.assertIn('structure', response.context)
+        self.assertNotIn('structures', response.context)
         self.assertEqual(self.structure, response.context['structure'])
-        self.assertEqual(response.context['structures'], None)
 
         # Post a new mailing list URL
         # self.assertEqual(self.structure.mailing_list, None)
