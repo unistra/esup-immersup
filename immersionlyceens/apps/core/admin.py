@@ -693,6 +693,13 @@ class StructureAdmin(AdminWithRequest, admin.ModelAdmin):
     ordering = ('label',)
     search_fields = ('label',)
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if request.user.is_establishment_manager() and not request.user.is_superuser:
+            readonly_fields.append("mailing_list")
+
+        return readonly_fields
+
     def get_actions(self, request):
         # Disable delete
         actions = super().get_actions(request)

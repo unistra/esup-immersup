@@ -27,7 +27,10 @@
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
       {% if structures %}
+{% comment %}
         {% trans 'Select a structure to update' %}
+{% endcomment %}
+        {% trans 'Settings for structures' %}
       {% else %}
         {% trans 'Settings for structure' %} : {{ structure.label }}
       {% endif %}
@@ -36,11 +39,25 @@
       {% if structures %}
         <ul>
         {% for structure in structures %}
+
+{% comment %}
           <li class="mb-3"><a href="{% url 'update_structure' structure_code=structure.code %}">{{ structure.label }}</a><br />
             {% trans 'Mailing list' %} : {{ structure.mailing_list|default_if_none:"-" }}</li>
+{% endcomment %}
+
+          <li class="mb-3">{{ structure.label }}<br />
+            {% trans 'Mailing list' %} : {{ structure.mailing_list|default_if_none:"-" }}</li>
+
         {% endfor %}
         </ul>
       {% else %}
+
+      <div class="form-group row">
+        <label class="col-sm-6">{% trans "Mailing list" %} :</label>
+        <p class="col-sm-6">{{ structure.mailing_list }}</p>
+      </div>
+
+      {% comment %}
       <form method="post">
         {% csrf_token %}
         <input type="hidden" name="code" value="{{ structure.code }}">
@@ -59,6 +76,7 @@
           </div>
         </div>
       </form>
+      {% endcomment %}
       {% endif %}
     </div>
   </div>

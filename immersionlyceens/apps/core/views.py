@@ -727,6 +727,22 @@ def highschool_student_record_form_manager(request, hs_record_id):
     return render(request, 'core/hs_record_manager.html', context)
 
 
+@method_decorator(groups_required('REF-STR'), name="dispatch")
+class MyStructureView(generic.TemplateView):
+    template_name = "core/structure.html"
+
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+
+        my_structures = Structure.objects.filter(referents=self.request.user).order_by('label')
+
+        if my_structures.count() == 1:
+            context.update({"structure": my_structures.first()})
+        else:
+            context.update({"structures": list(my_structures)})
+        return context
+
+
 @groups_required('REF-STR')
 def structure(request, structure_code=None):
     """

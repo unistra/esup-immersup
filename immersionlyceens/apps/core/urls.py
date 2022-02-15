@@ -23,8 +23,11 @@ from . import views
     """
 
 urlpatterns = [
-    path('structure', views.structure, name='structure'),
-    path('structure/<structure_code>', views.structure, name='update_structure'),
+    # path('structure', views.structure, name='structure'),
+    # path('structure/<structure_code>', views.structure, name='update_structure'),
+
+    path('structure', views.MyStructureView.as_view(), name='structure'),
+
     path('course', views.course, name='course'),
     path('course/<int:course_id>', views.course, name='modify_course'),
     path('course/<int:course_id>/<int:duplicate>', views.course, name='duplicate_course'),
