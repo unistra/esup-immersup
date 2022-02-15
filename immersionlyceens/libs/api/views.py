@@ -3106,7 +3106,7 @@ class VisitorRecordValidation(View):
         return JsonResponse(data)
 
 
-@method_decorator(groups_required("REF-ETAB-MAITRE", "REF-ETAB", "REF-TEC"), name="dispatch")
+@method_decorator(groups_required("REF-ETAB-MAITRE"), name="dispatch")
 class VisitorRecordRejectValidate(View):
     def post(self, request, *args, **kwargs):
         data: Dict[str, Any] = {"msg": "", "data": None}

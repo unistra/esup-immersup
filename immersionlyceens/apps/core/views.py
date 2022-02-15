@@ -742,52 +742,52 @@ class MyStructureView(generic.TemplateView):
             context.update({"structures": list(my_structures)})
         return context
 
-
-@groups_required('REF-STR')
-def structure(request, structure_code=None):
-    """
-    Update structure url and mailing list
-    """
-    form = None
-    structure = None
-    structures = None
-
-    if request.method == "POST":
-        try:
-            structure = Structure.objects.get(code=request.POST.get('code'))
-        except Exception:
-            messages.error(request, _("Invalid parameter"))
-            return redirect('structure')
-
-        form = StructureForm(request.POST, instance=structure)
-
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Structure settings successfully saved"))
-            return redirect('structure')
-    elif structure_code:
-        try:
-            structure = Structure.objects.get(code=structure_code)
-            form = StructureForm(instance=structure)
-        except Structure.DoesNotExist:
-            messages.error(request, _("Invalid parameter"))
-            return redirect('structure')
-    else:
-        my_structures = Structure.objects.filter(referents=request.user).order_by('label')
-
-        if my_structures.count() == 1:
-            structure = my_structures.first()
-            form = StructureForm(instance=structure)
-        else:
-            structures = [c for c in my_structures]
-
-    context = {
-        'form': form,
-        'structure': structure,
-        'structures': structures,
-    }
-
-    return render(request, 'core/structure.html', context)
+#
+# @groups_required('REF-STR')
+# def structure(request, structure_code=None):
+#     """
+#     Update structure url and mailing list
+#     """
+#     form = None
+#     structure = None
+#     structures = None
+#
+#     if request.method == "POST":
+#         try:
+#             structure = Structure.objects.get(code=request.POST.get('code'))
+#         except Exception:
+#             messages.error(request, _("Invalid parameter"))
+#             return redirect('structure')
+#
+#         form = StructureForm(request.POST, instance=structure)
+#
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, _("Structure settings successfully saved"))
+#             return redirect('structure')
+#     elif structure_code:
+#         try:
+#             structure = Structure.objects.get(code=structure_code)
+#             form = StructureForm(instance=structure)
+#         except Structure.DoesNotExist:
+#             messages.error(request, _("Invalid parameter"))
+#             return redirect('structure')
+#     else:
+#         my_structures = Structure.objects.filter(referents=request.user).order_by('label')
+#
+#         if my_structures.count() == 1:
+#             structure = my_structures.first()
+#             form = StructureForm(instance=structure)
+#         else:
+#             structures = [c for c in my_structures]
+#
+#     context = {
+#         'form': form,
+#         'structure': structure,
+#         'structures': structures,
+#     }
+#
+#     return render(request, 'core/structure.html', context)
 
 
 @groups_required(
