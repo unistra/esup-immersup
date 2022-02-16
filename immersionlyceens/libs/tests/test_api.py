@@ -2673,8 +2673,10 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
 
     def test_API_visitor_record_operation__wrong_operation(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
         url = f"/api/visitor/record/{self.visitor_record.id}/wrong"
-        response = self.client.post(url)
+        response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
 
         self.assertIsInstance(content, dict)
@@ -2688,8 +2690,10 @@ class APITestCase(TestCase):
         self.assertEqual(record.validation, self.visitor_record.validation)
 
     def test_API_visitor_record_operation__validate(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
         url = f"/api/visitor/record/{self.visitor_record.id}/validate"
-        response = self.client.post(url)
+        response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
 
         self.assertIsInstance(content, dict)
@@ -2706,8 +2710,10 @@ class APITestCase(TestCase):
         self.assertEqual(record.validation, 2)
 
     def test_API_visitor_record_operation__reject(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
         url = f"/api/visitor/record/{self.visitor_record.id}/reject"
-        response = self.client.post(url)
+        response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
 
         self.assertIsInstance(content, dict)
