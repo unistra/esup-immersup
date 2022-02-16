@@ -36,6 +36,7 @@ class ImmersionCharterManagement:
                 user.establishment and (user.establishment.master or user.establishment.signed_charter),
                 highschool and highschool.postbac_immersion and highschool.signed_charter,
                 highschool and not highschool.postbac_immersion,
+                user.is_visitor(),
             ])
 
             if not already_signed_charter:

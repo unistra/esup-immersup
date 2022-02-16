@@ -140,3 +140,8 @@ def grouper_sort(grouper):
 def grouper_sort_reversed(grouper):
     grouper.sort(reverse=True)
     return grouper
+
+
+@register.filter()
+def sub(value, arg):
+    return value - arg
