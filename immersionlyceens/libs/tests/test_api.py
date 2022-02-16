@@ -2618,7 +2618,7 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["id"], self.visitor_record.id)
         self.assertEqual(data[0]["first_name"], self.visitor.first_name)
         self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
 
     def test_API__get_visitor_records__validated(self):
         self.visitor_record.validation = 2
@@ -2644,7 +2644,7 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["id"], self.visitor_record.id)
         self.assertEqual(data[0]["first_name"], self.visitor.first_name)
         self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
 
     def test_API__get_visitor_records__rejected(self):
         self.visitor_record.validation = 3
@@ -2670,7 +2670,7 @@ class APITestCase(TestCase):
         self.assertEqual(data[0]["id"], self.visitor_record.id)
         self.assertEqual(data[0]["first_name"], self.visitor.first_name)
         self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%Y-%m-%d"))
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
 
     def test_API_visitor_record_operation__wrong_operation(self):
         url = f"/api/visitor/record/{self.visitor_record.id}/wrong"
@@ -2724,8 +2724,11 @@ class APITestCase(TestCase):
         self.assertEqual(record.validation, 3)
 
     def test_API_visitor_record_operation__bad_record_id(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
+
         url = f"/api/visitor/record/99999999999/validate"
-        response = self.client.post(url)
+        response = client.post(url)
         content = json.loads(response.content.decode("utf-8"))
 
         self.assertIsInstance(content, dict)
