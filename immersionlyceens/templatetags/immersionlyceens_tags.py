@@ -153,3 +153,10 @@ def get_logout_url(context):
         return reverse('shibboleth:logout')
     else:
         return reverse('accounts:user_logout')
+
+@register.simple_tag(takes_context = True)
+def is_local_superuser(context):
+    #TODO: check if other backends needed and use them
+    return context.request.session[BACKEND_SESSION_KEY] \
+        not in ('shibboleth.backends.ShibbolethRemoteUserBackend', 'django_cas.backends.CASBackend') \
+        and context.request.user.is_superuser
