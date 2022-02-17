@@ -246,13 +246,8 @@
               </div>
               {% endif %}
               <div class="dropdown-item text-right">
-                <a class="text-decoration-none" href="{% url 'django_cas:logout' %}">
+                <a class="text-decoration-none" href="{% get_logout_url %}">
                   <i class="fa fas fa-sign-out"></i> {% trans "Logout" %}
-                </a>
-              </div>
-              <div class="dropdown-item text-right">
-                <a class="text-decoration-none" href="{% url 'shibboleth:logout' %}">
-                  <i class="fa fas fa-sign-out"></i> {% trans "Shibboleth Logout" %}
                 </a>
               </div>
             </div>

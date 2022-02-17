@@ -3,7 +3,9 @@ from decimal import Decimal
 
 from django import template
 from django.conf import settings
+from django.contrib.auth import BACKEND_SESSION_KEY
 from django.contrib.auth.models import Group
+from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
@@ -131,7 +133,6 @@ def fix_lang_code(code):
 
 @register.filter()
 def grouper_sort(grouper):
-    print(grouper)
     grouper.sort(key=grouper)
     return grouper
 
@@ -140,3 +141,15 @@ def grouper_sort(grouper):
 def grouper_sort_reversed(grouper):
     grouper.sort(reverse=True)
     return grouper
+
+
+@register.simple_tag(takes_context = True)
+def get_logout_url(context):
+    backend = context.request.session[BACKEND_SESSION_KEY]
+    #TODO: check if other backends needed and use them
+    if backend == 'django_cas.backends.CASBackend':
+        return reverse('django_cas:logout')
+    elif backend == 'shibboleth.backends.ShibbolethRemoteUserBackend':
+        return reverse('shibboleth:logout')
+    else:
+        return reverse('accounts:user_logout')
