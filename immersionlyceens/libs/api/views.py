@@ -2572,7 +2572,7 @@ def ajax_set_course_alert(request):
 
 
 @is_ajax_request
-@groups_required('ETU', 'LYC')
+@groups_required('ETU', 'LYC', 'VIS')
 def ajax_get_alerts(request):
     """
     Get alerts list
