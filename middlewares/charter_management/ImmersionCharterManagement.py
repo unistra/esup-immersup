@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
-from immersionlyceens.apps.core.models import HighSchool, GeneralSettings, ImmersionUser
+from immersionlyceens.apps.core.models import (
+    GeneralSettings, HighSchool, ImmersionUser,
+)
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting
+
 
 class ImmersionCharterManagement:
     def __init__(self, get_response):
@@ -18,7 +20,7 @@ class ImmersionCharterManagement:
         user = request.user
         highschool = None
 
-        if user.is_anonymous:
+        if user.is_anonymous or user.is_visitor():
             return response
 
         try:
