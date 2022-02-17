@@ -105,8 +105,7 @@
   var dtv_future;
   var dtv_past;
   var dtv_cancelled;
-
-
+  var is_highschool_student = {{ request.user.is_high_school_student|yesno:"true,false" }}
 
   function open_students_modal(immersion_id) {
     current_immersion_id = immersion_id;
@@ -234,9 +233,13 @@
         { "data": "info" },
         { "data": "",
           "render": function(data, type, row) {
-            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
-                      "<i class='fa fas fa-users fa-2x'></i>" +
-                      "</button>";
+            if(is_highschool_student === true) {
+              var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other registrants' %}\">" +
+                        "<i class='fa fas fa-users fa-2x'></i>" +
+                        "</button>";
+            } else {
+              var msg = "";
+            }
 
             if(row.cancellable === true) {
               msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
@@ -477,9 +480,13 @@
         { "data": "info" },
         { "data": "",
           "render": function(data, type, row) {
-            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
-                      "<i class='fa fas fa-users fa-2x'></i>" +
-                      "</button>";
+            if(is_highschool_student === true) {
+              var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+                        "<i class='fa fas fa-users fa-2x'></i>" +
+                        "</button>";
+            } else {
+              var msg = "";
+            }
 
             if(row.cancellable === true) {
               msg += "<button class=\"ml-4 btn btn-light btn-sm\" name=\"cancel\" onclick=\"open_cancel_modal(" + row.id + ")\" title=\"{% trans 'Cancel' %}\">" +
