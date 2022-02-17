@@ -2586,6 +2586,7 @@ def ajax_get_alerts(request):
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
         domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
+        e = alert.course.get_etab_or_high_school()
 
         alert_data = {
             'id': alert.id,
@@ -2593,6 +2594,7 @@ def ajax_get_alerts(request):
             'training': alert.course.training.label,
             'subdomains': [subdomain.label for subdomain in subdomains],
             'domains': [domain.label for domain in domains],
+            'establishment': f'{e.label} - {e.city}',
             'email_sent': alert.email_sent,
         }
 
