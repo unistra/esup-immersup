@@ -2072,7 +2072,7 @@ class Slot(models.Model):
         if days <= 0:
             days = default_value
 
-        return self.date >= today - datetime.timedelta(days=days)
+        return self.date <= today + datetime.timedelta(days=days)
 
 
     class Meta:

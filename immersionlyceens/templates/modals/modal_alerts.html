@@ -183,7 +183,23 @@ dtr = $('#alerts_table').DataTable({
         return txt;
       }
     },
-    { "data": "establishment" },
+    { "data": "establishments",
+       "render": function(data, type, row) {
+        var txt = "";
+
+        $.each(data, function(i, item) {
+          if(i>0) {
+            txt += "<br />";
+          }
+
+          txt += item;
+        });
+
+        return txt;
+      }   
+    
+    
+    },
     { "data": "email_sent",
       "render": function (data, type, row) {
         if (data == true) {

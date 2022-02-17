@@ -2594,7 +2594,7 @@ def ajax_get_alerts(request):
             'training': alert.course.training.label,
             'subdomains': [subdomain.label for subdomain in subdomains],
             'domains': [domain.label for domain in domains],
-            'establishment': f'{e.label} - {e.city}',
+            'establishments': [f'{etab.label} - {etab.city}' for etab in alert.course.training.distinct_establishments()],
             'email_sent': alert.email_sent,
         }
 
