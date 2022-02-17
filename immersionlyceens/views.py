@@ -247,7 +247,7 @@ def offer_subdomain(request, subdomain_id):
             }
 
             # If the current user is a student, check whether he can register
-            if student and record and record.is_valid() and remaining_regs_count:
+            if student and record and remaining_regs_count:
                 for slot in slots:
                     slot.already_registered = False
                     slot.can_register = False
@@ -401,7 +401,7 @@ def visits_offer(request):
         raise Exception(_('Calendar not initialized'))
 
     # If the current user is a higschool student, check whether he can register
-    if student and record and record.is_valid():
+    if student and record:
         for visit in visits:
             visit.already_registered = False
             visit.can_register = False
@@ -530,7 +530,7 @@ def offer_off_offer_events(request):
         raise Exception(_('Calendar not initialized'))
 
     # If the current user is a stident/highschool student, check whether he can register
-    if student and record and record.is_valid():
+    if student and record:
         for event in events:
             event.already_registered = False
             event.can_register = False
