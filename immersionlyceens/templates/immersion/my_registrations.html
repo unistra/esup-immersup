@@ -324,7 +324,7 @@
         { "data": "attendance",
           "render": function(data, type, row) {
             var msg = data;
-            if(row.attendance_status === 1) {
+            if(row.attendance_status === 1 || row.face_to_face === false) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
                   "</a>";
@@ -570,7 +570,7 @@
           "render": function(data, type, row) {
             var msg = data;
 
-            if(row.attendance_status === 1) {
+            if(row.attendance_status === 1 || row.face_to_face === false) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
                   "</a>";
@@ -797,7 +797,7 @@
           "render": function(data, type, row) {
             var msg = data;
 
-            if(row.attendance_status === 1) {
+            if(row.attendance_status === 1 || row.face_to_face === false) {
               msg += "<a href=\"dl/attestation/" + row.id + "\" class=\"ml-4 btn btn-light btn-sm\" name=\"attestation\" title=\"{% trans 'Attestation download' %}\">" +
                   "<i class='fa fas fa-download fa-2x'></i>" +
                   "</a>";

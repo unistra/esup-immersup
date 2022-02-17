@@ -1225,6 +1225,7 @@ def ajax_get_immersions(request, user_id=None):
             'slot_id': slot.id,
             'free_seats': 0,
             'can_register': False,
+            'face_to_face': slot.face_to_face,
         }
 
         if slot.date < today or (slot.date == today and slot.start_time < now):
