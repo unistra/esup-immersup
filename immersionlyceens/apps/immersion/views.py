@@ -697,6 +697,7 @@ def student_record(request, student_id=None, record_id=None):
     record = None
     student = None
     calendar = None
+    no_record = False
 
     calendars = Calendar.objects.all()
     if calendars:
@@ -714,6 +715,8 @@ def student_record(request, student_id=None, record_id=None):
         student = request.user
         record = student.get_student_record()
         uai_code = None
+
+        no_record = record is None
 
         try:
             shib_attrs = request.session.get("shib", {})
@@ -812,7 +815,8 @@ def student_record(request, student_id=None, record_id=None):
         }
 
     context = {
-        'calender': calendar,
+        'no_record': no_record,
+        'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
         'record': record,
