@@ -54,7 +54,7 @@
           <h5 class="mb-0 more-less-title">
             <button class="btn btn-link" data-toggle="collapse" data-target="#visit{{h.grouper.pk}}" aria-expanded="false" aria-controls="highschool{{h.grouper.pk}}">
             <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Highschool' %}"></i>
-            {{ h.grouper.city }} {{ h.grouper.label }}
+            <span class="badge badge-pill immersup-badge" style="background-color: {{h.grouper.badge_html_color }};margin: 2px;">{{ h.grouper.label }} - {{ h.grouper.city }}</span>
             </button>
           </h5>
         </div>

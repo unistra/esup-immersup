@@ -66,10 +66,10 @@
             <div class="card-header card-cours" id="training{{training.pk}}">
               <h5 class="mb-0 more-less-title">
                 {% for e in training.grouper.distinct_establishments %}
-                  <span class="badge badge-pill immersup-badge" style="background-color: {{e.badge_html_color }};margin: 2px;">{{ e.label }}</span>
+                  <span class="badge badge-pill immersup-badge" style="background-color: {{e.badge_html_color }};margin: 2px;">{{ e.label }} - {{ e.city }}</span>
                 {% endfor %}
                 {% if training.grouper.highschool %}
-                  <span class="badge badge-pill immersup-badge" style="background-color: {{training.grouper.highschool.badge_html_color }};margin: 2px;">{{ training.grouper.highschool }}</span>
+                  <span class="badge badge-pill immersup-badge" style="background-color: {{training.grouper.highschool.badge_html_color }};margin: 2px;">{{ training.grouper.highschool.label }} - {{ training.grouper.highschool.city }}</span>
                 {% endif %}
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="training{{training.grouper.pk}}">
                 <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.grouper.label }}
