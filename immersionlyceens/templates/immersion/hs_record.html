@@ -179,34 +179,58 @@ ul
         </div>
         {% if calendar.calendar_mode == "YEAR" %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-9 col-form-label">
-              {% trans 'Annually allowed registrations (excluding visits and events)' %} :
-            </label>
             {% if record_form.allowed_global_registrations %}
-              <div class="col-sm-2">{{ record_form.allowed_global_registrations }}</div>
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-1 col-form-label">{{ record.allowed_global_registrations }}</div>
+            {% elif record_form.instance.highschool %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Remaining annually allowed registrations (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-2">{{ record_form.allowed_global_registrations|default:record.allowed_global_registrations|sub:immersion_number }}/{{ record_form.allowed_global_registrations|default:record.allowed_global_registrations }}</div>
             {% else %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
+              </label>
               <div class="col-sm-1 col-form-label">{{ record.allowed_global_registrations }}</div>
             {% endif %}
           </div>
         {% else %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-9 col-form-label">
+            {% if record_form.allowed_first_semester_registrations %}
+              <label class="col-sm-9 col-form-label">
               {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
             </label>
-            {% if record_form.allowed_first_semester_registrations %}
               <div class="col-sm-2">{{ record_form.allowed_first_semester_registrations }}</div>
+            {% elif record_form.instance.highschool %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Remaining allowed registrations for first semester (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-1 col-form-label">{{ record.allowed_first_semester_registrations|sub:immersion_number.semester_1 }} / {{ record.allowed_first_semester_registrations }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }} / {{ record.allowed_first_semester_registrations }}</div>
+              <label class="col-sm-9 col-form-label">
+              {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
+            </label>
+              <div class="col-sm-1 col-form-label">{{ record.allowed_first_semester_registrations }}</div>
             {% endif %}
           </div>
           <div class="form-group row align-items-center">
-            <label class="col-sm-9 col-form-label">
-              {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
-            </label>
             {% if record_form.allowed_second_semester_registrations %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
+              </label>
               <div class="col-sm-2">{{ record_form.allowed_second_semester_registrations }}</div>
+            {% elif record_form.instance.highschool %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Remaining allowed registrations for second semester (excluding visits and events))' %} :
+              </label>
+              <div class="col-sm-1 col-form-label">{{ record.allowed_second_semester_registrations|sub:immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations }}</div>
             {% else %}
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations }}</div>
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-1 col-form-label">{{ record.allowed_second_semester_registrations }}</div>
             {% endif %}
           </div>
         {% endif %}

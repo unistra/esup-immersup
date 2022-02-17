@@ -160,3 +160,8 @@ def is_local_superuser(context):
     return context.request.session[BACKEND_SESSION_KEY] \
         not in ('shibboleth.backends.ShibbolethRemoteUserBackend', 'django_cas.backends.CASBackend') \
         and context.request.user.is_superuser
+
+
+@register.filter()
+def sub(value, arg):
+    return value - arg
