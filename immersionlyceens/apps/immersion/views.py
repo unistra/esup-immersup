@@ -656,24 +656,21 @@ def high_school_student_record(request, student_id=None, record_id=None):
     ).count()
 
     immersion_number = None
-    immersions = student.immersions.all()
+    immersions = student.immersions.filter(
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
+                cancellation_type__isnull=True
+    )
 
     if calendar.calendar_mode == "YEAR":
-        immersion_number = immersions.filter(
-                slot__event__isnull=True,
-                slot__visit__isnull=True
-        ).count()
+        immersion_number = immersions.count()
     else:
         immersion_number = {
             "semester_1": immersions.filter(
-                slot__date__lte=calendar.semester1_end_date,
-                slot__event__isnull=True,
-                slot__visit__isnull=True
+                slot__date__lte=calendar.semester1_end_date
             ).count(),
             "semester_2": immersions.filter(
-                slot__date__gte=calendar.semester2_start_date,
-                slot__event__isnull=True,
-                slot__visit__isnull=True
+                slot__date__gte=calendar.semester2_start_date
             ).count(),
         }
 
@@ -816,23 +813,20 @@ def student_record(request, student_id=None, record_id=None):
     ).count()
 
     immersion_number = None
-    immersions = student.immersions.all()
-    if calendar.calendar_mode == "YEAR":
-        immersion_number = immersions.filter(
+    immersions = student.immersions.filter(
                 slot__event__isnull=True,
-                slot__visit__isnull=True
-        ).count()
+                slot__visit__isnull=True,
+                cancellation_type__isnull=True,
+    )
+    if calendar.calendar_mode == "YEAR":
+        immersion_number = immersions.count()
     else:
         immersion_number = {
             "semester_1": immersions.filter(
-                slot__date__lte=calendar.semester1_end_date,
-                slot__event__isnull=True,
-                slot__visit__isnull=True
+                slot__date__lte=calendar.semester1_end_date
             ).count(),
             "semester_2": immersions.filter(
-                slot__date__gte=calendar.semester2_start_date,
-                slot__event__isnull=True,
-                slot__visit__isnull=True
+                slot__date__gte=calendar.semester2_start_date
             ).count(),
         }
 
@@ -999,23 +993,20 @@ class VisitorRecordView(FormView):
         ).count()
 
         immersion_number = None
-        immersions = visitor.immersions.all()
+        immersions = visitor.immersions.filter(
+            slot__event__isnull=True,
+            slot__visit__isnull=True,
+            cancellation_type__isnull=True
+        )
         if calendar.calendar_mode == "YEAR":
-            immersion_number = immersions.filter(
-                slot__event__isnull=True,
-                slot__visit__isnull=True
-            ).count()
+            immersion_number = immersions.count()
         else:
             immersion_number = {
                 "semester_1": immersions.filter(
-                    slot__date__lte=calendar.semester1_end_date,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True
+                    slot__date__lte=calendar.semester1_end_date
                 ).count(),
                 "semester_2": immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date,
-                    slot__event__isnull=True,
-                    slot__visit__isnull=True
+                    slot__date__gte=calendar.semester2_start_date
                 ).count(),
             }
 
