@@ -1181,14 +1181,14 @@ class HighSchoolForm(forms.ModelForm):
                     label=_("Zip code"), widget=forms.Select(), choices=zip_choices, required=True
                 )
 
+        postbac_dependant_fields = ['mailing_list', 'logo', 'signature', 'certificate_header', 'certificate_footer']
 
-        if not self.instance or (self.instance and not self.instance.postbac_immersion) \
-            and self.fields.get("mailing_list"):
-            self.fields["mailing_list"].disabled = True
-
-        if self.fields.get('mailing_list'):
-            self.fields["mailing_list"].help_text = \
-                _("This field is available when 'Offer post-bachelor immersions is enabled")
+        for field in postbac_dependant_fields:
+            if not self.instance or (self.instance and not self.instance.postbac_immersion) \
+                and self.fields.get(field):
+                self.fields[field].disabled = True
+                self.fields[field].help_text = \
+                    _("This field is available when 'Offer post-bachelor immersions is enabled")
 
 
     def clean(self):
