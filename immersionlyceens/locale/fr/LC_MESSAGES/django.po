@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-17 17:01+0100\n"
+"POT-Creation-Date: 2022-02-18 10:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -307,7 +307,7 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/templates/core/visits_list.html:220
 #: immersionlyceens/templates/core/visits_list.html:273
 #: immersionlyceens/templates/modals/modal_alerts.html:69
-#: immersionlyceens/templates/modals/modal_alerts.html:190
+#: immersionlyceens/templates/modals/modal_alerts.html:206
 #: immersionlyceens/templates/modals/modal_register_students_list.html:152
 msgid "Yes"
 msgstr "Oui"
@@ -354,7 +354,7 @@ msgstr "Oui"
 #: immersionlyceens/templates/core/visits_list.html:228
 #: immersionlyceens/templates/core/visits_list.html:275
 #: immersionlyceens/templates/modals/modal_alerts.html:77
-#: immersionlyceens/templates/modals/modal_alerts.html:192
+#: immersionlyceens/templates/modals/modal_alerts.html:208
 #: immersionlyceens/templates/modals/modal_register_students_list.html:169
 msgid "No"
 msgstr "Non"
@@ -5828,8 +5828,8 @@ msgstr "Inscriptions autorisées sur l'année (hors visites et évènements)"
 #: immersionlyceens/templates/immersion/hs_record.html:190
 #: immersionlyceens/templates/immersion/student_record.html:122
 #: immersionlyceens/templates/immersion/visitor_record.html:112
-msgid "Remaining annually allowed registrations (excluding visits and events)"
-msgstr "Inscriptions autorisées restantes sur l'année (hors visites et évènements)"
+msgid "Annually registrations realized (excluding visits and events)"
+msgstr "Inscriptions réalisées sur l'année (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:204
 #: immersionlyceens/templates/immersion/hs_record.html:214
@@ -5843,10 +5843,8 @@ msgstr "Inscriptions autorisées au semestre 1 (hors visites et évènements)"
 #: immersionlyceens/templates/immersion/hs_record.html:209
 #: immersionlyceens/templates/immersion/student_record.html:141
 #: immersionlyceens/templates/immersion/visitor_record.html:135
-msgid ""
-"Remaining allowed registrations for first semester (excluding visits and "
-"events)"
-msgstr "Inscriptions autorisées restantes au semestre 1 (hors visites et évènements)"
+msgid "Registrations realized for first semester (excluding visits and events)"
+msgstr "Inscriptions réalisées au semestre 1 (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:222
 #: immersionlyceens/templates/immersion/hs_record.html:232
@@ -5859,9 +5857,8 @@ msgstr "Inscriptions autorisées au semestre 2 (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:227
 msgid ""
-"Remaining allowed registrations for second semester (excluding visits and "
-"events))"
-msgstr "Inscriptions autorisées restantes au semestre 2 (hors visites et évènements)"
+"Registrations realized for second semester (excluding visits and events))"
+msgstr "Inscriptions réalisées au semestre 2 (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/hs_record.html:249
 #: immersionlyceens/templates/immersion/student_record.html:171
@@ -5998,9 +5995,8 @@ msgstr "Pas de correspondance"
 #: immersionlyceens/templates/immersion/student_record.html:159
 #: immersionlyceens/templates/immersion/visitor_record.html:157
 msgid ""
-"Remaining allowed registrations for second semester (excluding visits and "
-"events)"
-msgstr "Inscriptions autorisées restantes au semestre 2 (hors visites et évènements)"
+"Registrations realized for second semester (excluding visits and events)"
+msgstr "Inscriptions autorisées réalisées au semestre 2 (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/visitor_record.html:73
 msgid "supporting documents"
@@ -6564,6 +6560,32 @@ msgstr "Pas de visite disponible"
 #: immersionlyceens/views.py:530
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
+
+#~ msgid ""
+#~ "Remaining annually allowed registrations (excluding visits and events)"
+#~ msgstr ""
+#~ "Inscriptions autorisées restantes sur l'année (hors visites et évènements)"
+
+#~ msgid ""
+#~ "Remaining allowed registrations for first semester (excluding visits and "
+#~ "events)"
+#~ msgstr ""
+#~ "Inscriptions autorisées restantes au semestre 1 (hors visites et "
+#~ "évènements)"
+
+#~ msgid ""
+#~ "Remaining allowed registrations for second semester (excluding visits and "
+#~ "events))"
+#~ msgstr ""
+#~ "Inscriptions autorisées restantes au semestre 2 (hors visites et "
+#~ "évènements)"
+
+#~ msgid ""
+#~ "Remaining allowed registrations for second semester (excluding visits and "
+#~ "events)"
+#~ msgstr ""
+#~ "Inscriptions autorisées restantes au semestre 2 (hors visites et "
+#~ "évènements)"
 
 #~ msgid "Structure settings successfully saved"
 #~ msgstr "Paramètre enregistré avec succès"
