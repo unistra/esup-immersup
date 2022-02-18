@@ -367,6 +367,7 @@ def recovery(request):
                 user.is_structure_manager(),
                 user.is_speaker(),
                 user.is_legal_department_staff(),
+                user.is_visitor(),
             )
 
             if not any(profiles_than_can_auth):

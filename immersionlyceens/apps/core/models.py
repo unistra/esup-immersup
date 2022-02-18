@@ -428,10 +428,21 @@ class ImmersionUser(AbstractUser):
         # return self.get_username().replace(settings.USERNAME_PREFIX, '')
 
     def get_login_page(self):
-        if self.is_high_school_manager() and self.highschool:
-            return "/immersion/login/ref-lyc"
-        else:
-            return "/immersion/login"
+        redirect_url: str = "/immersion/login"
+        if self.is_visitor():
+            redirect_url = "/immersion/login/vis"
+        elif self.is_high_school_student():
+            redirect_url = "/immersion/login"
+        elif self.is_high_school_manager():
+            redirect_url = "/immersion/login/ref-lyc"
+        elif self.is_speaker() and self.highschool is not None:
+            redirect_url = "/immersion/login/speaker"
+        elif self.is_speaker() or self.is_establishment_manager() or self.is_structure_manager() or self.is_legal_department_staff():
+            if self.establishment is not None and self.establishment.data_source_plugin is None:
+                redirect_url = "/immersion/login/speaker"
+        return redirect_url
+
+
 
     def is_valid(self):
         """
