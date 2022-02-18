@@ -239,7 +239,10 @@ dtr = $('#students_list').DataTable({
         else if (row.attendance_status === 2) {
           absent_color="style='color:red';";
         }
-
+        // TODO: for now dirty hack check were is initialized face_to_face for courses
+        if(slot_mode==="course") {
+          face_to_face=true;
+        }
         if(can_update_attendances === true && face_to_face === true) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +

@@ -2590,13 +2590,6 @@ def ajax_get_alerts(request):
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
         domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
         slot = Slot.objects.filter(course=alert.course.pk)
-
-
-        # if not alert.course.highschool:
-        #     etab = alert.course.highschool
-        # else:
-        #     etab = alert.course.structure.establishment
-
         e = alert.course.get_etab_or_high_school()
         if isinstance(e, HighSchool):
             etab = f'{e.label} - {e.city}'
