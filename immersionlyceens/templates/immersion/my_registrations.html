@@ -652,7 +652,7 @@
             var msg = data;
 
             if(row.can_register) {
-              msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register("+row.slot_id+")\">{% trans 'Register again' %}</button>";
+              msg += "<br /><button type=\"button\" class=\"badge badge-pill badge-primary\" onclick=\"register(" + row.slot_id + ")\">{% trans 'Register again' %}</button>";
             }
 
             if(row.free_seats === 0) {
@@ -717,7 +717,7 @@
         { "data": "info" },
         { "data": "",
           "render": function(data, type, row) {
-            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal("+row.id+")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
+            var msg = "<button class=\"btn btn-light btn-sm\" name=\"others\" onclick=\"open_students_modal(" + row.id +")\" title=\"{% trans 'Other high schools/students registrants' %}\">" +
                       "<i class='fa fas fa-users fa-2x'></i>" +
                       "</button>";
 
