@@ -507,19 +507,6 @@ def resend_activation(request):
         else:
             if user.is_valid():
                 messages.error(request, _("This account has already been activated, please login."))
-
-                if user.is_visitor():
-                    redirect_url = "/immersion/login/vis"
-                elif user.is_high_school_student():
-                    redirect_url = "/immersion/login"
-                elif user.is_high_school_manager():
-                    redirect_url = "/immersion/login/ref-lyc"
-                elif user.is_speaker() and user.highschool is not None:
-                    redirect_url = "/immersion/login/speaker"
-                elif user.is_speaker() or user.is_establishment_manager() or user.is_structure_manager() or user.is_legal_department_staff():
-                    if user.establishment is not None and user.establishment.data_source_plugin is None:
-                        redirect_url = "/immersion/login/speaker"
-
                 return HttpResponseRedirect(redirect_url)
             else:
                 msg = user.send_message(request, 'CPT_MIN_CREATE')
