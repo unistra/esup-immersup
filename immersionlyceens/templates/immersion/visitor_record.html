@@ -109,9 +109,9 @@
               </div>
             {% elif form.instance.visitor %}
               <label class="col-sm-9 col-form-label">
-                {% trans 'Remaining annually allowed registrations (excluding visits and events)' %} :
+                {% trans 'Annually registrations realized (excluding visits and events)' %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ form.allowed_global_registrations.value | default:calendar.year_nb_authorized_immersion | sub:immersion_number }}/{{ form.allowed_global_registrations.value | default:calendar.year_nb_authorized_immersion }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number }}/{{ form.allowed_global_registrations.value | default:calendar.year_nb_authorized_immersion }}</div>
             {% else %}
               <label class="col-sm-9 col-form-label">
                 {% trans 'Annually allowed registrations (excluding visits and events)' %} :
@@ -132,9 +132,9 @@
               </div>
             {% elif form.instance.visitor %}
               <label class="col-sm-9 col-form-label">
-                {% trans 'Remaining allowed registrations for first semester (excluding visits and events)' %} :
+                {% trans 'Registrations realized for first semester (excluding visits and events)' %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ form.allowed_first_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester|sub:immersion_number.semester_1 }}/{{ form.allowed_first_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }}/{{ form.allowed_first_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
             {% else %}
               <label class="col-sm-9 col-form-label">
                 {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
@@ -154,9 +154,9 @@
               </div>
             {% elif form.instance.visitor %}
               <label class="col-sm-9 col-form-label">
-                {% trans 'Remaining allowed registrations for second semester (excluding visits and events)' %} :
+                {% trans 'Registrations realized for second semester (excluding visits and events)' %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ form.allowed_second_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester|sub:immersion_number.semester_2 }}/{{ form.allowed_second_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }}/{{ form.allowed_second_semester_registrations.value | default:calendar.nb_authorized_immersion_per_semester }}</div>
             {% else %}
               <label class="col-sm-9 col-form-label">
                 {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
