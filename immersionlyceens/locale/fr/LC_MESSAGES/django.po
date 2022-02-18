@@ -5997,13 +5997,10 @@ msgstr "Pas de correspondance"
 
 #: immersionlyceens/templates/immersion/student_record.html:159
 #: immersionlyceens/templates/immersion/visitor_record.html:157
-#, fuzzy
-#| msgid ""
-#| "Allowed registrations for second semester (excluding visits and events)"
 msgid ""
 "Remaining allowed registrations for second semester (excluding visits and "
 "events)"
-msgstr "Inscriptions autorisées au semestre 2 (hors visites et évènements)"
+msgstr "Inscriptions autorisées restantes au semestre 2 (hors visites et évènements)"
 
 #: immersionlyceens/templates/immersion/visitor_record.html:73
 msgid "supporting documents"
