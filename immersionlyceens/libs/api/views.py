@@ -1277,6 +1277,7 @@ def ajax_get_other_registrants(request, immersion_id):
                 immersions__slot=immersion.slot,
                 high_school_student_record__isnull=False,
                 high_school_student_record__visible_immersion_registrations=True,
+                immersions__cancellation_type__isnull=True
             )
             .exclude(id=request.user.id)
         )
