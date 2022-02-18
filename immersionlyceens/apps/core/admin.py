@@ -1157,7 +1157,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     def referents_list(self, obj):
         return [
             f"{user.last_name} {user.first_name}"
-            for user in obj.highschool_referent.all().order_by('last_name', 'first_name')
+            for user in obj.highschool_referent.filter(groups__name='REF-LYC').order_by('last_name', 'first_name')
         ]
 
     referents_list.short_description = _('Referents')
