@@ -45,52 +45,32 @@
       {% endif %}
     </div>
     <div class="card-body">
+      <form class="form-horizontal">
+        <div class="form-group">
+          <div class="form-group mx-sm-3 mb-2">
+            <label for="filter_empty_trainings" class="form-check-label ml-md-2">{% trans 'Display trainings with no student' %} : </label>
+            <input type="checkbox" id="filter_empty_trainings">
+          </div>
+          <div class="form-group mx-sm-3 mb-2">
+            <label class="form-check-label ml-md-2"> {% trans 'Toggle counts columns' %} : </label>
+            {% for level in levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{% trans 'Students cnt' %}<br>{{ level.label }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+          <div class="form-group mx-sm-3 mb-2">
+            <label class="form-check-label ml-md-2"> {% trans 'Toggle registrations columns' %} : </label>
+            {% for level in levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{% trans 'Registrations' %}<br>{{ level.label }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </form>
+      <br />
       <div class="table-responsive">
-        {% with levels|length as levels_count %}
-          <div>
-            {% trans 'Toggle counts columns' %} :
-            {% for level in levels %}
-              {% if forloop.counter0 %} - {% endif %}
-              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:4 }}">{{ level.label }}</a>
-            {% endfor %}
-          </div>
-          <div>
-            {% trans 'Toggle registrations columns' %} :
-            {% for level in levels %}
-              {% if forloop.counter0 %} - {% endif %}
-              <a class="toggle-vis" href='' data-column="{{ forloop.counter0|add:5|add:levels_count }}">{{ level.label }}</a>
-            {% endfor %}
-          </div>
-        {% endwith %}
-        <br />
         <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-          <thead>
-            <tr>
-              <th id="training_filter" class="align-top">{% trans 'Training' %}</th>
-              <th id="subdomain_filter" class="align-top">{% trans 'Subdomain' %}</th>
-              <th id="domain_filter" class="align-top">{% trans 'Domain' %}</th>
-              <th class="align-top">{% trans 'Students cnt' %}</th>
-              {% for level in levels %}
-                <th class="align-top">{% trans 'Students cnt' %}<br />{{ level.label }}</th>
-              {% endfor %}
-              <th class="align-top">{% trans 'Registrations' %}</th>
-              {% for level in levels %}
-                <th class="align-top">{% trans 'Registrations' %}<br />{{ level.label }}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              {% for level in levels %}
-                <td></td>
-                <td></td>
-              {% endfor %}
-            </tr>
-          </tbody>
+          <thead><tr></tr></thead>
         </table>
       </div>
     </div>
@@ -98,7 +78,9 @@
 </div>
 <script type="text/javascript">
   var highschool_id = "{{ highschool_id }}";
+  var tableName = "#statistics_table";
   var dt;
+  var str;
   var data;
   var columns;
   var response;
@@ -113,8 +95,12 @@
 
       response = $.ajax({
           'url': url,
-          'data': { 'highschool_id': highschool_id }
+          'data': {
+              'highschool_id': highschool_id,
+              'empty_trainings': $('#filter_empty_trainings').is(':checked')
+          }
       }).done(function () {
+        let header;
         data = JSON.parse(response.responseText);
 
         $.fn.dataTableExt.errMode = 'console';
@@ -123,6 +109,12 @@
           dt.clear().rows.add(data.data).draw();
         }
         else {
+          $.each(data.columns, function (k, colObj) {
+            header = colObj.filter ? "<th id='" + colObj.filter + "'>" : "<th>"
+            str = header + colObj.name + '</th>';
+            $(str).appendTo(tableName+'>thead>tr');
+          });
+
           dt = $('#statistics_table').DataTable({
             'processing': false,
             'order': [
@@ -156,30 +148,7 @@
           });
 
           // Filters init
-          yadcf.init(dt, [
-            {
-              column_number: 0,
-              filter_default_label: "",
-              filter_match_mode: "exact",
-              filter_container_id: "training_filter",
-              style_class: "form-control form-control-sm",
-              filter_reset_button_text: false,
-            }, {
-              column_number: 1,
-              filter_default_label: "",
-              filter_match_mode: "exact",
-              filter_container_id: "subdomain_filter",
-              style_class: "form-control form-control-sm",
-              filter_reset_button_text: false,
-            }, {
-              column_number: 2,
-              filter_default_label: "",
-              filter_match_mode: "exact",
-              filter_container_id: "domain_filter",
-              style_class: "form-control form-control-sm",
-              filter_reset_button_text: false,
-            },
-          ]);
+          yadcf.init(dt, data.yadcf);
         }
       });
     }
@@ -191,15 +160,19 @@
       load_datatable();
     });
 
-    $('a.toggle-vis').on( 'click', function (e) {
+    $('#filter_empty_trainings').click(function () {
+      load_datatable();
+    });
+
+    $('a.toggle-vis').on('click', function (e) {
         e.preventDefault();
 
         // Get the column API object
-        var column = dt.column( $(this).attr('data-column') );
+        var column = dt.column( $(this).attr('data-column')+":name" );
 
         // Toggle the visibility
         column.visible( ! column.visible() );
-    } );
+    });
   });
 
 </script>

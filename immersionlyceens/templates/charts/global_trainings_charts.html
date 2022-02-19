@@ -19,7 +19,7 @@
 
 {% block section_title %}
     <h3 class="ml-2">
-      {% trans "Highschools statistics - registrations by trainings" %}{% if high_school_name %} - {{ high_school_name }}{% endif %}
+      {% trans "Statistics - registrations by trainings" %}
     </h3>
 {% endblock %}
 
@@ -27,22 +27,31 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-body">
+      <form class="form-horizontal">
+        <div class="form-group">
+          <div class="form-group mx-sm-3 mb-2">
+            <label for="filter_empty_trainings" class="form-check-label ml-md-2">{% trans 'Display trainings with no student' %} : </label>
+            <input type="checkbox" id="filter_empty_trainings">
+          </div>
+          <div class="form-group mx-sm-3 mb-2">
+            <label class="form-check-label ml-md-2"> {% trans 'Toggle counts columns' %} : </label>
+            {% for level in high_school_levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{% trans 'Students cnt' %}<br>{{ level.label }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+          <div class="form-group mx-sm-3 mb-2">
+            <label class="form-check-label ml-md-2"> {% trans 'Toggle registrations columns' %} : </label>
+            {% for level in high_school_levels %}
+              {% if forloop.counter0 %} - {% endif %}
+              <a class="toggle-vis" href='' data-column="{% trans 'Registrations' %}<br>{{ level.label }}">{{ level.label }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </form>
+      <br />
+
       <div class="table-responsive">
-        <div>
-          {% trans 'Toggle counts columns' %} :
-          {% for level in high_school_levels %}
-            {% if forloop.counter0 %} - {% endif %}
-            <a class="toggle-vis" href='' data-column="{% trans 'Students cnt' %}<br>{{ level.label }}">{{ level.label }}</a>
-          {% endfor %}
-        </div>
-        <div>
-          {% trans 'Toggle registrations columns' %} :
-          {% for level in high_school_levels %}
-            {% if forloop.counter0 %} - {% endif %}
-            <a class="toggle-vis" href='' data-column="{% trans 'Registrations' %}<br>{{ level.label }}">{{ level.label }}</a>
-          {% endfor %}
-        </div>
-        <br />
         <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead><tr></tr></thead>
         </table>
@@ -66,7 +75,12 @@
     function load_datatable() {
       let url = "/charts/get_global_trainings_charts"
 
-      response = $.ajax(url).done(function () {
+      response = $.ajax({
+          'url': url,
+          'data': {
+              'empty_trainings': $('#filter_empty_trainings').is(':checked')
+          }
+      }).done(function () {
         let header;
         data = JSON.parse(response.responseText);
 
@@ -127,7 +141,11 @@
       load_datatable();
     });
 
-    $('a.toggle-vis').on( 'click', function (e) {
+    $('#filter_empty_trainings').click(function () {
+      load_datatable();
+    });
+
+    $('a.toggle-vis').on('click', function (e) {
         e.preventDefault();
 
         // Get the column API object
@@ -135,7 +153,7 @@
 
         // Toggle the visibility
         column.visible( ! column.visible() );
-    } );
+    });
   });
 
 </script>

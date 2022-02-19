@@ -316,6 +316,7 @@ def get_highschool_trainings_charts(request):
     """
 
     highschool_id = request.GET.get("highschool_id")
+    show_empty_trainings = request.GET.get("empty_trainings", False) == "true"
 
     response = {'msg': '', 'data': []}
 
@@ -326,14 +327,24 @@ def get_highschool_trainings_charts(request):
         'student__high_school_student_record__isnull': False
     }
 
-    trainings = Training.objects.prefetch_related('training_subdomains__training_domain').filter(active=True)
+    trainings_filter = {
+        'active': True
+    }
+
+    # Do not include trainings with no registration/students
+    if not show_empty_trainings:
+        trainings_filter['courses__slots__immersions__isnull'] = False
+
+    trainings = Training.objects.prefetch_related('training_subdomains__training_domain').filter(**trainings_filter)
 
     # Default table ordering
     response['order'] = [
       [0, "asc"],
       [1, "asc"],
-      [2, "asc"],
     ]
+
+    # Filters
+    response['yadcf'] = []
 
     # override highschool id if request.user is a high school manager
     if request.user.is_high_school_manager() and request.user.highschool:
@@ -346,70 +357,107 @@ def get_highschool_trainings_charts(request):
     # Next columns definition
     # We need this because some high school levels can be deactivated
     response['columns'] = [
-        {"data": 'training_label'},
-        {"data": 'subdomain_label'},
-        {"data": 'domain_label'},
-        { "data": 'unique_students' },
+        {
+            "data": 'training_label',
+            "name": _("Training"),
+            "filter": "training_filter"
+        },
+        {
+            "data": 'domain_label',
+            "name": _("Domain/Subdomain"),
+            "filter": "domain_filter"
+        },
+        {
+            "data": 'unique_students',
+            "name": _("Students cnt"),
+        },
         *[{
             'data': f"unique_students_lvl{level.id}",
+            "name": f"{_('Students cnt')}<br>{level.label}",
             'visible': False
           } for level in HighSchoolLevel.objects.filter(active=True)
         ],
-        { "data": 'all_registrations' },
+        {
+            "data": 'all_registrations',
+            "name": _("Registrations"),
+        },
         *[{
             'data': f"registrations_lvl{level.id}",
+            "name": f"{_('Registrations')}<br>{level.label}",
             'visible': False
           } for level in HighSchoolLevel.objects.filter(active=True)
         ]
     ]
 
+    response['yadcf'] += [{
+        'column_selector': _("Domain/Subdomain") + ":name",
+        'text_data_delimiter': "<br>",
+        'filter_default_label': "",
+        'filter_match_mode': "contains",
+        'filter_container_id': "domain_filter",
+        'style_class': "form-control form-control-sm",
+        'filter_reset_button_text': False,
+    },
+        {
+            'column_selector': _("Training") + ":name",
+            'filter_default_label': "",
+            'filter_match_mode': "exact",
+            'filter_container_id': "training_filter",
+            'style_class': "form-control form-control-sm",
+            'filter_reset_button_text': False,
+        }
+    ]
+
     for training in trainings:
+        base_persons_qs = ImmersionUser.objects\
+            .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
+            .filter(
+                **students_filter,
+                immersions__slot__course__training=training,
+                immersions__cancellation_type__isnull=True
+            )
+
+        base_immersions_qs = Immersion.objects\
+            .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
+            .filter(
+                **immersions_filter,
+                slot__course__training=training,
+                cancellation_type__isnull=True
+            )
+
+        # Get domains and add subdomains as a list under each, will join them right below in "domain_label"
+        domain_labels = defaultdict(list)
         for subdomain in training.training_subdomains.all():
-            base_students_qs = ImmersionUser.objects\
-                .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
-                .filter(
-                    **students_filter,
-                    immersions__slot__course__training=training,
-                    immersions__cancellation_type__isnull=True
-                )
+            domain_labels[subdomain.training_domain.label].append(f"- {subdomain.label}")
 
-            base_immersions_qs = Immersion.objects\
-                .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
-                .filter(
-                    **immersions_filter,
-                    slot__course__training=training,
-                    cancellation_type__isnull=True
-                )
+        row = {
+            'training_label': training.label,
+            'domain_label': "<br>".join([x for dom, subs in sorted(domain_labels.items()) for x in [dom] + subs]),
+            # students registered to at least one immersion for this training
+            'unique_students': base_persons_qs.distinct().count(),
+            # registrations on all slots (not cancelled)
+            'all_registrations': base_immersions_qs.count(),
+        }
 
-            row = {
-                'training_label': training.label,
-                'subdomain_label': subdomain.label,
-                'domain_label': subdomain.training_domain.label,
-                # students registered to at least one immersion for this training
-                'unique_students': base_students_qs.distinct().count(),
-                # registrations on all slots (not cancelled)
-                'all_registrations': base_immersions_qs.count(),
-            }
+        for level in HighSchoolLevel.objects.filter(active=True):
+            if not level.is_post_bachelor:
+                row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
+                    high_school_student_record__level=level).distinct().count()
 
-            for level in HighSchoolLevel.objects.filter(active=True):
-                if not level.is_post_bachelor:
-                    row[f"unique_students_lvl{level.id}"] = base_students_qs.filter(
-                        high_school_student_record__level=level).distinct().count()
+                row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                    student__high_school_student_record__level=level).count()
+            else:
+                row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
+                    Q(high_school_student_record__level=level) |
+                    Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                    .distinct().count()
 
-                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
-                        student__high_school_student_record__level=level).count()
-                else:
-                    row[f"unique_students_lvl{level.id}"] = base_students_qs.filter(
-                        Q(high_school_student_record__level=level) |
-                        Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
-                        .distinct().count()
+                row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                    Q(student__high_school_student_record__level=level) |
+                    Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+                    .count()
 
-                    row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
-                        Q(student__high_school_student_record__level=level) |
-                        Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
-                        .count()
-
-            response['data'].append(row.copy())
+        response['data'].append(row.copy())
 
     return JsonResponse(response, safe=False)
 
@@ -517,6 +565,7 @@ def get_global_trainings_charts(request):
     Statistics by training for establishments and highschools
     """
     user = request.user
+    show_empty_trainings = request.GET.get("empty_trainings", False) == "true"
     response = {'msg': '', 'data': []}
 
     students_filter = {
@@ -529,6 +578,10 @@ def get_global_trainings_charts(request):
     trainings_filter = {
         'active': True,
     }
+
+    # Do not include trainings with no registration/students
+    if not show_empty_trainings:
+        trainings_filter['courses__slots__immersions__isnull'] = False
 
     # Default table ordering
     response['order'] = [
@@ -545,15 +598,6 @@ def get_global_trainings_charts(request):
 
     response['columns'] = []
     response['yadcf'] = []
-    """
-    response['columnDefs'] = [
-      {
-        "defaultContent": "",
-        "targets": "_all",
-        "className": "all",
-      },
-    ]
-    """
 
     if user.is_master_establishment_manager() or user.is_operator():
         response['columns'].append({
