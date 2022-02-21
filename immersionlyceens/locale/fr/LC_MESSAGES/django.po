@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-21 21:06+0100\n"
+"POT-Creation-Date: 2022-02-21 21:15+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -125,10 +125,20 @@ msgstr "Structure(s)"
 msgid "Persons cnt"
 msgstr "Nb personnes"
 
+#: immersionlyceens/apps/charts/api.py:666
+#, python-format
+msgid "Pupils cnt<br>%s"
+msgstr "Nb élèves<br>%s"
+
 #: immersionlyceens/apps/charts/api.py:679
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:80
 msgid "Visitors cnt"
 msgstr "Nb visiteurs"
+
+#: immersionlyceens/apps/charts/api.py:690
+#, python-format
+msgid "Registrations<br>%s"
+msgstr "Inscriptions<br>%s"
 
 #: immersionlyceens/apps/charts/api.py:697
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:85
@@ -6573,9 +6583,6 @@ msgstr "Pas de visite disponible"
 #: immersionlyceens/views.py:530
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
-
-#~ msgid "Pupils cnt"
-#~ msgstr "Nb élèves"
 
 #~ msgid "I am"
 #~ msgstr "Je suis"

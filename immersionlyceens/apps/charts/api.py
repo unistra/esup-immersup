@@ -663,7 +663,7 @@ def get_global_trainings_charts(request):
         *[{
             "data": f"unique_students_lvl{level.id}",
             "name": f"pupils_cnt_{level.label}",
-            "title": f"{_('Pupils cnt')}<br>{level.label}",
+            "title": _("Pupils cnt<br>%s") % level.label,
             "visible": False,
           } for level in pre_bachelor_levels
         ],
@@ -687,7 +687,7 @@ def get_global_trainings_charts(request):
         *[{
             'data': f"registrations_lvl{level.id}",
             "name": f"registrations_{level.label}",
-            "title": f"{_('Registrations')}<br>{level.label}",
+            "title": _("Registrations<br>%s") % level.label,
             'visible': False,
           } for level in pre_bachelor_levels
         ],
