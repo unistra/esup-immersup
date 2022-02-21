@@ -27,7 +27,10 @@ urlpatterns = [
     path("login", views.CustomLoginView.as_view(), name="login"),
     path("login/<profile>", views.CustomLoginView.as_view(), name="login"),
 
-    path('recovery', views.recovery, name='recovery'),
+    # path('recovery', views.recovery, name='recovery'),
+
+    path('recovery', views.RecoveryView.as_view(), name='recovery'),
+
 
     path('register', views.register, name='register'),
 

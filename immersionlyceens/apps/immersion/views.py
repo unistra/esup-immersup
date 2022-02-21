@@ -352,6 +352,7 @@ def register(request):
     return render(request, 'immersion/registration.html', context)
 
 
+# todo: refactor swith class
 def recovery(request):
     email = ""
 
@@ -387,6 +388,45 @@ def recovery(request):
     }
 
     return render(request, 'immersion/recovery.html', context)
+
+
+class RecoveryView(TemplateView):
+    template_name: str = "immersion/recovery.html"
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs).update({
+            "email": self.request.POST.get('email', '').strip().lower()
+        })
+
+    def post(self, request, *args, **kwargs):
+        context: Dict[str, Any] = self.get_context_data(**kwargs)
+        email = context.get('email', '')
+
+        try:
+            user = ImmersionUser.objects.get(email__iexact=email)
+
+            profiles_than_can_auth = (
+                user.is_high_school_manager(),
+                user.is_establishment_manager(),
+                user.is_structure_manager(),
+                user.is_speaker(),
+                user.is_legal_department_staff(),
+                user.is_visitor(),
+            )
+
+            if not any(profiles_than_can_auth):
+                messages.warning(request, _("Please use your establishment credentials."))
+            else:
+                user.set_recovery_string()
+                msg = user.send_message(request, 'CPT_MIN_ID_OUBLIE')
+                messages.success(request, _("An email has been sent with the procedure to set a new password."))
+
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("No account found with this email address"))
+        except ImmersionUser.MultipleObjectsReturned:
+            messages.error(request, _("Error : please contact the establishment referent"))
+
+        return self.render_to_response(context)
 
 
 def reset_password(request, hash=None):
