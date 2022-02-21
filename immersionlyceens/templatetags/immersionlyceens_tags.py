@@ -14,7 +14,7 @@ from immersionlyceens.libs.utils import (
     get_general_setting, get_information_text,
 )
 
-from ..apps.core.models import GeneralSettings, ImmersionUser
+from ..apps.core.models import GeneralSettings, HighSchool, ImmersionUser
 
 register = template.Library()
 
@@ -168,3 +168,10 @@ def is_local_superuser(context):
 @register.filter()
 def sub(value, arg):
     return value - arg
+
+@register.filter()
+def get_etab_label(obj):
+    try:
+        return f'{obj.label} - {obj.city}' if isinstance(obj, HighSchool) else obj.label
+    except Exception as e:
+        return ""

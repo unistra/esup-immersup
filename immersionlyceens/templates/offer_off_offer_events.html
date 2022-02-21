@@ -54,7 +54,7 @@
           <h5 class="mb-0 more-less-title">
             <button class="btn btn-link" data-toggle="collapse" data-target="#event{{ forloop.counter }}" aria-expanded="false" aria-controls="establishment{{ forloop.counter }}">
             <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Establishment' %}/{% trans 'Highschool' %}"></i>
-            <span class="badge badge-pill immersup-badge" style="background-color: {{e.grouper.badge_html_color }};margin: 2px;">{{ e.grouper.label }} -  {% if e.grouper.city %}{{ e.grouper.city }}{% endif %}</span>
+            <span class="badge badge-pill immersup-badge" style="background-color: {{e.grouper.badge_html_color }};margin: 2px;">{{ e.grouper|get_etab_label }}</span>
             </button>
           </h5>
         </div>

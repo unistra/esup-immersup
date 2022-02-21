@@ -66,7 +66,7 @@
             <div class="card-header card-cours" id="training{{training.pk}}">
               <h5 class="mb-0 more-less-title">
                 {% for e in training.grouper.distinct_establishments %}
-                  <span class="badge badge-pill immersup-badge" style="background-color: {{e.badge_html_color }};margin: 2px;">{{ e.label }} - {{ e.city }}</span>
+                  <span class="badge badge-pill immersup-badge" style="background-color: {{e.badge_html_color }};margin: 2px;">{{ e.label }}</span>
                 {% endfor %}
                 {% if training.grouper.highschool %}
                   <span class="badge badge-pill immersup-badge" style="background-color: {{training.grouper.highschool.badge_html_color }};margin: 2px;">{{ training.grouper.highschool.label }} - {{ training.grouper.highschool.city }}</span>
