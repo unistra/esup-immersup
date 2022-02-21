@@ -143,8 +143,9 @@ def global_trainings_charts(request):
     Registration statistics by trainings for establishments and highschools
     """
 
+    # Do not include post_bachelor pupils levels as they will be added to Students count
     context = {
-        'high_school_levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
+        'high_school_levels': HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False).order_by('order'),
     }
     return render(request, 'charts/global_trainings_charts.html', context=context)
 

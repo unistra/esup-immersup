@@ -34,18 +34,22 @@
             <input type="checkbox" id="filter_empty_trainings">
           </div>
           <div class="form-group mx-sm-3 mb-2">
-            <label class="form-check-label ml-md-2"> {% trans 'Toggle counts columns' %} : </label>
+            <label class="form-check-label ml-md-2">{% trans 'Toggle counts columns' %} : </label>
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
-              <a class="toggle-vis" href='' data-column="{% trans 'Students cnt' %}<br>{{ level.label }}">{{ level.label }}</a>
+              <a class="toggle-vis" href='' data-column="{% trans 'Pupils cnt' %}<br>{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
+            - <a class="toggle-vis" href='' data-column="{% trans 'Students cnt' %}">{% trans 'Students (and post-bachelor levels)' %}</a>
+            - <a class="toggle-vis" href='' data-column="{% trans 'Visitors cnt' %}">{% trans 'Visitors' %}</a>
           </div>
           <div class="form-group mx-sm-3 mb-2">
-            <label class="form-check-label ml-md-2"> {% trans 'Toggle registrations columns' %} : </label>
+            <label class="form-check-label ml-md-2">{% trans 'Toggle registrations columns' %} : </label>
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="{% trans 'Registrations' %}<br>{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
+            - <a class="toggle-vis" href='' data-column="{% trans 'Students<br>registrations' %}">{% trans 'Students registrations (and post-bachelor levels)' %}</a>
+              - <a class="toggle-vis" href='' data-column="{% trans 'Visitors<br>registrations' %}">{% trans 'Visitors registrations' %}</a>
           </div>
         </div>
       </form>

@@ -636,6 +636,8 @@ def get_global_trainings_charts(request):
             'filter_reset_button_text': False,
         })
 
+    pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+    post_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=True)
 
     # Next columns definition
     # We need this because some high school levels can be deactivated
@@ -655,9 +657,9 @@ def get_global_trainings_charts(request):
         },
         *[{
             "data": f"unique_students_lvl{level.id}",
-            "name": f"{_('Students cnt')}<br>{level.label}",
+            "name": f"{_('Pupils cnt')}<br>{level.label}",
             "visible": False
-          } for level in HighSchoolLevel.objects.filter(active=True)
+          } for level in pre_bachelor_levels
         ],
         {
             "data": "unique_students",
@@ -677,7 +679,7 @@ def get_global_trainings_charts(request):
             'data': f"registrations_lvl{level.id}",
             "name": f"{_('Registrations')}<br>{level.label}",
             'visible': False
-          } for level in HighSchoolLevel.objects.filter(active=True)
+          } for level in pre_bachelor_levels
         ],
         {
             "data": "students_registrations",
@@ -714,7 +716,7 @@ def get_global_trainings_charts(request):
         'training_subdomains__training_domain',
         'structures',
         'highschool',
-    ).filter(**trainings_filter)
+    ).filter(**trainings_filter).distinct()
 
     for training in trainings:
         structure = ""
@@ -754,34 +756,31 @@ def get_global_trainings_charts(request):
             # persons (pupils, students, visitors) registered to at least one immersion for this training
             'unique_persons': base_persons_qs.distinct().count(),
             # students registered to at least one immersion for this training
-            'unique_students': base_persons_qs.filter(student_record__isnull=False).distinct().count(),
-            # visitors registered to at least one immersion for this training
             'unique_visitors': base_persons_qs.filter(visitor_record__isnull=False).distinct().count(),
             # registrations on all slots (not cancelled)
             'all_registrations': base_immersions_qs.count(),
-            # students registrations count
-            'students_registrations': base_immersions_qs.filter(student__student_record__isnull=False).count(),
             # visitors registrations count
             'visitors_registrations': base_immersions_qs.filter(student__visitor_record__isnull=False).count(),
         }
 
-        for level in HighSchoolLevel.objects.filter(active=True):
-            if not level.is_post_bachelor:
-                row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
-                    high_school_student_record__level=level).distinct().count()
+        # Pre-bachelor levels :
+        for level in pre_bachelor_levels:
+            row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
+                high_school_student_record__level=level).distinct().count()
 
-                row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
-                    student__high_school_student_record__level=level).count()
-            else:
-                row[f"unique_students_lvl{level.id}"] = base_persons_qs.filter(
-                    Q(high_school_student_record__level=level) |
-                    Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
-                    .distinct().count()
+            row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
+                student__high_school_student_record__level=level).count()
 
-                row[f"registrations_lvl{level.id}"] = base_immersions_qs.filter(
-                    Q(student__high_school_student_record__level=level) |
-                    Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
-                    .count()
+        # Post bachelor levels : include pupils + students
+        row["unique_students"] = base_persons_qs.filter(
+            Q(high_school_student_record__level__in=post_bachelor_levels) |
+            Q(student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+            .distinct().count()
+
+        row[f"students_registrations"] = base_immersions_qs.filter(
+            Q(student__high_school_student_record__level__in=post_bachelor_levels) |
+            Q(student__student_record__level__in=[s.id for s in StudentLevel.objects.filter(active=True)]))\
+            .count()
 
         response['data'].append(row.copy())
 
