@@ -25,6 +25,7 @@ from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
     Calendar, CancelType, CertificateLogo, CertificateSignature,
@@ -351,43 +352,43 @@ def register(request):
 
     return render(request, 'immersion/registration.html', context)
 
-
-# todo: refactor swith class
-def recovery(request):
-    email = ""
-
-    if request.method == "POST":
-        email = request.POST.get('email', '').strip().lower()
-
-        try:
-            user = ImmersionUser.objects.get(email__iexact=email)
-
-            profiles_than_can_auth = (
-                user.is_high_school_manager(),
-                user.is_establishment_manager(),
-                user.is_structure_manager(),
-                user.is_speaker(),
-                user.is_legal_department_staff(),
-                user.is_visitor(),
-            )
-
-            if not any(profiles_than_can_auth):
-                messages.warning(request, _("Please use your establishment credentials."))
-            else:
-                user.set_recovery_string()
-                msg = user.send_message(request, 'CPT_MIN_ID_OUBLIE')
-                messages.success(request, _("An email has been sent with the procedure to set a new password."))
-
-        except ImmersionUser.DoesNotExist:
-            messages.error(request, _("No account found with this email address"))
-        except ImmersionUser.MultipleObjectsReturned:
-            messages.error(request, _("Error : please contact the establishment referent"))
-
-    context = {
-        'email': email,
-    }
-
-    return render(request, 'immersion/recovery.html', context)
+#
+# # todo: refactor swith class
+# def recovery(request):
+#     email = ""
+#
+#     if request.method == "POST":
+#         email = request.POST.get('email', '').strip().lower()
+#
+#         try:
+#             user = ImmersionUser.objects.get(email__iexact=email)
+#
+#             profiles_than_can_auth = (
+#                 user.is_high_school_manager(),
+#                 user.is_establishment_manager(),
+#                 user.is_structure_manager(),
+#                 user.is_speaker(),
+#                 user.is_legal_department_staff(),
+#                 user.is_visitor(),
+#             )
+#
+#             if not any(profiles_than_can_auth):
+#                 messages.warning(request, _("Please use your establishment credentials."))
+#             else:
+#                 user.set_recovery_string()
+#                 msg = user.send_message(request, 'CPT_MIN_ID_OUBLIE')
+#                 messages.success(request, _("An email has been sent with the procedure to set a new password."))
+#
+#         except ImmersionUser.DoesNotExist:
+#             messages.error(request, _("No account found with this email address"))
+#         except ImmersionUser.MultipleObjectsReturned:
+#             messages.error(request, _("Error : please contact the establishment referent"))
+#
+#     context = {
+#         'email': email,
+#     }
+#
+#     return render(request, 'immersion/recovery.html', context)
 
 
 class RecoveryView(TemplateView):
@@ -513,6 +514,7 @@ def change_password(request):
     return render(request, 'immersion/change_password.html', context)
 
 
+# todo: refactor into class
 def activate(request, hash=None):
     if hash:
         try:
@@ -530,6 +532,29 @@ def activate(request, hash=None):
             messages.error(request, _("Something went wrong"))
 
     return HttpResponseRedirect("/immersion/login")
+
+
+class ActivateView(View):
+    redirect_url: str = "/immersion/login"
+
+    def get(self, request, *args, **kwargs):
+        hash = kwargs.get("hash", None)
+        if hash:
+            try:
+                user = ImmersionUser.objects.get(validation_string=hash)
+                user.validate_account()
+                messages.success(request, _("Your account is now enabled. Thanks !"))
+
+                if user.is_student():
+                    return HttpResponseRedirect("/shib")
+
+            except ImmersionUser.DoesNotExist:
+                messages.error(request, _("Invalid activation data"))
+            except Exception as e:
+                logger.exception("Activation error : %s", e)
+                messages.error(request, _("Something went wrong"))
+
+        return HttpResponseRedirect(self.redirect_url)
 
 
 # todo: refactor into a class

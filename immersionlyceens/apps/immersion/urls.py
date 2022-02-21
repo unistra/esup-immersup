@@ -10,7 +10,8 @@ app_name = 'immersion'
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('activate/<hash>', views.activate, name='activate'),
+    # path('activate/<hash>', views.activate, name='activate'),
+    path('activate/<hash>', views.ActivateView.as_view(), name='activate'),
     path('dl/attestation/<int:immersion_id>', views.immersion_attestation_download, name='attestation_download'),
     path('change_password', views.change_password, name='change_password'),
     path('hs_record', views.high_school_student_record, name='hs_record'),
