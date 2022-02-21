@@ -514,24 +514,23 @@ def change_password(request):
     return render(request, 'immersion/change_password.html', context)
 
 
-# todo: refactor into class
-def activate(request, hash=None):
-    if hash:
-        try:
-            user = ImmersionUser.objects.get(validation_string=hash)
-            user.validate_account()
-            messages.success(request, _("Your account is now enabled. Thanks !"))
-
-            if user.is_student():
-                return HttpResponseRedirect("/shib")
-
-        except ImmersionUser.DoesNotExist:
-            messages.error(request, _("Invalid activation data"))
-        except Exception as e:
-            logger.exception("Activation error : %s", e)
-            messages.error(request, _("Something went wrong"))
-
-    return HttpResponseRedirect("/immersion/login")
+# def activate(request, hash=None):
+#     if hash:
+#         try:
+#             user = ImmersionUser.objects.get(validation_string=hash)
+#             user.validate_account()
+#             messages.success(request, _("Your account is now enabled. Thanks !"))
+#
+#             if user.is_student():
+#                 return HttpResponseRedirect("/shib")
+#
+#         except ImmersionUser.DoesNotExist:
+#             messages.error(request, _("Invalid activation data"))
+#         except Exception as e:
+#             logger.exception("Activation error : %s", e)
+#             messages.error(request, _("Something went wrong"))
+#
+#     return HttpResponseRedirect("/immersion/login")
 
 
 class ActivateView(View):
@@ -557,11 +556,40 @@ class ActivateView(View):
         return HttpResponseRedirect(self.redirect_url)
 
 
-# todo: refactor into a class
-def resend_activation(request):
-    email = ""
+# # todo: refactor into a class
+# def resend_activation(request):
+#     email = ""
+#
+#     if request.method == "POST":
+#         email = request.POST.get('email', '').strip().lower()
+#         redirect_url: str = "/shib"
+#
+#         try:
+#             user = ImmersionUser.objects.get(email__iexact=email)
+#         except ImmersionUser.DoesNotExist:
+#             messages.error(request, _("No account found with this email address"))
+#         else:
+#             if user.is_valid():
+#                 messages.error(request, _("This account has already been activated, please login."))
+#                 return HttpResponseRedirect(redirect_url)
+#             else:
+#                 msg = user.send_message(request, 'CPT_MIN_CREATE')
+#                 messages.success(request, _("The activation message have been resent."))
+#
+#     return render(request, 'immersion/resend_activation.html', {'email': email})
 
-    if request.method == "POST":
+
+class ResendActivationView(TemplateView):
+    template_name: str = "immersion/resend_activation.html"
+
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "context": self.request.POST.get('email', '').strip().lower()
+        })
+        return context
+
+    def post(self, request, *args, **kwargs):
         email = request.POST.get('email', '').strip().lower()
         redirect_url: str = "/shib"
 
@@ -577,13 +605,19 @@ def resend_activation(request):
                 msg = user.send_message(request, 'CPT_MIN_CREATE')
                 messages.success(request, _("The activation message have been resent."))
 
-    return render(request, 'immersion/resend_activation.html', {'email': email})
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+# @login_required
+# def home(request):
+#     context = {}
+#     return render(request, 'immersion/home.html', context)
 
 
-@login_required
-def home(request):
-    context = {}
-    return render(request, 'immersion/home.html', context)
+@method_decorator(login_required, name="dispatch")
+class HomeView(TemplateView):
+    template_name: str = "immersion/home.html"
+
 
 
 @login_required
