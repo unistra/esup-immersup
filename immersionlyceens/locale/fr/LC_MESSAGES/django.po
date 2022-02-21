@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-21 13:35+0100\n"
+"POT-Creation-Date: 2022-02-21 15:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -250,16 +250,16 @@ msgstr "Statistiques"
 #: immersionlyceens/templates/core/visitor_validation.html:290
 #: immersionlyceens/templates/core/visitor_validation.html:332
 #: immersionlyceens/templates/core/visits_list.html:244
-#: immersionlyceens/templates/immersion/my_registrations.html:181
-#: immersionlyceens/templates/immersion/my_registrations.html:272
-#: immersionlyceens/templates/immersion/my_registrations.html:355
-#: immersionlyceens/templates/immersion/my_registrations.html:439
-#: immersionlyceens/templates/immersion/my_registrations.html:520
-#: immersionlyceens/templates/immersion/my_registrations.html:601
-#: immersionlyceens/templates/immersion/my_registrations.html:682
-#: immersionlyceens/templates/immersion/my_registrations.html:753
-#: immersionlyceens/templates/immersion/my_registrations.html:828
-#: immersionlyceens/templates/modals/modal_alerts.html:138
+#: immersionlyceens/templates/immersion/my_registrations.html:183
+#: immersionlyceens/templates/immersion/my_registrations.html:274
+#: immersionlyceens/templates/immersion/my_registrations.html:357
+#: immersionlyceens/templates/immersion/my_registrations.html:441
+#: immersionlyceens/templates/immersion/my_registrations.html:522
+#: immersionlyceens/templates/immersion/my_registrations.html:603
+#: immersionlyceens/templates/immersion/my_registrations.html:684
+#: immersionlyceens/templates/immersion/my_registrations.html:755
+#: immersionlyceens/templates/immersion/my_registrations.html:830
+#: immersionlyceens/templates/modals/modal_alerts.html:147
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:64
 #: immersionlyceens/templates/modals/modal_student_details.html:71
 #: immersionlyceens/templates/procedure.html:135
@@ -312,8 +312,8 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/templates/core/visitor_validation.html:221
 #: immersionlyceens/templates/core/visits_list.html:220
 #: immersionlyceens/templates/core/visits_list.html:273
-#: immersionlyceens/templates/modals/modal_alerts.html:69
-#: immersionlyceens/templates/modals/modal_alerts.html:206
+#: immersionlyceens/templates/modals/modal_alerts.html:70
+#: immersionlyceens/templates/modals/modal_alerts.html:215
 #: immersionlyceens/templates/modals/modal_register_students_list.html:152
 msgid "Yes"
 msgstr "Oui"
@@ -359,8 +359,8 @@ msgstr "Oui"
 #: immersionlyceens/templates/core/visitor_validation.html:229
 #: immersionlyceens/templates/core/visits_list.html:228
 #: immersionlyceens/templates/core/visits_list.html:275
-#: immersionlyceens/templates/modals/modal_alerts.html:77
-#: immersionlyceens/templates/modals/modal_alerts.html:208
+#: immersionlyceens/templates/modals/modal_alerts.html:78
+#: immersionlyceens/templates/modals/modal_alerts.html:217
 #: immersionlyceens/templates/modals/modal_register_students_list.html:169
 msgid "No"
 msgstr "Non"
@@ -1384,7 +1384,7 @@ msgstr "Couleur de badge (HTML)"
 #: immersionlyceens/templates/core/my_high_school.html:173
 #: immersionlyceens/templates/core/my_high_school_speakers.html:42
 #: immersionlyceens/templates/core/speaker.html:50
-#: immersionlyceens/templates/immersion/confirm_creation.html:35
+#: immersionlyceens/templates/immersion/confirm_creation.html:36
 #: immersionlyceens/templates/immersion/hs_record.html:59
 #: immersionlyceens/templates/immersion/registration.html:60
 #: immersionlyceens/templates/immersion/student_record.html:51
@@ -3043,66 +3043,66 @@ msgstr "Utilisateur introuvable"
 msgid "Sorry, you can't register right now."
 msgstr "Désolé, vous ne pouvez pas vous inscrire maintenant."
 
-#: immersionlyceens/apps/immersion/views.py:418
+#: immersionlyceens/apps/immersion/views.py:417
 msgid "Please use your establishment credentials."
 msgstr "Merci de vous connecter avec vos identifiants Établissement"
 
-#: immersionlyceens/apps/immersion/views.py:422
+#: immersionlyceens/apps/immersion/views.py:421
 msgid "An email has been sent with the procedure to set a new password."
 msgstr "Un courriel contenant la procédure a été envoyé à cette adresse."
 
-#: immersionlyceens/apps/immersion/views.py:425
-#: immersionlyceens/apps/immersion/views.py:599
+#: immersionlyceens/apps/immersion/views.py:424
+#: immersionlyceens/apps/immersion/views.py:598
 msgid "No account found with this email address"
 msgstr "Aucun compte n'a été trouvé avec cette adresse"
 
-#: immersionlyceens/apps/immersion/views.py:427
-#: immersionlyceens/apps/immersion/views.py:466
+#: immersionlyceens/apps/immersion/views.py:426
+#: immersionlyceens/apps/immersion/views.py:465
 msgid "Error : please contact the establishment referent"
 msgstr "Erreur : merci de contacter le référent établissement"
 
-#: immersionlyceens/apps/immersion/views.py:441
-#: immersionlyceens/apps/immersion/views.py:463
+#: immersionlyceens/apps/immersion/views.py:440
+#: immersionlyceens/apps/immersion/views.py:462
 msgid "Password recovery : invalid data"
 msgstr "Réinitialisation du mot de passe : clé invalide"
 
-#: immersionlyceens/apps/immersion/views.py:452
+#: immersionlyceens/apps/immersion/views.py:451
 msgid "Password successfully updated."
 msgstr "Mot de passe mis à jour."
 
-#: immersionlyceens/apps/immersion/views.py:499
+#: immersionlyceens/apps/immersion/views.py:498
 msgid "Password successfully updated"
 msgstr "Mot de passe mis à jour avec succès."
 
-#: immersionlyceens/apps/immersion/views.py:545
+#: immersionlyceens/apps/immersion/views.py:544
 msgid "Your account is now enabled. Thanks !"
 msgstr "Votre compte est désormais activé. Merci !"
 
-#: immersionlyceens/apps/immersion/views.py:551
+#: immersionlyceens/apps/immersion/views.py:550
 msgid "Invalid activation data"
 msgstr "Données d'activation invalides"
 
-#: immersionlyceens/apps/immersion/views.py:554
+#: immersionlyceens/apps/immersion/views.py:553
 msgid "Something went wrong"
 msgstr "Erreur"
 
-#: immersionlyceens/apps/immersion/views.py:602
+#: immersionlyceens/apps/immersion/views.py:601
 msgid "This account has already been activated, please login."
 msgstr "Ce compte a déjà été activé, veuillez vous connecter."
 
-#: immersionlyceens/apps/immersion/views.py:606
+#: immersionlyceens/apps/immersion/views.py:605
 msgid "The activation message have been resent."
 msgstr "Le courriel d'activation a été renvoyé"
 
-#: immersionlyceens/apps/immersion/views.py:644
-#: immersionlyceens/apps/immersion/views.py:672
-#: immersionlyceens/apps/immersion/views.py:821
-#: immersionlyceens/apps/immersion/views.py:865
+#: immersionlyceens/apps/immersion/views.py:637
+#: immersionlyceens/apps/immersion/views.py:665
+#: immersionlyceens/apps/immersion/views.py:814
+#: immersionlyceens/apps/immersion/views.py:858
 msgid "Invalid student id"
 msgstr "#id invalide"
 
-#: immersionlyceens/apps/immersion/views.py:695
-#: immersionlyceens/apps/immersion/views.py:1137
+#: immersionlyceens/apps/immersion/views.py:688
+#: immersionlyceens/apps/immersion/views.py:1130
 msgid ""
 "You have updated the email.<br>Warning : the new email is also the new login."
 "<br>A new activation email has been sent."
@@ -3111,46 +3111,46 @@ msgstr ""
 "aussi le nouvel identifiant. <br>Une nouvelle procédure d'activation a a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:714
+#: immersionlyceens/apps/immersion/views.py:707
 msgid "You have changed the high school, your record needs a new validation"
 msgstr "Vous avez modifié le lycée, votre fiche doit être à nouveau validée"
 
-#: immersionlyceens/apps/immersion/views.py:721
+#: immersionlyceens/apps/immersion/views.py:714
 msgid ""
 "A record already exists with this identity, please contact the establishment "
 "referent."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de contacter le référent établissement."
 
-#: immersionlyceens/apps/immersion/views.py:725
+#: immersionlyceens/apps/immersion/views.py:718
 msgid "A record already exists with this identity, look at duplicate records."
 msgstr ""
 "Une fiche existe déjà à ce nom, merci de consulter la liste des doublons."
 
-#: immersionlyceens/apps/immersion/views.py:731
+#: immersionlyceens/apps/immersion/views.py:724
 msgid ""
 "Thank you. Your record is awaiting validation from your high-school referent."
 msgstr ""
 "Merci. Votre fiche est en attente de validation par le référent du lycée."
 
-#: immersionlyceens/apps/immersion/views.py:734
-#: immersionlyceens/apps/immersion/views.py:894
+#: immersionlyceens/apps/immersion/views.py:727
+#: immersionlyceens/apps/immersion/views.py:887
 msgid "Record successfully saved."
 msgstr "Fiche enregistrée avec succès"
 
-#: immersionlyceens/apps/immersion/views.py:746
-#: immersionlyceens/apps/immersion/views.py:1071
+#: immersionlyceens/apps/immersion/views.py:739
+#: immersionlyceens/apps/immersion/views.py:1064
 #, python-format
 msgid "Current record status : %s"
 msgstr "Statut de votre fiche : %s"
 
-#: immersionlyceens/apps/immersion/views.py:880
+#: immersionlyceens/apps/immersion/views.py:873
 msgid "You have updated the email.<br>A new activation email has been sent."
 msgstr ""
 "Vous avez modifié le courriel.<br>Une nouvelle procédure d'activation a été "
 "envoyée."
 
-#: immersionlyceens/apps/immersion/views.py:1077
+#: immersionlyceens/apps/immersion/views.py:1070
 msgid "Invalid visitor record id"
 msgstr "Id de visiteur invalide"
 
@@ -4005,7 +4005,6 @@ msgid "Toggle registrations columns"
 msgstr "Afficher/masquer les colonnes 'Inscriptions'"
 
 #: immersionlyceens/templates/charts/global_trainings_charts.html:51
-#: immersionlyceens/templates/charts/structure_trainings_charts.html:66
 msgid "Students registrations (and post-bachelor levels)"
 msgstr "Inscriptions étudiants (et niveaux post-bac)"
 
@@ -4116,6 +4115,10 @@ msgstr "Etudiants uniques"
 msgid "Unique visitors"
 msgstr "Visiteurs uniques"
 
+#: immersionlyceens/templates/charts/structure_trainings_charts.html:66
+msgid "Students registrations"
+msgstr "Inscriptions étudiants<"
+
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:86
 msgid "Visitor<br>registrations"
 msgstr "Visiteurs<br>inscriptions"
@@ -4143,9 +4146,9 @@ msgstr "Accepter et signer la charte"
 #: immersionlyceens/templates/core/training/training.html:103
 #: immersionlyceens/templates/core/training/training.html:108
 #: immersionlyceens/templates/core/visit.html:115
-#: immersionlyceens/templates/immersion/my_registrations.html:245
-#: immersionlyceens/templates/immersion/my_registrations.html:492
-#: immersionlyceens/templates/immersion/my_registrations.html:725
+#: immersionlyceens/templates/immersion/my_registrations.html:247
+#: immersionlyceens/templates/immersion/my_registrations.html:494
+#: immersionlyceens/templates/immersion/my_registrations.html:727
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -4735,7 +4738,7 @@ msgstr "Lycéen"
 #: immersionlyceens/templates/core/visitor_validation.html:63
 #: immersionlyceens/templates/core/visitor_validation.html:92
 #: immersionlyceens/templates/core/visitor_validation.html:121
-#: immersionlyceens/templates/immersion/confirm_creation.html:29
+#: immersionlyceens/templates/immersion/confirm_creation.html:30
 #: immersionlyceens/templates/immersion/registration.html:51
 #: immersionlyceens/templates/modals/modal_register_students_list.html:29
 msgid "First name"
@@ -4751,7 +4754,7 @@ msgstr "Prénom"
 #: immersionlyceens/templates/core/visitor_validation.html:64
 #: immersionlyceens/templates/core/visitor_validation.html:93
 #: immersionlyceens/templates/core/visitor_validation.html:122
-#: immersionlyceens/templates/immersion/confirm_creation.html:23
+#: immersionlyceens/templates/immersion/confirm_creation.html:24
 #: immersionlyceens/templates/immersion/registration.html:42
 #: immersionlyceens/templates/modals/modal_register_students_list.html:28
 msgid "Last name"
@@ -4806,7 +4809,7 @@ msgstr "Emargements"
 #: immersionlyceens/templates/core/my_events.html:16
 #: immersionlyceens/templates/core/my_events.html:24
 #: immersionlyceens/templates/fragments/main_menu.html:116
-#: immersionlyceens/templates/immersion/my_registrations.html:67
+#: immersionlyceens/templates/immersion/my_registrations.html:69
 msgid "My events"
 msgstr "Mes évènements"
 
@@ -4878,7 +4881,7 @@ msgstr "Modifier"
 #: immersionlyceens/templates/core/my_visits.html:16
 #: immersionlyceens/templates/core/my_visits.html:24
 #: immersionlyceens/templates/fragments/main_menu.html:113
-#: immersionlyceens/templates/immersion/my_registrations.html:72
+#: immersionlyceens/templates/immersion/my_registrations.html:74
 msgid "My visits"
 msgstr "Mes visites"
 
@@ -5121,7 +5124,7 @@ msgid "Speaker data"
 msgstr "Données de l'intervenant"
 
 #: immersionlyceens/templates/core/speaker.html:76
-#: immersionlyceens/templates/immersion/confirm_creation.html:48
+#: immersionlyceens/templates/immersion/confirm_creation.html:49
 #: immersionlyceens/templates/immersion/hs_record.html:246
 #: immersionlyceens/templates/immersion/login.html:37
 #: immersionlyceens/templates/immersion/nologin.html:35
@@ -5136,7 +5139,7 @@ msgstr "Retour"
 
 #: immersionlyceens/templates/core/speaker.html:77
 #: immersionlyceens/templates/immersion/change_password.html:41
-#: immersionlyceens/templates/immersion/confirm_creation.html:47
+#: immersionlyceens/templates/immersion/confirm_creation.html:48
 #: immersionlyceens/templates/immersion/hs_record.html:245
 #: immersionlyceens/templates/immersion/registration.html:106
 #: immersionlyceens/templates/immersion/reset_password.html:36
@@ -5699,7 +5702,7 @@ msgstr "Mot de passe (confirmation)"
 msgid "Immersion Lycéens - Account creation confirmation"
 msgstr "Immersion Lycéens - Confirmation de création de compte"
 
-#: immersionlyceens/templates/immersion/confirm_creation.html:19
+#: immersionlyceens/templates/immersion/confirm_creation.html:20
 msgid "Are you sure you want to create your account ?"
 msgstr "Êtes-vous sûr(e) de vouloir créer votre compte ?"
 
@@ -5907,54 +5910,58 @@ msgid "I have not received the activation email"
 msgstr "Je n'ai pas reçu le courriel d'activation"
 
 #: immersionlyceens/templates/immersion/my_registrations.html:25
-#: immersionlyceens/templates/immersion/my_registrations.html:63
+#: immersionlyceens/templates/immersion/my_registrations.html:65
 msgid "My immersions"
 msgstr "Mes immersions"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:46
+#: immersionlyceens/templates/immersion/my_registrations.html:47
 #, python-format
+#| msgid ""
+#| "You have %(alerts_cnt)s alert(s) (%(sent_alerts_cnt)s already sent), "
+#| "click to view"
 msgid ""
-"You have %(alerts_cnt)s alert(s) (%(sent_alerts_cnt)s already sent), click "
-"to view"
+"You have <span id=\"alert_counter\">%(alerts_cnt)s</span> alert(s) "
+"(%(sent_alerts_cnt)s already sent), click to view"
 msgstr ""
-"Vous avez %(alerts_cnt)s alerte(s) (%(sent_alerts_cnt)s déjà envoyée(s)), "
+"Vous avez <span id=\"alert_counter\">%(alerts_cnt)s</span> alerte(s) (%(sent_alerts_cnt)s déjà envoyée(s)), "
 "cliquez pour les consulter"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:49
+#: immersionlyceens/templates/immersion/my_registrations.html:51
+#: immersionlyceens/templates/modals/modal_alerts.html:119
 msgid "You have no course alert"
 msgstr "Vous n'avez enregistré aucune alerte"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:237
+#: immersionlyceens/templates/immersion/my_registrations.html:239
 msgid "Other registrants"
 msgstr "Autres lycéens de mon lycée inscrits à ce créneau"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:328
-#: immersionlyceens/templates/immersion/my_registrations.html:574
-#: immersionlyceens/templates/immersion/my_registrations.html:801
+#: immersionlyceens/templates/immersion/my_registrations.html:330
+#: immersionlyceens/templates/immersion/my_registrations.html:576
+#: immersionlyceens/templates/immersion/my_registrations.html:803
 #: immersionlyceens/templates/modals/modal_student_details.html:145
 msgid "Attestation download"
 msgstr "Télécharger l'attestation"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:412
-#: immersionlyceens/templates/immersion/my_registrations.html:655
-#: immersionlyceens/templates/immersion/my_registrations.html:876
+#: immersionlyceens/templates/immersion/my_registrations.html:414
+#: immersionlyceens/templates/immersion/my_registrations.html:657
+#: immersionlyceens/templates/immersion/my_registrations.html:878
 #: immersionlyceens/templates/offer_off_offer_events.html:173
 #: immersionlyceens/templates/offer_subdomains.html:194
 #: immersionlyceens/templates/visits_offer.html:168
 msgid "Register again"
 msgstr "Se réinscrire"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:416
-#: immersionlyceens/templates/immersion/my_registrations.html:659
-#: immersionlyceens/templates/immersion/my_registrations.html:880
+#: immersionlyceens/templates/immersion/my_registrations.html:418
+#: immersionlyceens/templates/immersion/my_registrations.html:661
+#: immersionlyceens/templates/immersion/my_registrations.html:882
 #: immersionlyceens/templates/offer_off_offer_events.html:189
 #: immersionlyceens/templates/offer_subdomains.html:212
 #: immersionlyceens/templates/visits_offer.html:184
 msgid "Full"
 msgstr "Complet"
 
-#: immersionlyceens/templates/immersion/my_registrations.html:484
-#: immersionlyceens/templates/immersion/my_registrations.html:720
+#: immersionlyceens/templates/immersion/my_registrations.html:486
+#: immersionlyceens/templates/immersion/my_registrations.html:722
 msgid "Other high schools/students registrants"
 msgstr "Autres participants inscrits"
 
@@ -6062,7 +6069,7 @@ msgstr "Sous domaine(s)"
 msgid "Notification sent"
 msgstr "Notification envoyée"
 
-#: immersionlyceens/templates/modals/modal_alerts.html:56
+#: immersionlyceens/templates/modals/modal_alerts.html:57
 msgid "Cancel alert"
 msgstr "Annuler l'alerte"
 
@@ -6579,8 +6586,8 @@ msgstr "Calendrier non initialisé"
 #~ "Registrations realized for second semester (excluding visits and events))"
 #~ msgstr "Inscriptions réalisées au semestre 2 (hors visites et évènements)"
 
-msgid "release"
-msgstr "libérer-délivrer"
+#~ msgid "release"
+#~ msgstr "libérer-délivrer"
 
 #~ msgid "Subdomain"
 #~ msgstr "Sous domaine"
