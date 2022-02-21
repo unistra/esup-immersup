@@ -9,8 +9,8 @@ from . import views
 app_name = 'immersion'
 
 urlpatterns = [
-    # path('', views.home, name='home'),
-    path('', views.HomeView.as_view(), name='home'),
+    path('', views.home, name='home'),
+    # path('', views.HomeView.as_view(), name='home'),
     # path('activate/<hash>', views.activate, name='activate'),
     path('activate/<hash>', views.ActivateView.as_view(), name='activate'),
     path('dl/attestation/<int:immersion_id>', views.immersion_attestation_download, name='attestation_download'),

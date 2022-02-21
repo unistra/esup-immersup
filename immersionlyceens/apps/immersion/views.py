@@ -352,8 +352,7 @@ def register(request):
 
     return render(request, 'immersion/registration.html', context)
 
-#
-# # todo: refactor swith class
+
 # def recovery(request):
 #     email = ""
 #
@@ -608,16 +607,10 @@ class ResendActivationView(TemplateView):
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
 
-# @login_required
-# def home(request):
-#     context = {}
-#     return render(request, 'immersion/home.html', context)
-
-
-@method_decorator(login_required, name="dispatch")
-class HomeView(TemplateView):
-    template_name: str = "immersion/home.html"
-
+@login_required
+def home(request):
+    context = {}
+    return render(request, 'immersion/home.html', context)
 
 
 @login_required
@@ -974,7 +967,7 @@ def registrations(request):
 @groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def immersion_attestation_download(request, immersion_id):
     """
-    Attestation download
+    Attestation downloadtest_home
     """
     try:
         immersion = Immersion.objects.prefetch_related(
