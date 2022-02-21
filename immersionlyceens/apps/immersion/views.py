@@ -399,8 +399,7 @@ class RecoveryView(TemplateView):
         })
 
     def post(self, request, *args, **kwargs):
-        context: Dict[str, Any] = self.get_context_data(**kwargs)
-        email = context.get('email', '')
+        email = request.POST.get('email', '').strip().lower()
 
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
@@ -426,6 +425,7 @@ class RecoveryView(TemplateView):
         except ImmersionUser.MultipleObjectsReturned:
             messages.error(request, _("Error : please contact the establishment referent"))
 
+        context: Dict[str, Any] = self.get_context_data(**kwargs)
         return self.render_to_response(context)
 
 
