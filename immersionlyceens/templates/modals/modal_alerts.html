@@ -53,6 +53,7 @@
 </div>
 <script>
 var dtr;
+var dtc;
 let cancel_text = "{% trans 'Cancel alert' %}";
 
 let confirmDialog = $("#confirm-dialog-form").dialog({
@@ -108,9 +109,18 @@ function cancel_alert(alert_id) {
         else if(msg != '') {
           $("#cancel_feedback").html('<div class="alert alert-success">'+json["msg"]+'</div>');
           setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+          alert_counter = $("#alert_counter");
+          alert_counter_val = parseInt(alert_counter.html());
+          if (alert_counter_val >= 1) {
+            alert_counter_val = --alert_counter_val;
+            alert_counter.html(alert_counter_val);
+          }
+          if (alert_counter_val === 0) {
+            $("#alert_msg").html("<p class=\"mr-2\">{% trans 'You have no course alert' %}</p>");
+          }
+          reload_table();
         }
 
-        reload_table();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -120,14 +130,13 @@ function cancel_alert(alert_id) {
 }
 
 function reload_table() {
-  dtr.rows().remove().draw();
-  // dtr.ajax.url("/api/get_alerts/" + current_student_id).load();
-  dtr.ajax.reload();
+  dtc.rows().remove().draw();
+  dtc.ajax.reload();
 }
 
 $.fn.dataTableExt.errMode = 'console';
 
-dtr = $('#alerts_table').DataTable({
+dtc = $('#alerts_table').DataTable({
   'processing': false,
   'order': [
     [1, "asc"],
