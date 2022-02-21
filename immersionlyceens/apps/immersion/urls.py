@@ -35,6 +35,7 @@ urlpatterns = [
 
 
     path('register', views.register, name='register'),
+    path('register/<profile>', views.register, name='register'),
 
     # path('resend_activation', views.resend_activation, name='resend_activation'),
     path('resend_activation', views.ResendActivationView.as_view(), name='resend_activation'),

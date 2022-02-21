@@ -10,7 +10,11 @@
     <div class="container">
       <div class="row">
         <div class="col">
-          <h1>{% trans 'Immersion Lycéens - New account' %}</h1>
+          {% if profile == "vis" %}
+            <h1>{% trans 'Immersion Lycéens - New visitor account' %}</h1>
+          {% else %}
+            <h1>{% trans 'Immersion Lycéens - New high school student account' %}</h1>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -20,22 +24,28 @@
       <h3>{% trans 'Please fill this form to create your account' %} :</h3>
       <form method="post">
         {% csrf_token %}
-        {% if visitors_activated %}
-        <div class="form-group row justify-content-center">
-          <label class="col-sm-3 col-md-3 col-form-label">{% trans "I am" %} :</label>
-          <div class="col-sm-4 col-md-3">
-            <div class="form-check">
-              <input type="radio" name="registration_type" value="hs" class="form-check-input" required>
-              <label for="registration_type" class="form-check-label">{% trans "Highschool student" %}</label>
-            </div>
-          </div>
-          <div class="col-sm-4 col-md-2">
-            <div class="form-check">
-              <input type="radio" name="registration_type" value="vis" class="form-check-input">
-              <label for="registration_type" class="form-check-label">{% trans "Visitor" %}</label>
-            </div>
-          </div>
-        </div>
+<!--        {% if visitors_activated %}-->
+<!--        <div class="form-group row justify-content-center">-->
+<!--          <label class="col-sm-3 col-md-3 col-form-label">{% trans "I am" %} :</label>-->
+<!--          <div class="col-sm-4 col-md-3">-->
+<!--            <div class="form-check">-->
+<!--              <input type="radio" name="registration_type" value="hs" class="form-check-input" required>-->
+<!--              <label for="registration_type" class="form-check-label">{% trans "Highschool student" %}</label>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-sm-4 col-md-2">-->
+<!--            <div class="form-check">-->
+<!--              <input type="radio" name="registration_type" value="vis" class="form-check-input">-->
+<!--              <label for="registration_type" class="form-check-label">{% trans "Visitor" %}</label>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        {% endif %}-->
+
+        {% if visitors_activated and profile == "vis" %}
+          <input type="hidden" name="registration_type" value="vis">
+        {% else %}
+          <input type="hidden" name="registration_type" value="hs">
         {% endif %}
 
         <div class="form-group row justify-content-center">
