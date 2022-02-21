@@ -188,7 +188,7 @@ ul
               <label class="col-sm-9 col-form-label">
                 {% trans 'Annually registrations realized (excluding visits and events)' %} :
               </label>
-              <div class="col-sm-2">{{ immersion_number }}/{{ record_form.allowed_global_registrations|default:record.allowed_global_registrations }}</div>
+              <div class="col-sm-2">{{ immersion_number }} / {{ record_form.allowed_global_registrations|default:record.allowed_global_registrations }}</div>
             {% else %}
               <label class="col-sm-9 col-form-label">
                 {% trans 'Annually allowed registrations (excluding visits and events)' %} :
@@ -223,7 +223,7 @@ ul
               <div class="col-sm-2">{{ record_form.allowed_second_semester_registrations }}</div>
             {% elif record_form.instance.highschool %}
               <label class="col-sm-9 col-form-label">
-                {% trans 'Registrations realized for second semester (excluding visits and events))' %} :
+                {% trans 'Registrations realized for second semester (excluding visits and events)' %} :
               </label>
               <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations }}</div>
             {% else %}

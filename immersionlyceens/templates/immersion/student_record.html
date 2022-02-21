@@ -121,7 +121,7 @@
               <label class="col-sm-9 col-form-label">
                 {% trans 'Annually registrations realized (excluding visits and events)' %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number }}/{{ record.allowed_global_registrations }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number }} / {{ record.allowed_global_registrations }}</div>
             {% endif %}
           </div>
         {% else %}
@@ -140,7 +140,7 @@
               <label class="col-sm-9 col-form-label">
                 {% trans 'Registrations realized for first semester (excluding visits and events)' %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }}/{{ record.allowed_first_semester_registrations|default:'' }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }} / {{ record.allowed_first_semester_registrations|default:'' }}</div>
             {% endif %}
           </div>
           <div class="form-group row align-items-center">
@@ -158,7 +158,7 @@
               <label class="col-sm-9 col-form-label">
                 {% trans 'Registrations realized for second semester (excluding visits and events)' %} :
               </label>
-              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }}/{{ record.allowed_second_semester_registrations| default:'' }}</div>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations| default:'' }}</div>
             {% endif %}
           </div>
         {% endif %}
