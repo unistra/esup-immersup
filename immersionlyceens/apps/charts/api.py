@@ -602,11 +602,12 @@ def get_global_trainings_charts(request):
     if user.is_master_establishment_manager() or user.is_operator():
         response['columns'].append({
             "data": 'establishment',
-            "name": _("Establishment"),
+            "name": "establishment",
+            "title": _("Establishment"),
             "filter": "establishment_filter"
         })
         response['yadcf'].append({
-          'column_selector': _("Establishment") + ":name",
+          'column_selector': "establishment:name",
           'filter_default_label': "",
           'filter_match_mode': "exact",
           'filter_container_id': "establishment_filter",
@@ -623,11 +624,12 @@ def get_global_trainings_charts(request):
 
         response['columns'].append({
             "data": "structure",
-            "name": _("Structure(s)"),
+            "name": "structures",
+            "title": _("Structure(s)"),
             "filter": "structure_filter"
         })
         response['yadcf'].append({
-            'column_selector': _("Structure(s)") + ":name",
+            'column_selector': "structures:name",
             'text_data_delimiter': "<br>",
             'filter_default_label': "",
             'filter_match_mode': "contains",
@@ -643,58 +645,80 @@ def get_global_trainings_charts(request):
     # We need this because some high school levels can be deactivated
     response['columns'] += [{
             "data": 'domain_label',
-            "name": _("Domain/Subdomain"),
+            "name": "domain_subdomain",
+            "title": _("Domain/Subdomain"),
             "filter": "domain_filter"
         },
         {
             "data": 'training_label',
-            "name": _("Training"),
+            "name": "training",
+            "title": _("Training"),
             "filter": "training_filter"
         },
         {
             "data": 'unique_persons',
-            "name": _("Persons cnt")
+            "name": "persons_cnt",
+            "title": _("Persons cnt"),
         },
         *[{
             "data": f"unique_students_lvl{level.id}",
-            "name": f"{_('Pupils cnt')}<br>{level.label}",
-            "visible": False
+            "name": f"pupils_cnt_{level.label}",
+            "title": f"{_('Pupils cnt')}<br>{level.label}",
+            "visible": False,
           } for level in pre_bachelor_levels
         ],
         {
             "data": "unique_students",
-            "name": _("Students cnt"),
+            "name": "students_cnt",
+            "title": _("Students cnt"),
             "visible": False,
         },
         {
             "data": "unique_visitors",
-            "name": _("Visitors cnt"),
+            "name": "visitors_cnt",
+            "title": _("Visitors cnt"),
             "visible": False
         },
         {
             "data": 'all_registrations',
-            "name": _("Registrations"),
+            "name": "registrations",
+            "title": _("Registrations"),
         },
         *[{
             'data': f"registrations_lvl{level.id}",
-            "name": f"{_('Registrations')}<br>{level.label}",
-            'visible': False
+            "name": f"registrations_{level.label}",
+            "title": f"{_('Registrations')}<br>{level.label}",
+            'visible': False,
           } for level in pre_bachelor_levels
         ],
         {
             "data": "students_registrations",
-            "name": _("Students<br>registrations"),
+            "name": "students_registrations",
+            "title": _("Students<br>registrations"),
             "visible": False
         },
         {
             "data": "visitors_registrations",
-            "name": _("Visitors<br>registrations"),
+            "name": "visitors_registrations",
+            "title": _("Visitors<br>registrations"),
             "visible": False
         },
     ]
+    
+    response['cnt_columns'] = [
+      *[f"pupils_cnt_{level.label}" for level in pre_bachelor_levels],
+      "students_cnt",
+      "visitors_cnt"
+    ]
+    
+    response['registrations_columns'] = [
+      *[f"registrations_{level.label}" for level in pre_bachelor_levels],
+      "students_registrations",
+      "visitors_registrations"
+    ]
 
     response['yadcf'] += [{
-            'column_selector': _("Domain/Subdomain") + ":name",
+            'column_selector': "domain_subdomain:name",
             'text_data_delimiter': "<br>",
             'filter_default_label': "",
             'filter_match_mode': "contains",
@@ -703,7 +727,7 @@ def get_global_trainings_charts(request):
             'filter_reset_button_text': False,
         },
         {
-            'column_selector': _("Training") + ":name",
+            'column_selector': "training:name",
             'filter_default_label': "",
             'filter_match_mode': "exact",
             'filter_container_id': "training_filter",
@@ -730,7 +754,6 @@ def get_global_trainings_charts(request):
         base_persons_qs = ImmersionUser.objects\
             .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
             .filter(
-                **students_filter,
                 immersions__slot__course__training=training,
                 immersions__cancellation_type__isnull=True
             )
@@ -738,7 +761,6 @@ def get_global_trainings_charts(request):
         base_immersions_qs = Immersion.objects\
             .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
             .filter(
-                **immersions_filter,
                 slot__course__training=training,
                 cancellation_type__isnull=True
             )

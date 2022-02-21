@@ -37,19 +37,21 @@
             <label class="form-check-label ml-md-2">{% trans 'Toggle counts columns' %} : </label>
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
-              <a class="toggle-vis" href='' data-column="{% trans 'Pupils cnt' %}<br>{{ level.label }}">{{ level.label }}</a>
+              <a class="toggle-vis" href='' data-column="pupils_cnt_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
-            - <a class="toggle-vis" href='' data-column="{% trans 'Students cnt' %}">{% trans 'Students (and post-bachelor levels)' %}</a>
-            - <a class="toggle-vis" href='' data-column="{% trans 'Visitors cnt' %}">{% trans 'Visitors' %}</a>
+            - <a class="toggle-vis" href='' data-column="students_cnt">{% trans 'Students (and post-bachelor levels)' %}</a>
+            - <a class="toggle-vis" href='' data-column="visitors_cnt">{% trans 'Visitors' %}</a>
+            - <a class="toggle-vis" href='' data-column="SHOW-ALL-CNTS">{% trans 'Show all' %}</a> / <a class="toggle-vis" href='' data-column="HIDE-ALL-CNTS">{% trans 'Hide all' %}</a>
           </div>
           <div class="form-group mx-sm-3 mb-2">
             <label class="form-check-label ml-md-2">{% trans 'Toggle registrations columns' %} : </label>
             {% for level in high_school_levels %}
               {% if forloop.counter0 %} - {% endif %}
-              <a class="toggle-vis" href='' data-column="{% trans 'Registrations' %}<br>{{ level.label }}">{{ level.label }}</a>
+              <a class="toggle-vis" href='' data-column="registrations_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
-            - <a class="toggle-vis" href='' data-column="{% trans 'Students<br>registrations' %}">{% trans 'Students registrations (and post-bachelor levels)' %}</a>
-              - <a class="toggle-vis" href='' data-column="{% trans 'Visitors<br>registrations' %}">{% trans 'Visitors registrations' %}</a>
+            - <a class="toggle-vis" href='' data-column="students_registrations">{% trans 'Students registrations (and post-bachelor levels)' %}</a>
+            - <a class="toggle-vis" href='' data-column="visitors_registrations">{% trans 'Visitors registrations' %}</a>
+            - <a class="toggle-vis" href='' data-column="SHOW-ALL-REGS">{% trans 'Show all' %}</a> / <a class="toggle-vis" href='' data-column="HIDE-ALL-REGS">{% trans 'Hide all' %}</a>
           </div>
         </div>
       </form>
@@ -71,6 +73,8 @@
   var columns;
   var response;
   var response_data;
+  var cnt_columns;
+  var registrations_columns;
 
   $(document).ready(function () {
 
@@ -99,6 +103,9 @@
             str = header + colObj.name + '</th>';
             $(str).appendTo(tableName+'>thead>tr');
           });
+          
+          cnt_columns = data.cnt_columns
+          registrations_columns = data.registrations_columns
 
           dt = $('#statistics_table').DataTable({
             'processing': false,
@@ -153,10 +160,24 @@
         e.preventDefault();
 
         // Get the column API object
-        var column = dt.column( $(this).attr('data-column')+":name" );
+        if ($(this).attr('data-column') === "SHOW-ALL-CNTS") {
+          cnt_columns.forEach(colname => dt.column(colname + ":name").visible(true))
+        }
+        else if ($(this).attr('data-column') === "HIDE-ALL-CNTS") {
+          cnt_columns.forEach(colname => dt.column(colname + ":name").visible(false))
+        }
+        else if ($(this).attr('data-column') === "SHOW-ALL-REGS") {
+          registrations_columns.forEach(colname => dt.column(colname + ":name").visible(true))
+        }
+        else if ($(this).attr('data-column') === "HIDE-ALL-REGS") {
+          registrations_columns.forEach(colname => dt.column(colname + ":name").visible(false))
+        }
+        else {
+          var column = dt.column($(this).attr('data-column') + ":name");
 
-        // Toggle the visibility
-        column.visible( ! column.visible() );
+          // Toggle the visibility
+          column.visible(!column.visible());
+        }
     });
   });
 

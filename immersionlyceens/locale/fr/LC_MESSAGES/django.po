@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-21 15:57+0100\n"
+"POT-Creation-Date: 2022-02-21 21:06+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,17 +19,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: immersionlyceens/apps/charts/api.py:36
-#: immersionlyceens/apps/charts/api.py:820
+#: immersionlyceens/apps/charts/api.py:842
 msgid "Registrations count"
 msgstr "Inscriptions sur la plateforme"
 
 #: immersionlyceens/apps/charts/api.py:39
-#: immersionlyceens/apps/charts/api.py:817
+#: immersionlyceens/apps/charts/api.py:839
 msgid "Registrations to at least one immersion"
 msgstr "Inscriptions à au moins une immersion"
 
 #: immersionlyceens/apps/charts/api.py:42
-#: immersionlyceens/apps/charts/api.py:814
+#: immersionlyceens/apps/charts/api.py:836
 #: immersionlyceens/templates/charts/registrations_charts.html:56
 msgid "Attended to at least one immersion"
 msgstr "Participation à au moins une immersion"
@@ -51,9 +51,8 @@ msgstr "Etablissement d'Etudes Supérieures"
 
 #: immersionlyceens/apps/charts/api.py:362
 #: immersionlyceens/apps/charts/api.py:402
-#: immersionlyceens/apps/charts/api.py:651
-#: immersionlyceens/apps/charts/api.py:706
-#: immersionlyceens/apps/charts/api.py:1120
+#: immersionlyceens/apps/charts/api.py:655
+#: immersionlyceens/apps/charts/api.py:1142
 #: immersionlyceens/apps/core/models.py:778
 #: immersionlyceens/apps/core/models.py:1204
 #: immersionlyceens/templates/charts/global_slots_charts.html:41
@@ -76,14 +75,12 @@ msgstr "Formation"
 
 #: immersionlyceens/apps/charts/api.py:367
 #: immersionlyceens/apps/charts/api.py:393
-#: immersionlyceens/apps/charts/api.py:646
-#: immersionlyceens/apps/charts/api.py:697
+#: immersionlyceens/apps/charts/api.py:649
 msgid "Domain/Subdomain"
 msgstr "Domaine/Sous domaine"
 
 #: immersionlyceens/apps/charts/api.py:372
-#: immersionlyceens/apps/charts/api.py:666
-#: immersionlyceens/templates/charts/global_trainings_charts.html:42
+#: immersionlyceens/apps/charts/api.py:673
 #: immersionlyceens/templates/charts/highschool_trainings_charts.html:58
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:77
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:79
@@ -91,16 +88,14 @@ msgid "Students cnt"
 msgstr "Nb étudiants"
 
 #: immersionlyceens/apps/charts/api.py:382
-#: immersionlyceens/apps/charts/api.py:676
-#: immersionlyceens/templates/charts/global_trainings_charts.html:49
+#: immersionlyceens/apps/charts/api.py:685
 #: immersionlyceens/templates/charts/highschool_trainings_charts.html:65
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:81
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:83
 msgid "Registrations"
 msgstr "Inscriptions"
 
-#: immersionlyceens/apps/charts/api.py:605
-#: immersionlyceens/apps/charts/api.py:609
+#: immersionlyceens/apps/charts/api.py:606
 #: immersionlyceens/apps/core/admin_forms.py:192
 #: immersionlyceens/apps/core/models.py:107
 #: immersionlyceens/apps/core/models.py:125
@@ -121,34 +116,30 @@ msgstr "Inscriptions"
 msgid "Establishment"
 msgstr "Etablissement"
 
-#: immersionlyceens/apps/charts/api.py:626
-#: immersionlyceens/apps/charts/api.py:630
+#: immersionlyceens/apps/charts/api.py:628
 msgid "Structure(s)"
 msgstr "Structure(s)"
 
-#: immersionlyceens/apps/charts/api.py:656
+#: immersionlyceens/apps/charts/api.py:661
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:75
 msgid "Persons cnt"
 msgstr "Nb personnes"
 
-#: immersionlyceens/apps/charts/api.py:671
-#: immersionlyceens/templates/charts/global_trainings_charts.html:43
+#: immersionlyceens/apps/charts/api.py:679
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:80
 msgid "Visitors cnt"
 msgstr "Nb visiteurs"
 
-#: immersionlyceens/apps/charts/api.py:686
-#: immersionlyceens/templates/charts/global_trainings_charts.html:51
+#: immersionlyceens/apps/charts/api.py:697
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:85
 msgid "Students<br>registrations"
 msgstr "Inscriptions<br>étudiants<"
 
-#: immersionlyceens/apps/charts/api.py:691
-#: immersionlyceens/templates/charts/global_trainings_charts.html:52
+#: immersionlyceens/apps/charts/api.py:703
 msgid "Visitors<br>registrations"
 msgstr "Inscriptions<br>visiteurs"
 
-#: immersionlyceens/apps/charts/api.py:725
+#: immersionlyceens/apps/charts/api.py:749
 #: immersionlyceens/apps/core/models.py:194
 #: immersionlyceens/apps/core/models.py:315
 #: immersionlyceens/apps/core/models.py:749
@@ -169,11 +160,11 @@ msgstr "Inscriptions<br>visiteurs"
 msgid "High school"
 msgstr "Lycée"
 
-#: immersionlyceens/apps/charts/api.py:1011
+#: immersionlyceens/apps/charts/api.py:1033
 msgid "no name match yet"
 msgstr "pas de correspondance"
 
-#: immersionlyceens/apps/charts/api.py:1119
+#: immersionlyceens/apps/charts/api.py:1141
 #: immersionlyceens/apps/core/models.py:139
 #: immersionlyceens/apps/core/models.py:1209
 #: immersionlyceens/apps/core/models.py:1334
@@ -192,7 +183,7 @@ msgstr "pas de correspondance"
 msgid "Structure"
 msgstr "Structure d'établissement"
 
-#: immersionlyceens/apps/charts/api.py:1121
+#: immersionlyceens/apps/charts/api.py:1143
 #: immersionlyceens/apps/core/models.py:1305
 #: immersionlyceens/apps/core/models.py:1864
 #: immersionlyceens/apps/core/models.py:2171
@@ -207,12 +198,12 @@ msgstr "Structure d'établissement"
 msgid "Course"
 msgstr "Cours"
 
-#: immersionlyceens/apps/charts/api.py:1122
+#: immersionlyceens/apps/charts/api.py:1144
 #: immersionlyceens/templates/charts/global_slots_charts.html:43
 msgid "Slots count"
 msgstr "Nombre de créneaux"
 
-#: immersionlyceens/apps/charts/api.py:1123
+#: immersionlyceens/apps/charts/api.py:1145
 #: immersionlyceens/templates/charts/global_slots_charts.html:44
 msgid "Available seats"
 msgstr "Nombre total de places"
@@ -226,7 +217,7 @@ msgstr "Statistiques"
 #: immersionlyceens/apps/charts/views.py:80
 #: immersionlyceens/apps/charts/views.py:165
 #: immersionlyceens/templates/charts/global_slots_charts.html:214
-#: immersionlyceens/templates/charts/global_trainings_charts.html:111
+#: immersionlyceens/templates/charts/global_trainings_charts.html:118
 #: immersionlyceens/templates/charts/highschool_trainings_charts.html:126
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:137
 #: immersionlyceens/templates/core/common_slots_list.html:166
@@ -3986,10 +3977,6 @@ msgstr "Afficher les formations sans aucune inscription"
 msgid "Toggle counts columns"
 msgstr "Afficher/masquer les colonnes 'Nb étudiants'"
 
-#: immersionlyceens/templates/charts/global_trainings_charts.html:40
-msgid "Pupils cnt"
-msgstr "Nb élèves"
-
 #: immersionlyceens/templates/charts/global_trainings_charts.html:42
 msgid "Students (and post-bachelor levels)"
 msgstr "Etudiants (et niveaux post-bac)"
@@ -3998,16 +3985,26 @@ msgstr "Etudiants (et niveaux post-bac)"
 msgid "Visitors"
 msgstr "Visiteurs"
 
-#: immersionlyceens/templates/charts/global_trainings_charts.html:46
+#: immersionlyceens/templates/charts/global_trainings_charts.html:44
+#: immersionlyceens/templates/charts/global_trainings_charts.html:54
+msgid "Show all"
+msgstr "Tout afficher"
+
+#: immersionlyceens/templates/charts/global_trainings_charts.html:44
+#: immersionlyceens/templates/charts/global_trainings_charts.html:54
+msgid "Hide all"
+msgstr "Tout masquer"
+
+#: immersionlyceens/templates/charts/global_trainings_charts.html:47
 #: immersionlyceens/templates/charts/highschool_trainings_charts.html:62
 msgid "Toggle registrations columns"
 msgstr "Afficher/masquer les colonnes 'Inscriptions'"
 
-#: immersionlyceens/templates/charts/global_trainings_charts.html:51
+#: immersionlyceens/templates/charts/global_trainings_charts.html:52
 msgid "Students registrations (and post-bachelor levels)"
 msgstr "Inscriptions étudiants (et niveaux post-bac)"
 
-#: immersionlyceens/templates/charts/global_trainings_charts.html:52
+#: immersionlyceens/templates/charts/global_trainings_charts.html:53
 #: immersionlyceens/templates/charts/structure_trainings_charts.html:67
 msgid "Visitors registrations"
 msgstr "Inscriptions visiteurs"
@@ -6576,6 +6573,9 @@ msgstr "Pas de visite disponible"
 #: immersionlyceens/views.py:530
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
+
+#~ msgid "Pupils cnt"
+#~ msgstr "Nb élèves"
 
 #~ msgid "I am"
 #~ msgstr "Je suis"
