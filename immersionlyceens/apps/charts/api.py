@@ -471,6 +471,7 @@ def get_global_trainings_charts(request):
     user = request.user
     show_empty_trainings = request.GET.get("empty_trainings", False) == "true"
     structure_id = request.GET.get("structure_id")
+    highschool_id = request.GET.get("highschool_id")
 
     response = {'msg': '', 'data': []}
 
@@ -478,8 +479,19 @@ def get_global_trainings_charts(request):
         'active': True,
     }
 
+    students_filter = {}
+    immersions_filter = {}
+
     if structure_id and request.user.is_structure_manager() and request.user.structures.exists():
         trainings_filter['structures'] = structure_id
+
+    # override highschool id if request.user is a high school manager
+    if request.user.is_high_school_manager() and request.user.highschool:
+        highschool_id = request.user.highschool.id
+
+    if highschool_id:
+        students_filter['high_school_student_record__highschool__id'] = highschool_id
+        immersions_filter['student__high_school_student_record__highschool__id'] = highschool_id
 
     # Do not include trainings with no registration/students
     if not show_empty_trainings:
@@ -656,6 +668,7 @@ def get_global_trainings_charts(request):
         base_persons_qs = ImmersionUser.objects\
             .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
             .filter(
+                **students_filter,
                 immersions__slot__course__training=training,
                 immersions__cancellation_type__isnull=True
             )
@@ -663,6 +676,7 @@ def get_global_trainings_charts(request):
         base_immersions_qs = Immersion.objects\
             .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
             .filter(
+                **immersions_filter,
                 slot__course__training=training,
                 cancellation_type__isnull=True
             )

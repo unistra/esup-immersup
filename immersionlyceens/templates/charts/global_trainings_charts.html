@@ -30,24 +30,40 @@
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
-    {% if resquest.user.is_structure_manager %}
     <div class="card-header text-white bg-secondary">
-      {% if structures|length > 1 %}
-        <label for="id_structures">{% trans 'Select a structure' %} :</label>
-          <select id="id_structures">
-            {% for structure in structures %}
-              <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
-                {{ structure.label }}
+      {% if request.user.is_structure_manager %}
+        {% if structures|length > 1 %}
+          <label for="id_structures">{% trans 'Select a structure' %} :</label>
+            <select id="id_structures">
+              {% for structure in structures %}
+                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                  {{ structure.label }}
+                </option>
+              {% endfor %}
+            </select>
+        {% else %}
+          {% with structure=structures|first %}
+            {{ structure.label }}
+          {% endwith %}
+        {% endif %}
+      {% elif highschools|length > 1 %}
+        <label for="id_highschools">{% trans 'Select a high school' %} :</label>
+          <select id="id_highschools">
+            <option value=""></option>
+            {% for highschool in highschools %}
+              <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
+                {{ highschool.city }} - {{ highschool.label }}
               </option>
             {% endfor %}
           </select>
+          ({% trans 'leave empty for all institutions : high schools and above' %})
       {% else %}
-        {% with structure=structures|first %}
-          {{ structure.label }}
+        {% with hs=highschools|first %}
+          {{ hs.city }} - {{ hs.label }}
         {% endwith %}
       {% endif %}
     </div>
-    {% endif %}
+
     <div class="card-body">
       <form class="form-horizontal">
         <div class="form-group">
@@ -91,6 +107,7 @@
   var dt;
   var tableName = "#statistics_table";
   var structure_id = "{{ structure_id }}";
+  var highschool_id = "{{ highschool_id }}";
   var data;
   var str;
   var columns;
@@ -111,6 +128,10 @@
 
       if(is_set(structure_id)) {
         ajax_data.structure_id = structure_id
+      }
+
+      if(is_set(highschool_id)) {
+        ajax_data.highschool_id = highschool_id
       }
 
       response = $.ajax({
@@ -175,10 +196,12 @@
 
     load_datatable()
 
-    $('#id_highschools').change(function() {
-      highschool_id = $('#id_highschools option:selected').val();
-      load_datatable();
-    });
+    if(is_set($('#id_highschools'))) {
+      $('#id_highschools').change(function () {
+        highschool_id = $('#id_highschools option:selected').val();
+        load_datatable();
+      });
+    }
 
     if(is_set($('#id_structures'))) {
       $('#id_structures').change(function () {
