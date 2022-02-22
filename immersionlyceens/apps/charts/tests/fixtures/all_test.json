@@ -1,12 +1,42 @@
 [
   {
+    "model": "core.establishment",
+    "pk": 1,
+    "fields": {
+        "code": "Unistra",
+        "label": "Université de Strasbourg",
+        "short_label": "Unistra",
+        "address": "4 Rue Blaise Pascal",
+        "address2": null,
+        "address3": null,
+        "department": "BAS-RHIN",
+        "city": "STRASBOURG",
+        "zip_code": "67081",
+        "phone_number": "03 68 85 00 00",
+        "fax": null,
+        "badge_html_color": "#3584e4",
+        "email": "test-immersup@unistra.fr",
+        "mailing_list": null,
+        "active": true,
+        "master": true,
+        "signed_charter": false,
+        "data_source_plugin": "LDAP",
+        "data_source_settings": {},
+        "logo": "",
+        "signature": "",
+        "certificate_header": null,
+        "certificate_footer": null
+    }
+  },
+  {
     "model": "core.structure",
     "pk": 1,
     "fields": {
       "code": "ART",
       "label": "Facult\u00e9 des Arts",
       "mailing_list": "appli-immersion-test-art@unistra.fr",
-      "active": true
+      "active": true,
+      "establishment": 1
     }
   },
   {
@@ -16,7 +46,8 @@
       "code": "MAI",
       "label": "UFR Math\u00e9matiques et Informatique",
       "mailing_list": "appli-immersion-test-mai@unistra.fr",
-      "active": true
+      "active": true,
+      "establishment": 1
     }
   },
   {
@@ -26,7 +57,8 @@
       "code": "APS",
       "label": "Facult\u00e9 des sciences du sport",
       "mailing_list": null,
-      "active": true
+      "active": true,
+      "establishment": 1
     }
   },
   {
@@ -36,7 +68,8 @@
       "code": "SEG",
       "label": "Facult\u00e9 des Sciences \u00e9conomiques et de gestion",
       "mailing_list": null,
-      "active": true
+      "active": true,
+      "establishment": 1
     }
   },
   {
@@ -46,7 +79,8 @@
       "code": "ISC",
       "label": "IUT Louis Pasteur",
       "mailing_list": null,
-      "active": true
+      "active": true,
+      "establishment": 1
     }
   },
   {
@@ -56,7 +90,8 @@
       "code": "CUJ",
       "label": "Centre universitaire d'enseignement du journalisme (CUEJ)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -66,7 +101,8 @@
       "code": "EOT",
       "label": "Ecole et observatoire des sciences de la Terre (EOST)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -76,7 +112,8 @@
       "code": "HIS",
       "label": "Facult\u00e9 des Sciences Historiques",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -86,7 +123,8 @@
       "code": "ODO",
       "label": "Facult\u00e9 de Chirurgie Dentaire",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -96,7 +134,8 @@
       "code": "THC",
       "label": "Facult\u00e9 de Th\u00e9ologie Catholique",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -106,7 +145,8 @@
       "code": "MED",
       "label": "Facult\u00e9 de M\u00e9decine",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -116,7 +156,8 @@
       "code": "PAG",
       "label": "Institut de pr\u00e9paration \u00e0 l'administration g\u00e9n\u00e9rale (IPAG)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -126,7 +167,8 @@
       "code": "IHA",
       "label": "IUT de Haguenau",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -136,7 +178,8 @@
       "code": "PSY",
       "label": "Facult\u00e9 de Psychologie",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -146,7 +189,8 @@
       "code": "CHM",
       "label": "Facult\u00e9 de Chimie",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -156,7 +200,8 @@
       "code": "DRT",
       "label": "Facult\u00e9 de droit, de sciences politiques et de gestion",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -166,7 +211,8 @@
       "code": "ESB",
       "label": "Ecole sup\u00e9rieure de biotechnologie de Strasbourg (ESBS)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -176,7 +222,8 @@
       "code": "LET",
       "label": "Facult\u00e9 des Lettres",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -186,7 +233,8 @@
       "code": "PHA",
       "label": "Facult\u00e9 de Pharmacie",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -196,7 +244,8 @@
       "code": "GEO",
       "label": "Facult\u00e9 de G\u00e9ographie et d'Am\u00e9nagement",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -206,7 +255,8 @@
       "code": "IEP",
       "label": "Sciences Po Strasbourg",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -216,7 +266,8 @@
       "code": "PLI",
       "label": "Facult\u00e9 de Philosophie",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -226,7 +277,8 @@
       "code": "THP",
       "label": "Facult\u00e9 de Th\u00e9ologie Protestante",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -236,7 +288,8 @@
       "code": "ECP",
       "label": "Ecole europ\u00e9enne de chimie, polym\u00e8res et mat\u00e9riaux (ECPM)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -246,7 +299,8 @@
       "code": "ESP",
       "label": "T\u00e9l\u00e9com Physique Strasbourg (TPS)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -256,7 +310,8 @@
       "code": "CPI",
       "label": "Centre d'\u00e9tudes internationales de la propri\u00e9t\u00e9 intellectuelle (CEIPI)",
       "mailing_list": "immersion-cpi@mon-domaine.fr",
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -266,7 +321,8 @@
       "code": "EMS",
       "label": "Ecole de management Strasbourg (EM)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -276,7 +332,8 @@
       "code": "PHI",
       "label": "Facult\u00e9 de Physique et Ing\u00e9nierie",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -286,7 +343,8 @@
       "code": "SOC",
       "label": "Facult\u00e9 des Sciences Sociales",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -296,7 +354,8 @@
       "code": "VIE",
       "label": "Facult\u00e9 des Sciences de la Vie",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -306,7 +365,8 @@
       "code": "EPE",
       "label": "Institut national sup\u00e9rieur du professorat et de l'\u00e9ducation (INSPE)",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -316,7 +376,8 @@
       "code": "LGE",
       "label": "Facult\u00e9 des langues",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -326,7 +387,8 @@
       "code": "ILL",
       "label": "IUT Robert Schuman",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -336,7 +398,8 @@
       "code": "ITR",
       "label": "Institut du travail",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -346,7 +409,8 @@
       "code": "OBS",
       "label": "Observatoire Astronomique de Strasbourg",
       "mailing_list": null,
-      "active": false
+      "active": false,
+      "establishment": 1
     }
   },
   {
@@ -6197,6 +6261,31 @@
       "validation_string": null,
       "recovery_string": null,
       "groups": [],
+      "user_permissions": [],
+      "structures": []
+    }
+  },
+  {
+    "model": "core.immersionuser",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$wmcSCImSlxrT$D9r0x9B2zlVIZTYiS1z+CFw/UCKmQKRiWLy6yoEaq3w=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "test-ref-etab-maitre",
+      "first_name": "TEST",
+      "last_name": "REF-ETAB-MAITRE",
+      "email": "test-ref-eta-maitreb@test.fr",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2022-02-22T11:03:33Z",
+      "highschool": null,
+      "destruction_date": null,
+      "validation_string": null,
+      "recovery_string": null,
+      "groups": [
+        8
+      ],
       "user_permissions": [],
       "structures": []
     }

@@ -1,22 +1,18 @@
 """
 Charts API tests
 """
-import datetime
-import pprint
 import json
 
 from django.contrib.auth import get_user_model
-from django.utils.formats import date_format
 from django.urls import reverse
 from django.test import Client, RequestFactory, TestCase
-from django.conf import settings
 from django.contrib.auth.models import Group
 
 from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
 
 from .. import api
 
-class ChartsTestCase(TestCase):
+class ChartsAPITestCase(TestCase):
     """Tests for API"""
 
     # This file contains a complete set of users, slots, etc
@@ -27,21 +23,19 @@ class ChartsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.master_establishment = Establishment.objects.create(
-            code='ETA1',
-            label='Etablissement 1',
-            short_label='Eta 1',
-            active=True,
-            master=True,
-            email='test1@test.com',
-            signed_charter=True,
-        )
+        self.master_establishment = Establishment.objects.get(pk=1)
 
         self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
         self.ref_etab_user.establishment = self.master_establishment
         self.ref_etab_user.set_password('hiddenpassword')
         self.ref_etab_user.save()
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+
+        self.ref_master_etab_user = get_user_model().objects.get(username='test-ref-etab-maitre')
+        self.ref_master_etab_user.establishment = self.master_establishment
+        self.ref_master_etab_user.set_password('hiddenpassword')
+        self.ref_master_etab_user.save()
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
 
         self.reflyc_user = get_user_model().objects.get(username='jeanjacquesmonnet')
         self.reflyc_user.set_password('hiddenpassword')
@@ -390,6 +384,240 @@ class ChartsTestCase(TestCase):
         json_content = json.loads(content)
         self.assertEqual(json_content['data'], data)
 
+
+    def test_global_trainings_charts_api(self):
+        """
+        Global (all establishments) training charts (ajax request : use headers)
+        """
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+
+        url = "/charts/get_global_trainings_charts"
+        response = self.client.get(url, {'empty_trainings': 'true'}, **self.header)
+
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(
+            json_content["columns"],
+            [{'data': 'establishment',
+              'name': 'establishment',
+              'title': 'Establishment',
+              'filter': 'establishment_filter'
+            },{'data': 'structure',
+              'name': 'structures',
+              'title': 'Structure(s)',
+              'filter': 'structure_filter'
+             },
+             {'data': 'domain_label',
+              'name': 'domain_subdomain',
+              'title': 'Domain/Subdomain',
+              'filter': 'domain_filter'
+             },
+             {'data': 'training_label',
+              'name': 'training',
+              'title': 'Training',
+              'filter': 'training_filter'
+             },
+             {'data': 'unique_persons',
+              'name': 'persons_cnt',
+              'title': 'Persons cnt'
+             },
+             *[{
+                 "data": f"unique_students_lvl{level.id}",
+                 "name": f"pupils_cnt_{level.label}",
+                 "title": "Pupils cnt<br>%s" % level.label,
+                 "visible": False,
+             } for level in HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+             ],
+             {'data': 'unique_students',
+              'name': 'students_cnt',
+              'title': 'Students cnt',
+              'visible': False
+             },
+             {'data': 'unique_visitors',
+              'name': 'visitors_cnt',
+              'title': 'Visitors cnt',
+              'visible': False
+             },
+             {'data': 'all_registrations',
+              'name': 'registrations',
+              'title': 'Registrations'
+             },
+             *[{
+                 'data': f"registrations_lvl{level.id}",
+                 "name": f"registrations_{level.label}",
+                 "title": "Registrations<br>%s" % level.label,
+                 'visible': False,
+             } for level in HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+             ],
+             {'data': 'students_registrations',
+              'name': 'students_registrations',
+              'title': 'Students<br>registrations',
+              'visible': False
+             },
+             {'data': 'visitors_registrations',
+              'name': 'visitors_registrations',
+              'title': 'Visitors<br>registrations',
+              'visible': False
+             }
+          ]
+        )
+
+        self.assertEqual(
+            json_content["yadcf"],
+            [{'column_selector': "establishment:name",
+              'filter_default_label': "",
+              'filter_match_mode': "exact",
+              'filter_container_id': "establishment_filter",
+              'style_class': "form-control form-control-sm",
+              'filter_reset_button_text': False,
+             },{'column_selector': 'structures:name',
+              'text_data_delimiter': '<br>',
+              'filter_default_label': '',
+              'filter_match_mode': 'contains',
+              'filter_container_id': 'structure_filter',
+              'style_class': 'form-control form-control-sm',
+              'filter_reset_button_text': False
+             },
+             {'column_selector': 'domain_subdomain:name',
+              'text_data_delimiter': '<br>',
+              'filter_default_label': '',
+              'filter_match_mode': 'contains',
+              'filter_container_id': 'domain_filter',
+              'style_class': 'form-control form-control-sm',
+              'filter_reset_button_text': False
+             },
+             {'column_selector': 'training:name',
+              'filter_default_label': '',
+              'filter_match_mode': 'exact',
+              'filter_container_id': 'training_filter',
+              'style_class': 'form-control form-control-sm',
+              'filter_reset_button_text': False
+              }]
+        )
+        self.assertEqual(json_content["order"], [[0, 'asc'], [1, 'asc'], [2, 'asc']])
+
+        self.assertEqual(json_content["data"], [
+            {'establishment': 'Université de Strasbourg',
+             'structure': 'IUT Louis Pasteur',
+             'training_label': 'DUT Informatique',
+             'domain_label': 'Sciences et Technologies<br>- Informatique',
+             'unique_persons': 5,
+             'unique_visitors': 0,
+             'all_registrations': 5,
+             'visitors_registrations': 0,
+             'unique_students_lvl1': 2,
+             'registrations_lvl1': 2,
+             'unique_students_lvl2': 2,
+             'registrations_lvl2': 2,
+             'unique_students_lvl3': 1,
+             'registrations_lvl3': 1,
+             'unique_students': 0,
+             'students_registrations': 0
+            },
+            {'establishment': 'Université de Strasbourg',
+             'structure': 'Faculté des Arts',
+             'training_label': 'Licence Arts Plastiques & Design',
+             'domain_label': 'Art, Lettres, Langues<br>- Art plastiques',
+             'unique_persons': 7,
+             'unique_visitors': 0,
+             'all_registrations': 12,
+             'visitors_registrations': 0,
+             'unique_students_lvl1': 3,
+             'registrations_lvl1': 6,
+             'unique_students_lvl2': 3,
+             'registrations_lvl2': 4,
+             'unique_students_lvl3': 1,
+             'registrations_lvl3': 2,
+             'unique_students': 0,
+             'students_registrations': 0
+            },
+            {'establishment': 'Université de Strasbourg',
+             'structure': 'Faculté des Arts',
+             'training_label': 'Licence Arts du Spectacle',
+             'domain_label': 'Art, Lettres, Langues<br>- Art visuels',
+             'unique_persons': 7,
+             'unique_visitors': 0,
+             'all_registrations': 12,
+             'visitors_registrations': 0,
+             'unique_students_lvl1': 3,
+             'registrations_lvl1': 6,
+             'unique_students_lvl2': 3,
+             'registrations_lvl2': 5,
+             'unique_students_lvl3': 1,
+             'registrations_lvl3': 1,
+             'unique_students': 0,
+             'students_registrations': 0
+            },
+            {'establishment': 'Université de Strasbourg',
+             'structure': 'UFR Mathématiques et Informatique',
+             'training_label': 'Licence Informatique',
+             'domain_label': 'Sciences et Technologies<br>- Informatique',
+             'unique_persons': 5,
+             'unique_visitors': 0,
+             'all_registrations': 5,
+             'visitors_registrations': 0,
+             'unique_students_lvl1': 2,
+             'registrations_lvl1': 2,
+             'unique_students_lvl2': 2,
+             'registrations_lvl2': 2,
+             'unique_students_lvl3': 1,
+             'registrations_lvl3': 1,
+             'unique_students': 0,
+             'students_registrations': 0
+            },
+            {'establishment': 'Université de Strasbourg',
+             'structure': 'Faculté des Sciences économiques et de gestion<br>UFR Mathématiques et Informatique',
+             'training_label': 'Licence Maths-Eco',
+             'domain_label': 'Droit, Economie, Gestion<br>- Economie, Gestion<br>Sciences et Technologies<br>- Mathématiques',
+             'unique_persons': 4,
+             'unique_visitors': 0,
+             'all_registrations': 6,
+             'visitors_registrations': 0,
+             'unique_students_lvl1': 1,
+             'registrations_lvl1': 2,
+             'unique_students_lvl2': 2,
+             'registrations_lvl2': 3,
+             'unique_students_lvl3': 0,
+             'registrations_lvl3': 0,
+             'unique_students': 1,
+             'students_registrations': 1
+            },
+            {'establishment': 'Université de Strasbourg',
+             'structure': 'UFR Mathématiques et Informatique',
+             'training_label': 'Licence Mathématiques',
+             'domain_label': 'Sciences et Technologies<br>- Mathématiques',
+             'unique_persons': 3,
+             'unique_visitors': 0,
+             'all_registrations': 4,
+             'visitors_registrations': 0,
+             'unique_students_lvl1': 1,
+             'registrations_lvl1': 1,
+             'unique_students_lvl2': 1,
+             'registrations_lvl2': 2,
+             'unique_students_lvl3': 1,
+             'registrations_lvl3': 1,
+             'unique_students': 0,
+             'students_registrations': 0
+            },
+            {'establishment': 'Université de Strasbourg',
+             'structure': 'Faculté des sciences du sport',
+             'training_label': 'Licence STAPS',
+             'domain_label': 'Sciences Humaines et sociales<br>- Sport',
+             'unique_persons': 3,
+             'unique_visitors': 0,
+             'all_registrations': 3,
+             'visitors_registrations': 0,
+             'unique_students_lvl1': 1,
+             'registrations_lvl1': 1,
+             'unique_students_lvl2': 1,
+             'registrations_lvl2': 1,
+             'unique_students_lvl3': 1,
+             'registrations_lvl3': 1,
+             'unique_students': 0,
+             'students_registrations': 0
+            }]
+        )
 
     def test_registration_charts_charts_api(self):
         # Registration charts

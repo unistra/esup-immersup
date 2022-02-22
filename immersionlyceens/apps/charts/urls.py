@@ -18,6 +18,7 @@ urlpatterns = [
     path('global_slots_charts', views.global_slots_charts, name='global_slots_charts'),
 
     # API part
+    # TODO : update paths to have more REST compliant urls
     path('get_highschool_charts/<int:highschool_id>', api.highschool_charts, name='get_highschool_charts'),
     path('get_highschool_domains_charts/<int:highschool_id>/<int:level>', api.highschool_domains_charts, name='get_highschool_domains_charts'),
     path('get_global_domains_charts', api.global_domains_charts, name='get_global_domains_charts'),
