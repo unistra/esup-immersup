@@ -1637,7 +1637,10 @@ class APITestCase(TestCase):
         one = False
         for h in content['data']:
             if h['level'] in [l.label for l in HighSchoolLevel.objects.filter(is_post_bachelor=True)]:
-                self.assertEqual(self.hs_record.post_bachelor_level.label, h['post_bachelor_level'])
+                self.assertEqual(
+                    f"{self.hs_record.level} - {self.hs_record.post_bachelor_level.label}",
+                    h['post_bachelor_level']
+                )
                 self.assertEqual(self.hs_record.get_origin_bachelor_type_display(), h['bachelor'])
                 one = True
                 break

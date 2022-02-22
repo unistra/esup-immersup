@@ -604,10 +604,14 @@ def slots(request):
                 data['attendances_value'] = -1  # nothing
             elif (
                 slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()
-                or can_update_attendances
+                # or can_update_attendances
             ):
-                data['attendances_value'] = 1  # to enter
-                data['attendances_status'] = gettext("To enter")
+                if can_update_attendances:
+                    data['attendances_value'] = 1  # to enter
+                    data['attendances_status'] = gettext("To enter")
+                else:
+                    data['attendances_value'] = 2  # view only
+                    data['attendances_status'] = gettext("University year is over")
             else:
                 data['attendances_value'] = 2  # view only
                 data['attendances_status'] = gettext("Entered")
