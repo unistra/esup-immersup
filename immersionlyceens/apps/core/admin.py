@@ -1186,6 +1186,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
         'referents_list',
         'convention_start_date',
         'convention_end_date',
+        'postbac_immersion',
         'signed_charter',
     )
     list_filter = (
