@@ -19,13 +19,35 @@
 
 {% block section_title %}
     <h3 class="ml-2">
-      {% trans "Statistics - registrations by trainings" %}
+      {% if request.user.is_structure_manager %}
+        {% trans "Structure statistics - registrations by trainings in my structure(s)" %}
+      {% else %}
+        {% trans "Statistics - registrations by trainings" %}
+      {% endif %}
     </h3>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
+    {% if resquest.user.is_structure_manager %}
+    <div class="card-header text-white bg-secondary">
+      {% if structures|length > 1 %}
+        <label for="id_structures">{% trans 'Select a structure' %} :</label>
+          <select id="id_structures">
+            {% for structure in structures %}
+              <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                {{ structure.label }}
+              </option>
+            {% endfor %}
+          </select>
+      {% else %}
+        {% with structure=structures|first %}
+          {{ structure.label }}
+        {% endwith %}
+      {% endif %}
+    </div>
+    {% endif %}
     <div class="card-body">
       <form class="form-horizontal">
         <div class="form-group">
@@ -68,6 +90,7 @@
 <script type="text/javascript">
   var dt;
   var tableName = "#statistics_table";
+  var structure_id = "{{ structure_id }}";
   var data;
   var str;
   var columns;
@@ -82,12 +105,17 @@
 
     function load_datatable() {
       let url = "/charts/get_global_trainings_charts"
+      let ajax_data = {
+        'empty_trainings': $('#filter_empty_trainings').is(':checked')
+      }
+
+      if(is_set(structure_id)) {
+        ajax_data.structure_id = structure_id
+      }
 
       response = $.ajax({
           'url': url,
-          'data': {
-              'empty_trainings': $('#filter_empty_trainings').is(':checked')
-          }
+          'data': ajax_data
       }).done(function () {
         let header;
         data = JSON.parse(response.responseText);
@@ -151,6 +179,13 @@
       highschool_id = $('#id_highschools option:selected').val();
       load_datatable();
     });
+
+    if(is_set($('#id_structures'))) {
+      $('#id_structures').change(function () {
+        structure_id = $('#id_structures option:selected').val();
+        load_datatable();
+      })
+    }
 
     $('#filter_empty_trainings').click(function () {
       load_datatable();

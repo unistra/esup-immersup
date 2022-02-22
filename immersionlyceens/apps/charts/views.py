@@ -117,34 +117,22 @@ def highschool_trainings_charts(request):
     return render(request, 'charts/highschool_trainings_charts.html', context=context)
 
 
-@groups_required('REF-STR')
-def structure_trainings_charts(request):
-    """
-    Registration statistics by trainings for structures
-    FIXME : try to refactor *_training_charts ? => needs a datatable template with dynamic columns definitions
-    """
-
-    structures = [
-        {'id': s.id, 'label': s.label}
-        for s in request.user.structures.all().order_by('label')
-    ]
-
-    context = {
-        'structures': structures,
-        "structure_id": structures[0]['id'] if structures else '',
-        'high_school_levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
-    }
-    return render(request, 'charts/structure_trainings_charts.html', context=context)
-
-
-@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'REF-TEC', 'REF-LYC', 'REF-STR')
 def global_trainings_charts(request):
     """
     Registration statistics by trainings for establishments and highschools
     """
 
+    # This will be only useful to structure managers
+    structures = [
+        {'id': s.id, 'label': s.label}
+        for s in request.user.structures.all().order_by('label')
+    ]
+
     # Do not include post_bachelor pupils levels as they will be added to Students count
     context = {
+        'structures': structures,
+        'structure_id': structures[0]['id'] if structures else '',
         'high_school_levels': HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False).order_by('order'),
     }
     return render(request, 'charts/global_trainings_charts.html', context=context)
