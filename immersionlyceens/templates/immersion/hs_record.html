@@ -284,8 +284,6 @@ ul
     }
 
     function switch_bachelor_type_options(b_type, level) {
-      console.log("b_type => " + b_type)
-      console.log("level  => " + level)
       if(b_type == 1) {
         if ( is_set(high_school_levels[level]) && high_school_levels[level]['requires_bachelor_speciality'] === true ) {
           $('#id_general_bachelor_data').show("slow");

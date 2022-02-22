@@ -302,7 +302,13 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
         professional_bachelor_mention = cleaned_data.get('professional_bachelor_mention', '')
         origin_bachelor_type = cleaned_data['origin_bachelor_type']
 
-        if level in [2, 3]:
+        need_bachelor_speciality = HighSchoolLevel.objects \
+            .filter(active=True, requires_bachelor_speciality=True)
+
+        post_bachelor_levels = HighSchoolLevel.objects \
+            .filter(active=True, is_post_bachelor=True)
+
+        if level in need_bachelor_speciality:
             if bachelor_type == 1:
                 cleaned_data['technological_bachelor_mention'] = None
                 cleaned_data['professional_bachelor_mention'] = ""
@@ -321,7 +327,7 @@ class HighSchoolStudentRecordForm(forms.ModelForm):
                 if not professional_bachelor_mention:
                     raise forms.ValidationError(
                         _("Please enter a mention for your professional bachelor"))
-        elif level == 3:
+        elif level in post_bachelor_levels:
             cleaned_data['general_bachelor_teachings'] = []
             cleaned_data['technological_bachelor_mention'] = None
             cleaned_data['professional_bachelor_mention'] = ""
