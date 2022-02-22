@@ -214,11 +214,11 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         'email',
         'first_name',
         'last_name',
-        'is_superuser',
-        'is_staff',
         'get_groups_list',
         'get_activated_account',
         'destruction_date',
+        'is_superuser',
+        'is_staff',
     ]
 
     list_filter = (

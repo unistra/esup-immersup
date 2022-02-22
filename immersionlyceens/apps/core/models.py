@@ -1297,9 +1297,9 @@ class Course(models.Model):
 
     def get_etab_or_high_school(self):
         if not self.highschool:
-            return self.structure
+            return self.structure.label
         else:
-            return self.highschool
+            return f'{self.highschool.label} - {self.highschool.city}'
 
     class Meta:
         verbose_name = _('Course')
@@ -2064,7 +2064,7 @@ class Slot(models.Model):
 
     def can_show_url(self):
         # Showing remote course url if today date >= NB_DAYS_SLOT_REMINDER
-        today = datetime.datetime.today().date()
+        today = datetime.datetime.today()
         default_value = 4
 
         # Default settings value
@@ -2083,7 +2083,12 @@ class Slot(models.Model):
         if days <= 0:
             days = default_value
 
-        return self.date <= today + datetime.timedelta(days=days)
+        if today.date() < self.date and self.date < (today + datetime.timedelta(days=days)).date():
+            return True
+        if self.date == today.date() and today.time() < self.end_time:
+            return True
+        else:
+            return False
 
 
     class Meta:
