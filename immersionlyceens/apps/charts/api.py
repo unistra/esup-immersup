@@ -484,6 +484,7 @@ def get_global_trainings_charts(request):
     # Do not include trainings with no registration/students
     if not show_empty_trainings:
         trainings_filter['courses__slots__immersions__isnull'] = False
+        trainings_filter['courses__slots__immersions__cancellation_type__isnull'] = True
 
     # Default table ordering
     response['order'] = [
