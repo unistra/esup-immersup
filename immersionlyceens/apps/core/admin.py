@@ -6,6 +6,7 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.db.models import JSONField, Q
 from django.urls import reverse
+from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
@@ -145,6 +146,47 @@ class HighschoolListFilter(admin.SimpleListFilter):
             return queryset.filter(highschool=self.value())
         else:
             return queryset
+
+class HighschoolConventionFilter(admin.SimpleListFilter):
+    title = _('Conventions')
+    parameter_name = 'conventions'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('active', _('Active conventions')),
+            ('past', _('Past conventions')),
+            ('all', _('All conventions')),
+            ('none', _('No conventions')),
+        )
+
+    def choices(self, cl):
+            for lookup, title in self.lookup_choices:
+                yield {
+                    'selected': self.value() == lookup,
+                    'query_string': cl.get_query_string({
+                        self.parameter_name: lookup,
+                    }, []),
+                    'display': title,
+                }
+
+
+    def queryset(self, request, queryset):
+        if self.value() == 'active' or self.value() == None:
+            return queryset.filter(
+                convention_start_date__lte=datetime.now().date(),
+                convention_end_date__gte=datetime.now().date()
+            )
+        elif self.value() == 'past':
+            return queryset.filter(
+                convention_start_date__lt=datetime.now().date(),
+                convention_end_date__lt=datetime.now().date()
+            )
+        elif self.value() == 'all':
+            return queryset
+        elif self.value() == 'none':
+            return queryset.filter(
+                Q(convention_start_date__isnull=True, convention_end_date__isnull=True,)
+            )
 
 
 class StructureListFilter(admin.SimpleListFilter):
@@ -1149,6 +1191,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     list_filter = (
         'postbac_immersion',
         ('city', DropdownFilter),
+        HighschoolConventionFilter,
     )
 
     ordering = ('label',)
