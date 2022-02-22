@@ -145,7 +145,8 @@ def grouper_sort_reversed(grouper):
 
 @register.simple_tag(takes_context = True)
 def get_logout_url(context):
-    backend = context.request.session[BACKEND_SESSION_KEY]
+    backend = context.request.session.get(BACKEND_SESSION_KEY)
+
     #TODO: check if other backends needed and use them
     if backend == 'django_cas.backends.CASBackend':
         return reverse('django_cas:logout')
