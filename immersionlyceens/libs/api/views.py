@@ -1407,8 +1407,7 @@ def ajax_set_attendance(request):
                 user.is_establishment_manager() and slot_establishment == user.establishment,
                 user.is_structure_manager() and slot_structure in allowed_structures,
                 user.is_speaker() and user in immersion.slot.speakers.all(),
-                user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
-                and slot_highschool and user.highschool == slot_highschool,
+                user.is_high_school_manager() and slot_highschool and user.highschool == slot_highschool,
             ]
 
             if any(valid_conditions):
@@ -1802,8 +1801,8 @@ def ajax_get_available_students(request, slot_id):
                 if record.level:
                     student_data['level'] = record.level.label
 
-                    if record.level.is_post_bachelor:
-                        student_data['level'] += f" {record.level.post_bachelor_level.label}"
+                    if record.level.is_post_bachelor and record.post_bachelor_level:
+                        student_data['level'] += f" - {record.post_bachelor_level.label}"
 
             elif student.is_student():
                 uai_code, institution = record.home_institution()
@@ -1912,7 +1911,10 @@ def ajax_get_highschool_students(request, highschool_id=None):
 
                 if record.level.is_post_bachelor:
                     student_data['bachelor'] = record.get_origin_bachelor_type_display()
-                    student_data['post_bachelor_level'] = record.post_bachelor_level.label
+                    student_data['post_bachelor_level'] = record.level.label
+
+                    if record.post_bachelor_level:
+                        student_data['post_bachelor_level'] += f" - {record.post_bachelor_level.label}"
                 else:
                     student_data['bachelor'] = record.get_bachelor_type_display()
 
@@ -1971,7 +1973,10 @@ class AjaxGetRegisteredUsers(View):
 
             if record.level.is_post_bachelor:
                 data['bachelor'] = record.get_origin_bachelor_type_display()
-                data['post_bachelor_level'] = record.post_bachelor_level.label
+                data['post_bachelor_level'] = record.level.label
+
+                if record.post_bachelor_level:
+                    data['post_bachelor_level'] += f" - {record.post_bachelor_level.label}"
             else:
                 data['bachelor'] = record.get_bachelor_type_display()
         return data
@@ -2513,15 +2518,13 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
                     immersion.slot.start_time.minute,
                 ),
                 "%Y:%m:%d %H:%M",
-            )
-            if immersion.slot.date
-            else None,
+            ) if immersion.slot.date else None,
             'name': f"{immersion.student.last_name} {immersion.student.first_name}",
             'institution': institution,
             'phone': record.phone if record and record.phone else '',
             'email': immersion.student.email,
-            'campus': immersion.slot.campus.label,
-            'building': immersion.slot.building.label,
+            'campus': immersion.slot.campus.label if immersion.slot.campus else '',
+            'building': immersion.slot.building.label if immersion.slot.building else '',
             'room': immersion.slot.room,
         }
 

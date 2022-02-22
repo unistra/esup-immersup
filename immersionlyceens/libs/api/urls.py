@@ -46,18 +46,8 @@ urlpatterns = [
         name='get_highschool_students',
     ),
     path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
-
-    # path('get_highschool_students/', views.AjaxGetRegisteredUsers.as_view(), name='get_all_students'),
-    # path(
-    #     'get_highschool_students/<int:highschool_id>/',
-    #     views.AjaxGetRegisteredUsers.as_view(),
-    #     name='get_highschool_students',
-    # ),
-    # path('get_highschool_students/no_record', views.AjaxGetRegisteredUsers.as_view(), name='get_students_without_record'),
-
     path('get_immersions/<int:user_id>', views.ajax_get_immersions, name='get_immersions',),
 
-    # path('get_my_courses', views.ajax_get_my_courses, name='GetMyCourses'),
     path('get_other_registrants/<int:immersion_id>', views.ajax_get_other_registrants, name='get_other_registrants',),
     path('get_person', views.ajax_get_person, name='PersonByName'),
     path('get_slot_registrations/<int:slot_id>', views.ajax_get_slot_registrations, name='get_slot_registrations',),
