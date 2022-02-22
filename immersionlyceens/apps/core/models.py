@@ -1297,7 +1297,7 @@ class Course(models.Model):
 
     def get_etab_or_high_school(self):
         if not self.highschool:
-            return self.structure.label
+            return self.structure.establishment.label
         else:
             return f'{self.highschool.label} - {self.highschool.city}'
 
