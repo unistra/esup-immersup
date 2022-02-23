@@ -1723,15 +1723,18 @@ def ajax_get_available_students(request, slot_id):
     """
     response = {'data': [], 'msg': ''}
     user = request.user
-    students = ImmersionUser.objects\
-        .filter(groups__name__in=['LYC', 'ETU', 'VIS'], validation_string__isnull=True)\
-        .exclude(immersions__slot__id=slot_id)
 
     try:
         slot = Slot.objects.get(pk=slot_id)
     except Slot.DoesNotExist:
         response['msg'] = _("Error : slot not found")
         return JsonResponse(response, safe=False)
+
+    # Secondary query needed in exclude : we need to see students who have cancelled their registration to
+    # keep the possibility to readd them
+    students = ImmersionUser.objects \
+        .filter(groups__name__in=['LYC', 'ETU', 'VIS'], validation_string__isnull=True) \
+        .exclude(immersions__in=(Immersion.objects.filter(slot__id=slot_id, cancellation_type__isnull=True)))
 
     # Visit slot : keep only high school students matching the slot's high school
     if slot.is_visit() and slot.visit.highschool:
