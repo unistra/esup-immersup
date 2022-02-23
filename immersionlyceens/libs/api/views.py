@@ -11,6 +11,7 @@ from itertools import chain, permutations
 from typing import Any, Dict, List, Optional
 
 import django_filters.rest_framework
+import rest_framework
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -27,9 +28,8 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View, generic
 from rest_framework import generics, status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
-
-from immersionlyceens.libs.api.serializers import MailingListSerializer
 
 """
 from rest_framework.response import Response
@@ -3198,8 +3198,7 @@ def signCharter(request):
 
 
 class MailingListGlobalView(APIView):
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes = [TokenAuthentication, ]
 
     def get(self, request, *args, **kwargs):
         response: Dict[str, Any] = {"msg": "", "data": None}
@@ -3223,8 +3222,7 @@ class MailingListGlobalView(APIView):
 
 
 class MailingListStructuresView(APIView):
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes = [TokenAuthentication, ]
 
     def get(self, request, *args, **kwargs):
         response: Dict[str, Any] = {"msg": "", "data": None}
@@ -3241,8 +3239,7 @@ class MailingListStructuresView(APIView):
 
 
 class MailingListEstablishmentsView(APIView):
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes = [TokenAuthentication, ]
 
     def get(self, request, *args, **kwargs):
         response: Dict[str, Any] = {"msg": "", "data": None}
@@ -3259,8 +3256,7 @@ class MailingListEstablishmentsView(APIView):
 
 
 class MailingListHighSchoolsView(APIView):
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes = [TokenAuthentication, ]
 
     def get(self, request, *args, **kwargs):
         response: Dict[str, Any] = {"msg": "", "data": None}
