@@ -18,55 +18,63 @@
 {% endblock %}
 
 {% block section_title %}
-    <h3 class="ml-2">
-      {% if request.user.is_structure_manager %}
-        {% trans "Structure statistics - registrations by trainings in my structure(s)" %}
-      {% else %}
-        {% trans "Statistics - registrations by trainings" %}
-      {% endif %}
-    </h3>
+  <h3 class="ml-2">
+    {% if request.user.is_structure_manager %}
+      {% trans "Structure statistics - registrations by trainings in my structure(s)" %}
+    {% elif request.user.is_high_school_manager %}
+      {% trans "Highschools statistics - registrations by trainings" %}
+    {% else %}
+      {% trans "Statistics - registrations by trainings" %}
+    {% endif %}
+  </h3>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
+    {% if request.user.is_structure_manager and structures|length == 1 or request.user.is_high_school_manager %}
     <div class="card-header text-white bg-secondary">
       {% if request.user.is_structure_manager %}
-        {% if structures|length > 1 %}
-          <label for="id_structures">{% trans 'Select a structure' %} :</label>
-            <select id="id_structures">
-              {% for structure in structures %}
-                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
-                  {{ structure.label }}
-                </option>
-              {% endfor %}
-            </select>
-        {% else %}
-          {% with structure=structures|first %}
-            {{ structure.label }}
-          {% endwith %}
-        {% endif %}
-      {% elif highschools|length > 1 %}
-        <label for="id_highschools">{% trans 'Select a high school' %} :</label>
-          <select id="id_highschools">
-            <option value=""></option>
-            {% for highschool in highschools %}
-              <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
-                {{ highschool.city }} - {{ highschool.label }}
-              </option>
-            {% endfor %}
-          </select>
-          ({% trans 'leave empty for all institutions : high schools and above' %})
-      {% else %}
+        {% with structure=structures|first %}
+          {% trans 'Structure' %} : {{ structure.label }}
+        {% endwith %}
+      {% elif request.user.is_high_school_manager %}
         {% with hs=highschools|first %}
-          {{ hs.city }} - {{ hs.label }}
+          {% trans 'High school' %} : {{ hs.city }} - {{ hs.label }}
         {% endwith %}
       {% endif %}
     </div>
-
+    {% endif %}
     <div class="card-body">
       <form class="form-horizontal">
         <div class="form-group">
+          {% if request.user.is_structure_manager %}
+            {% if structures|length > 1 %}
+              <div class="form-group mx-sm-3 mb-2">
+                <label for="id_structures" class="form-check-label ml-md-2">{% trans 'Select a structure' %} :</label>
+                <select id="id_structures">
+                  {% for structure in structures %}
+                    <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                      {{ structure.label }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% endif %}
+          {% elif highschools|length > 0 and not request.user.is_high_school_manager %}
+            <div class="form-group mx-sm-3 mb-2">
+              <label for="id_highschools" class="form-check-label ml-md-2">{% trans 'Filter by pupils from this high school' %} :</label>
+              <select id="id_highschools">
+                <option value=""></option>
+                {% for highschool in highschools %}
+                  <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
+                    {{ highschool.city }} - {{ highschool.label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
           <div class="form-group mx-sm-3 mb-2">
             <label for="filter_empty_trainings" class="form-check-label ml-md-2">{% trans 'Display trainings with no student' %} : </label>
             <input type="checkbox" id="filter_empty_trainings">
@@ -77,8 +85,10 @@
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="pupils_cnt_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
+            {% if not request.user.is_high_school_manager %}
             - <a class="toggle-vis" href='' data-column="students_cnt">{% trans 'Students (and post-bachelor levels)' %}</a>
             - <a class="toggle-vis" href='' data-column="visitors_cnt">{% trans 'Visitors' %}</a>
+            {% endif %}
             - <a class="toggle-vis" href='' data-column="SHOW-ALL-CNTS">{% trans 'Show all' %}</a> / <a class="toggle-vis" href='' data-column="HIDE-ALL-CNTS">{% trans 'Hide all' %}</a>
           </div>
           <div class="form-group mx-sm-3 mb-2">
@@ -87,8 +97,10 @@
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="registrations_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
+            {% if not request.user.is_high_school_manager %}
             - <a class="toggle-vis" href='' data-column="students_registrations">{% trans 'Students registrations (and post-bachelor levels)' %}</a>
             - <a class="toggle-vis" href='' data-column="visitors_registrations">{% trans 'Visitors registrations' %}</a>
+            {% endif %}
             - <a class="toggle-vis" href='' data-column="SHOW-ALL-REGS">{% trans 'Show all' %}</a> / <a class="toggle-vis" href='' data-column="HIDE-ALL-REGS">{% trans 'Hide all' %}</a>
           </div>
         </div>

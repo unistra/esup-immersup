@@ -482,12 +482,12 @@ def get_global_trainings_charts(request):
     students_filter = {}
     immersions_filter = {}
 
-    if structure_id and request.user.is_structure_manager() and request.user.structures.exists():
+    if structure_id and user.is_structure_manager() and user.structures.exists():
         trainings_filter['structures'] = structure_id
 
-    # override highschool id if request.user is a high school manager
-    if request.user.is_high_school_manager() and request.user.highschool:
-        highschool_id = request.user.highschool.id
+    # override highschool id if user is a high school manager
+    if user.is_high_school_manager() and user.highschool:
+        highschool_id = user.highschool.id
 
     if highschool_id:
         students_filter['high_school_student_record__highschool__id'] = highschool_id
@@ -552,7 +552,14 @@ def get_global_trainings_charts(request):
             'filter_reset_button_text': False,
         })
 
-    pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+
+
+    # High school managers will see different high school pupils levels
+    if user.is_high_school_manager():
+        pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True)
+    else:
+        pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+
     post_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=True)
 
     # Next columns definition
@@ -618,19 +625,24 @@ def get_global_trainings_charts(request):
             "visible": False
         },
     ]
-    
+
+    # Columns list for "show all" and "hide all" shortcuts
     response['cnt_columns'] = [
       *[f"pupils_cnt_{level.label}" for level in pre_bachelor_levels],
-      "students_cnt",
-      "visitors_cnt"
-    ]
-    
-    response['registrations_columns'] = [
-      *[f"registrations_{level.label}" for level in pre_bachelor_levels],
-      "students_registrations",
-      "visitors_registrations"
     ]
 
+    response['registrations_columns'] = [
+      *[f"registrations_{level.label}" for level in pre_bachelor_levels],
+    ]
+
+    # Add some columns if user is not a high school manager
+    if not user.is_high_school_manager():
+        response['cnt_columns'] += ["students_cnt", "visitors_cnt"]
+        response['registrations_columns'] += ["students_registrations", "visitors_registrations"]
+
+    # ============
+
+    # Datatable filters definitions
     response['yadcf'] += [{
             'column_selector': "domain_subdomain:name",
             'text_data_delimiter': "<br>",
