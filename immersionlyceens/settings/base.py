@@ -265,6 +265,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'django_extensions',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
     'hijack',
     'hijack.contrib.admin',

@@ -96,5 +96,11 @@ urlpatterns = [
     path('visitor/records/<operator>', views.VisitorRecordValidation.as_view(), name="visitors_records"),
 
     path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(), name="validate_reject_visitor"),
-    path('sign_charter', views.signCharter, name="sign_charter")
+    path('sign_charter', views.signCharter, name="sign_charter"),
+
+
+    path("mailing_list/global", views.MailingListGlobalView.as_view(), name="mailing_list_global"),
+    path("mailing_list/structures", views.MailingListStructuresView.as_view(), name="mailing_list_global"),
+    path("mailing_list/establishments", views.MailingListEstablishmentsView.as_view(), name="mailing_list_global"),
+    path("mailing_list/high_schools", views.MailingListHighSchoolsView.as_view(), name="mailing_list_global"),
 ]

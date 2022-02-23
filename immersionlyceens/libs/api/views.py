@@ -11,6 +11,7 @@ from itertools import chain, permutations
 from typing import Any, Dict, List, Optional
 
 import django_filters.rest_framework
+import rest_framework
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -27,6 +28,8 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View, generic
 from rest_framework import generics, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.views import APIView
 
 """
 from rest_framework.response import Response
@@ -132,7 +135,7 @@ def ajax_get_person(request):
             }
 
             if structure_id is not None:
-                Q_filter = Q(establishment=establishment)|Q(structures=structure_id)
+                Q_filter = Q(establishment=establishment) | Q(structures=structure_id)
             else:
                 Q_filter = Q(establishment=establishment)
                 filters["establishment"] = establishment
@@ -287,8 +290,8 @@ def ajax_get_trainings(request):
     try:
         trainings = (
             Training.objects.prefetch_related('training_subdomains')
-            .filter(**filters)
-            .order_by('label')
+                .filter(**filters)
+                .order_by('label')
         )
     except FieldError:
         # Not implemented yet
@@ -446,7 +449,7 @@ def slots(request):
             filters['course__training__id'] = training_id
 
         slots = Slot.objects.prefetch_related(
-            'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
+            'course__training__structures', 'course__training__highschool', 'speakers', 'immersions') \
             .filter(**filters)
 
         user_filter_key = "course__training__structures__in"
@@ -500,10 +503,10 @@ def slots(request):
             user.is_operator(),
             user.is_establishment_manager() and establishment == user_establishment,
             slot.published and (
-                (user.is_structure_manager() and structure in allowed_structures) or
-                ((slot.course or slot.event) and user.is_high_school_manager()
-                 and highschool and highschool == user_highschool
-                )
+                    (user.is_structure_manager() and structure in allowed_structures) or
+                    ((slot.course or slot.event) and user.is_high_school_manager()
+                     and highschool and highschool == user_highschool
+                     )
             ),
         ]
 
@@ -528,8 +531,8 @@ def slots(request):
             'can_update_registrations': any(registrations_update_conditions),
             'can_update_attendances': can_update_attendances and any(update_attendances_conditions),
             'course': {
-               'id': slot.course.id,
-               'label': slot.course.label
+                'id': slot.course.id,
+                'label': slot.course.label
             } if slot.course else None,
             'training_label': training_label,
             'training_label_full': training_label_full,
@@ -547,9 +550,9 @@ def slots(request):
             'highschool': {
                 'city': highschool.city,
                 'label': highschool.label,
-                'managed_by_me': user.is_master_establishment_manager()\
-                    or user.is_operator()\
-                    or (user_highschool and highschool == user_highschool),
+                'managed_by_me': user.is_master_establishment_manager() \
+                                 or user.is_operator() \
+                                 or (user_highschool and highschool == user_highschool),
             } if highschool else None,
             'visit': {
                 'id': slot.visit.id,
@@ -584,13 +587,13 @@ def slots(request):
             'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'restrictions': {
-              'establishment_restrictions': slot.establishments_restrictions,
-              'levels_restrictions': slot.levels_restrictions,
-              'allowed_establishments': [e.short_label for e in slot.allowed_establishments.all()],
-              'allowed_highschools': [f"{h.city} - {h.label}" for h in slot.allowed_highschools.all()],
-              'allowed_highschool_levels': [level.label for level in slot.allowed_highschool_levels.all()],
-              'allowed_post_bachelor_levels': [level.label for level in slot.allowed_post_bachelor_levels.all()],
-              'allowed_student_levels': [level.label for level in slot.allowed_student_levels.all()],
+                'establishment_restrictions': slot.establishments_restrictions,
+                'levels_restrictions': slot.levels_restrictions,
+                'allowed_establishments': [e.short_label for e in slot.allowed_establishments.all()],
+                'allowed_highschools': [f"{h.city} - {h.label}" for h in slot.allowed_highschools.all()],
+                'allowed_highschool_levels': [level.label for level in slot.allowed_highschool_levels.all()],
+                'allowed_post_bachelor_levels': [level.label for level in slot.allowed_post_bachelor_levels.all()],
+                'allowed_student_levels': [level.label for level in slot.allowed_student_levels.all()],
             },
             'additional_information': slot.additional_information,
             'attendances_value': 0,
@@ -623,7 +626,7 @@ def slots(request):
             data['attendances_status'] = gettext("Future slot")
 
         for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
-            data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
+            data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)], )
 
         all_data.append(data.copy())
 
@@ -643,8 +646,8 @@ def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
 
     courses = (
         Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, structure__id=structure_id,)
-        .order_by('label')
+            .filter(training__id=training_id, structure__id=structure_id, )
+            .order_by('label')
     )
 
     for course in courses:
@@ -809,7 +812,7 @@ def ajax_check_date_between_vacation(request):
         details = []
         is_vacation = Vacation.date_is_inside_a_vacation(formated_date.date())
         is_holiday = Holiday.date_is_a_holiday(formated_date.date())
-        is_sunday = formated_date.date().weekday() == 6 # sunday
+        is_sunday = formated_date.date().weekday() == 6  # sunday
 
         if is_vacation:
             details.append(pgettext("vacations", "Holidays"))
@@ -3187,3 +3190,82 @@ def signCharter(request):
         data["error"] = _("Charter not signed")
 
     return JsonResponse(data)
+
+
+class MailingListGlobalView(APIView):
+    authentication_classes = [TokenAuthentication, ]
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        try:
+            global_mail = get_general_setting('GLOBAL_MAILING_LIST')
+        except (ValueError, NameError):
+            response["msg"] = "'GLOBAL_MAILING_LIST' setting does not exist (check admin GeneralSettings values)"
+            return JsonResponse(data=response, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        mailing_list = [email for email in ImmersionUser.objects \
+              .filter(Q(student_record__isnull=False)
+                      | Q(high_school_student_record__validation=2,
+                          high_school_student_record__isnull=False) \
+                      | Q(visitor_record__validation=2,
+                          visitor_record__isnull=False) \
+                      ) \
+              .values_list('email', flat=True).distinct()]
+
+        response["data"] = {global_mail: mailing_list}
+        return JsonResponse(data=response)
+
+
+class MailingListStructuresView(APIView):
+    authentication_classes = [TokenAuthentication, ]
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        response["data"] = {}
+        for structure in Structure.objects.filter(mailing_list__isnull=False):
+            mail = structure.mailing_list
+            mailing_list = [email for email in Immersion.objects.filter(
+                    cancellation_type__isnull=True, slot__course__structure=structure) \
+                    .values_list('student__email', flat=True).distinct()
+            ]
+            response["data"][mail] = mailing_list
+
+        return JsonResponse(data=response)
+
+
+class MailingListEstablishmentsView(APIView):
+    authentication_classes = [TokenAuthentication, ]
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        response["data"] = {}
+        for establishment in Establishment.objects.filter(mailing_list__isnull=False):
+            mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
+                Q(slot__course__structure__establishment=establishment) \
+                | Q(slot__visit__establishment=establishment) \
+                | Q(slot__event__establishment=establishment)
+            ).values_list('student__email', flat=True).distinct()]
+            response["data"] = establishment.mailing_list
+
+        return JsonResponse(data=response)
+
+
+class MailingListHighSchoolsView(APIView):
+    authentication_classes = [TokenAuthentication, ]
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        response["data"] = {}
+
+        for hs in HighSchool.agreed.filter(mailing_list__isnull=False):
+            mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
+                Q(slot__course__highschool=hs) \
+                | Q(slot__visit__highschool=hs) \
+                | Q(slot__event__highschool=hs)
+            ).values_list('student__email', flat=True).distinct()]
+            response["data"][hs.mailing_list] = mailing_list
+
+        return JsonResponse(data=response)
+
+
+
