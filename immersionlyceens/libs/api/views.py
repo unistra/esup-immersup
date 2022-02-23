@@ -27,6 +27,9 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View, generic
 from rest_framework import generics, status
+from rest_framework.views import APIView
+
+from immersionlyceens.libs.api.serializers import MailingListSerializer
 
 """
 from rest_framework.response import Response
@@ -132,7 +135,7 @@ def ajax_get_person(request):
             }
 
             if structure_id is not None:
-                Q_filter = Q(establishment=establishment)|Q(structures=structure_id)
+                Q_filter = Q(establishment=establishment) | Q(structures=structure_id)
             else:
                 Q_filter = Q(establishment=establishment)
                 filters["establishment"] = establishment
@@ -273,7 +276,7 @@ def ajax_get_trainings(request):
     object_id = request.GET.get("object_id")
 
     if object_type == 'structure':
-        filters = {'structures': object_id, 'active':True}
+        filters = {'structures': object_id, 'active': True}
     elif object_type == 'highschool':
         filters = {'highschool': object_id, 'active': True}
     else:
@@ -287,8 +290,8 @@ def ajax_get_trainings(request):
     try:
         trainings = (
             Training.objects.prefetch_related('training_subdomains')
-            .filter(**filters)
-            .order_by('label')
+                .filter(**filters)
+                .order_by('label')
         )
     except FieldError:
         # Not implemented yet
@@ -446,7 +449,7 @@ def slots(request):
             filters['course__training__id'] = training_id
 
         slots = Slot.objects.prefetch_related(
-            'course__training__structures', 'course__training__highschool', 'speakers', 'immersions')\
+            'course__training__structures', 'course__training__highschool', 'speakers', 'immersions') \
             .filter(**filters)
 
         user_filter_key = "course__training__structures__in"
@@ -500,10 +503,10 @@ def slots(request):
             user.is_operator(),
             user.is_establishment_manager() and establishment == user_establishment,
             slot.published and (
-                (user.is_structure_manager() and structure in allowed_structures) or
-                ((slot.course or slot.event) and user.is_high_school_manager()
-                 and highschool and highschool == user_highschool
-                )
+                    (user.is_structure_manager() and structure in allowed_structures) or
+                    ((slot.course or slot.event) and user.is_high_school_manager()
+                     and highschool and highschool == user_highschool
+                     )
             ),
         ]
 
@@ -528,8 +531,8 @@ def slots(request):
             'can_update_registrations': any(registrations_update_conditions),
             'can_update_attendances': can_update_attendances and any(update_attendances_conditions),
             'course': {
-               'id': slot.course.id,
-               'label': slot.course.label
+                'id': slot.course.id,
+                'label': slot.course.label
             } if slot.course else None,
             'training_label': training_label,
             'training_label_full': training_label_full,
@@ -547,9 +550,9 @@ def slots(request):
             'highschool': {
                 'city': highschool.city,
                 'label': highschool.label,
-                'managed_by_me': user.is_master_establishment_manager()\
-                    or user.is_operator()\
-                    or (user_highschool and highschool == user_highschool),
+                'managed_by_me': user.is_master_establishment_manager() \
+                                 or user.is_operator() \
+                                 or (user_highschool and highschool == user_highschool),
             } if highschool else None,
             'visit': {
                 'id': slot.visit.id,
@@ -584,13 +587,13 @@ def slots(request):
             'n_register': slot.registered_students(),
             'n_places': slot.n_places if slot.n_places is not None else 0,
             'restrictions': {
-              'establishment_restrictions': slot.establishments_restrictions,
-              'levels_restrictions': slot.levels_restrictions,
-              'allowed_establishments': [e.short_label for e in slot.allowed_establishments.all()],
-              'allowed_highschools': [f"{h.city} - {h.label}" for h in slot.allowed_highschools.all()],
-              'allowed_highschool_levels': [level.label for level in slot.allowed_highschool_levels.all()],
-              'allowed_post_bachelor_levels': [level.label for level in slot.allowed_post_bachelor_levels.all()],
-              'allowed_student_levels': [level.label for level in slot.allowed_student_levels.all()],
+                'establishment_restrictions': slot.establishments_restrictions,
+                'levels_restrictions': slot.levels_restrictions,
+                'allowed_establishments': [e.short_label for e in slot.allowed_establishments.all()],
+                'allowed_highschools': [f"{h.city} - {h.label}" for h in slot.allowed_highschools.all()],
+                'allowed_highschool_levels': [level.label for level in slot.allowed_highschool_levels.all()],
+                'allowed_post_bachelor_levels': [level.label for level in slot.allowed_post_bachelor_levels.all()],
+                'allowed_student_levels': [level.label for level in slot.allowed_student_levels.all()],
             },
             'additional_information': slot.additional_information,
             'attendances_value': 0,
@@ -623,7 +626,7 @@ def slots(request):
             data['attendances_status'] = gettext("Future slot")
 
         for speaker in slot.speakers.all().order_by('last_name', 'first_name'):
-            data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)],)
+            data['speakers'].update([(f"{speaker.last_name} {speaker.first_name}", speaker.email,)], )
 
         all_data.append(data.copy())
 
@@ -643,8 +646,8 @@ def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
 
     courses = (
         Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, structure__id=structure_id,)
-        .order_by('label')
+            .filter(training__id=training_id, structure__id=structure_id, )
+            .order_by('label')
     )
 
     for course in courses:
@@ -809,7 +812,7 @@ def ajax_check_date_between_vacation(request):
         details = []
         is_vacation = Vacation.date_is_inside_a_vacation(formated_date.date())
         is_holiday = Holiday.date_is_a_holiday(formated_date.date())
-        is_sunday = formated_date.date().weekday() == 6 # sunday
+        is_sunday = formated_date.date().weekday() == 6  # sunday
 
         if is_vacation:
             details.append(pgettext("vacations", "Holidays"))
@@ -848,11 +851,11 @@ def ajax_get_student_records(request):
             action = action.upper()
             records = []
             if action == 'TO_VALIDATE':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=1,)  # TO VALIDATE
+                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=1, )  # TO VALIDATE
             elif action == 'VALIDATED':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=2,)  # VALIDATED
+                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=2, )  # VALIDATED
             elif action == 'REJECTED':
-                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=3,)  # REJECTED
+                records = HighSchoolStudentRecord.objects.filter(highschool_id=hs_id, validation=3, )  # REJECTED
 
             response['data'] = [{
                 'id': record.id,
@@ -962,7 +965,7 @@ def ajax_delete_account(request):
         return JsonResponse(response, safe=False)
 
     try:
-        account = ImmersionUser.objects.get(id=account_id) # , groups__name__in=['LYC', 'ETU'])
+        account = ImmersionUser.objects.get(id=account_id)  # , groups__name__in=['LYC', 'ETU'])
     except ImmersionUser.DoesNotExist:
         response = {'error': True, 'msg': gettext("Account not found")}
         return JsonResponse(response, safe=False)
@@ -978,12 +981,14 @@ def ajax_delete_account(request):
 
             if request.user.is_high_school_manager():
                 if not request.user.highschool or request.user.highschool != account.highschool:
-                    response = {'error': True, 'msg': gettext("You can't delete this account (insufficient privileges)")}
+                    response = {'error': True,
+                                'msg': gettext("You can't delete this account (insufficient privileges)")}
                     return JsonResponse(response, safe=False)
 
             if request.user.is_establishment_manager():
                 if not request.user.establishment or request.user.establishment != account.establishment:
-                    response = {'error': True, 'msg': gettext("You can't delete this account (insufficient privileges)")}
+                    response = {'error': True,
+                                'msg': gettext("You can't delete this account (insufficient privileges)")}
                     return JsonResponse(response, safe=False)
 
         elif account.is_high_school_student():
@@ -1019,7 +1024,7 @@ def ajax_cancel_registration(request):
     user = request.user
     allowed_structures = user.get_authorized_structures()
 
-    #FIXME : test request.user rights on immersion.slot
+    # FIXME : test request.user rights on immersion.slot
 
     if not immersion_id or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
@@ -1043,7 +1048,7 @@ def ajax_cancel_registration(request):
                 user.is_establishment_manager() and slot_establishment == user.establishment,
                 user.is_structure_manager() and slot_structure in allowed_structures,
                 user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
-                    and slot_highschool and user.highschool == slot_highschool,
+                and slot_highschool and user.highschool == slot_highschool,
             ]
 
             if not any(valid_conditions):
@@ -1065,7 +1070,7 @@ def ajax_cancel_registration(request):
 
 
 @is_ajax_request
-#TODO: check rights
+# TODO: check rights
 @groups_required('REF-ETAB', 'LYC', 'ETU', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def ajax_get_immersions(request, user_id=None):
     """
@@ -1074,7 +1079,7 @@ def ajax_get_immersions(request, user_id=None):
     immersion_type in "future", "past", "cancelled" or None (= all)
     slot_type in "course", "visit", "event" or None (= all)
     """
-    all_types = ['course', 'visit', 'event'] # Fixme : do something with this in Slot class
+    all_types = ['course', 'visit', 'event']  # Fixme : do something with this in Slot class
 
     slot_type = request.GET.get('slot_type') or None
     immersion_type = request.GET.get('immersion_type') or None
@@ -1130,7 +1135,7 @@ def ajax_get_immersions(request, user_id=None):
     ]
 
     if slot_type:
-        filters.update({f'slot__{a}__isnull': True for a in filter(lambda a:a != slot_type, all_types)})
+        filters.update({f'slot__{a}__isnull': True for a in filter(lambda a: a != slot_type, all_types)})
         prefetch.append(f'slot__{slot_type}')
 
         if slot_type == 'course':
@@ -1149,8 +1154,8 @@ def ajax_get_immersions(request, user_id=None):
     elif immersion_type:
         filters["cancellation_type__isnull"] = True
 
-    immersions = Immersion.objects\
-        .prefetch_related(*prefetch)\
+    immersions = Immersion.objects \
+        .prefetch_related(*prefetch) \
         .filter(**filters)
 
     if immersion_type == "future":
@@ -1191,7 +1196,7 @@ def ajax_get_immersions(request, user_id=None):
             if slot.url and slot.can_show_url():
                 meeting_place += f"<br><a href='{slot.url}'>%s</a>" % gettext("Login link")
         else:
-            meeting_place = " <br> ".join(list(filter(lambda x:x, [building, slot.room])))
+            meeting_place = " <br> ".join(list(filter(lambda x: x, [building, slot.room])))
 
         immersion_data = {
             'id': immersion.id,
@@ -1269,6 +1274,7 @@ def ajax_get_immersions(request, user_id=None):
 
     return JsonResponse(response, safe=False)
 
+
 @is_ajax_request
 @groups_required('LYC', 'ETU', 'VIS')
 def ajax_get_other_registrants(request, immersion_id):
@@ -1283,13 +1289,13 @@ def ajax_get_other_registrants(request, immersion_id):
     if immersion:
         students = (
             ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions')
-            .filter(
+                .filter(
                 immersions__slot=immersion.slot,
                 high_school_student_record__isnull=False,
                 high_school_student_record__visible_immersion_registrations=True,
                 immersions__cancellation_type__isnull=True
             )
-            .exclude(id=request.user.id)
+                .exclude(id=request.user.id)
         )
 
         for student in students:
@@ -1432,7 +1438,6 @@ def ajax_set_attendance(request):
                     immersion.student, gettext("you don't have enough privileges to set the attendance status")
                 )
 
-
     return JsonResponse(response, safe=False)
 
 
@@ -1481,7 +1486,7 @@ def ajax_slot_registration(request):
     if slot_id:
         try:
             slot = Slot.objects.get(pk=slot_id)
-            visit_or_off_offer= True if (slot.visit or slot.event) else False
+            visit_or_off_offer = True if (slot.visit or slot.event) else False
         except Slot.DoesNotExist:
             pass
 
@@ -1513,7 +1518,7 @@ def ajax_slot_registration(request):
         user.is_student(),
         user.is_visitor(),
         user.is_high_school_manager() and (slot.course or slot.event)
-            and slot_highschool and user.highschool == slot_highschool,
+        and slot_highschool and user.highschool == slot_highschool,
     ]
 
     # Check registration rights depending on the (not student) authenticated user
@@ -1596,7 +1601,8 @@ def ajax_slot_registration(request):
                     if slot.is_course():
                         student.set_increment_registrations_(type='annual')
                 # student request & no more remaining registration count
-                elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['annually'] <= 0:
+                elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count[
+                    'annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _(
@@ -1622,14 +1628,16 @@ def ajax_slot_registration(request):
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':
-                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
+                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'},
+                                            safe=False)
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
                         if slot.is_course():
                             student.set_increment_registrations_(type='semester1')
                     # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['semester1'] <= 0:
+                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and \
+                            remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
@@ -1653,14 +1661,16 @@ def ajax_slot_registration(request):
                         can_register = True
                     # alert user he can force registering (js boolean)
                     elif can_force_reg and not force == 'true':
-                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'}, safe=False)
+                        return JsonResponse({'error': True, 'msg': 'force_update', 'reason': 'registrations'},
+                                            safe=False)
                     # force registering (js boolean)
                     elif force == 'true':
                         can_register = True
                         if slot.is_course():
                             student.set_increment_registrations_(type='semester2')
                     # student request & no more remaining registration count
-                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and remaining_regs_count['semester2'] <= 0:
+                    elif (user.is_high_school_student() or user.is_student() or user.is_visitor()) and \
+                            remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _(
@@ -1723,8 +1733,8 @@ def ajax_get_available_students(request, slot_id):
     """
     response = {'data': [], 'msg': ''}
     user = request.user
-    students = ImmersionUser.objects\
-        .filter(groups__name__in=['LYC', 'ETU', 'VIS'], validation_string__isnull=True)\
+    students = ImmersionUser.objects \
+        .filter(groups__name__in=['LYC', 'ETU', 'VIS'], validation_string__isnull=True) \
         .exclude(immersions__slot__id=slot_id)
 
     try:
@@ -1755,7 +1765,7 @@ def ajax_get_available_students(request, slot_id):
             if establishment_filter:
                 students = students.filter(reduce(lambda x, y: x | y, [
                     Q(**{'%s' % f: value}) for f, value in establishment_filter.items()])
-                )
+                                           )
 
         if slot.levels_restrictions:
             levels_restrictions = {}
@@ -1773,7 +1783,7 @@ def ajax_get_available_students(request, slot_id):
             if levels_restrictions:
                 students = students.filter(reduce(lambda x, y: x | y, [
                     Q(**{'%s' % f: value}) for f, value in levels_restrictions.items()])
-                )
+                                           )
 
     for student in students:
         record = None
@@ -1820,7 +1830,6 @@ def ajax_get_available_students(request, slot_id):
 
             elif student.is_visitor():
                 student_data['profile'] = pgettext("person type", "Visitor")
-
 
             response['data'].append(student_data.copy())
 
@@ -1872,7 +1881,8 @@ def ajax_get_highschool_students(request, highschool_id=None):
             visitor_record__isnull=True
         )
     else:
-        students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(visitor_record__isnull=False))
+        students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(
+            visitor_record__isnull=False))
 
     for student in students:
         record = None
@@ -2053,12 +2063,13 @@ class AjaxGetRegisteredUsers(View):
                 visitor_record__isnull=True
             )
         else:
-            students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(
-                visitor_record__isnull=False))
+            students = students.filter(
+                Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(
+                    visitor_record__isnull=False))
 
-        # for student in students:
-        #     my_data = self.get_data(student)
-        #     response['data'].append(my_data.copy())
+            # for student in students:
+            #     my_data = self.get_data(student)
+            #     response['data'].append(my_data.copy())
 
             response["data"] = [self.get_data(user).copy() for user in students]
         return JsonResponse(response, safe=False)
@@ -2149,17 +2160,19 @@ def ajax_batch_cancel_registration(request):
                     user.is_establishment_manager() and slot_establishment == user.establishment,
                     user.is_structure_manager() and slot_structure in allowed_structures,
                     user.is_high_school_manager() and (immersion.slot.course or immersion.slot.event)
-                        and slot_highschool and user.highschool == slot_highschool,
+                    and slot_highschool and user.highschool == slot_highschool,
                 ]
 
                 if not any(valid_conditions):
-                    response = {'error': True, 'msg': _("You don't have enough privileges to cancel these registrations")}
+                    response = {'error': True,
+                                'msg': _("You don't have enough privileges to cancel these registrations")}
                     return JsonResponse(response, safe=False)
 
                 cancellation_reason = CancelType.objects.get(pk=reason_id)
                 immersion.cancellation_type = cancellation_reason
                 immersion.save()
-                ret = immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion, slot=immersion.slot)
+                ret = immersion.student.send_message(request, 'IMMERSION_ANNUL', immersion=immersion,
+                                                     slot=immersion.slot)
                 if ret:
                     warning_msg = _("Warning : some confirmation emails have not been sent : %s") % ret
 
@@ -2241,7 +2254,7 @@ def get_csv_structures(request, structure_id):
     return response
 
 
-@groups_required('REF-LYC',)
+@groups_required('REF-LYC', )
 def get_csv_highschool(request, high_school_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -2264,7 +2277,7 @@ def get_csv_highschool(request, high_school_id):
     ]
 
     content = []
-    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)\
+    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id) \
         .order_by('student__last_name', 'student__first_name')
     for hs in hs_records:
         immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
@@ -2316,7 +2329,7 @@ def get_csv_anonymous_immersion(request):
     infield_separator = '|'
 
     header = [
-        _('structure')+ " / " + _("highschool"),
+        _('structure') + " / " + _("highschool"),
         _('training domain'),
         _('training subdomain'),
         _('training'),
@@ -2597,8 +2610,6 @@ def ajax_get_alerts(request):
         email=request.user.email
     )
 
-
-
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
         domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
@@ -2722,7 +2733,7 @@ def ajax_get_highschool_speakers(request, highschool_id=None):
     if request.user.highschool and highschool_id and request.user.highschool.id == highschool_id:
         for speaker in ImmersionUser.objects.filter(groups__name='INTER', highschool=request.user.highschool):
             has_courses = speaker.courses.exists()
-            has_slots = speaker.slots.exists() # useless ?
+            has_slots = speaker.slots.exists()  # useless ?
 
             response["data"].append({
                 'id': speaker.id,
@@ -2893,8 +2904,8 @@ class TrainingView(generics.DestroyAPIView):
 def ajax_get_immersions_proposal_establishments(request):
     response = {'msg': '', 'data': []}
     try:
-        establishments=Establishment.activated.all().values('city', 'label', 'email')
-        highschools=HighSchool.immersions_proposal.all().values('city', 'label', 'email')
+        establishments = Establishment.activated.all().values('city', 'label', 'email')
+        highschools = HighSchool.immersions_proposal.all().values('city', 'label', 'email')
         results = list(establishments.union(highschools).order_by('city'))
         response['data'].append(results)
     except:
@@ -2923,7 +2934,7 @@ class VisitList(generics.ListAPIView):
                 queryset = queryset.filter(structure__in=user.structures.all())
             if user.is_establishment_manager() and user.establishment:
                 queryset = Visit.objects.filter(
-                    Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
+                    Q(establishment=user.establishment) | Q(structure__in=user.establishment.structures.all())) \
                     .distinct()
 
         return queryset.order_by('establishment', 'structure', 'highschool', 'purpose')
@@ -3008,7 +3019,7 @@ class OffOfferEventList(generics.ListAPIView):
                 queryset = queryset.filter(structure__in=user.structures.all())
             if user.is_establishment_manager() and user.establishment:
                 queryset = OffOfferEvent.objects.filter(
-                    Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
+                    Q(establishment=user.establishment) | Q(structure__in=user.establishment.structures.all())) \
                     .distinct()
 
         return queryset.order_by('establishment', 'structure', 'highschool', 'label')
@@ -3165,7 +3176,7 @@ class VisitorRecordRejectValidate(View):
 @groups_required("REF-ETAB", "REF-LYC")
 def signCharter(request):
     data = {"msg": "", "error": ""}
-    charter_sign = get_general_setting('CHARTER_SIGN') # useful somewhere ?
+    charter_sign = get_general_setting('CHARTER_SIGN')  # useful somewhere ?
     success = False
     user = request.user
 
@@ -3184,3 +3195,86 @@ def signCharter(request):
         data["error"] = _("Charter not signed")
 
     return JsonResponse(data)
+
+
+class MailingListGlobalView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        try:
+            global_mail = get_general_setting('GLOBAL_MAILING_LIST')
+        except (ValueError, NameError):
+            response["msg"] = "'GLOBAL_MAILING_LIST' setting does not exist (check admin GeneralSettings values)"
+            return JsonResponse(data=response, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        mailing_list = [email for email in ImmersionUser.objects \
+              .filter(Q(student_record__isnull=False)
+                      | Q(high_school_student_record__validation=2,
+                          high_school_student_record__isnull=False) \
+                      | Q(visitor_record__validation=2,
+                          visitor_record__isnull=False) \
+                      ) \
+              .values_list('email', flat=True).distinct()]
+
+        response["data"] = {global_mail: mailing_list}
+        return JsonResponse(data=response)
+
+
+class MailingListStructuresView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        response["data"] = {}
+        for structure in Structure.objects.filter(mailing_list__isnull=False):
+            mail = structure.mailing_list
+            mailing_list = [email for email in Immersion.objects.filter(
+                    cancellation_type__isnull=True, slot__course__structure=structure) \
+                    .values_list('student__email', flat=True).distinct()
+            ]
+            response["data"][mail] = mailing_list
+
+        return JsonResponse(data=response)
+
+
+class MailingListEstablishmentsView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        response["data"] = {}
+        for establishment in Establishment.objects.filter(mailing_list__isnull=False):
+            mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
+                Q(slot__course__structure__establishment=establishment) \
+                | Q(slot__visit__establishment=establishment) \
+                | Q(slot__event__establishment=establishment)
+            ).values_list('student__email', flat=True).distinct()]
+            response["data"] = establishment.mailing_list
+
+        return JsonResponse(data=response)
+
+
+class MailingListHighSchoolsView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"msg": "", "data": None}
+        response["data"] = {}
+
+        for hs in HighSchool.agreed.filter(mailing_list__isnull=False):
+            mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
+                Q(slot__course__highschool=hs) \
+                | Q(slot__visit__highschool=hs) \
+                | Q(slot__event__highschool=hs)
+            ).values_list('student__email', flat=True).distinct()]
+            response["data"][hs.mailing_list] = mailing_list
+
+        return JsonResponse(data=response)
+
+
+
