@@ -610,9 +610,13 @@ def slots(request):
                 # Nothing to do
                 data['attendances_value'] = -1  # nothing to do
 
+            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists():
+                data['attendances_value'] = 1  # to enter
+                data['attendances_status'] = gettext("To enter")
+
             else:
                 data['attendances_value'] = 1  # enter or update
-                data['attendances_status'] = gettext("To enter or update")
+
         else:
             data['attendances_status'] = gettext("Future slot")
 
