@@ -1,12 +1,8 @@
 import datetime
-import logging
 
 from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db.utils import IntegrityError
 from django.test import TestCase
-from django.utils.translation import gettext_lazy as _
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
@@ -14,8 +10,10 @@ from ..models import (
     EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     Holiday, ImmersionUser, PublicDocument, PublicType, Slot, Structure,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    HigherEducationInstitution,
+    HigherEducationInstitution, StudentLevel
 )
+
+from immersionlyceens.apps.immersion.models import StudentRecord
 
 
 class CampusTestCase(TestCase):
@@ -542,6 +540,32 @@ class ImmersionUserTestCase(TestCase):
         user.establishment = self.sans_si
         Group.objects.get(name='ETU').user_set.add(user)
         self.assertFalse(user.is_local_account())
+
+
+    def test_student_establishment(self):
+        user = ImmersionUser.objects.create_user(
+            username="test",
+            email="test@test.fr",
+            password="pass",
+            establishment=self.esta
+        )
+
+        institution = HigherEducationInstitution.objects.last() # same as 'self.esta.uai_reference'
+
+        Group.objects.get(name='ETU').user_set.add(user)
+        student_record = StudentRecord.objects.create(
+            student=user,
+            uai_code=institution.uai_code,
+            birth_date=datetime.datetime.today(),
+            level=StudentLevel.objects.get(pk=1),
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
+            allowed_global_registrations=2,
+            allowed_first_semester_registrations=0,
+            allowed_second_semester_registrations=0,
+        )
+
+        # Check that the link between the student record and Establishment is good (same object)
+        self.assertEqual(user.get_student_establishment(), self.esta)
 
 
 class TrainingDomainTestCase(TestCase):
