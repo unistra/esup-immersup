@@ -55,11 +55,43 @@ def get_file_path(instance, filename,):
     )
 
 
+class HigherEducationInstitution(models.Model):
+    """
+    Database of french higher education schools (based on UAI codes)
+    """
+
+    uai_code = models.CharField(_("UAI Code"), max_length=20, primary_key=True, null=False)
+    label = models.CharField(_("Label"), max_length=512, null=True, blank=True)
+    city = models.CharField(_("City"), max_length=64, null=True, blank=True)
+    department = models.CharField(_("Department"), max_length=64, null=True, blank=True)
+    zip_code = models.CharField(_("Zip code"), max_length=10, null=True, blank=True)
+    country = models.CharField(_("Country"), max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.city} - {self.label} - {self.uai_code}"
+
+    class Meta:
+        verbose_name = _('Higher education institution')
+        verbose_name_plural = _('Higher education institutions')
+        ordering = ['city', 'label', ]
+
+
 class Establishment(models.Model):
     """
     Establishment class : highest structure level
     """
     code = models.CharField(_("Code"), max_length=16, unique=True)
+
+    uai_reference = models.OneToOneField(
+        HigherEducationInstitution,
+        verbose_name=_('UAI reference'),
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="establishment",
+        unique=True,
+    )
+
     label = models.CharField(_("Label"), max_length=256, unique=True)
     short_label = models.CharField(_("Short label"), max_length=64, unique=True)
     address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
@@ -461,6 +493,21 @@ class ImmersionUser(AbstractUser):
             return self.student_record
         except ObjectDoesNotExist:
             return None
+
+    def get_student_establishment(self):
+        """
+        Match student record estabishment with core Establishment class
+        :return: Establishment object if found, else None
+        """
+        record = self.get_student_record()
+
+        if record and record.uai_code:
+            try:
+                return Establishment.objects.get(uai_reference=record.uai_code)
+            except Establishment.DoesNotExist:
+                pass
+
+        return None
 
     def get_visitor_record(self) -> Optional[Any]:
         try:
@@ -2181,24 +2228,6 @@ class UserCourseAlert(models.Model):
         verbose_name = _('Course free slot alert')
         verbose_name_plural = _('Course free slot alerts')
         ordering = ['-alert_date', ]
-
-
-class HigherEducationInstitution(models.Model):
-    """
-    Database of french higher education schools (based on UAI codes)
-    """
-
-    uai_code = models.CharField(_("UAI Code"), max_length=20, primary_key=True, null=False)
-    label = models.CharField(_("Label"), max_length=512, null=True, blank=True)
-    city = models.CharField(_("City"), max_length=64, null=True, blank=True)
-    department = models.CharField(_("Department"), max_length=64, null=True, blank=True)
-    zip_code = models.CharField(_("Zip code"), max_length=10, null=True, blank=True)
-    country = models.CharField(_("Country"), max_length=50, null=True, blank=True)
-
-    class Meta:
-        verbose_name = _('Higher education institution')
-        verbose_name_plural = _('Higher education institutions')
-        ordering = ['label', ]
 
 
 class AnnualStatistics(models.Model):

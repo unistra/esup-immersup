@@ -14,18 +14,31 @@ from ..models import (
     EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     Holiday, ImmersionUser, PublicDocument, PublicType, Slot, Structure,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    HigherEducationInstitution,
 )
 
 
 class CampusTestCase(TestCase):
+    fixtures = ['higher']
+
     def test_campus_model(self):
         test_campus = Campus.objects.create(label='MyCampus')
         self.assertEqual(test_campus.active, True)
         self.assertEqual(str(test_campus), 'MyCampus (-)')
 
         establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
-            address= 'address', department='departmeent', city='city', zip_code= 'zip_code', phone_number= '+33666'
+            code='ETA2',
+            label='Etablissement 2',
+            short_label='Eta 2',
+            active=True,
+            master=False,
+            email='test@test.com',
+            address= 'address',
+            department='departement',
+            city='city',
+            zip_code= 'zip_code',
+            phone_number= '+33666',
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         test_campus.establishment = establishment
@@ -274,6 +287,8 @@ class TestSlotCase(TestCase):
 
 
 class TrainingCase(TestCase):
+    fixtures = ['higher']
+
     def setUp(self) -> None:
         self.today = datetime.datetime.today()
         self.hs = HighSchool.objects.create(
@@ -319,35 +334,69 @@ class TrainingCase(TestCase):
     def test_distinct_establishments(self):
         t = Training.objects.create(label="training2")
         establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False, email='test@test.com',
-            address= 'address', department='departmeent', city='city', zip_code= 'zip_code', phone_number= '+33666'
+            code='ETA2',
+            label='Etablissement 2',
+            short_label='Eta 2',
+            active=True,
+            master=False,
+            email='test@test.com',
+            address= 'address',
+            department='departement',
+            city='city',
+            zip_code= 'zip_code',
+            phone_number= '+33666',
+            uai_reference=HigherEducationInstitution.objects.first()
         )
         establishment2 = Establishment.objects.create(
-            code='ETA3', label='Etablissement 3', short_label='Eta 3', active=True, master=False, email='test@test.com',
-            address= 'address', department='departmeent', city='city', zip_code= 'zip_code', phone_number= '+33666'
+            code='ETA3',
+            label='Etablissement 3',
+            short_label='Eta 3',
+            active=True,
+            master=False,
+            email='test@test.com',
+            address= 'address',
+            department='departement',
+            city='city',
+            zip_code= 'zip_code',
+            phone_number= '+33666',
+            uai_reference=HigherEducationInstitution.objects.last()
         )
-        self.structure.establishment=establishment
+        self.structure.establishment = establishment
         self.structure.save()
         t.structures.add(self.structure)
-        structure2 = Structure.objects.create(label="test structure2", code="str2", establishment=establishment)
-        self.assertQuerysetEqual(t.distinct_establishments(), \
-                                 ["<Establishment: ETA2 : Etablissement 2>", ],
-                                  ordered=False)
+        structure2 = Structure.objects.create(
+            label="test structure2",
+            code="str2",
+            establishment=establishment
+        )
+        self.assertQuerysetEqual(
+            t.distinct_establishments(),
+            ["<Establishment: ETA2 : Etablissement 2>", ],
+            ordered=False
+        )
 
         t.structures.add(structure2)
         # Only one establishment is returned
         self.assertTrue(t.distinct_establishments().count() == 1)
-        self.assertQuerysetEqual(t.distinct_establishments(), \
-                                 ["<Establishment: ETA2 : Etablissement 2>",],
-                                 ordered=False)
+        self.assertQuerysetEqual(
+            t.distinct_establishments(),
+            ["<Establishment: ETA2 : Etablissement 2>",],
+            ordered=False
+        )
 
         # Return two establishments
-        structure3 = Structure.objects.create(label="test structure3", code="str3", establishment=establishment2)
+        structure3 = Structure.objects.create(
+            label="test structure3",
+            code="str3",
+            establishment=establishment2
+        )
         t.structures.add(structure3)
         self.assertTrue(t.distinct_establishments().count() == 2)
-        self.assertQuerysetEqual(t.distinct_establishments(), \
-                                 ["<Establishment: ETA2 : Etablissement 2>", "<Establishment: ETA3 : Etablissement 3>"],
-                                 ordered=False)
+        self.assertQuerysetEqual(
+            t.distinct_establishments(),
+            ["<Establishment: ETA2 : Etablissement 2>", "<Establishment: ETA3 : Etablissement 3>"],
+            ordered=False
+        )
 
     def test_str_training(self):
         t = Training.objects.create(label="training")
@@ -384,19 +433,39 @@ class HighSchoolTestCase(TestCase):
 
 
 class ImmersionUserTestCase(TestCase):
-    fixtures = ["group"]
+    fixtures = ["group", "higher"]
 
     def setUp(self) -> None:
         self.today = datetime.datetime.today()
         self.sans_si = Establishment.objects.create(
-            code='ETA', label='Etablissement', short_label='Eta', active=True, master=False, email='test@test.com',
-            address='address', department='departmeent', city='city', zip_code='zip_code', phone_number='+33666',
+            code='ETA',
+            label='Etablissement',
+            short_label='Eta',
+            active=True,
+            master=False,
+            email='test@test.com',
+            address='address',
+            department='departement',
+            city='city',
+            zip_code='zip_code',
+            phone_number='+33666',
             data_source_plugin=None,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
         self.esta = Establishment.objects.create(
-            code='ETA2', label='Etablissement2', short_label='Eta2', active=True, master=False, email='test@test.com',
-            address='address', department='departmeent', city='city', zip_code='zip_code', phone_number='+33666',
-            data_source_plugin="LDAP"
+            code='ETA2',
+            label='Etablissement2',
+            short_label='Eta2',
+            active=True,
+            master=False,
+            email='test@test.com',
+            address='address',
+            department='departement',
+            city='city',
+            zip_code='zip_code',
+            phone_number='+33666',
+            data_source_plugin="LDAP",
+            uai_reference=HigherEducationInstitution.objects.last()
         )
         self.hs = HighSchool.objects.create(
             label='HS1',

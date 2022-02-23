@@ -29,15 +29,7 @@ class ChartsViewsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.master_establishment = Establishment.objects.create(
-            code='ETA1',
-            label='Etablissement 1',
-            short_label='Eta 1',
-            active=True,
-            master=True,
-            email='test1@test.com',
-            signed_charter=True,
-        )
+        self.master_establishment = Establishment.objects.first()
 
         self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
         self.ref_etab_user.set_password('hiddenpassword')

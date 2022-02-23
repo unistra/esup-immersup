@@ -12,7 +12,7 @@ from django.test import RequestFactory, TestCase, Client
 
 from immersionlyceens.apps.core.models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
+    HighSchool, Calendar, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment, HigherEducationInstitution
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -20,9 +20,6 @@ from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 class MockRequest:
     pass
-
-
-# request = MockRequest()
 
 
 request_factory = RequestFactory()
@@ -34,7 +31,7 @@ class FormTestCase(TestCase):
     Slot forms tests class
     """
 
-    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
+    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher']
 
     def setUp(self):
         """
@@ -48,6 +45,7 @@ class FormTestCase(TestCase):
             master=True,
             email='test@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         self.high_school = HighSchool.objects.create(

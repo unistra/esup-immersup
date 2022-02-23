@@ -33,6 +33,7 @@ from ..models import (
     Holiday, OffOfferEvent, OffOfferEventType, PostBachelorLevel,
     PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, Visit,
+    HigherEducationInstitution
 )
 
 request_factory = RequestFactory()
@@ -47,24 +48,42 @@ class FormTestCase(TestCase):
     Slot forms tests class
     """
 
-    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
+    fixtures = ['group', 'high_school_levels', 'student_levels', 'post_bachelor_levels', 'higher']
 
     def setUp(self):
         """
         SetUp for Admin Forms tests
         """
         self.master_establishment = Establishment.objects.create(
-            code='ETA1', label='Etablissement 1', short_label='Eta 1', active=True, master=True, email='test1@test.com',
-            address= 'address', department='departmeent', city='city',
-            zip_code= 'zip_code', phone_number= '+33666',
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test1@test.com',
+            address= 'address',
+            department='departmeent',
+            city='city',
+            zip_code= 'zip_code',
+            phone_number= '+33666',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         self.establishment = Establishment.objects.create(
-            code='ETA2', label='Etablissement 2', short_label='Eta 2', active=True, master=False,
-            email='test2@test.com',address= 'address2', department='departmeent2', city='city2',
-            zip_code= 'zip_code2', phone_number= '+33666666',
+            code='ETA2',
+            label='Etablissement 2',
+            short_label='Eta 2',
+            active=True,
+            master=False,
+            email='test2@test.com',
+            address= 'address2',
+            department='departmeent2',
+            city='city2',
+            zip_code= 'zip_code2',
+            phone_number= '+33666666',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.last()
         )
 
         self.high_school = HighSchool.objects.create(

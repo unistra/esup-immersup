@@ -15,7 +15,7 @@ from ..mails.variables_parser import parser
 from immersionlyceens.apps.core.models import (
     UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
     Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
-    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment
+    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment, HigherEducationInstitution
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -24,7 +24,7 @@ class MailsTestCase(TestCase):
     """Mail templates tests"""
 
     fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype',
-                'high_school_levels', 'post_bachelor_levels', 'student_levels']
+                'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
 
     def setUp(self):
         # TODO : use test fixtures
@@ -39,6 +39,7 @@ class MailsTestCase(TestCase):
             master=True,
             email='test@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         self.high_school = HighSchool.objects.create(
