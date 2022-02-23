@@ -350,6 +350,7 @@ def slots(request):
     establishment_id = request.GET.get('establishment_id')
     visits = request.GET.get('visits', False) == "true"
     events = request.GET.get('events', False) == "true"
+    courses = not (visits or events)
     past_slots = request.GET.get('past', False) == "true"
 
     try:
@@ -601,16 +602,17 @@ def slots(request):
         if data['datetime'] and data['datetime'] <= today:
             data['is_past'] = True
 
-            if not can_update_attendances:
+            if not can_update_attendances or ((events or visits) and not slot.face_to_face):
                 # University year end date < now
                 data['attendances_value'] = 2  # view only
-                data['attendances_status'] = gettext("University year is over")
+                if not can_update_attendances:
+                    data['attendances_status'] = gettext("University year is over")
 
             elif not slot.immersions.filter(cancellation_type__isnull=True).exists():
                 # Nothing to do
                 data['attendances_value'] = -1  # nothing to do
 
-            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists():
+            elif courses and slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists():
                 data['attendances_value'] = 1  # to enter
                 data['attendances_status'] = gettext("To enter")
 
