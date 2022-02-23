@@ -600,21 +600,19 @@ def slots(request):
         # Update attendances rights depending on slot data and current user
         if data['datetime'] and data['datetime'] <= today:
             data['is_past'] = True
-            if not slot.immersions.filter(cancellation_type__isnull=True).exists():
-                data['attendances_value'] = -1  # nothing
-            elif (
-                slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists()
-                # or can_update_attendances
-            ):
-                if can_update_attendances:
-                    data['attendances_value'] = 1  # to enter
-                    data['attendances_status'] = gettext("To enter")
-                else:
-                    data['attendances_value'] = 2  # view only
-                    data['attendances_status'] = gettext("University year is over")
-            else:
+
+            if not can_update_attendances:
+                # University year end date < now
                 data['attendances_value'] = 2  # view only
-                data['attendances_status'] = gettext("Entered")
+                data['attendances_status'] = gettext("University year is over")
+
+            elif not slot.immersions.filter(cancellation_type__isnull=True).exists():
+                # Nothing to do
+                data['attendances_value'] = -1  # nothing to do
+
+            else:
+                data['attendances_value'] = 1  # enter or update
+                data['attendances_status'] = gettext("To enter or update")
         else:
             data['attendances_status'] = gettext("Future slot")
 
