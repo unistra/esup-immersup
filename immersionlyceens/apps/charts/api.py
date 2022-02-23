@@ -471,6 +471,7 @@ def get_global_trainings_charts(request):
     user = request.user
     show_empty_trainings = request.GET.get("empty_trainings", False) == "true"
     structure_id = request.GET.get("structure_id")
+    highschool_id = request.GET.get("highschool_id")
 
     response = {'msg': '', 'data': []}
 
@@ -478,8 +479,19 @@ def get_global_trainings_charts(request):
         'active': True,
     }
 
-    if structure_id and request.user.is_structure_manager() and request.user.structures.exists():
+    students_filter = {}
+    immersions_filter = {}
+
+    if structure_id and user.is_structure_manager() and user.structures.exists():
         trainings_filter['structures'] = structure_id
+
+    # override highschool id if user is a high school manager
+    if user.is_high_school_manager() and user.highschool:
+        highschool_id = user.highschool.id
+
+    if highschool_id:
+        students_filter['high_school_student_record__highschool__id'] = highschool_id
+        immersions_filter['student__high_school_student_record__highschool__id'] = highschool_id
 
     # Do not include trainings with no registration/students
     if not show_empty_trainings:
@@ -541,7 +553,14 @@ def get_global_trainings_charts(request):
             'filter_reset_button_text': False,
         })
 
-    pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+
+
+    # High school managers will see different high school pupils levels
+    if user.is_high_school_manager():
+        pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True)
+    else:
+        pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+
     post_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=True)
 
     # Next columns definition
@@ -607,19 +626,24 @@ def get_global_trainings_charts(request):
             "visible": False
         },
     ]
-    
+
+    # Columns list for "show all" and "hide all" shortcuts
     response['cnt_columns'] = [
       *[f"pupils_cnt_{level.label}" for level in pre_bachelor_levels],
-      "students_cnt",
-      "visitors_cnt"
-    ]
-    
-    response['registrations_columns'] = [
-      *[f"registrations_{level.label}" for level in pre_bachelor_levels],
-      "students_registrations",
-      "visitors_registrations"
     ]
 
+    response['registrations_columns'] = [
+      *[f"registrations_{level.label}" for level in pre_bachelor_levels],
+    ]
+
+    # Add some columns if user is not a high school manager
+    if not user.is_high_school_manager():
+        response['cnt_columns'] += ["students_cnt", "visitors_cnt"]
+        response['registrations_columns'] += ["students_registrations", "visitors_registrations"]
+
+    # ============
+
+    # Datatable filters definitions
     response['yadcf'] += [{
             'column_selector': "domain_subdomain:name",
             'text_data_delimiter': "<br>",
@@ -657,6 +681,7 @@ def get_global_trainings_charts(request):
         base_persons_qs = ImmersionUser.objects\
             .prefetch_related('immersions__slot__course__training', 'high_school_student_record__highschool')\
             .filter(
+                **students_filter,
                 immersions__slot__course__training=training,
                 immersions__cancellation_type__isnull=True
             )
@@ -664,6 +689,7 @@ def get_global_trainings_charts(request):
         base_immersions_qs = Immersion.objects\
             .prefetch_related('slot__course__training', 'student__high_school_student_record__highschool')\
             .filter(
+                **immersions_filter,
                 slot__course__training=training,
                 cancellation_type__isnull=True
             )

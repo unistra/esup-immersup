@@ -122,6 +122,20 @@ def global_trainings_charts(request):
     """
     Registration statistics by trainings for establishments and highschools
     """
+    filter = {}
+    high_school_name = None
+    high_school_levels_filters = { 'active': True }
+
+    if request.user.is_high_school_manager() and request.user.highschool:
+        high_school_name = request.user.highschool.label
+        filter['pk'] = request.user.highschool.id
+    else:
+        high_school_levels_filters['is_post_bachelor'] = False
+
+    highschools = [
+        {'id': h.id, 'label': h.label, 'city': h.city}
+        for h in HighSchool.objects.filter(**filter).order_by('city', 'label')
+    ]
 
     # This will be only useful to structure managers
     structures = [
@@ -131,9 +145,12 @@ def global_trainings_charts(request):
 
     # Do not include post_bachelor pupils levels as they will be added to Students count
     context = {
+        'highschools': highschools,
+        'highschool_id': filter.get('pk', ''),
+        'high_school_name': high_school_name,
         'structures': structures,
         'structure_id': structures[0]['id'] if structures else '',
-        'high_school_levels': HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False).order_by('order'),
+        'high_school_levels': HighSchoolLevel.objects.filter(**high_school_levels_filters).order_by('order'),
     }
     return render(request, 'charts/global_trainings_charts.html', context=context)
 
