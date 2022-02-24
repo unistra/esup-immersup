@@ -301,6 +301,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     get_validated_record.short_description = _('Validated record')
     get_establishment.short_description = _('Establishment')
     get_groups_list.short_description = _('Groups')
+    get_structure.short_description = _('Structure')
 
     filter_horizontal = ('structures', 'groups', 'user_permissions')
 
