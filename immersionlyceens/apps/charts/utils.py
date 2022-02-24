@@ -5,6 +5,21 @@ from immersionlyceens.apps.core.models import HighSchool, HigherEducationInstitu
 
 logger = logging.getLogger(__name__)
 
+def parse_median(data):
+    """
+    Calculate the median value of a list of numbers
+    """
+    if not isinstance(data, list) or not data:
+        return None
+
+    data = sorted(data)
+    len_data = len(data)
+
+    if len_data % 2 == 0:
+        return (data[(len_data - 1) // 2] + data[(len_data + 1) // 2]) / 2.0
+    else:
+        return data[(len_data - 1) // 2]
+
 def process_request_filters(request):
     """
     Take request objects with POST data and returns highschools and
@@ -15,6 +30,10 @@ def process_request_filters(request):
     highschools_ids = []
     higher_institutions = []
     higher_institutions_ids = []
+
+    hs_filter = {}
+    if request.user.is_high_school_manager() and request.user.highschool:
+        hs_filter['pk'] = request.user.highschool.id
 
     try:
         level_filter = int(request.POST.get('level', 0))
@@ -27,7 +46,7 @@ def process_request_filters(request):
         try:
             insts = json.loads(_insts)
 
-            hs = {h.pk:h for h in HighSchool.objects.all()}
+            hs = {h.pk:h for h in HighSchool.objects.filter(**hs_filter)}
             higher = {h.uai_code:h for h in HigherEducationInstitution.objects.all()}
 
             highschools = sorted(

@@ -193,6 +193,7 @@
             <div class="dropdown-menu" aria-labelledby="navbarDropdownStats">
               {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-ETAB-MAITRE,REF-TEC" %}
                 <a class="dropdown-item" href="{% url 'charts:highschool_charts' %}">{% trans 'Highschool registrations/participations' %}</a>
+                <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'Highschool registrations/participations (global)' %}</a>
                 <a class="dropdown-item" href="{% url 'charts:highschool_domains_charts' %}">{% trans 'By domains registrations' %}</a>
                 <a class="dropdown-item" href="{% url 'charts:global_trainings_charts' %}">{% trans 'Highshcool - registrations by trainings' %}</a>
               {% endif %}

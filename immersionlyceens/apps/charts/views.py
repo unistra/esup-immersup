@@ -155,26 +155,31 @@ def global_trainings_charts(request):
     return render(request, 'charts/global_trainings_charts.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def global_registrations_charts(request):
     """
     Registration and participation charts by student levels
     """
+    highschool_id = None
+    highschool_name = None
 
     # Get filters from request POST data
     part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
         process_request_filters(request)
 
-    # High school levels
-    # the third one ('above bachelor') will also include the higher education institutions students
-    levels = [(0, _("All"))] + [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('order')]
+    if request.user.is_high_school_manager and request.user.highschool:
+        highschool_id = request.user.highschool.id
+        highschool_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
 
     context = {
         'highschools_ids': highschools_ids,
         'highschools': highschools,
+        'highschool_id': highschool_id,
+        'highschool_name': highschool_name,
+        'all_highschools': HighSchool.objects.all().order_by('city', 'label'),
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
-        'levels': levels,
+        'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
         'part1_level_filter': request.session.get("current_level_filter", 0),
         'level_filter': part2_level_filter,
     }

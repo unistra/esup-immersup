@@ -5,7 +5,7 @@ import logging
 
 from collections import defaultdict
 from functools import reduce
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.utils.translation import gettext, gettext_lazy as _
@@ -19,6 +19,7 @@ from immersionlyceens.apps.core.models import (
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 
+from .utils import parse_median
 
 logger = logging.getLogger(__name__)
 
@@ -738,19 +739,29 @@ def get_global_trainings_charts(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
-def get_registration_charts(request, level_value=0):
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC", "REF-LYC")
+def get_registration_charts(request):
     """
     Data for amcharts 4
     Horizontal bars format
+    Courses slots only
     """
+    level_value = request.GET.get("level", 0)
+    highschool_id = request.GET.get("highschool_id")
+    user_filters = {}
+    level_filter = {}
+
+    try:
+        level_value = int(level_value)
+    except ValueError:
+        level_value = 0
 
     # TODO : Merge with highschool_charts ?
 
-    if level_value == 0 or level_value not in [s.id for s in HighSchoolLevel.objects.all()]:
+    if level_value == 0 or level_value not in [s.id for s in HighSchoolLevel.objects.filter(active=True)]:
         level_value = 0 # force it
         student_levels = [
-            l.label for l in HighSchoolLevel.objects.order_by('order')
+            l.label for l in HighSchoolLevel.objects.filter(active=True).order_by('order')
         ]
     else:
         student_levels = [
@@ -807,30 +818,107 @@ def get_registration_charts(request, level_value=0):
             }
         })
 
-    qs = ImmersionUser.objects.all()
+    if highschool_id == 'all_highschools':
+        user_filters['high_school_student_record__validation'] = 2
+    else:
+        try:
+            int(highschool_id)
+            user_filters['high_school_student_record__validation'] = 2
+            user_filters['high_school_student_record__highschool__id'] = highschool_id
+        except ValueError:
+            pass
+
+    qs = ImmersionUser.objects \
+        .prefetch_related(
+            'high_school_student_record__level',
+            'student_record__level',
+            'immersions__cancellation_type',
+            'immersions__slot__course')\
+        .all()
 
     if level_value == 0:
-        levels =  [l for l in HighSchoolLevel.objects.order_by('order')]
+        levels =  [l for l in HighSchoolLevel.objects.filter(active=True).order_by('order')]
     else:
         l = HighSchoolLevel.objects.get(pk=level_value)
+        level_filter = {'level': level_value}
         levels = [l]
 
     for level in levels:
         if not level.is_post_bachelor:
-            users = qs.filter(high_school_student_record__level=level.pk)
+            users = qs.filter(**user_filters, high_school_student_record__level=level.pk)
         else: # post bachelor levels : highschool and higher education institutions levels
             users = qs.filter(Q(high_school_student_record__level__is_post_bachelor=True) |
-                              Q(student_record__level__isnull=False))
+                              Q(student_record__level__isnull=False),
+                              **user_filters)
 
-        datasets[0][level.label] = users.filter(immersions__attendance_status=1).distinct().count() # attended to 1 immersion
+        datasets[0][level.label] = users.filter(
+            immersions__attendance_status=1,
+            immersions__slot__course__isnull=False)\
+            .distinct().count() # attended to 1 immersion
+
         datasets[1][level.label] = users.filter(
-            immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
+            immersions__isnull=False,
+            immersions__cancellation_type__isnull=True,
+            immersions__slot__course__isnull=False)\
+            .distinct().count()  # registered
+
         datasets[2][level.label] = users.count()  # platform
+
+    if highschool_id != 'all':
+        # Attended to at least 1 immersion median
+        pupils_counts = [
+            x['cnt'] for x in HighSchoolStudentRecord.objects
+                .prefetch_related('student__immersions__slot__course')
+                .values('highschool')
+                .filter(
+                **level_filter,
+                validation=2,
+                student__immersions__attendance_status=1,
+                student__immersions__slot__course__isnull=False
+            )
+                .annotate(cnt=Count('highschool', distinct=True))
+        ]
+
+        median = parse_median(pupils_counts)
+        if median:
+            datasets[0]['name'] += f" (m = {parse_median(pupils_counts)})"
+
+        # =======================================================
+        # Registered to at least 1 immersion median
+        pupils_counts = [
+            x['cnt'] for x in HighSchoolStudentRecord.objects
+                .prefetch_related('student__immersions__slot__course')
+                .values('highschool')
+                .filter(
+                    **level_filter,
+                    validation=2,
+                    student__immersions__isnull=False,
+                    student__immersions__cancellation_type__isnull=True,
+                    student__immersions__slot__course__isnull=False
+                )
+                .annotate(cnt=Count('highschool', distinct=True))
+        ]
+
+        median = parse_median(pupils_counts)
+        if median:
+            datasets[1]['name'] += f" (m = {parse_median(pupils_counts)})"
+
+        # =======================================================
+        # All registrations median
+        pupils_counts = [
+            x['cnt'] for x in HighSchoolStudentRecord.objects.values('highschool')
+                .filter(**level_filter, validation=2)
+                .annotate(cnt=Count('highschool', distinct=True))
+        ]
+
+        median = parse_median(pupils_counts)
+        if median:
+            datasets[2]['name'] += f" (m = {parse_median(pupils_counts)})"
 
     response = {
         'axes': axes,
         'datasets': datasets,
-        'series': series,
+        'series': series
     }
 
     return JsonResponse(response, safe=False)
