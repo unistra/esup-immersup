@@ -3376,8 +3376,7 @@ msgid "Course successfully deleted"
 msgstr "Cours supprimé avec succès"
 
 #: immersionlyceens/libs/api/views.py:774
-msgid "
-inked to this course"
+msgid "Error : slots are linked to this course"
 msgstr "Erreur : des créneaux sont liés à ce cours"
 
 #: immersionlyceens/libs/api/views.py:809
