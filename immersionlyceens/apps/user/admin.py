@@ -187,7 +187,7 @@ class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'email',
         'first_name',
         'last_name',
-        'get_establishment',
+        'get_highschool',
     ]
 
     list_filter = (
