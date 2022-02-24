@@ -10,7 +10,8 @@ from immersionlyceens.apps.core.models import (
     BachelorMention, Building, Calendar, Campus, Course, CourseType,
     GeneralBachelorTeaching, HighSchool, HighSchoolLevel, Immersion,
     ImmersionUser, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Establishment
+    TrainingDomain, TrainingSubdomain, UniversityYear, Establishment,
+    HigherEducationInstitution
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -25,7 +26,7 @@ class ImmersionViewsTestCase(TestCase):
     """
 
     fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'high_school_levels',
-                'student_levels', 'post_bachelor_levels']
+                'student_levels', 'post_bachelor_levels', 'higher']
 
     def setUp(self):
         """
@@ -41,6 +42,7 @@ class ImmersionViewsTestCase(TestCase):
             master=True,
             email='test@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         self.high_school = HighSchool.objects.create(

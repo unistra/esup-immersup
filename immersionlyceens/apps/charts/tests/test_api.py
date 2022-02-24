@@ -23,7 +23,7 @@ class ChartsAPITestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.master_establishment = Establishment.objects.get(pk=1)
+        self.master_establishment = Establishment.objects.first()
 
         self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
         self.ref_etab_user.establishment = self.master_establishment

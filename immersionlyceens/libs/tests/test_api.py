@@ -20,15 +20,12 @@ from immersionlyceens.apps.core.models import (
     Immersion, ImmersionUser, MailTemplate, MailTemplateVars, OffOfferEvent,
     OffOfferEventType, PostBachelorLevel, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
-    Visit,
+    Visit, HigherEducationInstitution
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
-from immersionlyceens.libs.api.views import ajax_check_course_publication
-from immersionlyceens.libs.utils import get_general_setting
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -39,7 +36,7 @@ class APITestCase(TestCase):
 
     fixtures = [
         'group', 'group_permissions', 'generalsettings', 'high_school_levels', 'student_levels', 'post_bachelor_levels',
-        'mailtemplatevars', 'mailtemplate'
+        'mailtemplatevars', 'mailtemplate', 'higher'
     ]
 
     def setUp(self):
@@ -63,6 +60,7 @@ class APITestCase(TestCase):
             master=True,
             email='test@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         self.establishment2 = Establishment.objects.create(
@@ -73,6 +71,7 @@ class APITestCase(TestCase):
             master=False,
             email='test2@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.last()
         )
 
         self.high_school = HighSchool.objects.create(
@@ -261,7 +260,10 @@ class APITestCase(TestCase):
         )
 
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
-        self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
+        self.t_sub_domain = TrainingSubdomain.objects.create(
+            label="test t_sub_domain",
+            training_domain=self.t_domain
+        )
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.highschool_training = Training.objects.create(
@@ -862,7 +864,10 @@ class APITestCase(TestCase):
                 self.assertEqual(self.high_school.label, row[15])
                 self.assertEqual(self.hs_record.level.label, row[16])
             elif n == 2:
-                self.assertEqual(self.student_record.uai_code, row[15])
+                self.assertEqual(
+                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
+                    row[15]
+                )
                 self.assertEqual(self.student_record.level.label, row[16])
             elif n == 5: # high school slot
                 self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", row[0])
@@ -1475,7 +1480,10 @@ class APITestCase(TestCase):
         stu = content['data'][1]
         self.assertEqual(stu['profile'], 'Student')
         self.assertEqual(stu['level'], self.student_record.level.label)
-        self.assertEqual(stu['school'], self.student_record.uai_code)
+        self.assertEqual(
+            stu['school'],
+            HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label
+        )
         self.assertEqual(stu['city'], '')
 
 
@@ -1517,7 +1525,11 @@ class APITestCase(TestCase):
         self.assertEqual(self.student2.first_name, stu['firstname'])
         self.assertEqual(self.student2.last_name, stu['lastname'])
         self.assertEqual(pgettext('person type', 'Student'), stu['profile'])
-        self.assertEqual(self.student_record2.uai_code, stu['school'])
+        self.assertEqual(
+            HigherEducationInstitution.objects.get(pk=self.student_record2.uai_code).label,
+            stu['school']
+        )
+
         self.assertEqual('Licence 1', stu['level'])
         self.assertEqual('', stu['city'])
         self.assertEqual('', stu['class'])

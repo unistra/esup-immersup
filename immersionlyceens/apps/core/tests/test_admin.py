@@ -31,7 +31,7 @@ from ..models import (
     GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday,
     ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
     PublicDocument, PublicType, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation,
+    TrainingSubdomain, UniversityYear, Vacation, HigherEducationInstitution
 )
 
 
@@ -52,7 +52,7 @@ class AdminFormsTestCase(TestCase):
     Main admin forms tests class
     """
 
-    fixtures = ['group', 'group_permissions', 'high_school_levels', 'post_bachelor_levels', 'student_levels']
+    fixtures = ['group', 'group_permissions', 'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
 
     def setUp(self):
         """
@@ -73,6 +73,7 @@ class AdminFormsTestCase(TestCase):
             master=True,
             email='test1@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         self.establishment = Establishment.objects.create(
@@ -83,6 +84,7 @@ class AdminFormsTestCase(TestCase):
             master=False,
             email='test2@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.last()
         )
 
         self.high_school = HighSchool.objects.create(
@@ -1651,7 +1653,8 @@ class AdminFormsTestCase(TestCase):
             'department': 'departmeent',
             'city': 'city',
             'zip_code': 'zip_code',
-            'phone_number': '+33666'
+            'phone_number': '+33666',
+            'uai_reference': HigherEducationInstitution.objects.first()
         }
 
         request.user = self.ref_etab_user
@@ -1702,6 +1705,7 @@ class AdminFormsTestCase(TestCase):
 
         # Create a second establishment and check the 'unique' rules
         # unique code
+        data['uai_reference'] = HigherEducationInstitution.objects.last()
         data['master'] = True
         form = EstablishmentForm(data=data, request=request)
         self.assertFalse(form.is_valid())
@@ -1756,6 +1760,8 @@ class AdminFormsTestCase(TestCase):
         # As an operator: should succeed
         request.user = self.operator_user
         self.assertTrue(est_admin.has_delete_permission(request=request, obj=eta2))
+
+        # TODO : create an establishment and try to delete the related HigherEducationInstitution object
 
 
     def test_information_text_creation(self):
@@ -2060,11 +2066,18 @@ class AdminFormsTestCase(TestCase):
         training_domain = TrainingDomain.objects.create(**training_domain_data)
         training_subdomain = TrainingSubdomain.objects.create(
             training_domain=training_domain, **training_subdomain_data)
-        master_establishment = Establishment.objects.create(
-            code='ETA1337', label='Etablissement 1337', short_label='Eta 1337',
-            active=True, master=False, email='test1@test.com')
-        structure = Structure.objects.create(label="structure1", establishment=master_establishment)
 
+        establishment3 = Establishment.objects.create(
+            code='ETA1337',
+            label='Etablissement 1337',
+            short_label='Eta 1337',
+            active=True,
+            master=False,
+            email='test1@test.com',
+            uai_reference=HigherEducationInstitution.objects.all()[1]
+        )
+
+        structure = Structure.objects.create(label="structure1", establishment=establishment3)
 
         # no structure and no highschool
         data = {"label": "hello", "training_subdomains": [training_subdomain]}

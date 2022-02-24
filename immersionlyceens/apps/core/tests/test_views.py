@@ -16,7 +16,7 @@ from ..models import (
     Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
     HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
     Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType, HighSchoolLevel, PostBachelorLevel,
-    StudentLevel
+    StudentLevel, HigherEducationInstitution
 )
 from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -25,7 +25,7 @@ request_factory = RequestFactory()
 request = request_factory.get('/admin')
 
 class CoreViewsTestCase(TestCase):
-    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
+    fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'higher']
 
     def setUp(self):
         """
@@ -42,6 +42,7 @@ class CoreViewsTestCase(TestCase):
             master=True,
             email='test1@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
         )
 
         self.establishment = Establishment.objects.create(
@@ -52,6 +53,7 @@ class CoreViewsTestCase(TestCase):
             master=False,
             email='test2@test.com',
             signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.last()
         )
         
         self.high_school = HighSchool.objects.create(
