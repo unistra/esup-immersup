@@ -282,6 +282,7 @@ LOCAL_APPS = [
     'immersionlyceens.apps.core',
     'immersionlyceens.apps.immersion',
     'immersionlyceens.apps.charts',
+    'immersionlyceens.apps.user',
 ]
 
 
@@ -443,7 +444,7 @@ FORCE_EMAIL_ADDRESS = None
 
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = ['auth', 'core']
+ADMIN_APPS_ORDER = ['auth', 'core', 'user']
 
 ADMIN_MODELS_ORDER = {
     'core': [
@@ -466,7 +467,19 @@ ADMIN_MODELS_ORDER = {
         'Vacation',
         'Calendar',
         'MailTemplate',
-    ]
+    ],
+    'user': [
+        'Student',
+        'HighSchoolStudent',
+        'Visitor',
+        'Speaker',
+        'Operator',
+        'MasterEstablishmentManager',
+        'EstablishmentManager',
+        'StructureManager',
+        'HighSchoolManager',
+        'LegalDepartmentStaff',
+    ],
 }
 
 # Define groups rights on others

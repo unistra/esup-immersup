@@ -14,7 +14,6 @@ from django_admin_listfilter_dropdown.filters import (
 )
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
@@ -239,10 +238,68 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         else:
             return ''
 
+    def get_edited_record(self, obj):
+        if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student() or obj.is_visitor()):
+            if obj.is_high_school_student():
+                record = obj.get_high_school_student_record()
+            elif obj.is_student():
+                record = obj.get_student_record()
+            elif obj.is_visitor():
+                record = obj.get_visitor_record()
+            return _('Yes') if record else _('No')
+        else:
+            return ''
+
+    def get_validated_record(self, obj):
+        if not obj.is_superuser and (obj.is_high_school_student() or obj.is_student() or obj.is_visitor()):
+            if obj.is_high_school_student():
+                record = obj.get_high_school_student_record()
+            elif obj.is_student():
+                record = obj.get_student_record()
+            elif obj.is_visitor():
+                record = obj.get_visitor_record()
+            return _('Yes') if record and record.is_valid() else _('No')
+        else:
+            return ''
+
+    def get_establishment(self, obj):
+        if obj.is_superuser:
+            return ''
+        if obj.is_high_school_student():
+            record = obj.get_high_school_student_record()
+            return record.highschool if record.highschool else ''
+        elif obj.is_student():
+            record = obj.get_student_record()
+            return record.home_institution()[0]
+        elif obj.is_structure_manager():
+            structures = ', '.join([s.label for s in obj.structures.all().order_by('label')])
+            if obj.highschool:
+                return obj.highschool
+            elif obj.establishment:
+                return obj.establishment
+        elif obj.is_speaker() or obj.is_operator() or obj.is_master_establishment_manager() \
+            or obj.is_establishment_manager() or obj.is_high_school_manager() or obj.is_legal_department_staff():
+            if obj.highschool:
+                return obj.highschool
+            elif obj.establishment:
+                return obj.establishment
+        else:
+            return ''
+
+    def get_structure(self, obj):
+        try:
+            structures = ', '.join([s.label for s in obj.structures.all().order_by('label')])
+            return structures
+        except:
+            return ''
+
     def get_groups_list(self, obj):
         return [group.name for group in obj.groups.all().order_by('name')]
 
     get_activated_account.short_description = _('Activated account')
+    get_edited_record.short_description = _('Edited record')
+    get_validated_record.short_description = _('Validated record')
+    get_establishment.short_description = _('Establishment')
     get_groups_list.short_description = _('Groups')
 
     filter_horizontal = ('structures', 'groups', 'user_permissions')
