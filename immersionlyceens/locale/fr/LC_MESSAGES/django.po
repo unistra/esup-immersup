@@ -2385,7 +2385,7 @@ msgstr "Absent(e)"
 #: immersionlyceens/apps/immersion/models.py:302
 #: immersionlyceens/templates/core/students_presence.html:41
 msgid "Student"
-msgstr "Etudiant/Lycéen"
+msgstr "Etudiant"
 
 #: immersionlyceens/apps/core/models.py:2125
 #: immersionlyceens/templates/immersion/fragments/my_events.html:102
