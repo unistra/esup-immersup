@@ -260,7 +260,10 @@ class APITestCase(TestCase):
         )
 
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
-        self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
+        self.t_sub_domain = TrainingSubdomain.objects.create(
+            label="test t_sub_domain",
+            training_domain=self.t_domain
+        )
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.highschool_training = Training.objects.create(

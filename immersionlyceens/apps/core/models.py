@@ -640,7 +640,6 @@ class ImmersionUser(AbstractUser):
         record.save()
 
 
-
     def can_register_slot(self, slot=None):
         errors = []
 
@@ -675,15 +674,17 @@ class ImmersionUser(AbstractUser):
                 return False, errors
 
         if self.is_student():
+            establishment = self.get_student_establishment()
             record = self.get_student_record()
 
             if not record:
                 errors.append(_("Student record not found"))
                 return False, errors
 
+            # record.home_institution()[0] in slot.allowed_establishments.values_list('label', flat=True)
             establishment_conditions = [
                 slot.allowed_establishments.exists(),
-                record.home_institution()[0] in slot.allowed_establishments.values_list('label', flat=True)
+                establishment and establishment in slot.allowed_establishments.all()
             ]
 
             levels_conditions = [

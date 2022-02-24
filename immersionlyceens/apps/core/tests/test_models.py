@@ -1,8 +1,10 @@
-import datetime
+from datetime import time, datetime, timedelta
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from django.utils import timezone
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
@@ -85,13 +87,16 @@ class PublicTypeTestCase(TestCase):
 
 
 class UniversityYearTestCase(TestCase):
+    def setUp(self):
+        self.today = timezone.now()
+
     def test_university_year_model(self):
         label = "UniversityYear"
         o = UniversityYear.objects.create(
             label=label,
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
-            registration_start_date=datetime.datetime.today().date(),
+            start_date=self.today + timedelta(days=2),
+            end_date=self.today + timedelta(days=4),
+            registration_start_date=self.today,
         )
         self.assertEqual(str(o), label)
         self.assertTrue(o.active)
@@ -99,9 +104,9 @@ class UniversityYearTestCase(TestCase):
         # Test activation
         o2 = UniversityYear.objects.create(
             label='World',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=4),
-            registration_start_date=datetime.datetime.today().date(),
+            start_date=self.today + timedelta(days=2),
+            end_date=self.today + timedelta(days=4),
+            registration_start_date=self.today,
         )
 
         self.assertFalse(o2.active)
@@ -113,114 +118,122 @@ class UniversityYearTestCase(TestCase):
 
 
     def test_university_year__date_is_between(self):
-        now = datetime.datetime.today().date()
         o = UniversityYear.objects.create(
             label='UniversityYear',
-            start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=3),
-            registration_start_date=datetime.datetime.today().date(),
+            start_date=self.today + timedelta(days=1),
+            end_date=self.today + timedelta(days=3),
+            registration_start_date=self.today,
         )
 
         # inside
         # start < date < end
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=2)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=2)))
         # start = date
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=1)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=1)))
         # end = date
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=3)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=3)))
 
         # date < start < end
-        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=-99)))
+        self.assertFalse(o.date_is_between(self.today + timedelta(days=-99)))
 
         # start < end < date
-        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
+        self.assertFalse(o.date_is_between(self.today + timedelta(days=99)))
 
 
 class TestHolidayCase(TestCase):
+    def setUp(self):
+        self.today = timezone.now()
+
     def test_holiday_model(self):
         label = "Holiday"
-        o = Holiday.objects.create(label=label, date=datetime.datetime.today().date(),)
+        o = Holiday.objects.create(label=label, date=self.today,)
         self.assertEqual(str(o), label)
-        self.assertTrue(Holiday.date_is_a_holiday(datetime.datetime.today().date()))
-        self.assertFalse(Holiday.date_is_a_holiday(datetime.datetime.today().date() + datetime.timedelta(days=1)))
+        self.assertTrue(Holiday.date_is_a_holiday(self.today))
+        self.assertFalse(Holiday.date_is_a_holiday(self.today + timedelta(days=1)))
 
 
 class TestVacationCase(TestCase):
+    def setUp(self):
+        self.today = timezone.now()
+
     def test_vacation_str(self):
         label = "Vacation"
         o = Vacation.objects.create(
             label=label,
-            start_date=datetime.datetime.today().date(),
-            end_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            start_date=self.today,
+            end_date=self.today + timedelta(days=1),
         )
         self.assertEqual(str(o), label)
 
     def test_vacation__date_is_between(self):
-        now = datetime.datetime.today().date()
         o = Vacation.objects.create(
-            label="Vacation", start_date=now + datetime.timedelta(days=1), end_date=now + datetime.timedelta(days=3),
+            label="Vacation",
+            start_date=self.today + timedelta(days=1),
+            end_date=self.today + timedelta(days=3),
         )
 
         # inside
         # start < date < end
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=2)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=2)))
         # start = date
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=1)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=1)))
         # end = date
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=3)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=3)))
 
         # date < start < end
-        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=-99)))
+        self.assertFalse(o.date_is_between(self.today + timedelta(days=-99)))
 
         # start < end < date
-        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
+        self.assertFalse(o.date_is_between(self.today + timedelta(days=99)))
 
     def test_vacation__date_is_inside_a_vacation(self):
-        now = datetime.datetime.today().date()
+        now = self.today
         o = Vacation.objects.create(
-            label="Vacation", start_date=now + datetime.timedelta(days=1), end_date=now + datetime.timedelta(days=3),
+            label="Vacation", start_date=now + timedelta(days=1), end_date=now + timedelta(days=3),
         )
 
-        self.assertTrue(Vacation.date_is_inside_a_vacation(now + datetime.timedelta(days=2)))
-        self.assertFalse(Vacation.date_is_inside_a_vacation(now + datetime.timedelta(days=999)))
+        self.assertTrue(Vacation.date_is_inside_a_vacation(now + timedelta(days=2)))
+        self.assertFalse(Vacation.date_is_inside_a_vacation(now + timedelta(days=999)))
 
 
 class TestCalendarCase(TestCase):
+    def setUp(self):
+        self.today = timezone.now()
+
     def test_calendar_str(self):
         label = "Calendar"
         o = Calendar.objects.create(
             label=label,
-            year_start_date=datetime.datetime.today().date(),
-            year_end_date=datetime.datetime.today().date() + datetime.timedelta(days=2),
-            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            year_start_date=self.today,
+            year_end_date=self.today + timedelta(days=2),
+            year_registration_start_date=self.today + timedelta(days=1),
             year_nb_authorized_immersion=4,
         )
 
         self.assertEqual(str(o), label)
 
     def test_calendar__date_is_between(self):
-        now = datetime.datetime.today().date()
         o = Calendar.objects.create(
             label='Calendar',
-            year_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
-            year_end_date=datetime.datetime.today().date() + datetime.timedelta(days=3),
-            year_registration_start_date=datetime.datetime.today().date() + datetime.timedelta(days=1),
+            year_start_date=self.today + timedelta(days=1),
+            year_end_date=self.today + timedelta(days=3),
+            year_registration_start_date=self.today + timedelta(days=1),
             year_nb_authorized_immersion=4,
         )
 
         # inside
         # start < date < end
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=2)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=2)))
         # start = date
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=1)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=1)))
         # end = date
-        self.assertTrue(o.date_is_between(now + datetime.timedelta(days=3)))
+        self.assertTrue(o.date_is_between(self.today + timedelta(days=3)))
 
         # date < start < end
-        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=-99)))
+        self.assertFalse(o.date_is_between(self.today + timedelta(days=-99)))
 
         # start < end < date
-        self.assertFalse(o.date_is_between(now + datetime.timedelta(days=99)))
+        self.assertFalse(o.date_is_between(self.today + timedelta(days=99)))
 
 
 class TestPublicDocumentCase(TestCase):
@@ -244,6 +257,9 @@ class TestEvaluationTypeCase(TestCase):
 
 
 class TestSlotCase(TestCase):
+    def setUp(self):
+        self.today = timezone.now()
+
     def test_slot__creation(self):
         # Structure
         c = Structure.objects.create(label='my structure', code='R2D2')
@@ -274,9 +290,9 @@ class TestSlotCase(TestCase):
             campus=campus,
             building=building,
             room='Secret room',
-            date=datetime.datetime.today(),
-            start_time=datetime.datetime.now(),
-            end_time=datetime.datetime.now(),
+            date=self.today + timedelta(days=1),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
             n_places=10,
             additional_information='Additional information',
         )
@@ -288,7 +304,8 @@ class TrainingCase(TestCase):
     fixtures = ['higher']
 
     def setUp(self) -> None:
-        self.today = datetime.datetime.today()
+        self.today = timezone.now()
+
         self.hs = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -298,8 +315,8 @@ class TrainingCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10),
+            convention_start_date=self.today - timedelta(days=10),
+            convention_end_date=self.today + timedelta(days=10),
             postbac_immersion=True
         )
         self.structure = Structure.objects.create(label="test structure")
@@ -411,7 +428,8 @@ class StructureTestCase(TestCase):
 
 class HighSchoolTestCase(TestCase):
     def setUp(self):
-        self.today = datetime.datetime.today()
+        self.today = timezone.now()
+
         self.hs = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -421,8 +439,8 @@ class HighSchoolTestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10),
+            convention_start_date=self.today - timedelta(days=10),
+            convention_end_date=self.today + timedelta(days=10),
             postbac_immersion=True
         )
 
@@ -431,11 +449,12 @@ class HighSchoolTestCase(TestCase):
 
 
 class ImmersionUserTestCase(TestCase):
-    fixtures = ["group", "higher"]
+    fixtures = ['group', 'higher', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
 
     def setUp(self) -> None:
-        self.today = datetime.datetime.today()
-        self.sans_si = Establishment.objects.create(
+        self.today = timezone.now()
+
+        self.no_si_establishment = Establishment.objects.create(
             code='ETA',
             label='Etablissement',
             short_label='Eta',
@@ -450,7 +469,7 @@ class ImmersionUserTestCase(TestCase):
             data_source_plugin=None,
             uai_reference=HigherEducationInstitution.objects.first()
         )
-        self.esta = Establishment.objects.create(
+        self.establishment = Establishment.objects.create(
             code='ETA2',
             label='Etablissement2',
             short_label='Eta2',
@@ -474,8 +493,8 @@ class ImmersionUserTestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10),
+            convention_start_date=self.today - timedelta(days=10),
+            convention_end_date=self.today + timedelta(days=10),
             postbac_immersion=True,
             signed_charter=True,
         )
@@ -497,7 +516,7 @@ class ImmersionUserTestCase(TestCase):
             username="test",
             email="test@test.fr",
             password="pass",
-            establishment=self.esta
+            establishment=self.establishment
         )
 
         Group.objects.get(name='VIS').user_set.add(user)
@@ -518,7 +537,7 @@ class ImmersionUserTestCase(TestCase):
 
         user.highschool = None
         self.assertFalse(user.is_local_account())
-        user.establishment = self.sans_si
+        user.establishment = self.no_si_establishment
         self.assertTrue(user.is_local_account())
 
         user.groups.clear()
@@ -533,11 +552,11 @@ class ImmersionUserTestCase(TestCase):
         Group.objects.get(name='SRV-JUR').user_set.add(user)
         self.assertTrue(user.is_local_account())
 
-        user.establishment = self.esta
+        user.establishment = self.establishment
         self.assertFalse(user.is_local_account())
 
         user.groups.clear()
-        user.establishment = self.sans_si
+        user.establishment = self.no_si_establishment
         Group.objects.get(name='ETU').user_set.add(user)
         self.assertFalse(user.is_local_account())
 
@@ -547,16 +566,16 @@ class ImmersionUserTestCase(TestCase):
             username="test",
             email="test@test.fr",
             password="pass",
-            establishment=self.esta
+            establishment=self.establishment
         )
 
-        institution = HigherEducationInstitution.objects.last() # same as 'self.esta.uai_reference'
+        institution = HigherEducationInstitution.objects.last() # same as 'self.establishment.uai_reference'
 
         Group.objects.get(name='ETU').user_set.add(user)
         student_record = StudentRecord.objects.create(
             student=user,
             uai_code=institution.uai_code,
-            birth_date=datetime.datetime.today(),
+            birth_date=timezone.now(),
             level=StudentLevel.objects.get(pk=1),
             origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
             allowed_global_registrations=2,
@@ -565,7 +584,101 @@ class ImmersionUserTestCase(TestCase):
         )
 
         # Check that the link between the student record and Establishment is good (same object)
-        self.assertEqual(user.get_student_establishment(), self.esta)
+        self.assertEqual(user.get_student_establishment(), self.establishment)
+
+    def test_can_register(self):
+        # Create all objects we need
+        speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
+            password='pass',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
+            last_name='HER',
+            establishment=self.establishment,
+        )
+
+        student = get_user_model().objects.create_user(
+            username="test",
+            email="test@test.fr",
+            password="pass",
+            establishment=self.establishment
+        )
+
+        institution = HigherEducationInstitution.objects.last()  # same as 'self.establishment.uai_reference'
+
+        Group.objects.get(name='ETU').user_set.add(student)
+        Group.objects.get(name='INTER').user_set.add(speaker1)
+        student_record = StudentRecord.objects.create(
+            student=student,
+            uai_code=institution.uai_code,
+            birth_date=self.today - timedelta(days=8000),
+            level=StudentLevel.objects.get(pk=1),
+            origin_bachelor_type=StudentRecord.BACHELOR_TYPES[0][0],
+            allowed_global_registrations=2,
+            allowed_first_semester_registrations=0,
+            allowed_second_semester_registrations=0,
+        )
+
+        calendar = Calendar.objects.create(
+            label="Calendrier1",
+            calendar_mode=Calendar.CALENDAR_MODE[0][0],
+            year_start_date=self.today - timedelta(days=10),
+            year_end_date=self.today + timedelta(days=10),
+            year_nb_authorized_immersion=4,
+            year_registration_start_date=self.today - timedelta(days=9)
+        )
+        structure = Structure.objects.create(
+            label="test structure",
+            code="STR",
+            establishment=self.establishment
+        )
+        t_domain = TrainingDomain.objects.create(label="test t_domain")
+        t_sub_domain = TrainingSubdomain.objects.create(
+            label="test t_sub_domain",
+            training_domain=t_domain
+        )
+        training = Training.objects.create(label="test training")
+        training.training_subdomains.add(t_sub_domain)
+        training.structures.add(structure)
+
+        course = Course.objects.create(
+            label="course 1",
+            training=training,
+            structure=structure
+        )
+        course.speakers.add(speaker1)
+        course_type = CourseType.objects.create(label='CM')
+        slot = Slot.objects.create(
+            course=course,
+            course_type=course_type,
+            campus=None,
+            building=None,
+            face_to_face=False,
+            url='http://www.google.fr',
+            room=None,
+            date=self.today + timedelta(days=1),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            published=True,
+            additional_information="Hello there!",
+            establishments_restrictions=False
+        )
+
+        can_register, errors = student.can_register_slot(slot)
+        self.assertTrue(can_register)
+        self.assertEqual(errors, [])
+
+        # Add a restriction on the slot and try again
+        slot.establishments_restrictions = True
+        slot.allowed_establishments.add(self.no_si_establishment)
+        slot.save()
+
+        can_register, errors = student.can_register_slot(slot)
+        self.assertFalse(can_register)
+        self.assertEqual(errors, ['Establishments restrictions in effect'])
+
+        # Todo : test other restrictions here
 
 
 class TrainingDomainTestCase(TestCase):
