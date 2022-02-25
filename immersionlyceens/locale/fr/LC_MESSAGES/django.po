@@ -2547,7 +2547,7 @@ msgstr "Lycéens"
 #: immersionlyceens/templates/core/duplicated_accounts.html:35
 #: immersionlyceens/templates/modals/modal_register_students_list.html:15
 msgid "Students"
-msgstr "Etudiant/Lycéen"
+msgstr "Etudiant"
 
 #: immersionlyceens/apps/core/models.py:2368
 #: immersionlyceens/apps/immersion/models.py:373

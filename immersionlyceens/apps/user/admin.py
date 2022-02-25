@@ -23,26 +23,30 @@ from django_admin_listfilter_dropdown.filters import (
 )
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
+from hijack.contrib.admin import HijackUserAdminMixin
 from immersionlyceens.apps.core.admin import (
     ActivationFilter, AdminWithRequest, CustomUserAdmin, HighschoolListFilter,
 )
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
-    Course, CourseType, Establishment, EstablishmentManager,
-    EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, HighSchoolLevel, HighSchoolManager,
-    HighSchoolStudent, Holiday, Immersion, ImmersionUser, InformationText,
-    LegalDepartmentStaff, MailTemplate, MasterEstablishmentManager,
-    OffOfferEventType, Operator, PostBachelorLevel, PublicDocument, PublicType,
-    Slot, Speaker, Structure, StructureManager, Student, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    Visitor,
+    Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
+    Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
+    OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
+from .models import (
+    EstablishmentManager, HighSchoolManager, HighSchoolStudent,
+    LegalDepartmentStaff, MasterEstablishmentManager, Operator, Speaker,
+    StructureManager, Student, Visitor,
+)
 
-class HighschoolStudentAdmin(CustomUserAdmin):
+
+class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -64,7 +68,8 @@ class HighschoolStudentAdmin(CustomUserAdmin):
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='LYC').order_by('last_name', 'first_name')
 
-class StudentAdmin(CustomUserAdmin):
+
+class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -87,7 +92,7 @@ class StudentAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='ETU').order_by('last_name', 'first_name')
 
 
-class VisitorAdmin(CustomUserAdmin):
+class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -107,7 +112,7 @@ class VisitorAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='VIS').order_by('last_name', 'first_name')
 
 
-class SpeakerAdmin(CustomUserAdmin):
+class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -125,7 +130,7 @@ class SpeakerAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='INTER').order_by('last_name', 'first_name')
 
 
-class OperatorAdmin(CustomUserAdmin):
+class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -143,7 +148,7 @@ class OperatorAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-TEC').order_by('last_name', 'first_name')
 
 
-class EstablishmentManagerAdmin(CustomUserAdmin):
+class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -161,7 +166,7 @@ class EstablishmentManagerAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-ETAB').order_by('last_name', 'first_name')
 
 
-class MasterEstablishmentManagerAdmin(CustomUserAdmin):
+class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -179,13 +184,13 @@ class MasterEstablishmentManagerAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-ETAB-MAITRE').order_by('last_name', 'first_name')
 
 
-class HighSchoolManagerAdmin(CustomUserAdmin):
+class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
         'first_name',
         'last_name',
-        'get_establishment',
+        'get_highschool',
     ]
 
     list_filter = (
@@ -197,7 +202,7 @@ class HighSchoolManagerAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-LYC').order_by('last_name', 'first_name')
 
 
-class StructureManagerAdmin(CustomUserAdmin):
+class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',
@@ -216,7 +221,7 @@ class StructureManagerAdmin(CustomUserAdmin):
         return ImmersionUser.objects.filter(groups__name='REF-STR').order_by('last_name', 'first_name')
 
 
-class LegalDepartmentStaffAdmin(CustomUserAdmin):
+class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
         'email',

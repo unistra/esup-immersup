@@ -286,6 +286,12 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         else:
             return ''
 
+    def get_highschool(self, obj):
+        try:
+            return obj.highschool
+        except:
+            return ''
+
     def get_structure(self, obj):
         try:
             structures = ', '.join([s.label for s in obj.structures.all().order_by('label')])
@@ -301,6 +307,8 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
     get_validated_record.short_description = _('Validated record')
     get_establishment.short_description = _('Establishment')
     get_groups_list.short_description = _('Groups')
+    get_structure.short_description = _('Structure')
+    get_highschool.short_description = _('High school')
 
     filter_horizontal = ('structures', 'groups', 'user_permissions')
 
