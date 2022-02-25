@@ -427,7 +427,7 @@ class ChartsAPITestCase(TestCase):
                  "name": f"pupils_cnt_{level.label}",
                  "title": "Pupils cnt<br>%s" % level.label,
                  "visible": False,
-             } for level in HighSchoolLevel.objects.filter(active=True)
+             } for level in HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
              ],
              {'data': 'unique_students',
               'name': 'students_cnt',
@@ -448,7 +448,7 @@ class ChartsAPITestCase(TestCase):
                  "name": f"registrations_{level.label}",
                  "title": "Registrations<br>%s" % level.label,
                  'visible': False,
-             } for level in HighSchoolLevel.objects.filter(active=True)
+             } for level in HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
              ],
              {'data': 'students_registrations',
               'name': 'students_registrations',
@@ -512,8 +512,6 @@ class ChartsAPITestCase(TestCase):
              'registrations_lvl2': 2,
              'unique_students_lvl3': 1,
              'registrations_lvl3': 1,
-             'unique_students_lvl4': 0,
-             'registrations_lvl4': 0,
              'unique_students': 0,
              'students_registrations': 0
             },
@@ -531,8 +529,6 @@ class ChartsAPITestCase(TestCase):
              'registrations_lvl2': 4,
              'unique_students_lvl3': 1,
              'registrations_lvl3': 2,
-             'unique_students_lvl4': 0,
-             'registrations_lvl4': 0,
              'unique_students': 0,
              'students_registrations': 0
             },
@@ -550,8 +546,6 @@ class ChartsAPITestCase(TestCase):
              'registrations_lvl2': 5,
              'unique_students_lvl3': 1,
              'registrations_lvl3': 1,
-             'unique_students_lvl4': 0,
-             'registrations_lvl4': 0,
              'unique_students': 0,
              'students_registrations': 0
             },
@@ -569,8 +563,6 @@ class ChartsAPITestCase(TestCase):
              'registrations_lvl2': 2,
              'unique_students_lvl3': 1,
              'registrations_lvl3': 1,
-             'unique_students_lvl4': 0,
-             'registrations_lvl4': 0,
              'unique_students': 0,
              'students_registrations': 0
             },
@@ -588,8 +580,6 @@ class ChartsAPITestCase(TestCase):
              'registrations_lvl2': 3,
              'unique_students_lvl3': 0,
              'registrations_lvl3': 0,
-             'unique_students_lvl4': 0,
-             'registrations_lvl4': 0,
              'unique_students': 1,
              'students_registrations': 1
             },
@@ -607,8 +597,6 @@ class ChartsAPITestCase(TestCase):
              'registrations_lvl2': 2,
              'unique_students_lvl3': 1,
              'registrations_lvl3': 1,
-             'unique_students_lvl4': 0,
-             'registrations_lvl4': 0,
              'unique_students': 0,
              'students_registrations': 0
             },
@@ -626,8 +614,6 @@ class ChartsAPITestCase(TestCase):
              'registrations_lvl2': 1,
              'unique_students_lvl3': 1,
              'registrations_lvl3': 1,
-             'unique_students_lvl4': 0,
-             'registrations_lvl4': 0,
              'unique_students': 0,
              'students_registrations': 0
             }]
