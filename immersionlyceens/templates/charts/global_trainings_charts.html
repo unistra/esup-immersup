@@ -91,7 +91,7 @@
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="pupils_cnt_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
-            {% if filter_by_my_trainings %}
+            {% if filter_by_my_trainings or not request.user.is_high_school_manager %}
             - <a class="toggle-vis" href='' data-column="students_cnt">{% trans 'Students (and post-bachelor levels)' %}</a>
             - <a class="toggle-vis" href='' data-column="visitors_cnt">{% trans 'Visitors' %}</a>
             {% endif %}
@@ -103,7 +103,7 @@
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="registrations_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
-            {% if filter_by_my_trainings %}
+            {% if filter_by_my_trainings or not request.user.is_high_school_manager %}
             - <a class="toggle-vis" href='' data-column="students_registrations">{% trans 'Students registrations (and post-bachelor levels)' %}</a>
             - <a class="toggle-vis" href='' data-column="visitors_registrations">{% trans 'Visitors registrations' %}</a>
             {% endif %}

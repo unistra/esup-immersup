@@ -131,7 +131,7 @@ def global_trainings_charts(request, my_trainings=False):
         high_school_name = request.user.highschool.label
         filter['pk'] = request.user.highschool.id
 
-    if filter_by_my_trainings:
+    if filter_by_my_trainings or not request.user.is_high_school_manager():
         high_school_levels_filters['is_post_bachelor'] = False
 
     highschools = [

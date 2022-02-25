@@ -528,7 +528,7 @@ def get_global_trainings_charts(request):
     response['columns'] = []
     response['yadcf'] = []
 
-    if user.is_master_establishment_manager() or user.is_operator():
+    if user.is_master_establishment_manager() or user.is_operator() or (user.is_high_school_manager() and not filter_by_my_trainings):
         response['columns'].append({
             "data": 'establishment',
             "name": "establishment",
@@ -570,7 +570,7 @@ def get_global_trainings_charts(request):
         })
 
     # High school managers will see different high school pupils levels
-    if filter_by_my_trainings:
+    if filter_by_my_trainings or not request.user.is_high_school_manager():
         pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
     else:
         pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True)
@@ -651,7 +651,7 @@ def get_global_trainings_charts(request):
     ]
 
     # Add some columns if filtering by trainings and not by high school students
-    if filter_by_my_trainings:
+    if filter_by_my_trainings or not request.user.is_high_school_manager():
         response['cnt_columns'] += ["students_cnt", "visitors_cnt"]
         response['registrations_columns'] += ["students_registrations", "visitors_registrations"]
 
