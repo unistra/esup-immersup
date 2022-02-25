@@ -30,17 +30,20 @@ from immersionlyceens.apps.core.admin import (
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
-    Course, CourseType, Establishment, EstablishmentManager,
-    EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, HighSchoolLevel, HighSchoolManager,
-    HighSchoolStudent, Holiday, Immersion, ImmersionUser, InformationText,
-    LegalDepartmentStaff, MailTemplate, MasterEstablishmentManager,
-    OffOfferEventType, Operator, PostBachelorLevel, PublicDocument, PublicType,
-    Slot, Speaker, Structure, StructureManager, Student, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    Visitor,
+    Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
+    Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
+    OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+
+from .models import (
+    EstablishmentManager, HighSchoolManager, HighSchoolStudent,
+    LegalDepartmentStaff, MasterEstablishmentManager, Operator, Speaker,
+    StructureManager, Student, Visitor,
+)
 
 
 class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
