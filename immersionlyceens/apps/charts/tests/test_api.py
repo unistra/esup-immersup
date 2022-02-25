@@ -622,9 +622,10 @@ class ChartsAPITestCase(TestCase):
     def test_registration_charts_charts_api(self):
         # Registration charts
         self.client.login(username='test-ref-etab', password='hiddenpassword')
-        url = "/charts/get_registration_charts/0"
+        url = "/charts/get_registration_charts"
 
-        response = self.client.get(url)
+        # All highschools and establishments by default (no highschool_id parameter)
+        response = self.client.get(url, {'level': 0})
         content = response.content.decode()
         json_content = json.loads(content)
 
@@ -647,8 +648,8 @@ class ChartsAPITestCase(TestCase):
         )
 
         # With another level
-        url = "/charts/get_registration_charts/1"
-        response = self.client.get(url)
+        url = "/charts/get_registration_charts"
+        response = self.client.get(url, {'level': 1})
         content = response.content.decode()
         json_content = json.loads(content)
 

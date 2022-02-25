@@ -747,9 +747,13 @@ def get_registration_charts(request):
     Courses slots only
     """
     level_value = request.GET.get("level", 0)
-    highschool_id = request.GET.get("highschool_id")
     user_filters = {}
     level_filter = {}
+
+    if request.user.is_high_school_manager() and request.user.highschool:
+        highschool_id = request.user.highschool.id
+    else:
+        highschool_id = request.GET.get("highschool_id", 'all')
 
     try:
         level_value = int(level_value)
@@ -825,7 +829,7 @@ def get_registration_charts(request):
             int(highschool_id)
             user_filters['high_school_student_record__validation'] = 2
             user_filters['high_school_student_record__highschool__id'] = highschool_id
-        except ValueError:
+        except (TypeError, ValueError):
             pass
 
     qs = ImmersionUser.objects \

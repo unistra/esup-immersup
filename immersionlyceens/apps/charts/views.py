@@ -162,6 +162,7 @@ def global_registrations_charts(request):
     """
     highschool_id = None
     highschool_name = None
+    highschool_filter = {}
 
     # Get filters from request POST data
     part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
@@ -170,13 +171,14 @@ def global_registrations_charts(request):
     if request.user.is_high_school_manager and request.user.highschool:
         highschool_id = request.user.highschool.id
         highschool_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
+        highschool_filter = {'pk': highschool_id}
 
     context = {
         'highschools_ids': highschools_ids,
         'highschools': highschools,
         'highschool_id': highschool_id,
         'highschool_name': highschool_name,
-        'all_highschools': HighSchool.objects.all().order_by('city', 'label'),
+        'all_highschools': HighSchool.objects.filter(**highschool_filter).order_by('city', 'label'),
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
         'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),

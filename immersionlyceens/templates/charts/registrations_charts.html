@@ -39,6 +39,7 @@
           {% endif %}
         </label>
       </div>
+      {% if not request.user.is_high_school_manager %}
       <div class="form-group mx-sm-3 mb-2">
         <label for="id_highschool" class="form-check-label ml-md-2">{% trans 'Filter by pupils from this high school' %} :</label>
         <select id="id_highschool">
@@ -51,6 +52,7 @@
           {% endfor %}
         </select>
       </div>
+      {% endif %}
       <div class="form-group mx-sm-3 mb-2">
         <label for="id_level_part1" class="form-check-label ml-md-2">{% trans 'Students level' %} :</label>
         <select id="id_level_part1" name="level" class="mt-2">
@@ -90,14 +92,17 @@
     var part1_highschool_id = "{{ highschool_id }}";
     var higher_institutions_ids = {{ higher_institutions_ids }};
     var level_filter = "{{ level_filter }}";
+    var is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True"
   {% endautoescape %}
+
+
 
   var data
 
   /* First part XY Chart */
   var part1_level = $('#id_level_part1 option:selected').val();
 
-  if(is_set($('#id_highschool'))) {
+  if($('#id_highschool').length) {
     part1_highschool_id = $('#id_highschool option:selected').val();
   }
 
@@ -138,7 +143,7 @@
     init_first_graph();
   });
 
-  if(is_set($('#id_highschool'))) {
+  if($('#id_highschool').length) {
     $('#id_highschool').change(function () {
       part1_highschool_id = $('#id_highschool option:selected').val();
       init_first_graph();
@@ -228,8 +233,11 @@
     });
   }
 
-  if(highschools_ids.length > 0 || higher_institutions_ids.length > 0) {
-    init_second_graphs(level_filter, highschools_ids, higher_institutions_ids);
+  if(is_high_school_manager === false) {
+    console.log("pof")
+    if (highschools_ids.length > 0 || higher_institutions_ids.length > 0) {
+      init_second_graphs(level_filter, highschools_ids, higher_institutions_ids);
+    }
   }
 
 
