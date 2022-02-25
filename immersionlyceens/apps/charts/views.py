@@ -118,18 +118,20 @@ def highschool_trainings_charts(request):
 
 
 @groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'REF-TEC', 'REF-LYC', 'REF-STR')
-def global_trainings_charts(request):
+def global_trainings_charts(request, my_trainings=False):
     """
     Registration statistics by trainings for establishments and highschools
     """
     filter = {}
     high_school_name = None
     high_school_levels_filters = { 'active': True }
+    filter_by_my_trainings = my_trainings
 
     if request.user.is_high_school_manager() and request.user.highschool:
         high_school_name = request.user.highschool.label
         filter['pk'] = request.user.highschool.id
-    else:
+
+    if filter_by_my_trainings:
         high_school_levels_filters['is_post_bachelor'] = False
 
     highschools = [
@@ -150,6 +152,7 @@ def global_trainings_charts(request):
         'high_school_name': high_school_name,
         'structures': structures,
         'structure_id': structures[0]['id'] if structures else '',
+        'filter_by_my_trainings': filter_by_my_trainings,
         'high_school_levels': HighSchoolLevel.objects.filter(**high_school_levels_filters).order_by('order'),
     }
     return render(request, 'charts/global_trainings_charts.html', context=context)

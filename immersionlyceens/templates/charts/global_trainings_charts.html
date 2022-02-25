@@ -21,8 +21,14 @@
   <h3 class="ml-2">
     {% if request.user.is_structure_manager %}
       {% trans "Structure statistics - registrations by trainings in my structure(s)" %}
+    {% elif request.user.is_establishment_manager and filter_by_my_trainings %}
+      {% trans "Establishment statistics - registrations to my trainings" %}
     {% elif request.user.is_high_school_manager %}
-      {% trans "Highschools statistics - registrations by trainings" %}
+      {% if filter_by_my_trainings %}
+        {% trans "Highschools statistics - registrations to my trainings" %}
+      {% else %}
+        {% trans "Highschools statistics - my high school students registrations by trainings" %}
+      {% endif %}
     {% else %}
       {% trans "Statistics - registrations by trainings" %}
     {% endif %}
@@ -85,7 +91,7 @@
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="pupils_cnt_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
-            {% if not request.user.is_high_school_manager %}
+            {% if filter_by_my_trainings %}
             - <a class="toggle-vis" href='' data-column="students_cnt">{% trans 'Students (and post-bachelor levels)' %}</a>
             - <a class="toggle-vis" href='' data-column="visitors_cnt">{% trans 'Visitors' %}</a>
             {% endif %}
@@ -97,7 +103,7 @@
               {% if forloop.counter0 %} - {% endif %}
               <a class="toggle-vis" href='' data-column="registrations_{{ level.label }}">{{ level.label }}</a>
             {% endfor %}
-            {% if not request.user.is_high_school_manager %}
+            {% if filter_by_my_trainings %}
             - <a class="toggle-vis" href='' data-column="students_registrations">{% trans 'Students registrations (and post-bachelor levels)' %}</a>
             - <a class="toggle-vis" href='' data-column="visitors_registrations">{% trans 'Visitors registrations' %}</a>
             {% endif %}
@@ -120,6 +126,7 @@
   var tableName = "#statistics_table";
   var structure_id = "{{ structure_id }}";
   var highschool_id = "{{ highschool_id }}";
+  var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
   var data;
   var str;
   var columns;
@@ -135,7 +142,8 @@
     function load_datatable() {
       let url = "/charts/get_global_trainings_charts"
       let ajax_data = {
-        'empty_trainings': $('#filter_empty_trainings').is(':checked')
+        'empty_trainings': $('#filter_empty_trainings').is(':checked'),
+        'filter_by_my_trainings': filter_by_my_trainings
       }
 
       if(is_set(structure_id)) {

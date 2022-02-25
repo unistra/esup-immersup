@@ -468,18 +468,23 @@ def get_highschool_trainings_charts(request):
 def get_global_trainings_charts(request):
     """
     Statistics by training for establishments and highschools
+
+    filter_by_my_trainings :
+      - if True, consider only the highschool trainings
+      - if False, filter by the highschool students
+
     """
     user = request.user
     show_empty_trainings = request.GET.get("empty_trainings", False) == "true"
     structure_id = request.GET.get("structure_id")
     highschool_id = request.GET.get("highschool_id")
+    filter_by_my_trainings = request.GET.get("filter_by_my_trainings", False) == "true"
 
     response = {'msg': '', 'data': []}
 
     trainings_filter = {
         'active': True,
     }
-
     students_filter = {}
     immersions_filter = {}
 
@@ -493,6 +498,14 @@ def get_global_trainings_charts(request):
     if highschool_id:
         students_filter['high_school_student_record__highschool__id'] = highschool_id
         immersions_filter['student__high_school_student_record__highschool__id'] = highschool_id
+
+        # Filter by the selected high school students
+        if not filter_by_my_trainings:
+            trainings_filter[
+                'courses__slots__immersions__student__high_school_student_record__highschool__id'] = highschool_id
+
+    if filter_by_my_trainings:
+        trainings_filter['courses__highschool__id'] = highschool_id
 
     # Do not include trainings with no registration/students
     if not show_empty_trainings:
@@ -532,9 +545,11 @@ def get_global_trainings_charts(request):
         })
 
     # Limit to current highschool or establishment for these users
+    """
     if user.is_high_school_manager() and user.highschool:
         trainings_filter['highschool'] = user.highschool
-    elif any(structure_col_conditions):
+    """
+    if any(structure_col_conditions):
         if user.is_establishment_manager() and user.establishment:
             trainings_filter['structures__in'] = user.get_authorized_structures()
 
@@ -554,13 +569,11 @@ def get_global_trainings_charts(request):
             'filter_reset_button_text': False,
         })
 
-
-
     # High school managers will see different high school pupils levels
-    if user.is_high_school_manager():
-        pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True)
-    else:
+    if filter_by_my_trainings:
         pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=False)
+    else:
+        pre_bachelor_levels = HighSchoolLevel.objects.filter(active=True)
 
     post_bachelor_levels = HighSchoolLevel.objects.filter(active=True, is_post_bachelor=True)
 
@@ -637,8 +650,8 @@ def get_global_trainings_charts(request):
       *[f"registrations_{level.label}" for level in pre_bachelor_levels],
     ]
 
-    # Add some columns if user is not a high school manager
-    if not user.is_high_school_manager():
+    # Add some columns if filtering by trainings and not by high school students
+    if filter_by_my_trainings:
         response['cnt_columns'] += ["students_cnt", "visitors_cnt"]
         response['registrations_columns'] += ["students_registrations", "visitors_registrations"]
 

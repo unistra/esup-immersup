@@ -13,6 +13,8 @@ urlpatterns = [
     path('global_domains_charts', views.global_domains_charts, name='global_domains_charts'),
     path('highschool_trainings_charts', views.highschool_trainings_charts, name='highschool_trainings_charts'),
     path('global_trainings_charts', views.global_trainings_charts, name='global_trainings_charts'),
+    path('highschool_global_trainings_charts', views.global_trainings_charts, {'my_trainings': True },
+         name='highschool_global_trainings_charts'),
     path('global_registrations_charts', views.global_registrations_charts, name='global_registrations_charts'),
     path('global_slots_charts', views.global_slots_charts, name='global_slots_charts'),
 
