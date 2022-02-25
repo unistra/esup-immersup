@@ -664,6 +664,33 @@ class ChartsAPITestCase(TestCase):
             HighSchoolLevel.objects.get(pk=1).label: 4}
         ])
 
+        # As a school manager : median will be displayed
+        self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
+        url = "/charts/get_registration_charts"
+
+        # The highschool_id parameter is not needed (default = the manager highschool)
+        response = self.client.get(url, {'level': 0})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content['datasets'],
+            [{'name': 'Attended to at least one immersion (m = 1.0)',
+              HighSchoolLevel.objects.get(pk=1).label: 1,
+              HighSchoolLevel.objects.get(pk=2).label: 1,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 0},
+             {'name': 'Registrations to at least one immersion (m = 1)',
+              HighSchoolLevel.objects.get(pk=1).label: 2,
+              HighSchoolLevel.objects.get(pk=2).label: 2,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 0},
+             {'name': 'Registrations count (m = 1.0)',
+              HighSchoolLevel.objects.get(pk=1).label: 2,
+              HighSchoolLevel.objects.get(pk=2).label: 2,
+              HighSchoolLevel.objects.get(pk=3).label: 0,
+              HighSchoolLevel.objects.get(pk=4).label: 1}]
+        )
+
 
     def test_registration_charts_cats_api(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')

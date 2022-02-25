@@ -158,7 +158,12 @@ class ChartsViewsTestCase(TestCase):
 
         self.assertEqual(response.context['highschools'], [])
         self.assertEqual(response.context['higher_institutions'], [])
-        self.assertEqual(response.context['levels'], HighSchoolLevel.objects.filter(active=True).order_by('order'))
+
+        self.assertEqual(
+            [level.id for level in response.context['levels']],
+            [level.id for level in HighSchoolLevel.objects.filter(active=True).order_by('order')]
+        )
+
         self.assertEqual(response.context['part1_level_filter'], 0)
         self.assertEqual(response.context['level_filter'], 0)
 
