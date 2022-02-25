@@ -3224,10 +3224,11 @@ class MailingListStructuresView(APIView):
         response["data"] = {}
         for structure in Structure.objects.filter(mailing_list__isnull=False):
             mail = structure.mailing_list
-            mailing_list = [email for email in Immersion.objects.filter(
-                    cancellation_type__isnull=True, slot__course__structure=structure) \
-                    .values_list('student__email', flat=True).distinct()
-            ]
+            mailing_list = [email for email in Immersion.objects.filter(cancellation_type__isnull=True).filter(
+                    Q(slot__course__structure=structure) \
+                    | Q(slot__visit__structure=structure) \
+                    | Q(slot__event__structure=structure)
+            ).values_list('student__email', flat=True).distinct()]
             response["data"][mail] = mailing_list
 
         return JsonResponse(data=response)
