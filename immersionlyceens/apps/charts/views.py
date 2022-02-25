@@ -155,7 +155,7 @@ def global_trainings_charts(request):
     return render(request, 'charts/global_trainings_charts.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'REF-STR')
 def global_registrations_charts(request):
     """
     Registration and participation charts by student levels
@@ -173,12 +173,20 @@ def global_registrations_charts(request):
         highschool_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
         highschool_filter = {'pk': highschool_id}
 
+    # This will be only useful to structure managers
+    structures = [
+        {'id': s.id, 'label': s.label}
+        for s in request.user.structures.all().order_by('label')
+    ]
+
     context = {
         'highschools_ids': highschools_ids,
         'highschools': highschools,
         'highschool_id': highschool_id,
         'highschool_name': highschool_name,
         'all_highschools': HighSchool.objects.filter(**highschool_filter).order_by('city', 'label'),
+        'structures': structures,
+        'structure_id': structures[0]['id'] if structures else '',
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
         'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
