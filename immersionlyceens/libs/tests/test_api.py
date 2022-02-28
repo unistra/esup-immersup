@@ -16,18 +16,18 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, pgettext
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Building, Calendar, Campus, CancelType, Course,
-    CourseType, Establishment, GeneralSettings, HighSchool, HighSchoolLevel,
-    Immersion, ImmersionUser, MailTemplate, MailTemplateVars, OffOfferEvent,
-    OffOfferEventType, PostBachelorLevel, Slot, Structure, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
-    Visit,
+    CourseType, Establishment, GeneralSettings, HigherEducationInstitution,
+    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, MailTemplate,
+    MailTemplateVars, OffOfferEvent, OffOfferEventType, PostBachelorLevel,
+    Slot, Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient, APITestCase
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -1659,8 +1659,8 @@ class APITestCase(TestCase):
 
         # Fail : as a high school manager with no high school
         """
-        FIXME : this test will fail because the user will be redirected to the charter sign form  
-        
+        FIXME : this test will fail because the user will be redirected to the charter sign form
+
         self.lyc_ref.highschool = None
         self.lyc_ref.save()
 
@@ -2355,7 +2355,8 @@ class APITestCase(TestCase):
                  'record_links': [
                      f'/immersion/hs_record/{self.hs_record.id}',
                      f'/immersion/hs_record/{self.hs_record2.id}'
-                 ]}
+                 ],
+                 'record_status': [self.hs_record.validation,self.hs_record2.validation]}
             ])
 
     def test_ajax_keep_entries_master_etab(self):
