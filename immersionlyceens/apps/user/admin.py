@@ -68,6 +68,9 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='LYC').order_by('last_name', 'first_name')
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
 
 class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -91,6 +94,9 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='ETU').order_by('last_name', 'first_name')
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
 
 class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -111,6 +117,9 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='VIS').order_by('last_name', 'first_name')
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
 
 class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -128,6 +137,9 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='INTER').order_by('last_name', 'first_name')
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
 
 
 class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -147,6 +159,9 @@ class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='REF-TEC').order_by('last_name', 'first_name')
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
 
 class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -164,6 +179,9 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='REF-ETAB').order_by('last_name', 'first_name')
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
 
 
 class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -183,6 +201,9 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='REF-ETAB-MAITRE').order_by('last_name', 'first_name')
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
 
 class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -200,6 +221,9 @@ class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='REF-LYC').order_by('last_name', 'first_name')
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
 
 
 class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -220,6 +244,9 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='REF-STR').order_by('last_name', 'first_name')
 
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
 
 class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -236,6 +263,9 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='SRV-JUR').order_by('last_name', 'first_name')
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
 
 admin.site.register(HighSchoolStudent, HighschoolStudentAdmin)
 admin.site.register(Student, StudentAdmin)
