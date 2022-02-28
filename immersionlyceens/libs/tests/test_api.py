@@ -20,12 +20,14 @@ from immersionlyceens.apps.core.models import (
     Immersion, ImmersionUser, MailTemplate, MailTemplateVars, OffOfferEvent,
     OffOfferEventType, PostBachelorLevel, Slot, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UserCourseAlert, Vacation,
-    Visit, HigherEducationInstitution
+    Visit,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
 from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
+from rest_framework.authtoken.models import Token
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -59,6 +61,7 @@ class APITestCase(TestCase):
             active=True,
             master=True,
             email='test@test.com',
+            mailing_list='test@test.com',
             signed_charter=True,
             uai_reference=HigherEducationInstitution.objects.first()
         )
@@ -82,6 +85,7 @@ class APITestCase(TestCase):
             zip_code=67000,
             phone_number='0123456789',
             email='a@b.c',
+            mailing_list='a@b.c',
             head_teacher_name='M. A B',
             convention_start_date=self.today - timedelta(days=10),
             convention_end_date=self.today + timedelta(days=10),
@@ -250,7 +254,8 @@ class APITestCase(TestCase):
         self.structure = Structure.objects.create(
             label="test structure",
             code="STR",
-            establishment=self.establishment
+            establishment=self.establishment,
+            mailing_list="structure@no-reply.com"
         )
 
         self.structure2 = Structure.objects.create(
@@ -488,7 +493,8 @@ class APITestCase(TestCase):
         self.event_type = OffOfferEventType.objects.create(label="Event type label")
 
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-
+        self.token = Token.objects.create(user=self.ref_master_etab_user)
+        self.client_token = Client(HTTP_AUTHORIZATION=f" Token {self.token.key}")
 
     def test_API_get_documents(self):
         url = "/api/get_available_documents/"
@@ -514,7 +520,6 @@ class APITestCase(TestCase):
             docs = AccompanyingDocument.objects.filter(active=True)
             self.assertEqual(len(json_content['data']), docs.count())
 
-
     def test_API_ajax_check_course_publication(self):
         self.client.login(username='ref_etab', password='pass')
         url = f"/api/check_course_publication/{self.course.id}"
@@ -536,7 +541,6 @@ class APITestCase(TestCase):
         response = self.client.get(url, {}, **self.header)
         self.assertEqual(response.status_code, 404)
 
-
     def test_API_ajax_get_course_speakers(self):
         self.client.login(username='ref_etab', password='pass')
         url = f"/api/get_course_speakers/{self.course.id}"
@@ -553,7 +557,6 @@ class APITestCase(TestCase):
         response = self.client.post(url, {}, **self.header)
         self.assertEqual(response.status_code, 404)
 
-
     def test_API_ajax_get_buildings(self):
         self.client.login(username='ref_etab', password='pass')
         url = f"/api/get_buildings/{self.campus.id}"
@@ -563,7 +566,6 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['data']), 1)
         self.assertEqual(content['data'][0]['id'], self.building.id)
         self.assertEqual(content['data'][0]['label'], self.building.label)
-
 
     def test_API_ajax_get_courses_by_training(self):
         self.client.login(username='ref_etab', password='pass')
@@ -576,7 +578,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['label'], self.course.label)
         self.assertEqual(content['data'][0]['url'], self.course.url)
         self.assertEqual(content['data'][0]['slots'], Slot.objects.filter(course__training=self.training).count())
-
 
     def test_API_get_ajax_slots(self):
         self.client.login(username='ref_etab', password='pass')
@@ -869,7 +870,7 @@ class APITestCase(TestCase):
                     row[15]
                 )
                 self.assertEqual(self.student_record.level.label, row[16])
-            elif n == 5: # high school slot
+            elif n == 5:  # high school slot
                 self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", row[0])
                 self.assertEqual(self.highschool_training.label, row[3])
                 self.assertEqual(self.highschool_course.label, row[4])
@@ -882,7 +883,6 @@ class APITestCase(TestCase):
                 self.assertEqual(self.highschool_slot.additional_information, row[14])
 
             n += 1
-
 
     def test_API_get_csv_highschool(self):
         url = f'/api/get_csv_highschool/{self.high_school.id}'
@@ -1485,7 +1485,6 @@ class APITestCase(TestCase):
             HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label
         )
         self.assertEqual(stu['city'], '')
-
 
     def test_API_ajax_get_available_students(self):
         request.user = self.ref_etab_user
@@ -2758,3 +2757,115 @@ class APITestCase(TestCase):
         self.assertIsNone(content["data"])
         self.assertGreater(len(content["msg"]), 0)
 
+    def test_API_mailing_list_global__valid(self):
+        self.hs_record.validation = 2
+        self.visitor_record.validation = 2
+        self.hs_record.save()
+        self.visitor_record.save()
+
+        url = "/api/mailing_list/global"
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        email = get_general_setting("GLOBAL_MAILING_LIST")
+
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+        self.assertIn(email, content["data"])
+
+        self.assertEqual(len(content["data"][email]), 4)
+        self.assertIn(self.student.email, content["data"][email])
+        self.assertIn(self.student2.email, content["data"][email])
+        self.assertIn(self.highschool_user.email, content["data"][email])
+        self.assertIn(self.visitor.email, content["data"][email])
+
+        self.hs_record.validation = 0
+        self.visitor_record.validation = 0
+        self.hs_record.save()
+        self.visitor_record.save()
+
+    def test_API_mailing_list_global__wrong_global_setting(self):
+        g = GeneralSettings.objects.get(setting="GLOBAL_MAILING_LIST")
+        g.setting = "GLOBAL_MAILING_LIST_"
+        g.save()
+
+        url = "/api/mailing_list/global"
+        response = self.client_token.get(url)
+
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertGreater(len(content["msg"]), 0)
+        self.assertIsNone(content["data"])
+
+        g.setting = "GLOBAL_MAILING_LIST"
+        g.save()
+
+    def test_API_mailing_list_structure(self):
+        url = "/api/mailing_list/structures"
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+
+        self.assertEqual(len(content["data"]), 1)
+
+        self.assertIn(self.structure.mailing_list, content["data"])
+
+        str_list = content["data"][self.structure.mailing_list]
+        self.assertEqual(len(str_list), 2)
+        self.assertIn(self.highschool_user.email, str_list)
+        self.assertIn(self.student.email, str_list)
+
+    def test_API_mailing_list_establishments(self):
+        url = "/api/mailing_list/establishments"
+
+        event = OffOfferEvent.objects.create(
+            label="event_xxx", description="event_xxx",
+            establishment=self.establishment, event_type=self.event_type
+        )
+        slot = Slot.objects.create(event=event, n_places=30)
+        immersion = Immersion.objects.create(student=self.visitor, slot=slot)
+
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+
+        self.assertEqual(len(content["data"]), 1)
+        self.assertIn(self.establishment.mailing_list, content["data"])
+
+        str_list = content["data"][self.establishment.mailing_list]
+        self.assertEqual(len(str_list), 3)
+        self.assertIn(self.highschool_user.email, str_list)
+        self.assertIn(self.student.email, str_list)
+        self.assertIn(self.visitor.email, str_list)
+
+
+    def test_API_mailing_list_high_schools(self):
+        url = "/api/mailing_list/high_schools"
+
+        event = OffOfferEvent.objects.create(
+            label="event_xxx", description="event_xxx",
+            highschool=self.high_school, event_type=self.event_type
+        )
+        slot = Slot.objects.create(event=event, n_places=30)
+        immersion = Immersion.objects.create(student=self.highschool_user, slot=slot)
+
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+
+        self.assertEqual(len(content["data"]), 1)
+        self.assertIn(self.high_school.mailing_list, content["data"])
+
+        str_list = content["data"][self.high_school.mailing_list]
+        self.assertEqual(len(str_list), 1)
+        self.assertIn(self.highschool_user.email, str_list)
