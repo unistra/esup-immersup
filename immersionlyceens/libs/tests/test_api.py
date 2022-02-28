@@ -2769,14 +2769,6 @@ class APITestCase(TestCase):
         self.assertIn(self.highschool_user.email, str_list)
         self.assertIn(self.student.email, str_list)
 
-    def test_API_mailing_list_establishment__no_data(self):
-        url = "/api/mailing_list/establishments"
-        response = self.client_token.get(url)
-        content = json.loads(response.content.decode("utf-8"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content["msg"], "")
-        self.assertEqual(content["data"], {})
-
     def test_API_mailing_list_establishments(self):
         url = "/api/mailing_list/establishments"
 
