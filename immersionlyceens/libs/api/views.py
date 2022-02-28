@@ -2672,6 +2672,7 @@ def ajax_get_duplicates(request):
                 'birthdates': [_date(r.birth_date) for r in records],
                 "highschools": [f"{r.highschool.label}, {r.class_name}" for r in records],
                 "emails": [r.student.email for r in records],
+                "record_status": [r.validation for r in records],
                 "record_links": [reverse('immersion:modify_hs_record', kwargs={'record_id': r.id}) for r in records],
             }
 
