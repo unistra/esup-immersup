@@ -267,7 +267,10 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             return ''
         if obj.is_high_school_student():
             record = obj.get_high_school_student_record()
-            return record.highschool if record.highschool else ''
+            if record and record.highschool:
+                return record.highschool
+            else:
+                return ''
         elif obj.is_student():
             record = obj.get_student_record()
             return record.home_institution()[0]

@@ -136,10 +136,25 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        return ImmersionUser.objects.filter(groups__name='INTER').order_by('last_name', 'first_name')
+        Q_filter = Q()
+
+        if request.user.is_establishment_manager():
+            es = request.user.establishment
+            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+
+        return ImmersionUser.objects.filter(Q_filter, groups__name='INTER',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator(),
+            request.user.is_establishment_manager(),
+        ]
+        return any(valid_groups)
 
 
 class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -162,6 +177,25 @@ class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return request.user.is_superuser
 
+    def has_view_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+    def has_module_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+
 
 class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
@@ -178,7 +212,13 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        return ImmersionUser.objects.filter(groups__name='REF-ETAB').order_by('last_name', 'first_name')
+        Q_filter = Q()
+
+        if request.user.is_establishment_manager():
+            es = request.user.establishment
+            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+
+        return ImmersionUser.objects.filter(Q_filter, groups__name='REF-ETAB',).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return request.user.is_superuser
@@ -203,6 +243,24 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     def has_add_permission(self, request):
         return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+    def has_module_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
 
 
 class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -242,7 +300,19 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        return ImmersionUser.objects.filter(groups__name='REF-STR').order_by('last_name', 'first_name')
+        filter = {}
+        Q_filter = Q()
+
+        if request.user.is_high_school_manager() and request.user.highschool:
+            filter = {'highschool' : 'request.user.highschool'}
+
+        if request.user.is_establishment_manager():
+            es = request.user.establishment
+            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+
+        return ImmersionUser.objects.filter(Q_filter,
+                                            groups__name='REF-STR',
+                                            **filter).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return request.user.is_superuser
@@ -262,7 +332,19 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
     )
 
     def get_queryset(self, request):
-        return ImmersionUser.objects.filter(groups__name='SRV-JUR').order_by('last_name', 'first_name')
+        filter = {}
+        Q_filter = Q()
+
+        if request.user.is_high_school_manager() and request.user.highschool:
+            filter = {'highschool' : 'request.user.highschool'}
+
+        if request.user.is_establishment_manager():
+            es = request.user.establishment
+            Q_filter = Q(structures__establishment=es)|Q(establishment=es)
+
+        return ImmersionUser.objects.filter(Q_filter,
+                                            groups__name='SRV-JUR',
+                                            **filter).order_by('last_name', 'first_name')
 
     def has_add_permission(self, request):
         return request.user.is_superuser
