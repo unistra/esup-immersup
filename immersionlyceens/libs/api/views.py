@@ -3246,7 +3246,7 @@ class MailingListEstablishmentsView(APIView):
                 | Q(slot__visit__establishment=establishment) \
                 | Q(slot__event__establishment=establishment)
             ).values_list('student__email', flat=True).distinct()]
-            response["data"] = establishment.mailing_list
+            response["data"][establishment.mailing_list] = mailing_list
 
         return JsonResponse(data=response)
 
