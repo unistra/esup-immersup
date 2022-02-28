@@ -25,6 +25,7 @@ from immersionlyceens.apps.core.models import (
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
+from immersionlyceens.libs.utils import get_general_setting
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
