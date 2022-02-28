@@ -381,7 +381,8 @@ ADMIN_SITE_INDEX_TITLE = _('Welcome to ImmerSup administration page')
 # HIJACK_LOGOUT_REDIRECT_URL = '/'  # Add to your settings file
 # HIJACK_ALLOW_GET_REQUESTS = True
 # HIJACK_REGISTER_ADMIN = False
-HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_and_staff"
+HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_only"
+#"hijack.permissions.superusers_and_staff"
 
 
 #################
