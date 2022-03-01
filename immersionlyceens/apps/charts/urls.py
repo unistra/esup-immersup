@@ -15,6 +15,8 @@ urlpatterns = [
     path('global_trainings_charts', views.global_trainings_charts, name='global_trainings_charts'),
     path('highschool_global_trainings_charts', views.global_trainings_charts, {'my_trainings': True },
          name='highschool_global_trainings_charts'),
+    path('establishment_trainings_charts', views.global_trainings_charts, {'my_trainings': True },
+         name='establishment_trainings_charts'),
     path('global_registrations_charts', views.global_registrations_charts, name='global_registrations_charts'),
     path('global_slots_charts', views.global_slots_charts, name='global_slots_charts'),
 

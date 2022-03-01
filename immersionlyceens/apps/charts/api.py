@@ -505,7 +505,11 @@ def get_global_trainings_charts(request):
                 'courses__slots__immersions__student__high_school_student_record__highschool__id'] = highschool_id
 
     if filter_by_my_trainings:
-        trainings_filter['courses__highschool__id'] = highschool_id
+        if user.is_high_school_manager():
+            trainings_filter['courses__highschool__id'] = highschool_id
+        elif user.is_establishment_manager():
+            allowed_structures = user.get_authorized_structures()
+            trainings_filter['courses__structure__in'] = allowed_structures
 
     # Do not include trainings with no registration/students
     if not show_empty_trainings:
