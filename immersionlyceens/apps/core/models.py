@@ -2047,11 +2047,11 @@ class Slot(models.Model):
         end_time = self.end_time or _("end time unknown")
 
         if self.visit:
-            slot_type = _(f"Visit - {self.visit.highschool}")
+            slot_type = _("Visit - %s") % self.visit.highschool
         elif self.course:
-            slot_type = _(f"Course - {self.course_type} {self.course.label}")
+            slot_type = _("Course - %s %s") % (self.course_type, self.course.label)
         elif self.event:
-            slot_type = _(f"Event - {self.event.label}")
+            slot_type = _(f"Event - %s") % self.event.label
 
         return f"{slot_type} : {date} : {start_time}-{end_time}"
 
