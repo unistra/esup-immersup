@@ -1,0 +1,55 @@
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+<div class="modal fade" id="modal_nuke_account" tabindex="-1" role="dialog" aria-labelledby="modal_nuke_account_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_nuke_account_title">{% trans 'Account deletion' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="card">
+          <div class="card-header text-danger">
+            {% trans "Are you sure you want to completely delete this account ?" %}
+          </div>
+          <div class="card-body">
+            <p>{% trans "Please note this action is irreversible and all data will be definitely lost" %}</p>
+
+            <input type="submit" class="btn btn-secondary btn-sm" name="confirm-nuke" onclick="delete_account()" value="{% trans 'I confirm the deletion' %}">
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  function delete_account() {
+    $.ajax({
+      url: "{% url 'DeleteAccount' %}",
+      type: 'POST',
+      data: {
+        'account_id': account_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error != '') {
+          feedback.trigger("showFeedback", [[error, "danger"]]);
+        }
+        else if(msg != '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);          
+          dt.ajax.reload();
+        }
+      },
+      error: function(json) {
+        console.log(json);
+      }
+    })
+  };
+
+</script>

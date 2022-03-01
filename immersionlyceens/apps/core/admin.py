@@ -159,18 +159,18 @@ class HighschoolConventionFilter(admin.SimpleListFilter):
         )
 
     def choices(self, cl):
-            for lookup, title in self.lookup_choices:
-                yield {
-                    'selected': self.value() == lookup,
-                    'query_string': cl.get_query_string({
-                        self.parameter_name: lookup,
-                    }, []),
-                    'display': title,
-                }
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == lookup,
+                'query_string': cl.get_query_string({
+                    self.parameter_name: lookup,
+                }, []),
+                'display': title,
+            }
 
 
     def queryset(self, request, queryset):
-        if self.value() == 'active' or self.value() == None:
+        if self.value() == 'active' or self.value() is None:
             return queryset.filter(
                 convention_start_date__lte=datetime.now().date(),
                 convention_end_date__gte=datetime.now().date()
@@ -275,7 +275,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             record = obj.get_student_record()
             return record.home_institution()[0]
         elif obj.is_structure_manager():
-            structures = ', '.join([s.label for s in obj.structures.all().order_by('label')])
             if obj.highschool:
                 return obj.highschool
             elif obj.establishment:

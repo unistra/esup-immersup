@@ -2349,6 +2349,7 @@ class APITestCase(TestCase):
             self.assertEqual(content['data'], [
                 {'id': 0,
                  'record_ids': [self.hs_record.id, self.hs_record2.id],
+                 'account_ids': [self.hs_record.student.id, self.hs_record2.student.id],
                  'names': ['SCHOOL high', 'SCHOOL2 high2'],
                  'birthdates': [_date(self.hs_record.birth_date), _date(self.hs_record2.birth_date)],
                  'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],

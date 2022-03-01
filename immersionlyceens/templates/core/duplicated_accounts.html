@@ -21,6 +21,7 @@
 
 {% block content %}
 <div id="feedback" class="container"></div>
+{% include '../modals/modal_nuke_account.html' %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -60,6 +61,7 @@
   var dt;
   var feedback;
   var keep_all = "{% trans 'Keep all entries' %}";
+  var account_id
 
   function keep_entries(rowId) {
     var data = dt.row(rowId).data();
@@ -89,6 +91,11 @@
       }
     })
   }
+
+  function confirm_remove_entry(accountId) {
+    account_id = accountId
+    $('#modal_nuke_account').modal('show');
+  }  
 
   $(document).ready(function () {
     initFeedback();
@@ -124,7 +131,7 @@
             if (txt != "") {
               txt += "<br />";
             }
-            txt +=  "<a href='"+row.record_links[i]+"'>"+item+"</a>";
+            txt +=  "<a href='"+row.record_links[i]+"' class=\"p-0 m-0\">"+item+"</a>";
           });
 
           return txt;
@@ -196,10 +203,18 @@
           return txt;
         }
       },            
-      { "data": "record_ids",
+      { "data": "account_ids",
         "render": function(data, type, row) {
-          return "<button class='btn btn-secondary btn-sm' onclick='keep_entries("+row.id+")'>"+keep_all+"</button>";
-        }
+          var txt = "<div class=\"row\"><div class=\"col-sm\">";
+          $.each(data, function(i, item) {
+            txt +="<button class=\"btn btn-light btn-xs btn-block p-0 m-0\" onclick=\"confirm_remove_entry('"+row.account_ids[i]+"')\" title=''>" +
+                  "<i class=\"fa fas fa-trash fa-1x\"></i></button>";
+          });
+          txt += "</div><div class=\"col-sm\">" +
+                 "<button class='btn btn-secondary btn-sm' onclick='keep_entries("+row.id+")'>"+keep_all+"</button>" +
+                 "</div></div>";
+          return txt;          
+        } 
       },
   ],
     "columnDefs": [
@@ -210,11 +225,10 @@
       },
       {
         "orderable": false,
-        "targets": [4]
+        "targets": [-1]
       },
     ],
   });
-
 
   // Filters init
   yadcf.init(dt, [
