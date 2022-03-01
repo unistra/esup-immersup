@@ -22,11 +22,18 @@
 
 {% block section_title %}
 <h3 class="ml-2">
-    {% trans 'Registrations and participation statistics' %}
-    {% if request.user.is_structure_manager and structures|length == 1 %}
-        {% with structures|first as structure %}
-          - {% trans 'Structure' %} : {{ structure.label }}
-        {% endwith %}
+    {% if request.user.is_structure_manager %}
+      {% trans "Structure statistics - registrations and participations in my structure(s)" %}
+    {% elif request.user.is_establishment_manager and filter_by_my_trainings %}
+      {% trans "Establishment statistics - registrations and participations to my trainings" %}
+    {% elif request.user.is_high_school_manager %}
+      {% if filter_by_my_trainings %}
+        {% trans "Highschools statistics - registrations and participations to my trainings" %}
+      {% else %}
+        {% trans "Highschools statistics - my high school students registrations and participations" %}
+      {% endif %}
+    {% else %}
+      {% trans "Registrations and participations statistics" %}
     {% endif %}
 </h3>
 {% endblock %}
