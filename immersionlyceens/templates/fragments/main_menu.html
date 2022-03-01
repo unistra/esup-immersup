@@ -191,7 +191,7 @@
               {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-ETAB-MAITRE,REF-TEC" %}
                 <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'High school - my high school students registrations/participations' %}</a>
                 {% if request.user.highschool.postbac_immersion %}
-                   <a class="dropdown-item" href="{% url 'charts:highschool_registrations_charts' %}">{% trans 'High school - registrations/participations to my trainings' %}</a>
+                   <a class="dropdown-item" href="{% url 'charts:highschool_registrations_charts' %}">{% trans 'High school - registrations and participations to my trainings' %}</a>
                 {% endif %}
                 <a class="dropdown-item" href="{% url 'charts:highschool_domains_charts' %}">{% trans 'By domains registrations' %}</a>
                 {% if authorized_groups|in_groups:"REF-LYC" %}

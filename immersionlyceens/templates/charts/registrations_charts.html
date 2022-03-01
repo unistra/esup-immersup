@@ -90,13 +90,9 @@
           {% for level in levels %}
             <option value="{{ level.pk }}" {% if part1_level_filter == level.id %}selected{% endif %}>{{ level.label }}</option>
           {% endfor %}
-<<<<<<< HEAD
           {% if not request.user.is_high_school_manager or filter_by_my_trainings %}
             <option value="visitors" {% if part1_level_filter == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
           {% endif %}
-=======
-          <option value="visitors" {% if part1_level_filter == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
->>>>>>> 0f0ba32500535fd46d49c76c7f42036ae1896ac2
         </select>
       </div>
     </div>

@@ -5684,11 +5684,11 @@ msgstr "Valider les profils visiteurs"
 
 #: immersionlyceens/templates/fragments/main_menu.html:192
 msgid "High school - my high school students registrations/participations"
-msgstr "Statistiques lycéennes - inscriptions et participations de mes lycéens"
+msgstr "Lycées - inscriptions et participations de mes lycéens"
 
 #: immersionlyceens/templates/fragments/main_menu.html:194
-msgid "High school - registrations/participations to my trainings"
-msgstr "Lycées - inscriptions/participations à mes formations"
+msgid "High school - registrations and participations to my trainings"
+msgstr "Lycées - inscriptions and participations à mes formations"
 
 #: immersionlyceens/templates/fragments/main_menu.html:196
 msgid "By domains registrations"
@@ -5696,7 +5696,7 @@ msgstr "Lycées - inscriptions par domaine"
 
 #: immersionlyceens/templates/fragments/main_menu.html:198
 msgid "High school - my high school students registrations, by trainings"
-msgstr "Statistiques lycéennes - inscriptions de mes lycéens, par formation"
+msgstr "Lycées - inscriptions de mes lycéens, par formation"
 
 #: immersionlyceens/templates/fragments/main_menu.html:201
 msgid "High school - registrations to my trainings"
