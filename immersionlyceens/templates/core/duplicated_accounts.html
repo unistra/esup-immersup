@@ -36,11 +36,13 @@
               <th id="highschool_filter" class="align-top">{% trans 'High School' %}</th>
               <th id="email_filter" class="align-top">{% trans 'Email' %}</th>
               <th id="record_status" class="align-top">{% trans 'Record status' %}</th>
+              <th id="registrations" class="align-top">{% trans 'Registrations' %}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -170,7 +172,7 @@
       { "data": "record_status",
         "render": function(data, type, row) {
           var txt = "";
-          var labels = ["{% trans 'To validate' %}", "{% trans 'Validated' %}", "{% trans 'Rejected' %}"]
+          var labels = ["", "{% trans 'To validate' %}", "{% trans 'Validated' %}", "{% trans 'Rejected' %}"]
           $.each(data, function(i, item) {
             if (txt != "") {
               txt += "<br />";
@@ -180,7 +182,20 @@
 
           return txt;
         }
-      },      
+      },
+      { "data": "registrations",
+        "render": function(data, type, row) {
+          var txt = "";
+          $.each(data, function(i, item) {
+            if (txt != "") {
+              txt += "<br />";
+            }
+            txt += item;
+          });
+
+          return txt;
+        }
+      },            
       { "data": "record_ids",
         "render": function(data, type, row) {
           return "<button class='btn btn-secondary btn-sm' onclick='keep_entries("+row.id+")'>"+keep_all+"</button>";

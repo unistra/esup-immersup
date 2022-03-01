@@ -2357,7 +2357,8 @@ class APITestCase(TestCase):
                      f'/immersion/hs_record/{self.hs_record.id}',
                      f'/immersion/hs_record/{self.hs_record2.id}'
                  ],
-                 'record_status': [self.hs_record.validation,self.hs_record2.validation]}
+                 'record_status': [self.hs_record.validation,self.hs_record2.validation],
+                 'registrations': ['Yes', 'No']}
             ])
 
     def test_ajax_keep_entries_master_etab(self):

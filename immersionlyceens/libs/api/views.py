@@ -2656,13 +2656,19 @@ def ajax_get_duplicates(request):
     id = 0
     for t in HighSchoolStudentRecord.get_duplicate_tuples():
         records = []
+        registrations = []
 
         for record_id in t:
             try:
                 record = HighSchoolStudentRecord.objects.get(pk=record_id)
+                immersions_nb = Immersion.objects.prefetch_related('slot').filter(student=record.student.pk,
+                                                                               cancellation_type__isnull=True).count()
+
                 records.append(record)
+                registrations.append(immersions_nb)
             except HighSchoolStudentRecord.DoesNotExist:
                 continue
+
 
         if len(records) > 1:
             dupes_data = {
@@ -2674,6 +2680,7 @@ def ajax_get_duplicates(request):
                 "emails": [r.student.email for r in records],
                 "record_status": [r.validation for r in records],
                 "record_links": [reverse('immersion:modify_hs_record', kwargs={'record_id': r.id}) for r in records],
+                "registrations": [ _('Yes') if r > 0 else _('No') for r in registrations],
             }
 
             id += 1
