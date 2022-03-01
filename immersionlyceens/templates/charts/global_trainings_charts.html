@@ -216,14 +216,14 @@
 
     load_datatable()
 
-    if(is_set($('#id_highschools'))) {
+    if($('#id_highschools').length) {
       $('#id_highschools').change(function () {
         highschool_id = $('#id_highschools option:selected').val();
         load_datatable();
       });
     }
 
-    if(is_set($('#id_structures'))) {
+    if($('#id_structures').length) {
       $('#id_structures').change(function () {
         structure_id = $('#id_structures option:selected').val();
         load_datatable();

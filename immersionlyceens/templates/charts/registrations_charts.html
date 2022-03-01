@@ -21,7 +21,21 @@
 {% endblock %}
 
 {% block section_title %}
-<h3 class="ml-2">{% trans 'Registrations and participation statistics' %}</h3>
+<h3 class="ml-2">
+    {% if request.user.is_structure_manager %}
+      {% trans "Structure statistics - registrations and participations in my structure(s)" %}
+    {% elif request.user.is_establishment_manager and filter_by_my_trainings %}
+      {% trans "Establishment statistics - registrations and participations to my trainings" %}
+    {% elif request.user.is_high_school_manager %}
+      {% if filter_by_my_trainings %}
+        {% trans "Highschools statistics - registrations and participations to my trainings" %}
+      {% else %}
+        {% trans "Highschools statistics - my high school students registrations and participations" %}
+      {% endif %}
+    {% else %}
+      {% trans "Registrations and participations statistics" %}
+    {% endif %}
+</h3>
 {% endblock %}
 
 {% block content %}
@@ -34,12 +48,28 @@
         <label class="form-check-label ml-md-2">
           {% if request.user.is_high_school_manager %}
             {{ highschool_name }}
+          {% elif request.user.is_structure_manager %}
+            {% trans "Structure statistics - registrations and participations in my structure(s) courses" %}
           {% else %}
             {% trans 'Global statistics (all institutions)' %}
           {% endif %}
         </label>
       </div>
-      {% if not request.user.is_high_school_manager %}
+      {% if request.user.is_structure_manager %}
+        {% if structures|length > 1 %}
+          <div class="form-group mx-sm-3 mb-2">
+            <label for="id_structures" class="form-check-label ml-md-2">{% trans 'Select a structure' %} :</label>
+            <select id="id_structures">
+              {% for structure in structures %}
+                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                  {{ structure.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endif %}
+      {% endif %}
+      {% if not request.user.is_high_school_manager and not request.user.is_structure_manager %}
       <div class="form-group mx-sm-3 mb-2">
         <label for="id_highschool" class="form-check-label ml-md-2">{% trans 'Filter by pupils from this high school' %} :</label>
         <select id="id_highschool">
@@ -54,12 +84,15 @@
       </div>
       {% endif %}
       <div class="form-group mx-sm-3 mb-2">
-        <label for="id_level_part1" class="form-check-label ml-md-2">{% trans 'Students level' %} :</label>
+        <label for="id_level_part1" class="form-check-label ml-md-2">{% trans 'Students level / categories' %} :</label>
         <select id="id_level_part1" name="level" class="mt-2">
           <option value="0" {% if part1_level_filter == 0 %}selected{% endif %}>{% trans 'All' %}</option>
           {% for level in levels %}
             <option value="{{ level.pk }}" {% if part1_level_filter == level.id %}selected{% endif %}>{{ level.label }}</option>
           {% endfor %}
+          {% if not request.user.is_high_school_manager or filter_by_my_trainings %}
+            <option value="visitors" {% if part1_level_filter == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
+          {% endif %}
         </select>
       </div>
     </div>
@@ -67,7 +100,7 @@
       <div id="chartdiv" style="width:100%; height:400px;"></div>
     </div>
   </div>
-  {% if not request.user.is_high_school_manager %}
+  {% if not request.user.is_high_school_manager and not request.user.is_structure_manager %}
   <div class="card">
     <div class="card-header text-white bg-secondary">
       {% trans 'By institutions statistics' %}
@@ -91,12 +124,13 @@
     var highschools_ids = {{ highschools_ids }};
     var part1_highschool_id = "{{ highschool_id }}";
     var higher_institutions_ids = {{ higher_institutions_ids }};
+    var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
     var level_filter = "{{ level_filter }}";
     var is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True"
+    var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
   {% endautoescape %}
 
-
-
+  var structure_id = "{{ structure_id }}";
   var data
 
   /* First part XY Chart */
@@ -106,12 +140,19 @@
     part1_highschool_id = $('#id_highschool option:selected').val();
   }
 
+  if($('#id_structures').length) {
+    structure_id = $('#id_structures option:selected').val();
+  }
+
   function init_first_graph() {
     let url = "/charts/get_registration_charts"
-    let get_data = {}
+    let get_data = {
+      'filter_by_my_trainings': filter_by_my_trainings
+    }
 
     if(is_set(part1_level)) get_data.level = part1_level
     if(is_set(part1_highschool_id)) get_data.highschool_id = part1_highschool_id
+    if(is_set(structure_id)) get_data.structure_id = structure_id
 
     // $.get("/charts/get_registration_charts", get_data, function(response) {
 
@@ -150,6 +191,13 @@
     });
   }
 
+  if($('#id_structures').length) {
+    $('#id_structures').change(function () {
+      structure_id = $('#id_structures option:selected').val();
+      init_first_graph();
+    })
+  }
+
   /* Second part XY charts */
   function open_filter_modal() {
     $('#modal_global_charts_filter').modal('show');
@@ -171,14 +219,14 @@
     chart.svgContainer.htmlElement.style.height = targetHeight + "px";
   };
 
-  function init_second_graphs(part2_level, highschools_ids, higher_institutions_ids) {
+  function init_second_graphs() {
     $.ajax({
       url: "/charts/get_registration_charts_cats",
       type: 'POST',
       data: {
         'highschools_ids' : highschools_ids,
         'higher_institutions_ids': higher_institutions_ids,
-        'level': part2_level,
+        'level': level_filter,
          csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
@@ -233,9 +281,9 @@
     });
   }
 
-  if(is_high_school_manager === false) {
+  if(is_high_school_manager === false && is_structure_manager === false) {
     if (highschools_ids.length > 0 || higher_institutions_ids.length > 0) {
-      init_second_graphs(level_filter, highschools_ids, higher_institutions_ids);
+      init_second_graphs();
     }
   }
 

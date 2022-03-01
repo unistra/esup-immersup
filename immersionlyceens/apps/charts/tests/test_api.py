@@ -634,17 +634,23 @@ class ChartsAPITestCase(TestCase):
                HighSchoolLevel.objects.get(pk=1).label: 2,
                HighSchoolLevel.objects.get(pk=2).label: 2,
                HighSchoolLevel.objects.get(pk=3).label: 0,
-               HighSchoolLevel.objects.get(pk=4).label: 0},
+               HighSchoolLevel.objects.get(pk=4).label: 0,
+               'Visitors': 0,
+              },
               {'name': 'Registrations to at least one immersion',
                HighSchoolLevel.objects.get(pk=1).label: 3,
                HighSchoolLevel.objects.get(pk=2).label: 4,
                HighSchoolLevel.objects.get(pk=3).label: 1,
-               HighSchoolLevel.objects.get(pk=4).label: 1},
+               HighSchoolLevel.objects.get(pk=4).label: 1,
+               'Visitors': 0,
+              },
               {'name': 'Registrations count',
                HighSchoolLevel.objects.get(pk=1).label: 4,
                HighSchoolLevel.objects.get(pk=2).label: 4,
                HighSchoolLevel.objects.get(pk=3).label: 2,
-               HighSchoolLevel.objects.get(pk=4).label: 2}]
+               HighSchoolLevel.objects.get(pk=4).label: 2,
+               'Visitors': 0,
+              },]
         )
 
         # With another level
