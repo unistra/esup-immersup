@@ -765,28 +765,45 @@ def get_registration_charts(request):
     """
     user = request.user
     level_value = request.GET.get("level", 0) # default : all
+    highschool_id = request.GET.get("highschool_id", 'all')
     structure_id = request.GET.get("structure_id")
+    filter_by_my_trainings = request.GET.get("filter_by_my_trainings", False) == "true"
     user_filters = {}
     level_filter = {}
     immersions_filter = {}
-
-    if user.is_high_school_manager() and user.highschool:
-        highschool_id = user.highschool.id
-    else:
-        highschool_id = request.GET.get("highschool_id", 'all')
+    allowed_structures = user.get_authorized_structures()
 
     try:
         structure_id = int(structure_id)
     except (ValueError, TypeError):
         structure_id = None
 
-    structure_conditions = [
-        user.is_structure_manager(),
-        structure_id and Structure.objects.get(pk=structure_id) in user.get_authorized_structures()
-    ]
+    # Highschool id override for high school managers
+    if user.is_high_school_manager() and user.highschool:
+        highschool_id = user.highschool.id
 
-    if all(structure_conditions):
-        immersions_filter['immersions__slot__course__structure__id'] = structure_id
+    if highschool_id == 'all_highschools':
+        user_filters['high_school_student_record__validation'] = 2
+    else:
+        try:
+            int(highschool_id)
+            user_filters['high_school_student_record__validation'] = 2
+            user_filters['high_school_student_record__highschool__id'] = highschool_id
+
+            # Filter by the selected high school students
+            if not filter_by_my_trainings:
+                immersions_filter['immersions__student__high_school_student_record__highschool__id'] = highschool_id
+
+        except (TypeError, ValueError):
+            pass
+
+    if filter_by_my_trainings:
+        if user.is_high_school_manager():
+            immersions_filter['immersions__slot__course__highschool__id'] = highschool_id
+        elif user.is_establishment_manager():
+            immersions_filter['immersions__slot__course__structure__in'] = allowed_structures
+        elif user.is_structure_manager() and structure_id and structure_id in user.get_authorized_structures():
+            immersions_filter['immersions__slot__course__structure__id'] = structure_id
 
     if level_value != "visitors":
         try:
@@ -796,10 +813,10 @@ def get_registration_charts(request):
 
         if level_value == 0 or level_value not in [s.id for s in HighSchoolLevel.objects.filter(active=True)]:
             level_value = 0 # force it
-            student_levels = [
-                *[l.label for l in HighSchoolLevel.objects.filter(active=True).order_by('order')],
-                _("Visitors"),
-            ]
+            student_levels = [l.label for l in HighSchoolLevel.objects.filter(active=True).order_by('order')]
+
+            if not user.is_high_school_manager() or filter_by_my_trainings:
+                student_levels.append(_("Visitors"),)
         else:
             student_levels = [
                 HighSchoolLevel.objects.get(pk=level_value).label
@@ -858,21 +875,6 @@ def get_registration_charts(request):
             }
         })
 
-    """
-    if immersions_filter:
-        qs = qs.filter(reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()]))
-    """
-
-    if highschool_id == 'all_highschools':
-        user_filters['high_school_student_record__validation'] = 2
-    else:
-        try:
-            int(highschool_id)
-            user_filters['high_school_student_record__validation'] = 2
-            user_filters['high_school_student_record__highschool__id'] = highschool_id
-        except (TypeError, ValueError):
-            pass
-
     user_queryset = ImmersionUser.objects \
         .prefetch_related(
             'high_school_student_record__level',
@@ -883,10 +885,11 @@ def get_registration_charts(request):
         .all()
 
     if level_value == 0:
-        levels =  [
-            *[l for l in HighSchoolLevel.objects.filter(active=True).order_by('order')],
-            'visitors'
-        ]
+        levels = [l for l in HighSchoolLevel.objects.filter(active=True).order_by('order')]
+
+        if not user.is_high_school_manager() or filter_by_my_trainings:
+            levels.append('visitors')
+
     elif level_value == 'visitors':
         levels =  ['visitors']
     else:

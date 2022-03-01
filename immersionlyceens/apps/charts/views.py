@@ -128,7 +128,7 @@ def global_trainings_charts(request, my_trainings=False):
     filter_by_my_trainings = my_trainings
 
     if request.user.is_high_school_manager() and request.user.highschool:
-        high_school_name = request.user.highschool.label
+        high_school_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
         filter['pk'] = request.user.highschool.id
 
     if filter_by_my_trainings or not request.user.is_high_school_manager():
@@ -159,22 +159,27 @@ def global_trainings_charts(request, my_trainings=False):
 
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC', 'REF-STR')
-def global_registrations_charts(request):
+def global_registrations_charts(request, my_trainings=False):
     """
     Registration and participation charts by student levels
     """
     highschool_id = None
     highschool_name = None
     highschool_filter = {}
+    high_school_levels_filters = {'active': True}
+    filter_by_my_trainings = my_trainings
 
     # Get filters from request POST data
     part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
         process_request_filters(request)
 
-    if request.user.is_high_school_manager and request.user.highschool:
+    if request.user.is_high_school_manager() and request.user.highschool:
         highschool_id = request.user.highschool.id
         highschool_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
         highschool_filter = {'pk': highschool_id}
+
+    if filter_by_my_trainings or not request.user.is_high_school_manager():
+        high_school_levels_filters['is_post_bachelor'] = False
 
     # This will be only useful to structure managers
     structures = [
@@ -188,6 +193,7 @@ def global_registrations_charts(request):
         'highschool_id': highschool_id,
         'highschool_name': highschool_name,
         'all_highschools': HighSchool.objects.filter(**highschool_filter).order_by('city', 'label'),
+        'filter_by_my_trainings': filter_by_my_trainings,
         'structures': structures,
         'structure_id': structures[0]['id'] if structures else '',
         'higher_institutions_ids': higher_institutions_ids,
