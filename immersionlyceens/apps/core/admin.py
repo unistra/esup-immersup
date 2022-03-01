@@ -773,7 +773,7 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
                 'data_source_settings', 'logo', 'signature', 'objects', 'activated',
                 'address', 'address2', 'address3', 'certificate_header', 'certificate_footer'
             )
-        elif request.user.is_master_establishment_manager():
+        elif request.user.is_master_establishment_manager() and not user.is_superuser:
             return super().get_readonly_fields(request, obj) + (
                 'code', 'label', 'short_label', 'department', 'city', 'zip_code', 'phone_number', 'fax',
                 'badge_html_color', 'email', 'data_source_plugin',
