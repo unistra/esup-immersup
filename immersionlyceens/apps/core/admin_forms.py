@@ -1291,7 +1291,14 @@ class MailTemplateForm(forms.ModelForm):
         try:
             template.Template(body).render(template.Context())
         except template.TemplateSyntaxError as e:
-            body_syntax_error_msg = _("The message body contains syntax error(s) : ") + str(e)
+            before: str = e.template_debug["before"]
+
+            line: int = 1 + before.count("<br>") + before.count("</br>")
+            line += before.count("&lt;br&gt;") + before.count("&lt;/br&gt;")
+
+            body_syntax_error_msg = _("The message body contains syntax error(s) : ")
+            body_syntax_error_msg += _('at "%s" line %s') % (e.template_debug["during"], line)
+
             body_errors_list.append(self.error_class([body_syntax_error_msg]))
 
         if unknown_vars:

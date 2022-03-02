@@ -17,8 +17,11 @@ function getCookie(name) {
 
 $(document).ready(function() {
   $('#id_body_iframe').before(
-    '<div><button type=\'button\' id=\'toggle-modal\'>' +
+    '<div><button type=\'button\' id=\'toggle-modal\' class="button default" style="float: left; padding: 10px;">' +
       gettext('View available variables') +
+     '</button></div>' +
+      '<div><button type=\'button\' id=\'toggle-preview-modal\' class="button default" style="float: left; padding: 10px; margin-left: 20px;">' +
+        gettext('Preview') +
      '</button></div>'
   )
 
