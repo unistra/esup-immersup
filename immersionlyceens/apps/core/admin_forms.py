@@ -958,7 +958,7 @@ class ImmersionUserChangeForm(UserChangeForm):
 
             # Restrictions on group depending on current user group
             if self.request.user.is_master_establishment_manager():
-                if not self.instance.is_master_establishment_manager():
+                if not self.instance.is_master_establishment_manager() and self.fields.get('groups'):
                     self.fields["groups"].queryset = \
                         self.fields["groups"].queryset.exclude(name__in=['REF-ETAB-MAITRE']).order_by('name')
 

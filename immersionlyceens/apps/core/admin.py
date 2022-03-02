@@ -432,7 +432,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
 
             # When creating a user, the group is not here yet
             if request.user.is_master_establishment_manager():
-                return not obj.is_master_establishment_manager()
+                return not obj.is_master_establishment_manager() and not obj.is_operator()
 
             # A user can only be updated if not superuser and the authenticated user has
             # rights on ALL his groups
