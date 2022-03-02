@@ -56,18 +56,16 @@
         </label>
       </div>
       {% if request.user.is_structure_manager %}
-        {% if structures|length > 1 %}
-          <div class="form-group mx-sm-3 mb-2">
-            <label for="id_structures" class="form-check-label ml-md-2">{% trans 'Select a structure' %} :</label>
-            <select id="id_structures">
-              {% for structure in structures %}
-                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
-                  {{ structure.label }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-        {% endif %}
+        <div class="form-group mx-sm-3 mb-2">
+          <label for="id_structures" class="form-check-label ml-md-2">{% trans 'Select a structure' %} :</label>
+          <select id="id_structures">
+            {% for structure in structures %}
+              <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                {{ structure.label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
       {% endif %}
       {% if not request.user.is_high_school_manager and not request.user.is_structure_manager %}
       <div class="form-group mx-sm-3 mb-2">
@@ -122,6 +120,7 @@
 <script type="text/javascript">
   {% autoescape off %}
     var highschools_ids = {{ highschools_ids }};
+    var structure_ids = {{ structure_ids }};
     var part1_highschool_id = "{{ highschool_id }}";
     var higher_institutions_ids = {{ higher_institutions_ids }};
     var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
@@ -227,6 +226,7 @@
         'highschools_ids' : highschools_ids,
         'higher_institutions_ids': higher_institutions_ids,
         'level': level_filter,
+        'filter_by_my_trainings': filter_by_my_trainings,
          csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {

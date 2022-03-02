@@ -170,8 +170,9 @@ def global_registrations_charts(request, my_trainings=False):
     filter_by_my_trainings = my_trainings
 
     # Get filters from request POST data
-    part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
-        process_request_filters(request)
+    # TODO : move these into a dictionnary
+    part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids = \
+        process_request_filters(request, my_trainings)
 
     if request.user.is_high_school_manager() and request.user.highschool:
         highschool_id = request.user.highschool.id
@@ -184,7 +185,7 @@ def global_registrations_charts(request, my_trainings=False):
     # This will be only useful to structure managers
     structures = [
         {'id': s.id, 'label': s.label}
-        for s in request.user.structures.all().order_by('label')
+        for s in request.user.get_authorized_structures().order_by('label')
     ]
 
     context = {
@@ -196,6 +197,7 @@ def global_registrations_charts(request, my_trainings=False):
         'filter_by_my_trainings': filter_by_my_trainings,
         'structures': structures,
         'structure_id': structures[0]['id'] if structures else '',
+        'structure_ids': structure_ids,
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
         'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),

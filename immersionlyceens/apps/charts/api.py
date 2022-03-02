@@ -14,7 +14,7 @@ from immersionlyceens.decorators import groups_required, is_ajax_request, is_pos
 
 from immersionlyceens.apps.core.models import (
     Structure, Immersion, ImmersionUser, TrainingDomain, TrainingSubdomain, HigherEducationInstitution,
-    HighSchool, Training, Slot, Course, HighSchoolLevel, PostBachelorLevel, StudentLevel
+    HighSchool, Training, Slot, Course, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
@@ -262,6 +262,12 @@ def global_domains_charts(request):
 def get_charts_filters_data(request):
     response = {'msg': '', 'data': []}
 
+    filter_by_my_trainings = request.GET.get('filter_by_my_trainings') == "true"
+
+    print(f"here : {filter_by_my_trainings}")
+
+    user = request.user
+
     # get highschools and higher education institutions
     highschools = HighSchool.objects.filter(student_records__isnull=False).distinct()
 
@@ -269,23 +275,32 @@ def get_charts_filters_data(request):
         institution_data = {
             'institution': highschool.label,
             'institution_id': highschool.id,
+            'structure_id': '',
             'type': _('Highschool'),
             'type_code': 0,
             'city': f"{highschool.zip_code} - {highschool.city}",
-            'department': "%s" % highschool.zip_code[0:2], # Todo add departments model somewhere
+            'department': highschool.department,
             'country': '',
         }
 
         response['data'].append(institution_data.copy())
 
-    higher_institutions_uai = { obj.uai_code:obj for obj in HigherEducationInstitution.objects.all() }
+    higher_institutions_uai = {
+        obj.uai_code:obj for obj in HigherEducationInstitution.objects.all()
+    }
 
     uai_codes = StudentRecord.objects.all().values_list('uai_code', flat=True).distinct()
 
     for uai_code in uai_codes:
+        institution = higher_institutions_uai.get(uai_code, None)
+
+        if institution and institution.establishment is not None:
+            continue
+
         institution_data = {
             'institution': '',
             'institution_id': uai_code,
+            'structure_id': '',
             'type': _('Higher education institution'),
             'type_code': 1,
             'city': '',
@@ -293,7 +308,6 @@ def get_charts_filters_data(request):
             'country': '',
         }
         # Try to find institution by name or UAI code (a not so good design)
-        institution = higher_institutions_uai.get(uai_code, None)
         if institution:
             institution_data['institution'] = institution.label
             institution_data['city'] = f"{institution.zip_code} - {institution.city}",
@@ -301,6 +315,23 @@ def get_charts_filters_data(request):
             institution_data['country'] = institution.country,
         else:
             institution_data['institution'] = uai_code
+
+        response['data'].append(institution_data.copy())
+
+    for structure in user.get_authorized_structures():
+        establishment = structure.establishment
+
+        institution_data = {
+            'institution': establishment.label,
+            'structure': structure.label,
+            'structure_id': structure.id,
+            'institution_id': structure.id,
+            'type': _('Higher education institution'),
+            'type_code': 2,
+            'city': f"{establishment.zip_code} - {establishment.city}",
+            'department': establishment.department,
+            'country': '',
+        }
 
         response['data'].append(institution_data.copy())
 
@@ -774,6 +805,10 @@ def get_registration_charts(request):
     immersions_filter = {}
     allowed_structures = user.get_authorized_structures()
 
+    # Force filter_by_my_trainings to True for these 2 groups
+    if user.is_structure_manager() or user.is_establishment_manager():
+        filter_by_my_trainings = True
+
     try:
         structure_id = int(structure_id)
         structure = Structure.objects.get(pk=structure_id)
@@ -1044,35 +1079,48 @@ def get_registration_charts_cats(request):
     """
 
     immersions_filter = {}
+    filter_by_my_trainings = request.GET.get("filter_by_my_trainings", False) == "true"
+
+    print(filter_by_my_trainings)
 
     # Parse filters in POST request
     _highschools_ids = request.POST.getlist("highschools_ids[]")
     _higher_institutions_ids = request.POST.getlist("higher_institutions_ids[]")
+    _structures_ids = request.POST.getlist("structure_ids[]")
 
     try:
         level_value = int(request.POST.get("level", 0))
     except ValueError:
         level_value = 0
 
-    if level_value == 0 or level_value not in [l.id for l in HighSchoolLevel.objects.all()]:
+    if level_value == 0 or level_value not in [l.id for l in HighSchoolLevel.objects.all()] + ['visitors']:
         level_value = 0 # force it if not in allowed values
         student_levels = []
         levels = []
         for l in HighSchoolLevel.objects.order_by('order'):
             student_levels.append(l.label)
             levels.append(l)
-    else:
-        student_levels = [
-            HighSchoolLevel.objects.get(pk=level_value).label
-        ]
-        # dirty as there will be only one element
-        levels = [HighSchoolLevel.objects.get(pk=level_value)]
 
-    # Filter on highschools or higher education institutions
+        student_levels.append(_('Visitors'))
+        levels.append('visitors')
+    else:
+        if level_value == 'visitors':
+            student_levels = [_('Visitors')]
+            levels = ['visitors']
+        else:
+            student_levels = [
+                HighSchoolLevel.objects.get(pk=level_value).label
+            ]
+            levels = [HighSchoolLevel.objects.get(pk=level_value)]
+
+    # Filter on highschools, higher education institutions or structures
     if _highschools_ids:
         immersions_filter["student__high_school_student_record__highschool__id__in"] = _highschools_ids
 
     if _higher_institutions_ids:
+        immersions_filter["student__student_record__uai_code__in"] = _higher_institutions_ids
+
+    if _structures_ids:
         immersions_filter["student__student_record__uai_code__in"] = _higher_institutions_ids
 
     # We need data for 3 graphs
