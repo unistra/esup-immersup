@@ -17,6 +17,7 @@ admin.autodiscover()
 
 
 urlpatterns = [
+    path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('', home, name='home'),
     path('accompanying', accompanying, name='accompanying'),
     path('charter_not_signed', charter_not_signed, name='charter_not_signed'),
@@ -31,7 +32,6 @@ urlpatterns = [
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),
-    path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('offer', offer, name='offer'),
     path('offer/<int:subdomain_id>', offer_subdomain, name='offer_subdomain'),
     path('offer_off_offer_events', offer_off_offer_events, name='offer_off_offer_events'),
