@@ -260,80 +260,83 @@ def global_domains_charts(request):
 @is_ajax_request
 @groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
 def get_charts_filters_data(request):
-    response = {'msg': '', 'data': []}
+    """
+    Return a json for datatables, with a list of high schools / structures to filter
+    registrations with
+    """
 
+    response = {'msg': '', 'data': []}
+    user = request.user
     filter_by_my_trainings = request.GET.get('filter_by_my_trainings') == "true"
 
-    print(f"here : {filter_by_my_trainings}")
+    if user.is_master_establishment_manager():
+        # get highschools and higher education institutions
+        highschools = HighSchool.objects.filter(student_records__isnull=False).distinct()
 
-    user = request.user
+        for highschool in highschools:
+            institution_data = {
+                'institution': highschool.label,
+                'institution_id': highschool.id,
+                'structure_id': '',
+                'type': _('Highschool'),
+                'type_code': 0,
+                'city': f"{highschool.zip_code} - {highschool.city}",
+                'department': highschool.department,
+                'country': '',
+            }
 
-    # get highschools and higher education institutions
-    highschools = HighSchool.objects.filter(student_records__isnull=False).distinct()
+            response['data'].append(institution_data.copy())
 
-    for highschool in highschools:
-        institution_data = {
-            'institution': highschool.label,
-            'institution_id': highschool.id,
-            'structure_id': '',
-            'type': _('Highschool'),
-            'type_code': 0,
-            'city': f"{highschool.zip_code} - {highschool.city}",
-            'department': highschool.department,
-            'country': '',
+        higher_institutions_uai = {
+            obj.uai_code:obj for obj in HigherEducationInstitution.objects.all()
         }
 
-        response['data'].append(institution_data.copy())
+        uai_codes = StudentRecord.objects.all().values_list('uai_code', flat=True).distinct()
 
-    higher_institutions_uai = {
-        obj.uai_code:obj for obj in HigherEducationInstitution.objects.all()
-    }
+        for uai_code in uai_codes:
+            institution = higher_institutions_uai.get(uai_code, None)
 
-    uai_codes = StudentRecord.objects.all().values_list('uai_code', flat=True).distinct()
+            if institution and institution.establishment is not None:
+                continue
 
-    for uai_code in uai_codes:
-        institution = higher_institutions_uai.get(uai_code, None)
+            institution_data = {
+                'institution': '',
+                'institution_id': uai_code,
+                'structure_id': '',
+                'type': _('Higher education institution'),
+                'type_code': 1,
+                'city': '',
+                'department': '',
+                'country': '',
+            }
+            # Try to find institution by name or UAI code (a not so good design)
+            if institution:
+                institution_data['institution'] = institution.label
+                institution_data['city'] = f"{institution.zip_code} - {institution.city}",
+                institution_data['department'] = institution.department,
+                institution_data['country'] = institution.country,
+            else:
+                institution_data['institution'] = uai_code
+    
+            response['data'].append(institution_data.copy())
 
-        if institution and institution.establishment is not None:
-            continue
+    if user.is_master_establishment_manager() or user.is_establishment_manager():
+        for structure in user.get_authorized_structures():
+            establishment = structure.establishment
 
-        institution_data = {
-            'institution': '',
-            'institution_id': uai_code,
-            'structure_id': '',
-            'type': _('Higher education institution'),
-            'type_code': 1,
-            'city': '',
-            'department': '',
-            'country': '',
-        }
-        # Try to find institution by name or UAI code (a not so good design)
-        if institution:
-            institution_data['institution'] = institution.label
-            institution_data['city'] = f"{institution.zip_code} - {institution.city}",
-            institution_data['department'] = institution.department,
-            institution_data['country'] = institution.country,
-        else:
-            institution_data['institution'] = uai_code
+            institution_data = {
+                'institution': establishment.label,
+                'structure': structure.label,
+                'structure_id': structure.id,
+                'institution_id': structure.id,
+                'type': _('Higher education institution'),
+                'type_code': 2,
+                'city': f"{establishment.zip_code} - {establishment.city}",
+                'department': establishment.department,
+                'country': '',
+            }
 
-        response['data'].append(institution_data.copy())
-
-    for structure in user.get_authorized_structures():
-        establishment = structure.establishment
-
-        institution_data = {
-            'institution': establishment.label,
-            'structure': structure.label,
-            'structure_id': structure.id,
-            'institution_id': structure.id,
-            'type': _('Higher education institution'),
-            'type_code': 2,
-            'city': f"{establishment.zip_code} - {establishment.city}",
-            'department': establishment.department,
-            'country': '',
-        }
-
-        response['data'].append(institution_data.copy())
+            response['data'].append(institution_data.copy())
 
     return JsonResponse(response, safe=False)
 
@@ -1080,8 +1083,6 @@ def get_registration_charts_cats(request):
 
     immersions_filter = {}
     filter_by_my_trainings = request.GET.get("filter_by_my_trainings", False) == "true"
-
-    print(filter_by_my_trainings)
 
     # Parse filters in POST request
     _highschools_ids = request.POST.getlist("highschools_ids[]")
