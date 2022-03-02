@@ -10,6 +10,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -20,22 +21,23 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.translation import gettext
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
-
-import requests
-
 from immersionlyceens.decorators import groups_required
 
-from .forms import (StructureForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
-    HighSchoolStudentImmersionUserForm, TrainingFormHighSchool, VisitForm, VisitSlotForm,
-    OffOfferEventForm, OffOfferEventSlotForm)
-
-from .admin_forms import ImmersionUserCreationForm, ImmersionUserChangeForm, TrainingForm
-
-from .models import (Campus, CancelType, Structure, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
-    Training, UniversityYear, Establishment, Visit, OffOfferEvent, InformationText)
+from .admin_forms import (
+    ImmersionUserChangeForm, ImmersionUserCreationForm, TrainingForm,
+)
+from .forms import (
+    ContactForm, CourseForm, HighSchoolStudentImmersionUserForm,
+    MyHighSchoolForm, OffOfferEventForm, OffOfferEventSlotForm, SlotForm,
+    StructureForm, TrainingFormHighSchool, VisitForm, VisitSlotForm,
+)
+from .models import (
+    Campus, CancelType, Course, Establishment, HighSchool, Holiday, Immersion,
+    ImmersionUser, InformationText, OffOfferEvent, Slot, Structure, Training,
+    UniversityYear, Visit,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -680,8 +682,10 @@ class VisitorValidationView(generic.TemplateView):
 
 @groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def highschool_student_record_form_manager(request, hs_record_id):
+    from immersionlyceens.apps.immersion.forms import (
+        HighSchoolStudentRecordManagerForm,
+    )
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
-    from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 
     try:
         hs = HighSchoolStudentRecord.objects.get(id=hs_record_id)
@@ -797,7 +801,7 @@ def stats(request):
     template = 'core/stats.html'
     structures = None
 
-    if request.user.is_establishment_manager():
+    if request.user.is_master_establishment_manager():
         structures = Structure.activated.all()
     elif request.user.is_structure_manager():
         structures = request.user.structures.all()
