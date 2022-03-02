@@ -929,14 +929,14 @@ def get_registration_charts(request):
 
         datasets[2][level_label] = users.count()  # platform : no additional filter
 
-    if highschool_id != 'all':
+    # Median calculation for a specific high school
+    if highschool_id != 'all' and not filter_by_my_trainings:
         # Attended to at least 1 immersion median
         pupils_counts = [
             x['cnt'] for x in HighSchoolStudentRecord.objects
                 .prefetch_related('student__immersions__slot__course')
                 .values('highschool')
                 .filter(
-                **level_filter,
                 validation=2,
                 student__immersions__attendance_status=1,
                 student__immersions__slot__course__isnull=False
@@ -945,8 +945,8 @@ def get_registration_charts(request):
         ]
 
         median = parse_median(pupils_counts)
-        if median:
-            datasets[0]['name'] += f" (m = {parse_median(pupils_counts)})"
+        if median is not None:
+            datasets[0]['name'] += f" (m = {median})"
 
         # =======================================================
         # Registered to at least 1 immersion median
@@ -955,7 +955,6 @@ def get_registration_charts(request):
                 .prefetch_related('student__immersions__slot__course')
                 .values('highschool')
                 .filter(
-                    **level_filter,
                     validation=2,
                     student__immersions__isnull=False,
                     student__immersions__cancellation_type__isnull=True,
@@ -966,7 +965,7 @@ def get_registration_charts(request):
 
         median = parse_median(pupils_counts)
         if median:
-            datasets[1]['name'] += f" (m = {parse_median(pupils_counts)})"
+            datasets[1]['name'] += f" (m = {median})"
 
         # =======================================================
         # All registrations median
@@ -977,8 +976,53 @@ def get_registration_charts(request):
         ]
 
         median = parse_median(pupils_counts)
-        if median:
-            datasets[2]['name'] += f" (m = {parse_median(pupils_counts)})"
+        if median is not None:
+            datasets[2]['name'] += f" (m = {median})"
+
+
+    # Median calculation for structure managers
+    elif structure and filter_by_my_trainings:
+        # =======================================================
+        # Attended to at least 1 immersion median
+        # =======================================================
+        establishment_structures = Structure.objects.filter(establishment=structure.establishment).distinct()
+
+        persons_counts = [
+            x['cnt'] for x in Slot.objects
+                .prefetch_related('course__structure', 'immersions')
+                .filter(
+                    course__structure__in=establishment_structures,
+                    immersions__attendance_status=1,
+                )
+                .values('course__structure')
+                .annotate(cnt=Count('immersions__student', distinct=True))
+        ]
+
+        median = parse_median(persons_counts)
+        if median is not None:
+            datasets[0]['name'] += f" (m = {median})"
+
+        # =======================================================
+        # Registered to at least 1 immersion median
+        # =======================================================
+        persons_counts = [
+            x['cnt'] for x in Slot.objects
+                .prefetch_related('course__structure', 'immersions')
+                .filter(
+                    course__structure__in=establishment_structures,
+                    immersions__cancellation_type__isnull=True,
+                )
+                .values('course__structure')
+                .annotate(cnt=Count('immersions__student', distinct=True))
+        ]
+
+        median = parse_median(persons_counts)
+        if median is not None:
+            datasets[1]['name'] += f" (m = {median})"
+
+        # =======================================================
+        # No global registrations median for structure managers
+        # =======================================================
 
     response = {
         'axes': axes,
