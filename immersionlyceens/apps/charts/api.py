@@ -767,6 +767,7 @@ def get_registration_charts(request):
     level_value = request.GET.get("level", 0) # default : all
     highschool_id = request.GET.get("highschool_id", 'all')
     structure_id = request.GET.get("structure_id")
+    structure = None
     filter_by_my_trainings = request.GET.get("filter_by_my_trainings", False) == "true"
     user_filters = {}
     level_filter = {}
@@ -775,7 +776,8 @@ def get_registration_charts(request):
 
     try:
         structure_id = int(structure_id)
-    except (ValueError, TypeError):
+        structure = Structure.objects.get(pk=structure_id)
+    except (ValueError, TypeError, Structure.DoesNotExist):
         structure_id = None
 
     # Highschool id override for high school managers
@@ -802,7 +804,7 @@ def get_registration_charts(request):
             immersions_filter['immersions__slot__course__highschool__id'] = highschool_id
         elif user.is_establishment_manager():
             immersions_filter['immersions__slot__course__structure__in'] = allowed_structures
-        elif user.is_structure_manager() and structure_id and structure_id in user.get_authorized_structures():
+        elif user.is_structure_manager() and structure and structure in user.get_authorized_structures():
             immersions_filter['immersions__slot__course__structure__id'] = structure_id
 
     if level_value != "visitors":
