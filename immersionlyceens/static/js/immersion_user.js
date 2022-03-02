@@ -15,6 +15,9 @@ function getCookie(name) {
   return cookieValue
 }
 
+function is_set(obj) {
+  return obj !== null && obj !== undefined && obj !== "" && obj !== "None"
+}
 
 $(document).ready(function() {
 
@@ -44,7 +47,7 @@ $(document).ready(function() {
     function get_establishment() {
       let csrftoken = getCookie('csrftoken')
 
-      if(establishment_id !== "") {
+      if(is_set(establishment_id)) {
         $.ajax({
           beforeSend: function (request) {
             request.setRequestHeader('X-CSRFToken', csrftoken)
