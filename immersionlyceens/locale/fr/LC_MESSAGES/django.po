@@ -3221,7 +3221,7 @@ msgstr "Lycéens"
 #: immersionlyceens/templates/core/duplicated_accounts.html:35
 #: immersionlyceens/templates/modals/modal_register_students_list.html:15
 msgid "Students"
-msgstr "Etudiant"
+msgstr "Etudiants"
 
 #: immersionlyceens/apps/user/models.py:35
 msgid "Speaker"
