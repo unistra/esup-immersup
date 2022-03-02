@@ -45,6 +45,7 @@
           feedback.trigger("showFeedback", [[msg, "success"]]);          
           dt.ajax.reload();
         }
+        $('#modal_nuke_account').modal('hide');
       },
       error: function(json) {
         console.log(json);
