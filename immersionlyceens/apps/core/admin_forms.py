@@ -1284,7 +1284,8 @@ class MailTemplateForm(forms.ModelForm):
             body_errors_list.append(self.error_class([forbidden_vars_msg]))
 
         # Check for unknown variables in body
-        all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)
+        # all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)  # match for ${my_var}
+        all_vars = re.findall(r"(\{\{ *[\w+\.]* *\}\})", body)  # match for {{ my_var }}
         unknown_vars = [v for v in all_vars if not MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()]
 
         # Check for body syntax errors
