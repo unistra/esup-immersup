@@ -94,8 +94,14 @@ $(document).ready(function(){
     window.open(url, '_blank');
   });
   $('#extract_anonymous_courses').click(function(event){
-    window.open('{% url 'get_csv_anonymous' 'type=course' %}', '_blank');
+    window.open('{% url 'get_csv_anonymous' %}?type=course', '_blank');
   });
+  $('#extract_anonymous_visits').click(function(event){
+    window.open('{% url 'get_csv_anonymous' %}?type=visit', '_blank');
+  });
+  $('#extract_anonymous_events').click(function(event){
+    window.open('{% url 'get_csv_anonymous' %}?type=event', '_blank');
+  });   
 });
 
 </script>

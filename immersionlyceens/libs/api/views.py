@@ -2313,16 +2313,17 @@ def get_csv_highschool(request, high_school_id):
 
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
-def get_csv_anonymous(request, type):
+def get_csv_anonymous(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
     infield_separator = '|'
+    t = request.GET.get('type')
 
-    if type == 'course':
+    if t == 'course':
 
         trad = _('anonymous_courses')
 
-        if request.user.is_master_establishment_manager():
+        if request.user.is_master_establishment_manager() or request.user.is_operator():
 
             header = [
                 _('structure')+ " / " + _("highschool"),
@@ -2359,31 +2360,6 @@ def get_csv_anonymous(request, type):
                 _('date'),
                 _('start_time'),
                 _('end_time'),
-                _('meeting place'),
-                _('speakers'),
-                _('registration number'),
-                _('place number'),
-                _('additional information'),
-                _('registrant profile'),
-                _('origin institution'),
-                _('student level'),
-                _('emargement'),
-            ]
-
-        else:
-
-            header = [
-                _('structure')+ " / " + _("highschool"),
-                _('training domain'),
-                _('training subdomain'),
-                _('training'),
-                _('course'),
-                _('course_type'),
-                _('date'),
-                _('start_time'),
-                _('end_time'),
-                _('campus'),
-                _('building'),
                 _('meeting place'),
                 _('speakers'),
                 _('registration number'),
@@ -2448,7 +2424,7 @@ def get_csv_anonymous(request, type):
                             slot.end_time.strftime('%H:%M'),
                             slot.campus.label if slot.campus else None,
                             slot.building.label if slot.building else None,
-                            slot.room,
+                            slot.room if slot.face_to_face else _('Remote'),
                             infield_separator.join(f'{s.last_name} {s.first_name}' for s in slot.speakers.all().order_by('last_name', 'first_name')),
                             slot.registered_students(),
                             slot.n_places,
@@ -2472,11 +2448,245 @@ def get_csv_anonymous(request, type):
                     slot.end_time.strftime('%H:%M'),
                     slot.campus.label if slot.campus else None,
                     slot.building.label if slot.building else None,
-                    slot.room,
+                    slot.room if slot.face_to_face else _('Remote'),
                     infield_separator.join(f'{s.last_name} {s.first_name}' for s in slot.speakers.all().order_by('last_name', 'first_name')),
                     slot.registered_students(),
                     slot.n_places,
                     slot.additional_information,
+                ])
+
+    if t == 'visit':
+
+        trad = _('anonymous_visits')
+
+        if request.user.is_master_establishment_manager() or request.user.is_operator():
+
+            header = [
+                _('establishment'),
+                _('structure'),
+                _('highschool'),
+                _('purpose'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+                _('student level'),
+                _('emargement'),
+            ]
+
+        elif request.user.is_establishment_manager():
+
+            header = [
+                _('structure'),
+                _('purpose'),
+                _('highschool'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+                _('student level'),
+                _('emargement'),
+            ]
+
+        content = []
+
+        slots = Slot.objects.filter(published=True, visit__isnull=False)
+        for slot in slots:
+            structure = slot.get_structure()
+            establishment = slot.get_establishment()
+            highschool = slot.get_highschool()
+            immersions = Immersion.objects.prefetch_related('slot').filter(slot=slot, cancellation_type__isnull=True)
+            if immersions.count() > 0:
+                for imm in immersions:
+                    institution = ''
+                    level = ''
+                    record = None
+
+                    if imm.student.is_student():
+                        try:
+                            record = StudentRecord.objects.get(student=imm.student)
+                            uai_code, institution = record.home_institution()
+                            institution = institution.label if institution else uai_code
+                            level = record.level.label if record.level else ''
+                        except StudentRecord.DoesNotExist:
+                            pass
+                    elif imm.student.is_high_school_student():
+                        try:
+                            record = HighSchoolStudentRecord.objects.get(student=imm.student)
+                            institution = record.highschool.label
+                            level = record.level.label if record.level else ''
+                        except HighSchoolStudentRecord.DoesNotExist:
+                            pass
+
+
+                    if record:
+                        content.append([
+                            structure,
+                            establishment,
+                            highschool,
+                            slot.visit.purpose,
+                            slot.room if slot.face_to_face else _('Remote'),
+                            _date(slot.date, 'd/m/Y'),
+                            slot.start_time.strftime('%H:%M'),
+                            slot.end_time.strftime('%H:%M'),
+                            infield_separator.join(f'{s.last_name} {s.first_name}' for s in slot.speakers.all().order_by('last_name', 'first_name')),
+                            slot.registered_students(),
+                            slot.n_places,
+                            slot.additional_information,
+                            level,
+                            imm.get_attendance_status(),
+                        ])
+            else:
+                content.append([
+                    structure,
+                    establishment,
+                    highschool,
+                    slot.visit.purpose,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    _date(slot.date, 'd/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    infield_separator.join(f'{s.last_name} {s.first_name}' for s in slot.speakers.all().order_by('last_name', 'first_name')),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ])
+
+    if t == 'event':
+
+        trad = _('anonymous_events')
+
+        if request.user.is_master_establishment_manager() or request.user.is_operator():
+
+            header = [
+                _('establishment'),
+                _('structure'),
+                _('event type'),
+                _('label'),
+                _('description'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+                _('origin institution'),
+                _('student level'),
+            ]
+
+        elif request.user.is_establishment_manager():
+
+            header = [
+                _('structure'),
+                _('event type'),
+                _('label'),
+                _('description'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+                _('origin institution'),
+                _('student level'),
+            ]
+
+        content = []
+
+        slots = Slot.objects.filter(published=True, event__isnull=False)
+        for slot in slots:
+            institution = ""
+            level = ""
+            structure = slot.get_structure()
+            establishment = slot.get_establishment()
+            highschool = slot.get_highschool()
+
+            immersions = Immersion.objects.prefetch_related('slot').filter(slot=slot, cancellation_type__isnull=True)
+            if immersions.count() > 0:
+                for imm in immersions:
+                    institution = ''
+                    level = ''
+                    record = None
+
+                    if imm.student.is_student():
+                        try:
+                            record = StudentRecord.objects.get(student=imm.student)
+                            uai_code, institution = record.home_institution()
+                            institution = institution.label if institution else uai_code
+                            level = record.level.label if record.level else ''
+                        except StudentRecord.DoesNotExist:
+                            pass
+                    elif imm.student.is_high_school_student():
+                        try:
+                            record = HighSchoolStudentRecord.objects.get(student=imm.student)
+                            institution = record.highschool.label
+                            level = record.level.label if record.level else ''
+                        except HighSchoolStudentRecord.DoesNotExist:
+                            pass
+                    elif imm.student.is_visitor():
+                        try:
+                            record = VisitorRecord.objects.get(visitor=imm.student)
+                            #institution = record.highschool.label
+                            #level = record.level.label if record.level else ''
+                        except VisitorRecord.DoesNotExist:
+                            pass
+
+
+                    if record:
+                        content.append([
+                            establishment if establishment else highschool,
+                            structure,
+                            slot.event.event_type,
+                            slot.event.label,
+                            slot.event.description,
+                            slot.campus,
+                            slot.building,
+                            slot.room if slot.face_to_face else _('Remote'),
+                            _date(slot.date, 'd/m/Y'),
+                            slot.start_time.strftime('%H:%M'),
+                            slot.end_time.strftime('%H:%M'),
+                            infield_separator.join(f'{s.last_name} {s.first_name}' for s in slot.speakers.all().order_by('last_name', 'first_name')),
+                            slot.registered_students(),
+                            slot.n_places,
+                            slot.additional_information,
+                            institution,
+                            level,
+                        ])
+            else:
+                content.append([
+                    establishment if establishment else highschool,
+                    structure,
+                    slot.event.event_type,
+                    slot.event.label,
+                    slot.event.description,
+                    slot.campus,
+                    slot.building,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    _date(slot.date, 'd/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    infield_separator.join(f'{s.last_name} {s.first_name}' for s in slot.speakers.all().order_by('last_name', 'first_name')),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                    institution,
+                    level,
                 ])
 
     response['Content-Disposition'] = f'attachment; filename="{trad}_{today}.csv"'
