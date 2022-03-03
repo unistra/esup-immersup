@@ -188,33 +188,33 @@
               {% trans 'Charts' %}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownStats">
-              {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB,REF-ETAB-MAITRE,REF-TEC" %}
+              {% if authorized_groups|in_groups:"REF-LYC,REF-ETAB-MAITRE,REF-TEC" %}
                 <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'High school - my high school students registrations/participations' %}</a>
                 {% if request.user.highschool.postbac_immersion %}
-                   <a class="dropdown-item" href="{% url 'charts:highschool_registrations_charts' %}">{% trans 'High school - registrations and participations to my trainings' %}</a>
+                   <a class="dropdown-item" href="{% url 'charts:my_registrations_charts' %}">{% trans 'High school - registrations and participations to my trainings' %}</a>
                 {% endif %}
                 <a class="dropdown-item" href="{% url 'charts:highschool_domains_charts' %}">{% trans 'By domains registrations' %}</a>
                 {% if authorized_groups|in_groups:"REF-LYC" %}
                    <a class="dropdown-item" href="{% url 'charts:global_trainings_charts' %}">{% trans 'High school - my high school students registrations, by trainings' %}</a>
                 {% endif %}
                 {% if request.user.highschool.postbac_immersion %}
-                   <a class="dropdown-item" href="{% url 'charts:highschool_global_trainings_charts' %}">{% trans 'High school - registrations to my trainings' %}</a>
+                   <a class="dropdown-item" href="{% url 'charts:my_trainings_charts' %}">{% trans 'High school - registrations to my trainings' %}</a>
                 {% endif %}
               {% endif %}
-              {% if authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE,REF-TEC" %}
-                <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'Registrations and participations' %}</a>
+              {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
+                <a class="dropdown-item" href="{% url 'charts:my_registrations_charts' %}">{% trans 'Trainings registrations and participations' %}</a>
+                <a class="dropdown-item" href="{% url 'charts:global_registrations_charts' %}">{% trans 'Population registrations and participations' %}</a>
                 <a class="dropdown-item" href="{% url 'charts:global_domains_charts' %}">{% trans 'Hosts - registrations by domains' %}</a>
                 <a class="dropdown-item" href="{% url 'charts:global_slots_charts' %}">{% trans 'Hosts - registrations by structures' %}</a>
-              {% endif %}
-              {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
                 <a class="dropdown-item" href="{% url 'charts:global_trainings_charts' %}">{% trans 'All registrations by trainings' %}</a>
               {% endif %}
               {% if authorized_groups|in_groups:"REF-ETAB" %}
-                <a class="dropdown-item" href="{% url 'charts:establishment_trainings_charts' %}">{% trans 'Establishment - registrations to my trainings' %}</a>
+                <a class="dropdown-item" href="{% url 'charts:my_trainings_charts' %}">{% trans 'Establishment - registrations to my trainings' %}</a>
+                <a class="dropdown-item" href="{% url 'charts:my_registrations_charts' %}">{% trans 'Establishment - registrations and participations to my trainings' %}</a>
               {% endif %}
               {% if authorized_groups|in_groups:"REF-STR" %}
-                <a class="dropdown-item" href="{% url 'charts:structure_registrations_charts' %}">{% trans 'Structure - registrations and participations' %}</a>
-                <a class="dropdown-item" href="{% url 'charts:structure_trainings_charts' %}">{% trans 'Structure - registrations by trainings' %}</a>
+                <a class="dropdown-item" href="{% url 'charts:my_registrations_charts' %}">{% trans 'Structure - registrations and participations' %}</a>
+                <a class="dropdown-item" href="{% url 'charts:my_trainings_charts' %}">{% trans 'Structure - registrations by trainings' %}</a>
               {% endif %}
             </div>
           </div>

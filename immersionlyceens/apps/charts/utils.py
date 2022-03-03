@@ -1,7 +1,7 @@
 import json
 import logging
 
-from immersionlyceens.apps.core.models import HighSchool, HigherEducationInstitution
+from immersionlyceens.apps.core.models import HighSchool, HigherEducationInstitution, Establishment
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ def parse_median(data):
     else:
         return data[(len_data - 1) // 2]
 
-def process_request_filters(request):
+def process_request_filters(request, my_trainings=False):
     """
     Take request objects with POST data and returns highschools and
     higher education institutions data for charts filters
@@ -30,6 +30,8 @@ def process_request_filters(request):
     highschools_ids = []
     higher_institutions = []
     higher_institutions_ids = []
+    structure_ids = []
+    filter_by_my_trainings = my_trainings
 
     hs_filter = {}
     if request.user.is_high_school_manager() and request.user.highschool:
@@ -48,18 +50,31 @@ def process_request_filters(request):
 
             hs = {h.pk:h for h in HighSchool.objects.filter(**hs_filter)}
             higher = {h.uai_code:h for h in HigherEducationInstitution.objects.all()}
+            ests = {e.id:e for e in Establishment.objects.all()}
+            strs = {s.id:s for s in request.user.get_authorized_structures()}
 
             highschools = sorted(
                  f"{hs[inst[1]].city.title()} - {hs[inst[1]].label}" for inst in insts if inst[0] == 0 
             )
-            higher_institutions = sorted(
-                 f"{higher[inst[1]].city.title()} - {higher[inst[1]].label}" for inst in insts if inst[0] == 1 
+
+            if filter_by_my_trainings:
+                higher_institutions = sorted(
+                    f"{ests[inst[1]].city.title()} - {ests[inst[1]].label}" for inst in insts if inst[0] == 1
+                )
+            else:
+                higher_institutions = sorted(
+                     f"{higher[inst[1]].city.title()} - {higher[inst[1]].label}" for inst in insts if inst[0] == 1
+                )
+
+            structures = sorted(
+                f"{strs[inst[2]].establishment.city.title()} - {strs[inst[2]].label}" for inst in insts if inst[0] == 2
             )
 
             highschools_ids = [ inst[1] for inst in insts if inst[0]==0 ]
             higher_institutions_ids = [ inst[1] for inst in insts if inst[0]==1 ]
+            structure_ids = [ inst[2] for inst in insts if inst[0]==2 ]
 
         except Exception as e:
             logger.exception("Filter form values error")
 
-    return level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions
+    return level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids

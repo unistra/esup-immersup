@@ -66,14 +66,15 @@ def highschool_domains_charts(request):
 
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
-def global_domains_charts(request):
+def global_domains_charts(request, my_trainings=False):
     """
     All institutions charts by domains, with filters on institutions
     """
+    filter_by_my_trainings = my_trainings
 
     # Get filters from request POST data
-    level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
-        process_request_filters(request)
+    part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids = \
+        process_request_filters(request, my_trainings)
 
     # High school levels
     # the third one ('above bachelor') will also include the higher education institutions students
@@ -85,7 +86,7 @@ def global_domains_charts(request):
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
         'levels': levels,
-        'level_filter': level_filter,
+        'level_filter': part2_level_filter,
     }
 
     return render(request, 'charts/global_domains_charts.html', context=context)
@@ -170,8 +171,18 @@ def global_registrations_charts(request, my_trainings=False):
     filter_by_my_trainings = my_trainings
 
     # Get filters from request POST data
-    part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions = \
-        process_request_filters(request)
+    # TODO : move these into a dictionary
+    part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids = \
+        process_request_filters(request, my_trainings)
+
+    part2_filters = {
+        'level': part2_level_filter,
+        'highschools_ids': highschools_ids,
+        'highschools': highschools,
+        'higher_institutions_ids': higher_institutions_ids,
+        'higher_institutions': higher_institutions,
+        'structure_ids': structure_ids
+    }
 
     if request.user.is_high_school_manager() and request.user.highschool:
         highschool_id = request.user.highschool.id
@@ -184,23 +195,19 @@ def global_registrations_charts(request, my_trainings=False):
     # This will be only useful to structure managers
     structures = [
         {'id': s.id, 'label': s.label}
-        for s in request.user.structures.all().order_by('label')
+        for s in request.user.get_authorized_structures().order_by('label')
     ]
 
     context = {
-        'highschools_ids': highschools_ids,
-        'highschools': highschools,
         'highschool_id': highschool_id,
         'highschool_name': highschool_name,
         'all_highschools': HighSchool.objects.filter(**highschool_filter).order_by('city', 'label'),
         'filter_by_my_trainings': filter_by_my_trainings,
         'structures': structures,
         'structure_id': structures[0]['id'] if structures else '',
-        'higher_institutions_ids': higher_institutions_ids,
-        'higher_institutions': higher_institutions,
         'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
         'part1_level_filter': request.session.get("current_level_filter", 0),
-        'level_filter': part2_level_filter,
+        'part2_filters': part2_filters
     }
 
     return render(request, 'charts/registrations_charts.html', context=context)
