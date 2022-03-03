@@ -160,23 +160,63 @@ class ChartsAPITestCase(TestCase):
 
         # Charts filter data (ajax request : use headers)
         url = "/charts/get_charts_filters_data"
-        response = self.client.get(url, {}, **self.header)
+        response = self.client.get(url, {'filter_by_my_trainings': "true"}, **self.header)
 
         content = response.content.decode()
         json_content = json.loads(content)
 
+        # As a non-master referent, we should only see his establishment structures
+
         self.assertEqual(json_content['data'],
-             [{'institution': 'Lycée Coufignal', 'institution_id': 3, 'type': 'Highschool', 'type_code': 0,
-               'city': '68000 - COLMAR', 'department': '68', 'country': ''},
-              {'institution': 'Lycée Jean Monnet', 'institution_id': 2, 'type': 'Highschool', 'type_code': 0,
-               'city': '67100 - STRASBOURG', 'department': '67', 'country': ''},
-              {'institution': 'Lycée Kléber', 'institution_id': 6, 'type': 'Highschool', 'type_code': 0,
-               'city': '67000 - STRASBOURG', 'department': '67', 'country': ''},
-              {'institution': 'Lycée Marie Curie', 'institution_id': 5, 'type': 'Highschool', 'type_code': 0,
-               'city': '67100 - STRASBOURG', 'department': '67', 'country': ''},
-              {'institution': 'Université de Strasbourg', 'institution_id': '0673021V',
-               'type': "Higher education institution", 'type_code': 1, 'city': ['67081 - Strasbourg'],
-               'department': ['Bas-Rhin'], 'country': ['France']}]
+             [{'institution': 'Université de Strasbourg',
+               'structure': 'Faculté des Arts',
+               'structure_id': 1,
+               'institution_id': '',
+               'type': 'Higher education institution',
+               'type_code': 2,
+               'city': '67081 - STRASBOURG',
+               'department': 'BAS-RHIN',
+               'country': ''
+              },
+              {'institution': 'Université de Strasbourg',
+               'structure': 'Faculté des Sciences économiques et de gestion',
+               'structure_id': 6,
+               'institution_id': '',
+               'type': 'Higher education institution',
+               'type_code': 2,
+               'city': '67081 - STRASBOURG',
+               'department': 'BAS-RHIN',
+               'country': ''
+              },
+              {'institution': 'Université de Strasbourg',
+               'structure': 'Faculté des sciences du sport',
+               'structure_id': 3,
+               'institution_id': '',
+               'type': 'Higher education institution',
+               'type_code': 2,
+               'city': '67081 - STRASBOURG', 'department':
+               'BAS-RHIN', 'country': ''
+              },
+              {'institution': 'Université de Strasbourg',
+               'structure': 'IUT Louis Pasteur',
+               'structure_id': 7,
+               'institution_id': '',
+               'type': 'Higher education institution',
+               'type_code': 2,
+               'city': '67081 - STRASBOURG',
+               'department': 'BAS-RHIN',
+               'country': ''
+              },
+              {'institution': 'Université de Strasbourg',
+               'structure': 'UFR Mathématiques et Informatique',
+               'structure_id': 2,
+               'institution_id': '',
+               'type': 'Higher education institution',
+               'type_code': 2,
+               'city': '67081 - STRASBOURG',
+               'department': 'BAS-RHIN',
+               'country': ''
+              }]
         )
 
 
@@ -713,12 +753,15 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=1).label: 1,
               HighSchoolLevel.objects.get(pk=2).label: 1,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 0},
+              HighSchoolLevel.objects.get(pk=4).label: 0
+             },
              {'name': 'Université de Strasbourg',
               HighSchoolLevel.objects.get(pk=1).label: 0,
               HighSchoolLevel.objects.get(pk=2).label: 0,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 0}]
+              HighSchoolLevel.objects.get(pk=4).label: 0,
+              "Visitors": 0
+              }]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
@@ -731,7 +774,9 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=1).label: 0,
               HighSchoolLevel.objects.get(pk=2).label: 0,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 1}]
+              HighSchoolLevel.objects.get(pk=4).label: 1,
+              "Visitors": 0
+             }]
         )
 
         self.assertEqual(json_content['platform_regs']['datasets'],
@@ -744,7 +789,9 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=1).label: 0,
               HighSchoolLevel.objects.get(pk=2).label: 0,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 1}]
+              HighSchoolLevel.objects.get(pk=4).label: 1,
+              "Visitors": 0
+             }]
         )
 
         response = self.client.post(url, {'highschools_ids[]': [2], 'level': 1}, **self.header)

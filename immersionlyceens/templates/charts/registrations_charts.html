@@ -24,6 +24,8 @@
 <h3 class="ml-2">
     {% if request.user.is_structure_manager %}
       {% trans "Structure statistics - registrations and participations in my structure(s)" %}
+    {% elif request.user.is_master_establishment_manager and filter_by_my_trainings %}
+      {% trans "Trainings registrations and participations statistics" %}
     {% elif request.user.is_establishment_manager and filter_by_my_trainings %}
       {% trans "Establishment statistics - registrations and participations to my trainings" %}
     {% elif request.user.is_high_school_manager %}
@@ -33,7 +35,7 @@
         {% trans "Highschools statistics - my high school students registrations and participations" %}
       {% endif %}
     {% else %}
-      {% trans "Registrations and participations statistics" %}
+      {% trans "Populations registrations and participations statistics" %}
     {% endif %}
 </h3>
 {% endblock %}
@@ -101,12 +103,18 @@
   {% if not request.user.is_high_school_manager and not request.user.is_structure_manager %}
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans 'By institutions statistics' %}
+      {% if filter_by_my_trainings %}
+        {% trans 'Filter by courses of establishments, structures or high schools' %}
+      {% else %}
+        {% trans 'By institutions/structures statistics' %}
+      {% endif %}
       <button class="btn btn-light btn-sm ml-4" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">{% trans 'Manage filters' %}</button>
     </div>
-    {% if highschools_ids or higher_institutions_ids %}
-      <h5 class="card-subtitle text-muted mt-2">{% trans 'Registered users count' %}</h5>
-      <div id="chartdiv_platform_regs" style="width:100%;"></div>
+    {% if part2_filters.highschools_ids or part2_filters.higher_institutions_ids or part2_filters.structure_ids %}
+      {% if not filter_by_my_trainings %}
+        <h5 class="card-subtitle text-muted mt-2">{% trans 'Registered users count' %}</h5>
+        <div id="chartdiv_platform_regs" style="width:100%;"></div>
+      {% endif %}
       <h5 class="card-subtitle text-muted mt-4">{% trans 'Registered to at least one immersion' %}</h5>
       <div id="chartdiv_one_immersion" style="width:100%;"></div>
       <h5 class="card-subtitle text-muted mt-4">{% trans 'Attended to at least one immersion' %}</h5>
@@ -119,14 +127,15 @@
 </div>
 <script type="text/javascript">
   {% autoescape off %}
-    var highschools_ids = {{ highschools_ids }};
-    var structure_ids = {{ structure_ids }};
     var part1_highschool_id = "{{ highschool_id }}";
-    var higher_institutions_ids = {{ higher_institutions_ids }};
     var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
-    var level_filter = "{{ level_filter }}";
     var is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True"
     var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+
+    var level_filter = "{{ part2_filters.level_filter }}";
+    var highschools_ids = {{ part2_filters.highschools_ids }};
+    var structure_ids = {{ part2_filters.structure_ids }};
+    var higher_institutions_ids = {{ part2_filters.higher_institutions_ids }};
   {% endautoescape %}
 
   var structure_id = "{{ structure_id }}";
@@ -225,6 +234,7 @@
       data: {
         'highschools_ids' : highschools_ids,
         'higher_institutions_ids': higher_institutions_ids,
+        'structure_ids': structure_ids,
         'level': level_filter,
         'filter_by_my_trainings': filter_by_my_trainings,
          csrfmiddlewaretoken: '{{ csrf_token }}'
@@ -234,18 +244,23 @@
         one_immersion = json["one_immersion"];
         attended_one = json["attended_one"];
 
-        let chart_platform = am4core.createFromConfig({
-          "xAxes": platform_regs.axes.x,
-          "yAxes": platform_regs.axes.y,
-          "data": platform_regs.datasets,
-          "series": platform_regs.series,
-          "legend": {
-            'position': 'right',
-          },
-          "events": {
-            "datavalidated": function(ev) { auto_adjust_height(ev) },
-          }
-        }, "chartdiv_platform_regs", am4charts.XYChart);
+        if(filter_by_my_trainings === false) {
+          let chart_platform = am4core.createFromConfig({
+            "xAxes": platform_regs.axes.x,
+            "yAxes": platform_regs.axes.y,
+            "data": platform_regs.datasets,
+            "series": platform_regs.series,
+            "legend": {
+              'position': 'right',
+              'scrollable': true
+            },
+            "events": {
+              "datavalidated": function (ev) {
+                auto_adjust_height(ev)
+              },
+            }
+          }, "chartdiv_platform_regs", am4charts.XYChart);
+        }
 
         let chart_one_immersion = am4core.createFromConfig({
           "xAxes": one_immersion.axes.x,
@@ -254,6 +269,7 @@
           "series": one_immersion.series,
           "legend": {
             'position': 'right',
+            'scrollable': true
           },
           "events": {
             "datavalidated": function(ev) { auto_adjust_height(ev) }
@@ -267,6 +283,7 @@
           "series": attended_one.series,
           "legend": {
             'position': 'right',
+            'scrollable': true
           },
           "events": {
             "datavalidated": function(ev) { auto_adjust_height(ev) }
@@ -282,7 +299,7 @@
   }
 
   if(is_high_school_manager === false && is_structure_manager === false) {
-    if (highschools_ids.length > 0 || higher_institutions_ids.length > 0) {
+    if (highschools_ids.length > 0 || higher_institutions_ids.length > 0 || structure_ids.length > 0) {
       init_second_graphs();
     }
   }

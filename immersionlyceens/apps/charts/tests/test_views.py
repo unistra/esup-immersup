@@ -156,8 +156,8 @@ class ChartsViewsTestCase(TestCase):
         # Get : no filter
         response = self.client.get("/charts/global_registrations_charts", request)
 
-        self.assertEqual(response.context['highschools'], [])
-        self.assertEqual(response.context['higher_institutions'], [])
+        self.assertEqual(response.context['part2_filters']['highschools'], [])
+        self.assertEqual(response.context['part2_filters']['higher_institutions'], [])
 
         self.assertEqual(
             [level.id for level in response.context['levels']],
@@ -165,17 +165,23 @@ class ChartsViewsTestCase(TestCase):
         )
 
         self.assertEqual(response.context['part1_level_filter'], 0)
-        self.assertEqual(response.context['level_filter'], 0)
+        self.assertEqual(response.context['part2_filters']['level'], 0)
 
         # Post with filters
         response = self.client.post("/charts/global_registrations_charts",
             {'level': ['3'], 'insts': ['[[0,2],[1,"0673021V"]]']}
         )
 
-        self.assertEqual(response.context['highschools'], ['Strasbourg - Lycée Jean Monnet'])
-        self.assertEqual(response.context['higher_institutions'], ['Strasbourg - Université de Strasbourg'])
+        self.assertEqual(
+            response.context['part2_filters']['highschools'],
+            ['Strasbourg - Lycée Jean Monnet']
+        )
+        self.assertEqual(
+            response.context['part2_filters']['higher_institutions'],
+            ['Strasbourg - Université de Strasbourg']
+        )
         self.assertEqual(response.context['part1_level_filter'], 0)
-        self.assertEqual(response.context['level_filter'], 3)
+        self.assertEqual(response.context['part2_filters']['level'], 3)
 
 
     def test_view_global_slots_charts(self):

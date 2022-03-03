@@ -118,15 +118,16 @@ dtr = $('#filters_table').DataTable({
     // Select rows according to existing filters
     api.rows().every(function(rowIdx, tableLoop, rowLoop) {
       var data = this.data();
-      if($.inArray(data['institution_id'], highschools_ids) !== -1) {
+
+      if(data['type_code'] === 0 && $.inArray(data['institution_id'], highschools_ids) !== -1) {
         this.select();
       }
 
-      if($.inArray(data['institution_id'], higher_institutions_ids) !== -1) {
+      if(data['type_code'] === 1 && $.inArray(data['institution_id'], higher_institutions_ids) !== -1) {
         this.select();
       }
 
-      if($.inArray(data['structure_id'], structure_ids) !== -1) {
+      if(data['type_code'] === 2 && $.inArray(data['structure_id'], structure_ids) !== -1) {
         this.select();
       }
     });
