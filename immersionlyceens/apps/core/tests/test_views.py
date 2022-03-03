@@ -9,17 +9,23 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, TestCase, Client
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from immersionlyceens.apps.immersion.forms import (
+    HighSchoolStudentRecordManagerForm,
+)
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 
 from ..models import (
-    Structure, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion, Holiday, Establishment, Visit, OffOfferEvent, OffOfferEventType, HighSchoolLevel, PostBachelorLevel,
-    StudentLevel, HigherEducationInstitution
+    BachelorMention, Building, Calendar, Campus, Course, CourseType,
+    Establishment, GeneralBachelorTeaching, HigherEducationInstitution,
+    HighSchool, HighSchoolLevel, Holiday, Immersion, ImmersionUser,
+    OffOfferEvent, OffOfferEventType, PostBachelorLevel, Slot, Structure,
+    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Visit,
 )
-from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -55,7 +61,7 @@ class CoreViewsTestCase(TestCase):
             signed_charter=True,
             uai_reference=HigherEducationInstitution.objects.last()
         )
-        
+
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -1095,26 +1101,26 @@ class CoreViewsTestCase(TestCase):
         self.assertEqual(response.request['PATH_INFO'], '/')
 
 
-    def test_stats(self):
-        # As a ref_etab user
-        self.client.login(username='ref_etab', password='pass')
-        response = self.client.get("/core/stats/", follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(self.structure2, response.context['structures'])
-        self.assertNotIn('high_school_id', response.context)
+    # def test_stats(self):
+    #     # As a ref_etab user
+    #     self.client.login(username='ref_etab', password='pass')
+    #     response = self.client.get("/core/stats/", follow=True)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn(self.structure2, response.context['structures'])
+    #     self.assertNotIn('high_school_id', response.context)
 
-        # As a ref-str user
-        self.client.login(username='ref_str', password='pass')
-        response = self.client.get("/core/stats/", follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn(self.structure2, response.context['structures'])
-        self.assertNotIn('high_school_id', response.context)
+    #     # As a ref-str user
+    #     self.client.login(username='ref_str', password='pass')
+    #     response = self.client.get("/core/stats/", follow=True)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertNotIn(self.structure2, response.context['structures'])
+    #     self.assertNotIn('high_school_id', response.context)
 
-        # As ref-lyc user
-        self.client.login(username='lycref', password='pass')
-        response = self.client.get("/core/stats/", follow=True)
-        self.assertIn('high_school_id', response.context)
-        self.assertEqual(response.context['high_school_id'], self.high_school.id)
+    #     # As ref-lyc user
+    #     self.client.login(username='lycref', password='pass')
+    #     response = self.client.get("/core/stats/", follow=True)
+    #     self.assertIn('high_school_id', response.context)
+    #     self.assertEqual(response.context['high_school_id'], self.high_school.id)
 
 
     def test_students_presence(self):
