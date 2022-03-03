@@ -36,9 +36,20 @@ $(document).ready(function() {
     // height: 550,
     width: 1000,
   })
+  $('#template_preview_dialog').dialog({
+    // dialogClass: "no-close",
+    autoOpen: false,
+    modal: true,
+    // height: 550,
+    width: 1000,
+  })
 
   $('#toggle-modal').click(function() {
     $('#template_vars_dialog').dialog('open')
+  })
+
+  $("#toggle-preview-modal").click(() => {
+    $("#template_preview_dialog").dialog("open")
   })
 })
 
