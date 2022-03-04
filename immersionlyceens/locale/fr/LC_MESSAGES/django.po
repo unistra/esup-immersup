@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-04 11:04+0100\n"
+"POT-Creation-Date: 2022-03-04 15:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgstr "Inscriptions à au moins une immersion"
 
 #: immersionlyceens/apps/charts/api.py:43
 #: immersionlyceens/apps/charts/api.py:898
-#: immersionlyceens/templates/charts/registrations_charts.html:120
+#: immersionlyceens/templates/charts/registrations_charts.html:126
 msgid "Attended to at least one immersion"
 msgstr "Participation à au moins une immersion"
 
@@ -54,7 +54,7 @@ msgstr "Etablissement d'Etudes Supérieures"
 #: immersionlyceens/apps/charts/api.py:422
 #: immersionlyceens/apps/charts/api.py:462
 #: immersionlyceens/apps/charts/api.py:654
-#: immersionlyceens/apps/charts/api.py:1532
+#: immersionlyceens/apps/charts/api.py:1531
 #: immersionlyceens/apps/core/models.py:826
 #: immersionlyceens/apps/core/models.py:1252
 #: immersionlyceens/templates/charts/global_slots_charts.html:41
@@ -171,32 +171,32 @@ msgstr "Lycée"
 #: immersionlyceens/apps/charts/api.py:884
 #: immersionlyceens/apps/charts/api.py:891
 #: immersionlyceens/apps/charts/api.py:967
-#: immersionlyceens/apps/charts/api.py:1132
-#: immersionlyceens/apps/charts/api.py:1136
-#: immersionlyceens/apps/charts/api.py:1233
-#: immersionlyceens/apps/charts/api.py:1290
-#: immersionlyceens/apps/charts/api.py:1350
-#: immersionlyceens/apps/charts/api.py:1396
+#: immersionlyceens/apps/charts/api.py:1131
+#: immersionlyceens/apps/charts/api.py:1135
+#: immersionlyceens/apps/charts/api.py:1232
+#: immersionlyceens/apps/charts/api.py:1289
+#: immersionlyceens/apps/charts/api.py:1349
+#: immersionlyceens/apps/charts/api.py:1395
 #: immersionlyceens/apps/user/models.py:28
 #: immersionlyceens/templates/charts/global_trainings_charts.html:96
-#: immersionlyceens/templates/charts/registrations_charts.html:94
+#: immersionlyceens/templates/charts/registrations_charts.html:100
 #: immersionlyceens/templates/modals/modal_global_charts_filters.html:24
 msgid "Visitors"
 msgstr "Visiteurs"
 
-#: immersionlyceens/apps/charts/api.py:1280
+#: immersionlyceens/apps/charts/api.py:1279
 msgid "Establishment not found"
 msgstr "Etablissement inconnu"
 
-#: immersionlyceens/apps/charts/api.py:1340
+#: immersionlyceens/apps/charts/api.py:1339
 msgid "no name match yet"
 msgstr "pas de correspondance"
 
-#: immersionlyceens/apps/charts/api.py:1386
+#: immersionlyceens/apps/charts/api.py:1385
 msgid "Structure not found"
 msgstr "Structure inconnue"
 
-#: immersionlyceens/apps/charts/api.py:1531
+#: immersionlyceens/apps/charts/api.py:1530
 #: immersionlyceens/apps/core/admin.py:312
 #: immersionlyceens/apps/core/models.py:171
 #: immersionlyceens/apps/core/models.py:1257
@@ -218,7 +218,7 @@ msgstr "Structure inconnue"
 msgid "Structure"
 msgstr "Structure d'établissement"
 
-#: immersionlyceens/apps/charts/api.py:1533
+#: immersionlyceens/apps/charts/api.py:1532
 #: immersionlyceens/apps/core/models.py:1353
 #: immersionlyceens/apps/core/models.py:1912
 #: immersionlyceens/apps/core/models.py:2224
@@ -233,12 +233,12 @@ msgstr "Structure d'établissement"
 msgid "Course"
 msgstr "Cours"
 
-#: immersionlyceens/apps/charts/api.py:1534
+#: immersionlyceens/apps/charts/api.py:1533
 #: immersionlyceens/templates/charts/global_slots_charts.html:43
 msgid "Slots count"
 msgstr "Nombre de créneaux"
 
-#: immersionlyceens/apps/charts/api.py:1535
+#: immersionlyceens/apps/charts/api.py:1534
 #: immersionlyceens/templates/charts/global_slots_charts.html:44
 msgid "Available seats"
 msgstr "Nombre total de places"
@@ -253,7 +253,7 @@ msgstr "Statistiques"
 #: immersionlyceens/templates/charts/global_slots_charts.html:214
 #: immersionlyceens/templates/charts/global_trainings_charts.html:187
 #: immersionlyceens/templates/charts/highschool_trainings_charts.html:126
-#: immersionlyceens/templates/charts/registrations_charts.html:89
+#: immersionlyceens/templates/charts/registrations_charts.html:95
 #: immersionlyceens/templates/core/common_slots_list.html:166
 #: immersionlyceens/templates/core/courses_list.html:316
 #: immersionlyceens/templates/core/duplicated_accounts.html:112
@@ -1057,145 +1057,145 @@ msgid "You don't have enough privileges to update this course"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce cours"
 
 #: immersionlyceens/apps/core/forms.py:213
-#: immersionlyceens/apps/core/forms.py:353
+#: immersionlyceens/apps/core/forms.py:365
 msgid "dd/mm/yyyy"
 msgstr "jj/mm/aaaa"
 
-#: immersionlyceens/apps/core/forms.py:255
-#: immersionlyceens/apps/core/forms.py:409
-#: immersionlyceens/apps/core/forms.py:527
+#: immersionlyceens/apps/core/forms.py:267
+#: immersionlyceens/apps/core/forms.py:422
+#: immersionlyceens/apps/core/forms.py:541
 msgid "Error: A calendar is required to set a slot."
 msgstr "Erreur: Un calendrier est requis pour créer un créneau"
 
-#: immersionlyceens/apps/core/forms.py:270
-#: immersionlyceens/apps/core/forms.py:423
-#: immersionlyceens/apps/core/forms.py:541
+#: immersionlyceens/apps/core/forms.py:282
+#: immersionlyceens/apps/core/forms.py:436
+#: immersionlyceens/apps/core/forms.py:555
 msgid "This field is required"
 msgstr "Ce champs est obligatoire"
 
-#: immersionlyceens/apps/core/forms.py:274
-#: immersionlyceens/apps/core/forms.py:427
-#: immersionlyceens/apps/core/forms.py:545
+#: immersionlyceens/apps/core/forms.py:286
+#: immersionlyceens/apps/core/forms.py:440
+#: immersionlyceens/apps/core/forms.py:559
 msgid "Required fields are not filled in"
 msgstr "Champs obligatoires non renseignés"
 
-#: immersionlyceens/apps/core/forms.py:278
-#: immersionlyceens/apps/core/forms.py:431
-#: immersionlyceens/apps/core/forms.py:548
+#: immersionlyceens/apps/core/forms.py:290
+#: immersionlyceens/apps/core/forms.py:444
+#: immersionlyceens/apps/core/forms.py:562
 msgid "You can't set a date in the past"
 msgstr "Vous ne pouvez pas paramétrer de date dans le passé"
 
-#: immersionlyceens/apps/core/forms.py:283
-#: immersionlyceens/apps/core/forms.py:436
-#: immersionlyceens/apps/core/forms.py:551
+#: immersionlyceens/apps/core/forms.py:295
+#: immersionlyceens/apps/core/forms.py:449
+#: immersionlyceens/apps/core/forms.py:565
 msgid "Slot is set for today : please enter a valid start_time"
 msgstr ""
 "Le créneau a lieu aujourd'hui : veuillez sélectionner une heure de début "
 "valide"
 
-#: immersionlyceens/apps/core/forms.py:287
-#: immersionlyceens/apps/core/forms.py:441
-#: immersionlyceens/apps/core/forms.py:554
+#: immersionlyceens/apps/core/forms.py:299
+#: immersionlyceens/apps/core/forms.py:454
+#: immersionlyceens/apps/core/forms.py:568
 msgid "Please enter a valid number for 'n_places' field"
 msgstr ""
 "Veuillez entrer un nombre positif non nul dans le champ 'Nombre maximum de "
 "places' "
 
-#: immersionlyceens/apps/core/forms.py:292
-#: immersionlyceens/apps/core/forms.py:446
-#: immersionlyceens/apps/core/forms.py:559
+#: immersionlyceens/apps/core/forms.py:304
+#: immersionlyceens/apps/core/forms.py:459
+#: immersionlyceens/apps/core/forms.py:573
 msgid "Error: The date must be between the dates of the current calendar"
 msgstr "Erreur: La date doit être comprise dans le calendrier en cours"
 
-#: immersionlyceens/apps/core/forms.py:298
-#: immersionlyceens/apps/core/forms.py:452
-#: immersionlyceens/apps/core/forms.py:565
+#: immersionlyceens/apps/core/forms.py:310
+#: immersionlyceens/apps/core/forms.py:465
+#: immersionlyceens/apps/core/forms.py:579
 msgid "Error: Start time must be set before end time"
 msgstr "Erreur: L'heure de fin doit être postérieure à l'heure de début"
 
-#: immersionlyceens/apps/core/forms.py:308
+#: immersionlyceens/apps/core/forms.py:320
 #: immersionlyceens/apps/core/views.py:1242
 msgid "Course published"
 msgstr "Cours publié"
 
-#: immersionlyceens/apps/core/forms.py:334
+#: immersionlyceens/apps/core/forms.py:346
 #: immersionlyceens/apps/core/views.py:1122
 #, python-format
 msgid "Course slot \"%s\" created."
 msgstr "Créneau de cours \"%s\" créé."
 
-#: immersionlyceens/apps/core/forms.py:349
+#: immersionlyceens/apps/core/forms.py:361
 msgid "Enter additional information"
 msgstr "Écrivez des informations complémentaires"
 
-#: immersionlyceens/apps/core/forms.py:351
+#: immersionlyceens/apps/core/forms.py:363
 msgid "Enter the room name"
 msgstr "Entrez le nom d'une salle"
 
-#: immersionlyceens/apps/core/forms.py:370
+#: immersionlyceens/apps/core/forms.py:382
 msgid "Please enter the building and room name"
 msgstr "Entrez les noms du bâtiment et de la salle"
 
-#: immersionlyceens/apps/core/forms.py:457
-#: immersionlyceens/apps/core/forms.py:472
+#: immersionlyceens/apps/core/forms.py:470
+#: immersionlyceens/apps/core/forms.py:485
 #: immersionlyceens/apps/core/views.py:1750
 msgid "Visit published"
 msgstr "Visite publiée"
 
-#: immersionlyceens/apps/core/forms.py:570
-#: immersionlyceens/apps/core/forms.py:589
+#: immersionlyceens/apps/core/forms.py:584
+#: immersionlyceens/apps/core/forms.py:603
 #: immersionlyceens/apps/core/views.py:2286
 msgid "Event published"
 msgstr "Evènement publié"
 
-#: immersionlyceens/apps/core/forms.py:647
-#: immersionlyceens/apps/core/forms.py:649
+#: immersionlyceens/apps/core/forms.py:661
+#: immersionlyceens/apps/core/forms.py:663
 msgid "This field must be filled"
 msgstr "Ce champs doit être rempli"
 
-#: immersionlyceens/apps/core/forms.py:662
+#: immersionlyceens/apps/core/forms.py:676
 #: immersionlyceens/apps/core/models.py:1651
 #: immersionlyceens/templates/modals/modal_contact_us.html:38
 msgid "Subject"
 msgstr "Sujet"
 
-#: immersionlyceens/apps/core/forms.py:704
+#: immersionlyceens/apps/core/forms.py:718
 msgid "This field is required."
 msgstr "Ce champs doit être rempli"
 
-#: immersionlyceens/apps/core/forms.py:762
+#: immersionlyceens/apps/core/forms.py:776
 msgid "A visit with these values already exists"
 msgstr "Une visite avec ces valeurs existe déjà"
 
-#: immersionlyceens/apps/core/forms.py:772
-#: immersionlyceens/apps/core/forms.py:773
-#: immersionlyceens/apps/core/forms.py:924
-#: immersionlyceens/apps/core/forms.py:925
+#: immersionlyceens/apps/core/forms.py:786
+#: immersionlyceens/apps/core/forms.py:787
+#: immersionlyceens/apps/core/forms.py:938
+#: immersionlyceens/apps/core/forms.py:939
 msgid "Please add at least one speaker."
 msgstr "Veuillez ajouter au moins un intervenant."
 
-#: immersionlyceens/apps/core/forms.py:804
-#: immersionlyceens/apps/core/forms.py:957
+#: immersionlyceens/apps/core/forms.py:818
+#: immersionlyceens/apps/core/forms.py:971
 #: immersionlyceens/apps/core/views.py:312
 msgid "User '{}' created"
 msgstr "Utilisateur '{}' créé"
 
-#: immersionlyceens/apps/core/forms.py:813
-#: immersionlyceens/apps/core/forms.py:967
+#: immersionlyceens/apps/core/forms.py:827
+#: immersionlyceens/apps/core/forms.py:981
 #: immersionlyceens/apps/core/views.py:321
 #, python-format
 msgid "Couldn't add group 'INTER' to user '%s'"
 msgstr "Impossible d'ajouter le groupe 'INTER' à l'utilisateur '%s'"
 
-#: immersionlyceens/apps/core/forms.py:822
-#: immersionlyceens/apps/core/forms.py:976
+#: immersionlyceens/apps/core/forms.py:836
+#: immersionlyceens/apps/core/forms.py:990
 #: immersionlyceens/apps/core/views.py:330
 #: immersionlyceens/apps/core/views.py:552
 msgid "A confirmation email has been sent to {}"
 msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 
-#: immersionlyceens/apps/core/forms.py:825
-#: immersionlyceens/apps/core/forms.py:979
+#: immersionlyceens/apps/core/forms.py:839
+#: immersionlyceens/apps/core/forms.py:993
 #: immersionlyceens/apps/core/models.py:445
 #: immersionlyceens/apps/core/views.py:333
 #: immersionlyceens/apps/core/views.py:555
@@ -1204,7 +1204,7 @@ msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 msgid "Couldn't send email : %s"
 msgstr "Courriel non envoyé : %s"
 
-#: immersionlyceens/apps/core/forms.py:914
+#: immersionlyceens/apps/core/forms.py:928
 msgid "An event with these values already exists"
 msgstr "Un évènement avec ces valeurs existe déjà"
 
@@ -4199,7 +4199,7 @@ msgid "Hosts statistics - registrations by domains"
 msgstr "Statistiques d'accueil - inscriptions par domaines"
 
 #: immersionlyceens/templates/charts/global_domains_charts.html:34
-#: immersionlyceens/templates/charts/registrations_charts.html:111
+#: immersionlyceens/templates/charts/registrations_charts.html:117
 msgid "Manage filters"
 msgstr "Configurer les filtres"
 
@@ -4262,7 +4262,6 @@ msgid "Select a structure"
 msgstr "Sélectionnez une structure"
 
 #: immersionlyceens/templates/charts/global_trainings_charts.html:72
-#: immersionlyceens/templates/charts/registrations_charts.html:74
 msgid "Filter by pupils from this high school"
 msgstr "Filtrer par élèves de ce lycée"
 
@@ -4381,34 +4380,42 @@ msgid "Global statistics (all institutions)"
 msgstr "Statistiques globales (tous les établissements)"
 
 #: immersionlyceens/templates/charts/registrations_charts.html:76
+msgid "Filter by trainings of"
+msgstr "Filtrer par formation de"
+
+#: immersionlyceens/templates/charts/registrations_charts.html:78
+msgid "Filter by pupils from"
+msgstr "Filtrer par élèves de"
+
+#: immersionlyceens/templates/charts/registrations_charts.html:82
 msgid "All high schools and establishments"
 msgstr "Tous les lycées et établissements"
 
-#: immersionlyceens/templates/charts/registrations_charts.html:77
+#: immersionlyceens/templates/charts/registrations_charts.html:83
 msgid "High schools only"
 msgstr "Lycées uniquement"
 
-#: immersionlyceens/templates/charts/registrations_charts.html:87
+#: immersionlyceens/templates/charts/registrations_charts.html:93
 msgid "Students level / categories"
 msgstr "Niveau des étudiants / catégories"
 
-#: immersionlyceens/templates/charts/registrations_charts.html:107
+#: immersionlyceens/templates/charts/registrations_charts.html:113
 msgid "Filter by courses of establishments, structures or high schools"
 msgstr "Filtrer par formations d'établissements, structures ou lycées"
 
-#: immersionlyceens/templates/charts/registrations_charts.html:109
+#: immersionlyceens/templates/charts/registrations_charts.html:115
 msgid "By institutions/structures statistics"
 msgstr "Statistiques par établissements / lycées"
 
-#: immersionlyceens/templates/charts/registrations_charts.html:115
+#: immersionlyceens/templates/charts/registrations_charts.html:121
 msgid "Registered users count"
 msgstr "Inscrits sur la plateforme"
 
-#: immersionlyceens/templates/charts/registrations_charts.html:118
+#: immersionlyceens/templates/charts/registrations_charts.html:124
 msgid "Registered to at least one immersion"
 msgstr "Inscrits à au moins une immersion"
 
-#: immersionlyceens/templates/charts/registrations_charts.html:123
+#: immersionlyceens/templates/charts/registrations_charts.html:129
 msgid "Set the filters to build charts"
 msgstr "Configurez les filtres pour générer les graphiques"
 
