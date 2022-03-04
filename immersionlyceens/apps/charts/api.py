@@ -567,7 +567,7 @@ def get_global_trainings_charts(request):
         if user.is_high_school_manager():
             trainings_filter['highschool__id'] = highschool_id
         elif user.is_establishment_manager():
-            trainings_filter['structure__in'] = user.get_authorized_structures()
+            trainings_filter['structures__in'] = user.get_authorized_structures()
 
     # Do not include trainings with no registration/students
     if not show_empty_trainings:
@@ -612,6 +612,7 @@ def get_global_trainings_charts(request):
         trainings_filter['highschool'] = user.highschool
     """
     if any(structure_col_conditions):
+        # Already done when filter_by_my_trainings is True, is it necessary again here ?
         if user.is_establishment_manager() and user.establishment:
             trainings_filter['structures__in'] = user.get_authorized_structures()
 
