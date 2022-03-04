@@ -828,7 +828,7 @@ def get_registration_charts(request):
     structure_id = request.GET.get("structure_id")
     structure = None
     filter_by_my_trainings = request.GET.get("filter_by_my_trainings", False) == "true"
-    user_filters = {}
+    high_school_user_filters = {'high_school_student_record__validation': 2}
     level_filter = {}
     immersions_filter = {}
     allowed_structures = user.get_authorized_structures()
@@ -847,20 +847,16 @@ def get_registration_charts(request):
     if user.is_high_school_manager() and user.highschool:
         highschool_id = user.highschool.id
 
-    if highschool_id == 'all_highschools':
-        user_filters['high_school_student_record__validation'] = 2
-    else:
-        try:
-            int(highschool_id)
-            user_filters['high_school_student_record__validation'] = 2
-            user_filters['high_school_student_record__highschool__id'] = highschool_id
+    try:
+        int(highschool_id)
+        # Filter by the selected high school students
+        if not filter_by_my_trainings:
+            high_school_user_filters['high_school_student_record__validation'] = 2
+            high_school_user_filters['high_school_student_record__highschool__id'] = highschool_id
+            immersions_filter['immersions__student__high_school_student_record__highschool__id'] = highschool_id
 
-            # Filter by the selected high school students
-            if not filter_by_my_trainings:
-                immersions_filter['immersions__student__high_school_student_record__highschool__id'] = highschool_id
-
-        except (TypeError, ValueError):
-            pass
+    except (TypeError, ValueError):
+        pass
 
     if filter_by_my_trainings:
         if user.is_high_school_manager():
@@ -968,13 +964,12 @@ def get_registration_charts(request):
             users = user_queryset.filter(visitor_record__validation=2)
         elif not level.is_post_bachelor:
             level_label = level.label
-            users = user_queryset.filter(**user_filters, high_school_student_record__level=level.pk)
+            users = user_queryset.filter(**high_school_user_filters, high_school_student_record__level=level.pk)
         else: # post bachelor levels : highschool and higher education institutions levels
             level_label = level.label
             users = user_queryset.filter(
-                Q(high_school_student_record__level__is_post_bachelor=True) |
-                Q(student_record__level__isnull=False),
-                **user_filters
+                Q(high_school_student_record__level__is_post_bachelor=True, **high_school_user_filters) |
+                Q(student_record__level__isnull=False)
             )
 
         datasets[0][level_label] = users.filter(
