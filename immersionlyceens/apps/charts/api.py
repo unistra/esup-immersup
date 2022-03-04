@@ -1110,6 +1110,10 @@ def get_registration_charts_cats(request):
     """
 
     immersions_filter = {}
+    visitors_filter = {
+        'visitor_record__isnull': False,
+        'visitor_record__validation': 2
+    }
     filter_by_my_trainings = request.POST.get("filter_by_my_trainings", False) == "true"
 
     # Parse filters in POST request
@@ -1153,12 +1157,15 @@ def get_registration_charts_cats(request):
             immersions_filter["student__student_record__uai_code__in"] = _higher_institutions_ids
     else:
         if _highschools_ids:
-            immersions_filter["slot__course__highschool__in"] = _highschools_ids
+            immersions_filter["slot__course__training__highschool__in"] = _highschools_ids
+
         if _structures_ids:
-            immersions_filter["slot__course__structure__in"] = _structures_ids
+            immersions_filter["slot__course__training__structures__in"] = _structures_ids
+
         if _higher_institutions_ids:
             structures = Structure.objects.filter(establishment__in=_higher_institutions_ids)
-            immersions_filter["slot__course__structure__in"] = structures
+            immersions_filter["slot__course__training__structure__in"] = structures
+
 
     # We need data for 2 or 3 graphs (3 if filter_by_my_trainings is False)
     # Axes are common, just make sure we always use 'name' as attribute name for category
@@ -1205,20 +1212,26 @@ def get_registration_charts_cats(request):
     if not filter_by_my_trainings:
         datasets["platform_regs"] = []
 
-    qs = ImmersionUser.objects.prefetch_related(
+    users_queryset = ImmersionUser.objects.prefetch_related(
         "high_school_student_record__highschool", "student_record", "visitor_record").all()
 
     immersions_queryset = Immersion.objects.prefetch_related(
         'student__high_school_record__level', 'student__student_record__level', 'student__visitor_record',
-        'slot__course__structure'
+        'slot__course__training__structure'
     )
 
     # High schools
     for highschool in HighSchool.objects.filter(id__in=_highschools_ids):
-        hs_qs = qs.filter(
-            high_school_student_record__highschool=highschool,
-            high_school_student_record__validation=2
-        )
+        if filter_by_my_trainings:
+            hs_qs = users_queryset.filter(
+                immersions__slot__course__training__highschool=highschool,
+                high_school_student_record__validation=2
+            )
+        else:
+            hs_qs = users_queryset.filter(
+                high_school_student_record__highschool=highschool,
+                high_school_student_record__validation=2
+            )
 
         if not filter_by_my_trainings:
             dataset_platform_regs = { 'name': highschool.label }
@@ -1234,7 +1247,10 @@ def get_registration_charts_cats(request):
                     continue
 
                 level_label = gettext("Visitors")
-                users = qs.filter(visitor_record__isnull=False, visitor_record__validation=2)
+                users = users_queryset.filter(
+                    **visitors_filter,
+                    immersions__slot__course__training__highschool=highschool
+                )
             elif not level.is_post_bachelor:
                 level_label = level.label
                 users = hs_qs.filter(high_school_student_record__level=level)
@@ -1242,15 +1258,11 @@ def get_registration_charts_cats(request):
                 level_label = level.label
 
                 if not filter_by_my_trainings:
-                    users = hs_qs.filter(
-                        high_school_student_record__level=level,
-                        high_school_student_record__validation=2
-                    )
+                    users = hs_qs.filter(high_school_student_record__level=level)
                 else:
-                    users = qs.filter(
+                    users = users_queryset.filter(
                         Q(high_school_student_record__highschool=highschool,
-                          high_school_student_record__level=level,
-                          high_school_student_record__validation=2) |
+                          high_school_student_record__level=level) |
                         Q(student_record__level__in=StudentLevel.objects.all()),
                     )
 
@@ -1273,8 +1285,8 @@ def get_registration_charts_cats(request):
         for establishment_id in _higher_institutions_ids:
             structures = Structure.objects.filter(establishment__id=establishment_id)
 
-            estab_qs = qs.filter(immersions__slot__course__structure__in=structures)
-            estab_immersions = immersions_queryset.filter(slot__course__structure__in=structures)
+            estab_qs = users_queryset.filter(immersions__slot__course__training__structures__in=structures)
+            estab_immersions = immersions_queryset.filter(slot__course__training__structures__in=structures)
 
             try:
                 establishment = Establishment.objects.get(pk=establishment_id)
@@ -1291,7 +1303,7 @@ def get_registration_charts_cats(request):
             for level in levels:
                 if level == 'visitors':
                     level_label = gettext("Visitors")
-                    users = estab_qs.filter(visitor_record__isnull=False, visitor_record__validation=2)
+                    users = estab_qs.filter(**visitors_filter)
                     immersions = estab_immersions.filter(
                         student__visitor_record__isnull=False,
                         student__visitor_record__validation=2
@@ -1334,7 +1346,7 @@ def get_registration_charts_cats(request):
 
     else:
         for uai_code in _higher_institutions_ids:
-            hii_qs = qs.filter(student_record__uai_code=uai_code)
+            hii_qs = users_queryset.filter(student_record__uai_code=uai_code)
 
             try:
                 hei = HigherEducationInstitution.objects.get(pk=uai_code)
@@ -1351,10 +1363,11 @@ def get_registration_charts_cats(request):
             for level in levels:
                 if level == 'visitors':
                     level_label = gettext("Visitors")
-                    users = hii_qs.filter(visitor_record__isnull=False, visitor_record__validation=2)
+                    users = hii_qs.filter(**visitors_filter)
                 elif not level.is_post_bachelor:
                     level_label = level.label
-                    # No high school levels for these students, but we need this to keep consistent data between institutions
+                    # No high school levels for these students, but we need this to keep consistent data between
+                    # institutions
                     users = hii_qs.none()
                 else:  # post bachelor levels :
                     level_label = level.label
@@ -1376,11 +1389,11 @@ def get_registration_charts_cats(request):
 
     # Structures when filtering on my trainings
     for structure_id in _structures_ids:
-        strs_qs = qs.filter(
-            immersions__slot__course__structure__id=structure_id
+        strs_qs = users_queryset.filter(
+            immersions__slot__course__training__structures__id=structure_id
         )
 
-        strs_immersions = immersions_queryset.filter(slot__course__structure__id=structure_id)
+        strs_immersions = immersions_queryset.filter(slot__course__training__structures__id=structure_id)
 
         try:
             structure = Structure.objects.get(pk=structure_id)
@@ -1397,7 +1410,7 @@ def get_registration_charts_cats(request):
         for level in levels:
             if level == 'visitors':
                 level_label = gettext("Visitors")
-                users = strs_qs.filter(visitor_record__isnull=False, visitor_record__validation=2)
+                users = strs_qs.filter(**visitors_filter)
                 immersions = strs_immersions.filter(
                     student__visitor_record__isnull=False,
                     student__visitor_record__validation=2
