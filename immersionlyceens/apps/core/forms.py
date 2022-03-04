@@ -232,6 +232,17 @@ class SlotForm(forms.ModelForm):
         return cleaned_data
 
 
+    def clean_fields(self, cleaned_data):
+        # Remote slot : remove unnecessary fields
+        if not cleaned_data.get('face_to_face', True):
+            for field in ['campus', 'building', 'room']:
+                cleaned_data[field] = None
+        else:
+            cleaned_data['url'] = None
+
+        return cleaned_data
+
+
     def clean(self):
         cleaned_data = super().clean()
         structure = cleaned_data.get('structure')
@@ -242,6 +253,7 @@ class SlotForm(forms.ModelForm):
         start_time = cleaned_data.get('start_time', 0)
 
         cleaned_data = self.clean_restrictions(cleaned_data)
+        cleaned_data = self.clean_fields(cleaned_data)
 
         # Slot repetition
         if cleaned_data.get('repeat'):
@@ -400,6 +412,7 @@ class VisitSlotForm(SlotForm):
         _date = cleaned_data.get('date')
 
         cleaned_data = self.clean_restrictions(cleaned_data)
+        cleaned_data = self.clean_fields(cleaned_data)
 
         cals = Calendar.objects.all()
 
@@ -518,6 +531,7 @@ class OffOfferEventSlotForm(SlotForm):
         _date = cleaned_data.get('date')
 
         cleaned_data = self.clean_restrictions(cleaned_data)
+        cleaned_data = self.clean_fields(cleaned_data)
 
         cals = Calendar.objects.all()
 
