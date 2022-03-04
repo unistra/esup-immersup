@@ -71,7 +71,13 @@
       {% endif %}
       {% if not request.user.is_high_school_manager and not request.user.is_structure_manager %}
       <div class="form-group mx-sm-3 mb-2">
-        <label for="id_highschool" class="form-check-label ml-md-2">{% trans 'Filter by pupils from this high school' %} :</label>
+        <label for="id_highschool" class="form-check-label ml-md-2">
+            {% if filter_by_my_trainings %}
+              {% trans 'Filter by trainings of' %}
+            {% else %}
+              {% trans 'Filter by pupils from' %}
+            {% endif %} :
+        </label>
         <select id="id_highschool">
           <option value="all">{% trans 'All high schools and establishments' %}</option>
           <option value="all_highschools">{% trans 'High schools only' %}</option>

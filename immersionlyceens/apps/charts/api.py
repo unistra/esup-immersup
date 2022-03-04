@@ -847,16 +847,20 @@ def get_registration_charts(request):
     if user.is_high_school_manager() and user.highschool:
         highschool_id = user.highschool.id
 
-    try:
-        int(highschool_id)
-        # Filter by the selected high school students
-        if not filter_by_my_trainings:
-            high_school_user_filters['high_school_student_record__validation'] = 2
-            high_school_user_filters['high_school_student_record__highschool__id'] = highschool_id
-            immersions_filter['immersions__student__high_school_student_record__highschool__id'] = highschool_id
-
-    except (TypeError, ValueError):
-        pass
+    if highschool_id == "all_highschools" and filter_by_my_trainings:
+        immersions_filter['immersions__slot__course__highschool__isnull'] = False
+    else:
+        try:
+            int(highschool_id)
+            # Filter by the selected high school students
+            if not filter_by_my_trainings:
+                high_school_user_filters['high_school_student_record__validation'] = 2
+                high_school_user_filters['high_school_student_record__highschool__id'] = highschool_id
+                immersions_filter['immersions__student__high_school_student_record__highschool__id'] = highschool_id
+            else:
+                immersions_filter['immersions__slot__course__highschool__id'] = highschool_id
+        except (TypeError, ValueError):
+            pass
 
     if filter_by_my_trainings:
         if user.is_high_school_manager():

@@ -187,7 +187,7 @@ def global_registrations_charts(request, my_trainings=False):
     if request.user.is_high_school_manager() and request.user.highschool:
         highschool_id = request.user.highschool.id
         highschool_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
-        highschool_filter = {'pk': highschool_id}
+        highschool_filter['pk'] = highschool_id
 
     if filter_by_my_trainings or not request.user.is_high_school_manager():
         high_school_levels_filters['is_post_bachelor'] = False
@@ -197,6 +197,9 @@ def global_registrations_charts(request, my_trainings=False):
         {'id': s.id, 'label': s.label}
         for s in request.user.get_authorized_structures().order_by('label')
     ]
+
+    if filter_by_my_trainings:
+        highschool_filter['postbac_immersion'] = True
 
     context = {
         'highschool_id': highschool_id,
