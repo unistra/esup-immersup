@@ -37,7 +37,7 @@
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'Anonymous events data' %}</label>
         <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
-      </div>            
+      </div>
       {% elif request.user.is_structure_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
@@ -101,8 +101,8 @@ $(document).ready(function(){
   });
   $('#extract_anonymous_events').click(function(event){
     window.open('{% url 'get_csv_anonymous' %}?type=event', '_blank');
-  });   
-});
+  });
+})
 
 </script>
 {% endblock %}
