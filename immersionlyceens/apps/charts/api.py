@@ -976,20 +976,23 @@ def get_registration_charts(request):
                 Q(student_record__level__isnull=False)
             )
 
+        # Attended to 1 at least immersion
         datasets[0][level_label] = users.filter(
             immersions__attendance_status=1,
             immersions__slot__course__isnull=False,
             **immersions_filter)\
-            .distinct().count() # attended to 1 immersion
+            .distinct().count()
 
+        # Registered to one immersion
         datasets[1][level_label] = users.filter(
             immersions__isnull=False,
             immersions__cancellation_type__isnull=True,
             immersions__slot__course__isnull=False,
             **immersions_filter)\
-            .distinct().count()  # registered
+            .distinct().count()
 
-        datasets[2][level_label] = users.count()  # platform : no additional filter
+        # platform : current highschool filter only
+        datasets[2][level_label] = users.filter(**high_school_user_filters).count()
 
     # Median calculation for a specific high school
     if highschool_id != 'all' and not filter_by_my_trainings:

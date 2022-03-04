@@ -688,7 +688,7 @@ class ChartsAPITestCase(TestCase):
                HighSchoolLevel.objects.get(pk=1).label: 4,
                HighSchoolLevel.objects.get(pk=2).label: 4,
                HighSchoolLevel.objects.get(pk=3).label: 2,
-               HighSchoolLevel.objects.get(pk=4).label: 2,
+               HighSchoolLevel.objects.get(pk=4).label: 1,
                'Visitors': 0,
               },]
         )
@@ -734,7 +734,7 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=1).label: 2,
               HighSchoolLevel.objects.get(pk=2).label: 2,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 2}]
+              HighSchoolLevel.objects.get(pk=4).label: 1}]
         )
 
 
