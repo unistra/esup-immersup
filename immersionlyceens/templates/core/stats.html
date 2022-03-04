@@ -17,6 +17,8 @@
 {% endblock %}
 
 {% block content %}
+{% general_settings_get 'HIGHSCHOOL_VISIT' as highschool_visit %}
+{% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -30,14 +32,18 @@
         <label class="col-form-label col-sm-3" for="extract_anonymous_courses">{% trans 'Anonymous courses data' %}</label>
         <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>
       </div>
+      {% if highschool_visit %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'Anonymous visits data' %}</label>
         <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_visits">{% trans 'Extract data' %}</button>
       </div>
+      {% endif %}
+      {% if events_off_offer %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'Anonymous events data' %}</label>
         <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
       </div>
+      {% endif %}
       {% elif request.user.is_structure_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
