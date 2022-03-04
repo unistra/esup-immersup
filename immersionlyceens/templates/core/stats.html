@@ -25,10 +25,18 @@
     <div class="card-body">
 
 
-      {% if request.user.is_establishment_manager %}
+      {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
       <div class="row">
-        <label class="col-form-label col-sm-3" >{% trans 'Anonymous immersion data' %}</label>
-        <button type="button" class="btn btn-primary" id="extract_anonymous">{% trans 'Extract data' %}</button>
+        <label class="col-form-label col-sm-3" for="extract_anonymous_courses">{% trans 'Anonymous courses data' %}</label>
+        <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>
+      </div>
+      <div class="row">
+        <label class="col-form-label col-sm-3" >{% trans 'Anonymous visits data' %}</label>
+        <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_visits">{% trans 'Extract data' %}</button>
+      </div>
+      <div class="row">
+        <label class="col-form-label col-sm-3" >{% trans 'Anonymous events data' %}</label>
+        <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
       </div>
       {% elif request.user.is_structure_manager %}
       <div class="row">
@@ -85,10 +93,16 @@ $(document).ready(function(){
     let url = '/api/get_csv_highschool/{{ high_school_id }}';
     window.open(url, '_blank');
   });
-  $('#extract_anonymous').click(function(event){
-    window.open('/api/get_csv_anonymous_immersion/', '_blank');
+  $('#extract_anonymous_courses').click(function(event){
+    window.open('{% url 'get_csv_anonymous' %}?type=course', '_blank');
   });
-});
+  $('#extract_anonymous_visits').click(function(event){
+    window.open('{% url 'get_csv_anonymous' %}?type=visit', '_blank');
+  });
+  $('#extract_anonymous_events').click(function(event){
+    window.open('{% url 'get_csv_anonymous' %}?type=event', '_blank');
+  });
+})
 
 </script>
 {% endblock %}
