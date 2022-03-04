@@ -61,7 +61,6 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     list_filter = (
         ActivationFilter,
-        ('establishment', RelatedDropdownFilter),
         HighschoolListFilter,
     )
 
@@ -110,7 +109,6 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
     ]
 
     list_filter = (
-        ('establishment', RelatedDropdownFilter),
         HighschoolListFilter,
     )
 
