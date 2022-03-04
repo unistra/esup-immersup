@@ -828,7 +828,7 @@ def get_registration_charts(request):
     structure_id = request.GET.get("structure_id")
     structure = None
     filter_by_my_trainings = request.GET.get("filter_by_my_trainings", False) == "true"
-    high_school_user_filters = {'high_school_student_record__validation': 2}
+    high_school_user_filters = {}
     level_filter = {}
     immersions_filter = {}
     allowed_structures = user.get_authorized_structures()
@@ -853,6 +853,7 @@ def get_registration_charts(request):
         try:
             int(highschool_id)
             # Filter by the selected high school students
+
             if not filter_by_my_trainings:
                 high_school_user_filters['high_school_student_record__validation'] = 2
                 high_school_user_filters['high_school_student_record__highschool__id'] = highschool_id
