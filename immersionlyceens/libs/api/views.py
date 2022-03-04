@@ -2248,14 +2248,14 @@ def get_csv_structures(request, structure_id):
 
 
 @groups_required('REF-LYC',)
-def get_csv_highschool(request, high_school_id):
+def get_csv_highschool(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    h_name = HighSchool.objects.get(id=high_school_id).label.replace(" ", "_")
+    hs = HighSchool.objects.get(id=request.user.highschool.id)
+
+    h_name = hs.label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
-
     infield_separator = '|'
-
     header = [
         _('last name'),
         _('first name'),
@@ -2263,46 +2263,89 @@ def get_csv_highschool(request, high_school_id):
         _('level'),
         _('class name'),
         _('bachelor type'),
+        _('establishment'),
+        _('type'),
         _('training domain'),
         _('training subdomain'),
         _('training'),
         _('course'),
+        _('date'),
+        _('start_time'),
+        _('end_time'),
     ]
-
     content = []
-    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)\
-        .order_by('student__last_name', 'student__first_name')
-    for hs in hs_records:
-        immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
+    Q_filters = Q(course__highschool=hs) \
+                | Q(visit__highschool=hs) \
+                | Q(event__highschool=hs)
+
+    slots = Slot.objects.filter(Q_filters, published=True)
+    for slot in slots:
+
+        immersions = Immersion.objects.prefetch_related('slot').filter(
+            slot=slot, cancellation_type__isnull=True
+        )
         if immersions.count() > 0:
             for imm in immersions:
-                content.append(
-                    [
-                        hs.student.last_name,
-                        hs.student.first_name,
-                        _date(hs.birth_date, 'd/m/Y'),
-                        hs.level.label if hs.level else '',
-                        hs.class_name,
-                        HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1],
-                        infield_separator.join(
-                            [s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]
-                        ),
-                        infield_separator.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
-                        imm.slot.course.training.label,
-                        imm.slot.course.label,
-                    ]
-                )
-        else:
-            content.append(
-                [
-                    hs.student.last_name,
-                    hs.student.first_name,
-                    _date(hs.birth_date, 'd/m/Y'),
-                    hs.level.label if hs.level else '',
-                    hs.class_name,
-                    HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1] if hs.bachelor_type else '',
-                ]
-            )
+                level = ''
+                record = None
+
+                if imm.student.is_student():
+                    try:
+                        record = StudentRecord.objects.get(student=imm.student)
+                        level = record.level.label if record.level else ''
+                    except StudentRecord.DoesNotExist:
+                        pass
+                elif imm.student.is_high_school_student():
+                    try:
+                        record = HighSchoolStudentRecord.objects.get(
+                            student=imm.student
+                        )
+                        level = record.level.label if record.level else ''
+                    except HighSchoolStudentRecord.DoesNotExist:
+                        pass
+                elif imm.student.is_visitor():
+                    try:
+                        record = VisitorRecord.objects.get(visitor=imm.student)
+                    except VisitorRecord.DoesNotExist:
+                        pass
+
+                if slot.is_course():
+                    slot_type = _('Course')
+                elif slot.is_event():
+                    slot_type = _('Event')
+                elif slot.is_visit():
+                    slot_type = _('Visit')
+
+                if record:
+                    content.append(
+                        [
+                            record.visitor.last_name if imm.student.is_visitor() else record.student.last_name,
+                            record.visitor.first_name if imm.student.is_visitor() else record.student.first_name,
+                            _date(record.birth_date, 'd/m/Y'),
+                            level,
+                            record.class_name if hasattr(record,'class_name') else '',
+                            record.BACHELOR_TYPES[record.bachelor_type - 1][1] if hasattr(record,'bachelor_type') else '',
+                            slot.get_establishment(),
+                            slot_type,
+                            infield_separator.join(
+                                [
+                                    sub.training_domain.label
+                                    for sub in slot.course.training.training_subdomains.all()
+                                ] if slot.is_course() else ''
+                            ),
+                            infield_separator.join(
+                                [
+                                    sub.label
+                                    for sub in slot.course.training.training_subdomains.all()
+                                ] if slot.is_course() else ''
+                            ),
+                            slot.course.training.label if slot.is_course() else "",
+                            slot.course.label if slot.is_course() else "",
+                            _date(slot.date, 'd/m/Y'),
+                            slot.start_time.strftime('%H:%M'),
+                            slot.end_time.strftime('%H:%M'),
+                        ]
+                    )
 
     writer = csv.writer(response)
     writer.writerow(header)
