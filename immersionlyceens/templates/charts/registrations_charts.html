@@ -229,18 +229,26 @@
 
     // Set it on chart's container
     chart.svgContainer.htmlElement.style.height = targetHeight + "px";
-  };
+  }
 
   function init_second_graphs() {
+    let url;
+
+    if(filter_by_my_trainings === true) {
+      url = "/charts/get_registration_charts_cats_by_trainings"
+    }
+    else {
+      url = "/charts/get_registration_charts_cats_by_population"
+    }
+
     $.ajax({
-      url: "/charts/get_registration_charts_cats",
+      url: url,
       type: 'POST',
       data: {
         'highschools_ids' : highschools_ids,
         'higher_institutions_ids': higher_institutions_ids,
         'structure_ids': structure_ids,
         'level': level_filter,
-        'filter_by_my_trainings': filter_by_my_trainings,
          csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {

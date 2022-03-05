@@ -738,11 +738,11 @@ class ChartsAPITestCase(TestCase):
         )
 
 
-    def test_registration_charts_cats_api(self):
+    def test_registration_charts_cats_by_population(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')
 
         # Registration charts cats (ajax query, headers needed)
-        url = "/charts/get_registration_charts_cats"
+        url = "/charts/get_registration_charts_cats_by_population"
         response = self.client.post(url,
             {'highschools_ids[]': [2], 'higher_institutions_ids[]': ['0673021V']}, **self.header)
         content = response.content.decode()
@@ -760,7 +760,6 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=2).label: 0,
               HighSchoolLevel.objects.get(pk=3).label: 0,
               HighSchoolLevel.objects.get(pk=4).label: 0,
-              "Visitors": 0
               }]
         )
 
@@ -775,7 +774,6 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=2).label: 0,
               HighSchoolLevel.objects.get(pk=3).label: 0,
               HighSchoolLevel.objects.get(pk=4).label: 1,
-              "Visitors": 0
              }]
         )
 
@@ -790,7 +788,6 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=2).label: 0,
               HighSchoolLevel.objects.get(pk=3).label: 0,
               HighSchoolLevel.objects.get(pk=4).label: 1,
-              "Visitors": 0
              }]
         )
 

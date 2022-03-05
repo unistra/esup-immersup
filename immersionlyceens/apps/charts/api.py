@@ -1102,11 +1102,12 @@ def get_registration_charts(request):
 @is_post_request
 @is_ajax_request
 @groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
-def get_registration_charts_cats(request):
+def get_registration_charts_cats_by_trainings(request):
     """
     Data for amcharts 4
     Horizontal bars format, part 2
     parameters are in request.POST
+    Filter by trainings
     """
 
     immersions_filter = {}
@@ -1114,7 +1115,6 @@ def get_registration_charts_cats(request):
         'visitor_record__isnull': False,
         'visitor_record__validation': 2
     }
-    filter_by_my_trainings = request.POST.get("filter_by_my_trainings", False) == "true"
 
     # Parse filters in POST request
     _highschools_ids = request.POST.getlist("highschools_ids[]")
@@ -1149,22 +1149,15 @@ def get_registration_charts_cats(request):
             levels = [HighSchoolLevel.objects.get(pk=level_value)]
 
     # Filter on highschools, higher education institutions or structures
-    if not filter_by_my_trainings:
-        if _highschools_ids:
-            immersions_filter["student__high_school_student_record__highschool__id__in"] = _highschools_ids
+    if _highschools_ids:
+        immersions_filter["slot__course__training__highschool__in"] = _highschools_ids
 
-        if _higher_institutions_ids:
-            immersions_filter["student__student_record__uai_code__in"] = _higher_institutions_ids
-    else:
-        if _highschools_ids:
-            immersions_filter["slot__course__training__highschool__in"] = _highschools_ids
+    if _structures_ids:
+        immersions_filter["slot__course__training__structures__in"] = _structures_ids
 
-        if _structures_ids:
-            immersions_filter["slot__course__training__structures__in"] = _structures_ids
-
-        if _higher_institutions_ids:
-            structures = Structure.objects.filter(establishment__in=_higher_institutions_ids)
-            immersions_filter["slot__course__training__structure__in"] = structures
+    if _higher_institutions_ids:
+        structures = Structure.objects.filter(establishment__in=_higher_institutions_ids)
+        immersions_filter["slot__course__training__structure__in"] = structures
 
 
     # We need data for 2 or 3 graphs (3 if filter_by_my_trainings is False)
@@ -1209,9 +1202,6 @@ def get_registration_charts_cats(request):
         'attended_one': [],
     }
 
-    if not filter_by_my_trainings:
-        datasets["platform_regs"] = []
-
     users_queryset = ImmersionUser.objects.prefetch_related(
         "high_school_student_record__highschool", "student_record", "visitor_record").all()
 
@@ -1222,66 +1212,31 @@ def get_registration_charts_cats(request):
 
     # High schools
     for highschool in HighSchool.objects.filter(id__in=_highschools_ids):
-        if filter_by_my_trainings:
-            hs_qs = users_queryset.filter(
-                immersions__slot__course__training__highschool=highschool,
-                high_school_student_record__validation=2
-            )
-            hs_immersions = immersions_queryset.filter(slot__course__training__highschool=highschool)
-        else:
-            hs_qs = users_queryset.filter(
-                high_school_student_record__highschool=highschool,
-                high_school_student_record__validation=2
-            )
-
-        if not filter_by_my_trainings:
-            dataset_platform_regs = { 'name': highschool.label }
+        hs_immersions = immersions_queryset.filter(slot__course__training__highschool=highschool)
 
         dataset_one_immersion = { 'name': highschool.label }
         dataset_attended_one = { 'name': highschool.label }
 
         for level in levels:
             if level == 'visitors':
-
-                # When filtering on highschool students, do not include visitors level
-                if not filter_by_my_trainings:
-                    continue
-
                 level_label = gettext("Visitors")
-                users = users_queryset.filter(
-                    **visitors_filter,
-                    immersions__slot__course__training__highschool=highschool
-                )
                 immersions = hs_immersions.filter(
                     student__visitor_record__isnull=False,
                     student__visitor_record__validation=2
                 )
             elif not level.is_post_bachelor:
                 level_label = level.label
-                users = hs_qs.filter(high_school_student_record__level=level)
                 immersions = hs_immersions.filter(
                     student__high_school_student_record__level=level
                 )
             else: # is_post_bachelor : highschool and higher education institutions levels
                 level_label = level.label
 
-                if not filter_by_my_trainings:
-                    users = hs_qs.filter(high_school_student_record__level=level)
-                    immersions = hs_immersions.filter(
-                        student__high_school_student_record__level=level
-                    )
-                else:
-                    users = users_queryset.filter(
-                        Q(high_school_student_record__level=level) |
-                        Q(student_record__level__in=StudentLevel.objects.all())
-                    )
-                    immersions = hs_immersions.filter(
-                        Q(student__high_school_student_record__level=level) |
-                        Q(student__student_record__level__in=StudentLevel.objects.all())
-                    )
-
-            if not filter_by_my_trainings:
-                dataset_platform_regs[level_label] = users.count()  # plaform
+                # Filter by trainings of this high school : postbac pupils + students
+                immersions = hs_immersions.filter(
+                    Q(student__high_school_student_record__level=level) |
+                    Q(student__student_record__level__in=StudentLevel.objects.all())
+                )
 
             dataset_one_immersion[level_label] = immersions\
                 .filter(cancellation_type__isnull=True)\
@@ -1294,124 +1249,69 @@ def get_registration_charts_cats(request):
                 .values('student')\
                 .distinct()\
                 .count()
-            """
-            dataset_one_immersion[level_label] = users.filter(
-                immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
-            dataset_attended_one[level_label] = users.filter(
-                immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
-            """
-        if not filter_by_my_trainings:
-            datasets['platform_regs'].append(dataset_platform_regs.copy())
 
         datasets['one_immersion'].append(dataset_one_immersion.copy())
         datasets['attended_one'].append(dataset_attended_one.copy())
 
     # Higher institutions
-    if filter_by_my_trainings:
-        for establishment_id in _higher_institutions_ids:
-            structures = Structure.objects.filter(establishment__id=establishment_id)
+    for establishment_id in _higher_institutions_ids:
+        structures = Structure.objects.filter(establishment__id=establishment_id)
 
-            estab_qs = users_queryset.filter(immersions__slot__course__training__structures__in=structures)
-            estab_immersions = immersions_queryset.filter(slot__course__training__structures__in=structures)
+        estab_qs = users_queryset.filter(immersions__slot__course__training__structures__in=structures)
+        estab_immersions = immersions_queryset.filter(slot__course__training__structures__in=structures)
 
-            try:
-                establishment = Establishment.objects.get(pk=establishment_id)
-                label = establishment.label
-            except Establishment.DoesNotExist:
-                label = gettext("Establishment not found")
+        try:
+            establishment = Establishment.objects.get(pk=establishment_id)
+            label = establishment.label
+        except Establishment.DoesNotExist:
+            label = gettext("Establishment not found")
 
-            if not filter_by_my_trainings:
-                dataset_platform_regs = {'name': label}
+        dataset_one_immersion = {'name': label}
+        dataset_attended_one = {'name': label}
 
-            dataset_one_immersion = {'name': label}
-            dataset_attended_one = {'name': label}
+        for level in levels:
+            if level == 'visitors':
+                level_label = gettext("Visitors")
+                users = estab_qs.filter(**visitors_filter)
+                immersions = estab_immersions.filter(
+                    student__visitor_record__isnull=False,
+                    student__visitor_record__validation=2
+                )
+            elif not level.is_post_bachelor:
+                level_label = level.label
+                users = estab_qs.filter(
+                    high_school_student_record__level=level,
+                    high_school_student_record__validation=2
+                )
+                immersions = estab_immersions.filter(
+                    student__high_school_student_record__level=level,
+                    student__high_school_student_record__validation=2
+                )
+            else:  # post bachelor levels : include students
+                level_label = level.label
+                users = estab_qs.filter(
+                    Q(student_record__isnull=False)
+                    | Q(high_school_student_record__validation=2,
+                        high_school_student_record__level__in=HighSchoolLevel.objects.filter(is_post_bachelor=True))
+                )
+                immersions = estab_immersions.filter(
+                    Q(student__student_record__isnull=False)
+                    | Q(student__high_school_student_record__validation=2,
+                        student__high_school_student_record__level__in=HighSchoolLevel.objects.filter(
+                            is_post_bachelor=True))
+                )
 
-            for level in levels:
-                if level == 'visitors':
-                    level_label = gettext("Visitors")
-                    users = estab_qs.filter(**visitors_filter)
-                    immersions = estab_immersions.filter(
-                        student__visitor_record__isnull=False,
-                        student__visitor_record__validation=2
-                    )
-                elif not level.is_post_bachelor:
-                    level_label = level.label
-                    users = estab_qs.filter(
-                        high_school_student_record__level=level,
-                        high_school_student_record__validation=2
-                    )
-                    immersions = estab_immersions.filter(
-                        student__high_school_student_record__level=level,
-                        student__high_school_student_record__validation=2
-                    )
-                else:  # post bachelor levels : include students
-                    level_label = level.label
-                    users = estab_qs.filter(
-                        Q(student_record__isnull=False)
-                        | Q(high_school_student_record__validation=2,
-                            high_school_student_record__level__in=HighSchoolLevel.objects.filter(is_post_bachelor=True))
-                    )
-                    immersions = estab_immersions.filter(
-                        Q(student__student_record__isnull=False)
-                        | Q(student__high_school_student_record__validation=2,
-                            student__high_school_student_record__level__in=HighSchoolLevel.objects.filter(
-                                is_post_bachelor=True))
-                    )
+            # registered to at least 1 immersion
+            dataset_one_immersion[level_label] = users.filter(
+                immersions__isnull=False,
+                immersions__cancellation_type__isnull=True).distinct().count()
 
-                # registered to at least 1 immersion
-                dataset_one_immersion[level_label] = users.filter(
-                    immersions__isnull=False,
-                    immersions__cancellation_type__isnull=True).distinct().count()
+            # attended to 1 immersion
+            dataset_attended_one[level_label] = immersions.filter(
+                attendance_status=1).values('student').distinct().count()
 
-                # attended to 1 immersion
-                dataset_attended_one[level_label] = immersions.filter(
-                    attendance_status=1).values('student').distinct().count()
-
-            datasets['one_immersion'].append(dataset_one_immersion.copy())
-            datasets['attended_one'].append(dataset_attended_one.copy())
-
-    else:
-        for uai_code in _higher_institutions_ids:
-            hii_qs = users_queryset.filter(student_record__uai_code=uai_code)
-
-            try:
-                hei = HigherEducationInstitution.objects.get(pk=uai_code)
-                label = hei.label
-            except HigherEducationInstitution.DoesNotExist:
-                label = "{} ({})".format(uai_code, gettext("no name match yet"))
-
-            if not filter_by_my_trainings:
-                dataset_platform_regs = {'name': label}
-
-            dataset_one_immersion = {'name': label}
-            dataset_attended_one = {'name': label}
-
-            for level in levels:
-                if level == 'visitors':
-                    level_label = gettext("Visitors")
-                    users = hii_qs.filter(**visitors_filter)
-                elif not level.is_post_bachelor:
-                    level_label = level.label
-                    # No high school levels for these students, but we need this to keep consistent data between
-                    # institutions
-                    users = hii_qs.none()
-                else:  # post bachelor levels :
-                    level_label = level.label
-                    users = hii_qs.filter(student_record__level__in=StudentLevel.objects.all())
-
-                if not filter_by_my_trainings:
-                    dataset_platform_regs[level_label] = users.count() # plaform
-
-                dataset_one_immersion[level_label] = users.filter(
-                    immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count() # registered
-                dataset_attended_one[level_label] = users.filter(
-                    immersions__attendance_status=1).distinct().count() # attended to 1 immersion
-
-            if not filter_by_my_trainings:
-                datasets['platform_regs'].append(dataset_platform_regs.copy())
-
-            datasets['one_immersion'].append(dataset_one_immersion.copy())
-            datasets['attended_one'].append(dataset_attended_one.copy())
+        datasets['one_immersion'].append(dataset_one_immersion.copy())
+        datasets['attended_one'].append(dataset_attended_one.copy())
 
     # Structures when filtering on my trainings
     for structure_id in _structures_ids:
@@ -1426,9 +1326,6 @@ def get_registration_charts_cats(request):
             label = f"{structure.establishment.short_label} - {structure.label}"
         except Structure.DoesNotExist:
             label = gettext("Structure not found")
-
-        if not filter_by_my_trainings:
-            dataset_platform_regs = {'name': label}
 
         dataset_one_immersion = {'name': label}
         dataset_attended_one = {'name': label}
@@ -1464,9 +1361,6 @@ def get_registration_charts_cats(request):
                         student__high_school_student_record__level__in=HighSchoolLevel.objects.filter(is_post_bachelor=True))
                 )
 
-            if not filter_by_my_trainings:
-                dataset_platform_regs[level_label] = users.count()  # plaform
-
             # registered to at least 1 immersion
             dataset_one_immersion[level_label] = users.filter(
                 immersions__isnull=False,
@@ -1475,9 +1369,6 @@ def get_registration_charts_cats(request):
             # attended to 1 immersion
             dataset_attended_one[level_label] = immersions.filter(
                 attendance_status=1).values('student').distinct().count()
-
-        if not filter_by_my_trainings:
-            datasets['platform_regs'].append(dataset_platform_regs.copy())
 
         datasets['one_immersion'].append(dataset_one_immersion.copy())
         datasets['attended_one'].append(dataset_attended_one.copy())
@@ -1497,14 +1388,226 @@ def get_registration_charts_cats(request):
         }
     }
 
-    if not filter_by_my_trainings:
-        response['platform_regs'] = {
+    return JsonResponse(response, safe=False)
+
+
+@is_post_request
+@is_ajax_request
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
+def get_registration_charts_cats_by_population(request):
+    """
+    Data for amcharts 4
+    Horizontal bars format, part 2
+    parameters are in request.POST
+    """
+
+    immersions_filter = {}
+    visitors_filter = {
+        'visitor_record__isnull': False,
+        'visitor_record__validation': 2
+    }
+
+    # Parse filters in POST request
+    _highschools_ids = request.POST.getlist("highschools_ids[]")
+    _higher_institutions_ids = request.POST.getlist("higher_institutions_ids[]")
+    _structures_ids = request.POST.getlist("structure_ids[]")
+    level_value = request.POST.get("level", 0)
+
+    if level_value != 'visitors':
+        try:
+            level_value = int(request.POST.get("level", 0))
+        except ValueError:
+            level_value = 0
+
+    if level_value == 0 or level_value not in [l.id for l in HighSchoolLevel.objects.all()] + ['visitors']:
+        level_value = 0 # force it if not in allowed values
+        student_levels = []
+        levels = []
+        for l in HighSchoolLevel.objects.order_by('order'):
+            student_levels.append(l.label)
+            levels.append(l)
+
+        student_levels.append(_('Visitors'))
+        levels.append('visitors')
+    else:
+        if level_value == 'visitors':
+            student_levels = [_('Visitors')]
+            levels = ['visitors']
+        else:
+            student_levels = [
+                HighSchoolLevel.objects.get(pk=level_value).label
+            ]
+            levels = [HighSchoolLevel.objects.get(pk=level_value)]
+
+    # Filter on highschools, higher education institutions or structures
+    if _highschools_ids:
+        immersions_filter["student__high_school_student_record__highschool__id__in"] = _highschools_ids
+
+    if _higher_institutions_ids:
+        immersions_filter["student__student_record__uai_code__in"] = _higher_institutions_ids
+
+    # We need data for 2 or 3 graphs (3 if filter_by_my_trainings is False)
+    # Axes are common, just make sure we always use 'name' as attribute name for category
+    axes = {
+        'x': [{
+            "type": "ValueAxis",
+            "min": 0,
+            "maxPrecision": 0,
+        }],
+        'y': [{
+            "type": "CategoryAxis",
+            "dataFields": {
+                "category": "name",
+            }
+        }],
+    }
+
+    # Series (common)
+    series = []
+    for level in student_levels:
+        series.append({
+            "name": level,
+            "type": "ColumnSeries",
+            "stacked": True,
+
+            "dataFields": {
+                "valueX": level,
+                "categoryY": "name",
+            },
+            "columns": {
+                "template": {
+                    "width": "30%",
+                    "tooltipText": level + "\n{valueX}",
+                },
+            }
+        })
+
+    # Datasets definitions are also common : each category is an institution
+    datasets = {
+        'platform_regs': [],
+        'one_immersion': [],
+        'attended_one': [],
+    }
+
+    users_queryset = ImmersionUser.objects.prefetch_related(
+        "high_school_student_record__highschool", "student_record", "visitor_record").all()
+
+    immersions_queryset = Immersion.objects.prefetch_related(
+        'student__high_school_record__level', 'student__student_record__level', 'student__visitor_record',
+        'slot__course__training__structure'
+    )
+
+    # High schools
+    for highschool in HighSchool.objects.filter(id__in=_highschools_ids):
+        hs_immersions = immersions_queryset.filter(
+            student__high_school_student_record__highschool=highschool,
+            student__high_school_student_record__validation = 2
+        )
+
+        dataset_platform_regs = { 'name': highschool.label }
+        dataset_one_immersion = { 'name': highschool.label }
+        dataset_attended_one = { 'name': highschool.label }
+
+        for level in levels:
+            if level == 'visitors':
+                continue
+            else:
+                level_label = level.label
+                immersions = hs_immersions.filter(
+                    student__high_school_student_record__level=level
+                )
+                users = users_queryset.filter(
+                    high_school_student_record__highschool = highschool,
+                    high_school_student_record__level = level,
+                )
+
+            dataset_platform_regs[level_label] = users.count()  # plaform
+
+            dataset_one_immersion[level_label] = immersions\
+                .filter(cancellation_type__isnull=True)\
+                .values('student')\
+                .distinct()\
+                .count()
+
+            dataset_attended_one[level_label] = immersions\
+                .filter(attendance_status=1)\
+                .values('student')\
+                .distinct()\
+                .count()
+
+        datasets['platform_regs'].append(dataset_platform_regs.copy())
+        datasets['one_immersion'].append(dataset_one_immersion.copy())
+        datasets['attended_one'].append(dataset_attended_one.copy())
+
+    # Higher institutions
+    for uai_code in _higher_institutions_ids:
+        hii_qs = users_queryset.filter(student_record__uai_code=uai_code)
+        hii_immersions = immersions_queryset.filter(student__student_record__uai_code=uai_code)
+
+        try:
+            hei = HigherEducationInstitution.objects.get(pk=uai_code)
+            label = hei.label
+        except HigherEducationInstitution.DoesNotExist:
+            label = "{} ({})".format(uai_code, gettext("no name match yet"))
+
+        dataset_platform_regs = {'name': label}
+        dataset_one_immersion = {'name': label}
+        dataset_attended_one = {'name': label}
+
+        for level in levels:
+            if level == 'visitors':
+                continue
+            elif not level.is_post_bachelor:
+                level_label = level.label
+                # No high school levels for these students, but we need this to keep consistent data between
+                # institutions
+                users = hii_qs.none()
+            else:  # post bachelor levels :
+                level_label = level.label
+                users = hii_qs.filter(student_record__level__in=StudentLevel.objects.all())
+
+            # registered on plaform
+            dataset_platform_regs[level_label] = users.count()
+
+            # registered to at least one immersion
+            dataset_one_immersion[level_label] = hii_immersions\
+                .filter(cancellation_type__isnull=True)\
+                .values('student')\
+                .distinct()\
+                .count()
+
+            # attended to 1 immersion
+            dataset_attended_one[level_label] = hii_immersions\
+                .filter(attendance_status=1) \
+                .values('student') \
+                .distinct()\
+                .count()
+
+        datasets['platform_regs'].append(dataset_platform_regs.copy())
+        datasets['one_immersion'].append(dataset_one_immersion.copy())
+        datasets['attended_one'].append(dataset_attended_one.copy())
+
+    # =========
+    response = {
+        'platform_regs': {
             'axes': axes,
             'datasets': datasets['platform_regs'],
             'series': series,
+        },
+        'one_immersion': {
+            'axes': axes,
+            'datasets': datasets['one_immersion'],
+            'series': series,
+        },
+        'attended_one': {
+            'axes': axes,
+            'datasets': datasets['attended_one'],
+            'series': series,
         }
+    }
 
     return JsonResponse(response, safe=False)
+
 
 @is_ajax_request
 @groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
