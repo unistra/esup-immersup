@@ -1227,6 +1227,7 @@ def get_registration_charts_cats(request):
                 immersions__slot__course__training__highschool=highschool,
                 high_school_student_record__validation=2
             )
+            hs_immersions = immersions_queryset.filter(slot__course__training__highschool=highschool)
         else:
             hs_qs = users_queryset.filter(
                 high_school_student_record__highschool=highschool,
@@ -1251,29 +1252,54 @@ def get_registration_charts_cats(request):
                     **visitors_filter,
                     immersions__slot__course__training__highschool=highschool
                 )
+                immersions = hs_immersions.filter(
+                    student__visitor_record__isnull=False,
+                    student__visitor_record__validation=2
+                )
             elif not level.is_post_bachelor:
                 level_label = level.label
                 users = hs_qs.filter(high_school_student_record__level=level)
+                immersions = hs_immersions.filter(
+                    student__high_school_student_record__level=level
+                )
             else: # is_post_bachelor : highschool and higher education institutions levels
                 level_label = level.label
 
                 if not filter_by_my_trainings:
                     users = hs_qs.filter(high_school_student_record__level=level)
+                    immersions = hs_immersions.filter(
+                        student__high_school_student_record__level=level
+                    )
                 else:
                     users = users_queryset.filter(
-                        Q(high_school_student_record__highschool=highschool,
-                          high_school_student_record__level=level) |
-                        Q(student_record__level__in=StudentLevel.objects.all()),
+                        Q(high_school_student_record__level=level) |
+                        Q(student_record__level__in=StudentLevel.objects.all())
+                    )
+                    immersions = hs_immersions.filter(
+                        Q(student__high_school_student_record__level=level) |
+                        Q(student__student_record__level__in=StudentLevel.objects.all())
                     )
 
             if not filter_by_my_trainings:
                 dataset_platform_regs[level_label] = users.count()  # plaform
 
+            dataset_one_immersion[level_label] = immersions\
+                .filter(cancellation_type__isnull=True)\
+                .values('student')\
+                .distinct()\
+                .count()
+
+            dataset_attended_one[level_label] = immersions\
+                .filter(attendance_status=1)\
+                .values('student')\
+                .distinct()\
+                .count()
+            """
             dataset_one_immersion[level_label] = users.filter(
                 immersions__isnull=False, immersions__cancellation_type__isnull=True).distinct().count()  # registered
             dataset_attended_one[level_label] = users.filter(
                 immersions__attendance_status=1).distinct().count()  # attended to 1 immersion
-
+            """
         if not filter_by_my_trainings:
             datasets['platform_regs'].append(dataset_platform_regs.copy())
 
