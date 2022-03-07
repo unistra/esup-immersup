@@ -139,7 +139,7 @@ msgstr "Inscriptions<br>%s"
 
 #: immersionlyceens/apps/charts/api.py:696
 msgid "Students<br>registrations"
-msgstr "Inscriptions<br>étudiants<"
+msgstr "Inscriptions<br>étudiants"
 
 #: immersionlyceens/apps/charts/api.py:702
 msgid "Visitors<br>registrations"
