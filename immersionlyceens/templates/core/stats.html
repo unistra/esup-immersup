@@ -10,6 +10,7 @@
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
 {% endblock %}
 {% block title %}
@@ -44,11 +45,10 @@
         <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
       </div>
       {% endif %}
-      {% elif request.user.is_structure_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
 
-        <select name="structure" id="structure" class="form-control col-sm-3">
+        <select name="structure" id="structure" class="form-control col-sm-3 pt-1 mt-1" {% if structures|length <= 1 %}disabled{% endif %}>
 
           {% if structures|length > 1 %}
             <option value="" selected>{% trans 'Choose a structure' %}</option>
@@ -62,12 +62,44 @@
           {% endif %}
 
         </select>
-        <button type="button" class="btn btn-primary ml-1" id="extract_structure">{% trans 'Extract data' %}</button>
+        <button type="button" class="btn btn-primary ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data data' %}</button>
+        {% if highschool_visit %}
+        <button type="button" class="btn btn-primary ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
+        {% endif %}
+        {% if events_off_offer %}
+        <button type="button" class="btn btn-primary ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+        {% endif %}
       </div>
       {% elif request.user.is_high_school_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'High school data' %}</label>
         <button type="button" class="btn btn-primary" id="extract_highschool">{% trans 'Extract data' %}</button>
+      </div>
+      {% elif request.user.is_structure_manager%}
+      <div class="row">
+        <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
+
+        <select name="structure" id="structure" class="form-control col-sm-3 pt-1 mt-1" {% if structures|length <= 1 %}disabled{% endif %}>
+
+          {% if structures|length > 1 %}
+            <option value="" selected>{% trans 'Choose a structure' %}</option>
+            {% for structure in structures %}
+              <option value="{{ structure.id }}">{{ structure.label }}</option>
+            {% endfor %}
+          {% else %}
+            {% for structure in structures %}
+              <option value="{{ structure.id }}" selected>{{ structure.label }}</option>
+            {% endfor %}
+          {% endif %}
+
+        </select>
+        <button type="button" class="btn btn-primary ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data data' %}</button>
+        {% if highschool_visit %}
+        <button type="button" class="btn btn-primary ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
+        {% endif %}
+        {% if events_off_offer %}
+        <button type="button" class="btn btn-primary ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+        {% endif %}
       </div>
       {% else %}
       <div class="alert-info">{% trans "No data extractions available for your user right." %}</div>
@@ -90,10 +122,26 @@ $(document).ready(function(){
   toggle_structure_btn();
   $('#structure').change(function(){ toggle_structure_btn(); });
 
-  $('#extract_structure').click(function(event){
+  $('#extract_structure_courses').click(function(event){
     let structure = $('#structure').val();
-    let url = '/api/get_csv_structures/' + structure;
-    window.open(url, '_blank');
+    if (is_set(structure)) {
+      let url = '/api/get_csv_structures/' + structure + '?type=course';
+      window.open(url, '_blank');
+    }
+  });
+  $('#extract_structure_visits').click(function(event){
+    let structure = $('#structure').val();
+    if (is_set(structure)) {
+      let url = '/api/get_csv_structures/' + structure + '?type=visit';
+      window.open(url, '_blank');
+    }
+  });
+  $('#extract_structure_events').click(function(event){
+    let structure = $('#structure').val();
+    if (is_set(structure)) {
+      let url = '/api/get_csv_structures/' + structure + '?type=event';
+      window.open(url, '_blank');
+    }
   });
   $('#extract_highschool').click(function(event){
     let url = '/api/get_csv_highschool/{{ high_school_id }}';

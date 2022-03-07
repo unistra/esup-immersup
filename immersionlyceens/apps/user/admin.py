@@ -304,7 +304,7 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         if request.user.is_high_school_manager() and request.user.highschool:
             filter = {'highschool' : 'request.user.highschool'}
 
-        if request.user.is_establishment_manager():
+        if request.user.is_establishment_manager() and not request.user.is_superuser:
             es = request.user.establishment
             Q_filter = Q(structures__establishment=es)|Q(establishment=es)
 

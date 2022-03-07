@@ -16,10 +16,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldError, PermissionDenied
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
@@ -2189,12 +2189,19 @@ def ajax_batch_cancel_registration(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required('REF-STR')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def get_csv_structures(request, structure_id):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    structure = Structure.objects.get(id=structure_id).label.replace(' ', '_')
-    response['Content-Disposition'] = f'attachment; filename="{structure}_{today}.csv"'
+    try:
+        structure = Structure.objects.get(id=structure_id)
+        if structure and structure not in request.user.get_authorized_structures():
+            raise PermissionDenied
+    except Structure.DoesNotExist:
+        raise Http404
+
+    t = request.GET.get('type')
+    response['Content-Disposition'] = f'attachment; filename="{structure.label.replace(" ", "_")}_{today}.csv"'
     slots = Slot.objects.filter(course__structure_id=structure_id, published=True).order_by('date', 'start_time')
 
     infield_separator = '|'
