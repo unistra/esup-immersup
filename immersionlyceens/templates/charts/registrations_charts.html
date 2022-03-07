@@ -157,16 +157,19 @@
   }
 
   function init_first_graph() {
-    let url = "/charts/get_registration_charts"
-    let get_data = {
-      'filter_by_my_trainings': filter_by_my_trainings
+    let url;
+    let get_data = {};
+
+    if(filter_by_my_trainings === true) {
+      url = "/charts/get_registration_charts_by_trainings"
+    }
+    else {
+      url = "/charts/get_registration_charts_by_population"
     }
 
     if(is_set(part1_level)) get_data.level = part1_level
     if(is_set(part1_highschool_id)) get_data.highschool_id = part1_highschool_id
     if(is_set(structure_id)) get_data.structure_id = structure_id
-
-    // $.get("/charts/get_registration_charts", get_data, function(response) {
 
     response = $.ajax({
       'url': url,

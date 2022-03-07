@@ -659,10 +659,10 @@ class ChartsAPITestCase(TestCase):
             }]
         )
 
-    def test_registration_charts_charts_api(self):
+    def test_registration_charts_by_population(self):
         # Registration charts
         self.client.login(username='test-ref-etab', password='hiddenpassword')
-        url = "/charts/get_registration_charts"
+        url = "/charts/get_registration_charts_by_population"
 
         # All highschools and establishments by default (no highschool_id parameter)
         response = self.client.get(url, {'level': 0})
@@ -694,7 +694,7 @@ class ChartsAPITestCase(TestCase):
         )
 
         # With another level
-        url = "/charts/get_registration_charts"
+        url = "/charts/get_registration_charts_by_population"
         response = self.client.get(url, {'level': 1})
         content = response.content.decode()
         json_content = json.loads(content)
@@ -712,7 +712,7 @@ class ChartsAPITestCase(TestCase):
 
         # As a school manager : median will be displayed
         self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
-        url = "/charts/get_registration_charts"
+        url = "/charts/get_registration_charts_by_population"
 
         # The highschool_id parameter is not needed (default = the manager highschool)
         response = self.client.get(url, {'level': 0})
