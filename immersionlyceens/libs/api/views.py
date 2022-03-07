@@ -2387,11 +2387,13 @@ def get_csv_anonymous(request):
             registrant_profile = ''
             structure = slot.get_structure()
             highschool = slot.get_highschool()
+            establishment = slot.get_establishment()
+
+            if not establishment and highschool:
+                establishment=f'{highschool.label} - {highschool.city}'
 
             if structure:
                 managed_by = structure.label
-            elif highschool:
-                managed_by = f'{highschool.label} - {highschool.city}'
 
             immersions = Immersion.objects.prefetch_related('slot').filter(
                 slot=slot, cancellation_type__isnull=True
@@ -2435,7 +2437,7 @@ def get_csv_anonymous(request):
                         ):
                             content.append(
                                 [
-                                    slot.get_establishment(),
+                                    establishment,
                                     managed_by,
                                     infield_separator.join(
                                         [
@@ -2521,7 +2523,7 @@ def get_csv_anonymous(request):
                 ):
                     content.append(
                         [
-                            slot.get_establishment(),
+                            establishment,
                             managed_by,
                             infield_separator.join(
                                 [
