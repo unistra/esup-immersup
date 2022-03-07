@@ -2248,14 +2248,13 @@ def get_csv_structures(request, structure_id):
 
 
 @groups_required('REF-LYC',)
-def get_csv_highschool(request, high_school_id):
+def get_csv_highschool(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    h_name = HighSchool.objects.get(id=high_school_id).label.replace(" ", "_")
+    hs = HighSchool.objects.get(id=request.user.highschool.id)
+    h_name = hs.label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
-
     infield_separator = '|'
-
     header = [
         _('last name'),
         _('first name'),
@@ -2263,19 +2262,30 @@ def get_csv_highschool(request, high_school_id):
         _('level'),
         _('class name'),
         _('bachelor type'),
+        _('establishment'),
+        _('type'),
         _('training domain'),
         _('training subdomain'),
         _('training'),
         _('course'),
+        _('date'),
+        _('start_time'),
+        _('end_time'),
     ]
-
     content = []
-    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)\
+    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=hs.id) \
         .order_by('student__last_name', 'student__first_name')
     for hs in hs_records:
         immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
         if immersions.count() > 0:
             for imm in immersions:
+                if imm.slot.is_course():
+                    slot_type = _('Course')
+                elif imm.slot.is_event():
+                    slot_type = _('Event')
+                elif imm.slot.is_visit():
+                    slot_type = _('Visit')
+
                 content.append(
                     [
                         hs.student.last_name,
@@ -2284,12 +2294,21 @@ def get_csv_highschool(request, high_school_id):
                         hs.level.label if hs.level else '',
                         hs.class_name,
                         HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1],
+                        imm.slot.get_establishment(),
+                        slot_type,
                         infield_separator.join(
-                            [s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]
+                            [s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()] \
+                                if slot_type == _('Course') else ''
                         ),
-                        infield_separator.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
-                        imm.slot.course.training.label,
-                        imm.slot.course.label,
+                        infield_separator.join(
+                            [s.label for s in imm.slot.course.training.training_subdomains.all()] \
+                                if slot_type == _('Course') else ''
+                        ),
+                        imm.slot.course.training.label if slot_type == _('Course') else '',
+                        imm.slot.course.label if slot_type == _('Course') else '',
+                        _date(imm.slot.date, 'd/m/Y'),
+                        imm.slot.start_time.strftime('%H:%M'),
+                        imm.slot.end_time.strftime('%H:%M'),
                     ]
                 )
         else:
