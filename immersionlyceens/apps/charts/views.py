@@ -38,12 +38,10 @@ def highschool_charts(request):
 
     return render(request, 'charts/highschool_charts.html', context=context)
 
-
+"""
 @groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
 def highschool_domains_charts(request):
-    """
-    High school(s) charts by domains
-    """
+    # High school(s) charts by domains
     filter = {}
 
     if request.user.is_high_school_manager() and request.user.highschool:
@@ -63,9 +61,9 @@ def highschool_domains_charts(request):
     }
 
     return render(request, 'charts/highschool_domains_charts.html', context=context)
+"""
 
-
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def global_domains_charts(request, my_trainings=False):
     """
     All institutions charts by domains, with filters on institutions
@@ -76,17 +74,23 @@ def global_domains_charts(request, my_trainings=False):
     part2_level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids = \
         process_request_filters(request, my_trainings)
 
-    # High school levels
-    # the third one ('above bachelor') will also include the higher education institutions students
-    levels = [(0, _("All"))] + [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('order')]
-
-    context = {
+    part2_filters = {
+        'level': part2_level_filter,
         'highschools_ids': highschools_ids,
         'highschools': highschools,
         'higher_institutions_ids': higher_institutions_ids,
         'higher_institutions': higher_institutions,
-        'levels': levels,
-        'level_filter': part2_level_filter,
+        'structure_ids': structure_ids
+    }
+
+    # High school levels
+    # the third one ('above bachelor') will also include the higher education institutions students
+    # levels = [(0, _("All"))] + [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('order')]
+
+    context = {
+        'filter_by_my_trainings': filter_by_my_trainings,
+        'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
+        'part2_filters': part2_filters
     }
 
     return render(request, 'charts/global_domains_charts.html', context=context)

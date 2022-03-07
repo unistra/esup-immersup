@@ -193,12 +193,15 @@
                 {% if request.user.highschool.postbac_immersion %}
                    <a class="dropdown-item" href="{% url 'charts:my_registrations_charts' %}">{% trans 'High school - registrations and participations to my trainings' %}</a>
                 {% endif %}
-                <a class="dropdown-item" href="{% url 'charts:highschool_domains_charts' %}">{% trans 'By domains registrations' %}</a>
                 {% if authorized_groups|in_groups:"REF-LYC" %}
+                   <a class="dropdown-item" href="{% url 'charts:global_domains_charts' %}">{% trans 'High school - my high school students registrations, by domains' %}</a>
+                   {% if request.user.highschool.postbac_immersion %}
+                     <a class="dropdown-item" href="{% url 'charts:my_domains_charts' %}">{% trans 'High school - registrations to my trainings, by domains' %}</a>
+                   {% endif %}
                    <a class="dropdown-item" href="{% url 'charts:global_trainings_charts' %}">{% trans 'High school - my high school students registrations, by trainings' %}</a>
-                {% endif %}
-                {% if request.user.highschool.postbac_immersion %}
-                   <a class="dropdown-item" href="{% url 'charts:my_trainings_charts' %}">{% trans 'High school - registrations to my trainings' %}</a>
+                   {% if request.user.highschool.postbac_immersion %}
+                     <a class="dropdown-item" href="{% url 'charts:my_trainings_charts' %}">{% trans 'High school - registrations to my trainings' %}</a>
+                   {% endif %}
                 {% endif %}
               {% endif %}
               {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
