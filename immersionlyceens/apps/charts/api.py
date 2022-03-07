@@ -4,7 +4,7 @@ import math
 
 from collections import defaultdict
 from functools import reduce
-from django.db.models import Q, Count
+from django.db.models import Q, F, Count
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.utils.translation import gettext, gettext_lazy as _
@@ -216,60 +216,81 @@ def global_domains_charts_by_population(request):
 
     domains = [ domain for domain in TrainingDomain.objects.all().order_by('label') ]
 
-    immersions_queryset = Immersion.objects.prefetch_related(
+    immersions = Immersion.objects.prefetch_related(
         'slot__course__training__training_subdomains__training_domain',
         'student__high_school_student_record__highschool'
     ).filter(cancellation_type__isnull=True)
 
-    for domain in domains:
+    """
+    #for domain in domains:
         # Get all immersions for this domain, filter by schools as requested
+    
         immersions = immersions_queryset.filter(
-            slot__course__training__training_subdomains__training_domain__id=domain.id
+            slot__course__training__training_subdomains__training_domain=domain
+        )
+    """
+
+    # Level filter
+    if level_value != 0:
+        if level_value == 'visitors':
+            immersions = immersions.filter(student__visitor_record__validation=2)
+        elif level:
+            if not level.is_post_bachelor:
+                immersions = immersions.filter(
+                    student__high_school_student_record__level=level,
+                    student__high_school_student_record__validation=2
+                )
+            else:
+                immersions = immersions.filter(
+                    Q(student__high_school_student_record__level=level,
+                      student__high_school_student_record__validation=2)
+                    | Q(student__student_record__level__in=StudentLevel.objects.all())
+                )
+
+
+    # Apply high school or establishment selection filter
+    if immersions_filter:
+        immersions = immersions.filter(
+            reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()])
         )
 
-        # Level filter
-        if level_value != 0:
-            if level_value == 'visitors':
-                immersions = immersions.filter(student__visitor_record__validation=2)
-            elif level:
-                if not level.is_post_bachelor:
-                    immersions = immersions.filter(
-                        student__high_school_student_record__level=level,
-                        student__high_school_student_record__validation=2
-                    )
-                else:
-                    immersions = immersions.filter(
-                        Q(student__high_school_student_record__level=level,
-                          student__high_school_student_record__validation=2)
-                        | Q(student__student_record__level__in=StudentLevel.objects.all())
-                    )
+    # Get domains and subdomains label + subdomains registrations count
+    domains_data = immersions\
+        .annotate(
+            domain_label=F('slot__course__training__training_subdomains__training_domain__label'),
+            domain_id=F('slot__course__training__training_subdomains__training_domain__id'))\
+        .values(
+            'domain_label',
+            'domain_id')\
+        .annotate(cnt=Count('domain_id'))
 
-
-        # Apply high school or establishment selection filter
-        if immersions_filter:
-            immersions = immersions.filter(
-                reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()])
-            )
-
-
-        if immersions.count():
+    for d_data in domains_data:
+        if d_data['cnt']:
             data = {
-                "domain": domain.label,
-                "count": immersions.count(),
+                "domain": d_data['domain_label'],
+                "count": d_data['cnt'],
                 "subData": [],
             }
 
-            for subdomain in domain.Subdomains.all():
-                subcount = immersions.filter(slot__course__training__training_subdomains=subdomain).count()
+            subdomains_data = immersions \
+                .filter(slot__course__training__training_subdomains__training_domain__id=d_data['domain_id'])\
+                .annotate(
+                    subdomain_label=F('slot__course__training__training_subdomains__label'),
+                    subdomain_id=F('slot__course__training__training_subdomains__training_domain__id')) \
+                .values(
+                    'subdomain_label',
+                    'subdomain_id')\
+                .annotate(cnt=Count('slot__course__training__training_subdomains'))
 
-                if subcount:
-                    sub_data = {
-                        "name": subdomain.label,
-                        "count": subcount,
-                    }
-                    data['subData'].append(sub_data.copy())
+            for sub_d_data in subdomains_data:
+                sub_data = {
+                    "name": sub_d_data['subdomain_label'],
+                    "count": sub_d_data['cnt'],
+                }
+                data['subData'].append(sub_data.copy())
 
             datasets.append(data.copy())
+
 
     response = {
         'datasets': datasets,
@@ -323,44 +344,84 @@ def global_domains_charts_by_trainings(request):
 
     domains = [ domain for domain in TrainingDomain.objects.all().order_by('label') ]
 
-    immersions_queryset = Immersion.objects.prefetch_related(
+    immersions = Immersion.objects.prefetch_related(
         'slot__course__training__training_subdomains__training_domain',
         'student__high_school_student_record__highschool'
     ).filter(cancellation_type__isnull=True)
 
+    """
     for domain in domains:
         # Get all immersions for this domain, filter by schools as requested
         immersions = immersions_queryset.filter(
             slot__course__training__training_subdomains__training_domain__id=domain.id
         )
+    """
+    # Level filter
+    if level_value != 0:
+        if level_value == 'visitors':
+            immersions = immersions.filter(student__visitor_record__validation=2)
+        elif level:
+            if not level.is_post_bachelor:
+                immersions = immersions.filter(student__high_school_student_record__level=level)
+            else:
+                immersions = immersions.filter(
+                    Q(student__high_school_student_record__level=level)
+                    | Q(student__student_record__level__in=StudentLevel.objects.all())
+                )
 
-        # Level filter
-        if level_value != 0:
-            if level_value == 'visitors':
-                immersions = immersions.filter(student__visitor_record__validation=2)
-            elif level:
-                if not level.is_post_bachelor:
-                    immersions = immersions.filter(student__high_school_student_record__level=level)
-                else:
-                    immersions = immersions.filter(
-                        Q(student__high_school_student_record__level=level)
-                        | Q(student__student_record__level__in=StudentLevel.objects.all())
-                    )
+    # Filter on highschools or higher education institutions trainings/domains
+    if _highschools_ids:
+        immersions_filter["slot__course__highschool__in"] = _highschools_ids
 
-        # Filter on highschools or higher education institutions trainings/domains
-        if _highschools_ids:
-            immersions_filter["slot__course__highschool__in"] = _highschools_ids
+    if _higher_institutions_ids:
+        structures = Structure.objects.filter(establishment__id__in=_higher_institutions_ids).distinct()
+        immersions_filter["slot__course__structure__in"] = structures
 
-        if _higher_institutions_ids:
-            structures = Structure.objects.filter(establishment__id__in=_higher_institutions_ids).distinct()
-            immersions_filter["slot__course__structure__in"] = structures
+    # Apply high school or establishment selection filter
+    if immersions_filter:
+        immersions = immersions.filter(
+            reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()])
+        )
 
-        # Apply high school or establishment selection filter
-        if immersions_filter:
-            immersions = immersions.filter(
-                reduce(lambda x, y: x | y, [Q(**{'%s' % k : v}) for k, v in immersions_filter.items()])
-            )
 
+    # Get domains and subdomains label + subdomains registrations count
+    domains_data = immersions \
+        .annotate(
+            domain_label=F('slot__course__training__training_subdomains__training_domain__label'),
+            domain_id=F('slot__course__training__training_subdomains__training_domain__id')) \
+        .values(
+            'domain_label',
+            'domain_id') \
+        .annotate(cnt=Count('domain_id'))
+
+    for d_data in domains_data:
+        if d_data['cnt']:
+            data = {
+                "domain": d_data['domain_label'],
+                "count": d_data['cnt'],
+                "subData": [],
+            }
+
+            subdomains_data = immersions \
+                .filter(slot__course__training__training_subdomains__training_domain__id=d_data['domain_id']) \
+                .annotate(
+                    subdomain_label=F('slot__course__training__training_subdomains__label'),
+                    subdomain_id=F('slot__course__training__training_subdomains__training_domain__id')) \
+                .values(
+                    'subdomain_label',
+                    'subdomain_id') \
+                .annotate(cnt=Count('slot__course__training__training_subdomains'))
+
+            for sub_d_data in subdomains_data:
+                sub_data = {
+                    "name": sub_d_data['subdomain_label'],
+                    "count": sub_d_data['cnt'],
+                }
+                data['subData'].append(sub_data.copy())
+
+            datasets.append(data.copy())
+
+    """
         if immersions.count():
             data = {
                 "domain": domain.label,
@@ -379,6 +440,7 @@ def global_domains_charts_by_trainings(request):
                     data['subData'].append(sub_data.copy())
 
             datasets.append(data.copy())
+    """
 
     response = {
         'datasets': datasets,
