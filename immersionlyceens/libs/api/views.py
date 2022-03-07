@@ -2475,6 +2475,7 @@ def get_csv_anonymous(request):
                                     imm.get_attendance_status(),
                                 ]
                             )
+
                         elif request.user.is_establishment_manager():
                             content.append(
                                 [
@@ -2704,33 +2705,30 @@ def get_csv_anonymous(request):
                                     imm.get_attendance_status(),
                                 ]
                             )
+
                         elif request.user.is_establishment_manager():
-                            if (
-                                request.user.is_master_establishment_manager()
-                                or request.user.is_operator()
-                            ):
-                                content.append(
-                                    [
-                                        structure,
-                                        highschool,
-                                        slot.visit.purpose,
-                                        slot.room if slot.face_to_face else _('Remote'),
-                                        _date(slot.date, 'd/m/Y'),
-                                        slot.start_time.strftime('%H:%M'),
-                                        slot.end_time.strftime('%H:%M'),
-                                        infield_separator.join(
-                                            f'{s.last_name} {s.first_name}'
-                                            for s in slot.speakers.all().order_by(
-                                                'last_name', 'first_name'
-                                            )
-                                        ),
-                                        slot.registered_students(),
-                                        slot.n_places,
-                                        slot.additional_information,
-                                        level,
-                                        imm.get_attendance_status(),
-                                    ]
-                                )
+                            content.append(
+                                [
+                                    structure,
+                                    highschool,
+                                    slot.visit.purpose,
+                                    slot.room if slot.face_to_face else _('Remote'),
+                                    _date(slot.date, 'd/m/Y'),
+                                    slot.start_time.strftime('%H:%M'),
+                                    slot.end_time.strftime('%H:%M'),
+                                    infield_separator.join(
+                                        f'{s.last_name} {s.first_name}'
+                                        for s in slot.speakers.all().order_by(
+                                            'last_name', 'first_name'
+                                        )
+                                    ),
+                                    slot.registered_students(),
+                                    slot.n_places,
+                                    slot.additional_information,
+                                    level,
+                                    imm.get_attendance_status(),
+                                ]
+                            )
 
             else:
                 if (
