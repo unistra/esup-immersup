@@ -1,7 +1,6 @@
-import ast
 import csv
-import json
 import logging
+import math
 
 from collections import defaultdict
 from functools import reduce
@@ -1121,6 +1120,7 @@ def get_registration_charts_cats_by_trainings(request):
     _higher_institutions_ids = request.POST.getlist("higher_institutions_ids[]")
     _structures_ids = request.POST.getlist("structure_ids[]")
     level_value = request.POST.get("level", 0)
+    max_x = 0 # for scale adjustment
 
     if level_value != 'visitors':
         try:
@@ -1375,6 +1375,15 @@ def get_registration_charts_cats_by_trainings(request):
 
     # =========
 
+    # Adjust X axis scale to have the same max value on all bars
+    max_x = max([
+        max(map(lambda x:sum([v for k,v in x.items() if k != 'name']), datasets['one_immersion'])),
+        max(map(lambda x:sum([v for k,v in x.items() if k != 'name']), datasets['attended_one']))
+    ])
+
+    if max_x:
+        axes['x'][0]['max'] = math.ceil(max_x * 1.1)
+
     response = {
         'one_immersion': {
             'axes': axes,
@@ -1587,7 +1596,19 @@ def get_registration_charts_cats_by_population(request):
         datasets['one_immersion'].append(dataset_one_immersion.copy())
         datasets['attended_one'].append(dataset_attended_one.copy())
 
+
     # =========
+
+    # Adjust X axis scale to have the same max value on all bars
+    max_x = max([
+        max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets['platform_regs'])),
+        max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets['one_immersion'])),
+        max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets['attended_one'])),
+    ])
+
+    if max_x:
+        axes['x'][0]['max'] = math.ceil(max_x * 1.1)
+
     response = {
         'platform_regs': {
             'axes': axes,
