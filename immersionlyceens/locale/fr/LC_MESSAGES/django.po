@@ -5857,7 +5857,7 @@ msgstr "Lycées - inscriptions et participations de mes lycéens"
 
 #: immersionlyceens/templates/fragments/main_menu.html:194
 msgid "High school - registrations and participations to my trainings"
-msgstr "Lycées - inscriptions and participations à mes formations"
+msgstr "Lycées - inscriptions et participations à mes formations"
 
 #: immersionlyceens/templates/fragments/main_menu.html:197
 msgid "High school - my high school students registrations, by domains"
