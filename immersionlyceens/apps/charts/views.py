@@ -16,28 +16,6 @@ from .utils import process_request_filters
 
 logger = logging.getLogger(__name__)
 
-@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def highschool_charts(request):
-    """
-    High school(s) charts by student levels
-    """
-    filter = {}
-
-    if request.user.is_high_school_manager() and request.user.highschool:
-        filter['pk'] = request.user.highschool.id
-
-    highschools = [
-        {'id': h.id, 'label':h.label, 'city': h.city }
-        for h in HighSchool.objects.filter(**filter).order_by('city','label')
-    ]
-
-    context = {
-        'highschools': highschools,
-        'highschool_id': filter.get('pk', '')
-    }
-
-    return render(request, 'charts/highschool_charts.html', context=context)
-
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def global_domains_charts(request, my_trainings=False):
@@ -70,32 +48,6 @@ def global_domains_charts(request, my_trainings=False):
     }
 
     return render(request, 'charts/global_domains_charts.html', context=context)
-
-
-@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def highschool_trainings_charts(request):
-    """
-    Registration statistics by trainings
-    """
-    filter = {}
-    high_school_name = None
-
-    if request.user.is_high_school_manager() and request.user.highschool:
-        high_school_name = request.user.highschool.label
-        filter['pk'] = request.user.highschool.id
-
-    highschools = [
-        {'id': h.id, 'label':h.label, 'city': h.city }
-        for h in HighSchool.objects.filter(**filter).order_by('city','label')
-    ]
-
-    context = {
-        'high_school_name': high_school_name,
-        'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
-        'highschools': highschools,
-        'highschool_id': filter.get('pk', ''),
-    }
-    return render(request, 'charts/highschool_trainings_charts.html', context=context)
 
 
 @groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'REF-TEC', 'REF-LYC', 'REF-STR')

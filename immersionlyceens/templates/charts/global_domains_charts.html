@@ -29,7 +29,11 @@
       {% trans "Highschools statistics - my high school students registrations, by domains" %}
     {% endif %}
   {% else %}
-    {% trans "Hosts statistics - registrations by domains" %}
+    {% if filter_by_my_trainings %}
+      {% trans "Hosts statistics - registrations by domains" %}
+    {% else %}
+      {% trans "Populations statistics - registrations by domains" %}
+    {% endif %}
   {% endif %}
 </h3>
 {% endblock %}
@@ -70,7 +74,13 @@
 <div class="container-fluid mt-4">
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
-      <button class="btn btn-light btn-sm" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">{% trans 'Manage filters' %}</button>
+      <button class="btn btn-light btn-sm" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">
+        {% if filter_by_my_trainings %}
+          {% trans 'Select host institutions' %}
+        {% else %}
+          {% trans 'Select institutions of origin' %}
+        {% endif %}
+      </button>
     </div>
     <div class="card-body">
         <div class="row">
@@ -83,7 +93,7 @@
         </div>
         <div class="row">
           <div class="col-md-6">
-            {% if highschools %}
+            {% if part2_filters.highschools %}
             <label>{% trans 'High schools' %} :</label>
             <ul>
               {% for highschool in part2_filters.highschools %}
@@ -91,7 +101,7 @@
               {% endfor %}
             </ul>
             {% endif %}
-            {% if higher_institutions %}
+            {% if part2_filters.higher_institutions %}
             <label>{% trans 'Higher education institutions' %} :</label>
             <ul>
               {% for higher_institution in part2_filters.higher_institutions %}
@@ -104,11 +114,17 @@
             {% endif %}
           </div>
           <div class="col-md-6">
-            {% for level in levels %}
-              {% if level.0 == part2_filters.level %}
-                {{ level.1 }}
-              {% endif %}
-            {% endfor %}
+            {% if part2_filters.level == 'visitors' %}
+              {% trans 'Visitors' %}
+            {% elif part2_filters.level == 0 %}
+              {% trans 'All' %}
+            {% else %}
+              {% for level in levels %}
+                {% if level.id == part2_filters.level %}
+                  {{ level.label }}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
           </div>
         </div>
     </div>
@@ -121,7 +137,7 @@
     var highschools_ids = {{ part2_filters.highschools_ids }};
     var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
     var higher_institutions_ids = {{ part2_filters.higher_institutions_ids }};
-    var level = {{ part2_filters.level }}
+    var level = "{{ part2_filters.level }}"
   {% endautoescape %}
 
   var part1_level = $('#id_level_part1 option:selected').val();
@@ -218,6 +234,16 @@
       url = "/charts/get_global_domains_charts_by_population"
     }
 
+    let parsed = parseInt(part1_level)
+    let parsed2 = parseInt(level)
+    if (isNaN(parsed) === false) {
+      part1_level = parsed
+    }
+
+    if (isNaN(parsed2) === false) {
+      level = parsed2
+    }
+
     $.ajax({
       url: url,
       type: 'POST',
@@ -310,6 +336,8 @@
     }
     else {
       container = am4core.create("chartdiv", am4core.Container);
+      // container.openModal("<strong>No data found!</strong>");
+      
     }
   }
 

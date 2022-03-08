@@ -32,15 +32,17 @@ def process_request_filters(request, my_trainings=False):
     higher_institutions_ids = []
     structure_ids = []
     filter_by_my_trainings = my_trainings
+    level_value = request.POST.get('level', 0)
 
     hs_filter = {}
     if request.user.is_high_school_manager() and request.user.highschool:
         hs_filter['pk'] = request.user.highschool.id
 
-    try:
-        level_filter = int(request.POST.get('level', 0))
-    except ValueError:
-        level_filter = 0 # default : all levels
+    if level_value != 'visitors':
+        try:
+            level_value = int(level_value)
+        except ValueError:
+            level_value = 0 # default : all levels
 
     _insts = request.POST.get('insts')
 
@@ -77,4 +79,4 @@ def process_request_filters(request, my_trainings=False):
         except Exception as e:
             logger.exception("Filter form values error")
 
-    return level_filter, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids
+    return level_value, highschools_ids, highschools, higher_institutions_ids, higher_institutions, structure_ids
