@@ -108,9 +108,7 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'get_validated_record',
     ]
 
-    list_filter = (
-        HighschoolListFilter,
-    )
+    list_filter = ()
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='VIS').order_by('last_name', 'first_name')
