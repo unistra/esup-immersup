@@ -1272,7 +1272,7 @@ def get_registration_charts_cats_by_trainings(request):
                 level_label = level.label
                 immersions = hs_immersions.filter(
                     student__high_school_student_record__level=level,
-                    student__high_school_student_record__valdidation=2
+                    student__high_school_student_record__validation=2
                 )
             else: # is_post_bachelor : highschool and higher education institutions levels
                 level_label = level.label
@@ -1280,7 +1280,7 @@ def get_registration_charts_cats_by_trainings(request):
                 # Filter by trainings of this high school : postbac pupils + students
                 immersions = hs_immersions.filter(
                     Q(student__high_school_student_record__level=level,
-                      student__high_school_student_record__valdidation=2) |
+                      student__high_school_student_record__validation=2) |
                     Q(student__student_record__level__in=StudentLevel.objects.all())
                 )
 
