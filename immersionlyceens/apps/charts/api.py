@@ -1587,34 +1587,24 @@ def get_registration_charts_cats_by_population(request):
         dataset_one_immersion = {'name': label}
         dataset_attended_one = {'name': label}
 
-        for level in levels:
-            if level == 'visitors':
-                continue
-            elif not level.is_post_bachelor:
-                level_label = level.label
-                # No high school levels for these students, but we need this to keep consistent data between
-                # institutions
-                users = hii_qs.none()
-            else:  # post bachelor levels :
-                level_label = level.label
-                users = hii_qs.filter(student_record__level__in=StudentLevel.objects.all())
+        level_label = gettext('Post-bac')
 
-            # registered on plaform
-            dataset_platform_regs[level_label] = users.count()
+        # registered on plaform
+        dataset_platform_regs[level_label] = hii_qs.count()
 
-            # registered to at least one immersion
-            dataset_one_immersion[level_label] = hii_immersions\
-                .filter(cancellation_type__isnull=True)\
-                .values('student')\
-                .distinct()\
-                .count()
+        # registered to at least one immersion
+        dataset_one_immersion[level_label] = hii_immersions\
+            .filter(cancellation_type__isnull=True)\
+            .values('student')\
+            .distinct()\
+            .count()
 
-            # attended to 1 immersion
-            dataset_attended_one[level_label] = hii_immersions\
-                .filter(attendance_status=1) \
-                .values('student') \
-                .distinct()\
-                .count()
+        # attended to 1 immersion
+        dataset_attended_one[level_label] = hii_immersions\
+            .filter(attendance_status=1) \
+            .values('student') \
+            .distinct()\
+            .count()
 
         datasets['platform_regs'].append(dataset_platform_regs.copy())
         datasets['one_immersion'].append(dataset_one_immersion.copy())
