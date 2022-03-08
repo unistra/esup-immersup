@@ -2823,7 +2823,9 @@ def get_csv_anonymous(request):
                 _('registrant information'),
                 _('origin institution'),
                 _('student level'),
+                _('emargement'),
             ]
+
             slots = Slot.objects.filter(published=True, event__isnull=False)
 
         elif request.user.is_establishment_manager():
@@ -2846,6 +2848,7 @@ def get_csv_anonymous(request):
                 _('registrant information'),
                 _('origin institution'),
                 _('student level'),
+                _('emargement'),
             ]
 
             Q_filters = Q(event__establishment=request.user.establishment) | Q(
@@ -2928,6 +2931,7 @@ def get_csv_anonymous(request):
                                     registrant_profile,
                                     institution,
                                     level,
+                                    imm.get_attendance_status(),
                                 ]
                             )
                         elif request.user.is_establishment_manager():
@@ -2955,6 +2959,7 @@ def get_csv_anonymous(request):
                                     registrant_profile,
                                     institution,
                                     level,
+                                    imm.get_attendance_status(),
                                 ]
                             )
             else:

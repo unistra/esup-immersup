@@ -87,7 +87,6 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_filter = (
         ActivationFilter,
         ('establishment', RelatedDropdownFilter),
-        HighschoolListFilter,
     )
 
     def get_queryset(self, request):
