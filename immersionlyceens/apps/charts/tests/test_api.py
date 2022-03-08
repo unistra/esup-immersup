@@ -79,45 +79,10 @@ class ChartsAPITestCase(TestCase):
           }
         ])
 
-    def test_highschool_domains_charts_api(self):
-        self.client.login(username='test-ref-etab', password='hiddenpassword')
-
-        # Highschool domain charts
-        url = "/charts/get_highschool_domains_charts/2/0"
-        response = self.client.get(url)
-
-        content = response.content.decode()
-        json_content = json.loads(content)
-
-        self.assertEqual(json_content['datasets'], [
-             {'domain': 'Art, Lettres, Langues',
-              'count': 15,
-              'subData': [
-                  {'name': 'Art plastiques', 'count': 7},
-                  {'name': 'Art visuels', 'count': 8}
-              ]},
-             {'domain': 'Droit, Economie, Gestion',
-              'count': 5,
-              'subData': [
-                  {'name': 'Economie, Gestion', 'count': 5}
-              ]},
-             {'domain': 'Sciences Humaines et sociales',
-              'count': 2,
-              'subData': [
-                  {'name': 'Sport', 'count': 2}
-              ]},
-             {'domain': 'Sciences et Technologies',
-              'count': 11,
-              'subData': [
-                  {'name': 'Informatique', 'count': 4},
-                  {'name': 'Mathématiques', 'count': 7}
-              ]}
-        ])
-
     def test_highschool_global_domains_charts_api(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')
         # Global domain charts
-        url = "/charts/get_global_domains_charts"
+        url = "/charts/get_global_domains_charts_by_population"
         response = self.client.post(url, {})
         content = response.content.decode()
         json_content = json.loads(content)

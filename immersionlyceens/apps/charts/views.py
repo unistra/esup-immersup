@@ -38,30 +38,6 @@ def highschool_charts(request):
 
     return render(request, 'charts/highschool_charts.html', context=context)
 
-"""
-@groups_required('REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def highschool_domains_charts(request):
-    # High school(s) charts by domains
-    filter = {}
-
-    if request.user.is_high_school_manager() and request.user.highschool:
-        filter['pk'] = request.user.highschool.id
-
-    highschools = [
-        {'id': h.id, 'label':h.label, 'city': h.city }
-        for h in HighSchool.objects.filter(**filter).order_by('city','label')
-    ]
-
-    levels = [(0, _("All"))] + [(level.id, level.label) for level in HighSchoolLevel.objects.order_by('order')]
-
-    context = {
-        'highschools': highschools,
-        'highschool_id': filter.get('pk', ''),
-        'levels': levels,
-    }
-
-    return render(request, 'charts/highschool_domains_charts.html', context=context)
-"""
 
 @groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def global_domains_charts(request, my_trainings=False):

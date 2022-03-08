@@ -262,7 +262,8 @@ def global_domains_charts_by_population(request):
         .values(
             'domain_label',
             'domain_id')\
-        .annotate(cnt=Count('domain_id'))
+        .annotate(cnt=Count('domain_id'))\
+        .order_by('domain_label')
 
     for d_data in domains_data:
         if d_data['cnt']:
@@ -280,7 +281,8 @@ def global_domains_charts_by_population(request):
                 .values(
                     'subdomain_label',
                     'subdomain_id')\
-                .annotate(cnt=Count('slot__course__training__training_subdomains'))
+                .annotate(cnt=Count('slot__course__training__training_subdomains'))\
+                .order_by('subdomain_label')
 
             for sub_d_data in subdomains_data:
                 sub_data = {

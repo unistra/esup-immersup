@@ -9,7 +9,6 @@ app_name = 'charts'
 
 urlpatterns = [
     path('highschool_charts', views.highschool_charts, name='highschool_charts'),
-    # path('highschool_domains_charts', views.highschool_domains_charts, name='highschool_domains_charts'),
 
     path('global_domains_charts', views.global_domains_charts, name='global_domains_charts'),
     path('my_domains_charts', views.global_domains_charts, {'my_trainings': True }, name='my_domains_charts'),
@@ -27,7 +26,6 @@ urlpatterns = [
     # API part
     # TODO : update paths to have more REST compliant urls
     path('get_highschool_charts/<int:highschool_id>', api.highschool_charts, name='get_highschool_charts'),
-    path('get_highschool_domains_charts/<int:highschool_id>/<int:level>', api.highschool_domains_charts, name='get_highschool_domains_charts'),
 
     path('get_global_domains_charts_by_population', api.global_domains_charts_by_population,
          name='get_global_domains_charts_by_population'),

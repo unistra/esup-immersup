@@ -66,54 +66,36 @@ class ChartsViewsTestCase(TestCase):
         self.assertEqual(response.context['highschool_id'], 2)
 
 
-    def test_view_highschool_domains_charts(self):
-        request = self.factory.get("/")
-        request.user = self.ref_etab_user
-
-        response = self.client.get("/charts/highschool_domains_charts", request)
-        self.assertEqual(response.context['highschools'],
-             [{'id': 3, 'label': 'Lycée Coufignal', 'city': 'COLMAR'},
-              {'id': 4, 'label': 'Lycée Jean Monnet', 'city': "L'ABERGEMENT-DE-VAREY"},
-              {'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'},
-              {'id': 6, 'label': 'Lycée Kléber', 'city': 'STRASBOURG'},
-              {'id': 5, 'label': 'Lycée Marie Curie', 'city': 'STRASBOURG'}]
-        )
-        self.assertEqual(response.context['highschool_id'], '')
-        self.assertEqual(response.context['levels'],
-            [(0, 'All')] + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')]
-        )
-
-        self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
-        response = self.client.get("/charts/highschool_domains_charts", request)
-
-        self.assertEqual(response.context['highschools'],
-            [{'id': 2, 'label': 'Lycée Jean Monnet', 'city': 'STRASBOURG'}])
-        self.assertEqual(response.context['highschool_id'], 2)
-
-
     def test_view_global_domains_charts(self):
         request = self.factory.get("/")
         request.user = self.ref_etab_user
 
-        # Get : no filter
         response = self.client.get("/charts/global_domains_charts", request)
 
-        self.assertEqual(response.context['highschools'], [])
-        self.assertEqual(response.context['higher_institutions'], [])
+        self.assertEqual(response.context['part2_filters']['highschools'], [])
+        self.assertEqual(response.context['part2_filters']['higher_institutions'], [])
 
         # This list MUST match the fixtures HighSchoolLevel objects
-        self.assertEqual(response.context['levels'], [(0, 'All')]
-            + [(h.id, h.label) for h in HighSchoolLevel.objects.order_by('order')])
-        self.assertEqual(response.context['level_filter'], 0)
+        self.assertEqual(
+            [level for level in response.context['levels']],
+            [level for level in HighSchoolLevel.objects.filter(active=True).order_by('order')]
+        )
+        self.assertEqual(response.context['part2_filters']['level'], 0)
 
         # Post with filters
         response = self.client.post("/charts/global_domains_charts",
             { 'level': ['3'], 'insts': ['[[0,2],[1,"0673021V"]]'] }
         )
 
-        self.assertEqual(response.context['highschools'], ['Strasbourg - Lycée Jean Monnet'])
-        self.assertEqual(response.context['higher_institutions'], ['Strasbourg - Université de Strasbourg'])
-        self.assertEqual(response.context['level_filter'], 3)
+        self.assertEqual(
+            response.context['part2_filters']['highschools'],
+            ['Strasbourg - Lycée Jean Monnet']
+        )
+        self.assertEqual(
+            response.context['part2_filters']['higher_institutions'],
+            ['Strasbourg - Université de Strasbourg']
+        )
+        self.assertEqual(response.context['part2_filters']['level'], 3)
 
 
     def test_view_trainings_charts(self):
