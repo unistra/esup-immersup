@@ -17,11 +17,13 @@
               {% csrf_token %}
               <label class='mb-4' for="id_level">{% trans 'Students level' %} :</label>
               <select id="id_level" name="level" class="mb-4">
-                <option value="0" {% if part1_level_filter == 0 %}selected{% endif %}>{% trans 'All' %}</option>
-                {% for level in levels %}
-                  <option value="{{ level.pk }}" {% if level_filter == level.id %}selected{% endif %}>{{ level.label }}</option>
+                <option value="0" {% if part2_filters.level == 0 %}selected{% endif %}>{% trans 'All' %}</option>
+                {% for high_school_level in levels %}
+                  <option value="{{ high_school_level.pk }}" {% if part2_filters.level == high_school_level.id %}selected{% endif %}>
+                    {{ high_school_level.label }}
+                  </option>
                 {% endfor %}
-                <option value="visitors" {% if part1_level_filter == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
+                <option value="visitors" {% if part2_filters.level == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
               </select>
               <table id="filters_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
               <thead>
