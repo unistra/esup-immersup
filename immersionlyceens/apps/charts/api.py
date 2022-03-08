@@ -945,7 +945,7 @@ def get_registration_charts_by_trainings(request):
     else:
         try:
             int(highschool_id)
-            immersions_filter['islot__course__highschool__id'] = highschool_id
+            immersions_filter['slot__course__highschool__id'] = highschool_id
         except (TypeError, ValueError):
             pass
 
