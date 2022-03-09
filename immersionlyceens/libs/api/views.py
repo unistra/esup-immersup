@@ -2267,10 +2267,14 @@ def get_csv_highschool(request):
         _('training domain'),
         _('training subdomain'),
         _('training'),
-        _('course'),
+        _('course/event/visit label'),
         _('date'),
         _('start_time'),
         _('end_time'),
+        _('campus'),
+        _('building'),
+        _('meeting place'),
+        _('attendance status'),
     ]
     content = []
     hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=hs.id) \
@@ -2281,10 +2285,13 @@ def get_csv_highschool(request):
             for imm in immersions:
                 if imm.slot.is_course():
                     slot_type = _('Course')
+                    label = imm.slot.course.label
                 elif imm.slot.is_event():
                     slot_type = _('Event')
+                    label = imm.slot.event.label
                 elif imm.slot.is_visit():
                     slot_type = _('Visit')
+                    label = imm.slot.visit.purpose
 
                 content.append(
                     [
@@ -2305,10 +2312,14 @@ def get_csv_highschool(request):
                                 if slot_type == _('Course') else ''
                         ),
                         imm.slot.course.training.label if slot_type == _('Course') else '',
-                        imm.slot.course.label if slot_type == _('Course') else '',
+                        label,
                         _date(imm.slot.date, 'd/m/Y'),
                         imm.slot.start_time.strftime('%H:%M'),
                         imm.slot.end_time.strftime('%H:%M'),
+                        imm.slot.campus.label if imm.slot.campus else None,
+                        imm.slot.building.label if imm.slot.building else None,
+                        imm.slot.room if imm.slot.face_to_face else _('Remote'),
+                        imm.get_attendance_status(),
                     ]
                 )
         else:
@@ -2391,7 +2402,7 @@ def get_csv_anonymous(request):
                 _('registrant profile'),
                 _('origin institution'),
                 _('student level'),
-                _('emargement'),
+                _('attendance status'),
             ]
 
             filters[
