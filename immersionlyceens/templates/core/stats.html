@@ -110,37 +110,15 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-  function toggle_structure_btn() {
-    if ($('#structure').val() === ''){
-        $('#extract_structure').prop('disabled', true);
-    } else {
-        $('#extract_structure').prop('disabled', false);
-    }
-  }
-
-  toggle_structure_btn();
-  $('#structure').change(function(){ toggle_structure_btn(); });
 
   $('#extract_structure_courses').click(function(event){
-    let structure = $('#structure').val();
-    if (is_set(structure)) {
-      let url = '/api/get_csv_structures/' + structure + '?type=course';
-      window.open(url, '_blank');
-    }
+    window.open('{% url 'get_csv_structures' %}?type=course', '_blank');
   });
   $('#extract_structure_visits').click(function(event){
-    let structure = $('#structure').val();
-    if (is_set(structure)) {
-      let url = '/api/get_csv_structures/' + structure + '?type=visit';
-      window.open(url, '_blank');
-    }
+    window.open('{% url 'get_csv_structures' %}?type=visit', '_blank');
   });
   $('#extract_structure_events').click(function(event){
-    let structure = $('#structure').val();
-    if (is_set(structure)) {
-      let url = '/api/get_csv_structures/' + structure + '?type=event';
-      window.open(url, '_blank');
-    }
+    window.open('{% url 'get_csv_structures' %}?type=event', '_blank');
   });
   $('#extract_highschool').click(function(event){
     window.open('{% url 'get_csv_highschool' %}', '_blank');

@@ -2190,15 +2190,15 @@ def ajax_batch_cancel_registration(request):
 
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
-def get_csv_structures(request, structure_id):
+def get_csv_structures(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    try:
-        structure = Structure.objects.get(id=structure_id)
-        if structure and structure not in request.user.get_authorized_structures():
-            raise PermissionDenied
-    except Structure.DoesNotExist:
-        raise Http404
+    # try:
+    #     structure = Structure.objects.get(id=structure_id)
+    #     if structure and structure not in request.user.get_authorized_structures():
+    #         raise PermissionDenied
+    # except Structure.DoesNotExist:
+    #     raise Http404
 
     t = request.GET.get('type')
     response['Content-Disposition'] = f'attachment; filename="{structure.label.replace(" ", "_")}_{today}.csv"'
