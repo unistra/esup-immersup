@@ -2255,14 +2255,13 @@ def get_csv_structures(request, structure_id):
 
 
 @groups_required('REF-LYC',)
-def get_csv_highschool(request, high_school_id):
+def get_csv_highschool(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    h_name = HighSchool.objects.get(id=high_school_id).label.replace(" ", "_")
+    hs = HighSchool.objects.get(id=request.user.highschool.id)
+    h_name = hs.label.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="{h_name}_{today}.csv"'
-
     infield_separator = '|'
-
     header = [
         _('last name'),
         _('first name'),
@@ -2270,19 +2269,37 @@ def get_csv_highschool(request, high_school_id):
         _('level'),
         _('class name'),
         _('bachelor type'),
+        _('establishment'),
+        _('type'),
         _('training domain'),
         _('training subdomain'),
         _('training'),
-        _('course'),
+        _('course/event/visit label'),
+        _('date'),
+        _('start_time'),
+        _('end_time'),
+        _('campus'),
+        _('building'),
+        _('meeting place'),
+        _('attendance status'),
     ]
-
     content = []
-    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=high_school_id)\
+    hs_records = HighSchoolStudentRecord.objects.filter(highschool__id=hs.id) \
         .order_by('student__last_name', 'student__first_name')
     for hs in hs_records:
         immersions = Immersion.objects.filter(student=hs.student, cancellation_type__isnull=True)
         if immersions.count() > 0:
             for imm in immersions:
+                if imm.slot.is_course():
+                    slot_type = _('Course')
+                    label = imm.slot.course.label
+                elif imm.slot.is_event():
+                    slot_type = _('Event')
+                    label = imm.slot.event.label
+                elif imm.slot.is_visit():
+                    slot_type = _('Visit')
+                    label = imm.slot.visit.purpose
+
                 content.append(
                     [
                         hs.student.last_name,
@@ -2291,12 +2308,25 @@ def get_csv_highschool(request, high_school_id):
                         hs.level.label if hs.level else '',
                         hs.class_name,
                         HighSchoolStudentRecord.BACHELOR_TYPES[hs.bachelor_type - 1][1],
+                        imm.slot.get_establishment(),
+                        slot_type,
                         infield_separator.join(
-                            [s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()]
+                            [s.training_domain.label for s in imm.slot.course.training.training_subdomains.all()] \
+                                if slot_type == _('Course') else ''
                         ),
-                        infield_separator.join([s.label for s in imm.slot.course.training.training_subdomains.all()]),
-                        imm.slot.course.training.label,
-                        imm.slot.course.label,
+                        infield_separator.join(
+                            [s.label for s in imm.slot.course.training.training_subdomains.all()] \
+                                if slot_type == _('Course') else ''
+                        ),
+                        imm.slot.course.training.label if slot_type == _('Course') else '',
+                        label,
+                        _date(imm.slot.date, 'd/m/Y'),
+                        imm.slot.start_time.strftime('%H:%M'),
+                        imm.slot.end_time.strftime('%H:%M'),
+                        imm.slot.campus.label if imm.slot.campus else None,
+                        imm.slot.building.label if imm.slot.building else None,
+                        imm.slot.room if imm.slot.face_to_face else _('Remote'),
+                        imm.get_attendance_status(),
                     ]
                 )
         else:
@@ -2354,7 +2384,7 @@ def get_csv_anonymous(request):
                 _('registrant profile'),
                 _('origin institution'),
                 _('student level'),
-                _('emargement'),
+                _('attendance status'),
             ]
 
         elif request.user.is_establishment_manager():
@@ -2379,7 +2409,7 @@ def get_csv_anonymous(request):
                 _('registrant profile'),
                 _('origin institution'),
                 _('student level'),
-                _('emargement'),
+                _('attendance status'),
             ]
 
             filters[
@@ -2624,7 +2654,7 @@ def get_csv_anonymous(request):
                 _('place number'),
                 _('additional information'),
                 _('student level'),
-                _('emargement'),
+                _('attendance status'),
             ]
             slots = Slot.objects.filter(published=True, visit__isnull=False)
 
@@ -2643,7 +2673,7 @@ def get_csv_anonymous(request):
                 _('place number'),
                 _('additional information'),
                 _('student level'),
-                _('emargement'),
+                _('attendance status'),
             ]
 
             Q_filters = Q(visit__establishment=request.user.establishment) | Q(
@@ -2811,7 +2841,9 @@ def get_csv_anonymous(request):
                 _('registrant information'),
                 _('origin institution'),
                 _('student level'),
+                _('attendance status'),
             ]
+
             slots = Slot.objects.filter(published=True, event__isnull=False)
 
         elif request.user.is_establishment_manager():
@@ -2834,6 +2866,7 @@ def get_csv_anonymous(request):
                 _('registrant information'),
                 _('origin institution'),
                 _('student level'),
+                _('attendance status'),
             ]
 
             Q_filters = Q(event__establishment=request.user.establishment) | Q(
@@ -2916,6 +2949,7 @@ def get_csv_anonymous(request):
                                     registrant_profile,
                                     institution,
                                     level,
+                                    imm.get_attendance_status(),
                                 ]
                             )
                         elif request.user.is_establishment_manager():
@@ -2943,6 +2977,7 @@ def get_csv_anonymous(request):
                                     registrant_profile,
                                     institution,
                                     level,
+                                    imm.get_attendance_status(),
                                 ]
                             )
             else:

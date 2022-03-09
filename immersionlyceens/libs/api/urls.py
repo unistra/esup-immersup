@@ -36,7 +36,7 @@ urlpatterns = [
 
     path('get_csv_anonymous/', views.get_csv_anonymous, name='get_csv_anonymous'),
     path('get_csv_structures/<int:structure_id>', views.get_csv_structures, name='get_csv_structures'),
-    path('get_csv_highschool/<int:high_school_id>', views.get_csv_highschool, name='get_csv_highschool'),
+    path('get_csv_highschool/', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_duplicates', views.ajax_get_duplicates, name='get_duplicates'),
 
     path('get_highschool_students/', views.ajax_get_highschool_students, name='get_all_students'),

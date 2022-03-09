@@ -887,7 +887,7 @@ class APITestCase(TestCase):
         #     n += 1
 
     def test_API_get_csv_highschool(self):
-        url = f'/api/get_csv_highschool/{self.high_school.id}'
+        url = f'/api/get_csv_highschool/'
         client = Client()
         client.login(username='lycref', password='pass')
 
@@ -902,10 +902,15 @@ class APITestCase(TestCase):
             _('level'),
             _('class name'),
             _('bachelor type'),
+            _('establishment'),
+            _('type'),
             _('training domain'),
             _('training subdomain'),
             _('training'),
             _('course'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
         ]
 
         n = 0
@@ -920,10 +925,15 @@ class APITestCase(TestCase):
                 self.assertEqual(self.hs_record.level.label, row[3])
                 self.assertEqual(self.hs_record.class_name, row[4])
                 self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
-                self.assertIn(self.t_domain.label, row[6].split('|'))
-                self.assertIn(self.t_sub_domain.label, row[7].split('|'))
-                self.assertIn(self.training.label, row[8])
-                self.assertIn(self.course.label, row[9])
+                self.assertIn('', row[6])
+                self.assertIn('', row[7])
+                self.assertIn(self.t_domain.label, row[8].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[9].split('|'))
+                self.assertIn(self.training.label, row[10])
+                self.assertIn(self.course.label, row[11])
+                self.assertIn('', row[12])
+                self.assertIn('', row[13])
+                self.assertIn('', row[14])
 
             n += 1
 

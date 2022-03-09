@@ -21,17 +21,66 @@
 {% endblock %}
 
 {% block section_title %}
-<h3 class="ml-2">{% trans 'Hosts statistics - registrations by domains' %}</h3>
+<h3 class="ml-2">
+  {% if request.user.is_high_school_manager %}
+    {% if filter_by_my_trainings %}
+      {% trans "Highschools statistics - registrations to my trainings, by domains" %}
+    {% else %}
+      {% trans "Highschools statistics - my high school students registrations, by domains" %}
+    {% endif %}
+  {% else %}
+    {% if filter_by_my_trainings %}
+      {% trans "Hosts statistics - registrations by domains" %}
+    {% else %}
+      {% trans "Populations statistics - registrations by domains" %}
+    {% endif %}
+  {% endif %}
+</h3>
 {% endblock %}
 
 {% block content %}
-{% include '../modals/modal_global_charts_filters.html' %}
+
 <div id="feedback" class="container"></div>
+<div class="container-fluid mt-4">
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% if request.user.is_high_school_manager %}
+      <div class="form-group mx-sm-3 mb-2">
+        <label class="form-check-label ml-md-2">
+          {{ request.user.highschool.label }} - {{ request.user.highschool.city }}
+        </label>
+      </div>
+      {% endif %}
+      <div class="form-group mx-sm-3 mb-2">
+        <label for="id_level_part1" class="form-check-label ml-md-2">{% trans 'Students level / categories' %} :</label>
+        <select id="id_level_part1" name="level" class="mt-2">
+          <option value="0" {% if part1_level_filter == 0 %}selected{% endif %}>{% trans 'All' %}</option>
+          {% for level in levels %}
+            <option value="{{ level.pk }}" {% if part1_level_filter == level.id %}selected{% endif %}>{{ level.label }}</option>
+          {% endfor %}
+          {% if not request.user.is_high_school_manager or filter_by_my_trainings %}
+            <option value="visitors" {% if part1_level_filter == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
+          {% endif %}
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="chartdiv" style="width:100%; height:400px;"></div>
+
+{% if request.user.is_master_establishment_manager %}
+{% include '../modals/modal_global_charts_filters.html' %}
 <div class="container-fluid mt-4">
   <div class="card mt-4">
     <div class="card-header text-white bg-secondary">
-      <button class="btn btn-light btn-sm" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">{% trans 'Manage filters' %}</button>
+      <button class="btn btn-light btn-sm" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">
+        {% if filter_by_my_trainings %}
+          {% trans 'Select host institutions' %}
+        {% else %}
+          {% trans 'Select institutions of origin' %}
+        {% endif %}
+      </button>
     </div>
     <div class="card-body">
         <div class="row">
@@ -44,44 +93,54 @@
         </div>
         <div class="row">
           <div class="col-md-6">
-            {% if highschools %}
+            {% if part2_filters.highschools %}
             <label>{% trans 'High schools' %} :</label>
             <ul>
-              {% for highschool in highschools %}
+              {% for highschool in part2_filters.highschools %}
                 <li>{{ highschool }}</li>
               {% endfor %}
             </ul>
             {% endif %}
-            {% if higher_institutions %}
+            {% if part2_filters.higher_institutions %}
             <label>{% trans 'Higher education institutions' %} :</label>
             <ul>
-              {% for higher_institution in higher_institutions %}
+              {% for higher_institution in part2_filters.higher_institutions %}
                 <li>{{ higher_institution }}</li>
               {% endfor %}
             </ul>
             {% endif %}
-            {% if not highschools and not higher_institutions %}
+            {% if not part2_filters.highschools and not part2_filters.higher_institutions %}
               {% trans 'Display all' %}
             {% endif %}
           </div>
           <div class="col-md-6">
-            {% for level in levels %}
-              {% if level.0 == level_filter %}
-                {{ level.1 }}
-              {% endif %}
-            {% endfor %}
+            {% if part2_filters.level == 'visitors' %}
+              {% trans 'Visitors' %}
+            {% elif part2_filters.level == 0 %}
+              {% trans 'All' %}
+            {% else %}
+              {% for level in levels %}
+                {% if level.id == part2_filters.level %}
+                  {{ level.label }}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
           </div>
         </div>
     </div>
   </div>
 </div>
+{% endif %}
 
 <script type="text/javascript">
   {% autoescape off %}
-    var highschools_ids = {{ highschools_ids }};
-    var higher_institutions_ids = {{ higher_institutions_ids }};
-    var level = "{{ level_filter }}"
+    var highschools_ids = {{ part2_filters.highschools_ids }};
+    var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
+    var higher_institutions_ids = {{ part2_filters.higher_institutions_ids }};
+    var level = "{{ part2_filters.level }}"
   {% endautoescape %}
+
+  var part1_level = $('#id_level_part1 option:selected').val();
 
   function open_filter_modal() {
     $('#modal_global_charts_filter').modal('show');
@@ -97,6 +156,7 @@
     var line2;
     var selectedSlice;
     var datasets;
+    var url;
 
     function selectSlice(dataItem) {
       selectedSlice = dataItem.slice;
@@ -167,13 +227,30 @@
       }
     }
 
+    if(filter_by_my_trainings === true) {
+      url = "/charts/get_global_domains_charts_by_trainings"
+    }
+    else {
+      url = "/charts/get_global_domains_charts_by_population"
+    }
+
+    let parsed = parseInt(part1_level)
+    let parsed2 = parseInt(level)
+    if (isNaN(parsed) === false) {
+      part1_level = parsed
+    }
+
+    if (isNaN(parsed2) === false) {
+      level = parsed2
+    }
+
     $.ajax({
-      url: "/charts/get_global_domains_charts",
+      url: url,
       type: 'POST',
       data: {
         'highschools_ids' : highschools_ids,
         'higher_institutions_ids': higher_institutions_ids,
-        'level': level,
+        'level': level || part1_level,
          csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
@@ -185,80 +262,91 @@
       async: false,
     });
 
-    am4core.useTheme(am4themes_animated);
-    // am4core.useTheme(am4themes_material);
+    if(datasets.length) {
+      am4core.useTheme(am4themes_animated);
+      // am4core.useTheme(am4themes_material);
 
-    container = am4core.create("chartdiv", am4core.Container);
-    container.width = am4core.percent(100);
-    container.height = am4core.percent(100);
-    container.layout = "horizontal";
+      container = am4core.create("chartdiv", am4core.Container);
+      container.width = am4core.percent(100);
+      container.height = am4core.percent(100);
+      container.layout = "horizontal";
 
-    chart = container.createChild(am4charts.PieChart);
-    chart.data = datasets;
-    chart.legend = new am4charts.Legend();
-    // chart.legend.position = 'absolute';
-    // chart.legend.position = 'left';
-    chart.legend.maxWidth = undefined;
+      chart = container.createChild(am4charts.PieChart);
+      chart.data = datasets;
+      chart.legend = new am4charts.Legend();
+      // chart.legend.position = 'absolute';
+      // chart.legend.position = 'left';
+      chart.legend.maxWidth = undefined;
 
+      pieSeries = chart.series.push(new am4charts.PieSeries());
+      pieSeries.dataFields.value = "count";
+      pieSeries.dataFields.category = "domain";
+      pieSeries.slices.template.states.getKey("active").properties.shiftRadius = 0;
+      pieSeries.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
+      pieSeries.labels.template.text = "{category}";
 
-    pieSeries = chart.series.push(new am4charts.PieSeries());
-    pieSeries.dataFields.value = "count";
-    pieSeries.dataFields.category = "domain";
-    pieSeries.slices.template.states.getKey("active").properties.shiftRadius = 0;
-    pieSeries.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
-    pieSeries.labels.template.text = "{category}";
+      pieSeries.slices.template.events.on("hit", function (event) {
+        selectSlice(event.target.dataItem);
+      });
 
-    pieSeries.slices.template.events.on("hit", function (event) {
-      selectSlice(event.target.dataItem);
-    });
+      pieSeries.ticks.template.events.on("ready", hideSmall);
+      pieSeries.ticks.template.events.on("visibilitychanged", hideSmall);
+      pieSeries.labels.template.events.on("ready", hideSmall);
+      pieSeries.labels.template.events.on("visibilitychanged", hideSmall);
 
-    pieSeries.ticks.template.events.on("ready", hideSmall);
-    pieSeries.ticks.template.events.on("visibilitychanged", hideSmall);
-    pieSeries.labels.template.events.on("ready", hideSmall);
-    pieSeries.labels.template.events.on("visibilitychanged", hideSmall);
+      chart2 = container.createChild(am4charts.PieChart);
+      chart2.width = am4core.percent(50);
+      chart2.radius = am4core.percent(60);
+      chart2.legend = new am4charts.Legend();
+      // chart2.legend.position = 'absolute';
+      // chart2.legend.position = 'right';
+      chart2.legend.maxWidth = undefined;
 
-    chart2 = container.createChild(am4charts.PieChart);
-    chart2.width = am4core.percent(50);
-    chart2.radius = am4core.percent(60);
-    chart2.legend = new am4charts.Legend();
-    // chart2.legend.position = 'absolute';
-    // chart2.legend.position = 'right';
-    chart2.legend.maxWidth = undefined;
+      pieSeries2 = chart2.series.push(new am4charts.PieSeries());
+      pieSeries2.dataFields.value = "count";
+      pieSeries2.dataFields.category = "name";
+      pieSeries2.slices.template.states.getKey("active").properties.shiftRadius = 0;
+      pieSeries2.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
+      pieSeries2.labels.template.text = "{category}";
 
-    pieSeries2 = chart2.series.push(new am4charts.PieSeries());
-    pieSeries2.dataFields.value = "count";
-    pieSeries2.dataFields.category = "name";
-    pieSeries2.slices.template.states.getKey("active").properties.shiftRadius = 0;
-    pieSeries2.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
-    pieSeries2.labels.template.text = "{category}";
+      // pieSeries2.labels.template.disabled = true;
+      pieSeries2.ticks.template.disabled = true;
+      pieSeries2.alignLabels = false;
+      pieSeries2.events.on("positionchanged", updateLines);
 
-    // pieSeries2.labels.template.disabled = true;
-    pieSeries2.ticks.template.disabled = true;
-    pieSeries2.alignLabels = false;
-    pieSeries2.events.on("positionchanged", updateLines);
+      var interfaceColors = new am4core.InterfaceColorSet();
 
-    var interfaceColors = new am4core.InterfaceColorSet();
+      line1 = container.createChild(am4core.Line);
+      line1.strokeDasharray = "2,2";
+      line1.strokeOpacity = 0.5;
+      line1.stroke = interfaceColors.getFor("alternativeBackground");
+      line1.isMeasured = false;
 
-    line1 = container.createChild(am4core.Line);
-    line1.strokeDasharray = "2,2";
-    line1.strokeOpacity = 0.5;
-    line1.stroke = interfaceColors.getFor("alternativeBackground");
-    line1.isMeasured = false;
+      line2 = container.createChild(am4core.Line);
+      line2.strokeDasharray = "2,2";
+      line2.strokeOpacity = 0.5;
+      line2.stroke = interfaceColors.getFor("alternativeBackground");
+      line2.isMeasured = false;
 
-    line2 = container.createChild(am4core.Line);
-    line2.strokeDasharray = "2,2";
-    line2.strokeOpacity = 0.5;
-    line2.stroke = interfaceColors.getFor("alternativeBackground");
-    line2.isMeasured = false;
-
-    chart.events.on("datavalidated", function () {
-      setTimeout(function () {
-        selectSlice(pieSeries.dataItems.getIndex(0));
-      }, 1000);
-    });
+      chart.events.on("datavalidated", function () {
+        setTimeout(function () {
+          selectSlice(pieSeries.dataItems.getIndex(0));
+        }, 1000);
+      });
+    }
+    else {
+      container = am4core.create("chartdiv", am4core.Container);
+      // container.openModal("<strong>No data found!</strong>");
+      
+    }
   }
 
   init_graph();
+
+  $('#id_level_part1').change(function() {
+    part1_level = $('#id_level_part1 option:selected').val();
+    init_graph();
+  });
 
 </script>
 {% endblock %}

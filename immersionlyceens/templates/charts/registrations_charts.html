@@ -136,7 +136,7 @@
     var is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True"
     var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
 
-    var level_filter = "{{ part2_filters.level_filter }}";
+    var level_filter = "{{ part2_filters.level }}";
     var highschools_ids = {{ part2_filters.highschools_ids }};
     var structure_ids = {{ part2_filters.structure_ids }};
     var higher_institutions_ids = {{ part2_filters.higher_institutions_ids }};
