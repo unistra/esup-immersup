@@ -37,13 +37,36 @@ from immersionlyceens.apps.core.models import (
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
     UniversityYear, Vacation,
 )
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord, VisitorRecord,
+)
 
 from .models import (
     EstablishmentManager, HighSchoolManager, HighSchoolStudent,
     LegalDepartmentStaff, MasterEstablishmentManager, Operator, Speaker,
     StructureManager, Student, Visitor,
 )
+
+
+class ValidRecordFilter(admin.SimpleListFilter):
+    title = _('Validated record')
+    parameter_name = 'get_validated_record'
+
+    def lookups(self, request, model_admin):
+        return [('True', _('Yes')), ('False', _('No'))]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        # TODO: maybe better way to do this ?
+        hr = HighSchoolStudentRecord.objects.filter(validation=2).values_list('student__id', flat=True)
+        sr = StudentRecord.objects.all().values_list('student__id', flat=True)
+        vr = VisitorRecord.objects.filter(validation=2).values_list('visitor__id', flat=True)
+        q_filter = (Q(id__in=hr) | Q(id__in=sr) | Q(id__in=vr))
+        if value == 'True':
+            return queryset.filter(q_filter)
+        elif value == 'False':
+            return queryset.exclude(q_filter)
+        return queryset
 
 
 class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
@@ -61,6 +84,7 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     list_filter = (
         ActivationFilter,
+        ValidRecordFilter,
         HighschoolListFilter,
     )
 
@@ -86,6 +110,7 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     list_filter = (
         ActivationFilter,
+        ValidRecordFilter,
         ('establishment', RelatedDropdownFilter),
     )
 
@@ -107,7 +132,7 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'get_validated_record',
     ]
 
-    list_filter = ()
+    list_filter = ( ValidRecordFilter,  )
 
     def get_queryset(self, request):
         return ImmersionUser.objects.filter(groups__name='VIS').order_by('last_name', 'first_name')
@@ -203,7 +228,6 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     list_filter = (
         ('establishment', RelatedDropdownFilter),
-        HighschoolListFilter,
     )
 
     def get_queryset(self, request):
@@ -230,7 +254,6 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     list_filter = (
         ('establishment', RelatedDropdownFilter),
-        HighschoolListFilter,
     )
 
     def get_queryset(self, request):
@@ -268,7 +291,6 @@ class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     ]
 
     list_filter = (
-        ('establishment', RelatedDropdownFilter),
         HighschoolListFilter,
     )
 
