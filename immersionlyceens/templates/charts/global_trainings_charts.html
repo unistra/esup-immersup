@@ -81,10 +81,12 @@
             </div>
           {% endif %}
 
+          {% if filter_by_my_trainings %}
           <div class="form-group mx-sm-3 mb-2">
             <label for="filter_empty_trainings" class="form-check-label ml-md-2">{% trans 'Display trainings with no student' %} : </label>
             <input type="checkbox" id="filter_empty_trainings">
           </div>
+          {% endif %}
           <div class="form-group mx-sm-3 mb-2">
             <label class="form-check-label ml-md-2">{% trans 'Toggle counts columns' %} : </label>
             {% for level in high_school_levels %}

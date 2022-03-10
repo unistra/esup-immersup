@@ -388,7 +388,7 @@ class ChartsAPITestCase(TestCase):
 
     def test_registration_charts_by_population(self):
         # Registration charts
-        self.client.login(username='test-ref-etab', password='hiddenpassword')
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
         url = "/charts/get_registration_charts_by_population"
 
         # All highschools and establishments by default (no highschool_id parameter)
@@ -403,6 +403,7 @@ class ChartsAPITestCase(TestCase):
                HighSchoolLevel.objects.get(pk=3).label: 0,
                HighSchoolLevel.objects.get(pk=4).label: 0,
                'Visitors': 0,
+               'none': 0
               },
               {'name': 'Registrations to at least one immersion',
                HighSchoolLevel.objects.get(pk=1).label: 3,
@@ -410,6 +411,7 @@ class ChartsAPITestCase(TestCase):
                HighSchoolLevel.objects.get(pk=3).label: 1,
                HighSchoolLevel.objects.get(pk=4).label: 1,
                'Visitors': 0,
+               'none': 0
               },
               {'name': 'Registrations count',
                HighSchoolLevel.objects.get(pk=1).label: 4,
@@ -417,29 +419,32 @@ class ChartsAPITestCase(TestCase):
                HighSchoolLevel.objects.get(pk=3).label: 2,
                HighSchoolLevel.objects.get(pk=4).label: 2,
                'Visitors': 0,
+               'none': 0
               },]
         )
 
         # With another level
-        url = "/charts/get_registration_charts_by_population"
         response = self.client.get(url, {'level': 1})
         content = response.content.decode()
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'], [{
             'name': 'Attended to at least one immersion',
-            HighSchoolLevel.objects.get(pk=1).label: 2
+            HighSchoolLevel.objects.get(pk=1).label: 2,
+            'none': 0
         }, {
             'name': 'Registrations to at least one immersion',
-            HighSchoolLevel.objects.get(pk=1).label: 3
+            HighSchoolLevel.objects.get(pk=1).label: 3,
+            'none': 0
         }, {
             'name': 'Registrations count',
-            HighSchoolLevel.objects.get(pk=1).label: 4}
+            HighSchoolLevel.objects.get(pk=1).label: 4,
+            'none': 0
+        }
         ])
 
         # As a school manager : median will be displayed
         self.client.login(username='jeanjacquesmonnet', password='hiddenpassword')
-        url = "/charts/get_registration_charts_by_population"
 
         # The highschool_id parameter is not needed (default = the manager highschool)
         response = self.client.get(url, {'level': 0})
@@ -447,26 +452,30 @@ class ChartsAPITestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content['datasets'],
-            [{'name': 'Attended to at least one immersion (m = 1.0)',
+            [{'name': 'Attended to at least one immersion [bold](m = 2)[/bold]',
               HighSchoolLevel.objects.get(pk=1).label: 1,
               HighSchoolLevel.objects.get(pk=2).label: 1,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 0},
-             {'name': 'Registrations to at least one immersion (m = 1)',
+              HighSchoolLevel.objects.get(pk=4).label: 0,
+              'none': 0},
+             {'name': 'Registrations to at least one immersion [bold](m = 5)[/bold]',
               HighSchoolLevel.objects.get(pk=1).label: 2,
               HighSchoolLevel.objects.get(pk=2).label: 2,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 0},
-             {'name': 'Registrations count (m = 1.0)',
+              HighSchoolLevel.objects.get(pk=4).label: 0,
+              'none': 0},
+             {'name': 'Registrations count [bold](m = 5)[/bold]',
               HighSchoolLevel.objects.get(pk=1).label: 2,
               HighSchoolLevel.objects.get(pk=2).label: 2,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 1}]
+              HighSchoolLevel.objects.get(pk=4).label: 1,
+              'none': 0
+             }]
         )
 
 
     def test_registration_charts_cats_by_population(self):
-        self.client.login(username='test-ref-etab', password='hiddenpassword')
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
 
         # Registration charts cats (ajax query, headers needed)
         url = "/charts/get_registration_charts_cats_by_population"
@@ -480,14 +489,13 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=1).label: 1,
               HighSchoolLevel.objects.get(pk=2).label: 1,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 0
+              HighSchoolLevel.objects.get(pk=4).label: 0,
+              'none': 0
              },
              {'name': 'Université de Strasbourg',
-              HighSchoolLevel.objects.get(pk=1).label: 0,
-              HighSchoolLevel.objects.get(pk=2).label: 0,
-              HighSchoolLevel.objects.get(pk=3).label: 0,
               HighSchoolLevel.objects.get(pk=4).label: 0,
-              }]
+              'none': 0
+             }]
         )
 
         self.assertEqual(json_content['one_immersion']['datasets'],
@@ -495,12 +503,11 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=1).label: 2,
               HighSchoolLevel.objects.get(pk=2).label: 2,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 0},
+              HighSchoolLevel.objects.get(pk=4).label: 0,
+              'none': 0},
              {'name': 'Université de Strasbourg',
-              HighSchoolLevel.objects.get(pk=1).label: 1,
-              HighSchoolLevel.objects.get(pk=2).label: 1,
-              HighSchoolLevel.objects.get(pk=3).label: 1,
               HighSchoolLevel.objects.get(pk=4).label: 1,
+              'none': 0
              }]
         )
 
@@ -509,12 +516,11 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=1).label: 2,
               HighSchoolLevel.objects.get(pk=2).label: 2,
               HighSchoolLevel.objects.get(pk=3).label: 0,
-              HighSchoolLevel.objects.get(pk=4).label: 1},
-             {'name': 'Université de Strasbourg',
-              HighSchoolLevel.objects.get(pk=1).label: 0,
-              HighSchoolLevel.objects.get(pk=2).label: 0,
-              HighSchoolLevel.objects.get(pk=3).label: 0,
               HighSchoolLevel.objects.get(pk=4).label: 1,
+              'none': 0},
+             {'name': 'Université de Strasbourg',
+              HighSchoolLevel.objects.get(pk=4).label: 1,
+              'none': 0
              }]
         )
 
@@ -522,17 +528,23 @@ class ChartsAPITestCase(TestCase):
         content = response.content.decode()
         json_content = json.loads(content)
 
-        self.assertEqual(json_content['attended_one']['datasets'],
-            [{HighSchoolLevel.objects.get(pk=1).label: 1, 'name': 'Lycée Jean Monnet'}]
-        )
+        self.assertEqual(json_content['attended_one']['datasets'], [{
+            HighSchoolLevel.objects.get(pk=1).label: 1,
+            'name': 'Lycée Jean Monnet',
+            'none': 0
+        }])
 
-        self.assertEqual(json_content['one_immersion']['datasets'],
-            [{HighSchoolLevel.objects.get(pk=1).label: 2, 'name': 'Lycée Jean Monnet'}]
-        )
+        self.assertEqual(json_content['one_immersion']['datasets'], [{
+            HighSchoolLevel.objects.get(pk=1).label: 2,
+            'name': 'Lycée Jean Monnet',
+            'none': 0
+        }])
 
-        self.assertEqual(json_content['platform_regs']['datasets'],
-            [{HighSchoolLevel.objects.get(pk=1).label: 2, 'name': 'Lycée Jean Monnet'}]
-        )
+        self.assertEqual(json_content['platform_regs']['datasets'], [{
+            HighSchoolLevel.objects.get(pk=1).label: 2,
+            'name': 'Lycée Jean Monnet',
+            'none': 0
+        }])
 
     def test_slots_charts_api(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')

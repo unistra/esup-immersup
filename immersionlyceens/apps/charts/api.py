@@ -736,11 +736,16 @@ def get_registration_charts_by_population(request):
     request.session["current_level_filter"] = level_value
 
     # Each dataset represents a category
-    datasets = [
-        { 'name': gettext("Attended to at least one immersion") },
-        { 'name': gettext("Registrations to at least one immersion") },
-        { 'name': gettext("Registrations count") },
-    ]
+    datasets = [{
+        'name': gettext("Attended to at least one immersion"),
+        'none': 0
+    }, {
+        'name': gettext("Registrations to at least one immersion"),
+        'none': 0
+    }, {
+        'name': gettext("Registrations count"),
+        'none': 0
+    }]
 
     # Horizontal bars : switched axis
     axes = {
@@ -748,6 +753,8 @@ def get_registration_charts_by_population(request):
             "type": "ValueAxis",
             "min": 0,
             "maxPrecision": 0,
+            "calculateTotals": True,
+            "extraMax": 0.1
         }],
         'y': [{
             "type": "CategoryAxis",
@@ -858,53 +865,40 @@ def get_registration_charts_by_population(request):
 
     # Median calculation for a specific high school
     if highschool_id != 'all':
-        # Attended to at least 1 immersion median
-        pupils_counts = [
-            x['cnt'] for x in HighSchoolStudentRecord.objects
-                .prefetch_related('student__immersions__slot__course')
-                .values('highschool')
-                .filter(
-                validation=2,
-                student__immersions__attendance_status=1,
-                student__immersions__slot__course__isnull=False
+        one_immersion_attendance_pupils_counts = []
+        one_immersion_registration_pupils_counts = []
+        all_registrations_pupils_counts = []
+
+        for hs in HighSchool.agreed.all():
+            qs = Immersion.objects.filter(
+                slot__course__isnull=False,
+                student__high_school_student_record__highschool=hs,
+                student__high_school_student_record__validation=2
             )
-                .annotate(cnt=Count('highschool', distinct=True))
-        ]
 
-        median = parse_median(pupils_counts)
+            one_immersion_attendance_pupils_counts.append(
+                qs.filter(attendance_status=1).values('student').distinct().count()
+            )
+
+            one_immersion_registration_pupils_counts.append(
+                qs.values('student').distinct().count()
+            )
+
+            all_registrations_pupils_counts.append(
+                HighSchoolStudentRecord.objects.filter(highschool=hs, validation=2).count()
+            )
+
+        median = parse_median(one_immersion_attendance_pupils_counts)
         if median is not None:
-            datasets[0]['name'] += f" (m = {median})"
+            datasets[0]['name'] += f" [bold](m = {median})[/bold]"
 
-        # =======================================================
-        # Registered to at least 1 immersion median
-        pupils_counts = [
-            x['cnt'] for x in HighSchoolStudentRecord.objects
-                .prefetch_related('student__immersions__slot__course')
-                .values('highschool')
-                .filter(
-                    validation=2,
-                    student__immersions__isnull=False,
-                    student__immersions__cancellation_type__isnull=True,
-                    student__immersions__slot__course__isnull=False
-                )
-                .annotate(cnt=Count('highschool', distinct=True))
-        ]
-
-        median = parse_median(pupils_counts)
-        if median:
-            datasets[1]['name'] += f" (m = {median})"
-
-        # =======================================================
-        # All registrations median
-        pupils_counts = [
-            x['cnt'] for x in HighSchoolStudentRecord.objects.values('highschool')
-                .filter(**level_filter, validation=2)
-                .annotate(cnt=Count('highschool', distinct=True))
-        ]
-
-        median = parse_median(pupils_counts)
+        median = parse_median(one_immersion_registration_pupils_counts)
         if median is not None:
-            datasets[2]['name'] += f" (m = {median})"
+            datasets[1]['name'] += f" [bold](m = {median})[/bold]"
+
+        median = parse_median(all_registrations_pupils_counts)
+        if median is not None:
+            datasets[2]['name'] += f" [bold](m = {median})[/bold]"
 
     response = {
         'axes': axes,
@@ -978,11 +972,16 @@ def get_registration_charts_by_trainings(request):
     request.session["current_level_filter"] = level_value
 
     # Each dataset represents a category
-    datasets = [
-        { 'name': gettext("Attended to at least one immersion") },
-        { 'name': gettext("Registrations to at least one immersion") },
-        { 'name': gettext("Registrations count") },
-    ]
+    datasets = [{
+        'name': gettext("Attended to at least one immersion"),
+        'none': 0
+    }, {
+        'name': gettext("Registrations to at least one immersion"),
+        'none': 0
+    }, {
+        'name': gettext("Registrations count"),
+        'none': 0
+    }]
 
     # Horizontal bars : switched axis
     axes = {
@@ -990,6 +989,8 @@ def get_registration_charts_by_trainings(request):
             "type": "ValueAxis",
             "min": 0,
             "maxPrecision": 0,
+            "calculateTotals": True,
+            "extraMax": 0.1
         }],
         'y': [{
             "type": "CategoryAxis",
@@ -1095,7 +1096,6 @@ def get_registration_charts_by_trainings(request):
         # platform registrations
         datasets[2][level_label] = users.count()
 
-
     # Median calculation for structure managers
     if structure:
         # =======================================================
@@ -1103,42 +1103,29 @@ def get_registration_charts_by_trainings(request):
         # =======================================================
         establishment_structures = Structure.objects.filter(establishment=structure.establishment).distinct()
 
-        persons_counts = [
-            x['cnt'] for x in Slot.objects
-                .prefetch_related('course__structure', 'immersions')
-                .filter(
-                    course__structure__in=establishment_structures,
-                    immersions__attendance_status=1,
+        one_immersion_attendance_students_counts = []
+        one_immersion_registration_students_counts = []
+
+        for establishment_structure in establishment_structures:
+            qs = Immersion.objects.filter(
+                slot__course__structure=establishment_structure
+            )
+            if qs.count():
+                one_immersion_attendance_students_counts.append(
+                    qs.filter(attendance_status=1).values('student').distinct().count()
                 )
-                .values('course__structure')
-                .annotate(cnt=Count('immersions__student', distinct=True))
-        ]
 
-        median = parse_median(persons_counts)
-        if median is not None:
-            datasets[0]['name'] += f" (m = {median})"
-
-        # =======================================================
-        # Registered to at least 1 immersion median
-        # =======================================================
-        persons_counts = [
-            x['cnt'] for x in Slot.objects
-                .prefetch_related('course__structure', 'immersions')
-                .filter(
-                    course__structure__in=establishment_structures,
-                    immersions__cancellation_type__isnull=True,
+                one_immersion_registration_students_counts.append(
+                    qs.values('student').distinct().count()
                 )
-                .values('course__structure')
-                .annotate(cnt=Count('immersions__student', distinct=True))
-        ]
 
-        median = parse_median(persons_counts)
+        median = parse_median(one_immersion_attendance_students_counts)
         if median is not None:
-            datasets[1]['name'] += f" (m = {median})"
+            datasets[0]['name'] += f" [bold](m = {median})[/bold]"
 
-        # =======================================================
-        # No global registrations median for structure managers
-        # =======================================================
+        median = parse_median(one_immersion_registration_students_counts)
+        if median is not None:
+            datasets[1]['name'] += f" [bold](m = {median})[/bold]"
 
     response = {
         'axes': axes,
@@ -1214,6 +1201,8 @@ def get_registration_charts_cats_by_trainings(request):
             "type": "ValueAxis",
             "min": 0,
             "maxPrecision": 0,
+            "calculateTotals": True,
+            "extraMax": 0.1
         }],
         'y': [{
             "type": "CategoryAxis",
@@ -1258,8 +1247,8 @@ def get_registration_charts_cats_by_trainings(request):
     for highschool in HighSchool.objects.filter(id__in=_highschools_ids):
         hs_immersions = immersions_queryset.filter(slot__course__highschool=highschool)
 
-        dataset_one_immersion = { 'name': highschool.label }
-        dataset_attended_one = { 'name': highschool.label }
+        dataset_one_immersion = { 'name': highschool.label, 'none': 0 }
+        dataset_attended_one = { 'name': highschool.label, 'none': 0 }
 
         for level in levels:
             if level == 'visitors':
@@ -1310,8 +1299,8 @@ def get_registration_charts_cats_by_trainings(request):
         except Establishment.DoesNotExist:
             label = gettext("Establishment not found")
 
-        dataset_one_immersion = {'name': label}
-        dataset_attended_one = {'name': label}
+        dataset_one_immersion = {'name': label, 'none': 0 }
+        dataset_attended_one = {'name': label, 'none': 0 }
 
         for level in levels:
             if level == 'visitors':
@@ -1362,8 +1351,8 @@ def get_registration_charts_cats_by_trainings(request):
         except Structure.DoesNotExist:
             label = gettext("Structure not found")
 
-        dataset_one_immersion = {'name': label}
-        dataset_attended_one = {'name': label}
+        dataset_one_immersion = {'name': label, 'none': 0 }
+        dataset_attended_one = {'name': label, 'none': 0 }
 
         for level in levels:
             if level == 'visitors':
@@ -1486,6 +1475,8 @@ def get_registration_charts_cats_by_population(request):
             "type": "ValueAxis",
             "min": 0,
             "maxPrecision": 0,
+            "calculateTotals": True,
+            "extraMax": 0.1
         }],
         'y': [{
             "type": "CategoryAxis",
@@ -1537,9 +1528,9 @@ def get_registration_charts_cats_by_population(request):
             student__high_school_student_record__validation = 2
         )
 
-        dataset_platform_regs = { 'name': highschool.label }
-        dataset_one_immersion = { 'name': highschool.label }
-        dataset_attended_one = { 'name': highschool.label }
+        dataset_platform_regs = { 'name': highschool.label, 'none': 0 }
+        dataset_one_immersion = { 'name': highschool.label, 'none': 0 }
+        dataset_attended_one = { 'name': highschool.label, 'none': 0 }
 
         for level in levels:
             if level == 'visitors':
@@ -1583,9 +1574,9 @@ def get_registration_charts_cats_by_population(request):
         except HigherEducationInstitution.DoesNotExist:
             label = "{} ({})".format(uai_code, gettext("no name match yet"))
 
-        dataset_platform_regs = {'name': label}
-        dataset_one_immersion = {'name': label}
-        dataset_attended_one = {'name': label}
+        dataset_platform_regs = {'name': label, 'none': 0 }
+        dataset_one_immersion = {'name': label, 'none': 0 }
+        dataset_attended_one = {'name': label, 'none': 0 }
 
         level_label = gettext('Post-bac')
 
@@ -1609,7 +1600,6 @@ def get_registration_charts_cats_by_population(request):
         datasets['platform_regs'].append(dataset_platform_regs.copy())
         datasets['one_immersion'].append(dataset_one_immersion.copy())
         datasets['attended_one'].append(dataset_attended_one.copy())
-
 
     # =========
 

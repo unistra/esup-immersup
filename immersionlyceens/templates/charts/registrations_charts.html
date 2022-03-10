@@ -189,6 +189,22 @@
         },
       }, "chartdiv", am4charts.XYChart);
 
+      /* Custom serie to add the total as a new bullet */
+      var totalSeries = chart.series.push(new am4charts.ColumnSeries());
+      totalSeries.dataFields.valueX = "none";
+      totalSeries.dataFields.categoryY = "name";
+      totalSeries.stacked = true;
+      totalSeries.hiddenInLegend = true;
+      totalSeries.columns.template.strokeOpacity = 0;
+
+      var totalBullet = totalSeries.bullets.push(new am4charts.LabelBullet());
+      totalBullet.dx = 20;
+      totalBullet.label.text = "{valueX.total}";
+      totalBullet.label.hideOversized = false;
+      totalBullet.label.fontSize = 18;
+      totalBullet.label.background.fill = totalSeries.stroke;
+      totalBullet.label.background.fillOpacity = 0.2;
+      totalBullet.label.padding(5, 10, 5, 10);
     });
   }
 
@@ -275,6 +291,23 @@
               },
             }
           }, "chartdiv_platform_regs", am4charts.XYChart);
+
+          /* Custom serie to add the total as a new bullet */
+          var platform_totalSeries = chart_platform.series.push(new am4charts.ColumnSeries());
+          platform_totalSeries.dataFields.valueX = "none";
+          platform_totalSeries.dataFields.categoryY = "name";
+          platform_totalSeries.stacked = true;
+          platform_totalSeries.hiddenInLegend = true;
+          platform_totalSeries.columns.template.strokeOpacity = 0;
+
+          var platform_totalBullet = platform_totalSeries.bullets.push(new am4charts.LabelBullet());
+          platform_totalBullet.dx = 20;
+          platform_totalBullet.label.text = "{valueX.total}";
+          platform_totalBullet.label.hideOversized = false;
+          platform_totalBullet.label.fontSize = 18;
+          platform_totalBullet.label.background.fill = platform_totalSeries.stroke;
+          platform_totalBullet.label.background.fillOpacity = 0.2;
+          platform_totalBullet.label.padding(5, 10, 5, 10);
         }
 
         let chart_one_immersion = am4core.createFromConfig({
@@ -290,6 +323,23 @@
             "datavalidated": function(ev) { auto_adjust_height(ev) }
           }
         }, "chartdiv_one_immersion", am4charts.XYChart);
+        
+        /* Custom serie to add the total as a new bullet */
+        var one_immersion_totalSeries = chart_one_immersion.series.push(new am4charts.ColumnSeries());
+        one_immersion_totalSeries.dataFields.valueX = "none";
+        one_immersion_totalSeries.dataFields.categoryY = "name";
+        one_immersion_totalSeries.stacked = true;
+        one_immersion_totalSeries.hiddenInLegend = true;
+        one_immersion_totalSeries.columns.template.strokeOpacity = 0;
+
+        var one_immersion_totalBullet = one_immersion_totalSeries.bullets.push(new am4charts.LabelBullet());
+        one_immersion_totalBullet.dx = 20;
+        one_immersion_totalBullet.label.text = "{valueX.total}";
+        one_immersion_totalBullet.label.hideOversized = false;
+        one_immersion_totalBullet.label.fontSize = 18;
+        one_immersion_totalBullet.label.background.fill = one_immersion_totalSeries.stroke;
+        one_immersion_totalBullet.label.background.fillOpacity = 0.2;
+        one_immersion_totalBullet.label.padding(5, 10, 5, 10);
 
         let chart_attended_one = am4core.createFromConfig({
           "xAxes": attended_one.axes.x,
@@ -304,6 +354,23 @@
             "datavalidated": function(ev) { auto_adjust_height(ev) }
           }
         }, "chartdiv_attended_one", am4charts.XYChart);
+        
+        /* Custom serie to add the total as a new bullet */
+        var attended_one_totalSeries = chart_attended_one.series.push(new am4charts.ColumnSeries());
+        attended_one_totalSeries.dataFields.valueX = "none";
+        attended_one_totalSeries.dataFields.categoryY = "name";
+        attended_one_totalSeries.stacked = true;
+        attended_one_totalSeries.hiddenInLegend = true;
+        attended_one_totalSeries.columns.template.strokeOpacity = 0;
+
+        var attended_one_totalBullet = attended_one_totalSeries.bullets.push(new am4charts.LabelBullet());
+        attended_one_totalBullet.dx = 20;
+        attended_one_totalBullet.label.text = "{valueX.total}";
+        attended_one_totalBullet.label.hideOversized = false;
+        attended_one_totalBullet.label.fontSize = 18;
+        attended_one_totalBullet.label.background.fill = attended_one_totalSeries.stroke;
+        attended_one_totalBullet.label.background.fillOpacity = 0.2;
+        attended_one_totalBullet.label.padding(5, 10, 5, 10);
 
       },
       error: function(json) {
