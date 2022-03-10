@@ -1120,11 +1120,14 @@ class ImmersionUserChangeForm(UserChangeForm):
 
         # New account : send an account creation message
         user = self.instance
-        if not user.last_login:
+
+        if not user.creation_email_sent:
             if not user.establishment or not user.establishment.data_source_plugin:
                 user.set_recovery_string()
 
-            user.send_message(self.request, "CPT_CREATE")
+            ret = user.send_message(self.request, "CPT_CREATE")
+            if ret is None:
+                self.instance.creation_email_sent = True
 
         self.instance = super().save(*args, **kwargs)
 

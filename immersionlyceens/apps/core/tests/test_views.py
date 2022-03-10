@@ -953,6 +953,7 @@ class CoreViewsTestCase(TestCase):
         self.assertTrue(ImmersionUser.objects.filter(email="test_speaker@test.com").exists())
         speaker = ImmersionUser.objects.get(email="test_speaker@test.com")
         self.assertEqual(speaker.email, data["email"])
+        self.assertTrue(speaker.creation_email_sent)
 
 
     def test_my_students(self):

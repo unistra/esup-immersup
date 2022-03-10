@@ -329,6 +329,8 @@ def course(request, course_id=None, duplicate=False):
                                     request,
                                     gettext("A confirmation email has been sent to {}").format(speaker['email']),
                                 )
+                                speaker_user.creation_email_sent = True
+                                speaker_user.save()
                             else:
                                 messages.warning(request, gettext("Couldn't send email : %s" % return_msg))
 
@@ -551,6 +553,8 @@ def speaker(request, id=None):
                         request,
                         gettext("A confirmation email has been sent to {}").format(new_speaker.email),
                     )
+                    new_speaker.creation_email_sent = True
+                    new_speaker.save()
                 else:
                     messages.warning(request, gettext("Couldn't send email : %s" % return_msg))
 

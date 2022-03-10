@@ -52,7 +52,8 @@ class AdminFormsTestCase(TestCase):
     Main admin forms tests class
     """
 
-    fixtures = ['group', 'group_permissions', 'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
+    fixtures = ['group', 'group_permissions', 'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher',
+                'mailtemplatevars', 'mailtemplate']
 
     def setUp(self):
         """
@@ -1952,6 +1953,8 @@ class AdminFormsTestCase(TestCase):
         self.ref_str_user.structures.add(structure_2)
         self.ref_str_user.save()
 
+        self.assertFalse(self.ref_str_user.creation_email_sent)
+
         self.ref_str_user_2.establishment = self.master_establishment
         self.ref_str_user_2.structures.add(structure_1)
         self.ref_str_user_2.save()
@@ -2024,6 +2027,7 @@ class AdminFormsTestCase(TestCase):
         self.assertEqual(self.ref_str_user.email, "new_email@test.com")
         self.assertTrue(self.ref_str_user.is_active)
         self.assertFalse(self.ref_str_user.is_staff) # No change
+        self.assertTrue(self.ref_str_user.creation_email_sent)
 
 
         # As High school manager

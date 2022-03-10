@@ -835,6 +835,8 @@ class VisitForm(forms.ModelForm):
                             self.request,
                             gettext("A confirmation email has been sent to {}").format(speaker['email']),
                         )
+                        speaker_user.creation_email_sent=True
+                        speaker_user.save()
                     else:
                         messages.warning(self.request, gettext("Couldn't send email : %s" % return_msg))
 
@@ -989,6 +991,8 @@ class OffOfferEventForm(forms.ModelForm):
                             self.request,
                             gettext("A confirmation email has been sent to {}").format(speaker['email']),
                         )
+                        speaker_user.creation_email_sent = True
+                        speaker_user.save()
                     else:
                         messages.warning(self.request, gettext("Couldn't send email : %s" % return_msg))
 

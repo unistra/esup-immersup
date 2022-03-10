@@ -352,12 +352,10 @@ class ImmersionUser(AbstractUser):
     )
 
     destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
-
     validation_string = models.TextField(_("Account validation string"), blank=True, null=True, unique=True)
-
     recovery_string = models.TextField(_("Account password recovery string"), blank=True, null=True, unique=True)
-
     email = models.EmailField(_("Email"), blank=False, null=False, unique=True)
+    creation_email_sent = models.BooleanField(_("Creation email sent"), blank=True, null=True, default=False)
 
     def __str__(self):
         return "{} {}".format(self.last_name or _('(no last name)'), self.first_name or _('(no first name)'))
