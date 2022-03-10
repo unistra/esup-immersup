@@ -272,9 +272,9 @@ class Parser:
 
             for slot in slot_list:
                 if slot.face_to_face:
-                    place = f"{_('campus')} {slot.campus.label}, " if slot.campus else ""
-                    place += f"{_('building')} {slot.building.label}, " if slot.building else ""
-                    place += f"{_('room')} {slot.room}" if slot.room else ""
+                    place = "{0} {1}, ".format(_("campus"), slot.campus.label) if slot.campus else ""
+                    place += "{0} {1}, ".format(_("building"), slot.building.label) if slot.building else ""
+                    place += "{0} {1}".format(_("room"), slot.room) if slot.room else ""
                 else:
                     place = _("remote slot")
 
@@ -282,7 +282,9 @@ class Parser:
                     "* {slot_type}{high_school} : {date} ({start_time} - {end_time}) : {label} {course_type}<br />{place}<br /> -> {speakers}".format(
                         slot_type=slot.get_type(),
                         high_school=
-                            f"({_('high school')} {slot.get_highschool().label}, {slot.get_highschool().city}"
+                            ", {0} {1}, {2}".format(
+                                _('high school'), slot.get_highschool().label, slot.get_highschool().city
+                            )
                             if slot.get_highschool() else "",
                         date=date_format(slot.date),
                         start_time=slot.start_time.strftime("%-Hh%M"),

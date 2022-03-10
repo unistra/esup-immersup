@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-10 15:46+0100\n"
+"POT-Creation-Date: 2022-03-10 20:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3737,6 +3737,7 @@ msgstr "heure de fin"
 #: immersionlyceens/libs/api/views.py:2395
 #: immersionlyceens/libs/api/views.py:2824
 #: immersionlyceens/libs/api/views.py:2849
+#: immersionlyceens/libs/mails/variables_parser.py:275
 msgid "campus"
 msgstr "campus"
 
@@ -3746,10 +3747,12 @@ msgstr "campus"
 #: immersionlyceens/libs/api/views.py:2396
 #: immersionlyceens/libs/api/views.py:2825
 #: immersionlyceens/libs/api/views.py:2850
+#: immersionlyceens/libs/mails/variables_parser.py:276
 msgid "building"
 msgstr "bâtiment"
 
 #: immersionlyceens/libs/api/views.py:2213
+#: immersionlyceens/libs/mails/variables_parser.py:277
 msgid "room"
 msgstr "salle"
 
@@ -4037,7 +4040,7 @@ msgid "Charter not signed"
 msgstr "Charte non signée"
 
 #: immersionlyceens/libs/mails/variables_parser.py:112
-#: immersionlyceens/libs/mails/variables_parser.py:345
+#: immersionlyceens/libs/mails/variables_parser.py:359
 msgid "Unknown home institution"
 msgstr "Etablissement d'origine inconnu"
 
@@ -4046,12 +4049,25 @@ msgctxt "slot data"
 msgid "None"
 msgstr "Aucune"
 
-#: immersionlyceens/libs/mails/variables_parser.py:297
-#: immersionlyceens/libs/mails/variables_parser.py:304
+#: immersionlyceens/libs/mails/variables_parser.py:279
+msgid "remote slot"
+msgstr "créneau à distance"
+
+#: immersionlyceens/libs/mails/variables_parser.py:286
+#: immersionlyceens/templates/core/common_slot.html:91
+#: immersionlyceens/templates/core/course.html:55
+#: immersionlyceens/templates/core/off_offer_event.html:57
+#: immersionlyceens/templates/core/old/off_offer_event_slot.html:91
+#: immersionlyceens/templates/core/slot.html:91
+msgid "high school"
+msgstr "Lycée"
+
+#: immersionlyceens/libs/mails/variables_parser.py:311
+#: immersionlyceens/libs/mails/variables_parser.py:318
 msgid "Link improperly configured"
 msgstr "Lien non renseigné"
 
-#: immersionlyceens/libs/mails/variables_parser.py:321
+#: immersionlyceens/libs/mails/variables_parser.py:335
 msgid "not set"
 msgstr "non défini"
 
@@ -4489,14 +4505,6 @@ msgstr ""
 #: immersionlyceens/templates/core/slot.html:89
 msgid "or"
 msgstr "ou"
-
-#: immersionlyceens/templates/core/common_slot.html:91
-#: immersionlyceens/templates/core/course.html:55
-#: immersionlyceens/templates/core/off_offer_event.html:57
-#: immersionlyceens/templates/core/old/off_offer_event_slot.html:91
-#: immersionlyceens/templates/core/slot.html:91
-msgid "high school"
-msgstr "Lycée"
 
 #: immersionlyceens/templates/core/common_slot.html:146
 #: immersionlyceens/templates/core/old/off_offer_event_slot.html:158
