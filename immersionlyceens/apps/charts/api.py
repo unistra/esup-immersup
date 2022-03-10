@@ -218,7 +218,7 @@ def global_domains_charts_by_trainings(request):
         immersions_filter["slot__course__highschool__in"] = _highschools_ids
 
     if _structures_ids:
-        immersions_filter["slot__course__structures__in"] = _structures_ids
+        immersions_filter["slot__course__structure__in"] = _structures_ids
 
     if _higher_institutions_ids:
         structures = Structure.objects.filter(establishment__id__in=_higher_institutions_ids).distinct()
