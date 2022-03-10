@@ -7,42 +7,28 @@ import importlib
 import json
 import logging
 from functools import reduce
-from itertools import chain, permutations
+from itertools import permutations
 from typing import Any, Dict, List, Optional
 
 import django_filters.rest_framework
-import rest_framework
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core import serializers
-from django.core.exceptions import FieldError, PermissionDenied
+from django.core.exceptions import FieldError
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
-from django.utils.module_loading import import_string
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
-from django.views import View, generic
-from rest_framework import generics, status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.views import APIView
-
-"""
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
-"""
-
+from django.views import View
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, OffOfferEvent, PostBachelorLevel, PublicDocument, Slot,
-    Structure, StudentLevel, Training, TrainingDomain, UniversityYear,
-    UserCourseAlert, Vacation, Visit,
+    MailTemplateVars, OffOfferEvent, PublicDocument, Slot, Structure, Training,
+    TrainingDomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
@@ -58,6 +44,9 @@ from immersionlyceens.decorators import (
 )
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
+from rest_framework import generics, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.views import APIView
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +107,7 @@ def ajax_get_person(request):
 
                 users = account_api.search_user(search_str)
 
-                if users != False:
+                if users is not False:
                     users = sorted(users, key=lambda u: [u['lastname'], u['firstname']])
                     response['data'] = persons_list + users
                 else:
@@ -276,7 +265,7 @@ def ajax_get_trainings(request):
     object_id = request.GET.get("object_id")
 
     if object_type == 'structure':
-        filters = {'structures': object_id, 'active':True}
+        filters = {'structures': object_id, 'active': True}
     elif object_type == 'highschool':
         filters = {'highschool': object_id, 'active': True}
     else:
@@ -290,8 +279,8 @@ def ajax_get_trainings(request):
     try:
         trainings = (
             Training.objects.prefetch_related('training_subdomains')
-                .filter(**filters)
-                .order_by('label')
+            .filter(**filters)
+            .order_by('label')
         )
     except FieldError:
         # Not implemented yet
@@ -387,19 +376,19 @@ def slots(request):
             else:
                 try:
                     establishment_id = user.establishment.id
-                except Exception as e:
+                except:
                     response['msg'] = gettext("Error : a valid establishment or structure must be selected")
                     return JsonResponse(response, safe=False)
 
         elif events and not establishment_id and not highschool_id:
             try:
                 establishment_id = user.establishment.id
-            except Exception as e:
+            except:
                 pass
 
             try:
                 highschool_id = user.highschool.id
-            except Exception as e:
+            except:
                 pass
 
             if not highschool_id and not establishment_id:
@@ -550,9 +539,9 @@ def slots(request):
             'highschool': {
                 'city': highschool.city,
                 'label': highschool.label,
-                'managed_by_me': user.is_master_establishment_manager() \
-                                 or user.is_operator() \
-                                 or (user_highschool and highschool == user_highschool),
+                'managed_by_me': user.is_master_establishment_manager()
+                or user.is_operator()
+                or (user_highschool and highschool == user_highschool),
             } if highschool else None,
             'visit': {
                 'id': slot.visit.id,
@@ -646,8 +635,8 @@ def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
 
     courses = (
         Course.objects.prefetch_related('training')
-            .filter(training__id=training_id, structure__id=structure_id, )
-            .order_by('label')
+        .filter(training__id=training_id, structure__id=structure_id, )
+        .order_by('label')
     )
 
     for course in courses:
@@ -965,7 +954,7 @@ def ajax_delete_account(request):
         return JsonResponse(response, safe=False)
 
     try:
-        account = ImmersionUser.objects.get(id=account_id) # , groups__name__in=['LYC', 'ETU'])
+        account = ImmersionUser.objects.get(id=account_id)  # , groups__name__in=['LYC', 'ETU'])
     except ImmersionUser.DoesNotExist:
         response = {'error': True, 'msg': gettext("Account not found")}
         return JsonResponse(response, safe=False)
@@ -1022,7 +1011,7 @@ def ajax_cancel_registration(request):
     user = request.user
     allowed_structures = user.get_authorized_structures()
 
-    #FIXME : test request.user rights on immersion.slot
+    # FIXME : test request.user rights on immersion.slot
 
     if not immersion_id or not reason_id:
         response = {'error': True, 'msg': gettext("Invalid parameters")}
@@ -2191,61 +2180,296 @@ def ajax_batch_cancel_registration(request):
 
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def get_csv_structures(request):
+    filters = {}
+    content = []
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
-    # try:
-    #     structure = Structure.objects.get(id=structure_id)
-    #     if structure and structure not in request.user.get_authorized_structures():
-    #         raise PermissionDenied
-    # except Structure.DoesNotExist:
-    #     raise Http404
 
+    structures = request.user.get_authorized_structures()
+    structure_label = structures[0].label.replace(' ', '_') if structures.count() == 1 else 'structures'
     t = request.GET.get('type')
-    response['Content-Disposition'] = f'attachment; filename="{structure.label.replace(" ", "_")}_{today}.csv"'
-    slots = Slot.objects.filter(course__structure_id=structure_id, published=True).order_by('date', 'start_time')
-
     infield_separator = '|'
 
-    header = [
-        _('domain'),
-        _('subdomain'),
-        _('training'),
-        _('course'),
-        _('course type'),
-        _('date'),
-        _('start_time'),
-        _('end_time'),
-        _('campus'),
-        _('building'),
-        _('room'),
-        _('speakers'),
-        _('registration number'),
-        _('place number'),
-        _('additional information'),
-    ]
-    content = []
-    for slot in slots:
-        line = [
-            infield_separator.join(
-                [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
-            ),
-            infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
-            slot.course.training.label,
-            slot.course.label,
-            slot.course_type.label,
-            _date(slot.date, 'l d/m/Y'),
-            slot.start_time.strftime('%H:%M'),
-            slot.end_time.strftime('%H:%M'),
-            slot.campus.label,
-            slot.building.label,
-            slot.room,
-            '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
-            slot.registered_students(),
-            slot.n_places,
-            slot.additional_information,
-        ]
-        content.append(line.copy())
+    if t == 'course':
 
+        label = _('courses')
+
+        if request.user.is_master_establishment_manager() or request.user.is_operator():
+
+            header = [
+                _('establishment'),
+                _('structure'),
+                _('training domain'),
+                _('training subdomain'),
+                _('training'),
+                _('course'),
+                _('course_type'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+        elif request.user.is_establishment_manager():
+
+            header = [
+                _('structure'),
+                _('training domain'),
+                _('training subdomain'),
+                _('training'),
+                _('course'),
+                _('course_type'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+        elif request.user.is_high_school_manager() or request.user.is_structure_manager():
+
+            header = [
+                _('training domain'),
+                _('training subdomain'),
+                _('training'),
+                _('course'),
+                _('course_type'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+        if request.user.is_structure_manager():
+            filters[
+                'course__structure__in'
+            ] = structures
+
+        elif request.user.is_high_school_manager():
+            filters[
+                'course__highschool'
+            ] = request.user.highschool
+
+        slots = Slot.objects.filter(**filters, published=True).order_by('date', 'start_time')
+
+        for slot in slots:
+
+            structure = slot.get_structure()
+            highschool = slot.get_highschool()
+            establishment = slot.get_establishment()
+
+            if request.user.is_master_establishment_manager():
+
+                line = [
+                    establishment,
+                    structure,
+                    infield_separator.join(
+                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                    ),
+                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                    slot.course.training.label,
+                    slot.course.label,
+                    slot.course_type.label,
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    slot.campus.label,
+                    slot.building.label,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+                content.append(line.copy())
+
+            elif request.user.is_establishment_manager():
+
+                line = [
+                    structure,
+                    infield_separator.join(
+                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                    ),
+                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                    slot.course.training.label,
+                    slot.course.label,
+                    slot.course_type.label,
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    slot.campus.label if slot.campus else '',
+                    slot.building.label if slot.building else '',
+                    slot.room if slot.face_to_face else _('Remote'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+                content.append(line.copy())
+
+            elif (request.user.is_high_school_manager() or request.user.is_structure_manager()):
+
+                line = [
+                    infield_separator.join(
+                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                    ),
+                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                    slot.course.training.label,
+                    slot.course.label,
+                    slot.course_type.label,
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    slot.campus.label if slot.campus else '',
+                    slot.building.label if slot.building else '',
+                    slot.room if slot.face_to_face else _('Remote'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+                content.append(line.copy())
+
+    if t == 'visit':
+
+        label = _('visits')
+
+        if request.user.is_master_establishment_manager() or request.user.is_operator():
+
+            header = [
+                _('establishment'),
+                _('structure'),
+                _('highschool'),
+                _('purpose'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+        elif request.user.is_establishment_manager():
+
+            header = [
+                _('structure'),
+                _('highschool'),
+                _('purpose'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+        elif request.user.is_high_school_manager() or request.user.is_structure_manager():
+
+            header = [
+                _('highschool'),
+                _('purpose'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+        if request.user.is_structure_manager():
+            filters[
+                'visit__structure__in'
+            ] = structures
+
+        elif request.user.is_high_school_manager():
+            filters[
+                'visit__highschool'
+            ] = request.user.highschool
+
+        slots = Slot.objects.filter(**filters, published=True).order_by('date', 'start_time')
+
+        for slot in slots:
+
+            structure = slot.get_structure()
+            highschool = slot.get_highschool()
+            establishment = slot.get_establishment()
+
+            if request.user.is_master_establishment_manager():
+
+                line = [
+                    establishment,
+                    structure,
+                    highschool,
+                    slot.visit.purpose,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+                content.append(line.copy())
+
+            elif request.user.is_establishment_manager():
+
+                line = [
+                    structure,
+                    highschool,
+                    slot.visit.purpose,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+                content.append(line.copy())
+
+            elif (request.user.is_high_school_manager() or request.user.is_structure_manager()):
+
+                line = [
+                    highschool,
+                    slot.visit.purpose,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+                content.append(line.copy())
+
+
+    response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
     writer = csv.writer(response)
     writer.writerow(header)
     for row in content:
@@ -2359,7 +2583,7 @@ def get_csv_anonymous(request):
 
     if t == 'course':
 
-        trad = _('anonymous_courses')
+        label = _('anonymous_courses')
 
         if request.user.is_master_establishment_manager() or request.user.is_operator():
 
@@ -2636,7 +2860,7 @@ def get_csv_anonymous(request):
 
     if t == 'visit':
 
-        trad = _('anonymous_visits')
+        label = _('anonymous_visits')
 
         if request.user.is_master_establishment_manager() or request.user.is_operator():
 
@@ -2818,7 +3042,7 @@ def get_csv_anonymous(request):
 
     if t == 'event':
 
-        trad = _('anonymous_events')
+        label = _('anonymous_events')
 
         if request.user.is_master_establishment_manager() or request.user.is_operator():
 
@@ -3040,7 +3264,7 @@ def get_csv_anonymous(request):
                         ]
                     )
 
-    response['Content-Disposition'] = f'attachment; filename={trad}_{today}.csv'
+    response['Content-Disposition'] = f'attachment; filename={label}_{today}.csv'
     writer = csv.writer(response)
     writer.writerow(header)
     for row in content:
