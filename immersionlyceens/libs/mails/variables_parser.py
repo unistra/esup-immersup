@@ -268,19 +268,31 @@ class Parser:
     @staticmethod
     def get_slot_list_context(slot_list):
         if slot_list:
-            slot_text: List[str] = [
-                "* {date} ({start_time} - {end_time}) : {course} ({course_type})<br />Bâtiment {building}, salle {room}<br /> -> {speakers}".format(
-                    date=date_format(s.date),
-                    start_time=s.start_time.strftime("%-Hh%M"),
-                    end_time=s.end_time.strftime("%-Hh%M"),
-                    course=s.course.label if s.course else "",
-                    course_type=s.course_type.label if s.course_type else "",
-                    building=s.building,
-                    room=s.room,
-                    speakers=','.join([f"{t.first_name} {t.last_name}" for t in s.speakers.all()]),
+            slot_text = []
+
+            for slot in slot_list:
+                if slot.face_to_face:
+                    place = f"{_('campus')} {slot.campus.label}, " if slot.campus else ""
+                    place += f"{_('building')} {slot.building.label}, " if slot.building else ""
+                    place += f"{_('room')} {slot.room}" if slot.room else ""
+                else:
+                    place = _("remote slot")
+
+                slot_text.append(
+                    "* {slot_type}{high_school} : {date} ({start_time} - {end_time}) : {label} {course_type}<br />{place}<br /> -> {speakers}".format(
+                        slot_type=slot.get_type(),
+                        high_school=
+                            f"({_('high school')} {slot.get_highschool().label}, {slot.get_highschool().city}"
+                            if slot.get_highschool() else "",
+                        date=date_format(slot.date),
+                        start_time=slot.start_time.strftime("%-Hh%M"),
+                        end_time=slot.end_time.strftime("%-Hh%M"),
+                        label=slot.get_label(),
+                        course_type=f"({slot.course_type.label})" if slot.course_type else "",
+                        place=place,
+                        speakers=','.join([f"{t.first_name} {t.last_name}" for t in slot.speakers.all()]),
+                    )
                 )
-                for s in slot_list
-            ]
 
             return {
                 "creneaux": {

@@ -906,9 +906,9 @@ def ajax_validate_reject_student(request, validate):
                 record.validation = 2 if validate else 3
                 record.save()
                 if validate:
-                    record.student.send_message(request, 'CPT_MIN_VALIDE_LYCEEN')
+                    record.student.send_message(request, 'CPT_MIN_VALIDE')
                 else:
-                    record.student.send_message(request, 'CPT_MIN_REJET_LYCEEN')
+                    record.student.send_message(request, 'CPT_MIN_REJET')
                 response['data'] = {'ok': True}
 
             except HighSchoolStudentRecord.DoesNotExist:
@@ -3767,10 +3767,10 @@ class VisitorRecordRejectValidate(View):
 
         if operation == "validate":
             validation_value = 2
-            validation_email_template = "CPT_MIN_VALIDE_VISITEUR"
+            validation_email_template = "CPT_MIN_VALIDE"
         elif operation == "reject":
             validation_value = 3
-            validation_email_template = "CPT_MIN_REJET_VISITEUR"
+            validation_email_template = "CPT_MIN_REJET"
         else:
             data["msg"] = "Error - Bad operation selected. Allowed: validate, reject"
             return JsonResponse(data)

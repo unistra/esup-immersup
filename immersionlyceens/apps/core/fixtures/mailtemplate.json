@@ -1,24 +1,6 @@
 [
 {
     "model": "core.mailtemplate",
-    "pk": 2,
-    "fields": {
-        "code": "CPT_MIN_VALIDE_LYCEEN",
-        "label": "Mail validation compte lycéen",
-        "description": "Mail envoyé lors de la validation d’un compte Lycéen pour le lycée",
-        "subject": "Validation de votre compte lycéen",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Votre compte Immersion a bien été validé. </p><p>Vous pouvez à présent vous inscrire aux immersions. </p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
     "pk": 4,
     "fields": {
         "code": "CPT_MIN_CREATE",
@@ -43,30 +25,11 @@
 },
 {
     "model": "core.mailtemplate",
-    "pk": 5,
-    "fields": {
-        "code": "CPT_MIN_REJET_LYCEEN",
-        "label": "Mail rejet compte lycéen",
-        "description": "Mail envoyé lors du rejet d’un compte Lycéen pour le lycée",
-        "subject": "Rejet de votre compte Immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Votre compte immersion a été rejeté par le lycée que vous avez choisi. </p><p>Merci de contacter votre lycée ou de renseigner le bon lycée. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
-            19,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
     "pk": 6,
     "fields": {
         "code": "CPT_MIN_ID_OUBLIE",
-        "label": "Mail d'oubli d'identifiants",
-        "description": "Mail envoyé lors de l'oubli des identifiants pour un lycéen",
+        "label": "Mail d'oubli d'identifiants pour les comptes locaux (mot de passe oublié)",
+        "description": "Mail envoyé lors de l'oubli des identifiants pour un compte local",
         "subject": "Identifiants compte Immersion",
         "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous avez demandé la réinitialisation de votre mot de passe. Merci d'utiliser le lien suivant :<br></p>{{ lienMotDePasse }}<br><p>Si vous n'être pas à l'origine de cette demande, vous pouvez ignorer ce message.<br><br></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
@@ -104,7 +67,7 @@
     "pk": 8,
     "fields": {
         "code": "CPT_CREATE_INTER",
-        "label": "Mail création compte intervenant",
+        "label": "Mail création compte intervenant (local ou non)",
         "description": "Mail envoyé lors de la création d’un compte Intervenant",
         "subject": "Votre compte immersion",
         "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>{% if utilisateur_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br>Pour initialiser votre mot de passe, merci de vous connecter à l'adresse suivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en utilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
@@ -135,24 +98,6 @@
             18,
             33,
             19,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
-    "pk": 10,
-    "fields": {
-        "code": "CPT_CHANGE_PASSWD_LYCEE",
-        "label": "Mail changement de mot de passe référent lycée",
-        "description": "Mail envoyé lors du changement de mot de passe Réferent Lycée",
-        "subject": "Changement de mot de passe",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>votre mot de passe de la plateforme d'immersion a bien été modifié. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
             27,
             29,
             32
@@ -518,6 +463,40 @@
 },
 {
     "model": "core.mailtemplate",
+    "pk": 24,
+    "fields": {
+        "code": "CERTIFICATE_HEADER",
+        "label": "Pdf du certificat : bloc \"service\" du certificat",
+        "description": "Pdf du certificat : bloc \"service\" du certificat",
+        "subject": "Header du certificat",
+        "body": "<p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">{% if creneau.etablissement == 'Université de Strasbourg' %}</span><b><span style=\"font-size: 10px;\"><br></span></b></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><b><span style=\"font-size: 10px;\">﻿Immersions gérées&nbsp;par :</span></b></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><b><span style=\"font-size: 8px;\"><br></span></b></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">Espace Avenir</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">Pôle Liaison</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">secondaire-supérieur</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">20a rue René Descartes</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">67000 Strasbourg</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><br></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">espace-avenir-lyceen-immersion@unistra.fr {% else %}</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b>Mon entête</b></span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b><br></b></span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b>Je vais voir ça c'est le bazar</b></span><span style=\"font-size: 10px;\"><b>{% endif %}</b></span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b><br></b><br></span></p>",
+        "active": true,
+        "available_vars": [
+            1,
+            51,
+            46
+        ]
+    }
+},
+{
+    "model": "core.mailtemplate",
+    "pk": 25,
+    "fields": {
+        "code": "CERTIFICATE_FOOTER",
+        "label": "Pdf du certificat : bloc signature du certificat",
+        "description": "Pdf du certificat : bloc signature du certificat",
+        "subject": "Pied de Page du certificat",
+        "body": "<p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% if creneau.etablissement == 'Université de Strasbourg' %}</span><br></p><p class=\"western\" style=\"text-align: right; margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"right\"><span style=\"font-size: 12px;\">﻿Pôle Liaison secondaire-supérieur d’Espace Avenir</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% elif creneau.etablissement == 'ENGEES' %}</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"right\"><span style=\"font-size: 12px;\">ENGEES</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% elif creneau.lycee == 'Marie Curie  (STRASBOURG)' %}</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"right\"><span style=\"font-size: 12px;\">Lycée Marie Curie</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% endif %}</span><br><br><br><br><br></p>",
+        "active": true,
+        "available_vars": [
+            1,
+            51,
+            46
+        ]
+    }
+},
+{
+    "model": "core.mailtemplate",
     "pk": 26,
     "fields": {
         "code": "CERTIFICATE_BODY",
@@ -568,8 +547,8 @@
     "pk": 27,
     "fields": {
         "code": "CPT_CREATE",
-        "label": "Mail création compte",
-        "description": "Mail envoyé lors de la création d’un compte",
+        "label": "Mail création compte local",
+        "description": "Mail envoyé lors de la création d’un compte local",
         "subject": "Votre compte immersion",
         "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>{% if utilisateur_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br>Pour\r\n initialiser votre mot de passe, merci de vous connecter à l'adresse \r\nsuivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en \r\nutilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
@@ -586,19 +565,35 @@
 },
 {
     "model": "core.mailtemplate",
-    "pk": 28,
+    "pk": 30,
     "fields": {
-        "code": "CPT_MIN_REJET_VISITEUR",
-        "label": "Mail rejet compte visiteur",
-        "description": "Mail envoyé lors du rejet d’un compte Visiteur par le référent établissement maître",
-        "subject": "Rejet de votre compte Immersion Visiteur",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Votre compte immersion a été rejeté par le référent Immersion. </p><p>Merci de nous contacter afin de discuter de vos motivations.<br></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "code": "CPT_MIN_REJET",
+        "label": "Mail rejet compte lycéen ou visiteur",
+        "description": "Mail envoyé lors du rejet d’un compte",
+        "subject": "Rejet de votre compte Immersion",
+        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }}, </p><p>{% if estlyceen %}Votre compte immersion a été rejeté par le lycée que vous avez choisi.</p><p>Merci de contacter votre lycée ou de renseigner le bon lycée. {% elif estvisiteur %}<br></p><p>Votre compte immersion a été rejeté par le référent Immersion. </p>Merci de nous contacter afin de discuter de vos motivations.{% endif %}<br><p></p><p></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p><br></p><p></p>",
         "active": true,
         "available_vars": [
-            1,
+            54,
+            55,
             27,
-            29,
-            32
+            29
+        ]
+    }
+},
+{
+    "model": "core.mailtemplate",
+    "pk": 31,
+    "fields": {
+        "code": "CPT_MIN_VALIDE",
+        "label": "Mail validation compte lycéen ou visiteur",
+        "description": "Mail envoyé lors de la validation d’un compte",
+        "subject": "Validation de votre compte Immersion",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Votre compte Immersion a bien été validé. </p><p>Vous pouvez à présent vous inscrire aux immersions. </p><p>Cordialement,</p><p>L'équipe Immersions</p><p></p>",
+        "active": true,
+        "available_vars": [
+            27,
+            29
         ]
     }
 }
