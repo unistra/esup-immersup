@@ -1814,7 +1814,7 @@ class AdminFormsTestCase(TestCase):
             'body':'test content',
             'description': 'test desc',
             'active': True,
-            'available_vars': MailTemplateVars.objects.first()
+            'available_vars': [MailTemplateVars.objects.first()]
         }
 
         for user in [self.ref_str_user, self.ref_etab_user, self.ref_master_etab_user, self.operator_user]:
