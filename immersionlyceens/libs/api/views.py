@@ -2267,7 +2267,7 @@ def get_csv_structures(request):
                 'course__highschool'
             ] = request.user.highschool
 
-        slots = Slot.objects.filter(**filters, published=True).order_by('date', 'start_time')
+        slots = Slot.objects.filter(**filters, course__isnull=False, published=True).order_by('date', 'start_time')
 
         for slot in slots:
 
@@ -2278,7 +2278,7 @@ def get_csv_structures(request):
             if request.user.is_master_establishment_manager():
 
                 line = [
-                    establishment,
+                    establishment if establishment else highschool,
                     structure,
                     infield_separator.join(
                         [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
@@ -2290,8 +2290,8 @@ def get_csv_structures(request):
                     _date(slot.date, 'l d/m/Y'),
                     slot.start_time.strftime('%H:%M'),
                     slot.end_time.strftime('%H:%M'),
-                    slot.campus.label,
-                    slot.building.label,
+                    slot.campus.label if slot.campus else '',
+                    slot.building.label if slot.building else '',
                     slot.room if slot.face_to_face else _('Remote'),
                     '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
                     slot.registered_students(),
@@ -2409,7 +2409,7 @@ def get_csv_structures(request):
                 'visit__highschool'
             ] = request.user.highschool
 
-        slots = Slot.objects.filter(**filters, published=True).order_by('date', 'start_time')
+        slots = Slot.objects.filter(**filters, visit__isnull=False, published=True).order_by('date', 'start_time')
 
         for slot in slots:
 
@@ -2467,6 +2467,150 @@ def get_csv_structures(request):
                     slot.additional_information,
                 ]
                 content.append(line.copy())
+
+
+    if t == 'event':
+
+        label = _('events')
+
+        if request.user.is_master_establishment_manager() or request.user.is_operator():
+
+            header = [
+                _('establishment'),
+                _('structure'),
+                _('event type'),
+                _('label'),
+                _('description'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+
+            ]
+
+            slots = Slot.objects.filter(published=True, event__isnull=False)
+
+        elif request.user.is_establishment_manager():
+
+            header = [
+                _('structure'),
+                _('event type'),
+                _('label'),
+                _('description'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+            Q_filters = Q(event__establishment=request.user.establishment) | Q(
+                event__structure__in=request.user.establishment.structures.all()
+            )
+            slots = Slot.objects.filter(Q_filters, published=True, event__isnull=False)
+
+
+        elif request.user.is_high_school_manager() or request.user.is_structure_manager():
+
+            header = [
+                _('event type'),
+                _('label'),
+                _('description'),
+                _('campus'),
+                _('building'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+        if request.user.is_structure_manager():
+            filters[
+                'event__structure__in'
+            ] = structures
+
+        elif request.user.is_high_school_manager():
+            filters[
+                'event__highschool'
+            ] = request.user.highschool
+
+        slots = Slot.objects.filter(**filters, published=True, event__isnull=False).order_by('date', 'start_time')
+
+        content = []
+
+        for slot in slots:
+
+            structure = slot.get_structure()
+            highschool = slot.get_highschool()
+            establishment = slot.get_establishment()
+
+            if (
+                request.user.is_master_establishment_manager()
+                or request.user.is_operator()
+            ):
+                content.append(
+                    [
+                        establishment if establishment else highschool,
+                        structure,
+                        slot.event.event_type,
+                        slot.event.label,
+                        slot.event.description,
+                        slot.campus.label if slot.campus else '',
+                        slot.building.label if slot.building else '',
+                        slot.room if slot.face_to_face else _('Remote'),
+                        _date(slot.date, 'd/m/Y'),
+                        slot.start_time.strftime('%H:%M'),
+                        slot.end_time.strftime('%H:%M'),
+                        infield_separator.join(
+                            f'{s.last_name} {s.first_name}'
+                            for s in slot.speakers.all().order_by(
+                                'last_name', 'first_name'
+                            )
+                        ),
+                        slot.registered_students(),
+                        slot.n_places,
+                        slot.additional_information,
+                    ]
+                )
+            elif request.user.is_establishment_manager():
+                content.append(
+                    [
+                        structure,
+                        slot.event.event_type,
+                        slot.event.label,
+                        slot.event.description,
+                        slot.campus.label if slot.campus else '',
+                        slot.building.label if slot.building else '',
+                        slot.room if slot.face_to_face else _('Remote'),
+                        _date(slot.date, 'd/m/Y'),
+                        slot.start_time.strftime('%H:%M'),
+                        slot.end_time.strftime('%H:%M'),
+                        infield_separator.join(
+                            f'{s.last_name} {s.first_name}'
+                            for s in slot.speakers.all().order_by(
+                                'last_name', 'first_name'
+                            )
+                        ),
+                        slot.registered_students(),
+                        slot.n_places,
+                        slot.additional_information,
+                    ]
+                )
 
 
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
