@@ -168,17 +168,29 @@ def ajax_get_available_vars(request, template_id=None):
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'INTER', 'REF-TEC')
 def ajax_get_courses(request):
     response = {'msg': '', 'data': []}
+    user = request.user
 
     structure_id = request.GET.get('structure')
     highschool_id = request.GET.get('highschool')
+    user_courses = request.GET.get('user_courses', False) == 'true'
+
     filters = {}
     speaker_filter = {}
     user_filter = False
 
-    if request.user.is_speaker():
+    force_user_filter = [
+        user_courses,
+        user.is_speaker() and not any([
+            user.is_master_establishment_manager(),
+            user.is_establishment_manager(),
+            user.is_operator()
+        ])
+    ]
+
+    if any(force_user_filter):
         user_filter = True
-        filters["speakers"] = request.user
-        speaker_filter["speaker_id"] = request.user
+        filters["speakers"] = user
+        speaker_filter["speaker_id"] = user
 
     try:
         int(structure_id)
@@ -198,7 +210,7 @@ def ajax_get_courses(request):
 
     courses = Course.objects.prefetch_related('training', 'highschool', 'structure').filter(**filters)
 
-    allowed_structures = request.user.get_authorized_structures()
+    allowed_structures = user.get_authorized_structures()
 
     for course in courses:
         managed_by = None
@@ -211,9 +223,9 @@ def ajax_get_courses(request):
             managed_by = f"{course.highschool.city} - {course.highschool.label}"
 
             has_rights = any([
-                request.user.is_master_establishment_manager(),
-                request.user.is_operator(),
-                course.highschool == request.user.highschool
+                user.is_master_establishment_manager(),
+                user.is_operator(),
+                course.highschool == user.highschool
             ])
 
         course_data = {
@@ -328,6 +340,7 @@ def slots(request):
     today = datetime.datetime.today()
     user = request.user
     user_filter = False
+    user_slots = request.GET.get('user_slots', False) == 'true'
     filters = {}
 
     try:
@@ -365,7 +378,16 @@ def slots(request):
     except (TypeError, ValueError):
         training_id = None
 
-    if user.is_speaker():
+    force_user_filter = [
+        user_slots,
+        user.is_speaker() and not any([
+            user.is_master_establishment_manager(),
+            user.is_establishment_manager(),
+            user.is_operator()
+        ])
+    ]
+
+    if any(force_user_filter):
         user_filter = True
         filters["speakers"] = user
 

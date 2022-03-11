@@ -68,6 +68,9 @@
       'responsive': false,
       'ajax': {
         url: "/api/get_courses",
+          data: {
+            user_courses: true
+          },
           dataSrc: function (json) {
             if (json['data'] !== undefined) {
               return json['data'];
