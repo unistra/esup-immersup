@@ -188,7 +188,6 @@ class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
 
     list_filter = (
         ('establishment', RelatedDropdownFilter),
-        HighschoolListFilter,
     )
 
     def get_queryset(self, request):
