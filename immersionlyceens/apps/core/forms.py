@@ -147,6 +147,9 @@ class SlotForm(forms.ModelForm):
             'allowed_post_bachelor_levels']:
             self.fields[elem].widget.attrs.update({'class': 'form-control'})
 
+        # Disable autocomplete for date fields
+        self.fields['date'].widget.attrs.update({'autocomplete': 'off'})
+
         can_choose_establishment = any([
             self.request.user.is_establishment_manager(),
             self.request.user.is_master_establishment_manager(),
@@ -210,7 +213,12 @@ class SlotForm(forms.ModelForm):
             self.fields['date'].value = instance.date
 
         self.fields["repeat"].widget = forms.DateInput(
-            format='%d/%m/%Y', attrs={'placeholder': _('dd/mm/yyyy'), 'class': 'datepicker form-control'}
+            format='%d/%m/%Y',
+            attrs={
+                'placeholder': _('dd/mm/yyyy'),
+                'class': 'datepicker form-control',
+                'autocomplete': 'off'
+            }
         )
 
     def clean_restrictions(self, cleaned_data):
