@@ -221,7 +221,7 @@
               {% if authorized_groups|in_groups:"REF-STR" %}
                 <a class="dropdown-item" href="{% url 'charts:my_registrations_charts' %}">{% trans 'Structure - registrations and participations' %}</a>
                 <a class="dropdown-item" href="{% url 'charts:my_trainings_charts' %}">{% trans 'Structure - registrations by trainings' %}</a>
-                <a class="dropdown-item" href="{% url 'charts:slots_charts' %}">{% trans 'Structure - slots charts' %}</a>
+                <a class="dropdown-item" href="{% url 'charts:slots_charts' %}">{% trans 'Establishment - slots charts' %}</a>
               {% endif %}
             </div>
           </div>

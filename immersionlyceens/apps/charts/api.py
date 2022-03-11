@@ -288,7 +288,7 @@ def get_charts_filters_data(request):
     user = request.user
     filter_by_my_trainings = request.GET.get('filter_by_my_trainings') == "true"
 
-    if user.is_master_establishment_manager():
+    if user.is_master_establishment_manager() or user.is_operator():
         # get highschools and higher education institutions
         highschool_filters = {
             'student_records__isnull': False
@@ -364,7 +364,13 @@ def get_charts_filters_data(request):
 
                 response['data'].append(institution_data.copy())
 
-    if (user.is_master_establishment_manager() or user.is_establishment_manager()) and filter_by_my_trainings:
+    allowed_groups = [
+        user.is_master_establishment_manager(),
+        user.is_establishment_manager(),
+        user.is_operator()
+    ]
+
+    if any(allowed_groups) and filter_by_my_trainings:
         for structure in user.get_authorized_structures():
             establishment = structure.establishment
 
@@ -1672,7 +1678,7 @@ def get_slots_charts(request):
         establishments_slots_count[establishment.id] = \
             Slot.objects.filter(course__structure__establishment=establishment).count()
 
-    if user.is_master_establishment_manager():
+    if user.is_master_establishment_manager() or user.is_operator():
         if establishment_id:
             structures = Structure.objects.filter(establishment=establishment_id, active= True)
         else:
@@ -1687,7 +1693,7 @@ def get_slots_charts(request):
         slots_count = Slot.objects.filter(course__isnull=False, course__structure=structure).count()
 
         if empty_structures or slots_count:
-            if user.is_master_establishment_manager():
+            if user.is_master_establishment_manager() or user.is_operator():
                 name = f"{structure.label} ({structure.establishment.short_label})"
             else:
                 name = structure.label

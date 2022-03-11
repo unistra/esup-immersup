@@ -22,7 +22,11 @@
 
 {% block section_title %}
 <h3 class="ml-2">
-  {% trans "Structures slots charts" %}
+  {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+    {% trans "Slots charts for all establishments" %}
+  {% else %}
+    {% trans "Slots charts of my establishment" %}
+  {% endif %}
 </h3>
 {% endblock %}
 
