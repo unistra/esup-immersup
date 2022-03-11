@@ -2237,6 +2237,12 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
+            filters[
+                'course__structure__in'
+            ] = request.user.establishment.structures.all()
+
+
+
         elif request.user.is_high_school_manager() or request.user.is_structure_manager():
 
             header = [
@@ -2383,6 +2389,10 @@ def get_csv_structures(request):
                 _('place number'),
                 _('additional information'),
             ]
+
+            filters[
+                'visit__structure__in'
+            ] = request.user.establishment.structures.all()
 
         elif request.user.is_high_school_manager() or request.user.is_structure_manager():
 
