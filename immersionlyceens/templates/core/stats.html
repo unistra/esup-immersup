@@ -26,7 +26,7 @@
       {% trans "Statistics and extractions" %}
     </div>
     <div class="card-body">
-      {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
+      {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="extract_anonymous_courses">{% trans 'Anonymous courses data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>

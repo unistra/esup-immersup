@@ -2178,7 +2178,7 @@ def ajax_batch_cancel_registration(request):
     return JsonResponse(response, safe=False)
 
 
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
+@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
 def get_csv_structures(request):
     filters = {}
     content = []
@@ -2281,7 +2281,7 @@ def get_csv_structures(request):
             highschool = slot.get_highschool()
             establishment = slot.get_establishment()
 
-            if request.user.is_master_establishment_manager():
+            if request.user.is_master_establishment_manager() or request.user.is_operator():
 
                 line = [
                     establishment if establishment else highschool,
@@ -2427,7 +2427,7 @@ def get_csv_structures(request):
             highschool = slot.get_highschool()
             establishment = slot.get_establishment()
 
-            if request.user.is_master_establishment_manager():
+            if request.user.is_master_establishment_manager() or request.user.is_operator():
 
                 line = [
                     establishment,
@@ -2632,7 +2632,7 @@ def get_csv_structures(request):
     return response
 
 
-@groups_required('REF-LYC',)
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def get_csv_highschool(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
