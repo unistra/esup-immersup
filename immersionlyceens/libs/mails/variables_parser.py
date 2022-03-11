@@ -272,15 +272,22 @@ class Parser:
 
             for slot in slot_list:
                 if slot.face_to_face:
-                    place = "{0} {1}, ".format(_("campus"), slot.campus.label) if slot.campus else ""
-                    place += "{0} {1}, ".format(_("building"), slot.building.label) if slot.building else ""
-                    place += "{0} {1}".format(_("room"), slot.room) if slot.room else ""
+                    place = "{0} : {1}, ".format(_("campus"), slot.campus.label) if slot.campus else ""
+                    place += "{0} : {1}, ".format(_("building"), slot.building.label) if slot.building else ""
+                    place += "{0} : {1}".format(_("room"), slot.room) if slot.room else ""
                 else:
                     place = _("remote slot")
 
+                if slot.is_visit():
+                    slot_type = _("visit")
+                elif slot.is_event():
+                    slot_type = _("event")
+                else:
+                    slot_type = _("course")
+
                 slot_text.append(
-                    "* {slot_type}{high_school} : {date} ({start_time} - {end_time}) : {label} {course_type}<br />{place}<br /> -> {speakers}".format(
-                        slot_type=slot.get_type(),
+                    "* {slot_type}{high_school} : {date} ({start_time} - {end_time}) : {label} {course_type}<br>{place}<br> -> {speakers}".format(
+                        slot_type=slot_type,
                         high_school=
                             ", {0} {1}, {2}".format(
                                 _('high school'), slot.get_highschool().label, slot.get_highschool().city
@@ -298,7 +305,7 @@ class Parser:
 
             return {
                 "creneaux": {
-                    "liste": "<br /><br />".join(slot_text)
+                    "liste": format_html("<br><br>".join(slot_text))
                 }
             }
         return {}
