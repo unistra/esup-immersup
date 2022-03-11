@@ -1676,7 +1676,10 @@ def get_slots_charts(request):
     establishments_slots_count = {}
     for establishment in Establishment.objects.filter(active=True):
         establishments_slots_count[establishment.id] = \
-            Slot.objects.filter(course__structure__establishment=establishment).count()
+            Slot.objects.filter(
+                course__structure__establishment=establishment,
+                published=True
+            ).count()
 
     if user.is_master_establishment_manager() or user.is_operator():
         if establishment_id:
@@ -1690,7 +1693,11 @@ def get_slots_charts(request):
     datasets = []
 
     for structure in structures:
-        slots_count = Slot.objects.filter(course__isnull=False, course__structure=structure).count()
+        slots_count = Slot.objects.filter(
+            course__isnull=False,
+            course__structure=structure,
+            published=True
+        ).count()
 
         if empty_structures or slots_count:
             if user.is_master_establishment_manager() or user.is_operator():
@@ -1724,13 +1731,6 @@ def get_slots_charts(request):
         }
     }]
 
-    # Adjust X axis scale to have the same max value on all bars
-    """
-    max_x = max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets))
-
-    if max_x:
-        axes['x'][0]['max'] = math.ceil(max_x * 1.1)
-    """
     response = {
         'axes': axes,
         'datasets': datasets,
