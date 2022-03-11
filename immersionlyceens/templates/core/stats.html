@@ -10,6 +10,7 @@
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
 {% endblock %}
 {% block title %}
@@ -25,49 +26,58 @@
       {% trans "Statistics and extractions" %}
     </div>
     <div class="card-body">
-
-
       {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="extract_anonymous_courses">{% trans 'Anonymous courses data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_courses">{% trans 'Extract data' %}</button>
       </div>
       {% if highschool_visit %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'Anonymous visits data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_visits">{% trans 'Extract data' %}</button>
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_visits">{% trans 'Extract data' %}</button>
       </div>
       {% endif %}
       {% if events_off_offer %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'Anonymous events data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
       </div>
       {% endif %}
-      {% elif request.user.is_structure_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
-
-        <select name="structure" id="structure" class="form-control col-sm-3">
-
-          {% if structures|length > 1 %}
-            <option value="" selected>{% trans 'Choose a structure' %}</option>
-            {% for structure in structures %}
-              <option value="{{ structure.id }}">{{ structure.label }}</option>
-            {% endfor %}
-          {% else %}
-            {% for structure in structures %}
-              <option value="{{ structure.id }}" selected>{{ structure.label }}</option>
-            {% endfor %}
-          {% endif %}
-
-        </select>
-        <button type="button" class="btn btn-primary ml-1" id="extract_structure">{% trans 'Extract data' %}</button>
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
+        {% if highschool_visit %}
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
+        {% endif %}
+        {% if events_off_offer %}
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+        {% endif %}
       </div>
       {% elif request.user.is_high_school_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" >{% trans 'High school data' %}</label>
-        <button type="button" class="btn btn-primary" id="extract_highschool">{% trans 'Extract data' %}</button>
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_highschool">{% trans 'Extract data' %}</button>
+      </div>
+      <div class="row">
+        <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data data' %}</button>
+        {% if highschool_visit %}
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
+        {% endif %}
+        {% if events_off_offer %}
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+        {% endif %}
+      </div>
+      {% elif request.user.is_structure_manager%}
+      <div class="row">
+        <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data data' %}</button>
+        {% if highschool_visit %}
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
+        {% endif %}
+        {% if events_off_offer %}
+        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+        {% endif %}
       </div>
       {% else %}
       <div class="alert-info">{% trans "No data extractions available for your user right." %}</div>
@@ -78,21 +88,15 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-  function toggle_structure_btn() {
-    if ($('#structure').val() === ''){
-        $('#extract_structure').prop('disabled', true);
-    } else {
-        $('#extract_structure').prop('disabled', false);
-    }
-  }
 
-  toggle_structure_btn();
-  $('#structure').change(function(){ toggle_structure_btn(); });
-
-  $('#extract_structure').click(function(event){
-    let structure = $('#structure').val();
-    let url = '/api/get_csv_structures/' + structure;
-    window.open(url, '_blank');
+  $('#extract_structure_courses').click(function(event){
+    window.open('{% url 'get_csv_structures' %}?type=course', '_blank');
+  });
+  $('#extract_structure_visits').click(function(event){
+    window.open('{% url 'get_csv_structures' %}?type=visit', '_blank');
+  });
+  $('#extract_structure_events').click(function(event){
+    window.open('{% url 'get_csv_structures' %}?type=event', '_blank');
   });
   $('#extract_highschool').click(function(event){
     window.open('{% url 'get_csv_highschool' %}', '_blank');
