@@ -286,7 +286,7 @@ class Parser:
                     slot_type = _("course")
 
                 slot_text.append(
-                    "* {slot_type}{high_school} : {date} ({start_time} - {end_time}) : {label} {course_type}<br>{place}<br> -> {speakers}".format(
+                    "* {slot_type}{high_school} : {date} ({start_time} - {end_time}) : {label} {course_type}<br>&rarr; {place}<br>&rarr; {speakers}".format(
                         slot_type=slot_type,
                         high_school=
                             ", {0} {1}, {2}".format(

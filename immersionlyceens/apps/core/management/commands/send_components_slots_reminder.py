@@ -7,6 +7,7 @@ import datetime
 import logging
 
 from django.conf import settings
+from django.db.models import Q
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
 
@@ -68,7 +69,10 @@ class Command(BaseCommand):
         for structure in structures:
             slot_list = [
                 s for s in Slot.objects.filter(
-                    course__structure=structure, date__gte=slot_min_date, date__lte=slot_max_date, published=True
+                    Q(course__structure=structure)|Q(event__structure=structure)|Q(visit__structure=structure),
+                    date__gte=slot_min_date,
+                    date__lte=slot_max_date,
+                    published=True
                 ).order_by('date', 'start_time')
             ]
 

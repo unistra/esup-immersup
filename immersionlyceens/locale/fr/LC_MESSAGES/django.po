@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-10 20:35+0100\n"
+"POT-Creation-Date: 2022-03-11 10:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1020,146 +1020,146 @@ msgstr "Erreur : les dates de l'année universitaire active sont incorrectes"
 msgid "You don't have enough privileges to update this course"
 msgstr "Vous n'avez pas les droits suffisants pour modifier ce cours"
 
-#: immersionlyceens/apps/core/forms.py:213
-#: immersionlyceens/apps/core/forms.py:365
+#: immersionlyceens/apps/core/forms.py:218
+#: immersionlyceens/apps/core/forms.py:373
 msgid "dd/mm/yyyy"
 msgstr "jj/mm/aaaa"
 
-#: immersionlyceens/apps/core/forms.py:267
-#: immersionlyceens/apps/core/forms.py:422
-#: immersionlyceens/apps/core/forms.py:541
+#: immersionlyceens/apps/core/forms.py:275
+#: immersionlyceens/apps/core/forms.py:430
+#: immersionlyceens/apps/core/forms.py:549
 msgid "Error: A calendar is required to set a slot."
 msgstr "Erreur: Un calendrier est requis pour créer un créneau"
 
-#: immersionlyceens/apps/core/forms.py:282
-#: immersionlyceens/apps/core/forms.py:436
-#: immersionlyceens/apps/core/forms.py:555
+#: immersionlyceens/apps/core/forms.py:290
+#: immersionlyceens/apps/core/forms.py:444
+#: immersionlyceens/apps/core/forms.py:563
 msgid "This field is required"
 msgstr "Ce champs est obligatoire"
 
-#: immersionlyceens/apps/core/forms.py:286
-#: immersionlyceens/apps/core/forms.py:440
-#: immersionlyceens/apps/core/forms.py:559
+#: immersionlyceens/apps/core/forms.py:294
+#: immersionlyceens/apps/core/forms.py:448
+#: immersionlyceens/apps/core/forms.py:567
 msgid "Required fields are not filled in"
 msgstr "Champs obligatoires non renseignés"
 
-#: immersionlyceens/apps/core/forms.py:290
-#: immersionlyceens/apps/core/forms.py:444
-#: immersionlyceens/apps/core/forms.py:562
+#: immersionlyceens/apps/core/forms.py:298
+#: immersionlyceens/apps/core/forms.py:452
+#: immersionlyceens/apps/core/forms.py:570
 msgid "You can't set a date in the past"
 msgstr "Vous ne pouvez pas paramétrer de date dans le passé"
 
-#: immersionlyceens/apps/core/forms.py:295
-#: immersionlyceens/apps/core/forms.py:449
-#: immersionlyceens/apps/core/forms.py:565
+#: immersionlyceens/apps/core/forms.py:303
+#: immersionlyceens/apps/core/forms.py:457
+#: immersionlyceens/apps/core/forms.py:573
 msgid "Slot is set for today : please enter a valid start_time"
 msgstr ""
 "Le créneau a lieu aujourd'hui : veuillez sélectionner une heure de début "
 "valide"
 
-#: immersionlyceens/apps/core/forms.py:299
-#: immersionlyceens/apps/core/forms.py:454
-#: immersionlyceens/apps/core/forms.py:568
+#: immersionlyceens/apps/core/forms.py:307
+#: immersionlyceens/apps/core/forms.py:462
+#: immersionlyceens/apps/core/forms.py:576
 msgid "Please enter a valid number for 'n_places' field"
 msgstr ""
 "Veuillez entrer un nombre positif non nul dans le champ 'Nombre maximum de "
 "places' "
 
-#: immersionlyceens/apps/core/forms.py:304
-#: immersionlyceens/apps/core/forms.py:459
-#: immersionlyceens/apps/core/forms.py:573
+#: immersionlyceens/apps/core/forms.py:312
+#: immersionlyceens/apps/core/forms.py:467
+#: immersionlyceens/apps/core/forms.py:581
 msgid "Error: The date must be between the dates of the current calendar"
 msgstr "Erreur: La date doit être comprise dans le calendrier en cours"
 
-#: immersionlyceens/apps/core/forms.py:310
-#: immersionlyceens/apps/core/forms.py:465
-#: immersionlyceens/apps/core/forms.py:579
+#: immersionlyceens/apps/core/forms.py:318
+#: immersionlyceens/apps/core/forms.py:473
+#: immersionlyceens/apps/core/forms.py:587
 msgid "Error: Start time must be set before end time"
 msgstr "Erreur: L'heure de fin doit être postérieure à l'heure de début"
 
-#: immersionlyceens/apps/core/forms.py:320
+#: immersionlyceens/apps/core/forms.py:328
 #: immersionlyceens/apps/core/views.py:1246
 msgid "Course published"
 msgstr "Cours publié"
 
-#: immersionlyceens/apps/core/forms.py:346
+#: immersionlyceens/apps/core/forms.py:354
 #: immersionlyceens/apps/core/views.py:1126
 #, python-format
 msgid "Course slot \"%s\" created."
 msgstr "Créneau de cours \"%s\" créé."
 
-#: immersionlyceens/apps/core/forms.py:361
+#: immersionlyceens/apps/core/forms.py:369
 msgid "Enter additional information"
 msgstr "Écrivez des informations complémentaires"
 
-#: immersionlyceens/apps/core/forms.py:363
+#: immersionlyceens/apps/core/forms.py:371
 msgid "Enter the room name"
 msgstr "Entrez le nom d'une salle"
 
-#: immersionlyceens/apps/core/forms.py:382
+#: immersionlyceens/apps/core/forms.py:390
 msgid "Please enter the building and room name"
 msgstr "Entrez les noms du bâtiment et de la salle"
 
-#: immersionlyceens/apps/core/forms.py:470
-#: immersionlyceens/apps/core/forms.py:485
+#: immersionlyceens/apps/core/forms.py:478
+#: immersionlyceens/apps/core/forms.py:493
 #: immersionlyceens/apps/core/views.py:1754
 msgid "Visit published"
 msgstr "Visite publiée"
 
-#: immersionlyceens/apps/core/forms.py:584
-#: immersionlyceens/apps/core/forms.py:603
+#: immersionlyceens/apps/core/forms.py:592
+#: immersionlyceens/apps/core/forms.py:611
 #: immersionlyceens/apps/core/views.py:2290
 msgid "Event published"
 msgstr "Évènement publié"
 
-#: immersionlyceens/apps/core/forms.py:661
-#: immersionlyceens/apps/core/forms.py:663
+#: immersionlyceens/apps/core/forms.py:669
+#: immersionlyceens/apps/core/forms.py:671
 msgid "This field must be filled"
 msgstr "Ce champs doit être rempli"
 
-#: immersionlyceens/apps/core/forms.py:676
+#: immersionlyceens/apps/core/forms.py:684
 #: immersionlyceens/apps/core/models.py:1649
 #: immersionlyceens/templates/modals/modal_contact_us.html:38
 msgid "Subject"
 msgstr "Sujet"
 
-#: immersionlyceens/apps/core/forms.py:718
+#: immersionlyceens/apps/core/forms.py:726
 msgid "This field is required."
 msgstr "Ce champs doit être rempli"
 
-#: immersionlyceens/apps/core/forms.py:776
+#: immersionlyceens/apps/core/forms.py:784
 msgid "A visit with these values already exists"
 msgstr "Une visite avec ces valeurs existe déjà"
 
-#: immersionlyceens/apps/core/forms.py:786
-#: immersionlyceens/apps/core/forms.py:787
-#: immersionlyceens/apps/core/forms.py:940
-#: immersionlyceens/apps/core/forms.py:941
+#: immersionlyceens/apps/core/forms.py:794
+#: immersionlyceens/apps/core/forms.py:795
+#: immersionlyceens/apps/core/forms.py:948
+#: immersionlyceens/apps/core/forms.py:949
 msgid "Please add at least one speaker."
 msgstr "Veuillez ajouter au moins un intervenant."
 
-#: immersionlyceens/apps/core/forms.py:818
-#: immersionlyceens/apps/core/forms.py:973
+#: immersionlyceens/apps/core/forms.py:826
+#: immersionlyceens/apps/core/forms.py:981
 #: immersionlyceens/apps/core/views.py:312
 msgid "User '{}' created"
 msgstr "Utilisateur '{}' créé"
 
-#: immersionlyceens/apps/core/forms.py:827
-#: immersionlyceens/apps/core/forms.py:983
+#: immersionlyceens/apps/core/forms.py:835
+#: immersionlyceens/apps/core/forms.py:991
 #: immersionlyceens/apps/core/views.py:321
 #, python-format
 msgid "Couldn't add group 'INTER' to user '%s'"
 msgstr "Impossible d'ajouter le groupe 'INTER' à l'utilisateur '%s'"
 
-#: immersionlyceens/apps/core/forms.py:836
-#: immersionlyceens/apps/core/forms.py:992
+#: immersionlyceens/apps/core/forms.py:844
+#: immersionlyceens/apps/core/forms.py:1000
 #: immersionlyceens/apps/core/views.py:330
 #: immersionlyceens/apps/core/views.py:554
 msgid "A confirmation email has been sent to {}"
 msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 
-#: immersionlyceens/apps/core/forms.py:841
-#: immersionlyceens/apps/core/forms.py:997
+#: immersionlyceens/apps/core/forms.py:849
+#: immersionlyceens/apps/core/forms.py:1005
 #: immersionlyceens/apps/core/models.py:443
 #: immersionlyceens/apps/core/views.py:335
 #: immersionlyceens/apps/core/views.py:559
@@ -1168,7 +1168,7 @@ msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 msgid "Couldn't send email : %s"
 msgstr "Courriel non envoyé : %s"
 
-#: immersionlyceens/apps/core/forms.py:930
+#: immersionlyceens/apps/core/forms.py:938
 msgid "An event with these values already exists"
 msgstr "Un évènement avec ces valeurs existe déjà"
 
@@ -3691,6 +3691,7 @@ msgstr "formation"
 #: immersionlyceens/libs/api/views.py:2206
 #: immersionlyceens/libs/api/views.py:2365
 #: immersionlyceens/libs/api/views.py:2390
+#: immersionlyceens/libs/mails/variables_parser.py:286
 msgid "course"
 msgstr "cours"
 
@@ -4040,7 +4041,7 @@ msgid "Charter not signed"
 msgstr "Charte non signée"
 
 #: immersionlyceens/libs/mails/variables_parser.py:112
-#: immersionlyceens/libs/mails/variables_parser.py:359
+#: immersionlyceens/libs/mails/variables_parser.py:366
 msgid "Unknown home institution"
 msgstr "Etablissement d'origine inconnu"
 
@@ -4053,7 +4054,15 @@ msgstr "Aucune"
 msgid "remote slot"
 msgstr "créneau à distance"
 
-#: immersionlyceens/libs/mails/variables_parser.py:286
+#: immersionlyceens/libs/mails/variables_parser.py:282
+msgid "visit"
+msgstr "visite"
+
+#: immersionlyceens/libs/mails/variables_parser.py:284
+msgid "event"
+msgstr "évènement"
+
+#: immersionlyceens/libs/mails/variables_parser.py:293
 #: immersionlyceens/templates/core/common_slot.html:91
 #: immersionlyceens/templates/core/course.html:55
 #: immersionlyceens/templates/core/off_offer_event.html:57
@@ -4062,12 +4071,12 @@ msgstr "créneau à distance"
 msgid "high school"
 msgstr "Lycée"
 
-#: immersionlyceens/libs/mails/variables_parser.py:311
 #: immersionlyceens/libs/mails/variables_parser.py:318
+#: immersionlyceens/libs/mails/variables_parser.py:325
 msgid "Link improperly configured"
 msgstr "Lien non renseigné"
 
-#: immersionlyceens/libs/mails/variables_parser.py:335
+#: immersionlyceens/libs/mails/variables_parser.py:342
 msgid "not set"
 msgstr "non défini"
 
