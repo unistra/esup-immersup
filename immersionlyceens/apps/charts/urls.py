@@ -18,7 +18,7 @@ urlpatterns = [
     path('my_registrations_charts', views.global_registrations_charts, {'my_trainings': True },
          name='my_registrations_charts'),
 
-    path('global_slots_charts', views.global_slots_charts, name='global_slots_charts'),
+    path('slots_charts', views.slots_charts, name='slots_charts'),
 
     # API part
     # TODO : update paths to have more REST compliant urls
@@ -38,7 +38,6 @@ urlpatterns = [
          name='get_registration_charts_cats_by_population'),
     path('get_registration_charts_cats_by_trainings', api.get_registration_charts_cats_by_trainings,
          name='get_registration_charts_cats_by_trainings'),
+
     path('get_slots_charts', api.get_slots_charts, name='get_slots_charts'),
-    path('get_slots_data', api.get_slots_data, name='get_slots_data'),
-    path('get_slots_data/csv', api.get_slots_data, {'csv_mode': True }, name='get_slots_csv_data'),
 ]

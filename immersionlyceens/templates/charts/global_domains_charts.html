@@ -140,6 +140,17 @@
     var level = "{{ part2_filters.level }}"
   {% endautoescape %}
 
+  var container;
+  var chart;
+  var chart2;
+  var pieSeries;
+  var pieSeries2;
+  var line1;
+  var line2;
+  var selectedSlice;
+  var datasets;
+  var url;
+
   var part1_level = $('#id_level_part1 option:selected').val();
 
   function open_filter_modal() {
@@ -147,17 +158,6 @@
   }
 
   function init_graph() {
-    var container;
-    var chart;
-    var chart2;
-    var pieSeries;
-    var pieSeries2;
-    var line1;
-    var line2;
-    var selectedSlice;
-    var datasets;
-    var url;
-
     function selectSlice(dataItem) {
       selectedSlice = dataItem.slice;
 
@@ -262,6 +262,10 @@
       async: false,
     });
 
+    if(is_set(container)) {
+      container.dispose()
+    }
+
     if(datasets.length) {
       am4core.useTheme(am4themes_animated);
       // am4core.useTheme(am4themes_material);
@@ -337,7 +341,6 @@
     else {
       container = am4core.create("chartdiv", am4core.Container);
       // container.openModal("<strong>No data found!</strong>");
-      
     }
   }
 

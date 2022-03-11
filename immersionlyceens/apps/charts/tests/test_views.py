@@ -110,12 +110,3 @@ class ChartsViewsTestCase(TestCase):
         )
         self.assertEqual(response.context['part1_level_filter'], 0)
         self.assertEqual(response.context['part2_filters']['level'], 3)
-
-
-    def test_view_global_slots_charts(self):
-        request = self.factory.get("/")
-        request.user = self.ref_etab_user
-        response = self.client.get("/charts/global_slots_charts", request)
-
-        # Not much to test here, as data is gathered with ajax queries
-        self.assertEqual(response.status_code, 200)

@@ -1635,102 +1635,101 @@ def get_registration_charts_cats_by_population(request):
 
 
 @is_ajax_request
-@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
+@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC", "REF-STR")
 def get_slots_charts(request):
     """
-    Data for amcharts 4
-    Double pie chart format
+    Slots data for amcharts 4
+    Horizontal bars format, part 2
     """
+
+    user = request.user
+
+    immersions_filter = {}
+    # Parse filters in POST request
+    establishment_id = request.GET.get("establishment_id")
+    empty_structures = request.GET.get("empty_structures", False) == 'true'
+
+    # We need data for 2 or 3 graphs (3 if filter_by_my_trainings is False)
+    # Axes are common, just make sure we always use 'name' as attribute name for category
+    axes = {
+        'x': [{
+            "type": "ValueAxis",
+            "min": 0,
+            "maxPrecision": 0,
+            "calculateTotals": True,
+            "extraMax": 0.1
+        }],
+        'y': [{
+            "type": "CategoryAxis",
+            "dataFields": {
+                "category": "name",
+            }
+        }],
+    }
+
+    establishments_slots_count = {}
+    for establishment in Establishment.objects.filter(active=True):
+        establishments_slots_count[establishment.id] = \
+            Slot.objects.filter(course__structure__establishment=establishment).count()
+
+    if user.is_master_establishment_manager():
+        if establishment_id:
+            structures = Structure.objects.filter(establishment=establishment_id, active= True)
+        else:
+            structures = Structure.objects.filter(active=True)
+    else:
+        structures = Structure.objects.filter(establishment=user.establishment, active=True)
+
+    # Each dataset represents a structure
     datasets = []
 
-    series = [
-        {
-            "type": "PieSeries",
-            "dataFields": {
-                "value": "slots_count",
-                "category": "structure",
-            },
+    for structure in structures:
+        slots_count = Slot.objects.filter(course__isnull=False, course__structure=structure).count()
+
+        if empty_structures or slots_count:
+            if user.is_master_establishment_manager():
+                name = f"{structure.label} ({structure.establishment.short_label})"
+            else:
+                name = structure.label
+
+            datasets.append({
+                'name': name,
+                'slots_count': slots_count,
+                'percentage': round(slots_count / establishments_slots_count[structure.establishment.id] * 100, 1),
+                'none': 0
+            })
+
+    datasets = sorted(datasets, key=lambda k:k['slots_count'])
+
+    # Series
+    series = [{
+        "name": "Structure",
+        "type": "ColumnSeries",
+
+        "dataFields": {
+            "valueX": "slots_count",
+            "categoryY": "name",
         },
-    ]
+        "columns": {
+            "template": {
+                "width": "20%",
+                "tooltipText": "{percentage} %",
+            },
+        }
+    }]
 
-    for structure in Structure.objects.all():
-        # Get all slots for this structure
-        qs = Slot.objects.prefetch_related('course__structure', 'course__training')\
-            .filter(course__structure=structure, published=True)
+    # Adjust X axis scale to have the same max value on all bars
+    """
+    max_x = max(map(lambda x: sum([v for k, v in x.items() if k != 'name']), datasets))
 
-        slots_count = qs.count()
-
-        if slots_count:
-            data = {
-                "structure": structure.label,
-                "slots_count": slots_count,
-                "subData": [],
-            }
-
-            for training in Training.objects.prefetch_related('courses__structure')\
-                .filter(courses__structure=structure, active=True).distinct():
-                subcount = qs.filter(course__training=training).count()
-
-                if subcount:
-                    sub_data = {
-                        "name": training.label,
-                        "slots_count": subcount,
-                    }
-                    data['subData'].append(sub_data.copy())
-
-            datasets.append(data.copy())
-
+    if max_x:
+        axes['x'][0]['max'] = math.ceil(max_x * 1.1)
+    """
     response = {
+        'axes': axes,
         'datasets': datasets,
-        'series': series,
+        'series': series
     }
 
     return JsonResponse(response, safe=False)
 
-
-@groups_required("REF-ETAB", "REF-ETAB-MAITRE", "REF-TEC")
-def get_slots_data(request, csv_mode=False):
-    """
-    Data for datatables or csv extraction
-    """
-
-    if csv_mode:
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = f'attachment; filename="slots_statistics.csv"'
-        header = [
-            _('Structure'),
-            _('Training'),
-            _('Course'),
-            _('Slots count'),
-            _('Available seats'),
-        ]
-        writer = csv.writer(response)
-        writer.writerow(header)
-    else:
-        response = {'msg': '', 'data': []}
-
-    for course in Course.objects.prefetch_related('structure', 'training').filter(published=True)\
-            .order_by("structure__label", "training__label", "label"):
-        if csv_mode:
-            writer.writerow([
-                course.structure.label,
-                course.training.label,
-                course.label,
-                course.published_slots_count(),
-                course.free_seats(),
-            ])
-        else:
-            course_data = {
-                "structure": course.structure.label,
-                "training": course.training.label,
-                "course": course.label,
-                "slots_count":course.published_slots_count(),
-                "available_seats":course.free_seats(),
-            }
-
-            response['data'].append(course_data.copy())
-
-    if csv_mode:
-        return response
-    else:
-        return JsonResponse(response, safe=False)
