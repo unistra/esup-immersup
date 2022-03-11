@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render
 from immersionlyceens.decorators import groups_required
 
 from immersionlyceens.apps.core.models import (
-    HighSchool, HigherEducationInstitution, HighSchoolLevel, PostBachelorLevel, StudentLevel
+    HighSchool, HigherEducationInstitution, HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
 )
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
@@ -96,6 +96,7 @@ def global_registrations_charts(request, my_trainings=False):
     """
     Registration and participation charts by student levels
     """
+    user = request.user
     highschool_id = None
     highschool_name = None
     highschool_filter = {}
@@ -116,18 +117,18 @@ def global_registrations_charts(request, my_trainings=False):
         'structure_ids': structure_ids
     }
 
-    if request.user.is_high_school_manager() and request.user.highschool:
-        highschool_id = request.user.highschool.id
-        highschool_name = f"{request.user.highschool.label} - {request.user.highschool.city}"
+    if user.is_high_school_manager() and user.highschool:
+        highschool_id = user.highschool.id
+        highschool_name = f"{user.highschool.label} - {user.highschool.city}"
         highschool_filter['pk'] = highschool_id
 
-    if filter_by_my_trainings or not request.user.is_high_school_manager():
+    if filter_by_my_trainings or not user.is_high_school_manager():
         high_school_levels_filters['is_post_bachelor'] = False
 
     # This will be only useful to structure managers
     structures = [
         {'id': s.id, 'label': s.label}
-        for s in request.user.get_authorized_structures().order_by('label')
+        for s in user.get_authorized_structures().order_by('label')
     ]
 
     if filter_by_my_trainings:
@@ -139,7 +140,7 @@ def global_registrations_charts(request, my_trainings=False):
         'all_highschools': HighSchool.objects.filter(**highschool_filter).order_by('city', 'label'),
         'filter_by_my_trainings': filter_by_my_trainings,
         'structures': structures,
-        'structure_id': structures[0]['id'] if structures else '',
+        'structure_id': structures[0]['id'] if structures and user.is_structure_manager() else '',
         'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
         'part1_level_filter': request.session.get("current_level_filter", 0),
         'part2_filters': part2_filters
@@ -148,13 +149,21 @@ def global_registrations_charts(request, my_trainings=False):
     return render(request, 'charts/registrations_charts.html', context=context)
 
 
-@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
-def global_slots_charts(request):
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-STR')
+def slots_charts(request, my_trainings=False):
     """
-    Slots statistics by structures and trainings
+    Slots charts
     """
+    user = request.user
+
+    structures = user.get_authorized_structures()
+    establishments = Establishment.objects.filter(active=True).order_by('label')
+
+    establishment_id = request.GET.get("establishment_id", None)
 
     context = {
+        'establishments': establishments,
+        'establishment_id': establishment_id
     }
 
-    return render(request, 'charts/global_slots_charts.html', context=context)
+    return render(request, 'charts/slots_charts.html', context=context)

@@ -143,7 +143,11 @@
   {% endautoescape %}
 
   var structure_id = "{{ structure_id }}";
-  var data
+  var data;
+  var chart;
+  var chart_platform;
+  var chart_attended_one;
+  var chart_one_immersion;
 
   /* First part XY Chart */
   var part1_level = $('#id_level_part1 option:selected').val();
@@ -179,7 +183,11 @@
 
       am4core.useTheme(am4themes_animated);
 
-      let chart = am4core.createFromConfig({
+      if(is_set(chart)) {
+        chart.dispose();
+      }
+
+      chart = am4core.createFromConfig({
         "xAxes": data.axes.x,
         "yAxes": data.axes.y,
         "data": data.datasets,
@@ -198,8 +206,9 @@
       totalSeries.columns.template.strokeOpacity = 0;
 
       var totalBullet = totalSeries.bullets.push(new am4charts.LabelBullet());
-      totalBullet.dx = 20;
+      totalBullet.dx = 40;
       totalBullet.label.text = "{valueX.total}";
+      totalBullet.label.truncate = false;
       totalBullet.label.hideOversized = false;
       totalBullet.label.fontSize = 18;
       totalBullet.label.background.fill = totalSeries.stroke;
@@ -276,7 +285,11 @@
         attended_one = json["attended_one"];
 
         if(filter_by_my_trainings === false) {
-          let chart_platform = am4core.createFromConfig({
+          if(is_set(chart_platform)) {
+            chart_platform.dispose();
+          }
+
+          chart_platform = am4core.createFromConfig({
             "xAxes": platform_regs.axes.x,
             "yAxes": platform_regs.axes.y,
             "data": platform_regs.datasets,
@@ -301,8 +314,9 @@
           platform_totalSeries.columns.template.strokeOpacity = 0;
 
           var platform_totalBullet = platform_totalSeries.bullets.push(new am4charts.LabelBullet());
-          platform_totalBullet.dx = 20;
+          platform_totalBullet.dx = 40;
           platform_totalBullet.label.text = "{valueX.total}";
+          platform_totalBullet.label.truncate = false;
           platform_totalBullet.label.hideOversized = false;
           platform_totalBullet.label.fontSize = 18;
           platform_totalBullet.label.background.fill = platform_totalSeries.stroke;
@@ -310,7 +324,11 @@
           platform_totalBullet.label.padding(5, 10, 5, 10);
         }
 
-        let chart_one_immersion = am4core.createFromConfig({
+        if(is_set(chart_one_immersion)) {
+          chart_one_immersion.dispose();
+        }
+
+        chart_one_immersion = am4core.createFromConfig({
           "xAxes": one_immersion.axes.x,
           "yAxes": one_immersion.axes.y,
           "data": one_immersion.datasets,
@@ -333,15 +351,20 @@
         one_immersion_totalSeries.columns.template.strokeOpacity = 0;
 
         var one_immersion_totalBullet = one_immersion_totalSeries.bullets.push(new am4charts.LabelBullet());
-        one_immersion_totalBullet.dx = 20;
+        one_immersion_totalBullet.dx = 40;
         one_immersion_totalBullet.label.text = "{valueX.total}";
+        one_immersion_totalBullet.label.truncate = false;
         one_immersion_totalBullet.label.hideOversized = false;
         one_immersion_totalBullet.label.fontSize = 18;
         one_immersion_totalBullet.label.background.fill = one_immersion_totalSeries.stroke;
         one_immersion_totalBullet.label.background.fillOpacity = 0.2;
         one_immersion_totalBullet.label.padding(5, 10, 5, 10);
 
-        let chart_attended_one = am4core.createFromConfig({
+        if(is_set(chart_attended_one)) {
+          chart_attended_one.dispose();
+        }
+
+        chart_attended_one = am4core.createFromConfig({
           "xAxes": attended_one.axes.x,
           "yAxes": attended_one.axes.y,
           "data": attended_one.datasets,
@@ -364,8 +387,9 @@
         attended_one_totalSeries.columns.template.strokeOpacity = 0;
 
         var attended_one_totalBullet = attended_one_totalSeries.bullets.push(new am4charts.LabelBullet());
-        attended_one_totalBullet.dx = 20;
+        attended_one_totalBullet.dx = 40;
         attended_one_totalBullet.label.text = "{valueX.total}";
+        attended_one_totalBullet.label.truncate = false;
         attended_one_totalBullet.label.hideOversized = false;
         attended_one_totalBullet.label.fontSize = 18;
         attended_one_totalBullet.label.background.fill = attended_one_totalSeries.stroke;
