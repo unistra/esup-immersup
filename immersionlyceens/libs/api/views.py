@@ -2265,8 +2265,28 @@ def get_csv_structures(request):
 
 
 
-        elif request.user.is_high_school_manager() or request.user.is_structure_manager():
+        elif request.user.is_high_school_manager():
 
+            header = [
+                _('training domain'),
+                _('training subdomain'),
+                _('training'),
+                _('course'),
+                _('course_type'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('meeting place'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+            filters[
+                'course__highschool'
+            ] = request.user.highschool
+
+        if request.user.is_structure_manager():
             header = [
                 _('training domain'),
                 _('training subdomain'),
@@ -2284,16 +2304,10 @@ def get_csv_structures(request):
                 _('place number'),
                 _('additional information'),
             ]
-
-        if request.user.is_structure_manager():
             filters[
                 'course__structure__in'
             ] = structures
 
-        elif request.user.is_high_school_manager():
-            filters[
-                'course__highschool'
-            ] = request.user.highschool
 
         slots = Slot.objects.filter(**filters, course__isnull=False, published=True).order_by('date', 'start_time')
 
@@ -2326,7 +2340,6 @@ def get_csv_structures(request):
                     slot.n_places,
                     slot.additional_information,
                 ]
-                content.append(line.copy())
 
             elif request.user.is_establishment_manager():
 
@@ -2350,7 +2363,6 @@ def get_csv_structures(request):
                     slot.n_places,
                     slot.additional_information,
                 ]
-                content.append(line.copy())
 
             elif (request.user.is_high_school_manager() or request.user.is_structure_manager()):
 
@@ -2373,7 +2385,28 @@ def get_csv_structures(request):
                     slot.n_places,
                     slot.additional_information,
                 ]
-                content.append(line.copy())
+
+            elif request.user.is_high_school_manager():
+
+                line = [
+                    infield_separator.join(
+                        [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
+                    ),
+                    infield_separator.join([sub.label for sub in slot.course.training.training_subdomains.all()]),
+                    slot.course.training.label,
+                    slot.course.label,
+                    slot.course_type.label,
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    slot.room if slot.face_to_face else _('Remote'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+
+            content.append(line.copy())
 
     if t == 'visit':
 
@@ -2465,7 +2498,6 @@ def get_csv_structures(request):
                     slot.n_places,
                     slot.additional_information,
                 ]
-                content.append(line.copy())
 
             elif request.user.is_establishment_manager():
 
@@ -2482,7 +2514,6 @@ def get_csv_structures(request):
                     slot.n_places,
                     slot.additional_information,
                 ]
-                content.append(line.copy())
 
             elif (request.user.is_high_school_manager() or request.user.is_structure_manager()):
 
@@ -2498,8 +2529,8 @@ def get_csv_structures(request):
                     slot.n_places,
                     slot.additional_information,
                 ]
-                content.append(line.copy())
 
+            content.append(line.copy())
 
     if t == 'event':
 
