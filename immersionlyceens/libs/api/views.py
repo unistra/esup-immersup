@@ -3541,11 +3541,12 @@ def ajax_send_email_contact_us(request):
 
 @login_required
 @is_ajax_request
-@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('REF-ETAB', 'SRV-JUR', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def ajax_get_student_presence(request, date_from=None, date_until=None):
     response = {'data': [], 'msg': ''}
 
     filters = {}
+    Q_filters = Q()
 
     if date_from and date_from != "None":
         filters["slot__date__gte"] = date_from
@@ -3553,19 +3554,46 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
     if date_until and date_until != "None":
         filters["slot__date__lte"] = date_until
 
-    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(**filters)
+    if (
+        request.user.is_establishment_manager()
+        and not request.user.is_superuser
+        or request.user.is_legal_department_staff()
+    ):
+
+        structures = request.user.establishment.structures.all()
+
+        Q_filters = (
+            Q(slot__course__structure__in=structures) |
+            Q(slot__event__structure__in=structures) |
+            Q(slot__visit__structure__in=structures)
+        )
+
+    elif request.user.is_high_school_manager() and not request.user.is_superuser:
+
+        Q_filters = (
+            Q(slot__course__highschool=request.user.highschool) |
+            Q(slot__event__highschool=request.user.highschool) |
+            Q(slot__visit__highschool=request.user.highschool)
+        )
+
+    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(Q_filters, **filters)
 
     for immersion in immersions:
         institution = ''
 
         if immersion.student.is_high_school_student():
             record = immersion.student.get_high_school_student_record()
+            student_profile = _('High school student')
             institution = record.highschool.label if record else ''
         elif immersion.student.get_student_record():
             record = immersion.student.get_student_record()
+            student_profile = _('Student')
             if record:
                 uai_code, institution = record.home_institution()
                 institution = institution.label if institution else uai_code
+        elif immersion.student.is_visitor():
+            record = immersion.student.get_visitor_record()
+            student_profile = _('Visitor')
 
         immersion_data = {
             'id': immersion.pk,
@@ -3585,13 +3613,14 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
                 ),
                 "%Y:%m:%d %H:%M",
             ) if immersion.slot.date else None,
+            'student_profile': student_profile,
             'name': f"{immersion.student.last_name} {immersion.student.first_name}",
             'institution': institution,
             'phone': record.phone if record and record.phone else '',
             'email': immersion.student.email,
             'campus': immersion.slot.campus.label if immersion.slot.campus else '',
             'building': immersion.slot.building.label if immersion.slot.building else '',
-            'room': immersion.slot.room,
+            'meeting_place': immersion.slot.room if immersion.slot.face_to_face else _('Remote'),
         }
 
         response['data'].append(immersion_data.copy())
