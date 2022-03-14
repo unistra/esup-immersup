@@ -279,15 +279,19 @@
       chart.data = datasets;
       chart.legend = new am4charts.Legend();
       // chart.legend.position = 'absolute';
-      // chart.legend.position = 'left';
-      chart.legend.maxWidth = undefined;
+      chart.legend.position = 'bottom';
+      chart.legend.maxWidth = 240;
+      chart.legend.labels.template.wrap = true;
+      chart.legend.labels.template.truncate = false;
 
       pieSeries = chart.series.push(new am4charts.PieSeries());
       pieSeries.dataFields.value = "count";
       pieSeries.dataFields.category = "domain";
       pieSeries.slices.template.states.getKey("active").properties.shiftRadius = 0;
       pieSeries.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
+      pieSeries.labels.template.maxWidth = 130;
       pieSeries.labels.template.text = "{category}";
+      pieSeries.labels.template.wrap = true;
 
       pieSeries.slices.template.events.on("hit", function (event) {
         selectSlice(event.target.dataItem);
@@ -299,19 +303,23 @@
       pieSeries.labels.template.events.on("visibilitychanged", hideSmall);
 
       chart2 = container.createChild(am4charts.PieChart);
-      chart2.width = am4core.percent(50);
+      chart2.width = am4core.percent(100);
       chart2.radius = am4core.percent(60);
       chart2.legend = new am4charts.Legend();
       // chart2.legend.position = 'absolute';
-      // chart2.legend.position = 'right';
-      chart2.legend.maxWidth = undefined;
+      chart2.legend.position = 'bottom';
+      chart2.legend.maxWidth = 240;
+      chart2.legend.labels.template.wrap = true;
+      chart2.legend.labels.template.truncate = false;
 
       pieSeries2 = chart2.series.push(new am4charts.PieSeries());
       pieSeries2.dataFields.value = "count";
       pieSeries2.dataFields.category = "name";
       pieSeries2.slices.template.states.getKey("active").properties.shiftRadius = 0;
       pieSeries2.slices.template.tooltipText = "{value.percent.formatNumber('#.#')}% ({value.value})";
+      pieSeries2.labels.template.maxWidth = 130;
       pieSeries2.labels.template.text = "{category}";
+      pieSeries2.labels.template.wrap = true;
 
       // pieSeries2.labels.template.disabled = true;
       pieSeries2.ticks.template.disabled = true;
