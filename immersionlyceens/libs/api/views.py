@@ -183,6 +183,7 @@ def ajax_get_courses(request):
         user.is_speaker() and not any([
             user.is_master_establishment_manager(),
             user.is_establishment_manager(),
+            user.is_structure_manager(),
             user.is_operator()
         ])
     ]
@@ -3989,6 +3990,7 @@ class VisitList(generics.ListAPIView):
             user.is_speaker() and not any([
                 user.is_master_establishment_manager(),
                 user.is_establishment_manager(),
+                user.is_structure_manager(),
                 user.is_operator()
             ])
         ]
@@ -4083,6 +4085,7 @@ class OffOfferEventList(generics.ListAPIView):
             user.is_speaker() and not any([
                 user.is_master_establishment_manager(),
                 user.is_establishment_manager(),
+                user.is_structure_manager(),
                 user.is_operator()
             ])
         ]
