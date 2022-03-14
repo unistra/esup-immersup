@@ -92,7 +92,14 @@ class ChartsAPITestCase(TestCase):
 
         # Charts filter data (ajax request : use headers)
         url = "/charts/get_charts_filters_data"
-        response = self.client.get(url, {'filter_by_my_trainings': "true"}, **self.header)
+        response = self.client.get(
+            url,
+            {
+                'filter_by_my_trainings': "true",
+                'include_structures': "true",
+            },
+            **self.header
+        )
 
         content = response.content.decode()
         json_content = json.loads(content)
