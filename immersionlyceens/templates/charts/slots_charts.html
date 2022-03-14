@@ -40,7 +40,7 @@
         <label for="show_structures_without_slot" class="form-check-label ml-md-2">{% trans 'Include structures with no slot' %} : </label>
         <input type="checkbox" id="show_structures_without_slot">
       </div>
-      {% if request.user.is_master_establishment_manager %}
+      {% if request.user.is_master_establishment_manager or request.user.is_operator %}
       <div class="form-group mx-sm-3 mb-2">
         <label for="id_establishment" class="form-check-label ml-md-2">{% trans 'Filter by establishment' %} :</label>
         <select id="id_establishment">
