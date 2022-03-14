@@ -356,7 +356,7 @@ def slots(request):
     establishment_id = request.GET.get('establishment_id')
     visits = request.GET.get('visits', False) == "true"
     events = request.GET.get('events', False) == "true"
-    courses = not (visits or events)
+    courses = not (visits or events) # unused, still useful somewhere ?
     past_slots = request.GET.get('past', False) == "true"
 
     try:
@@ -384,6 +384,7 @@ def slots(request):
         user.is_speaker() and not any([
             user.is_master_establishment_manager(),
             user.is_establishment_manager(),
+            user.is_structure_manager(),
             user.is_operator()
         ])
     ]
