@@ -68,6 +68,7 @@ function init_datatable() {
         d.past = $('#filter_past_slots').is(':checked')
         d.visits = false
         d.events = true
+        d.user_slots = true
         return d
       },
       dataSrc: function (json) {

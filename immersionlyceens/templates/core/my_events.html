@@ -67,6 +67,9 @@
       'responsive': false,
       'ajax': {
         url: "/api/off_offer_events",
+          data: {
+            'user_events': true,
+          },
           dataSrc: function (json) {
             if (json !== undefined) {
               return json;

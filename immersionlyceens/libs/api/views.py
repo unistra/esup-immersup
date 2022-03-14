@@ -3951,8 +3951,19 @@ class VisitList(generics.ListAPIView):
         queryset = Visit.objects.all()
         user = self.request.user
 
+        user_visits = self.request.GET.get('user_visits', False) == 'true'
+
+        force_user_filter = [
+            user_visits,
+            user.is_speaker() and not any([
+                user.is_master_establishment_manager(),
+                user.is_establishment_manager(),
+                user.is_operator()
+            ])
+        ]
+
         if not user.is_superuser:
-            if user.is_speaker():
+            if any(force_user_filter):
                 queryset = queryset.filter(speakers=user)
             if user.is_structure_manager():
                 queryset = queryset.filter(structure__in=user.structures.all())
@@ -4034,8 +4045,19 @@ class OffOfferEventList(generics.ListAPIView):
         queryset = OffOfferEvent.objects.all()
         user = self.request.user
 
+        user_events = self.request.GET.get('user_events', False) == 'true'
+
+        force_user_filter = [
+            user_events,
+            user.is_speaker() and not any([
+                user.is_master_establishment_manager(),
+                user.is_establishment_manager(),
+                user.is_operator()
+            ])
+        ]
+
         if not user.is_superuser:
-            if user.is_speaker():
+            if any(force_user_filter):
                 queryset = queryset.filter(speakers=user)
             if user.is_high_school_manager():
                 queryset = queryset.filter(highschool=user.highschool)

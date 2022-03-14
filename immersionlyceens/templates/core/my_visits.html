@@ -66,6 +66,9 @@
       'responsive': false,
       'ajax': {
         url: "/api/visits",
+          data: {
+            'user_visits': true,
+          },
           dataSrc: function (json) {
             if (json !== undefined) {
               return json;
