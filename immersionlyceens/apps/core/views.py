@@ -821,7 +821,7 @@ def stats(request):
 
 
 @login_required
-@groups_required('SRV-JUR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
+@groups_required('SRV-JUR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def students_presence(request):
     """
     Displays a list of students registered to slots between min_date and max_date

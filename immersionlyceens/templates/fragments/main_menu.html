@@ -165,7 +165,7 @@
                 {% if authorized_groups|in_groups:"REF-ETAB,REF-ETAB-MAITRE,REF-TEC" %}
                   <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View all students' %}</a>
                 {% endif %}
-                {% if authorized_groups|in_groups:"REF-ETAB,SRV-JUR,REF-ETAB-MAITRE,REF-TEC" %}
+                {% if authorized_groups|in_groups:"REF-ETAB,SRV-JUR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
                   <a class="dropdown-item" href="{% url 'students_presence' %}">{% trans 'View students by date' %}</a>
                 {% endif %}
                 {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-ETAB,REF-TEC" %}
