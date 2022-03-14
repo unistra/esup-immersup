@@ -1423,6 +1423,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         valid_groups = [
             request.user.is_superuser,
             request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
             request.user.is_operator()
         ]
 
@@ -1432,6 +1433,7 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         valid_groups = [
             request.user.is_superuser,
             request.user.is_master_establishment_manager(),
+            request.user.is_establishment_manager(),
             request.user.is_operator()
         ]
 
