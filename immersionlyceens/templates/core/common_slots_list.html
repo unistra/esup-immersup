@@ -50,63 +50,65 @@
             </div>
           </form>
         </div>
-        {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator or request.user.is_structure_manager %}
-          <div class="row">
-            {% if slot_mode != "visit" %}
-              {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
+        {% if not user_slots %}
+          {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator or request.user.is_structure_manager %}
+            <div class="row">
+              {% if slot_mode != "visit" %}
+                {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
+                  <div class="col-md-3">
+                    <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
+                      <label for="id_highschool">{% trans 'Select a high school' %} :</label>
+                      <select id="id_highschool" class="form-control">
+                        <option value="">------------</option>
+                        {% for highschool in highschools %}
+                          <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
+                            {{ highschool }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endif %}
+              {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+                {% if slot_mode != "visit" %}
+                  <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
+                {% endif %}
                 <div class="col-md-3">
-                  <div id="highschool_filter" style="padding-bottom:10px; padding-top:20px;">
-                    <label for="id_highschool">{% trans 'Select a high school' %} :</label>
-                    <select id="id_highschool" class="form-control">
-                      <option value="">------------</option>
-                      {% for highschool in highschools %}
-                        <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="selected"{% endif %}>
-                          {{ highschool }}
+                  <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
+                    <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
+                    <select id="id_establishment" class="form-control">
+                      {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+                        <option value="">------------</option>
+                      {% endif %}
+                      {% for establishment in establishments %}
+                        <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
+                          {{ establishment.code }} - {{ establishment.label }}
                         </option>
                       {% endfor %}
                     </select>
                   </div>
                 </div>
               {% endif %}
-            {% endif %}
-            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-              {% if slot_mode != "visit" %}
-                <div class="col-md-1" style="padding-bottom:10px; padding-top:20px;">{% trans 'or' %}</div>
-              {% endif %}
-              <div class="col-md-3">
-                <div id="establishment_filter" style="padding-bottom:10px; padding-top:20px;">
-                  <label for="id_establishment">{% trans 'Select an establishment' %} :</label>
-                  <select id="id_establishment" class="form-control">
-                    {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+              {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
+                <div class="col-md-5" id="id_div_structures">
+                  <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
+                    <label for="id_structure">{% trans 'Select a structure' %} :</label>
+                    <select id="id_structure" class="form-control">
                       <option value="">------------</option>
-                    {% endif %}
-                    {% for establishment in establishments %}
-                      <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
-                        {{ establishment.code }} - {{ establishment.label }}
-                      </option>
-                    {% endfor %}
-                  </select>
+                      {% for structure in structures %}
+                        <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                          {{ structure.code }} - {{ structure.label }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
                 </div>
-              </div>
-            {% endif %}
-            {% if request.user.is_establishment_manager or request.user.is_master_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
-              <div class="col-md-5" id="id_div_structures">
-                <div id="str_filter" style="padding-bottom:10px; padding-top:20px;">
-                  <label for="id_structure">{% trans 'Select a structure' %} :</label>
-                  <select id="id_structure" class="form-control">
-                    <option value="">------------</option>
-                    {% for structure in structures %}
-                      <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
-                        {{ structure.code }} - {{ structure.label }}
-                      </option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-            {% endif %}
-          </div>
-          {% block trainings_filter %}{% endblock %}
-          <br>
+              {% endif %}
+            </div>
+            {% block trainings_filter %}{% endblock %}
+            <br>
+          {% endif %}
         {% endif %}
       <div class="table-responsive">
         <table id="slots_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap">

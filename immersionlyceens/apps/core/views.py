@@ -435,6 +435,7 @@ def myslots(request, slots_type=None):
 
     context = {
         'contact_form': contact_form,
+        'user_slots': True
     }
 
     if slots_type == "visits":
