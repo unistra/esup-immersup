@@ -60,6 +60,7 @@
 
 var $select_all = $('#select_all');
 var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
+var include_structures = "{{ include_structures }}" === "True"
 $.fn.dataTableExt.errMode = 'console';
 
 dtr = $('#filters_table').DataTable({
@@ -75,7 +76,8 @@ dtr = $('#filters_table').DataTable({
   'ajax': {
     url: "/charts/get_charts_filters_data",
     data: {
-      'filter_by_my_trainings': filter_by_my_trainings
+      'filter_by_my_trainings': filter_by_my_trainings,
+      'include_structures': include_structures,
     },
     dataSrc: function (json) {
       if (json['data'] !== undefined) {

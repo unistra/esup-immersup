@@ -287,6 +287,7 @@ def get_charts_filters_data(request):
     response = {'msg': '', 'data': []}
     user = request.user
     filter_by_my_trainings = request.GET.get('filter_by_my_trainings') == "true"
+    include_structures = request.GET.get('include_structures', False) == "true"
 
     if user.is_master_establishment_manager() or user.is_operator():
         # get highschools and higher education institutions
@@ -370,7 +371,7 @@ def get_charts_filters_data(request):
         user.is_operator()
     ]
 
-    if any(allowed_groups) and filter_by_my_trainings:
+    if any(allowed_groups) and filter_by_my_trainings and include_structures:
         for structure in user.get_authorized_structures():
             establishment = structure.establishment
 

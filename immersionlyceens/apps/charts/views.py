@@ -43,6 +43,7 @@ def global_domains_charts(request, my_trainings=False):
 
     context = {
         'filter_by_my_trainings': filter_by_my_trainings,
+        'include_structures': False,
         'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
         'part2_filters': part2_filters
     }
@@ -141,6 +142,7 @@ def global_registrations_charts(request, my_trainings=False):
         'filter_by_my_trainings': filter_by_my_trainings,
         'structures': structures,
         'structure_id': structures[0]['id'] if structures and user.is_structure_manager() else '',
+        'include_structures': True,
         'levels': HighSchoolLevel.objects.filter(active=True).order_by('order'),
         'part1_level_filter': request.session.get("current_level_filter", 0),
         'part2_filters': part2_filters
