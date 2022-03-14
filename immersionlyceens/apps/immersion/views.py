@@ -614,7 +614,7 @@ def home(request):
 
 
 @login_required
-@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC', 'REF-TEC')
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC', 'REF-TEC', 'REF-LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
