@@ -599,7 +599,9 @@ class MyStudents(generic.TemplateView):
             self.request.user.is_operator(),
             self.request.user.is_master_establishment_manager(),
             self.request.user.is_establishment_manager(),
-            self.request.user.is_high_school_manager() and self.request.user.highschool.postbac_immersion,
+            self.request.user.is_high_school_manager()
+                and self.request.user.highschool
+                and self.request.user.highschool.postbac_immersion,
         ])
 
         context: Dict[str, Any] = super().get_context_data(**kwargs)
