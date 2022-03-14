@@ -3996,12 +3996,12 @@ class VisitList(generics.ListAPIView):
         if not user.is_superuser:
             if any(force_user_filter):
                 queryset = queryset.filter(speakers=user)
-            if user.is_structure_manager():
-                queryset = queryset.filter(structure__in=user.structures.all())
-            if user.is_establishment_manager() and user.establishment:
+            elif user.is_establishment_manager() and user.establishment:
                 queryset = Visit.objects.filter(
                     Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
                     .distinct()
+            elif user.is_structure_manager():
+                queryset = queryset.filter(structure__in=user.structures.all())
 
         return queryset.order_by('establishment', 'structure', 'highschool', 'purpose')
 
@@ -4090,14 +4090,14 @@ class OffOfferEventList(generics.ListAPIView):
         if not user.is_superuser:
             if any(force_user_filter):
                 queryset = queryset.filter(speakers=user)
-            if user.is_high_school_manager():
+            elif user.is_high_school_manager():
                 queryset = queryset.filter(highschool=user.highschool)
-            if user.is_structure_manager():
-                queryset = queryset.filter(structure__in=user.structures.all())
-            if user.is_establishment_manager() and user.establishment:
+            elif user.is_establishment_manager() and user.establishment:
                 queryset = OffOfferEvent.objects.filter(
                     Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
                     .distinct()
+            elif user.is_structure_manager():
+                queryset = queryset.filter(structure__in=user.structures.all())
 
         return queryset.order_by('establishment', 'structure', 'highschool', 'label')
 
