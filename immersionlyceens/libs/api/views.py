@@ -627,7 +627,7 @@ def slots(request):
                 # Nothing to do
                 data['attendances_value'] = -1  # nothing to do
 
-            elif courses and slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists():
+            elif slot.immersions.filter(attendance_status=0, cancellation_type__isnull=True).exists():
                 data['attendances_value'] = 1  # to enter
                 data['attendances_status'] = gettext("To enter")
 

@@ -9,6 +9,7 @@ import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
+from hijack import signals
 
 import requests
 from django.conf import settings
@@ -40,6 +41,24 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# Define and register a signal for hijack
+def hijack_clean_session_vars(sender, hijacker, hijacked, request, **kwargs):
+    """
+    On each hijack, clean these session vars
+    """
+    session_vars = [
+        'current_establishment_id',
+        'current_structure_id',
+        'current_highschool_id',
+        'current_training_id',
+    ]
+
+    for var in session_vars:
+        request.session.pop(var, None)
+
+signals.hijack_started.connect(hijack_clean_session_vars)
 
 
 @groups_required('REF-ETAB-MAITRE', 'REF-TEC')

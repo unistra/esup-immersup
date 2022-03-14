@@ -51,7 +51,7 @@
           </form>
         </div>
         {% if not user_slots %}
-          {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator or request.user.is_structure_manager %}
+          {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator or request.user.is_structure_manager %}
             <div class="row">
               {% if slot_mode != "visit" %}
                 {% if request.user.is_high_school_manager or request.user.is_master_establishment_manager or request.user.is_operator %}
