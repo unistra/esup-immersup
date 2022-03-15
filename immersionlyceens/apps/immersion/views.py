@@ -600,7 +600,8 @@ class LinkAccountsView(TemplateView):
                     except PendingUserGroup.DoesNotExist:
                         pending = PendingUserGroup.objects.create(
                             immersionuser1 = request.user,
-                            immersionuser2 = user
+                            immersionuser2 = user,
+                            validation_string = uuid.uuid4().hex
                         )
 
                     link_validation_string = pending.validation_string
