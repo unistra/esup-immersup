@@ -219,6 +219,14 @@ class APITestCase(TestCase):
             first_name='student2',
             last_name='STUDENT2',
         )
+
+        self.visitor_user = get_user_model().objects.create_user(
+            username='visitor666',
+            password='pass',
+            email='visitor666@no-reply.com',
+            first_name='visitor666',
+            last_name='VISITOR666',
+        )
         self.cancel_type = CancelType.objects.create(label='Hello world')
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
@@ -462,6 +470,18 @@ class APITestCase(TestCase):
             allowed_global_registrations=4,
         )
 
+        self.slot4 = Slot.objects.create(
+            visit=Visit.objects.first(),
+            campus=self.campus,
+            building=self.building,
+            room='room 2',
+            date=self.today + timedelta(days=2),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
+        )
+
         self.immersion = Immersion.objects.create(
             student=self.highschool_user,
             slot=self.slot,
@@ -473,6 +493,10 @@ class APITestCase(TestCase):
         self.immersion3 = Immersion.objects.create(
             student=self.highschool_user,
             slot=self.past_slot,
+        )
+        self.immersion4 = Immersion.objects.create(
+            student=self.visitor_user,
+            slot=self.slot4,
         )
         self.mail_t = MailTemplate.objects.create(
             code="code",
@@ -2048,6 +2072,7 @@ class APITestCase(TestCase):
         self.assertIsNone(content['err_msg'])
 
 
+
     def test_API_ajax_send_email_us(self):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
@@ -2080,28 +2105,34 @@ class APITestCase(TestCase):
         self.assertTrue(content['error'])
         self.assertEqual(content['msg'], "Config parameter not found")
 
-    # TODO: updated soon for new view's data
-    # def test_API_ajax_get_students_presence(self):
-    #     request.user = self.ref_etab_user
-    #     self.client.login(username='ref_etab', password='pass')
-    #     url = "/api/get_students_presence"
+    def test_API_ajax_get_students_presence(self):
+        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
+        url = "/api/get_students_presence"
 
-    #     data = {}
-    #     content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        data = {}
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-    #     i = content['data'][0]
-    #     self.assertEqual(self.immersion.id, i['id'])
-    #     self.assertEqual(_date(self.immersion.slot.date, 'l d/m/Y'), i['date'])
-    #     self.assertEqual(self.immersion.slot.start_time.strftime('%Hh%M'), i['time']['start'])
-    #     self.assertEqual(self.immersion.slot.end_time.strftime('%Hh%M'), i['time']['end'])
-    #     self.assertEqual(f'{self.highschool_user.last_name} {self.highschool_user.first_name}', i['name'])
-    #     self.assertEqual(self.hs_record.highschool.label, i['institution'])
-    #     self.assertEqual(self.hs_record.phone, i['phone'])
-    #     self.assertEqual(self.highschool_user.email, i['email'])
-    #     self.assertEqual(self.immersion.slot.campus.label, i['campus'])
-    #     self.assertEqual(self.immersion.slot.building.label, i['building'])
-    #     self.assertEqual(self.immersion.slot.room, i['room'])
+        if self.immersion.student.is_visitor():
+            student_profile = _('Visitor')
+        elif self.immersion.student.is_high_school_student():
+            student_profile = _('High school student')
+        else:
+            student_profile = _('Student')
 
+        i = content['data'][0]
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(_date(self.immersion.slot.date, 'l d/m/Y'), i['date'])
+        self.assertEqual(self.immersion.slot.start_time.strftime('%Hh%M'), i['time']['start'])
+        self.assertEqual(self.immersion.slot.end_time.strftime('%Hh%M'), i['time']['end'])
+        self.assertEqual(f'{self.highschool_user.last_name} {self.highschool_user.first_name}', i['name'])
+        self.assertEqual(self.hs_record.highschool.label, i['institution'])
+        self.assertEqual(self.hs_record.phone, i['phone'])
+        self.assertEqual(self.highschool_user.email, i['email'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['meeting_place'])
+        self.assertEqual(student_profile, i['student_profile'])
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user
