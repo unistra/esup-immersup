@@ -23,22 +23,18 @@ urlpatterns = [
 
     path('registrations', views.registrations, name='registrations'),
 
-    # path('login', views.customLogin, name='login'),
-    # path('login/<profile>', views.customLogin, name='login'),
-
     path("login", views.CustomLoginView.as_view(), name="login"),
     path("login/<profile>", views.CustomLoginView.as_view(), name="login"),
 
-    # path('recovery', views.recovery, name='recovery'),
-
     path('recovery', views.RecoveryView.as_view(), name='recovery'),
-
 
     path('register', views.register, name='register'),
     path('register/<profile>', views.register, name='register'),
 
-    # path('resend_activation', views.resend_activation, name='resend_activation'),
     path('resend_activation', views.ResendActivationView.as_view(), name='resend_activation'),
+
+    path('link_accounts', views.LinkAccountsView.as_view(), name='link_accounts'),
+    path('link/<hash>', views.LinkView.as_view(), name='link'),
 
     path('reset_password/<hash>', views.reset_password, name='reset_password'),
     path('student_record', views.student_record, name='student_record'),

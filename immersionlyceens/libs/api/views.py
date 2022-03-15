@@ -190,8 +190,8 @@ def ajax_get_courses(request):
 
     if any(force_user_filter):
         user_filter = True
-        filters["speakers"] = user
-        speaker_filter["speaker_id"] = user
+        filters["speakers__in"] = user.linked_users()
+        speaker_filter["speakers"] = user.linked_users()
 
     try:
         int(structure_id)
@@ -391,7 +391,7 @@ def slots(request):
 
     if any(force_user_filter):
         user_filter = True
-        filters["speakers"] = user
+        filters["speakers__in"] = user.linked_users()
 
     if not user_filter:
         if visits and not establishment_id and not structure_id:
@@ -468,7 +468,9 @@ def slots(request):
         user_filter_key = "course__training__structures__in"
 
     if not user.is_superuser and user.is_structure_manager():
-        user_filter = {user_filter_key: user.structures.all()}
+        user_filter = {
+            user_filter_key: user.structures.all()
+        }
         slots = slots.filter(**user_filter)
 
     if not past_slots:
@@ -4027,7 +4029,7 @@ class VisitList(generics.ListAPIView):
 
         if not user.is_superuser:
             if any(force_user_filter):
-                queryset = queryset.filter(speakers=user)
+                queryset = queryset.filter(speakers__in=user.linked_users())
             elif user.is_establishment_manager() and user.establishment:
                 queryset = Visit.objects.filter(
                     Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
@@ -4122,7 +4124,7 @@ class OffOfferEventList(generics.ListAPIView):
 
         if not user.is_superuser:
             if any(force_user_filter):
-                queryset = queryset.filter(speakers=user)
+                queryset = queryset.filter(speakers__in=user.linked_users())
             elif user.is_high_school_manager():
                 queryset = queryset.filter(highschool=user.highschool)
             elif user.is_establishment_manager() and user.establishment:

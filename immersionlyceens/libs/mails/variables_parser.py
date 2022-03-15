@@ -265,6 +265,8 @@ class Parser:
 
         return {}
 
+
+
     @staticmethod
     def get_slot_list_context(slot_list):
         if slot_list:
@@ -324,6 +326,30 @@ class Parser:
         else:
             return {"lienGlobal": _("Link improperly configured")}
 
+    @staticmethod
+    def get_accounts_link_context(
+            request: Any, platform_url: str, link_validation_string: str, link_source_user: ImmersionUser
+    ) -> Dict[str, Any]:
+
+        link_dict = {
+            "lienDemandeur": link_source_user
+        }
+
+        if request:
+            link_dict["lienAssociationComptes"] = format_html('<a href="{0}">{0}</a>',
+                request.build_absolute_uri(
+                    reverse("immersion:link", kwargs={'hash': link_validation_string})
+                )
+            )
+        else:
+            link_dict["lienAssociationComptes"] = format_html('<a href="{0}{1}">{0}{1}</a>',
+                platform_url,
+                reverse("immersion:link", kwargs={'hash': link_activaction_string})
+            )
+
+        return link_dict
+
+
     @classmethod
     def get_context(cls, user: Optional[ImmersionUser], request: Optional[Request] = None, **kwargs) -> Dict[str, Any]:
         slot: Optional[Slot] = kwargs.get('slot')
@@ -332,6 +358,8 @@ class Parser:
         visit: Optional[Visit] = kwargs.get('visit')
         event: Optional[OffOfferEvent] = kwargs.get('event')
         immersion: Optional[Immersion] = kwargs.get('immersion')
+        link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
+        link_source_user: Optional[ImmersionUser] = kwargs.get('link_source_user', '')
 
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
         global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()
@@ -352,6 +380,9 @@ class Parser:
 
         context.update(cls.get_user_context(user))
         context.update(cls.get_user_request_context(user, request, platform_url))
+        context.update(cls.get_accounts_link_context(
+            request, platform_url, link_validation_string, link_source_user)
+        )
 
         context.update(cls.get_slot_list_context(slot_list))
         context.update(cls.get_slot_survey_context(slot_survey))

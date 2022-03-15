@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+
+{% block content %}
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'Link speakers accounts' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-5">
+  <div class="container">
+    <p>
+    {% trans 'Link two or more of your speakers accounts to view all your courses, visits or events in the same tables.' %}
+    </p>
+
+    {% if request.user.linked_users %}
+      {% trans 'These accounts are already linked : ' %}
+      <ul>
+      {% for u in request.user.linked_users %}
+        <li>{{ u.email }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group row justify-content-center">
+        <label for="id_email" class="col-sm-5 col-lg-4 col-form-label">{% trans 'Link your current account to the following one (email)' %} :</label>
+        <div class="col-sm-7 col-md-6">
+          <input type="email" name="email" class="form-control" maxlength="254" required id="id_email" value="{{ email }}">
+        </div>
+      </div>
+      <div class="form-group row justify-content-center">
+        <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
+          <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Send' %}">
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+{% endblock %}

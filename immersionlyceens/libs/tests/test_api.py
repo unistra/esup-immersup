@@ -1172,10 +1172,10 @@ class APITestCase(TestCase):
         self.assertEqual(self.course.training.label, c['training_label'])
         self.assertEqual(self.course.label, c['label'])
         # speakers
-        self.assertEqual(self.course.slots_count(speaker_id=self.speaker1.id), c['slots_count'])
-        self.assertEqual(self.course.free_seats(speaker_id=self.speaker1.id), c['n_places'])
+        self.assertEqual(self.course.slots_count(speakers=self.speaker1.id), c['slots_count'])
+        self.assertEqual(self.course.free_seats(speakers=self.speaker1.id), c['n_places'])
         self.assertEqual(
-            self.course.published_slots_count(speaker_id=self.speaker1.id),
+            self.course.published_slots_count(speakers=self.speaker1.id),
             c['published_slots_count']
         )
         self.assertEqual(self.course.get_alerts_count(), c['alerts_count'])
@@ -1194,10 +1194,10 @@ class APITestCase(TestCase):
         self.assertEqual(self.highschool_course.training.label, c['training_label'])
         self.assertEqual(self.highschool_course.label, c['label'])
         # speakers
-        self.assertEqual(self.highschool_course.slots_count(speaker_id=self.highschool_speaker.id), c['slots_count'])
-        self.assertEqual(self.highschool_course.free_seats(speaker_id=self.highschool_speaker.id), c['n_places'])
+        self.assertEqual(self.highschool_course.slots_count(speakers=self.highschool_speaker.id), c['slots_count'])
+        self.assertEqual(self.highschool_course.free_seats(speakers=self.highschool_speaker.id), c['n_places'])
         self.assertEqual(
-            self.highschool_course.published_slots_count(speaker_id=self.highschool_speaker.id),
+            self.highschool_course.published_slots_count(speakers=self.highschool_speaker.id),
             c['published_slots_count']
         )
 

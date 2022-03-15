@@ -255,6 +255,13 @@
                 </a>
               </div>
               {% endif %}
+              {% if user.is_only_speaker %}
+              <div class="dropdown-item text-right">
+                <a class="text-decoration-none" href="{% url 'immersion:link_accounts' %}">
+                  <i class="fa fas fa-link"></i> {% trans "Link speakers accounts" %}
+                </a>
+              </div>
+              {% endif %}
               <div class="dropdown-item text-right">
                 <a class="text-decoration-none" href="{% get_logout_url %}">
                   <i class="fa fas fa-sign-out"></i> {% trans "Logout" %}

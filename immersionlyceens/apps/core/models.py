@@ -338,6 +338,9 @@ class ImmersionUser(AbstractUser):
         for code, name in self._groups.items():
             setattr(self, 'is_%s' % name, partial(self.has_groups, code, negated=False))
 
+        for code, name in self._groups.items():
+            setattr(self, 'is_only_%s' % name, partial(self.has_single_group, code))
+
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
         blank=True, null=True
     )
@@ -373,6 +376,18 @@ class ImmersionUser(AbstractUser):
         to one of groups, else False
         """
         return self._user_filters[negated](self.is_superuser, self.groups.filter(name__in=groups).exists())
+
+
+    def has_single_group(self, group):
+        """
+        :param group: group name to check
+        :return: True if User belongs to (and only) group, else False
+        """
+        return all([
+            self.groups.filter(name=group).exists(),
+            self.groups.count() == 1
+        ])
+
 
     def has_course_rights(self, course_id):
         """
@@ -716,9 +731,70 @@ class ImmersionUser(AbstractUser):
 
         return True, errors
 
+
+    def linked_users(self):
+        """
+        :return: a list of users linked to self (including self)
+        Returns only [self] if there's no linked user
+        """
+        if not self.usergroup.exists():
+            return [self]
+
+        return [user for group in self.usergroup.all() for user in group.immersionusers.all()]
+
+
     class Meta:
         verbose_name = _('User')
         ordering = ['last_name', 'first_name', ]
+
+
+class ImmersionUserGroup(models.Model):
+    """
+    Accounts fusion
+    """
+    immersionusers = models.ManyToManyField(
+        ImmersionUser, verbose_name=_("Group members"), related_name='usergroup',
+    )
+
+    def __str__(self):
+        return f"{self._meta.verbose_name}: {', '.join(self.immersionusers.values_list('email', flat=True))}"
+
+    class Meta:
+        verbose_name = _('User group')
+        verbose_name_plural = _('User groups')
+        ordering = ['pk', ]
+
+
+class PendingUserGroup(models.Model):
+    """
+    Accounts links waiting to be confirmed
+    """
+    creation_date = models.DateTimeField(_("Date"), auto_now_add=True)
+
+    immersionuser1 = models.ForeignKey(
+        ImmersionUser, verbose_name=_("User 1"), on_delete=models.CASCADE, blank=False, null=False, related_name="+"
+    )
+
+    immersionuser2 = models.ForeignKey(
+        ImmersionUser, verbose_name=_("User 2"), on_delete=models.CASCADE, blank=False, null=False, related_name="+"
+    )
+
+    validation_string = models.TextField(_("Accounts link validation string"), blank=False, null=False, unique=True)
+
+
+    def set_validation_string(self):
+        """
+        Generates and return a new validation string
+        """
+        self.validation_string = uuid.uuid4().hex
+        self.save()
+        return self.validation_string
+
+
+    class Meta:
+        verbose_name = _('Pending accounts link')
+        verbose_name_plural = _('Pending accounts link')
+        ordering = ['pk', ]
 
 
 class TrainingDomain(models.Model):
@@ -1285,55 +1361,55 @@ class Course(models.Model):
         return self.training.structures.all()
 
 
-    def free_seats(self, speaker_id=None):
+    def free_seats(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         :return: number of seats as the sum of seats of all slots under this course
         """
         filters = {'published': True}
 
-        if speaker_id:
-            filters['speakers'] = speaker_id
+        if speakers:
+            filters['speakers__in'] = speakers
 
         d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
 
         return d['total_seats']
 
 
-    def published_slots_count(self, speaker_id=None):
+    def published_slots_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         Return number of published slots under this course
         """
         filters = {'published': True}
 
-        if speaker_id:
-            filters['speakers'] = speaker_id
+        if speakers:
+            filters['speakers__in'] = speakers
 
         return self.slots.filter(**filters).count()
 
 
-    def slots_count(self, speaker_id=None):
+    def slots_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         Return number of slots under this course, published or not
         """
-        if speaker_id:
-            return self.slots.filter(speakers=speaker_id).count()
+        if speakers:
+            return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
 
 
-    def registrations_count(self, speaker_id=None):
+    def registrations_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         :return: the number of non-cancelled registered students on all the slots
         under this course (past and future)
         """
         filters = {'slot__course': self, 'cancellation_type__isnull': True}
 
-        if speaker_id:
-            filters['slot__speakers'] = speaker_id
+        if speakers:
+            filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
@@ -1408,52 +1484,56 @@ class Visit(models.Model):
 
         return current_year.date_is_between(today) and not self.slots.all().exists()
 
-    def free_seats(self, speaker_id=None):
+
+    def free_seats(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         :return: number of seats as the sum of seats of all slots under this visit
         """
         filters = {'published': True}
 
-        if speaker_id:
-            filters['speakers'] = speaker_id
+        if speakers:
+            filters['speakers__in'] = speakers
 
         d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
 
         return d['total_seats']
 
-    def published_slots_count(self, speaker_id=None):
+
+    def published_slots_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         Return number of published slots under this visit
         """
         filters = {'published': True}
 
-        if speaker_id:
-            filters['speakers'] = speaker_id
+        if speakers:
+            filters['speakers__in'] = speakers
 
         return self.slots.filter(**filters).count()
 
-    def slots_count(self, speaker_id=None):
+
+    def slots_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         Return number of slots under this visit, published or not
         """
-        if speaker_id:
-            return self.slots.filter(speakers=speaker_id).count()
+        if speakers:
+            return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
 
-    def registrations_count(self, speaker_id=None):
+
+    def registrations_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         :return: the number of non-cancelled registered students on all the slots
         under this visit (past and future)
         """
         filters = {'slot__visit': self, 'cancellation_type__isnull': True}
 
-        if speaker_id:
-            filters['slot__speakers'] = speaker_id
+        if speakers:
+            filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
@@ -1551,52 +1631,52 @@ class OffOfferEvent(models.Model):
 
         return current_year.date_is_between(today) and not self.slots.all().exists()
 
-    def free_seats(self, speaker_id=None):
+    def free_seats(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         :return: number of seats as the sum of seats of all slots under this event
         """
         filters = {'published': True}
 
-        if speaker_id:
-            filters['speakers'] = speaker_id
+        if speakers:
+            filters['speakers__in'] = speakers
 
         d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
 
         return d['total_seats']
 
-    def published_slots_count(self, speaker_id=None):
+    def published_slots_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         Return number of published slots under this event
         """
         filters = {'published': True}
 
-        if speaker_id:
-            filters['speakers'] = speaker_id
+        if speakers:
+            filters['speakers__in'] = speakers
 
         return self.slots.filter(**filters).count()
 
-    def slots_count(self, speaker_id=None):
+    def slots_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         Return number of slots under this event, published or not
         """
-        if speaker_id:
-            return self.slots.filter(speakers=speaker_id).count()
+        if speakers:
+            return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
 
-    def registrations_count(self, speaker_id=None):
+    def registrations_count(self, speakers=None):
         """
-        :speaker_id: optional : only consider slots attached to 'speaker'
+        :speakers: optional : only consider slots attached to 'speakers'
         :return: the number of non-cancelled registered students on all the slots
         under this event (past and future)
         """
         filters = {'slot__event': self, 'cancellation_type__isnull': True}
 
-        if speaker_id:
-            filters['slot__speakers'] = speaker_id
+        if speakers:
+            filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
 
