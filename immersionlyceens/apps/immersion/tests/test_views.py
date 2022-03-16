@@ -469,7 +469,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Success
         response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)
-        self.assertIn("The activation message have been resent.", response.content.decode('utf-8'))
+        self.assertIn("The activation message has been resent.", response.content.decode('utf-8'))
 
         # Fail with account already activated
         self.highschool_user.validation_string = None

@@ -31,7 +31,7 @@ from immersionlyceens.apps.core.models import (
     Calendar, CancelType, CertificateLogo, CertificateSignature,
     HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
     MailTemplate, PostBachelorLevel, StudentLevel, UniversityYear,
-    UserCourseAlert,
+    UserCourseAlert, PendingUserGroup
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -513,25 +513,6 @@ def change_password(request):
     return render(request, 'immersion/change_password.html', context)
 
 
-# def activate(request, hash=None):
-#     if hash:
-#         try:
-#             user = ImmersionUser.objects.get(validation_string=hash)
-#             user.validate_account()
-#             messages.success(request, _("Your account is now enabled. Thanks !"))
-#
-#             if user.is_student():
-#                 return HttpResponseRedirect("/shib")
-#
-#         except ImmersionUser.DoesNotExist:
-#             messages.error(request, _("Invalid activation data"))
-#         except Exception as e:
-#             logger.exception("Activation error : %s", e)
-#             messages.error(request, _("Something went wrong"))
-#
-#     return HttpResponseRedirect("/immersion/login")
-
-
 class ActivateView(View):
     redirect_url: str = "/immersion/login"
 
@@ -553,29 +534,6 @@ class ActivateView(View):
                 messages.error(request, _("Something went wrong"))
 
         return HttpResponseRedirect(self.redirect_url)
-
-
-# # todo: refactor into a class
-# def resend_activation(request):
-#     email = ""
-#
-#     if request.method == "POST":
-#         email = request.POST.get('email', '').strip().lower()
-#         redirect_url: str = "/shib"
-#
-#         try:
-#             user = ImmersionUser.objects.get(email__iexact=email)
-#         except ImmersionUser.DoesNotExist:
-#             messages.error(request, _("No account found with this email address"))
-#         else:
-#             if user.is_valid():
-#                 messages.error(request, _("This account has already been activated, please login."))
-#                 return HttpResponseRedirect(redirect_url)
-#             else:
-#                 msg = user.send_message(request, 'CPT_MIN_CREATE')
-#                 messages.success(request, _("The activation message have been resent."))
-#
-#     return render(request, 'immersion/resend_activation.html', {'email': email})
 
 
 class ResendActivationView(TemplateView):
@@ -602,10 +560,110 @@ class ResendActivationView(TemplateView):
                 return HttpResponseRedirect(redirect_url)
             else:
                 msg = user.send_message(request, 'CPT_MIN_CREATE')
-                messages.success(request, _("The activation message have been resent."))
+                if not msg:
+                    messages.success(request, _("The activation message has been resent."))
+                else:
+                    messages.error(request, _("The activation message has not been sent : ") + msg)
 
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
+
+
+class LinkAccountsView(TemplateView):
+    template_name: str = "immersion/link_accounts.html"
+
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "context": self.request.POST.get('email', '').strip().lower()
+        })
+        return context
+
+
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get('email', '').strip().lower()
+
+        try:
+            user = ImmersionUser.objects.get(email__iexact=email)
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("No account found with this email address"))
+        else:
+            if user.is_valid():
+                if not user.is_only_speaker():
+                    messages.error(request, _("This account is not a speaker-only one, it can't be linked"))
+                elif user in request.user.linked_users():
+                    messages.success(request, _("These accounts are already linked"))
+
+                else:
+                    try:
+                        pending = PendingUserGroup.objects.get(
+                            Q(immersionuser1=request.user, immersionuser2=user)
+                            |Q(immersionuser2=request.user, immersionuser1=user)
+                        )
+                    except PendingUserGroup.DoesNotExist:
+                        pending = PendingUserGroup.objects.create(
+                            immersionuser1 = request.user,
+                            immersionuser2 = user,
+                            validation_string = uuid.uuid4().hex
+                        )
+
+                    link_validation_string = pending.validation_string
+
+                    msg = user.send_message(
+                        request,
+                        'CPT_FUSION',
+                        link_validation_string=link_validation_string,
+                        link_source_user=request.user
+                    )
+
+                    if not msg:
+                        messages.success(request, _("The link message has been sent to this email address"))
+                    else:
+                        messages.error(request, _("Message not sent : %s") % msg)
+            else:
+                messages.error(request, _("This account has not been validated (yet)"))
+
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+
+class LinkView(View):
+    redirect_url: str = "/immersion/link_accounts"
+
+    def get(self, request, *args, **kwargs):
+        hash = kwargs.get("hash", None)
+        if hash:
+            try:
+                pending_link = PendingUserGroup.objects.get(validation_string=hash)
+
+                print(pending_link)
+
+                u1 = pending_link.immersionuser1
+                u2 = pending_link.immersionuser2
+
+                print(u1)
+                print(u2)
+
+                if u1.usergroup.exists():
+                    usergroup = u1.usergroup.first()
+                    if u2 not in u1.linked_users():
+                        usergroup.immersionusers.add(u2)
+                else:
+                    usergroup = u1.usergroup.create()
+                    usergroup.immersionusers.add(u2)
+
+                pending_link.delete()
+
+                messages.success(request, _("Your accounts have been linked"))
+
+            except PendingUserGroup.DoesNotExist:
+                messages.error(request, _("Invalid link data"))
+            except Exception as e:
+                logger.exception("Link error : %s", e)
+                messages.error(request, _("Something went wrong"))
+
+        return HttpResponseRedirect(self.redirect_url)
+
 
 @login_required
 def home(request):

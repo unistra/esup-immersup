@@ -28,13 +28,13 @@ from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, OffOfferEvent, PublicDocument, Slot, Structure, Training,
-    TrainingDomain, UniversityYear, UserCourseAlert, Vacation, Visit,
+    TrainingDomain, UniversityYear, UserCourseAlert, Vacation, Visit, ImmersionUserGroup
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
     EstablishmentSerializer, HighSchoolLevelSerializer,
     OffOfferEventSerializer, StructureSerializer, TrainingHighSchoolSerializer,
-    VisitSerializer,
+    VisitSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -190,8 +190,8 @@ def ajax_get_courses(request):
 
     if any(force_user_filter):
         user_filter = True
-        filters["speakers"] = user
-        speaker_filter["speaker_id"] = user
+        filters["speakers__in"] = user.linked_users()
+        speaker_filter["speakers"] = user.linked_users()
 
     try:
         int(structure_id)
@@ -391,7 +391,7 @@ def slots(request):
 
     if any(force_user_filter):
         user_filter = True
-        filters["speakers"] = user
+        filters["speakers__in"] = user.linked_users()
 
     if not user_filter:
         if visits and not establishment_id and not structure_id:
@@ -468,7 +468,9 @@ def slots(request):
         user_filter_key = "course__training__structures__in"
 
     if not user.is_superuser and user.is_structure_manager():
-        user_filter = {user_filter_key: user.structures.all()}
+        user_filter = {
+            user_filter_key: user.structures.all()
+        }
         slots = slots.filter(**user_filter)
 
     if not past_slots:
@@ -3834,6 +3836,29 @@ def ajax_get_highschool_speakers(request, highschool_id=None):
     return JsonResponse(response, safe=False)
 
 
+@login_required
+@is_post_request
+@groups_required('INTER')
+def remove_link(request):
+    """
+    Remove user link : remove user_id from authenticated user usergroup
+    """
+    response = {'data': [], 'msg': '', 'error': ''}
+
+    user = request.user
+    remove_user_id = request.POST.get('user_id')
+
+    try:
+        user_group = user.usergroup.first()
+        user_group.immersionusers.remove(remove_user_id)
+        response['msg'] = gettext('User removed from your group')
+    except Exception:
+        # No group or user not in group : nothing to do
+        pass
+
+    return JsonResponse(response, safe=False)
+
+
 class CampusList(generics.ListAPIView):
     """
     Campus list
@@ -4027,7 +4052,7 @@ class VisitList(generics.ListAPIView):
 
         if not user.is_superuser:
             if any(force_user_filter):
-                queryset = queryset.filter(speakers=user)
+                queryset = queryset.filter(speakers__in=user.linked_users())
             elif user.is_establishment_manager() and user.establishment:
                 queryset = Visit.objects.filter(
                     Q(establishment=user.establishment)|Q(structure__in=user.establishment.structures.all()))\
@@ -4122,7 +4147,7 @@ class OffOfferEventList(generics.ListAPIView):
 
         if not user.is_superuser:
             if any(force_user_filter):
-                queryset = queryset.filter(speakers=user)
+                queryset = queryset.filter(speakers__in=user.linked_users())
             elif user.is_high_school_manager():
                 queryset = queryset.filter(highschool=user.highschool)
             elif user.is_establishment_manager() and user.establishment:
