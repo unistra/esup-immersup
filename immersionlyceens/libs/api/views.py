@@ -1475,12 +1475,19 @@ def ajax_slot_registration(request):
     force = request.POST.get('force', False)
     structure = request.POST.get('structure', False)
     calendar, slot, student = None, None, None
-    can_force_reg = any([user.is_establishment_manager(), user.is_master_establishment_manager(), user.is_operator()])
     today = datetime.datetime.today().date()
     today_time = datetime.datetime.today().time()
     visit_or_off_offer = False
 
     request.session.pop("last_registration_slot", None)
+
+    can_force_reg = any([
+        user.is_establishment_manager(),
+        user.is_master_establishment_manager(),
+        user.is_high_school_manager() and user.highschool.postbac_immersion,
+        user.is_operator()]
+    )
+
 
     try:
         calendar = Calendar.objects.first()
