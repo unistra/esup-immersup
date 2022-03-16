@@ -53,6 +53,8 @@ class ParserFaker:
     @classmethod
     def get_context(cls, request):
         user_is: str = "estetudiant"
+        slot_type: str = "estuncours"
+        is_face_to_face: bool = True
 
         year = Parser.get_year()
         platform_url = Parser.get_platform_url(request)
@@ -111,12 +113,54 @@ class ParserFaker:
         # slot
         context.update({
             "creneau": {
-                "libelle": cls.add_tooltip("libelle", "Cours n°2"),
+                "libelle": cls.add_tooltip("creneau.libelle", "Cours n°2"),
                 "estuncours": False,
                 "estunevisite": False,
-                "etablissement": False,
+                "estunevenement": False,
+                "etablissement": cls.add_tooltip("creneau.etablissement", "Mon Super Établissement"),
+                "lycee": cls.add_tooltip("creneau.lycee", "Lycée Frida Kahlo (New York)"),
+                "structure": cls.add_tooltip("creneau.structure", "Ma Super Structure"),
+                "batiment": {
+                    "libelle": cls.add_tooltip("creneau.batiment.libelle", "Musée d'art moderne (MoMa)"),
+                    "lien": cls.add_tooltip(
+                        "creneau.batiment.lien",
+                        format_html(f"<a href='https://www.moma.org/'>https://www.moma.org/</a>")
+                    ),
+                },
+                "campus": cls.add_tooltip("creneau.campus", "Université de Columbia"),
+                "temoindistanciel": is_face_to_face,
+                "lien": cls.add_tooltip(
+                    "creneau.lien",
+                    format_html(f"<a href='https://unistra.fr/'>https://unistra.fr/</a>")
+                ),
+                "cours": {
+                    "libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
+                    "type": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
+                    "formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
+                },
+                "evenement": {
+                    "libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
+                    "description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
+                    "type": cls.add_tooltip("creneau.evenement.type", "")
+                },
+                "visite": {
+                    "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
+                },
+                "date": cls.add_tooltip("creneau.date", "16/03/2022"),
+                "intervenants": cls.add_tooltip("creneau.intervenants", "Henri Matisse, Hans Arp, Alexander Calder"),
+                "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
+                "heurefin": cls.add_tooltip("creneau.heurefin", "12h00"),
+                "info": cls.add_tooltip("creneau.info", "Ceci est une information sur ce créneau"),
+                "salle": cls.add_tooltip("creneau.salle", "Salle 102"),
+                "nbplaceslibres": 25,
+                "listeInscrits": format_html(
+                    cls.add_tooltip("creneau.listeInscrits", "Alexandre COMBEAU<br />")
+                ),
             }
         })
+        context["creneau"][slot_type] = True
+
+
 
         return context
 
