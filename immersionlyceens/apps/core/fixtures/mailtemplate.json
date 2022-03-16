@@ -691,7 +691,7 @@
         "label": "Mail confirmation de fusion de comptes intervenants",
         "description": "Mail envoyé lors de la demande de fusion de deux comptes intervenants",
         "subject": "Demande de fusion de comptes",
-        "body": "<p><p><span style=\"font-size: 14px;\">Bonjour {{ prenom }} {{ nom }},</span></p><span style=\"font-size: 14px;\">L'utilisateur {{ lienDemandeur }} a demandé la fusion de son compte avec celui-ci. </span></p><p><span style=\"font-size: 14px;\">Pour confirmer cette fusion, merci de cliquer sur le lien suivant :</span><span style=\"font-size: 14px;\">{{ lienAssociationComptes }}<br><br></span><p><span style=\"font-size: 14px;\">Si vous n'êtes pas à l'origine de cette demande, ou si vous pensez qu'il s\"agit d'une erreur, vous pouvez ignorer ce message.</span><span style=\"font-size: 14px;\"></span></p><p><span style=\"font-size: 14px;\">Cordialement,</span></p><p><span style=\"font-size: 14px;\">Le service en ligne d'immersions</span></p></p>",
+        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }},</p>L'utilisateur-trice {{ lienDemandeur }} a demandé la fusion de son compte avec celui-ci. <p>Pour confirmer cette fusion, merci de cliquer sur le lien suivant : {{ lienAssociationComptes }}<br><br></p><p>Si vous n'êtes pas à l'origine de cette demande, ou si vous pensez qu'il s'agit d'une erreur, vous pouvez ignorer ce message.</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p><p></p>",
         "active": true,
         "available_vars": [
             63,
