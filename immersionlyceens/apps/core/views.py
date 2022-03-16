@@ -321,7 +321,7 @@ def course(request, course_id=None, duplicate=False):
                             establishment = new_course.structure.establishment if new_course.structure else None
 
                             speaker_user = ImmersionUser.objects.create(
-                                username=speaker['username'],
+                                username=speaker['email'],
                                 last_name=speaker['lastname'],
                                 first_name=speaker['firstname'],
                                 email=speaker['email'],

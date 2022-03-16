@@ -817,7 +817,7 @@ class VisitForm(forms.ModelForm):
                     speaker_user = ImmersionUser.objects.get(Q(username=speaker['username'])|Q(email=speaker['email']))
                 except ImmersionUser.DoesNotExist:
                     speaker_user = ImmersionUser.objects.create(
-                        username=speaker['username'],
+                        username=speaker['email'],
                         last_name=speaker['lastname'],
                         first_name=speaker['firstname'],
                         email=speaker['email'],
@@ -972,7 +972,7 @@ class OffOfferEventForm(forms.ModelForm):
                         Q(username=speaker['username']) | Q(email=speaker['email']))
                 except ImmersionUser.DoesNotExist:
                     speaker_user = ImmersionUser.objects.create(
-                        username=speaker['username'],
+                        username=speaker['email'],
                         last_name=speaker['lastname'],
                         first_name=speaker['firstname'],
                         email=speaker['email'],

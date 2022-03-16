@@ -783,8 +783,8 @@ class CoreViewsTestCase(TestCase):
         self.assertTrue(Course.objects.filter(label="New test course").exists())
 
         course = Course.objects.get(label="New test course")
-        self.assertTrue(ImmersionUser.objects.filter(username='jean').exists())
-        self.assertTrue(ImmersionUser.objects.filter(username='john').exists())
+        self.assertTrue(ImmersionUser.objects.filter(username='jean-jacques@domain.fr').exists())
+        self.assertTrue(ImmersionUser.objects.filter(username='john.jack@domain.fr').exists())
         self.assertEqual(course.speakers.count(), 2)
         self.assertIn("A confirmation email has been sent to jean-jacques@domain.fr", response.content.decode('utf-8'))
         self.assertIn("A confirmation email has been sent to john.jack@domain.fr", response.content.decode('utf-8'))
@@ -795,7 +795,7 @@ class CoreViewsTestCase(TestCase):
 
         data["label"] = "This is my new label"
         data["speakers_list"] = \
-            """[{"username":"jean", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"}]"""
+            """[{"username":"jean-jacques@domain.fr", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"}]"""
         response = self.client.post("/core/course/%s" % course.id, data, follow=True)
         self.assertFalse(Course.objects.filter(label="New test course").exists())
         self.assertTrue(Course.objects.filter(label="This is my new label").exists())
