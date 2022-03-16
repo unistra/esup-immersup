@@ -99,8 +99,8 @@ class ParserFaker:
         # course
         context.update({
             "cours": {
-                "libelle": cls.add_tooltip("libelle", "Cours n°1"),
-                "formation": cls.add_tooltip("formation", "Formation n°2"),
+                "libelle": cls.add_tooltip("cours.libelle", "Cours n°1"),
+                "formation": cls.add_tooltip("cours.formation", "Formation n°2"),
                 "nbplaceslibre": 25
             }
         })
@@ -108,7 +108,7 @@ class ParserFaker:
         # visit
         context.update({
             "visite": {
-                "libelle": cls.add_tooltip("libelle", "Visite N°1"),
+                "libelle": cls.add_tooltip("visite.libelle", "Visite N°1"),
                 "nbplaceslibre": 35
             }
         })
@@ -116,7 +116,7 @@ class ParserFaker:
         # event
         context.update({
             "evenement": {
-                "libelle": cls.add_tooltip("libelle", "Événement N°1"),
+                "libelle": cls.add_tooltip("evenement.libelle", "Événement N°1"),
                 "nbplaceslibre": 27
             }
         })
@@ -145,17 +145,17 @@ class ParserFaker:
                     format_html(f"<a href='https://unistra.fr/'>https://unistra.fr/</a>")
                 ),
                 "cours": {
-                    "libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
-                    "type": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
-                    "formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
+                    "creneau.cours.libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
+                    "creneau.cours.type": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
+                    "creneau.cours.formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
                 },
                 "evenement": {
-                    "libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
-                    "description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
-                    "type": cls.add_tooltip("creneau.evenement.type", "")
+                    "creneau.evenement.libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
+                    "creneau.evenement.description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
+                    "creneau.evenement.type": cls.add_tooltip("creneau.evenement.type", "")
                 },
                 "visite": {
-                    "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
+                    "creneau.visite.libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
                 },
                 "date": cls.add_tooltip("creneau.date", today),
                 "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
@@ -170,7 +170,6 @@ class ParserFaker:
             }
         })
         context["creneau"][slot_type] = True
-
         context.update({
             "motifAnnulation": cls.add_tooltip("motifAnnulation", "Annulation pour cause d'un passage de bisons sur la route")
         })
