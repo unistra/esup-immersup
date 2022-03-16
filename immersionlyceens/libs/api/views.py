@@ -2373,7 +2373,7 @@ def get_csv_structures(request):
                     slot.additional_information,
                 ]
 
-            elif (request.user.is_high_school_manager() or request.user.is_structure_manager()):
+            elif request.user.is_structure_manager():
 
                 line = [
                     infield_separator.join(
@@ -2684,6 +2684,29 @@ def get_csv_structures(request):
                     ]
                 )
 
+            elif request.user.is_high_school_manager():
+                content.append(
+                    [
+                        slot.event.event_type,
+                        slot.event.label,
+                        slot.event.description,
+                        slot.campus.label if slot.campus else '',
+                        slot.building.label if slot.building else '',
+                        slot.room if slot.face_to_face else _('Remote'),
+                        _date(slot.date, 'd/m/Y'),
+                        slot.start_time.strftime('%H:%M'),
+                        slot.end_time.strftime('%H:%M'),
+                        infield_separator.join(
+                            f'{s.last_name} {s.first_name}'
+                            for s in slot.speakers.all().order_by(
+                                'last_name', 'first_name'
+                            )
+                        ),
+                        slot.registered_students(),
+                        slot.n_places,
+                        slot.additional_information,
+                    ]
+                )
 
     response['Content-Disposition'] = f'attachment; filename="{structure_label}_{label}_{today}.csv"'
     writer = csv.writer(response)
