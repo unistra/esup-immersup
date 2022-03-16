@@ -20,11 +20,17 @@
     {% trans 'Link two or more of your speakers accounts to view all your courses, visits or events in the same tables.' %}
     </p>
 
-    {% if request.user.linked_users %}
+    {% if request.user.linked_users|length > 1 %}
       {% trans 'These accounts are already linked : ' %}
       <ul>
       {% for u in request.user.linked_users %}
-        <li>{{ u.email }}</li>
+        {% if request.user.email != u.email %}
+          <li>
+            <button type="button" class="btn btn-sm" onclick="remove_link({{ u.id }})" title="{% trans 'remove' %}">
+              <i class="fa fas fa-trash fa-2x"></i>
+            </button> {{ u.email }}
+          </li>
+        {% endif %}
       {% endfor %}
       </ul>
     {% endif %}
@@ -44,5 +50,19 @@
     </form>
   </div>
 </section>
-
+<script>
+  function remove_link(user_id) {
+    $.ajax({
+      url: "{% url 'remove_link' %}",
+      type: 'POST',
+      data: {
+        'user_id': user_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        location.reload()
+      }
+    })
+  }
+</script>
 {% endblock %}

@@ -74,6 +74,8 @@ urlpatterns = [
 
     path('get_highschool_speakers/<int:highschool_id>', views.ajax_get_highschool_speakers, name='get_highschool_speakers'),
 
+    path('remove_link', views.remove_link, name='remove_link'),
+
     # DRF
     path('campuses/', views.CampusList.as_view(), name='campus_list'),
     path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),

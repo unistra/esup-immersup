@@ -28,13 +28,13 @@ from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, MailTemplate,
     MailTemplateVars, OffOfferEvent, PublicDocument, Slot, Structure, Training,
-    TrainingDomain, UniversityYear, UserCourseAlert, Vacation, Visit,
+    TrainingDomain, UniversityYear, UserCourseAlert, Vacation, Visit, ImmersionUserGroup
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
     EstablishmentSerializer, HighSchoolLevelSerializer,
     OffOfferEventSerializer, StructureSerializer, TrainingHighSchoolSerializer,
-    VisitSerializer,
+    VisitSerializer
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -3832,6 +3832,29 @@ def ajax_get_highschool_speakers(request, highschool_id=None):
                 'has_courses': _("Yes") if has_courses else _("No"),
                 'can_delete': not has_courses
             })
+
+    return JsonResponse(response, safe=False)
+
+
+@login_required
+@is_post_request
+@groups_required('INTER')
+def remove_link(request):
+    """
+    Remove user link : remove user_id from authenticated user usergroup
+    """
+    response = {'data': [], 'msg': '', 'error': ''}
+
+    user = request.user
+    remove_user_id = request.POST.get('user_id')
+
+    try:
+        user_group = user.usergroup.first()
+        user_group.immersionusers.remove(remove_user_id)
+        response['msg'] = gettext('User removed from your group')
+    except Exception:
+        # No group or user not in group : nothing to do
+        pass
 
     return JsonResponse(response, safe=False)
 

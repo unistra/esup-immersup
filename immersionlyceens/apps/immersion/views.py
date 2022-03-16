@@ -632,15 +632,22 @@ class LinkView(View):
         if hash:
             try:
                 pending_link = PendingUserGroup.objects.get(validation_string=hash)
+
+                print(pending_link)
+
                 u1 = pending_link.immersionuser1
                 u2 = pending_link.immersionuser2
 
+                print(u1)
+                print(u2)
+
                 if u1.usergroup.exists():
+                    usergroup = u1.usergroup.first()
                     if u2 not in u1.linked_users():
-                        u1.usergroup.add(u2)
+                        usergroup.immersionusers.add(u2)
                 else:
-                    u1.usergroup.create()
-                    u1.usergroup.add(u2)
+                    usergroup = u1.usergroup.create()
+                    usergroup.immersionusers.add(u2)
 
                 pending_link.delete()
 
