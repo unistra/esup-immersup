@@ -344,7 +344,7 @@ class Parser:
         else:
             link_dict["lienAssociationComptes"] = format_html('<a href="{0}{1}">{0}{1}</a>',
                 platform_url,
-                reverse("immersion:link", kwargs={'hash': link_activaction_string})
+                reverse("immersion:link", kwargs={'hash': link_validation_string})
             )
 
         return link_dict
@@ -380,9 +380,11 @@ class Parser:
 
         context.update(cls.get_user_context(user))
         context.update(cls.get_user_request_context(user, request, platform_url))
-        context.update(cls.get_accounts_link_context(
-            request, platform_url, link_validation_string, link_source_user)
-        )
+
+        if link_validation_string and link_source_user:
+            context.update(cls.get_accounts_link_context(
+                request, platform_url, link_validation_string, link_source_user)
+            )
 
         context.update(cls.get_slot_list_context(slot_list))
         context.update(cls.get_slot_survey_context(slot_survey))

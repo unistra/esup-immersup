@@ -560,7 +560,10 @@ class ResendActivationView(TemplateView):
                 return HttpResponseRedirect(redirect_url)
             else:
                 msg = user.send_message(request, 'CPT_MIN_CREATE')
-                messages.success(request, _("The activation message has been resent."))
+                if not msg:
+                    messages.success(request, _("The activation message has been resent."))
+                else:
+                    messages.error(request, _("The activation message has not been sent : ") + msg)
 
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)

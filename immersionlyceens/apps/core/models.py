@@ -443,7 +443,7 @@ class ImmersionUser(AbstractUser):
             template = MailTemplate.objects.get(code=template_code, active=True)
             logger.debug("Template found : %s" % template)
         except MailTemplate.DoesNotExist:
-            msg = _("Email not sent : template %s not found or inactive" % template_code)
+            msg = gettext("Email not sent : template %s not found or inactive" % template_code)
             logger.error(msg)
             return msg
 
@@ -454,7 +454,7 @@ class ImmersionUser(AbstractUser):
             send_email(self.email, template.subject, message_body)
         except Exception as e:
             logger.exception(e)
-            msg = _("Couldn't send email : %s" % e)
+            msg = gettext("Couldn't send email : %s" % e)
             return msg
 
         return None
@@ -1366,6 +1366,9 @@ class Course(models.Model):
         filters = {'published': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['speakers__in'] = speakers
 
         d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
@@ -1381,6 +1384,9 @@ class Course(models.Model):
         filters = {'published': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['speakers__in'] = speakers
 
         return self.slots.filter(**filters).count()
@@ -1392,6 +1398,9 @@ class Course(models.Model):
         Return number of slots under this course, published or not
         """
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
@@ -1406,6 +1415,9 @@ class Course(models.Model):
         filters = {'slot__course': self, 'cancellation_type__isnull': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
@@ -1490,6 +1502,9 @@ class Visit(models.Model):
         filters = {'published': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['speakers__in'] = speakers
 
         d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
@@ -1505,6 +1520,9 @@ class Visit(models.Model):
         filters = {'published': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['speakers__in'] = speakers
 
         return self.slots.filter(**filters).count()
@@ -1516,6 +1534,9 @@ class Visit(models.Model):
         Return number of slots under this visit, published or not
         """
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
@@ -1530,6 +1551,9 @@ class Visit(models.Model):
         filters = {'slot__visit': self, 'cancellation_type__isnull': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
@@ -1636,6 +1660,9 @@ class OffOfferEvent(models.Model):
         filters = {'published': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['speakers__in'] = speakers
 
         d = self.slots.filter(**filters).aggregate(total_seats=Coalesce(Sum('n_places'), 0))
@@ -1650,6 +1677,9 @@ class OffOfferEvent(models.Model):
         filters = {'published': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['speakers__in'] = speakers
 
         return self.slots.filter(**filters).count()
@@ -1660,6 +1690,9 @@ class OffOfferEvent(models.Model):
         Return number of slots under this event, published or not
         """
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             return self.slots.filter(speakers__in=speakers).count()
         else:
             return self.slots.all().count()
@@ -1673,6 +1706,9 @@ class OffOfferEvent(models.Model):
         filters = {'slot__event': self, 'cancellation_type__isnull': True}
 
         if speakers:
+            if not isinstance(speakers, list):
+                speakers = [speakers]
+
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()

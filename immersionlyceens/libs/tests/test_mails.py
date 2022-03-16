@@ -248,7 +248,8 @@ class MailsTestCase(TestCase):
         parsed_body = parser(message_body.body, user=self.highschool_user, slot=self.slot)
         self.assertIn(self.slot_eval_link.url, parsed_body)
         self.assertIn(self.slot.course_type.full_label, parsed_body)
-        self.assertIn(self.speaker1.last_name, parsed_body)
+
+        # self.assertIn(self.speaker1.last_name, parsed_body)
 
         # highschool
         message_body = MailTemplate.objects.get(code='CPT_AVALIDER_LYCEE')
