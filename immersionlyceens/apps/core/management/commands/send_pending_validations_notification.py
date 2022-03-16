@@ -19,7 +19,7 @@ class Command(BaseCommand):
         highschools = HighSchool.objects.filter(student_records__validation=1).distinct()
 
         for highschool in highschools:
-            referents = highschool.highschool_referent.all()
+            referents = highschool.users.filter(groups__name='REF-LYC')
 
             for referent in referents:
                 referent.send_message(None, 'CPT_AVALIDER_LYCEE')

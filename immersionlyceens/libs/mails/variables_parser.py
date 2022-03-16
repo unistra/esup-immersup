@@ -315,14 +315,14 @@ class Parser:
     @staticmethod
     def get_slot_survey_context(slot_survey: Optional[EvaluationFormLink]) -> Dict[str, Any]:
         if slot_survey:
-            return {"lienCreneau": f"<a href='{slot_survey.url}'>{slot_survey.url}</a>"}
+            return {"lienCreneau": format_html(f"<a href='{slot_survey.url}'>{slot_survey.url}</a>")}
         else:
             return {"lienCreneau": _("Link improperly configured")}
 
     @staticmethod
     def get_global_survey_context(global_survey: Optional[EvaluationFormLink]) -> Dict[str, Any]:
         if global_survey:
-            return {"lienGlobal": f"<a href='{global_survey.url}'>{global_survey.url}</a>"}
+            return {"lienGlobal": format_html(f"<a href='{global_survey.url}'>{global_survey.url}</a>")}
         else:
             return {"lienGlobal": _("Link improperly configured")}
 

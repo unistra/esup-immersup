@@ -350,7 +350,7 @@ class ImmersionUser(AbstractUser):
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name="highschool_referent",
+        related_name="users",
     )
 
     destruction_date = models.DateField(_("Account destruction date"), blank=True, null=True)
