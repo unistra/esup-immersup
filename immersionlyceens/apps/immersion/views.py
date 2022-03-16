@@ -563,7 +563,7 @@ class ResendActivationView(TemplateView):
                 if not msg:
                     messages.success(request, _("The activation message has been resent."))
                 else:
-                    messages.error(request, _("The activation message has not been sent : ") + msg)
+                    messages.error(request, _("The activation message has not been sent") + " : " + msg)
 
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)

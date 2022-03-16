@@ -769,11 +769,11 @@ class PendingUserGroup(models.Model):
     creation_date = models.DateTimeField(_("Date"), auto_now_add=True)
 
     immersionuser1 = models.ForeignKey(
-        ImmersionUser, verbose_name=_("User 1"), on_delete=models.CASCADE, blank=False, null=False, related_name="+"
+        ImmersionUser, verbose_name=_("User") + " 1", on_delete=models.CASCADE, blank=False, null=False, related_name="+"
     )
 
     immersionuser2 = models.ForeignKey(
-        ImmersionUser, verbose_name=_("User 2"), on_delete=models.CASCADE, blank=False, null=False, related_name="+"
+        ImmersionUser, verbose_name=_("User") + " 2", on_delete=models.CASCADE, blank=False, null=False, related_name="+"
     )
 
     validation_string = models.TextField(_("Accounts link validation string"), blank=False, null=False, unique=True)
