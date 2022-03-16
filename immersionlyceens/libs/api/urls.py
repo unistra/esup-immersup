@@ -103,4 +103,6 @@ urlpatterns = [
     path("mailing_list/structures", views.MailingListStructuresView.as_view(), name="mailing_list_global"),
     path("mailing_list/establishments", views.MailingListEstablishmentsView.as_view(), name="mailing_list_global"),
     path("mailing_list/high_schools", views.MailingListHighSchoolsView.as_view(), name="mailing_list_global"),
+
+    path("mail_template/<int:pk>/preview", views.MailTemplatePreviewAPI.as_view(), name="mail_template_preview"),
 ]

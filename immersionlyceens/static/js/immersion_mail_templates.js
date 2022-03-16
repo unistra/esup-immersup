@@ -17,10 +17,10 @@ function getCookie(name) {
 
 $(document).ready(function() {
   $('#id_body_iframe').before(
-    '<div><button type=\'button\' id=\'toggle-modal\' class="button default" style="float: left; padding: 10px;">' +
+    '<div><button type=\'button\' id=\'toggle-modal\' class="button default" style="float: None; padding: 10px;">' +
       gettext('View available variables') +
-     '</button></div>' +
-      '<div><button type=\'button\' id=\'toggle-preview-modal\' class="button default" style="float: left; padding: 10px; margin-left: 20px;">' +
+     '</button>' +
+      '<button type=\'button\' id=\'toggle-preview-modal\' class="button default" style="float: None; padding: 10px; margin-left: 20px;">' +
         gettext('Preview') +
      '</button></div>'
   )
@@ -49,7 +49,22 @@ $(document).ready(function() {
   })
 
   $("#toggle-preview-modal").click(() => {
+    let item = document.getElementById("template_preview_content")
+    item.innerHTML = gettext("<p>Waiting for content</p>")
     $("#template_preview_dialog").dialog("open")
+    fetch("/api/mail_template/"+ template_id +"/preview")
+        .then(r => r.json())
+        .then(response => {
+          console.log(response)
+          if ( response.data === null ) {
+            item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + response.msg + "</h3>"
+          } else {
+            item.innerHTML = response.data
+          }
+        })
+        .catch(error => {
+          item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + gettext("An unexpected error occur") + "</h3>"
+        })
   })
 })
 

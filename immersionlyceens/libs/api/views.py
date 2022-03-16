@@ -20,6 +20,7 @@ from django.core.exceptions import FieldError
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
 from django.http import HttpResponse, JsonResponse
+from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
@@ -3277,4 +3278,25 @@ class MailingListHighSchoolsView(APIView):
         return JsonResponse(data=response)
 
 
+# @method_decorator(groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
+class MailTemplatePreviewAPI(View):
+    def get(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"data": None, "msg": ""}
+        pk: int = kwargs["pk"]
 
+        try:
+            template = MailTemplate.objects.get(pk=pk)
+        except MailTemplate.DoesNotExist:
+            response["msg"] = _("Template #%s can't be find") % pk
+            return JsonResponse(response)
+        
+        try:
+            body = template.parse_vars_faker(
+                user=self.request.user,
+                request=self.request,
+            )
+            response["data"] = body
+        except TemplateSyntaxError:
+            response["msg"] = _("A syntax error occur in template #%s") % pk
+
+        return JsonResponse(response)

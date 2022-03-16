@@ -7,8 +7,8 @@ from django.utils.translation import pgettext, gettext as _
 from requests import Request
 
 from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
-    MailTemplateVars, Slot, Course, ImmersionUser, Course, Visit, OffOfferEvent)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+    MailTemplateVars, Slot, ImmersionUser, Course, Visit, OffOfferEvent)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from django.utils.safestring import mark_safe
@@ -25,6 +25,103 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         request=request,
         **kwargs
     )
+
+
+def parser_faker(message_body, available_vars=None, user=None, request=None, **kwargs):
+    return ParserFaker.parser(
+        message_body=message_body,
+        available_vars=available_vars,
+        user=user,
+        request=request,
+        **kwargs
+    )
+
+
+class ParserFaker:
+    @classmethod
+    def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]],
+               user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
+        context: Dict[str, Any] = cls.get_context(request)
+        return render_text(template_data=message_body, data=context)
+
+    @classmethod
+    def add_tooltip(cls, var_name: str, content: str):
+        text: str = '<span style="border-bottom: 1px dotted gray;">' + str(content) + '<span title="' + str(var_name)
+        text += '" class="help help-tooltip help-icon"></span></span>'
+        return format_html(text)
+
+    @classmethod
+    def get_context(cls, request):
+        user_is: str = "estetudiant"
+
+        year = Parser.get_year()
+        platform_url = Parser.get_platform_url(request)
+        context = {
+            "annee": cls.add_tooltip("annee", year.label if year else _("not set")),
+            "platform_url": cls.add_tooltip("platform_url", platform_url),
+        }
+
+        # user
+        context.update({
+            "prenom": cls.add_tooltip("prenom", "Dominique"),
+            "nom": cls.add_tooltip("nom", "MARTIN"),
+            "referentlycee": {
+                "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
+            },
+            "identifiant": cls.add_tooltip("identifiant", "d.martin"),
+            "jourDestructionCptMin": cls.add_tooltip("jourDestructionCptMin", "17-10-2022"),
+            "estetudiant": False,
+            "estlyceen": False,
+            "estvisiteur": False,
+            "estintervenant": False,
+            "estreflycee": False,
+            "estrefstructure": False,
+            "utilisateur_compte_local": True,
+            "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
+            "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
+            "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
+        })
+        context[user_is] = True
+
+        # course
+        context.update({
+            "cours": {
+                "libelle": cls.add_tooltip("libelle", "Cours n°1"),
+                "formation": cls.add_tooltip("formation", "Formation n°2"),
+                "nbplaceslibre": 25
+            }
+        })
+
+        # visit
+        context.update({
+            "visite": {
+                "libelle": cls.add_tooltip("libelle", "Visite N°1"),
+                "nbplaceslibre": 35
+            }
+        })
+
+        # event
+        context.update({
+            "evenement": {
+                "libelle": cls.add_tooltip("libelle", "Événement N°1"),
+                "nbplaceslibre": 27
+            }
+        })
+
+        # slot
+        context.update({
+            "creneau": {
+                "libelle": cls.add_tooltip("libelle", "Cours n°2"),
+                "estuncours": False,
+                "estunevisite": False,
+                "etablissement": False,
+            }
+        })
+
+        return context
+
+
+
 
 
 class Parser:
