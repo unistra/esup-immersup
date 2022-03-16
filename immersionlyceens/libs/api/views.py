@@ -1484,10 +1484,8 @@ def ajax_slot_registration(request):
     can_force_reg = any([
         user.is_establishment_manager(),
         user.is_master_establishment_manager(),
-        user.is_high_school_manager() and user.highschool.postbac_immersion,
         user.is_operator()]
     )
-
 
     try:
         calendar = Calendar.objects.first()
@@ -1630,7 +1628,7 @@ def ajax_slot_registration(request):
                     }
                     return JsonResponse(response, safe=False)
                 # ref str request & no more remaining registration count for student
-                elif user.is_structure_manager() and remaining_regs_count['annually'] <= 0:
+                elif (user.is_structure_manager() or user.is_high_school_manager()) and remaining_regs_count['annually'] <= 0:
                     response = {
                         'error': True,
                         'msg': _("This student has no more remaining slots to register to"),
@@ -1663,7 +1661,7 @@ def ajax_slot_registration(request):
                         }
                         return JsonResponse(response, safe=False)
                     # ref str request & no more remaining registration count for student
-                    elif user.is_structure_manager() and remaining_regs_count['semester1'] <= 0:
+                    elif (user.is_structure_manager() or user.is_high_school_manager()) and remaining_regs_count['semester1'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
@@ -1694,7 +1692,7 @@ def ajax_slot_registration(request):
                         }
                         return JsonResponse(response, safe=False)
                     # ref str request & no more remaining registration count for student
-                    elif user.is_structure_manager() and remaining_regs_count['semester2'] <= 0:
+                    elif (user.is_structure_manager() or user.is_high_school_manager()) and remaining_regs_count['semester2'] <= 0:
                         response = {
                             'error': True,
                             'msg': _("This student has no more remaining slots to register to"),
