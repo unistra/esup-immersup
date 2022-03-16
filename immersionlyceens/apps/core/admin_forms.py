@@ -858,18 +858,12 @@ class ImmersionUserCreationForm(UserCreationForm):
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
 
-        # A high-school manager can only create high-school speakers
-        # For them, the login in always the email address
-
-        establishment = cleaned_data.get("establishment")
-
         if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
             self.add_error('email', _("This email address is already used"))
             return cleaned_data
 
         # Override username
-        if not establishment or (establishment and establishment.data_source_plugin is None):
-            cleaned_data["username"] = email
+        cleaned_data["username"] = email
 
         # Override high school when a high school manager creates an account
         if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
@@ -881,9 +875,10 @@ class ImmersionUserCreationForm(UserCreationForm):
     def save(self, *args, **kwargs):
         obj = super().save(*args, **kwargs)
 
+        obj.username = obj.email
+
         if not self.request.user.is_superuser and self.request.user.is_high_school_manager():
             obj.highschool = self.request.user.highschool
-            obj.username = obj.email
             obj.save()
             Group.objects.get(name='INTER').user_set.add(obj)
 
@@ -1108,15 +1103,8 @@ class ImmersionUserChangeForm(UserChangeForm):
                 if not self.instance.groups.filter(name='INTER').exists():
                     new_groups.add(str(inter_group.id))
 
-        if not self.request.user.is_superuser and not self.request.user.is_operator():
-            conditions = [
-                self.instance.establishment and not self.instance.establishment.data_source_plugin,
-                self.instance.highschool is not None
-            ]
-
-            if any(conditions):
-                self.instance.username = self.instance.email
-            # TODO: send CPT_CREATE_INTER in case of a new user
+        # Username override
+        self.instance.username = self.instance.email
 
         # New account : send an account creation message
         user = self.instance

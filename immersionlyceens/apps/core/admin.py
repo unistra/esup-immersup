@@ -319,7 +319,7 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             None,
             {
                 'classes': ('wide',),
-                'fields': ('establishment', 'search', 'username', 'password1', 'password2', 'email', 'first_name',
+                'fields': ('establishment', 'search', 'email', 'first_name',
                            'last_name',),
             },
         ),
@@ -757,6 +757,19 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
             pass
         return actions
 
+
+    def get_fieldsets(self, request, obj=None):
+        fieldset = super().get_fieldsets(request, obj)
+
+        if not request.user.is_superuser and not request.user.is_operator():
+            readonly_fields = self.get_readonly_fields(request, obj)
+            fieldset[0][1]['fields'] = list(
+                set(fieldset[0][1]['fields']) - set(readonly_fields)
+            )
+
+        return fieldset
+
+
     def has_change_permission(self, request, obj=None):
         return request.user.is_superuser \
                or request.user.is_operator() \
@@ -781,6 +794,7 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
             )
 
         return super().get_readonly_fields(request, obj)
+
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_superuser and not request.user.is_operator():
