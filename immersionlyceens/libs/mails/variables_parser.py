@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
@@ -52,9 +53,19 @@ class ParserFaker:
 
     @classmethod
     def get_context(cls, request):
-        user_is: str = "estetudiant"
-        slot_type: str = "estuncours"
-        is_face_to_face: bool = True
+        today: str = datetime.today().strftime("%d/%m/%Y")
+        user_is: str = request.GET.get("user_group", "estetudiant")
+        slot_type: str = request.GET.get("slot_type", "estuncours")
+        local_account: bool = request.GET.get("local_user", "true").strip().lower() == "true"
+        is_face_to_face: bool = request.GET.get("face_to_face", "true").strip().lower() == "true"
+
+        speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
+
+        slot_list: List[str] = [
+            f"* {today} (10h00 - 12h00) : Mon cours (TD)<br />Bâtiment principal, salle 1605<br /> -> {', '.join(speakers)}",
+            f"* {today} (12h00 - 14h00) : Mon cours 2 (CM)<br />Bâtiment secondaire, salle 309<br /> -> {', '.join(speakers)}",
+            f"* {today} (15h30 - 17h30) : Mon cours (TD)<br />Bâtiment principal, salle 170<br /> -> {', '.join(speakers)}",
+        ]
 
         year = Parser.get_year()
         platform_url = Parser.get_platform_url(request)
@@ -78,7 +89,7 @@ class ParserFaker:
             "estintervenant": False,
             "estreflycee": False,
             "estrefstructure": False,
-            "utilisateur_compte_local": True,
+            "utilisateur_compte_local": local_account,
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
@@ -146,8 +157,8 @@ class ParserFaker:
                 "visite": {
                     "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
                 },
-                "date": cls.add_tooltip("creneau.date", "16/03/2022"),
-                "intervenants": cls.add_tooltip("creneau.intervenants", "Henri Matisse, Hans Arp, Alexander Calder"),
+                "date": cls.add_tooltip("creneau.date", today),
+                "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
                 "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
                 "heurefin": cls.add_tooltip("creneau.heurefin", "12h00"),
                 "info": cls.add_tooltip("creneau.info", "Ceci est une information sur ce créneau"),
@@ -160,7 +171,39 @@ class ParserFaker:
         })
         context["creneau"][slot_type] = True
 
+        context.update({
+            "motifAnnulation": cls.add_tooltip("motifAnnulation", "Annulation pour cause d'un passage de bisons sur la route")
+        })
 
+        # User (request)
+        context.update({
+            "lienValidation": cls.add_tooltip(
+                "lienValidation",
+                '<a href="https://github.com/unistra/esup-immersup#lien_validation">https://github.com/unistra/esup-immersup#lien_validation</a>'
+            ),
+            "lienMotDePasse": cls.add_tooltip(
+                "lienMotDePasse",
+                '<a href="https://github.com/unistra/esup-immersup#lien_mot_de_passe">https://github.com/unistra/esup-immersup#lien_mot_de_passe</a>'
+            ),
+        })
+
+        # slot list
+        context.update({
+            "creneaux": {
+                "liste": cls.add_tooltip("creneaux.liste", "<br /><br />".join(slot_list))
+            }
+        })
+
+        # slot survey and global survey
+        context.update({
+            "lienCreneau": cls.add_tooltip(
+                "lienCreneau",
+                '<a href="https://github.com/unistra/esup-immersup#lienCreneau">https://github.com/unistra/esup-immersup#lienCreneau</a>'),
+            "lienGlobal": cls.add_tooltip(
+                "lienGlobal",
+                '<a href="https://github.com/unistra/esup-immersup#lienGlobal">https://github.com/unistra/esup-immersup#lienGlobal</a>'
+            ),
+        })
 
         return context
 
