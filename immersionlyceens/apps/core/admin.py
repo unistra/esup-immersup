@@ -762,9 +762,10 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
         fieldset = super().get_fieldsets(request, obj)
 
         if not request.user.is_superuser and not request.user.is_operator():
-            readonly_fields = self.get_readonly_fields(request, obj)
+            hidden_fields = ['data_source_settings']
+
             fieldset[0][1]['fields'] = list(
-                set(fieldset[0][1]['fields']) - set(readonly_fields)
+                set(fieldset[0][1]['fields']) - set(hidden_fields)
             )
 
         return fieldset
