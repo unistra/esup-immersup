@@ -2213,6 +2213,7 @@ def ajax_batch_cancel_registration(request):
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
 def get_csv_structures(request):
     filters = {}
+    Q_filters = Q()
     content = []
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     today = _date(datetime.datetime.today(), 'Ymd')
@@ -2455,9 +2456,10 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
-            filters[
-                'visit__structure__in'
-            ] = request.user.establishment.structures.all()
+            Q_filters = Q(visit__establishment=request.user.establishment) | Q(
+                visit__structure__in=request.user.establishment.structures.all()
+            )
+
 
         elif request.user.is_structure_manager():
 
@@ -2480,7 +2482,7 @@ def get_csv_structures(request):
             ] = structures
 
 
-        slots = Slot.objects.filter(**filters, visit__isnull=False, published=True).order_by('date', 'start_time')
+        slots = Slot.objects.filter(Q_filters, **filters, visit__isnull=False, published=True).order_by('date', 'start_time')
 
         for slot in slots:
 
@@ -2608,6 +2610,10 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
+            filters[
+                'event__structure__in'
+            ] = structures
+
 
         elif request.user.is_high_school_manager():
 
@@ -2625,12 +2631,6 @@ def get_csv_structures(request):
                 _('additional information'),
             ]
 
-        if request.user.is_structure_manager():
-            filters[
-                'event__structure__in'
-            ] = structures
-
-        elif request.user.is_high_school_manager():
             filters[
                 'event__highschool'
             ] = request.user.highschool
