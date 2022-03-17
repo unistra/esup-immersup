@@ -523,6 +523,40 @@ class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_immersionusers(self, obj):
         return [user for user in obj.immersionusers.all()]
 
+    def has_module_permission(self, request):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+    def has_view_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+    def has_add_permission(self, request):
+        # Only a superuser can add a template
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_delete_permission(self, request, obj=None):
+        # Only a superuser can delete a template
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_change_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
     get_immersionusers.short_description = _('Linked users')
 
 
