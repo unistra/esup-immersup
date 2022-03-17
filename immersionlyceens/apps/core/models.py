@@ -1427,17 +1427,35 @@ class Course(models.Model):
         return UserCourseAlert.objects.filter(course=self, email_sent=False).count()
 
 
-
     def get_etab_or_high_school(self):
         if not self.highschool:
             return self.structure.establishment.label
         else:
             return f'{self.highschool.label} - {self.highschool.city}'
 
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            qs = Course.objects.filter(
+                Q(training__id=self.training_id, structure__id=self.structure_id, label__unaccent__iexact=self.label)
+                |Q(training__id=self.training_id, highschool__id=self.highschool_id, label__unaccent__iexact=self.label)
+            )
+
+            if qs.exists():
+                raise ValidationError(
+                    _("A Course object with the same structure/high school, training and label already exists")
+                )
+
+        except ValidationError as e:
+            raise
+
     class Meta:
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
-        # unique_together = ('training', 'label') # Obsolete and will soon be removed
         constraints = [
             models.UniqueConstraint(
                 fields=['highschool', 'training', 'label'],
@@ -1557,6 +1575,28 @@ class Visit(models.Model):
             filters['slot__speakers__in'] = speakers
 
         return Immersion.objects.prefetch_related('slot').filter(**filters).count()
+
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            qs = Visit.objects.filter(
+                establishment__id=self.establishment_id,
+                structure__id=self.structure_id,
+                highschool__id=self.highschool_id,
+                purpose__unaccent__iexact=self.purpose
+            )
+
+            if qs.exists():
+                raise ValidationError(
+                    _("A Visit object with the same establishment, structure, high school and purpose already exists")
+                )
+
+        except ValidationError as e:
+            raise
 
 
     class Meta:
@@ -1722,6 +1762,31 @@ class OffOfferEvent(models.Model):
             return self.establishment
         else:
             return self.highschool
+
+
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            qs = OffOfferEvent.objects.filter(
+                Q(establishment__id=self.establishment_id,
+                  structure__id=self.structure_id,
+                  event_type__id=self.event_type_id,
+                  label__unaccent__iexact=self.label)
+                |Q(highschool__id=self.highschool_id,
+                   event_type__id=self.event_type_id,
+                   label__unaccent__iexact=self.label)
+            )
+
+            if qs.exists():
+                raise ValidationError(
+                    _("An off offer event with the same attachments and label already exists")
+                )
+
+        except ValidationError as e:
+            raise
 
     class Meta:
         constraints = [

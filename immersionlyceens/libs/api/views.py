@@ -4488,7 +4488,7 @@ class MailTemplatePreviewAPI(View):
         try:
             template = MailTemplate.objects.get(pk=pk)
         except MailTemplate.DoesNotExist:
-            response["msg"] = _("Template #%s can't be find") % pk
+            response["msg"] = _("Template #%s can't be found") % pk
             return JsonResponse(response)
         
         try:
@@ -4498,6 +4498,6 @@ class MailTemplatePreviewAPI(View):
             )
             response["data"] = body
         except TemplateSyntaxError:
-            response["msg"] = _("A syntax error occur in template #%s") % pk
+            response["msg"] = _("A syntax error occured in template #%s") % pk
 
         return JsonResponse(response)
