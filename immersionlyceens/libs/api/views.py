@@ -26,15 +26,16 @@ from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
-    HighSchoolLevel, Holiday, Immersion, ImmersionUser, MailTemplate,
-    MailTemplateVars, OffOfferEvent, PublicDocument, Slot, Structure, Training,
-    TrainingDomain, UniversityYear, UserCourseAlert, Vacation, Visit, ImmersionUserGroup
+    HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersionUserGroup,
+    MailTemplate, MailTemplateVars, OffOfferEvent, PublicDocument, Slot,
+    Structure, Training, TrainingDomain, UniversityYear, UserCourseAlert,
+    Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
     EstablishmentSerializer, HighSchoolLevelSerializer,
     OffOfferEventSerializer, StructureSerializer, TrainingHighSchoolSerializer,
-    VisitSerializer
+    VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -2458,7 +2459,7 @@ def get_csv_structures(request):
                 'visit__structure__in'
             ] = request.user.establishment.structures.all()
 
-        elif request.user.is_high_school_manager() or request.user.is_structure_manager():
+        elif request.user.is_structure_manager():
 
             header = [
                 _('highschool'),
@@ -2478,10 +2479,6 @@ def get_csv_structures(request):
                 'visit__structure__in'
             ] = structures
 
-        elif request.user.is_high_school_manager():
-            filters[
-                'visit__highschool'
-            ] = request.user.highschool
 
         slots = Slot.objects.filter(**filters, visit__isnull=False, published=True).order_by('date', 'start_time')
 
@@ -2593,7 +2590,7 @@ def get_csv_structures(request):
             slots = Slot.objects.filter(Q_filters, published=True, event__isnull=False)
 
 
-        elif request.user.is_high_school_manager() or request.user.is_structure_manager():
+        elif request.user.is_structure_manager():
 
             header = [
                 _('event type'),
@@ -2601,6 +2598,23 @@ def get_csv_structures(request):
                 _('description'),
                 _('campus'),
                 _('building'),
+                _('meeting place'),
+                _('date'),
+                _('start_time'),
+                _('end_time'),
+                _('speakers'),
+                _('registration number'),
+                _('place number'),
+                _('additional information'),
+            ]
+
+
+        elif request.user.is_high_school_manager():
+
+            header = [
+                _('event type'),
+                _('label'),
+                _('description'),
                 _('meeting place'),
                 _('date'),
                 _('start_time'),
@@ -2659,6 +2673,7 @@ def get_csv_structures(request):
                         slot.additional_information,
                     ]
                 )
+
             elif request.user.is_establishment_manager():
                 content.append(
                     [
@@ -2684,7 +2699,7 @@ def get_csv_structures(request):
                     ]
                 )
 
-            elif request.user.is_high_school_manager():
+            elif request.user.is_structure_manager():
                 content.append(
                     [
                         slot.event.event_type,
@@ -2692,6 +2707,29 @@ def get_csv_structures(request):
                         slot.event.description,
                         slot.campus.label if slot.campus else '',
                         slot.building.label if slot.building else '',
+                        slot.room if slot.face_to_face else _('Remote'),
+                        _date(slot.date, 'd/m/Y'),
+                        slot.start_time.strftime('%H:%M'),
+                        slot.end_time.strftime('%H:%M'),
+                        infield_separator.join(
+                            f'{s.last_name} {s.first_name}'
+                            for s in slot.speakers.all().order_by(
+                                'last_name', 'first_name'
+                            )
+                        ),
+                        slot.registered_students(),
+                        slot.n_places,
+                        slot.additional_information,
+                    ]
+                )
+
+
+            elif request.user.is_high_school_manager():
+                content.append(
+                    [
+                        slot.event.event_type,
+                        slot.event.label,
+                        slot.event.description,
                         slot.room if slot.face_to_face else _('Remote'),
                         _date(slot.date, 'd/m/Y'),
                         slot.start_time.strftime('%H:%M'),
