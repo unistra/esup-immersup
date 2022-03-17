@@ -15,7 +15,42 @@ function getCookie(name) {
   return cookieValue
 }
 
+const load_preview = () => {
+  let slot_type_input = document.getElementById("slot_type_input")
+  let user_group_input = document.getElementById("user_group_input")
+  let local_user_input = document.getElementById("local_user_input")
+  let face_to_face_input = document.getElementById("face_to_face_input")
+
+  let item = document.getElementById("template_preview_content")
+  item.innerHTML = gettext("<p>Waiting for content</p>")
+
+  let slot_type = slot_type_input.options[slot_type_input.selectedIndex].value
+  let user_group = user_group_input.options[user_group_input.selectedIndex].value
+  let local_user = local_user_input.options[local_user_input.selectedIndex].value
+  let face_to_face = face_to_face_input.options[face_to_face_input.selectedIndex].value
+
+  let url = "/api/mail_template/" + template_id + "/preview"
+  url += "?user_group=" + user_group
+  url += "&slot_type=" + slot_type
+  url += "&local_user=" + local_user
+  url += "&face_to_face=" + face_to_face
+
+  fetch(url)
+      .then(r => r.json())
+      .then(response => {
+        if ( response.data === null ) {
+          item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + response.msg + "</h3>"
+        } else {
+          item.innerHTML = response.data
+        }
+      })
+      .catch(error => {
+        item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + gettext("An unexpected error occur") + "</h3>"
+      })
+}
+
 $(document).ready(function() {
+
   $('#id_body_iframe').before(
     '<div><button type=\'button\' id=\'toggle-modal\' class="button default" style="float: None; padding: 10px;">' +
       gettext('View available variables') +
@@ -49,22 +84,21 @@ $(document).ready(function() {
   })
 
   $("#toggle-preview-modal").click(() => {
-    let item = document.getElementById("template_preview_content")
-    item.innerHTML = gettext("<p>Waiting for content</p>")
     $("#template_preview_dialog").dialog("open")
-    fetch("/api/mail_template/"+ template_id +"/preview")
-        .then(r => r.json())
-        .then(response => {
-          console.log(response)
-          if ( response.data === null ) {
-            item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + response.msg + "</h3>"
-          } else {
-            item.innerHTML = response.data
-          }
-        })
-        .catch(error => {
-          item.innerHTML = '<h3 class="errornote" style="background: transparent;">' + gettext("An unexpected error occur") + "</h3>"
-        })
+
+    load_preview()
   })
+
+
+  let slot_type_input = document.getElementById("slot_type_input")
+  let user_group_input = document.getElementById("user_group_input")
+  let local_user_input = document.getElementById("local_user_input")
+  let face_to_face_input = document.getElementById("face_to_face_input")
+  let change_handler = () => {load_preview()}
+
+  slot_type_input.addEventListener("change", change_handler)
+  user_group_input.addEventListener("change", change_handler)
+  local_user_input.addEventListener("change", change_handler)
+  face_to_face_input.addEventListener("change", change_handler)
 })
 
