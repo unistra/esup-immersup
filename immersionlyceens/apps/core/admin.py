@@ -521,7 +521,7 @@ class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
     filter_horizontal = ('immersionusers', )
 
     def get_immersionusers(self, obj):
-        return [user for user in obj.immersionusers.all()]
+        return format_html("<br>".join([f"{user} ({user.email})" for user in obj.immersionusers.all()]))
 
     def has_module_permission(self, request):
         valid_groups = [
@@ -558,6 +558,7 @@ class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
         return any(valid_groups)
 
     get_immersionusers.short_description = _('Linked users')
+    get_immersionusers.allow_tags = True
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
