@@ -3625,9 +3625,9 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
         filters["slot__date__lte"] = date_until
 
     if (
-        request.user.is_establishment_manager()
-        and not request.user.is_superuser
-        or request.user.is_legal_department_staff()
+        not request.user.is_superuser
+        and(request.user.is_establishment_manager()
+        or request.user.is_legal_department_staff())
     ):
 
         structures = request.user.establishment.structures.all()
@@ -3665,6 +3665,8 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             record = immersion.student.get_visitor_record()
             student_profile = _('Visitor')
 
+        establishment = immersion.slot.get_establishment()
+
         immersion_data = {
             'id': immersion.pk,
             'date': _date(immersion.slot.date, 'l d/m/Y'),
@@ -3691,6 +3693,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             'campus': immersion.slot.campus.label if immersion.slot.campus else '',
             'building': immersion.slot.building.label if immersion.slot.building else '',
             'meeting_place': immersion.slot.room if immersion.slot.face_to_face else _('Remote'),
+            'establishment': establishment.label if establishment else '',
         }
 
         response['data'].append(immersion_data.copy())
