@@ -759,14 +759,14 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
     def get_fieldsets(self, request, obj=None):
+        """
+        Hide some critical fields for non-authorized users (like plugin settings with passwords)
+        """
         fieldset = super().get_fieldsets(request, obj)
 
         if not request.user.is_superuser and not request.user.is_operator():
-            hidden_fields = ['data_source_settings']
-
-            fieldset[0][1]['fields'] = list(
-                set(fieldset[0][1]['fields']) - set(hidden_fields)
-            )
+            hidden_fields = ['data_source_settings', 'objects']
+            fieldset[0][1]['fields'] = [field for field in fieldset[0][1]['fields'] if field not in hidden_fields]
 
         return fieldset
 
