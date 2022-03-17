@@ -1439,6 +1439,7 @@ class Course(models.Model):
         try:
             super().validate_unique()
 
+            """
             # Advanced test
             qs = Course.objects.filter(
                 Q(training__id=self.training_id, structure__id=self.structure_id, label__unaccent__iexact=self.label)
@@ -1449,7 +1450,7 @@ class Course(models.Model):
                 raise ValidationError(
                     _("A Course object with the same structure/high school, training and label already exists")
                 )
-
+            """
         except ValidationError as e:
             raise
 
@@ -1582,6 +1583,7 @@ class Visit(models.Model):
         try:
             super().validate_unique()
 
+            """
             # Advanced test
             qs = Visit.objects.filter(
                 establishment__id=self.establishment_id,
@@ -1594,7 +1596,7 @@ class Visit(models.Model):
                 raise ValidationError(
                     _("A Visit object with the same establishment, structure, high school and purpose already exists")
                 )
-
+            """
         except ValidationError as e:
             raise
 
@@ -1769,6 +1771,7 @@ class OffOfferEvent(models.Model):
         try:
             super().validate_unique()
 
+            """
             # Advanced test
             qs = OffOfferEvent.objects.filter(
                 Q(establishment__id=self.establishment_id,
@@ -1784,7 +1787,7 @@ class OffOfferEvent(models.Model):
                 raise ValidationError(
                     _("An off offer event with the same attachments and label already exists")
                 )
-
+            """
         except ValidationError as e:
             raise
 
