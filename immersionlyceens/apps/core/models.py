@@ -1778,7 +1778,20 @@ class MailTemplate(models.Model):
         from immersionlyceens.libs.mails.variables_parser import parser
 
         return parser(
-            user=user, request=request, message_body=self.body, vars=[v for v in self.available_vars.all()], **kwargs,
+            user=user,
+            request=request,
+            message_body=self.body,
+            vars=[v for v in self.available_vars.all()], **kwargs,
+        )
+
+    def parse_vars_faker(self, user, request, **kwargs):
+        from immersionlyceens.libs.mails.variables_parser import parser_faker
+        return parser_faker(
+            user=user,
+            request=request,
+            message_body=self.body,
+            available_vars=[v for v in self.available_vars.all()],
+            **kwargs,
         )
 
     class Meta:

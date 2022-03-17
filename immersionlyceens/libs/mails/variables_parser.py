@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Any, Dict, Optional, List, Union
 
 from django.urls import reverse
@@ -7,8 +8,8 @@ from django.utils.translation import pgettext, gettext as _
 from requests import Request
 
 from immersionlyceens.apps.core.models import (EvaluationFormLink, Immersion, UniversityYear,
-    MailTemplateVars, Slot, Course, ImmersionUser, Course, Visit, OffOfferEvent)
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+    MailTemplateVars, Slot, ImmersionUser, Course, Visit, OffOfferEvent)
+from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from django.utils.safestring import mark_safe
@@ -25,6 +26,188 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
         request=request,
         **kwargs
     )
+
+
+def parser_faker(message_body, available_vars=None, user=None, request=None, **kwargs):
+    return ParserFaker.parser(
+        message_body=message_body,
+        available_vars=available_vars,
+        user=user,
+        request=request,
+        **kwargs
+    )
+
+
+class ParserFaker:
+    @classmethod
+    def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]],
+               user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
+        context: Dict[str, Any] = cls.get_context(request)
+        return render_text(template_data=message_body, data=context)
+
+    @classmethod
+    def add_tooltip(cls, var_name: str, content: str):
+        text: str = '<span style="border-bottom: 1px dotted gray;">' + str(content) + '<span title="' + str(var_name)
+        text += '" class="help help-tooltip help-icon"></span></span>'
+        return format_html(text)
+
+    @classmethod
+    def get_context(cls, request):
+        today: str = datetime.today().strftime("%d/%m/%Y")
+        user_is: str = request.GET.get("user_group", "estetudiant")
+        slot_type: str = request.GET.get("slot_type", "estuncours")
+        local_account: bool = request.GET.get("local_user", "true").strip().lower() == "true"
+        is_face_to_face: bool = request.GET.get("face_to_face", "true").strip().lower() == "true"
+
+        speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
+
+        slot_list: List[str] = [
+            f"* {today} (10h00 - 12h00) : Mon cours (TD)<br />Bâtiment principal, salle 1605<br /> -> {', '.join(speakers)}",
+            f"* {today} (12h00 - 14h00) : Mon cours 2 (CM)<br />Bâtiment secondaire, salle 309<br /> -> {', '.join(speakers)}",
+            f"* {today} (15h30 - 17h30) : Mon cours (TD)<br />Bâtiment principal, salle 170<br /> -> {', '.join(speakers)}",
+        ]
+
+        year = Parser.get_year()
+        platform_url = Parser.get_platform_url(request)
+        context = {
+            "annee": cls.add_tooltip("annee", year.label if year else _("not set")),
+            "platform_url": cls.add_tooltip("platform_url", platform_url),
+        }
+
+        # user
+        context.update({
+            "prenom": cls.add_tooltip("prenom", "Dominique"),
+            "nom": cls.add_tooltip("nom", "MARTIN"),
+            "referentlycee": {
+                "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
+            },
+            "identifiant": cls.add_tooltip("identifiant", "d.martin"),
+            "jourDestructionCptMin": cls.add_tooltip("jourDestructionCptMin", "17-10-2022"),
+            "estetudiant": False,
+            "estlyceen": False,
+            "estvisiteur": False,
+            "estintervenant": False,
+            "estreflycee": False,
+            "estrefstructure": False,
+            "utilisateur_compte_local": local_account,
+            "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
+            "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
+            "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
+        })
+        context[user_is] = True
+
+        # course
+        context.update({
+            "cours": {
+                "libelle": cls.add_tooltip("cours.libelle", "Cours n°1"),
+                "formation": cls.add_tooltip("cours.formation", "Formation n°2"),
+                "nbplaceslibre": 25
+            }
+        })
+
+        # visit
+        context.update({
+            "visite": {
+                "libelle": cls.add_tooltip("visite.libelle", "Visite N°1"),
+                "nbplaceslibre": 35
+            }
+        })
+
+        # event
+        context.update({
+            "evenement": {
+                "libelle": cls.add_tooltip("evenement.libelle", "Événement N°1"),
+                "nbplaceslibre": 27
+            }
+        })
+
+        # slot
+        context.update({
+            "creneau": {
+                "libelle": cls.add_tooltip("creneau.libelle", "Cours n°2"),
+                "estuncours": False,
+                "estunevisite": False,
+                "estunevenement": False,
+                "etablissement": cls.add_tooltip("creneau.etablissement", "Mon Super Établissement"),
+                "lycee": cls.add_tooltip("creneau.lycee", "Lycée Frida Kahlo (New York)"),
+                "structure": cls.add_tooltip("creneau.structure", "Ma Super Structure"),
+                "batiment": {
+                    "libelle": cls.add_tooltip("creneau.batiment.libelle", "Musée d'art moderne (MoMa)"),
+                    "lien": cls.add_tooltip(
+                        "creneau.batiment.lien",
+                        format_html(f"<a href='https://www.moma.org/'>https://www.moma.org/</a>")
+                    ),
+                },
+                "campus": cls.add_tooltip("creneau.campus", "Université de Columbia"),
+                "temoindistanciel": is_face_to_face,
+                "lien": cls.add_tooltip(
+                    "creneau.lien",
+                    format_html(f"<a href='https://unistra.fr/'>https://unistra.fr/</a>")
+                ),
+                "cours": {
+                    "creneau.cours.libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
+                    "creneau.cours.type": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
+                    "creneau.cours.formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
+                },
+                "evenement": {
+                    "creneau.evenement.libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
+                    "creneau.evenement.description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
+                    "creneau.evenement.type": cls.add_tooltip("creneau.evenement.type", "")
+                },
+                "visite": {
+                    "creneau.visite.libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
+                },
+                "date": cls.add_tooltip("creneau.date", today),
+                "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
+                "heuredebut": cls.add_tooltip("creneau.heuredebut", "10h00"),
+                "heurefin": cls.add_tooltip("creneau.heurefin", "12h00"),
+                "info": cls.add_tooltip("creneau.info", "Ceci est une information sur ce créneau"),
+                "salle": cls.add_tooltip("creneau.salle", "Salle 102"),
+                "nbplaceslibres": 25,
+                "listeInscrits": format_html(
+                    cls.add_tooltip("creneau.listeInscrits", "Alexandre COMBEAU<br />")
+                ),
+            }
+        })
+        context["creneau"][slot_type] = True
+        context.update({
+            "motifAnnulation": cls.add_tooltip("motifAnnulation", "Annulation pour cause d'un passage de bisons sur la route")
+        })
+
+        # User (request)
+        context.update({
+            "lienValidation": cls.add_tooltip(
+                "lienValidation",
+                '<a href="https://github.com/unistra/esup-immersup#lien_validation">https://github.com/unistra/esup-immersup#lien_validation</a>'
+            ),
+            "lienMotDePasse": cls.add_tooltip(
+                "lienMotDePasse",
+                '<a href="https://github.com/unistra/esup-immersup#lien_mot_de_passe">https://github.com/unistra/esup-immersup#lien_mot_de_passe</a>'
+            ),
+        })
+
+        # slot list
+        context.update({
+            "creneaux": {
+                "liste": cls.add_tooltip("creneaux.liste", "<br /><br />".join(slot_list))
+            }
+        })
+
+        # slot survey and global survey
+        context.update({
+            "lienCreneau": cls.add_tooltip(
+                "lienCreneau",
+                '<a href="https://github.com/unistra/esup-immersup#lienCreneau">https://github.com/unistra/esup-immersup#lienCreneau</a>'),
+            "lienGlobal": cls.add_tooltip(
+                "lienGlobal",
+                '<a href="https://github.com/unistra/esup-immersup#lienGlobal">https://github.com/unistra/esup-immersup#lienGlobal</a>'
+            ),
+        })
+
+        return context
+
+
+
 
 
 class Parser:

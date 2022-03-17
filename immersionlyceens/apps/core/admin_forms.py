@@ -1306,15 +1306,25 @@ class MailTemplateForm(forms.ModelForm):
             body_errors_list.append(self.error_class([forbidden_vars_msg]))
 
         # Check for unknown variables in body
-        all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)
+        # all_vars = re.findall(r"(\$\{[\w+\.]*\})", body)  # match for ${my_var}
+        all_vars = re.findall(r"(\{\{ *[\w+\.]* *\}\})", body)  # match for {{ my_var }}
         unknown_vars = [v for v in all_vars if not MailTemplateVars.objects.filter(code__iexact=v.lower()).exists()]
 
         # Check for body syntax errors
         try:
             template.Template(body).render(template.Context())
         except template.TemplateSyntaxError as e:
-            body_syntax_error_msg = _("The message body contains syntax error(s) : ") + str(e)
-            body_errors_list.append(self.error_class([body_syntax_error_msg]))
+
+            if "template_debug" in dir(e):
+                before: str = e.template_debug["before"]
+                line: int = 1 + before.count("<br>") + before.count("</br>")
+                line += before.count("&lt;br&gt;") + before.count("&lt;/br&gt;")
+                body_syntax_error_msg = _("The message body contains syntax error(s) : ")
+                body_syntax_error_msg += _('at "%s" line %s') % (e.template_debug["during"], line)
+                body_errors_list.append(self.error_class([body_syntax_error_msg]))
+            else:
+                body_syntax_error_msg = _("The message body contains syntax error(s) : ") + str(e)
+                body_errors_list.append(self.error_class([body_syntax_error_msg]))
 
         if unknown_vars:
             unknown_vars_msg = _("The message body contains unknown variable(s) : ") + ', '.join(unknown_vars)

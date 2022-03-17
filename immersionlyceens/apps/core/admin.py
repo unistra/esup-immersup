@@ -1530,7 +1530,8 @@ class MailTemplateAdmin(AdminWithRequest, SummernoteModelAdmin):
         js = (
             'js/vendor/jquery/jquery-3.4.1.min.js',
             'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js',
-            'js/immersion_mail_templates.min.js',
+            # 'js/immersion_mail_templates.min.js',
+            'js/immersion_mail_templates.js',
             'js/vendor/datatables/datatables.min.js',
             'js/vendor/datatables/DataTables-1.10.20/js/dataTables.jqueryui.min.js',
         )
