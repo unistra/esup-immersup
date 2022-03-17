@@ -6,6 +6,7 @@ from typing import Any, Dict
 
 from django import forms, template
 from django.conf import settings
+from django.db.models import Count
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
@@ -28,6 +29,7 @@ from .models import (
     InformationText, MailTemplate, MailTemplateVars, OffOfferEventType,
     PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    ImmersionUserGroup
 )
 
 
@@ -1001,6 +1003,15 @@ class ImmersionUserChangeForm(UserChangeForm):
         forbidden_msg = _("Forbidden")
 
         if groups:
+            linked_groups_conditions = [
+                len(self.instance.linked_users()) > 1 and not groups.filter(name='INTER').exists(),
+                len(self.instance.linked_users()) > 1 and groups.filter(name='INTER').exists() and groups.count() > 1
+            ]
+
+            if any(linked_groups_conditions):
+                msg = _("This user has linked accounts, you can't update his/her groups")
+                self._errors['groups'] = self.error_class([msg])
+
             if groups and groups.filter(name__in=('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')).exists():
                 cleaned_data['is_staff'] = True
 
@@ -1129,6 +1140,26 @@ class ImmersionUserChangeForm(UserChangeForm):
         model = ImmersionUser
         fields = ("establishment", "username", "first_name", "last_name", "email", "is_active", "is_staff",
                   "is_superuser", "groups", "structures", "highschool")
+
+
+class ImmersionUserGroupForm(forms.ModelForm):
+    """
+    Immersion Users Group form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+
+        super().__init__(*args, **kwargs)
+
+        self.fields["immersionusers"].queryset = ImmersionUser.objects\
+            .annotate(cnt=Count('groups'))\
+            .filter(cnt=1, groups__name='INTER')\
+            .order_by("last_name", "first_name")
+
+    class Meta:
+        model = ImmersionUserGroup
+        fields = '__all__'
 
 
 class HighSchoolForm(forms.ModelForm):

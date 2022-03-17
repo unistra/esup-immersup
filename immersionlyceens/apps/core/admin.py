@@ -25,6 +25,7 @@ from .admin_forms import (
     OffOfferEventTypeForm, PostBachelorLevelForm, PublicDocumentForm,
     PublicTypeForm, StructureForm, StudentLevelForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    ImmersionUserGroupForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -34,7 +35,7 @@ from .models import (
     Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
     OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UniversityYear, Vacation, ImmersionUserGroup
 )
 
 
@@ -512,6 +513,17 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             'js/immersion_user.min.js',
         )
         css = {'all': ('css/immersionlyceens.min.css',)}
+
+
+class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ImmersionUserGroupForm
+    list_display = ('id', 'get_immersionusers')
+    filter_horizontal = ('immersionusers', )
+
+    def get_immersionusers(self, obj):
+        return [user for user in obj.immersionusers.all()]
+
+    get_immersionusers.short_description = _('Linked users')
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1826,3 +1838,4 @@ admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
+admin.site.register(ImmersionUserGroup, ImmersionUserGroupAdmin)
