@@ -58,6 +58,10 @@ DATABASES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# PostgreSQL unaccent extension
+POSTGRESQL_ADD_UNACCENT_EXTENSION = True
+
+
 
 ######################
 # Site configuration #
