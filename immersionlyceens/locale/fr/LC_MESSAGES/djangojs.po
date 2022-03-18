@@ -32,6 +32,10 @@ msgstr "Voir les documents disponibles"
 msgid "View available variables"
 msgstr "Voir les variables disponibles"
 
+#: immersionlyceens/static/js/immersion_mail_templates.js:58
+msgid "Preview"
+msgstr "Prévisualisation"
+
 #: immersionlyceens/static/js/immersion_user.js:21
 msgid "Results"
 msgstr "Résultats"
