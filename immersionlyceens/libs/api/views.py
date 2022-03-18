@@ -4481,20 +4481,34 @@ class MailingListHighSchoolsView(APIView):
 
 # @method_decorator(groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
 class MailTemplatePreviewAPI(View):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         response: Dict[str, Any] = {"data": None, "msg": ""}
         pk: int = kwargs["pk"]
+
+        body: str = request.POST.get("body", None)
+        context_params: Dict[str, Any] = {
+            "user_is": request.POST.get("user_group", "estetudiant"),
+            "slot_type": request.POST.get("slot_type", "estuncours"),
+            "local_account": request.POST.get("local_user", "true").strip().lower() == "true",
+            "remote": request.POST.get("remote", "true").strip().lower() == "true",
+        }
+
+        if not body:
+            response["msg"] = _("No body for this template provided")
+            return JsonResponse(response)
 
         try:
             template = MailTemplate.objects.get(pk=pk)
         except MailTemplate.DoesNotExist:
             response["msg"] = _("Template #%s can't be found") % pk
             return JsonResponse(response)
-        
+
         try:
-            body = template.parse_vars_faker(
+            body = template.parse_var_faker_from_string(
+                context_params=context_params,
                 user=self.request.user,
                 request=self.request,
+                body=body
             )
             response["data"] = body
         except TemplateSyntaxError:

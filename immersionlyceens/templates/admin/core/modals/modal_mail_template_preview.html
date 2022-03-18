@@ -2,51 +2,53 @@
 <div id="template_preview_dialog" title="{% trans 'Mail template preview' %}">
   <div class="module aligned">
 
-    <div class="form-row field-code">
-      <div>
-        <label for="slot_type">{% trans "Slot type" %}</label>
-        <select name="slot_type" id="slot_type_input">
-          <option value="estuncours" selected>{% trans "Course" %}</option>
-          <option value="estunevisite">{% trans "Visit" %}</option>
-          <option value="estunevenement">{% trans "Event" %}</option>
-        </select>
+    <form id="preview_control_form">
+      <div class="form-row field-code">
+        <div>
+          <label for="slot_type">{% trans "Slot type" %}</label>
+          <select name="slot_type" id="slot_type_input">
+            <option value="estuncours" selected>{% trans "Course" %}</option>
+            <option value="estunevisite">{% trans "Visit" %}</option>
+            <option value="estunevenement">{% trans "Event" %}</option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <div class="form-row field-code">
-      <div>
-        <label for="user_group">{% trans "User group" %}</label>
-        <select name="user_group" id="user_group_input">
-          <option value="estetudiant" selected>{% trans "Student" %}</option>
-          <option value="estlyceen">{% trans "High school student" %}</option>
-          <option value="estvisiteur">{% trans "Visitor" %}</option>
-          <option value="estintervenant">{% trans "Speaker" %}</option>
-          <option value="estreflycee">{% trans "High school manager" %}</option>
-          <option value="estrefstructure">{% trans "Structure manager" %}</option>
-        </select>
+      <div class="form-row field-code">
+        <div>
+          <label for="user_group">{% trans "User type" %}</label>
+          <select name="user_group" id="user_group_input">
+            <option value="estetudiant" selected>{% trans "Student" %}</option>
+            <option value="estlyceen">{% trans "High school student" %}</option>
+            <option value="estvisiteur">{% trans "Visitor" %}</option>
+            <option value="estintervenant">{% trans "Speaker" %}</option>
+            <option value="estreflycee">{% trans "High school manager" %}</option>
+            <option value="estrefstructure">{% trans "Structure manager" %}</option>
+          </select>
+    </div>
       </div>
-    </div>
 
-    <div class="form-row field-code">
-      <div>
-        <label for="local_user">{% trans "Local account" %}</label>
-        <select name="local_user" id="local_user_input">
-          <option value="true" selected>{% trans "Yes" %}</option>
-          <option value="false">{% trans "No" %}</option>
-        </select>
+      <div class="form-row field-code">
+        <div>
+          <label for="local_user">{% trans "Local account" %}</label>
+          <select name="local_user" id="local_user_input">
+            <option value="true" selected>{% trans "Yes" %}</option>
+            <option value="false">{% trans "No" %}</option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <div class="form-row field-code">
-      <div>
-        <label for="local_user">{% trans "Face to face slot" %}</label>
-        <select name="local_user" id="face_to_face_input">
-          <option value="true" selected>{% trans "Yes" %}</option>
-          <option value="false">{% trans "No" %}</option>
-        </select>
+      <div class="form-row field-code">
+        <div>
+          <label for="remote">{% trans "Remote" %}</label>
+          <select name="remote" id="face_to_face_input">
+            <option value="true" selected>{% trans "Yes" %}</option>
+            <option value="false">{% trans "No" %}</option>
+          </select>
+        </div>
       </div>
-    </div>
 
+    </form>
   </div>
   <div id="template_preview_content" class="selector"></div>
 </div>

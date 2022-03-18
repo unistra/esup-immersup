@@ -1862,6 +1862,17 @@ class MailTemplate(models.Model):
             **kwargs,
         )
 
+    def parse_var_faker_from_string(self, user, body, request, context_params, **kwargs):
+        from immersionlyceens.libs.mails.variables_parser import parser_faker
+        return parser_faker(
+            context_params=context_params,
+            user=user,
+            request=request,
+            message_body=body,
+            available_vars=[v for v in self.available_vars.all()],
+            **kwargs,
+        )
+
     class Meta:
         verbose_name = _('Mail template')
         verbose_name_plural = _('Mail templates')

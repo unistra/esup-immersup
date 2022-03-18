@@ -28,9 +28,10 @@ def parser(message_body, available_vars=None, user=None, request=None, **kwargs)
     )
 
 
-def parser_faker(message_body, available_vars=None, user=None, request=None, **kwargs):
+def parser_faker(message_body, context_params, available_vars=None, user=None, request=None, **kwargs):
     return ParserFaker.parser(
         message_body=message_body,
+        context_params=context_params,
         available_vars=available_vars,
         user=user,
         request=request,
@@ -40,9 +41,11 @@ def parser_faker(message_body, available_vars=None, user=None, request=None, **k
 
 class ParserFaker:
     @classmethod
-    def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]],
+    def parser(cls, message_body: str, available_vars: Optional[List[MailTemplateVars]], context_params: Dict[str, Any],
                user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
-        context: Dict[str, Any] = cls.get_context(request)
+
+        context: Dict[str, Any] = cls.get_context(request, **context_params)
+        # context: Dict[str, Any] = cls.get_context(request, user_is, slot_type, local_account, is_face_to_face)
         return render_text(template_data=message_body, data=context)
 
     @classmethod
@@ -52,12 +55,8 @@ class ParserFaker:
         return format_html(text)
 
     @classmethod
-    def get_context(cls, request):
+    def get_context(cls, request, user_is, slot_type, local_account, remote):
         today: str = datetime.today().strftime("%d/%m/%Y")
-        user_is: str = request.GET.get("user_group", "estetudiant")
-        slot_type: str = request.GET.get("slot_type", "estuncours")
-        local_account: bool = request.GET.get("local_user", "true").strip().lower() == "true"
-        is_face_to_face: bool = request.GET.get("face_to_face", "true").strip().lower() == "true"
 
         speakers: List[str] = ["Henri Matisse", "Hans Arp", "Alexander Calder"]
 
@@ -81,7 +80,7 @@ class ParserFaker:
             "referentlycee": {
                 "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             },
-            "identifiant": cls.add_tooltip("identifiant", "d.martin"),
+            "identifiant": cls.add_tooltip("identifiant", "d.martin@service-plublic.fr"),
             "jourDestructionCptMin": cls.add_tooltip("jourDestructionCptMin", "17-10-2022"),
             "estetudiant": False,
             "estlyceen": False,
@@ -139,23 +138,23 @@ class ParserFaker:
                     ),
                 },
                 "campus": cls.add_tooltip("creneau.campus", "Université de Columbia"),
-                "temoindistanciel": is_face_to_face,
+                "temoindistanciel": remote,
                 "lien": cls.add_tooltip(
                     "creneau.lien",
                     format_html(f"<a href='https://unistra.fr/'>https://unistra.fr/</a>")
                 ),
                 "cours": {
-                    "creneau.cours.libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
-                    "creneau.cours.type": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
-                    "creneau.cours.formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
+                    "libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
+                    "type": cls.add_tooltip("creneau.cours.type", "Mon cours"),
+                    "formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
                 },
                 "evenement": {
-                    "creneau.evenement.libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
-                    "creneau.evenement.description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
-                    "creneau.evenement.type": cls.add_tooltip("creneau.evenement.type", "")
+                    "libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
+                    "description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
+                    "type": cls.add_tooltip("creneau.evenement.type", "")
                 },
                 "visite": {
-                    "creneau.visite.libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
+                    "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
                 },
                 "date": cls.add_tooltip("creneau.date", today),
                 "intervenants": cls.add_tooltip("creneau.intervenants", ", ".join(speakers)),
