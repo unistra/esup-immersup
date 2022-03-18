@@ -552,6 +552,7 @@ class FormTestCase(TestCase):
 
 
         # Create an Event with no structure
+        # 1st try : fail (duplicate)
         request.user = self.ref_master_etab_user
         del(data["structure"])
         form = OffOfferEventForm(data=data, request=request)

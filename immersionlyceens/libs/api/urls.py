@@ -98,7 +98,6 @@ urlpatterns = [
     path('visitor/record/<record_id>/<operation>', views.VisitorRecordRejectValidate.as_view(), name="validate_reject_visitor"),
     path('sign_charter', views.signCharter, name="sign_charter"),
 
-
     path("mailing_list/global", views.MailingListGlobalView.as_view(), name="mailing_list_global"),
     path("mailing_list/structures", views.MailingListStructuresView.as_view(), name="mailing_list_global"),
     path("mailing_list/establishments", views.MailingListEstablishmentsView.as_view(), name="mailing_list_global"),
