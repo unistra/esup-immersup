@@ -6,3 +6,4 @@ pycodestyle
 django-debug-toolbar==3.2.2
 tox
 safety
+bandit

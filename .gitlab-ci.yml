@@ -31,3 +31,13 @@ safety:
   only:
     - develop
     - master
+
+bandit:
+  stage: test
+  tags:
+    - python3.7
+  script:
+    - find immersionlyceens -name "*.py" ! -path "**/wsgi.py" ! -path "**/settings/**" ! -path "**/tests/**" ! -path "**/__init__.py" ! -path "**/migrations/**" ! -path "**/urls.py" | tee /tmp/find.txt
+    - apt update && apt install -y build-essential libcairo2 libpango1.0-0 libffi-dev shared-mime-info libpq-dev libsasl2-dev python-dev libssl-dev libldap2-dev
+    - pip3 install -r requirements/dev.txt
+    - bandit --exit-zero $(cat /tmp/find.txt)
