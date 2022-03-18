@@ -183,6 +183,14 @@ class ParserFaker:
                 "lienMotDePasse",
                 '<a href="https://github.com/unistra/esup-immersup#lien_mot_de_passe">https://github.com/unistra/esup-immersup#lien_mot_de_passe</a>'
             ),
+            "lienDemandeur": cls.add_tooltip(
+                "lienDemandeur",
+                '<a href="https://github.com/unistra/esup-immersup#lien_demandeur">https://github.com/unistra/esup-immersup#lien_demandeur</a>'
+            ),
+            "lienAssociationComptes": cls.add_tooltip(
+                "lienAssociationComptes",
+                '<a href="https://github.com/unistra/esup-immersup#lien_association_comptes">https://github.com/unistra/esup-immersup#lien_association_comptes</a>'
+            ),
         })
 
         # slot list
