@@ -1,24 +1,6 @@
 [
 {
     "model": "core.mailtemplate",
-    "pk": 2,
-    "fields": {
-        "code": "CPT_MIN_VALIDE_LYCEEN",
-        "label": "Mail validation compte lycéen",
-        "description": "Mail envoyé lors de la validation d’un compte Lycéen pour le lycée",
-        "subject": "Validation de votre compte lycéen",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Votre compte Immersion a bien été validé. </p><p>Vous pouvez à présent vous inscrire aux immersions. </p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
     "pk": 4,
     "fields": {
         "code": "CPT_MIN_CREATE",
@@ -43,32 +25,13 @@
 },
 {
     "model": "core.mailtemplate",
-    "pk": 5,
-    "fields": {
-        "code": "CPT_MIN_REJET_LYCEEN",
-        "label": "Mail rejet compte lycéen",
-        "description": "Mail envoyé lors du rejet d’un compte Lycéen pour le lycée",
-        "subject": "Rejet de votre compte Immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Votre compte immersion a été rejeté par le lycée que vous avez choisi. </p><p>Merci de contacter votre lycée ou de renseigner le bon lycée. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
-            19,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
     "pk": 6,
     "fields": {
         "code": "CPT_MIN_ID_OUBLIE",
         "label": "Mail d'oubli d'identifiants pour les comptes locaux (mot de passe oublié)",
         "description": "Mail envoyé lors de l'oubli des identifiants pour un compte local",
         "subject": "Identifiants compte Immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous avez demandé la réinitialisation de votre mot de passe. Merci d'utiliser le lien suivant :<br></p>{{ lienMotDePasse }}<br><p>Si vous n'être pas à l'origine de cette demande, vous pouvez ignorer ce message.<br><br></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous avez demandé la réinitialisation de votre mot de passe. Merci d'utiliser le lien suivant :<br></p>{{ lienMotDePasse }}<br><p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message.<br><br></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
@@ -93,66 +56,6 @@
         "available_vars": [
             1,
             23,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
-    "pk": 8,
-    "fields": {
-        "code": "CPT_CREATE_INTER",
-        "label": "Mail création compte intervenant (local ou non)",
-        "description": "Mail envoyé lors de la création d’un compte Intervenant",
-        "subject": "Votre compte immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion vient de vous être créé pour l'année {{ annee }}. </p><p>{% if utilisateur_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br>Pour initialiser votre mot de passe, merci de vous connecter à l'adresse suivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en utilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
-            18,
-            33,
-            27,
-            29,
-            32,
-            59
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
-    "pk": 9,
-    "fields": {
-        "code": "CPT_CREATE_LYCEE",
-        "label": "Mail création compte référent lycée",
-        "description": "Mail envoyé lors de la création d’un compte Réferent Lycée",
-        "subject": "Création de votre compte référent Lycée",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un \r\ncompte référent lycée sur la plateforme {{ urlPlateforme }} vient de vous \r\nêtre créé pour l'année {{ annee }} et le lycée suivant : {{ lycee }}. </p><p>Votre identifiant de connexion est : {{ identifiant }} </p><p>Pour initialiser votre mot de passe, merci de vous connecter à l'adresse suivante : {{ lienMotDePasse }}</p><p> Cordialement, </p><p>Le service en ligne d'immersions<br></p>",
-        "active": true,
-        "available_vars": [
-            1,
-            18,
-            33,
-            19,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
-    "pk": 10,
-    "fields": {
-        "code": "CPT_CHANGE_PASSWD_LYCEE",
-        "label": "Mail changement de mot de passe référent lycée",
-        "description": "Mail envoyé lors du changement de mot de passe Réferent Lycée",
-        "subject": "Changement de mot de passe",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>votre mot de passe de la plateforme d'immersion a bien été modifié. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
             27,
             29,
             32
@@ -204,11 +107,12 @@
         "label": "Mail modification de créneau",
         "description": "Mail envoyé lors de la modification d'un créneau à tous les inscrits",
         "subject": "Modification de votre créneau d'immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous êtes inscrits à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}<br>{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau a été modifié :</p><p>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment.libelle %}Bâtiment : {{ creneau.batiment.libelle }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br></p><p>Informations complémentaires :{{ creneau.info }} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous êtes inscrits à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite&nbsp; {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par l'établissement {% if creneau.lycee %}{{ creneau.lycee }}{% else %}{{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau a été modifié :</p><p>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment.libelle %}Bâtiment : {{ creneau.batiment.libelle }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br></p><p>Informations complémentaires :{{ creneau.info }} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
             4,
+            63,
             5,
             10,
             7,
@@ -217,6 +121,7 @@
             60,
             62,
             61,
+            51,
             47,
             41,
             40,
@@ -224,6 +129,7 @@
             12,
             13,
             9,
+            50,
             44,
             46,
             14,
@@ -244,13 +150,14 @@
         "label": "Mail de confirmation d'inscription",
         "description": "Mail envoyé à un inscrit lors de l'inscription à un créneau",
         "subject": "Confirmation d'inscription",
-        "body": "Bonjour {{ prenom }} {{ nom }},<br><br>Vous allez participer à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}<br>{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment.libelle %}Bâtiment : {{ creneau.batiment.libelle }}{% if creneau.batiment.lien %} {{ creneau.batiment.lien }}{% endif %}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<br><br>Cordialement,<br><br>Le service en ligne d'immersions<br>",
+        "body": "Bonjour {{ prenom }} {{ nom }},<br><br>Vous allez participer à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par {% if creneau.lycee %}le {{ creneau.lycee }}{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel. Le lien est accessible dans votre compte immersion, rubrique \"Mes Immersions\".<br>{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment.libelle %}Bâtiment : {{ creneau.batiment.libelle }}{% if creneau.batiment.lien %} {{ creneau.batiment.lien }}{% endif %}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<br><br>Cordialement,<br><br>Le service en ligne d'immersions<br>",
         "active": true,
         "available_vars": [
             1,
             2,
             3,
             4,
+            63,
             5,
             10,
             7,
@@ -275,7 +182,6 @@
             42,
             38,
             39,
-            63,
             27,
             29,
             32,
@@ -333,7 +239,7 @@
         "label": "Mail de rappel de participation à un créneau pour les intervenants",
         "description": "Mail envoyé à un intervenant n jours avant le créneau",
         "subject": "Rappel : votre cours en immersion",
-        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous avez été désigné comme intervenant sur {% if creneau.estuncours %}le cours{% elif creneau.estunevisite %}la visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}l' évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br></p>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel sur le lien suivant : {{ creneau.lien }}{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment.libelle %}Bâtiment : {{ creneau.batiment.libelle }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<p>Voici la liste des inscrits : <br>{{ creneau.listeInscrits }}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p></p>",
+        "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }}, </p><p>Vous avez été désigné comme intervenant sur {% if creneau.estuncours %}le cours{% elif creneau.estunevisite %}la visite au {{ creneau.lycee }}{% elif creneau.estunevenement %}l' évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br></p>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}{% endif %}<br><br>Ce créneau aura lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.<br><br>{% if creneau.temoindistanciel %}Il aura lieu en distanciel sur le lien suivant : {{ creneau.lien }}{% else %}<br>{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}<br>{% if creneau.batiment.libelle %}Bâtiment : {{ creneau.batiment.libelle }}{% endif %}<br>Lieu : {{ creneau.salle }}{% endif %}<br><br>Intervenants :<br>{{ creneau.intervenants }}<br>{% if creneau.info %} Informations complémentaires : {{ creneau.info }}{% endif %}<p>Voici la liste des inscrits : <br>{{ creneau.listeInscrits }}</p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p></p>",
         "active": true,
         "available_vars": [
             1,
@@ -375,18 +281,23 @@
         "label": "Mail de confirmation d'annulation d'inscription",
         "description": "Mail envoyé à un inscrit lors de l'annulation de son inscription à un créneau",
         "subject": "Annulation de votre Inscription",
-        "body": "<p><span style=\"font-size: 14px;\">Bonjour {{ prenom }} {{ nom }}, </span></p><p><span style=\"font-size: 14px;\">Votre inscription au créneau d'immersion suivant est annulée : </span><br><span style=\"font-size: 14px;\">{% if creneau.cours %}Formation {{ creneau.cours.formation }}, cours {{ creneau.cours.libelle }}.{% elif creneau.visite %}Visite : {{ creneau.visite.libelle }}{% elif creneau.evenement %}Evénement : {{ creneau.evenement.libelle }}{% endif %}</span><br><span style=\"font-size: 14px;\">Créneau du {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.</span><span style=\"font-size: 14px;\"><br></span></p><p><span style=\"font-size: 14px;\">Le motif d'annulation est le suivant : {{ motifAnnulation }} </span></p><p><span style=\"font-size: 14px;\">Cordialement, </span></p><p><span style=\"font-size: 14px;\">Le service en ligne d'immersions</span></p>",
+        "body": "<p><span style=\"font-size: 14px;\">Bonjour {{ prenom }} {{ nom }}, </span></p><p><span style=\"font-size: 14px;\">Votre inscription au créneau d'immersion suivant est annulée : </span><br><span style=\"font-size: 14px;\">{% if creneau.estuncours %}Formation {{ creneau.cours.formation }}, cours {{ creneau.cours.libelle }}.{% elif creneau.estunevisite %}Visite : {{ creneau.visite.libelle }}{% elif creneau.estunevenement %}Evénement : {{ creneau.evenement.libelle }}{% endif %}</span><br><span style=\"font-size: 14px;\">Créneau du {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.</span><span style=\"font-size: 14px;\"><br></span></p><p><span style=\"font-size: 14px;\">Le motif d'annulation est le suivant : {{ motifAnnulation }} </span></p><p><span style=\"font-size: 14px;\">Cordialement, </span></p><p><span style=\"font-size: 14px;\">Le service en ligne d'immersions</span></p>",
         "active": true,
         "available_vars": [
             1,
             2,
             3,
             4,
+            63,
             5,
             10,
             7,
             15,
             8,
+            60,
+            62,
+            61,
+            51,
             47,
             41,
             40,
@@ -394,6 +305,7 @@
             12,
             13,
             9,
+            50,
             44,
             46,
             14,
@@ -436,11 +348,12 @@
         "label": "Mail envoyé pour l'évaluation d'un créneau",
         "description": "Mail envoyé à tous les inscrits d'un créneau",
         "subject": "Evaluation de votre créneau d'immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }},</p><p>Vous venez de participer à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au lycée {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par {% if creneau.lycee %}le lycée {{ creneau.lycee }}<br>{% else %}l'établissement {{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br></p><p>Nous souhaiterions connaitre votre opinion sur ce cours. </p><p>Merci de répondre au questionnaire suivant : {{ lienCreneau }} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }},</p><p>Vous venez de participer à {% if creneau.estuncours %}un cours{% elif creneau.estunevisite %}une visite au {{ creneau.lycee }}{% elif creneau.estunevenement %}un évènement{% endif %} organisé par l'établissement {% if creneau.lycee %}{{ creneau.lycee }}{% else %}{{ creneau.etablissement }}{% if creneau.structure %} - {{ creneau.structure }}{% endif %}{% endif %}.<br>{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}<br>Cours : {{ creneau.cours.libelle }}<br>Type : {{ creneau.cours.type }}<br>{% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.<br>{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}<br>Intitulé : {{ creneau.evenement.libelle }}<br>Description : {{ creneau.evenement.description }}<br>{% endif %}<br></p><p>Nous souhaiterions connaitre votre opinion sur ce cours. </p><p>Merci de répondre au questionnaire suivant : {{ lienCreneau }} </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,
             4,
+            63,
             5,
             10,
             7,
@@ -467,7 +380,6 @@
             43,
             42,
             34,
-            63,
             21,
             27,
             29,
@@ -524,42 +436,10 @@
         "body": "<p>Bonjour {{ prenom }} {{ nom }},</p><p>Merci de nous avoir contacté nous allons vous répondre dans les plus brefs délais.</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
+            1,
             27,
-            29
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
-    "pk": 24,
-    "fields": {
-        "code": "CERTIFICATE_HEADER",
-        "label": "Pdf du certificat : bloc \"service\" du certificat",
-        "description": "Pdf du certificat : bloc \"service\" du certificat",
-        "subject": "Header du certificat",
-        "body": "<p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">{% if creneau.etablissement == 'Université de Strasbourg' %}</span><b><span style=\"font-size: 10px;\"><br></span></b></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><b><span style=\"font-size: 10px;\">﻿Immersions gérées&nbsp;par :</span></b></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><b><span style=\"font-size: 8px;\"><br></span></b></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">Espace Avenir</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">Pôle Liaison</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">secondaire-supérieur</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">20a rue René Descartes</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">67000 Strasbourg</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><br></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\">espace-avenir-lyceen-immersion@unistra.fr {% else %}</span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b>Mon entête</b></span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b><br></b></span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b>Je vais voir ça c'est le bazar</b></span><span style=\"font-size: 10px;\"><b>{% endif %}</b></span></p><p style=\"margin-bottom: 0cm; direction: ltr; line-height: 1; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;\"><span style=\"font-size: 10px;\"><b><br></b><br></span></p>",
-        "active": true,
-        "available_vars": [
-            1,
-            51,
-            46
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
-    "pk": 25,
-    "fields": {
-        "code": "CERTIFICATE_FOOTER",
-        "label": "Pdf du certificat : bloc signature du certificat",
-        "description": "Pdf du certificat : bloc signature du certificat",
-        "subject": "Pied de Page du certificat",
-        "body": "<p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% if creneau.etablissement == 'Université de Strasbourg' %}</span><br></p><p class=\"western\" style=\"text-align: right; margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"right\"><span style=\"font-size: 12px;\">﻿Pôle Liaison secondaire-supérieur d’Espace Avenir</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% elif creneau.etablissement == 'ENGEES' %}</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"right\"><span style=\"font-size: 12px;\">ENGEES</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% elif creneau.lycee == 'Marie Curie  (STRASBOURG)' %}</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"right\"><span style=\"font-size: 12px;\">Lycée Marie Curie</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"left\"><span style=\"font-size: 12px;\">{% endif %}</span><br><br><br><br><br></p>",
-        "active": true,
-        "available_vars": [
-            1,
-            51,
-            46
+            29,
+            32
         ]
     }
 },
@@ -571,7 +451,7 @@
         "label": "Pdf du certificat : corps du certificat",
         "description": "Pdf du certificat : corps du certificat",
         "subject": "Cors du certificat",
-        "body": "<p></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 0.42cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\"><b style=\"\"><span style=\"font-size: 12px;\"><u><span style=\"font-size: 11px;\">Object:</span></u><span style=\"font-size: 11px;\">&nbsp;</span></span></b><span style=\"font-size: 11px;\">Attestation de présence</span><span style=\"font-size: 12px;\"><br></span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 0.42cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\"><span style=\"font-size: 11px;\">Madame, Monsieur,</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">L’Université de Strasbourg a mis en place des immersions pour que les lycéen·ne·s et les étudiant·e·s souhaitant découvrir l’environnement universitaire (le campus, les services, les structures) à travers un cours en amphithéâtre ou en salle.</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">Dans ce cadre,</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">{{ nom }} {{ prenom }}</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 12px;\"><span style=\"font-size: 11px;\">Né·e le {{ datedenaissance }} {% if estlycen %} du lycée {{ lycee }}{% endif %}</span><br></span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 12px;\"><span style=\"font-size: 11px;\">a suivi une immersion organisée par {% if creneau.etablissement %}l'établissement {{creneau.etablissement}}{% elif creneau.lycee %}le lycée {{creneau.lycee}}{% endif %}</span><br></span></p><span style=\"font-size: 11px;\">{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}</span><br><span style=\"font-size: 11px;\">Cours : {{ creneau.cours.libelle }}</span><span style=\"font-size: 11px;\"> Type : {{ creneau.cours.type }}</span><span style=\"font-size: 11px;\"> {% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.</span><span style=\"font-size: 11px;\">{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}</span><br><span style=\"font-size: 11px;\">Intitulé : {{ creneau.evenement.libelle }}</span><span style=\"font-size: 11px;\"></span><span style=\"font-size: 11px;\"><br></span><span style=\"font-size: 11px;\">Description : {{ creneau.evenement.description }}</span><span style=\"font-size: 11px;\">{% endif %}</span><br><span style=\"font-size: 11px;\">Ce créneau a eu lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.</span><br><span style=\"font-size: 11px;\">{% if creneau.temoindistanciel %}Il a eu lieu en distanciel. Il n'y a pas d'émargement en distanciel.</span><span style=\"font-size: 11px;\">{% else %}</span><span style=\"font-size: 11px;\">{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}</span><span style=\"font-size: 11px;\">{% if creneau.batiment.libelle %} Bâtiment : {{ creneau.batiment.libelle }}{% endif %} </span><span style=\"font-size: 11px;\">Lieu : {{ creneau.salle }}{% endif %}</span><br><span style=\"font-size: 11px;\"></span><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">Le service Espace Avenir, en charge de l’organisation des immersions, reste à votre disposition pour tout renseignement complémentaire. Je vous prie d’agréer, Madame, Monsieur, l’expression de mes salutations distinguées.</span></p><p></p><p></p>",
+        "body": "<p></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 0.42cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\"><b style=\"\"><span style=\"font-size: 12px;\"><u><span style=\"font-size: 11px;\">Object:</span></u><span style=\"font-size: 11px;\">&nbsp;</span></span></b><span style=\"font-size: 11px;\">Attestation de présence</span><span style=\"font-size: 12px;\"><br></span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 0.42cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\"><span style=\"font-size: 11px;\">Madame, Monsieur,</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">L’Université de Strasbourg a mis en place des immersions pour que les lycéen·ne·s et les étudiant·e·s souhaitant découvrir l’environnement universitaire (le campus, les services, les structures) à travers un cours en amphithéâtre ou en salle.</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">Dans ce cadre,</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">{{ nom }} {{ prenom }}</span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 12px;\"><span style=\"font-size: 11px;\">Né·e le {{ datedenaissance }} {% if estlycen %} du lycée {{ lycee }}{% endif %}</span><br></span></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 12px;\"><span style=\"font-size: 11px;\">a suivi une immersion organisée par {% if creneau.etablissement %}l'établissement {{ creneau.etablissement }}{% elif creneau.lycee %}le lycée {{ creneau.lycee }}{% endif %}</span><br></span></p><span style=\"font-size: 11px;\">{% if creneau.estuncours %}Formation : {{ creneau.cours.formation }}</span><br><span style=\"font-size: 11px;\">Cours : {{ creneau.cours.libelle }}</span><span style=\"font-size: 11px;\"> Type : {{ creneau.cours.type }}</span><span style=\"font-size: 11px;\"> {% elif creneau.estunevisite %}Objet de la visite&nbsp; : {{ creneau.visite.libelle }}.</span><span style=\"font-size: 11px;\">{% elif creneau.estunevenement %}Type d'évènement : {{ creneau.evenement.type }}</span><br><span style=\"font-size: 11px;\">Intitulé : {{ creneau.evenement.libelle }}</span><span style=\"font-size: 11px;\"></span><span style=\"font-size: 11px;\"><br></span><span style=\"font-size: 11px;\">Description : {{ creneau.evenement.description }}</span><span style=\"font-size: 11px;\">{% endif %}</span><br><span style=\"font-size: 11px;\">Ce créneau a eu lieu le {{ creneau.date }} de {{ creneau.heuredebut }} à {{ creneau.heurefin }}.</span><br><span style=\"font-size: 11px;\">{% if creneau.temoindistanciel %}Il a eu lieu en distanciel. Il n'y a pas d'émargement en distanciel.</span><span style=\"font-size: 11px;\">{% else %}</span><span style=\"font-size: 11px;\">{% if creneau.campus %}Campus : {{ creneau.campus }}{% endif %}</span><span style=\"font-size: 11px;\">{% if creneau.batiment.libelle %} Bâtiment : {{ creneau.batiment.libelle }}{% endif %} </span><span style=\"font-size: 11px;\">Lieu : {{ creneau.salle }}{% endif %}</span><br><span style=\"font-size: 11px;\"></span><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"></p><p class=\"western\" style=\"margin-bottom: 0.21cm; direction: ltr; line-height: 16px; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; margin-top: 0.21cm;\" align=\"justify\"><span style=\"font-size: 11px;\">Le service Espace Avenir, en charge de l’organisation des immersions, reste à votre disposition pour tout renseignement complémentaire. Je vous prie d’agréer, Madame, Monsieur, l’expression de mes salutations distinguées.</span></p><p></p><p></p>",
         "active": true,
         "available_vars": [
             1,
@@ -615,8 +495,8 @@
     "pk": 27,
     "fields": {
         "code": "CPT_CREATE",
-        "label": "Mail création compte (ref Etab maitre ou non, ref strcture, ref lycée, intervenant)",
-        "description": "Mail envoyé lors de la création d’un compte (ref Etab maitre ou non, ref strcture, ref lycée, intervenant)",
+        "label": "Mail création compte (ref Etab maitre ou non, ref structure, ref lycée, intervenant)",
+        "description": "Mail envoyé lors de la création d’un compte (ref Etab maitre ou non, ref structure, ref lycée, intervenant)",
         "subject": "Votre compte immersion",
         "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion sur la plateforme {{ urlPlateforme }} vient de vous \r\nêtre créé pour l'année {{ annee }}</p><p>{% if utilisateur_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br></p><p><br>Pour\r\n initialiser votre mot de passe, merci de vous connecter à l'adresse \r\nsuivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en \r\nutilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
@@ -633,24 +513,6 @@
 },
 {
     "model": "core.mailtemplate",
-    "pk": 28,
-    "fields": {
-        "code": "CPT_MIN_REJET_VISITEUR",
-        "label": "Mail rejet compte visiteur",
-        "description": "Mail envoyé lors du rejet d’un compte Visiteur par le référent établissement maître",
-        "subject": "Rejet de votre compte Immersion Visiteur",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>Votre compte immersion a été rejeté par le référent Immersion. </p><p>Merci de nous contacter afin de discuter de vos motivations.<br></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
-        "active": true,
-        "available_vars": [
-            1,
-            27,
-            29,
-            32
-        ]
-    }
-},
-{
-    "model": "core.mailtemplate",
     "pk": 30,
     "fields": {
         "code": "CPT_MIN_REJET",
@@ -660,10 +522,12 @@
         "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }},</p><p>{% if estlyceen %}Votre compte immersion a été rejeté par le lycée que vous avez choisi.</p><p>Merci de contacter votre lycée ou de renseigner le bon lycée. {% elif estvisiteur %}<br></p><p>Votre compte immersion a été rejeté par le référent Immersion. </p>Merci de nous contacter afin de discuter de vos motivations.{% endif %}<br><p></p><p></p><p>Cordialement, </p><p>Le service en ligne d'immersions</p><p><br></p><p></p>",
         "active": true,
         "available_vars": [
+            1,
             54,
             55,
             27,
-            29
+            29,
+            32
         ]
     }
 },
@@ -678,8 +542,10 @@
         "body": "<p>Bonjour {{ prenom }} {{ nom }},</p><p>Votre compte Immersion a bien été validé. </p><p>Vous pouvez à présent vous inscrire aux immersions. </p><p>Cordialement,</p><p>L'équipe Immersions</p><p></p>",
         "active": true,
         "available_vars": [
+            1,
             27,
-            29
+            29,
+            32
         ]
     }
 },
@@ -694,7 +560,7 @@
         "body": "<p></p><p>Bonjour {{ prenom }} {{ nom }},</p>L'utilisateur-trice {{ lienDemandeur }} a demandé la fusion de son compte avec celui-ci. <p>Pour confirmer cette fusion, merci de cliquer sur le lien suivant : {{ lienAssociationComptes }}<br><br></p><p>Si vous n'êtes pas à l'origine de cette demande, ou si vous pensez qu'il s'agit d'une erreur, vous pouvez ignorer ce message.</p><p>Cordialement,</p><p>Le service en ligne d'immersions</p><p></p>",
         "active": true,
         "available_vars": [
-            63,
+            65,
             64,
             27,
             29

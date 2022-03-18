@@ -446,5 +446,21 @@
         "code": "{{ creneau.batiment.lien }}",
         "description": "Créneau : lien du bâtiment"
     }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 64,
+    "fields": {
+        "code": "{{ lienDemandeur }}",
+        "description": "Courriel de l'utilisateur ayant demandé une association de comptes intervenants"
+    }
+},
+{
+    "model": "core.mailtemplatevars",
+    "pk": 65,
+    "fields": {
+        "code": "{{ lienAssociationComptes }}",
+        "description": "Lien vers la page de validation d'association de comptes intervenants"
+    }
 }
 ]
