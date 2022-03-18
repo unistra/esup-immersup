@@ -84,8 +84,14 @@ function init_datatable() {
           }
         },
         { data: 'location',
-          render: function(data) {
-            return data['campus'] + '<br>' + data['building'];
+          render: function(data, type, row) {
+            let txt = data['campus'] + '<br>' + data['building'];
+
+            if(type === 'filter') {
+                return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
+            return txt
           }
         },
         { data: 'room'},
@@ -203,6 +209,46 @@ function init_datatable() {
         defaultContent: '-',
         targets: '_all'
     }],
+
+    initComplete: function () {
+        var api = this.api();
+        var building_column_idx = 5;
+
+        var column = api.column(building_column_idx)
+        var cell = $('#building_filter')
+
+        var title = $(cell).text();
+        $(cell).html(title + '<div><input id="building_input_filter" type="text" placeholder="" /></div>');
+
+        $('#building_input_filter').click(function(event) {
+          event.stopPropagation()
+        })
+
+        $('input', $('#building_filter'))
+        .off('keyup change')
+        .on('keyup change', function (e) {
+            e.stopPropagation();
+
+            // Get the search value
+            $(this).attr('title', $(this).val());
+
+            var cursorPosition = this.selectionStart;
+
+            // Column search with cleaned value
+            api
+                .column(5)
+                .search(
+                    this.value !== '' ? this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "") : '',
+                    this.value !== '',
+                    this.value === ''
+                )
+                .draw();
+
+            $(this)
+                .focus()[0]
+                .setSelectionRange(cursorPosition, cursorPosition);
+        });
+    }
   });
 
   // All filters reset action
@@ -254,6 +300,7 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
+    /*
     {
         column_number: 5,
         filter_type: "text",
@@ -262,6 +309,7 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
+     */
     {
         column_number: 6,
         filter_type: "text",
