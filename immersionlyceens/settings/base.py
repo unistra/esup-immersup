@@ -59,8 +59,8 @@ DATABASES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # PostgreSQL unaccent extension
-POSTGRESQL_ADD_UNACCENT_EXTENSION = True
-
+POSTGRESQL_ADD_UNACCENT_EXTENSION = True # For migration file
+POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 
 
 ######################

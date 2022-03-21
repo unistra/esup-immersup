@@ -1440,21 +1440,22 @@ class Course(models.Model):
             super().validate_unique()
 
             # Advanced test
-            qs = Course.objects.filter(
-                Q(training__id=self.training_id,
-                  structure__id=self.structure_id,
-                  highschool__isnull=True,
-                  label__unaccent__iexact=self.label)
-                |Q(training__id=self.training_id,
-                   structure__isnull=True,
-                   highschool__id=self.highschool_id,
-                   label__unaccent__iexact=self.label)
-            )
-
-            if qs.exists():
-                raise ValidationError(
-                    _("A Course object with the same structure/high school, training and label already exists")
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                qs = Course.objects.filter(
+                    Q(training__id=self.training_id,
+                      structure__id=self.structure_id,
+                      highschool__isnull=True,
+                      label__unaccent__iexact=self.label)
+                    |Q(training__id=self.training_id,
+                       structure__isnull=True,
+                       highschool__id=self.highschool_id,
+                       label__unaccent__iexact=self.label)
                 )
+
+                if qs.exists():
+                    raise ValidationError(
+                        _("A Course object with the same structure/high school, training and label already exists")
+                    )
         except ValidationError as e:
             raise
 
@@ -1588,17 +1589,18 @@ class Visit(models.Model):
             super().validate_unique()
 
             # Advanced test
-            qs = Visit.objects.filter(
-                establishment__id=self.establishment_id,
-                structure__id=self.structure_id,
-                highschool__id=self.highschool_id,
-                purpose__unaccent__iexact=self.purpose
-            )
-
-            if qs.exists():
-                raise ValidationError(
-                    _("A Visit object with the same establishment, structure, high school and purpose already exists")
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                qs = Visit.objects.filter(
+                    establishment__id=self.establishment_id,
+                    structure__id=self.structure_id,
+                    highschool__id=self.highschool_id,
+                    purpose__unaccent__iexact=self.purpose
                 )
+
+                if qs.exists():
+                    raise ValidationError(
+                        _("A Visit object with the same establishment, structure, high school and purpose already exists")
+                    )
         except ValidationError as e:
             raise
 
@@ -1774,23 +1776,24 @@ class OffOfferEvent(models.Model):
             super().validate_unique()
 
             # Advanced test
-            qs = OffOfferEvent.objects.filter(
-                Q(establishment__id=self.establishment_id,
-                  structure__id=self.structure_id,
-                  highschool__isnull=True,
-                  event_type__id=self.event_type_id,
-                  label__unaccent__iexact=self.label)
-                |Q(establishment__isnull=True,
-                   structure__isnull=True,
-                   highschool__id=self.highschool_id,
-                   event_type__id=self.event_type_id,
-                   label__unaccent__iexact=self.label)
-            )
-
-            if qs.exists():
-                raise ValidationError(
-                    _("An off offer event with the same attachments and label already exists")
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                qs = OffOfferEvent.objects.filter(
+                    Q(establishment__id=self.establishment_id,
+                      structure__id=self.structure_id,
+                      highschool__isnull=True,
+                      event_type__id=self.event_type_id,
+                      label__unaccent__iexact=self.label)
+                    |Q(establishment__isnull=True,
+                       structure__isnull=True,
+                       highschool__id=self.highschool_id,
+                       event_type__id=self.event_type_id,
+                       label__unaccent__iexact=self.label)
                 )
+
+                if qs.exists():
+                    raise ValidationError(
+                        _("An off offer event with the same attachments and label already exists")
+                    )
         except ValidationError as e:
             raise
 
