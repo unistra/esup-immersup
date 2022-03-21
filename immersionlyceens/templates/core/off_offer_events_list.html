@@ -94,11 +94,11 @@
         <table id="events_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
         <thead>
           <tr>
-            <th><span id="published_filter">{% trans 'Published' %}</span></th>
-            <th><span id="managed_by_filter">{% trans 'Managed by' context "events" %}</span></th>
-            <th><span id="event_type_filter">{% trans 'Event type' %}</span></th>
-            <th><span id="label_filter">{% trans 'Label' %}</span></th>
-            <th><span id="speakers_filter">{% trans 'Speakers' %}</span></th>
+            <th id="published_filter">{% trans 'Published' %}</th>
+            <th id="managed_by_filter">{% trans 'Managed by' context "events" %}</th>
+            <th id="event_type_filter">{% trans 'Event type' %}</th>
+            <th id="label_filter">{% trans 'Label' %}</th>
+            <th id="speakers_filter">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %}</th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th></th>
@@ -348,16 +348,25 @@
               txt += '&nbsp;<span data-toggle="tooltip" title="' + row.description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
             }
 
+            if(type === 'filter') {
+              return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
             return txt
           }
         },
         {
           "data": "speakers",
-          "render": function (data) {
+          "render": function (data, type, row) {
             let txt = "";
             $.each(data, function (index, speaker) {
               txt += "<a href='mailto:" + speaker.email + "'>" + speaker.first_name + " " + speaker.last_name +"</a><br>";
             });
+
+            if(type === 'filter') {
+              return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
             return txt;
           },
         },
@@ -439,6 +448,51 @@
         orderable: false,
         targets: [7]
       }],
+
+      initComplete: function () {
+        var api = this.api();
+
+        var columns_idx = [3, 4]
+
+        columns_idx.forEach(function(col_idx) {
+          var column = api.column(col_idx);
+          var column_header_id = column.header().id;
+          var cell = $(`#${column_header_id}`);
+          var filter_id = `${column_header_id}_input`;
+          var title = $(cell).text();
+
+          $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
+
+          $(`#${filter_id}`).click(function(event) {
+            event.stopPropagation()
+          })
+
+          $(`#${filter_id}`)
+          .off('keyup change')
+          .on('keyup change', function (e) {
+              e.stopPropagation();
+
+              // Get the search value
+              $(this).attr('title', $(this).val());
+
+              var cursorPosition = this.selectionStart;
+
+              // Column search with cleaned value
+              api
+                  .column(col_idx)
+                  .search(
+                      this.value !== '' ? this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "") : '',
+                      this.value !== '',
+                      this.value === ''
+                  )
+                  .draw();
+
+              $(this)
+                  .focus()[0]
+                  .setSelectionRange(cursorPosition, cursorPosition);
+          });
+        })
+      }
     });
 
     // Filters init
@@ -465,6 +519,7 @@
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
+      /*
       {
         column_number: 3,
         filter_type: "text",
@@ -481,6 +536,7 @@
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
+      */
     ]);
 
     if (current_establishment_id === 'None' || current_establishment_id === "") {

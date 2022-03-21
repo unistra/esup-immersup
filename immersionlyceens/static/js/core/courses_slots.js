@@ -94,13 +94,26 @@ function init_datatable() {
             return txt
           }
         },
-        { data: 'room'},
+        { data: 'room',
+          render: function (data, type, row) {
+            if(type === 'filter') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
+            return data
+          }
+        },
         { data: 'speakers',
-          render: function(data) {
+          render: function(data, type, row) {
             let element = '';
             $.each(data, function(name, email) {
               element += '<a href="mailto:' + email + '">' + name + '</a><br>'
             });
+
+            if(type === 'filter') {
+              return element.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
             return element;
           }
         },
@@ -211,20 +224,24 @@ function init_datatable() {
     }],
 
     initComplete: function () {
-        var api = this.api();
-        var building_column_idx = 5;
+      var api = this.api();
 
-        var column = api.column(building_column_idx)
-        var cell = $('#building_filter')
+      var columns_idx = [5, 6, 7]
 
+      columns_idx.forEach(function(col_idx) {
+        var column = api.column(col_idx)
+        var column_header_id = column.header().id
+        var cell = $(`#${column_header_id}`)
+        var filter_id = `${column_header_id}_input`
         var title = $(cell).text();
-        $(cell).html(title + '<div><input id="building_input_filter" type="text" placeholder="" /></div>');
+        $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
 
-        $('#building_input_filter').click(function(event) {
+
+        $(`#${filter_id}`).click(function(event) {
           event.stopPropagation()
         })
 
-        $('input', $('#building_filter'))
+        $(`#${filter_id}`)
         .off('keyup change')
         .on('keyup change', function (e) {
             e.stopPropagation();
@@ -236,7 +253,7 @@ function init_datatable() {
 
             // Column search with cleaned value
             api
-                .column(5)
+                .column(col_idx)
                 .search(
                     this.value !== '' ? this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "") : '',
                     this.value !== '',
@@ -248,6 +265,7 @@ function init_datatable() {
                 .focus()[0]
                 .setSelectionRange(cursorPosition, cursorPosition);
         });
+      })
     }
   });
 
@@ -309,7 +327,7 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
-     */
+
     {
         column_number: 6,
         filter_type: "text",
@@ -326,6 +344,7 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
+    */
     {
         column_number: 8,
         filter_type: "text",
