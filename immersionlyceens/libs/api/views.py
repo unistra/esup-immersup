@@ -2566,8 +2566,6 @@ def get_csv_structures(request):
 
             ]
 
-            slots = Slot.objects.filter(published=True, event__isnull=False)
-
         elif request.user.is_establishment_manager():
 
             header = [
@@ -2590,7 +2588,7 @@ def get_csv_structures(request):
             Q_filters = Q(event__establishment=request.user.establishment) | Q(
                 event__structure__in=request.user.establishment.structures.all()
             )
-            slots = Slot.objects.filter(Q_filters, published=True, event__isnull=False)
+
 
 
         elif request.user.is_structure_manager():
@@ -2636,7 +2634,7 @@ def get_csv_structures(request):
                 'event__highschool'
             ] = request.user.highschool
 
-        slots = Slot.objects.filter(**filters, published=True, event__isnull=False).order_by('date', 'start_time')
+        slots = Slot.objects.filter(Q_filters, **filters, published=True, event__isnull=False).order_by('date', 'start_time')
 
         content = []
 
@@ -3370,11 +3368,14 @@ def get_csv_anonymous(request):
                 _('student level'),
                 _('attendance status'),
             ]
+            filters[
+                'event__establishment'
+            ] = request.user.establishment
 
-            Q_filters = Q(event__establishment=request.user.establishment) | Q(
-                event__structure__in=request.user.establishment.structures.all()
-            )
-            slots = Slot.objects.filter(Q_filters, published=True, event__isnull=False)
+            # Q_filters = Q(event__establishment=request.user.establishment) | Q(
+            #     event__structure__in=request.user.establishment.structures.all()
+            # )
+            slots = Slot.objects.filter(**filters, published=True, event__isnull=False)
 
         content = []
 
