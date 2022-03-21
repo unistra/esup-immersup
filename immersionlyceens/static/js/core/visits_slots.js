@@ -89,20 +89,32 @@ function init_datatable() {
         },
         { data: 'room',
           render: function(data, type, row) {
+            let value;
             if(row.face_to_face) {
-              return row.room
+              value = row.room
             }
             else {
-              return remote_visit_text
+              value = remote_visit_text
             }
+
+            if(type === 'filter') {
+              return value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
+            return value
           }
         },
         { data: 'speakers',
-          render: function(data) {
+          render: function(data, type, row) {
             let element = '';
             $.each(data, function(name, email) {
               element += '<a href="mailto:' + email + '">' + name + '</a><br>'
             });
+
+            if(type === 'filter') {
+              return element.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
             return element;
           }
         },
@@ -214,6 +226,51 @@ function init_datatable() {
       orderable: false,
       targets: [9]
     }],
+
+    initComplete: function () {
+      var api = this.api();
+
+      var columns_idx = [5, 6]
+
+      columns_idx.forEach(function(col_idx) {
+        var column = api.column(col_idx)
+        var column_header_id = column.header().id
+        var cell = $(`#${column_header_id}`)
+        var filter_id = `${column_header_id}_input`
+        var title = $(cell).text();
+        $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
+
+
+        $(`#${filter_id}`).click(function(event) {
+          event.stopPropagation()
+        })
+
+        $(`#${filter_id}`)
+        .off('keyup change')
+        .on('keyup change', function (e) {
+            e.stopPropagation();
+
+            // Get the search value
+            $(this).attr('title', $(this).val());
+
+            var cursorPosition = this.selectionStart;
+
+            // Column search with cleaned value
+            api
+                .column(col_idx)
+                .search(
+                    this.value !== '' ? this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "") : '',
+                    this.value !== '',
+                    this.value === ''
+                )
+                .draw();
+
+            $(this)
+                .focus()[0]
+                .setSelectionRange(cursorPosition, cursorPosition);
+        });
+      })
+    }
   });
 
   // All filters reset action
@@ -265,6 +322,7 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
+    /*
     {
         column_number: 5,
         filter_type: "text",
@@ -281,6 +339,7 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
+    */
     {
         column_number: 7,
         filter_type: "text",
