@@ -100,7 +100,8 @@ class ParserFaker:
             "cours": {
                 "libelle": cls.add_tooltip("cours.libelle", "Cours n°1"),
                 "formation": cls.add_tooltip("cours.formation", "Formation n°2"),
-                "nbplaceslibre": 25
+                "nbplaceslibre": 25,
+                "type": "TD"
             }
         })
 
@@ -115,6 +116,7 @@ class ParserFaker:
         # event
         context.update({
             "evenement": {
+                "type": "Conférence",
                 "libelle": cls.add_tooltip("evenement.libelle", "Événement N°1"),
                 "nbplaceslibre": 27
             }
