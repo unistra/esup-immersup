@@ -131,6 +131,46 @@ def test():
     env.extra_symlink_dirs = ['media']
     execute(build_env)
 
+@task
+def test2():
+    """Define test stage"""
+    env.roledefs = {
+        'web': ['django-test2.di.unistra.fr'],
+        'lb': ['django-test2.di.unistra.fr'],
+        'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
+    }
+    # env.user = 'root'  # user for ssh
+    env.application_name = 'immersup'
+    env.backends = ['0.0.0.0']
+    env.server_name = 'immersup-test2.app.unistra.fr'
+    env.short_server_name = 'immersup-test2'
+    env.static_folder = '/site_media/'
+    env.server_ip = ''
+    env.no_shared_sessions = False
+    env.server_ssl_on = True
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.goal = 'test'
+    env.socket_port = '8026'
+    env.socket_host = '127.0.0.1'
+    env.map_settings = {
+        'default_db_host': "DATABASES['default']['HOST']",
+        'default_db_user': "DATABASES['default']['USER']",
+        'default_db_password': "DATABASES['default']['PASSWORD']",
+        'default_db_name': "DATABASES['default']['NAME']",
+        'cas_redirect_url': "CAS_REDIRECT_URL",
+        'base_files_dir': "BASE_FILES_DIR",
+        'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID"
+    }
+    env.extra_symlink_dirs = ['media']
+    execute(build_env)
+
 
 @task
 def preprod():
