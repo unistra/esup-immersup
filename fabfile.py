@@ -140,7 +140,8 @@ def test2():
         'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
     }
     # env.user = 'root'  # user for ssh
-    env.application_name = 'immersup'
+    env.application_name = 'immersup-test2'
+    env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)
     env.backends = ['0.0.0.0']
     env.server_name = 'immersup-test2.app.unistra.fr'
     env.short_server_name = 'immersup-test2'
