@@ -24,8 +24,13 @@
       {% trans "My visits" %}
     </div>
     <div class="card-body">
-      <span class="row pull-right"><input type="button" id="visits_filters_reset_all" value="{% trans 'Reset filters' %}"
-          class="btn btn-outline-secondary btn-sm"></span>
+      <form class="form-inline">
+        <div class="form-group">
+          <div class="form-group mb-2">
+            <input type="button" id="visits_filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
+          </div>
+        </div>
+      </form>
       <div class="table-responsive">
         <table id="visits_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
@@ -33,6 +38,7 @@
               <th id="visits_published_filter" class="w-5">{% trans 'Published' %}</th>
               <th id="visits_managed_by_filter">{% trans 'Managed by' context "visits" %}</th>
               <th id="visits_highschool_filter">{% trans 'High school' %}</th>
+              <th id="visits_purpose_filter">{% trans 'Purpose' %}</th>
               <th id="visits_speaker_filter">{% trans 'Speakers' %}</th>
               <th id="visits_published_slots_filter" class="align-top">{% trans 'Published slots' %}</th>
               <th id="visits_registered_students_filter" class="align-top">{% trans 'Registered students' %}</th>
@@ -40,6 +46,7 @@
           </thead>
           <tfoot>
             <tr>
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -113,6 +120,15 @@
           return ""
         },
       },
+      { "data": "purpose",
+        "render": function (data, type, row) {
+          if(type === 'filter') {
+            return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          }
+
+          return data
+        },
+      },
       {
         "data": "speakers",
         "render": function (data, type, row) {
@@ -162,7 +178,7 @@
       initComplete: function () {
         var api = this.api();
 
-        var columns_idx = [3]
+        var columns_idx = [3, 4]
 
         columns_idx.forEach(function(col_idx) {
           var column = api.column(col_idx);
@@ -208,6 +224,19 @@
     // All filters reset action
     $('#visits_filters_reset_all').click(function () {
       yadcf.exResetAllFilters(dt_visits);
+
+      // Clear search inputs
+      let columns_idx = [3, 4]
+
+      columns_idx.forEach(function(col_idx) {
+        let column = dt_visits.column(col_idx)
+        let column_header_id = column.header().id
+        let filter_id = `${column_header_id}_input`
+
+        $(`#${filter_id}`).val('')
+      })
+
+      dt_visits.columns().search("").draw();
     });
 
     // Filters init

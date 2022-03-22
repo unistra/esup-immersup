@@ -24,8 +24,13 @@
       {% trans "My courses" %}
     </div>
     <div class="card-body">
-      <span class="row pull-right"><input type="button" id="courses_filters_reset_all" value="{% trans 'Reset filters' %}"
-          class="btn btn-outline-secondary btn-sm"></span>
+      <form class="form-inline">
+        <div class="form-group">
+          <div class="form-group mb-2">
+            <input type="button" id="courses_filters_reset_all" value="{% trans 'Reset filters' %}" class="btn btn-outline-secondary btn-sm">
+          </div>
+        </div>
+      </form>
       <div class="table-responsive">
         <table id="courses_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
@@ -210,6 +215,19 @@
     // All filters reset action
     $('#courses_filters_reset_all').click(function () {
       yadcf.exResetAllFilters(dt_courses);
+
+      // Clear search inputs
+      let columns_idx = [2, 3, 4]
+
+      columns_idx.forEach(function(col_idx) {
+        let column = dt_courses.column(col_idx)
+        let column_header_id = column.header().id
+        let filter_id = `${column_header_id}_input`
+
+        $(`#${filter_id}`).val('')
+      })
+
+      dt_courses.columns().search("").draw();
     });
 
     // Filters init

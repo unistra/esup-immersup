@@ -97,8 +97,8 @@
             <th><span id="published_filter">{% trans 'Published' %}</span></th>
             <th><span id="training_filter">{% trans 'Training' %}</span></th>
             <th><span id="managed_by_filter">{% trans 'Managed by' context "courses" %}</span></th>
-            <th><span id="label_filter">{% trans 'Label' %}</span></th>
-            <th class="align-top">{% trans 'Speakers' %}</th>
+            <th id="label_filter">{% trans 'Label' %}</th>
+            <th id="speaker_filter" class="align-top">{% trans 'Speakers' %}</th>
             <th class="align-top">{% trans 'Published slots' %} </th>
             <th class="align-top">{% trans 'Registered students' %}</th>
             <th><span id="alerts_filter">{% trans 'Alerts' %}</span></th>
@@ -353,13 +353,26 @@
           },
           { "data": "training_label"},
           { "data": "managed_by" },
-          { "data": "label" },
+          { "data": "label",
+            "render": function (data, type, row) {
+              if(type === 'filter') {
+                return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
+              return data
+            }
+          },
           { "data": "speakers",
-            "render": function (data) {
+            "render": function (data, type, row) {
               let txt = "";
               $.each(data, function (index, speaker) {
                 txt += "<a href='mailto:" + speaker.email + "'>" + speaker.name + "</a><br>";
               });
+
+              if(type === 'filter') {
+                return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              }
+
               return txt;
             },
           },
@@ -447,6 +460,51 @@
         orderable: false,
         targets: [8]
       }],
+
+      initComplete: function () {
+        var api = this.api();
+
+        var columns_idx = [3, 4]
+
+        columns_idx.forEach(function(col_idx) {
+          var column = api.column(col_idx);
+          var column_header_id = column.header().id;
+          var cell = $(`#${column_header_id}`);
+          var filter_id = `${column_header_id}_input`;
+          var title = $(cell).text();
+
+          $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
+
+          $(`#${filter_id}`).click(function(event) {
+            event.stopPropagation()
+          })
+
+          $(`#${filter_id}`)
+          .off('keyup change')
+          .on('keyup change', function (e) {
+              e.stopPropagation();
+
+              // Get the search value
+              $(this).attr('title', $(this).val());
+
+              var cursorPosition = this.selectionStart;
+
+              // Column search with cleaned value
+              api
+                  .column(col_idx)
+                  .search(
+                      this.value !== '' ? this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "") : '',
+                      this.value !== '',
+                      this.value === ''
+                  )
+                  .draw();
+
+              $(this)
+                  .focus()[0]
+                  .setSelectionRange(cursorPosition, cursorPosition);
+          });
+        })
+      }
     });
 
     // Filters init
@@ -473,6 +531,7 @@
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
+      /*
       {
         column_number: 3,
         filter_default_label: "",
@@ -481,6 +540,7 @@
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
+      */
       {
         column_number: 7,
         filter_default_label: "",

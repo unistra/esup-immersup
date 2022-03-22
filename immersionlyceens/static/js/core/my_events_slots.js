@@ -26,6 +26,7 @@ function init_yadcf_filter() {
       style_class: "form-control form-control-sm",
       filter_reset_button_text: false,
     },
+    /*
     {
       column_number: 2,
       filter_default_label: "",
@@ -33,14 +34,18 @@ function init_yadcf_filter() {
       style_class: "form-control form-control-sm",
       filter_container_id: "event_filter",
       filter_reset_button_text: false,
-    }, {
+    },
+    {
+
       column_number: 5,
       filter_type: "text",
       filter_default_label: "",
       style_class: "form-control form-control-sm",
       filter_container_id: "speaker_filter",
       filter_reset_button_text: false,
-    }, {
+    },
+    */
+    {
       column_number: 7,
       filter_default_label: "",
       style_class: "form-control form-control-sm",
@@ -111,6 +116,10 @@ function init_datatable() {
           let txt = data + " (" + row.event.type + ") "
           txt += '<span style="padding-left:5px" data-toggle="tooltip" title="' + row.event.description + '"><i class="fa fas fa-info-circle fa-2x"></i></span>'
 
+          if(type === 'filter') {
+            return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          }
+
           return txt
         }
       },
@@ -137,11 +146,17 @@ function init_datatable() {
               if (data.building) {
                   txt += data.building + "</span><br><span>"
               }
-              return txt + row.room + "</span>";
+              txt += row.room + "</span>";
           }
           else {
-            return "<a href='" + row.url + "' target='_blank'>" + remote_event_text + "</a>"
+            txt = "<a href='" + row.url + "' target='_blank'>" + remote_event_text + "</a>"
           }
+
+          if(type === 'filter') {
+            return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          }
+
+          return txt
         }
       },
       {
@@ -254,7 +269,7 @@ function init_datatable() {
     initComplete: function () {
         var api = this.api();
 
-        var columns_idx = [5]
+        var columns_idx = [2, 4, 5]
 
         columns_idx.forEach(function(col_idx) {
           var column = api.column(col_idx);
@@ -302,6 +317,19 @@ function init_datatable() {
   // All filters reset action
   $('#filters_reset_all').click(function () {
     yadcf.exResetAllFilters(dt);
+
+    // Clear search inputs
+    let columns_idx = [2, 4, 5]
+
+    columns_idx.forEach(function(col_idx) {
+      let column = dt.column(col_idx)
+      let column_header_id = column.header().id
+      let filter_id = `${column_header_id}_input`
+
+      $(`#${filter_id}`).val('')
+    })
+
+    dt.columns().search("").draw();
   });
 
   $('#filter_past_slots').click(function () {

@@ -67,6 +67,10 @@ function init_datatable() {
     { "data": "training_label" },
     { "data": "course",
       "render": function (data, type, row) {
+        if(type === 'filter') {
+          return data.label.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        }
+
         return data.label
       },
     },
@@ -213,7 +217,7 @@ function init_datatable() {
     initComplete: function () {
         var api = this.api();
 
-        var columns_idx = [6, ]
+        var columns_idx = [3, 6]
 
         columns_idx.forEach(function(col_idx) {
           var column = api.column(col_idx);
@@ -259,6 +263,19 @@ function init_datatable() {
   // All filters reset action
   $('#filters_reset_all').click(function () {
     yadcf.exResetAllFilters(dt);
+
+    // Clear search inputs
+    let columns_idx = [3, 6]
+
+    columns_idx.forEach(function(col_idx) {
+      let column = dt.column(col_idx)
+      let column_header_id = column.header().id
+      let filter_id = `${column_header_id}_input`
+
+      $(`#${filter_id}`).val('')
+    })
+
+    dt.columns().search("").draw();
   });
 
   $('#filter_past_slots').click(function () {
@@ -291,7 +308,9 @@ function init_datatable() {
       style_class: "form-control form-control-sm",
       filter_container_id: "training_filter",
       filter_reset_button_text: false,
-    }, {
+    },
+    /*
+    {
       column_number: 3,
       filter_default_label: "",
       filter_match_mode: "exact",
@@ -299,7 +318,6 @@ function init_datatable() {
       filter_container_id: "label_filter",
       filter_reset_button_text: false,
     },
-    /*
     {
       column_number: 6,
       filter_type: "text",

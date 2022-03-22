@@ -32,7 +32,7 @@ function init_datatable() {
     searchCols: [
         null,
         null,
-        { "search": course_label_filter },
+        { "search": course_label_filter.normalize("NFD").replace(/\p{Diacritic}/gu, "")},
         null,
         null,
         null,
@@ -65,12 +65,20 @@ function init_datatable() {
           },
         },
         { data: "course",
-          "render": function (data, type, row) {
+          render: function (data, type, row) {
+            let txt = ""
+
             if ( row.structure && row.structure.managed_by_me || row.highschool && row.highschool.managed_by_me) {
-              return '<a href="/core/course/' + data.id + '">' + data.label + '</a>'
+              txt = '<a href="/core/course/' + data.id + '">' + data.label + '</a>'
             } else {
-              return data.label
+              txt = data.label
             }
+
+            if(type === 'filter') {
+              return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
+            return txt
           },
         },
         { data: 'course_type' },
@@ -226,7 +234,8 @@ function init_datatable() {
     initComplete: function () {
       var api = this.api();
 
-      var columns_idx = [5, 6, 7]
+      var columns_idx = [2, 5, 6, 7]
+      var initial_values = { 2: course_label_filter };
 
       columns_idx.forEach(function(col_idx) {
         var column = api.column(col_idx)
@@ -240,6 +249,11 @@ function init_datatable() {
         $(`#${filter_id}`).click(function(event) {
           event.stopPropagation()
         })
+
+        // initial values (is this the best way to set it ?)
+        if(col_idx in initial_values) {
+          $(`#${filter_id}`).val(initial_values[col_idx]);
+        }
 
         $(`#${filter_id}`)
         .off('keyup change')
@@ -272,6 +286,19 @@ function init_datatable() {
   // All filters reset action
   $('#filters_reset_all').click(function () {
     yadcf.exResetAllFilters(dt);
+
+    // Clear search inputs
+    let columns_idx = [2, 5, 6, 7]
+
+    columns_idx.forEach(function(col_idx) {
+      let column = dt.column(col_idx)
+      let column_header_id = column.header().id
+      let filter_id = `${column_header_id}_input`
+
+      $(`#${filter_id}`).val('')
+    })
+
+    dt.columns().search("").draw();
   });
 
   $('#filter_past_slots').click(function () {
@@ -294,6 +321,7 @@ function init_datatable() {
         filter_container_id: "managed_by_filter",
         filter_reset_button_text: false,
     },
+    /*
     {
         column_number: 2,
         filter_default_label: "",
@@ -302,6 +330,7 @@ function init_datatable() {
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },
+    */
     {
         column_number: 3,
         filter_default_label: "",
@@ -355,9 +384,11 @@ function init_datatable() {
     },
   ])
 
+  /*
   if(course_label_filter) {
     yadcf.exFilterColumn(dt, [
       [2, [course_label_filter]],
     ]);
   }
+  */
 }

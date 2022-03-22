@@ -304,6 +304,19 @@ function init_datatable() {
   // All filters reset action
   $('#filters_reset_all').click(function () {
     yadcf.exResetAllFilters(dt);
+
+    // Clear search inputs
+    let columns_idx = [3, 5, 6]
+
+    columns_idx.forEach(function(col_idx) {
+      let column = dt.column(col_idx)
+      let column_header_id = column.header().id
+      let filter_id = `${column_header_id}_input`
+
+      $(`#${filter_id}`).val('')
+    })
+
+    dt.columns().search("").draw();
   });
 
   $('#filter_past_slots').click(function () {
