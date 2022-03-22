@@ -100,7 +100,8 @@ class ParserFaker:
             "cours": {
                 "libelle": cls.add_tooltip("cours.libelle", "Cours n°1"),
                 "formation": cls.add_tooltip("cours.formation", "Formation n°2"),
-                "nbplaceslibre": 25
+                "nbplaceslibre": 25,
+                "type": "TD"
             }
         })
 
@@ -115,6 +116,7 @@ class ParserFaker:
         # event
         context.update({
             "evenement": {
+                "type": cls.add_tooltip("evenement.type", "Conférence"),
                 "libelle": cls.add_tooltip("evenement.libelle", "Événement N°1"),
                 "nbplaceslibre": 27
             }
@@ -145,13 +147,13 @@ class ParserFaker:
                 ),
                 "cours": {
                     "libelle": cls.add_tooltip("creneau.cours.libelle", "Mon cours"),
-                    "type": cls.add_tooltip("creneau.cours.type", "Mon cours"),
+                    "type": cls.add_tooltip("creneau.cours.type", "TD"),
                     "formation": cls.add_tooltip("creneau.cours.formation", "Ma super formation"),
                 },
                 "evenement": {
                     "libelle": cls.add_tooltip("creneau.evenement.libelle", "Mon événement"),
                     "description": cls.add_tooltip("creneau.evenement.description", "Description de mon événement"),
-                    "type": cls.add_tooltip("creneau.evenement.type", "")
+                    "type": cls.add_tooltip("creneau.evenement.type", "Conférence")
                 },
                 "visite": {
                     "libelle": cls.add_tooltip("creneau.visite.libelle", "Ma super visite"),
