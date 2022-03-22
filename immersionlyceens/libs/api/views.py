@@ -3668,6 +3668,9 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
 
         establishment = immersion.slot.get_establishment()
 
+        if not establishment:
+            establishment = immersion.slot.get_highschool()
+
         immersion_data = {
             'id': immersion.pk,
             'date': _date(immersion.slot.date, 'l d/m/Y'),
