@@ -108,3 +108,10 @@ AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
 AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
 AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
 S3_FILEPATH = 'preprod'
+
+##########
+# Matomo #
+##########
+USE_MATOMO = True
+MATOMO_URL = '{{ matomo_url }}'
+MATOMO_SITE_ID = '{{ matomo_site_id }}'
