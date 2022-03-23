@@ -46,7 +46,7 @@ class ChartsAPITestCase(TestCase):
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
 
-    def test_highschool_global_domains_charts_api(self):
+    def test_global_domains_charts_by_population(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')
         # Global domain charts
         url = "/charts/get_global_domains_charts_by_population"
@@ -56,7 +56,7 @@ class ChartsAPITestCase(TestCase):
 
         self.assertEqual(json_content['datasets'],
              [{'domain': 'Art, Lettres, Langues', 'count': 24,
-               'subData': [{'name': 'Art plastiques', 'count': 12},{'name': 'Art visuels', 'count': 12}]},
+               'subData': [{'name': 'Art plastiques', 'count': 12}, {'name': 'Art visuels', 'count': 12}]},
               {'domain': 'Droit, Economie, Gestion', 'count': 6,
                'subData': [{'name': 'Economie, Gestion', 'count': 6}]},
               {'domain': 'Sciences Humaines et sociales', 'count': 3,
@@ -85,6 +85,73 @@ class ChartsAPITestCase(TestCase):
                'subData': [{'name': 'Informatique', 'count': 4},
                            {'name': 'Mathématiques', 'count': 7}]}]
         )
+
+        # As a high school manager
+        self.client.login(username='test-ref-lyc', password='hiddenpassword')
+        response = self.client.post(url, {})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content['datasets'],
+            [{'domain': 'Art, Lettres, Langues', 'count': 24,
+              'subData': [{'name': 'Art plastiques', 'count': 12}, {'name': 'Art visuels', 'count': 12}]},
+             {'domain': 'Droit, Economie, Gestion', 'count': 6,
+              'subData': [{'name': 'Economie, Gestion', 'count': 6}]},
+             {'domain': 'Sciences Humaines et sociales', 'count': 3,
+              'subData': [{'name': 'Sport', 'count': 3}]},
+             {'domain': 'Sciences et Technologies', 'count': 20,
+              'subData': [{'name': 'Informatique', 'count': 10}, {'name': 'Mathématiques', 'count': 10}]}]
+        )
+
+        # With a filter on level
+        response = self.client.post(url, {'level': 2})
+        content = response.content.decode()
+        json_content = json.loads(content)
+        self.assertEqual(json_content['datasets'],
+            [{'domain': 'Art, Lettres, Langues', 'count': 9,
+              'subData': [{'name': 'Art plastiques', 'count': 4}, {'name': 'Art visuels', 'count': 5}]},
+             {'domain': 'Droit, Economie, Gestion', 'count': 3,
+              'subData': [{'name': 'Economie, Gestion', 'count': 3}]},
+             {'domain': 'Sciences Humaines et sociales', 'count': 1,
+              'subData': [{'name': 'Sport', 'count': 1}]},
+             {'domain': 'Sciences et Technologies', 'count': 9,
+              'subData': [{'name': 'Informatique', 'count': 4}, {'name': 'Mathématiques', 'count': 5}]}]
+        )
+
+
+    def test_global_domains_charts_by_trainings(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
+        # Global domain charts
+        url = "/charts/get_global_domains_charts_by_trainings"
+        response = self.client.post(url, {})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content['datasets'],
+           [{'domain': 'Art, Lettres, Langues', 'count': 24,
+             'subData': [{'name': 'Art plastiques', 'count': 12}, {'name': 'Art visuels', 'count': 12}]},
+            {'domain': 'Droit, Economie, Gestion', 'count': 6,
+             'subData': [{'name': 'Economie, Gestion', 'count': 6}]},
+            {'domain': 'Sciences Humaines et sociales', 'count': 3,
+             'subData': [{'name': 'Sport', 'count': 3}]},
+            {'domain': 'Sciences et Technologies', 'count': 20,
+             'subData': [{'name': 'Informatique', 'count': 10}, {'name': 'Mathématiques', 'count': 10}]}]
+        )
+
+        # as a master establishment manager with a filter on a highschool
+        # FIXME : add test data : highschool courses, slots and immersions
+        """
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        response = self.client.post(url, {'highschools_ids[]': [5]})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        # As a high school manager
+        self.client.login(username='test-ref-lyc', password='hiddenpassword')
+        response = self.client.post(url, {})
+        content = response.content.decode()
+        json_content = json.loads(content)
+        """
 
 
     def test_charts_filters_data_api(self):

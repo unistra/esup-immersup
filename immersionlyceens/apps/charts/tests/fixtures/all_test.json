@@ -6580,7 +6580,7 @@
       "password": "pbkdf2_sha256$150000$wmcSCImSlxrT$D9r0x9B2zlVIZTYiS1z+CFw/UCKmQKRiWLy6yoEaq3w=",
       "last_login": null,
       "is_superuser": false,
-      "username": "R\u00e9f\u00e9rent_lyc\u00e9eMarieCurie",
+      "username": "test-ref-lyc",
       "first_name": "Marie Curie",
       "last_name": "Test",
       "email": "mariecurie@ac-strasbourg.eu",
