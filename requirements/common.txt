@@ -8,7 +8,6 @@ django-filter
 ldap3
 requests
 django-summernote<0.8.20.0
-django-shibboleth-remoteuser
 WeasyPrint==54.1
 sentry-sdk
 django-json-widget
@@ -19,3 +18,5 @@ djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
 django-storages[boto3]
 django-admin-sortable2
+git+https://github.com/rdmorganiser/django-shibboleth-remoteuser
+django-shibboleth-remoteuser
