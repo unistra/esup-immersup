@@ -26,9 +26,9 @@ from .admin_forms import (
     ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
     OffOfferEventTypeForm, PostBachelorLevelForm, PublicDocumentForm,
     PublicTypeForm, StructureForm, StudentLevelForm, TrainingDomainForm,
-    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
-    ImmersionUserGroupForm
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm
 )
+
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
@@ -37,7 +37,7 @@ from .models import (
     Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
     OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation, ImmersionUserGroup
+    UniversityYear, Vacation
 )
 
 
@@ -515,52 +515,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
             'js/immersion_user.min.js',
         )
         css = {'all': ('css/immersionlyceens.min.css',)}
-
-
-class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = ImmersionUserGroupForm
-    list_display = ('id', 'get_immersionusers')
-    filter_horizontal = ('immersionusers', )
-
-    def get_immersionusers(self, obj):
-        return format_html("<br>".join([f"{user} ({user.email})" for user in obj.immersionusers.all()]))
-
-    def has_module_permission(self, request):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
-
-    def has_view_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
-
-    def has_add_permission(self, request):
-        # Only a superuser can add a template
-        return request.user.is_superuser or request.user.is_operator()
-
-    def has_delete_permission(self, request, obj=None):
-        # Only a superuser can delete a template
-        return request.user.is_superuser or request.user.is_operator()
-
-    def has_change_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
-
-    get_immersionusers.short_description = _('Linked users')
-    get_immersionusers.allow_tags = True
 
 
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1876,4 +1830,4 @@ admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
-admin.site.register(ImmersionUserGroup, ImmersionUserGroupAdmin)
+
