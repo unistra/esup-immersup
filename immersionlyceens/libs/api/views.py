@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
@@ -2856,6 +2856,9 @@ def get_csv_anonymous(request):
     infield_separator = '|'
     t = request.GET.get('type')
     filters = {}
+
+    if not t:
+        raise Http404
 
     if t == 'course':
 
