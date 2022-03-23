@@ -19,4 +19,3 @@ djangorestframework-custom-paginations
 django-storages[boto3]
 django-admin-sortable2
 git+https://github.com/t0mab/django-shibboleth-remoteuser
-#django-shibboleth-remoteuser
