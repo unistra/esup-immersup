@@ -18,4 +18,4 @@ djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
 django-storages[boto3]
 django-admin-sortable2
-git+https://github.com/t0mab/django-shibboleth-remoteuser
+https://github.com/t0mab/django-shibboleth-remoteuser/archive/master.zip
