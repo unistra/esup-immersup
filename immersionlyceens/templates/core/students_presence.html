@@ -39,6 +39,7 @@
             {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
               <th id="establishment_filter" class="align-top">{% trans 'Establishment' %}</th>
             {% endif %}
+              <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
               <th id="datetime_filter" class="align-top">{% trans 'Date' %}</th>
               <th id="student_profile_filter" class="align-top">{% trans  'Profile' %}</th>
               <th id="student_filter" class="align-top">{% trans 'Student' %}</th>
@@ -56,6 +57,7 @@
             {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
               <td></td>
             {% endif %}
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -97,11 +99,11 @@
       'processing': false,
       {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
       'order': [
-        [1, "asc"],
+        [2, "asc"],
       ],
       {% else %}
       'order': [
-        [0, "asc"],
+        [1, "asc"],
       ],
       {% endif %}
       'pageLength': 15,
@@ -124,6 +126,7 @@
     {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
       { "data": "establishment"},
     {% endif %}
+      { "data": "structure"},
       { "data": "datetime",
         "render": function(data, type, row) {
           if(type == "display" || type == "filter") {
@@ -177,6 +180,70 @@
   },{
     column_number: 1,
     filter_default_label: "",
+    filter_container_id: "structure_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 2,
+    filter_default_label: "",
+    filter_container_id: "datetime_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 3,
+    filter_default_label: "",
+    filter_container_id: "student_profile_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 4,
+    filter_type: "text",
+    filter_default_label: "",
+    filter_container_id: "student_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 5,
+    filter_default_label: "",
+    filter_container_id: "institution_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 6,
+    filter_type: "text",
+    filter_default_label: "",
+    filter_container_id: "contact_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 7,
+    filter_default_label: "",
+    filter_container_id: "campus_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 8,
+    filter_default_label: "",
+    filter_container_id: "building_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 9,
+    filter_default_label: "",
+    filter_container_id: "meeting_place_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  }
+  {% elif request.user.is_high_school_manager %}
+  {
+    column_number: 0,
+    filter_default_label: "",
+    filter_container_id: "structure_filter",
+    style_class: "form-control form-control-sm",
+    filter_reset_button_text: false,
+  },{
+    column_number: 1,
+    filter_default_label: "",
     filter_container_id: "datetime_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
@@ -209,58 +276,6 @@
   },{
     column_number: 6,
     filter_default_label: "",
-    filter_container_id: "campus_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 7,
-    filter_default_label: "",
-    filter_container_id: "building_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 8,
-    filter_default_label: "",
-    filter_container_id: "meeting_place_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  }
-  {% elif request.user.is_high_school_manager %}
-  {
-    column_number: 0,
-    filter_default_label: "",
-    filter_container_id: "datetime_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 1,
-    filter_default_label: "",
-    filter_container_id: "student_profile_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 2,
-    filter_type: "text",
-    filter_default_label: "",
-    filter_container_id: "student_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 3,
-    filter_default_label: "",
-    filter_container_id: "institution_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 4,
-    filter_type: "text",
-    filter_default_label: "",
-    filter_container_id: "contact_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 5,
-    filter_default_label: "",
     filter_container_id: "meeting_place_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
@@ -269,49 +284,55 @@
     {
         column_number: 0,
         filter_default_label: "",
-        filter_container_id: "datetime_filter",
+        filter_container_id: "structure_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },{
         column_number: 1,
         filter_default_label: "",
-        filter_container_id: "student_profile_filter",
+        filter_container_id: "datetime_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },{
         column_number: 2,
+        filter_default_label: "",
+        filter_container_id: "student_profile_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+    },{
+        column_number: 3,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "student_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },{
-        column_number: 3,
+        column_number: 4,
         filter_default_label: "",
         filter_container_id: "institution_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },{
-        column_number: 4,
+        column_number: 5,
         filter_type: "text",
         filter_default_label: "",
         filter_container_id: "contact_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },{
-        column_number: 5,
+        column_number: 6,
         filter_default_label: "",
         filter_container_id: "campus_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },{
-        column_number: 6,
+        column_number: 7,
         filter_default_label: "",
         filter_container_id: "building_filter",
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
     },{
-        column_number: 7,
+        column_number: 8,
         filter_default_label: "",
         filter_container_id: "meeting_place_filter",
         style_class: "form-control form-control-sm",

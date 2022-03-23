@@ -3625,6 +3625,8 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
     if date_until and date_until != "None":
         filters["slot__date__lte"] = date_until
 
+    filters["slot__visit__isnull"] = True
+
     if (
         not request.user.is_superuser
         and(request.user.is_establishment_manager()
@@ -3635,19 +3637,24 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
 
         Q_filters = (
             Q(slot__course__structure__in=structures) |
-            Q(slot__event__structure__in=structures) |
-            Q(slot__visit__structure__in=structures)
+            Q(slot__event__structure__in=structures, slot__face_to_face=True)
         )
 
     elif request.user.is_high_school_manager() and not request.user.is_superuser:
 
         Q_filters = (
             Q(slot__course__highschool=request.user.highschool) |
-            Q(slot__event__highschool=request.user.highschool) |
-            Q(slot__visit__highschool=request.user.highschool)
+            Q(slot__event__highschool=request.user.highschool, slot__face_to_face=True)
+        )
+    else:
+
+        Q_filters = (
+            Q(slot__event__isnull=False, slot__face_to_face=True) |
+            Q(slot__course__isnull=False)
+
         )
 
-    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(Q_filters, **filters)
+    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(Q_filters, **filters, cancellation_type__isnull=True)
 
     for immersion in immersions:
         institution = ''
@@ -3667,6 +3674,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             student_profile = _('Visitor')
 
         establishment = immersion.slot.get_establishment()
+        structure = immersion.slot.get_structure()
 
         if not establishment:
             establishment = immersion.slot.get_highschool()
@@ -3698,6 +3706,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             'building': immersion.slot.building.label if immersion.slot.building else '',
             'meeting_place': immersion.slot.room if immersion.slot.face_to_face else _('Remote'),
             'establishment': establishment.label if establishment else '',
+            'structure': structure.label if structure else '',
         }
 
         response['data'].append(immersion_data.copy())
