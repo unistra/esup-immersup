@@ -105,10 +105,10 @@ class Command(BaseCommand):
             logger.info(_(f'{updated} visit(s) updated'))
 
 
-        # deactivate immersion users with goup INTER and in an establishment LDAP
+        # deactivate immersion users with group INTER and in an establishment with plugin set
         deleted = ImmersionUser.objects.filter(
-            groups__in=("INTER",),
-            events__establishment__data_source_plugin="LDAP"
+            groups__name__in=("INTER",),
+            establishment__data_source_plugin__isnull=False
         ).delete()
         if deleted[0]:
             logger.info(_(f"{deleted[0]} user(s) with group INTER and with LDAP establishment deleted"))
@@ -118,8 +118,8 @@ class Command(BaseCommand):
 
         # Delete immersion user with group INTER and in an establishment without SI
         updated = ImmersionUser.objects.filter(
-            groups__in=("INTER",),
-            events__establishment__data_source_plugin__isnull=True
+            groups__name__in=("INTER",),
+            establishment__data_source_plugin__isnull=True
         ).update(is_active=False)
         if updated:
             logger.info(_(f"{updated} user(s) with group INTER and with establishment without SI deactivated"))
