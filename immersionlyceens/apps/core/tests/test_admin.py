@@ -28,10 +28,10 @@ from ..admin_forms import (
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday,
-    ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation, HigherEducationInstitution
+    GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
+    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
+    MailTemplateVars, PublicDocument, PublicType, Structure, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -91,6 +91,7 @@ class AdminFormsTestCase(TestCase):
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
+            country='FR',
             department=67,
             city='STRASBOURG',
             zip_code=67000,
@@ -104,6 +105,7 @@ class AdminFormsTestCase(TestCase):
         self.high_school_2 = HighSchool.objects.create(
             label='HS2',
             address='here',
+            country='FR',
             department=67,
             city='STRASBOURG',
             zip_code=67000,
