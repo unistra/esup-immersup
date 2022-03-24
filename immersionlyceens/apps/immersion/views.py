@@ -206,7 +206,7 @@ def shibbolethLogin(request, profile=None):
         affiliations = []
 
     is_student = any(list(filter(lambda a: a.startswith("student@"), affiliations)))
-    is_employee = any(list(filter(lambda a: a.startswith("employee@"), affiliations)))
+    is_employee = not is_student
 
     # Account creation confirmed
     if is_student and request.POST.get('submit'):
