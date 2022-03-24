@@ -65,7 +65,7 @@ class CoreViewsTestCase(TestCase):
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
-            country='FR'
+            country='FR',
             department=67,
             city='STRASBOURG',
             zip_code=67000,
