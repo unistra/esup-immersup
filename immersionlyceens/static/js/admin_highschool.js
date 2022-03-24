@@ -45,9 +45,9 @@ $(document).ready(function() {
 
 $(document).on('change', 'select#id_country', function() {
 if ($(this).val() != 'FR') {
-  $('select#id_department').replaceWith('<input class="form-control" type="text" id="id_department">')
-  $('select#id_city').replaceWith('<input class="form-control" type="text" id="id_city">')
-  $('select#id_zip_code').replaceWith('<input class="form-control" type="text" id="id_zip_code">')
+  $('select#id_department').replaceWith('<input class="form-control" type="text" name="department" id="id_department">')
+  $('select#id_city').replaceWith('<input class="form-control" type="text" name="city" id="id_city">')
+  $('select#id_zip_code').replaceWith('<input class="form-control" type="text" name="zip_code" id="id_zip_code">')
 } else {
   $('#id_department').replaceWith('<select name="department" id="id_department"></select>')
   $('#id_city').replaceWith('<select name="city" id="id_city"></select>')

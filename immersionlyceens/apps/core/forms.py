@@ -1,28 +1,29 @@
 import json
-
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.conf import settings
 from django.forms.widgets import DateInput, TimeInput
-from django.utils.translation import gettext, ngettext, gettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import gettext, gettext_lazy as _, ngettext
+from django_countries.fields import CountryField
 from django_summernote.widgets import SummernoteInplaceWidget, SummernoteWidget
 from rest_framework.exceptions import ValidationError
 
 from ..immersion.forms import StudentRecordForm
+from ..immersion.models import HighSchoolStudentRecord, StudentRecord
 from .admin_forms import HighSchoolForm, TrainingForm
 from .models import (
-    Building, Calendar, Campus, Structure, Course, CourseType, Establishment,
-    HighSchool, ImmersionUser, Slot, Training, UniversityYear, Visit, OffOfferEvent,
-    OffOfferEventType, HighSchoolLevel, PostBachelorLevel, StudentLevel
+    Building, Calendar, Campus, Course, CourseType, Establishment, HighSchool,
+    HighSchoolLevel, ImmersionUser, OffOfferEvent, OffOfferEventType,
+    PostBachelorLevel, Slot, Structure, StudentLevel, Training, UniversityYear,
+    Visit,
 )
 
-from ..immersion.models import HighSchoolStudentRecord, StudentRecord
 
 class CourseForm(forms.ModelForm):
     establishment = forms.ModelChoiceField(queryset=Establishment.objects.none(), required=False)
@@ -565,7 +566,7 @@ class OffOfferEventSlotForm(SlotForm):
             # Generic field error
             if not all(cleaned_data.get(e) for e in m_fields):
                 raise forms.ValidationError(_('Required fields are not filled in'))
-                    
+
             if _date < timezone.now().date():
                 self.add_error('date', _("You can't set a date in the past"))
 
@@ -639,6 +640,7 @@ class MyHighSchoolForm(HighSchoolForm):
         model = HighSchool
         fields = [
             'label',
+            'country',
             'address',
             'address2',
             'address3',
@@ -859,7 +861,7 @@ class VisitForm(forms.ModelForm):
                 instance.speakers.remove(user)
             except ImmersionUser.DoesNotExist:
                 pass
-                
+
         return instance
 
 
