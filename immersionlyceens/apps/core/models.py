@@ -29,6 +29,7 @@ from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
+from django_countries.fields import CountryField
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
 from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
@@ -178,6 +179,7 @@ class HighSchool(models.Model):
     """
 
     label = models.CharField(_("Label"), max_length=255, blank=False, null=False)
+    country = CountryField(_("Country"), blank_label=_('select a country'), default='FR')
     address = models.CharField(_("Address"), max_length=255, blank=False, null=False)
     address2 = models.CharField(_("Address2"), max_length=255, blank=True, null=True)
     address3 = models.CharField(_("Address3"), max_length=255, blank=True, null=True)

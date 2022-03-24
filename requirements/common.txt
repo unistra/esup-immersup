@@ -19,3 +19,4 @@ djangorestframework-custom-paginations
 django-storages[boto3]
 django-admin-sortable2
 -e git+https://github.com/t0mab/django-shibboleth-remoteuser#egg=django-shibboleth-remoteuser
+django-countries==7.3.2

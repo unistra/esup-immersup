@@ -14,7 +14,6 @@ from django_admin_listfilter_dropdown.filters import (
 )
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
-
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
@@ -26,9 +25,8 @@ from .admin_forms import (
     ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
     OffOfferEventTypeForm, PostBachelorLevelForm, PublicDocumentForm,
     PublicTypeForm, StructureForm, StudentLevelForm, TrainingDomainForm,
-    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
-
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
     Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
@@ -37,7 +35,7 @@ from .models import (
     Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
     OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation
+    UniversityYear, Vacation,
 )
 
 
@@ -1268,6 +1266,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = (
         'label',
         'city',
+        'country',
         'email',
         'head_teacher_name',
         'referents_list',
@@ -1278,6 +1277,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     )
     list_filter = (
         'postbac_immersion',
+        ('country', DropdownFilter),
         ('city', DropdownFilter),
         HighschoolConventionFilter,
     )

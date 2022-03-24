@@ -279,6 +279,7 @@ THIRD_PARTY_APPS = [
     'django_admin_listfilter_dropdown',
     'adminsortable2',
     'shibboleth',
+    'django_countries',
 
 ]
 
@@ -597,3 +598,6 @@ IGNORABLE_404_URLS = [
     re.compile(r'^/favicon\.ico$'),
     re.compile(r'^/robots\.txt$'),
 ]
+
+# django countries settings
+COUNTRIES_FIRST = ['FR',]

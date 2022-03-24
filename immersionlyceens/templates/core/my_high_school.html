@@ -33,6 +33,17 @@
               </div>
             </div>
             <div class="form-group row">
+                <label class="col-sm-3" for="id_country"><strong>{% trans "Country" %}*</strong></label>
+                <div class="col-sm-6">
+                  {{ high_school_form.country }}
+                </div>
+                {% if high_school_form.country.errors %}
+                <div class="col-sm-3 alert alert-danger">
+                  {{ high_school_form.country.errors }}
+                </div>
+                {% endif %}
+              </div>
+            <div class="form-group row">
               <label class="col-sm-3" for="id_address"><strong>{% trans "Address" %}*</strong></label>
               <div class="col-sm-6">
                 {{ high_school_form.address }}
