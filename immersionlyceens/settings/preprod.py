@@ -19,7 +19,7 @@ DATABASES['default']['NAME'] = '{{ default_db_name }}'
 
 # PostgreSQL unaccent extension
 POSTGRESQL_ADD_UNACCENT_EXTENSION = False # For migration file
-POSTGRESQL_HAS_UNACCENT_EXTENSION = False # For queries
+POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 
 ############################
 # Allowed hosts & Security #
