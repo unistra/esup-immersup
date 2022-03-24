@@ -947,6 +947,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {
             'label': 'Santo Domingo',
+            'country': 'FR',
             'address': 'rue Larry Kubiac',
             'address2': '',
             'address3': '',
@@ -993,7 +994,6 @@ class AdminFormsTestCase(TestCase):
         form = HighSchoolForm(data=data, request=request)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
-        form.fields['country'].choices = [('FR', 'FRANCE')]
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
@@ -1004,7 +1004,6 @@ class AdminFormsTestCase(TestCase):
         form = HighSchoolForm(data=data, request=request)
         form.fields['city'].choices = [('MULHOUSE', 'MULHOUSE')]
         form.fields['zip_code'].choices = [('68100', '68100')]
-        form.fields['country'].choices = [('FR', 'FRANCE')]
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(HighSchool.objects.filter(label=data['label']).exists())
