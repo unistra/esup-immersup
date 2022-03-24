@@ -1166,7 +1166,8 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        if settings.USE_GEOAPI and self.fields.get("country") == 'FR':
+
+        if settings.USE_GEOAPI and self.instance.country == 'FR':
             city_choices = [
                 ('', '---------'),
             ]
