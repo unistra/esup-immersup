@@ -65,6 +65,7 @@ class CoreViewsTestCase(TestCase):
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
+            country='FR'
             department=67,
             city='STRASBOURG',
             zip_code=67000,
@@ -81,6 +82,7 @@ class CoreViewsTestCase(TestCase):
             label='HS2',
             address='here',
             department=67,
+            country='FR',
             city='STRASBOURG',
             zip_code=67000,
             phone_number='0123456789',
@@ -901,6 +903,7 @@ class CoreViewsTestCase(TestCase):
             'address3': "test_line_3",
             'department': 68,
             'city': "MULHOUSE",
+            'country': "FR",
             'zip_code': '68100',
             'phone_number': '0388888888',
             'email': 'lycee@domain.fr',
