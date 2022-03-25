@@ -2224,6 +2224,9 @@ def get_csv_structures(request):
     t = request.GET.get('type')
     infield_separator = '|'
 
+    if not t:
+        raise Http404
+
     if t == 'course':
 
         label = _('courses')
