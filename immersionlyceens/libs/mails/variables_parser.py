@@ -45,7 +45,6 @@ class ParserFaker:
                user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
 
         context: Dict[str, Any] = cls.get_context(request, **context_params)
-        # context: Dict[str, Any] = cls.get_context(request, user_is, slot_type, local_account, is_face_to_face)
         return render_text(template_data=message_body, data=context)
 
     @classmethod
@@ -214,9 +213,6 @@ class ParserFaker:
         })
 
         return context
-
-
-
 
 
 class Parser:
@@ -584,30 +580,3 @@ class Parser:
 
         context.update()
         return context
-
-    @staticmethod
-    def get_registered_students(slot: Optional[Slot]) -> Dict[str, Any]:
-        if slot:
-            institution_label: str = _("Unknown home institution")
-            registered_students: List[str] = []
-            registered: Immersion
-            for registration in Immersion.objects.filter(slot=slot, cancellation_type__isnull=True):
-                if registration.student.is_high_school_student():
-                    record = registration.student.get_high_school_student_record()
-                    if record and record.highschool:
-                        institution_label = record.highschool.label
-                elif registration.student.is_student():
-                    record = registration.student.get_student_record()
-                    if record:
-                        uai_code, institution = record.home_institution()
-                        institution_label = institution.label if institution else uai_code
-
-                registered_students.append(
-                    f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
-                )
-
-            return registered_students
-
-        return []
-
-

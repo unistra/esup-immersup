@@ -50,65 +50,6 @@ from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 logger = logging.getLogger(__name__)
 
 
-# def customLogin(request, profile=None):
-#     """
-#     Common login function for multiple users profiles
-#     :param request: request object
-#     :param profile: name of the profile (None = students)
-#     """
-#     # Clear all client sessions
-#     Session.objects.all().delete()
-#
-#     is_reg_possible, is_year_valid, year = check_active_year()
-#
-#     if not profile and (not year or not is_year_valid):
-#         messages.error(request, _("Sorry, the university year has not begun (or already over), you can't login yet."))
-#
-#         context = {
-#             'start_date': year.start_date if year else None,
-#             'end_date': year.end_date if year else None,
-#             'reg_date': year.registration_start_date if year else None,
-#         }
-#         return render(request, 'immersion/nologin.html',context)
-#
-#     if request.method == 'POST':
-#         form = LoginForm(request.POST, profile=profile)
-#
-#         if form.is_valid():
-#             username = form.cleaned_data['login']
-#             password = form.cleaned_data['password']
-#
-#             user = authenticate(request, username=username, password=password)
-#             print(f"USER: {user}")
-#             if user is not None:
-#                 # Activated account ?
-#                 if not user.is_valid():
-#                     messages.error(request, _("Your account hasn't been enabled yet."))
-#                 else:
-#                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-#                     if user.is_high_school_student():
-#                         # If student has filled his record
-#                         if user.get_high_school_student_record():
-#                             return HttpResponseRedirect("/immersion")
-#                         else:
-#                             return HttpResponseRedirect("/immersion/hs_record")
-#                     elif user.is_visitor():
-#                         if user.get_visitor_record():
-#                             return HttpResponseRedirect("/immersion")
-#                         else:
-#                             return HttpResponseRedirect("/immersion/visitor_record")
-#                     elif user.is_high_school_manager() and user.highschool:
-#                         return HttpResponseRedirect(reverse('home'))
-#             else:
-#                 messages.error(request, _("Authentication error"))
-#     else:
-#         form = LoginForm()
-#
-#     context = {'form': form, 'profile': profile}
-#
-#     return render(request, 'immersion/login.html', context)
-
-
 class CustomLoginView(FormView):
     template_name: str = "immersion/login.html"
     invalid_no_login_template: str = "immersion/nologin.html"
@@ -353,43 +294,6 @@ def register(request, profile=None):
     return render(request, 'immersion/registration.html', context)
 
 
-# def recovery(request):
-#     email = ""
-#
-#     if request.method == "POST":
-#         email = request.POST.get('email', '').strip().lower()
-#
-#         try:
-#             user = ImmersionUser.objects.get(email__iexact=email)
-#
-#             profiles_than_can_auth = (
-#                 user.is_high_school_manager(),
-#                 user.is_establishment_manager(),
-#                 user.is_structure_manager(),
-#                 user.is_speaker(),
-#                 user.is_legal_department_staff(),
-#                 user.is_visitor(),
-#             )
-#
-#             if not any(profiles_than_can_auth):
-#                 messages.warning(request, _("Please use your establishment credentials."))
-#             else:
-#                 user.set_recovery_string()
-#                 msg = user.send_message(request, 'CPT_MIN_ID_OUBLIE')
-#                 messages.success(request, _("An email has been sent with the procedure to set a new password."))
-#
-#         except ImmersionUser.DoesNotExist:
-#             messages.error(request, _("No account found with this email address"))
-#         except ImmersionUser.MultipleObjectsReturned:
-#             messages.error(request, _("Error : please contact the establishment referent"))
-#
-#     context = {
-#         'email': email,
-#     }
-#
-#     return render(request, 'immersion/recovery.html', context)
-
-
 class RecoveryView(TemplateView):
     template_name: str = "immersion/recovery.html"
 
@@ -569,6 +473,7 @@ class ResendActivationView(TemplateView):
         return self.render_to_response(context)
 
 
+@method_decorator(groups_required('INTER'), name="dispatch")
 class LinkAccountsView(TemplateView):
     template_name: str = "immersion/link_accounts.html"
 
@@ -627,6 +532,7 @@ class LinkAccountsView(TemplateView):
         return self.render_to_response(context)
 
 
+@method_decorator(groups_required('INTER'), name="dispatch")
 class LinkView(View):
     redirect_url: str = "/immersion/link_accounts"
 
@@ -635,14 +541,8 @@ class LinkView(View):
         if hash:
             try:
                 pending_link = PendingUserGroup.objects.get(validation_string=hash)
-
-                print(pending_link)
-
                 u1 = pending_link.immersionuser1
                 u2 = pending_link.immersionuser2
-
-                print(u1)
-                print(u2)
 
                 if u1.usergroup.exists():
                     usergroup = u1.usergroup.first()

@@ -2,9 +2,11 @@
 Mails tests
 """
 import datetime
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.utils.formats import date_format
+from django.urls import reverse
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -15,7 +17,8 @@ from ..mails.variables_parser import parser
 from immersionlyceens.apps.core.models import (
     UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
     Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
-    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment, HigherEducationInstitution
+    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment, HigherEducationInstitution,
+    PendingUserGroup
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
@@ -77,6 +80,15 @@ class MailsTestCase(TestCase):
             highschool=self.high_school,
         )
 
+        self.speaker2 = get_user_model().objects.create_user(
+            username='speaker2',
+            password='pass',
+            email='speaker-immersion2@no-reply.com',
+            first_name='Jean',
+            last_name='Philippe',
+            establishment=self.establishment,
+        )
+
         self.ref_str = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
@@ -104,6 +116,7 @@ class MailsTestCase(TestCase):
         )
 
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
         Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
@@ -279,6 +292,26 @@ class MailsTestCase(TestCase):
         message_body = MailTemplate.objects.get(code='IMMERSION_ANNUL')
         parsed_body = parser(message_body.body, user=self.highschool_user, immersion=self.immersion)
         self.assertIn(self.immersion.cancellation_type.label, parsed_body)
+
+        # Account links
+        pending = PendingUserGroup.objects.create(
+            immersionuser1=self.speaker1,
+            immersionuser2=self.speaker2,
+            validation_string=uuid.uuid4().hex
+        )
+
+        platform_url = get_general_setting("PLATFORM_URL")
+        url = reverse("immersion:link", kwargs={'hash': pending.validation_string})
+
+        message_body = MailTemplate.objects.get(code='CPT_FUSION')
+        parsed_body = parser(
+            message_body.body,
+            link_validation_string=pending.validation_string,
+            link_source_user=self.speaker1
+        )
+        self.assertIn(f"{self.speaker1.last_name} {self.speaker1.first_name}", parsed_body)
+        self.assertIn(f"{platform_url}{url}", parsed_body)
+
 
     def test_condition(self):
         message_body = "{% if prenom == 'Jean' %}Hello{% else %}World{% endif %}"

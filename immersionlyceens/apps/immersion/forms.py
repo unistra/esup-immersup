@@ -30,22 +30,6 @@ class LoginForm(forms.Form):
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
-    # TODO : Django's authentication system
-    # (does not work, needs authentication backend attribute
-    """
-    def __init__(self, request, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def get_user(self):
-        cleaned_data = super().clean()
-        login = cleaned_data.get('login')
-        password = cleaned_data.get('password')
-
-        user = authenticate(username=login, password=password)
-
-        return user
-    """
-
     def clean(self):
         cleaned_data = super().clean()
 
@@ -170,14 +154,6 @@ class StudentForm(forms.ModelForm):
 
         email = cleaned_data.get("email").strip().lower()
 
-        """ MOVED IN VIEW
-        if email != self.instance.email:
-            self.request.user.set_validation_string()
-            try:
-                msg = self.request.user.send_message(self.request, 'CPT_MIN_CHANGE_MAIL')
-            except Exception as e:
-                logger.exception("Cannot send 'change mail' message : %s", e)
-        """
         cleaned_data['email'] = email
         return cleaned_data
 
@@ -217,15 +193,6 @@ class HighSchoolStudentForm(forms.ModelForm):
         if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
             raise forms.ValidationError(
                 _("Error : an account already exists with this email address"))
-
-        """ MOVED IN VIEW
-        if email != self.instance.email:
-            self.request.user.set_validation_string()
-            try:
-                msg = self.request.user.send_message(self.request, 'CPT_MIN_CHANGE_MAIL')
-            except Exception as e:
-                logger.exception("Cannot send 'change mail' message : %s", e)
-        """
 
         cleaned_data['email'] = email
 

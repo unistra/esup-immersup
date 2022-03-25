@@ -6,12 +6,14 @@ import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import Client, RequestFactory, TestCase
+from django.urls import reverse
+
 from immersionlyceens.apps.core.models import (
     BachelorMention, Building, Calendar, Campus, Course, CourseType,
     GeneralBachelorTeaching, HighSchool, HighSchoolLevel, Immersion,
     ImmersionUser, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
     TrainingDomain, TrainingSubdomain, UniversityYear, Establishment,
-    HigherEducationInstitution
+    HigherEducationInstitution, ImmersionUserGroup, PendingUserGroup
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -117,6 +119,14 @@ class ImmersionViewsTestCase(TestCase):
             last_name='HER',
             establishment=self.establishment,
         )
+        self.speaker2 = get_user_model().objects.create_user(
+            username='speaker2',
+            password='pass',
+            email='speaker-immersion2@no-reply.com',
+            first_name='Another',
+            last_name='Speaker',
+            establishment=self.establishment,
+        )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
@@ -140,6 +150,7 @@ class ImmersionViewsTestCase(TestCase):
         self.client = Client()
 
         Group.objects.get(name='INTER').user_set.add(self.speaker1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='ETU').user_set.add(self.student_user)
@@ -656,3 +667,67 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(record.get_duplicates(), [4])
         self.assertEqual(record.solved_duplicates, "7")
         self.assertEqual(record2.get_duplicates(), [4,5])
+
+    def test_link_accounts(self):
+        url = reverse('immersion:link_accounts')
+
+        self.assertFalse(PendingUserGroup.objects.all().exists())
+
+        # as a ref-etab manager : redirection
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # Post requests
+        # With an unknown email
+        response = self.client.post(url, {'email': 'unknown@email.net'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("No account found with this email address", response.content.decode('utf8'))
+
+        # Attempt to link a non-speaker user
+        response = self.client.post(url, {'email': self.lyc_ref.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("This account is not a speaker-only one, it can't be linked", response.content.decode('utf8'))
+
+        # Success
+        response = self.client.post(url, {'email': self.speaker2.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("The link message has been sent to this email address", response.content.decode('utf8'))
+
+        self.assertTrue(PendingUserGroup.objects.all().exists())
+        pending_group = PendingUserGroup.objects.first()
+        self.assertEqual(pending_group.creation_date.date(), self.today.date())
+        self.assertEqual(pending_group.immersionuser1, self.speaker1)
+        self.assertEqual(pending_group.immersionuser2, self.speaker2)
+
+        # Accepted as a success : users are already linked
+        user_group = ImmersionUserGroup.objects.create()
+        user_group.immersionusers.add(self.speaker1)
+        user_group.immersionusers.add(self.speaker2)
+
+        response = self.client.post(url, {'email': self.speaker2.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("These accounts are already linked", response.content.decode('utf8'))
+
+
+    def test_link_validation(self):
+        self.assertFalse(PendingUserGroup.objects.all().exists())
+        self.assertEqual(self.speaker1.linked_users(), [self.speaker1, ])
+        self.assertEqual(self.speaker2.linked_users(), [self.speaker2, ])
+
+        PendingUserGroup.objects.create(
+            immersionuser1=self.speaker1,
+            immersionuser2=self.speaker2,
+            validation_string="whatever"
+        )
+
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get(reverse('immersion:link', args=("whatever", )), follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertIn("Your accounts have been linked", response.content.decode('utf8'))
+        self.assertEqual(self.speaker1.linked_users(), [self.speaker1, self.speaker2])
