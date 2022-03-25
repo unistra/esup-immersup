@@ -110,3 +110,30 @@ class ChartsViewsTestCase(TestCase):
         )
         self.assertEqual(response.context['part1_level_filter'], 0)
         self.assertEqual(response.context['part2_filters']['level'], 3)
+
+
+    def test_view_slots_charts(self):
+        request = self.factory.get("/")
+        request.user = self.ref_etab_user
+        response = self.client.get(
+            "/charts/slots_charts",
+            {'establishment_id': self.master_establishment.id},
+            request
+        )
+
+        self.assertEqual(response.context['establishment_id'], str(self.master_establishment.id))
+        self.assertEqual(
+            [e for e in response.context['establishments']],
+            [e for e in Establishment.objects.filter(active=True).order_by('label')]
+        )
+
+    def test_view_global_trainings_charts(self):
+        request = self.factory.get("/")
+        request.user = self.ref_etab_user
+        response = self.client.get("/charts/global_trainings_charts",  request)
+
+        # As a master establishment manager, do not consider post bachelors levels (will be included in 'students')
+        self.assertEqual(
+            [h for h in response.context['high_school_levels']],
+            [h for h in HighSchoolLevel.objects.filter(is_post_bachelor=False).order_by('order')]
+        )

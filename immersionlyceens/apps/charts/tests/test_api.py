@@ -768,6 +768,9 @@ class ChartsAPITestCase(TestCase):
 
 
     def test_registration_charts_cats_by_population(self):
+        """
+        Charts by population with filters on establishments and high schools
+        """
         self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
 
         # Registration charts cats (ajax query, headers needed)
@@ -841,6 +844,9 @@ class ChartsAPITestCase(TestCase):
 
 
     def test_get_registration_charts_cats_by_trainings(self):
+        """
+        Charts by trainings with filters on establishments, structures and high schools
+        """
         self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
 
         # Registration charts cats (ajax query, headers needed)
@@ -905,4 +911,50 @@ class ChartsAPITestCase(TestCase):
                 'Terminale': 0,
                 'Post-bac': 0,
                 'Visitors': 0}]
+        )
+
+    def test_get_slots_charts(self):
+        """
+        Test slots charts
+        """
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        url = "/charts/get_slots_charts"
+        response = self.client.post(
+            url,
+            {
+                'empty_structures': 'false',
+                'establishment_id': self.master_establishment.id
+            },
+            **self.header
+        )
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content['datasets'], [
+            {
+                'name': 'IUT Louis Pasteur (Unistra)',
+                'slots_count': 1,
+                'percentage': 1.9,
+                'none': 0
+            }, {
+                'name': 'Faculté des sciences du sport (Unistra)',
+                'slots_count': 5,
+                'percentage': 9.4,
+                'none': 0
+            }, {
+                'name': 'Faculté des Sciences économiques et de gestion (Unistra)',
+                'slots_count': 9,
+                'percentage': 17.0,
+                'none': 0
+            }, {
+                'name': 'UFR Mathématiques et Informatique (Unistra)',
+                'slots_count': 17,
+                'percentage': 32.1,
+                'none': 0
+            }, {
+                'name': 'Faculté des Arts (Unistra)',
+                'slots_count': 21,
+                'percentage': 39.6,
+                'none': 0
+            }]
         )
