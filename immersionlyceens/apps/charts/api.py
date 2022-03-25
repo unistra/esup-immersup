@@ -163,6 +163,7 @@ def global_domains_charts_by_trainings(request):
     _structures_ids = []
     _higher_institutions_ids = []
     level_value = request.POST.get("level", 0)
+
     level = None
 
     # Parse filters in POST request
@@ -922,10 +923,13 @@ def get_registration_charts_by_trainings(request):
     Data for amcharts 4
     Horizontal bars format
     Courses slots only
+
+    Registration charts by trainings offered by establishments and high schools
+    Optional filters : establishments, structures and / or high schools with postbac immersions
     """
     user = request.user
     level_value = request.GET.get("level", 0) # default : all
-    highschool_id = request.GET.get("highschool_id", 'all')
+    highschool_id = request.GET.get("highschool_id", '')
     structure_id = request.GET.get("structure_id")
     structure = None
     immersions_filter = {}
@@ -941,7 +945,7 @@ def get_registration_charts_by_trainings(request):
     if user.is_high_school_manager() and user.highschool:
         highschool_id = user.highschool.id
 
-    if highschool_id == "all_highschools":
+    if highschool_id == "all":
         immersions_filter['slot__course__highschool__isnull'] = False
     else:
         try:
@@ -954,7 +958,7 @@ def get_registration_charts_by_trainings(request):
         immersions_filter['slot__course__highschool__id'] = highschool_id
     elif user.is_establishment_manager():
         immersions_filter['slot__course__structure__in'] = allowed_structures
-    elif user.is_structure_manager() and structure and structure in user.get_authorized_structures():
+    elif user.is_structure_manager() and structure and structure in allowed_structures:
         immersions_filter['slot__course__structure__id'] = structure_id
 
     if level_value != "visitors":
@@ -1103,7 +1107,7 @@ def get_registration_charts_by_trainings(request):
         # platform registrations
         datasets[2][level_label] = users.count()
 
-    # Median calculation for structure managers
+    # Median calculation for structure managers (of filtering on a specific structure)
     if structure:
         # =======================================================
         # Attended to at least 1 immersion median

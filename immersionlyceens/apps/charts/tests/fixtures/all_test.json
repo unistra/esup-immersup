@@ -6108,69 +6108,6 @@
     }
   },
   {
-    "model": "auth.group",
-    "pk": 1,
-    "fields": {
-      "name": "REF-ETAB",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 2,
-    "fields": {
-      "name": "INTER",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 3,
-    "fields": {
-      "name": "REF-STR",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 4,
-    "fields": {
-      "name": "REF-LYC",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 5,
-    "fields": {
-      "name": "ETU",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 6,
-    "fields": {
-      "name": "SRV-JUR",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 7,
-    "fields": {
-      "name": "LYC",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 8,
-    "fields": {
-      "name": "REF-ETAB-MAITRE"
-    }
-  },
-  {
     "model": "core.immersionuser",
     "pk": 2,
     "fields": {
@@ -6213,6 +6150,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         1
       ],
@@ -6284,6 +6222,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         8
       ],
@@ -6309,6 +6248,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3,
         2
@@ -6337,6 +6277,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6362,6 +6303,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3
       ],
@@ -6389,6 +6331,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3
       ],
@@ -6416,6 +6359,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6441,6 +6385,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6466,6 +6411,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6491,6 +6437,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6516,6 +6463,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6541,6 +6489,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6566,6 +6515,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6616,6 +6566,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6787,6 +6738,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6812,6 +6764,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6837,6 +6790,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6862,6 +6816,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6887,6 +6842,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6912,6 +6868,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6937,6 +6894,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7062,6 +7020,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7087,6 +7046,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7112,6 +7072,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7212,6 +7173,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7237,6 +7199,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7262,6 +7225,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7362,6 +7326,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7387,6 +7352,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7412,6 +7378,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         6
       ],
@@ -7437,6 +7404,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         6
       ],
@@ -7462,6 +7430,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3
       ],
@@ -7489,6 +7458,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7539,6 +7509,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         1
       ],

@@ -16,17 +16,16 @@ class ChartsAPITestCase(TestCase):
     """Tests for API"""
 
     # This file contains a complete set of users, slots, etc
-    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels',
+    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'group',
         'immersionlyceens/apps/charts/tests/fixtures/all_test.json',
     ]
 
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.master_establishment = Establishment.objects.first()
+        self.master_establishment = Establishment.objects.filter(master=True).first()
 
         self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
-        self.ref_etab_user.establishment = self.master_establishment
         self.ref_etab_user.set_password('hiddenpassword')
         self.ref_etab_user.save()
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
@@ -41,6 +40,10 @@ class ChartsAPITestCase(TestCase):
         self.reflyc_user.set_password('hiddenpassword')
         self.reflyc_user.save()
         Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
+
+        self.ref_str_user = get_user_model().objects.get(username='test-eco')
+        self.ref_str_user.set_password('hiddenpassword')
+        self.ref_str_user.save()
 
         self.client = Client()
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
@@ -138,6 +141,13 @@ class ChartsAPITestCase(TestCase):
              'subData': [{'name': 'Informatique', 'count': 10}, {'name': 'Mathématiques', 'count': 10}]}]
         )
 
+        # With a level filter
+        response = self.client.post(url, {'level': 1})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        print(json_content)
+
         # as a master establishment manager with a filter on a highschool
         # FIXME : add test data : highschool courses, slots and immersions
         """
@@ -225,6 +235,133 @@ class ChartsAPITestCase(TestCase):
               }]
         )
 
+        # As a master establishment manager : see all establishments and high schools
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        response = self.client.get(
+            url,
+            {
+                'filter_by_my_trainings': "true",
+                'include_structures': "true",
+            },
+            **self.header
+        )
+
+        content = response.content.decode()
+        json_content = json.loads(content)
+        self.assertEqual(json_content['data'], [{
+                'institution': 'Université de Strasbourg',
+                'institution_id': 1,
+                'structure_id': '',
+                'type': 'Higher education institution',
+                'type_code': 1,
+                'city': 'STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'Faculté des Arts',
+                'structure_id': 1,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'Faculté des Sciences économiques et de gestion',
+                'structure_id': 6,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'Faculté des sciences du sport',
+                'structure_id': 3,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'IUT Louis Pasteur',
+                'structure_id': 7,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'UFR Mathématiques et Informatique',
+                'structure_id': 2,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }]
+        )
+
+        # With no filter by training (filter by population)
+        # We should only see establishments (and high schools) students and pupils can come from (no structures)
+        response = self.client.get(url, {'filter_by_my_trainings': "false"}, **self.header)
+        content = response.content.decode()
+        json_content = json.loads(content)
+        self.assertEqual(json_content['data'], [{
+                 'institution': 'Lycée Coufignal',
+                 'institution_id': 3,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '68000 - COLMAR',
+                 'department': '68',
+                 'country': ''
+             }, {
+                 'institution': 'Lycée Jean Monnet',
+                 'institution_id': 2,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '67100 - STRASBOURG',
+                 'department': '67',
+                 'country': ''
+             }, {
+                 'institution': 'Lycée Kléber',
+                 'institution_id': 6,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '67000 - STRASBOURG',
+                 'department': '67',
+                 'country': ''
+             }, {
+                 'institution': 'Lycée Marie Curie',
+                 'institution_id': 5,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '67100 - STRASBOURG',
+                 'department': '67',
+                 'country': ''
+             }, {
+                 'institution': 'Université de Strasbourg',
+                 'institution_id': '0673021V',
+                 'structure_id': '',
+                 'type': 'Higher education institution',
+                 'type_code': 1,
+                 'city': ['67081 - Strasbourg'],
+                 'department': ['Bas-Rhin'],
+                 'country': ['France']
+             }]
+        )
 
     def test_global_trainings_charts_api(self):
         """
@@ -545,6 +682,78 @@ class ChartsAPITestCase(TestCase):
               HighSchoolLevel.objects.get(pk=4).label: 1,
               'none': 0
              }]
+        )
+
+    def test_registration_charts_by_training(self):
+        # Registration charts
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        url = "/charts/get_registration_charts_by_trainings"
+
+        response = self.client.get(url, {'level': 0})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        # As a master establishment manager, charts include by default trainings of all establishments/high schools
+        self.assertEqual(json_content['datasets'], [{
+                'name': 'Attended to at least one immersion',
+                'none': 0,
+                'Seconde': 2,
+                'Première': 2,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations to at least one immersion',
+                'none': 0,
+                'Seconde': 3,
+                'Première': 4,
+                'Terminale': 1,
+                'Post-bac': 1,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations count',
+                'none': 0,
+                'Seconde': 4,
+                'Première': 4,
+                'Terminale': 2,
+                'Post-bac': 2,
+                'Visitors': 0
+            }]
+        )
+
+        # Filter by structure : see only registrations for trainings of this structure
+        # This one includes the calculation of the median accross structures of the same establishment
+        self.client.login(username='test-eco', password='hiddenpassword')
+        response = self.client.get(url, {'level': 0, 'structure_id': 6})
+
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content["datasets"], [{
+                'name': 'Attended to at least one immersion [bold](m = 0)[/bold]',
+                'none': 0,
+                'Seconde': 0,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations to at least one immersion [bold](m = 7)[/bold]',
+                'none': 0,
+                'Seconde': 1,
+                'Première': 1,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations count',
+                'none': 0,
+                'Seconde': 4,
+                'Première': 4,
+                'Terminale': 2,
+                'Post-bac': 2,
+                'Visitors': 0
+            }]
         )
 
 
