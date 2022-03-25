@@ -9605,7 +9605,7 @@
       "student": 73,
       "slot": 5,
       "cancellation_type": null,
-      "attendance_status": 2,
+      "attendance_status": 1,
       "survey_email_sent": false
     }
   },

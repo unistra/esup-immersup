@@ -146,7 +146,17 @@ class ChartsAPITestCase(TestCase):
         content = response.content.decode()
         json_content = json.loads(content)
 
-        print(json_content)
+        self.assertEqual(json_content["datasets"],
+            [{'domain': 'Art, Lettres, Langues', 'count': 12,
+              'subData': [{'name': 'Art plastiques', 'count': 6}, {'name': 'Art visuels', 'count': 6}]},
+              {'domain': 'Droit, Economie, Gestion', 'count': 2,
+               'subData': [{'name': 'Economie, Gestion', 'count': 2}]},
+              {'domain': 'Sciences Humaines et sociales', 'count': 1,
+               'subData': [{'name': 'Sport', 'count': 1}]},
+              {'domain': 'Sciences et Technologies', 'count': 7,
+               'subData': [{'name': 'Informatique', 'count': 4}, {'name': 'Mathématiques', 'count': 3}]}]
+        )
+
 
         # as a master establishment manager with a filter on a highschool
         # FIXME : add test data : highschool courses, slots and immersions
@@ -730,9 +740,9 @@ class ChartsAPITestCase(TestCase):
         json_content = json.loads(content)
 
         self.assertEqual(json_content["datasets"], [{
-                'name': 'Attended to at least one immersion [bold](m = 0)[/bold]',
+                'name': 'Attended to at least one immersion [bold](m = 1)[/bold]',
                 'none': 0,
-                'Seconde': 0,
+                'Seconde': 1,
                 'Première': 0,
                 'Terminale': 0,
                 'Post-bac': 0,
@@ -828,3 +838,71 @@ class ChartsAPITestCase(TestCase):
             'name': 'Lycée Jean Monnet',
             'none': 0
         }])
+
+
+    def test_get_registration_charts_cats_by_trainings(self):
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+
+        # Registration charts cats (ajax query, headers needed)
+        url = "/charts/get_registration_charts_cats_by_trainings"
+        response = self.client.post(
+            url,
+            {
+                'highschools_ids[]': [2],
+                'higher_institutions_ids[]': [self.master_establishment.id],
+                'structure_ids[]': [6]
+            },
+            **self.header
+        )
+
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        # TODO : add test data for high schools with postbac immersions
+        self.assertEqual(json_content['one_immersion']["datasets"], [{
+                'name': 'Lycée Jean Monnet',
+                'none': 0,
+                'Seconde': 0,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {'name': 'Université de Strasbourg',
+                'none': 0,
+                'Seconde': 3,
+                'Première': 4,
+                'Terminale': 1,
+                'Post-bac': 1,
+                'Visitors': 0
+            }, {'name': 'Unistra - Faculté des Sciences économiques et de gestion',
+                'none': 0,
+                'Seconde': 1,
+                'Première': 1,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0}]
+        )
+
+        self.assertEqual(json_content['attended_one']["datasets"],  [{
+                'name': 'Lycée Jean Monnet',
+                'none': 0,
+                'Seconde': 0,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {'name': 'Université de Strasbourg',
+                'none': 0,
+                'Seconde': 2,
+                'Première': 2,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {'name': 'Unistra - Faculté des Sciences économiques et de gestion',
+                'none': 0,
+                'Seconde': 1,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0}]
+        )
