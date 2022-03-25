@@ -864,7 +864,7 @@ class APITestCase(TestCase):
 
 
     def test_API_get_csv_anonymous(self):
-
+        # ref master etab
         self.client.login(username='ref_master_etab', password='pass')
 
         # No type specified
@@ -951,118 +951,367 @@ class APITestCase(TestCase):
             n += 1
 
 
-    # def test_API_get_csv_highschool(self):
-    #     url = f'/api/get_csv_highschool/'
-    #     client = Client()
-    #     client.login(username='ref_lyc', password='pass')
+        # ref etab
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url, request)
+        content = csv.reader(response.content.decode().split('\n'))
 
-    #     request.user = self.ref_lyc
-    #     response = client.get(url, request)
-
-    #     content = csv.reader(response.content.decode().split('\n'))
-    #     headers = [
-    #         _('last name'),
-    #         _('first name'),
-    #         _('birthdate'),
-    #         _('level'),
-    #         _('class name'),
-    #         _('bachelor type'),
-    #         _('establishment'),
-    #         _('type'),
-    #         _('training domain'),
-    #         _('training subdomain'),
-    #         _('training'),
-    #         _('course/event/visit label'),
-    #         _('date'),
-    #         _('start_time'),
-    #         _('end_time'),
-    #         _('campus'),
-    #         _('building'),
-    #         _('meeting place'),
-    #         _('attendance status'),
-    #     ]
-
-    #     n = 0
-    #     for row in content:
-    #         if n == 0:
-    #             for h in headers:
-    #                 self.assertIn(h, row)
-    #         elif n == 1:
-    #             self.assertEqual(self.hs_record.student.last_name, row[0])
-    #             self.assertEqual(self.hs_record.student.first_name, row[1])
-    #             self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
-    #             self.assertEqual(self.hs_record.level.label, row[3])
-    #             self.assertEqual(self.hs_record.class_name, row[4])
-    #             self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
-    #             self.assertIn('', row[6])
-    #             self.assertIn('', row[7])
-    #             self.assertIn(self.t_domain.label, row[8].split('|'))
-    #             self.assertIn(self.t_sub_domain.label, row[9].split('|'))
-    #             self.assertIn(self.training.label, row[10])
-    #             self.assertIn(self.course.label, row[11])
-    #             self.assertIn('', row[12])
-    #             self.assertIn('', row[13])
-    #             self.assertIn('', row[14])
-
-    #         n += 1
+        headers = [
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+            _('registrant profile'),
+            _('origin institution'),
+            _('student level'),
+            _('attendance status'),
+        ]
+        n = 0
 
 
-    # def test_API_get_csv_structures(self):
-    #     url = f'/api/get_csv_structures/{self.structure.id}'
-    #     client = Client()
-    #     client.login(username='ref_str', password='pass')
+        for row in content:
+            # header check
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(self.structure.label, row[0])
+                self.assertIn(self.t_domain.label, row[1].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[2].split('|'))
+                self.assertEqual(self.training.label, row[3])
+                self.assertEqual(self.course.label, row[4])
+                self.assertEqual(self.course_type.label, row[5])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[6])
+                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[8])
+                self.assertEqual(self.campus.label, row[9])
+                self.assertEqual(self.building.label, row[10])
+                self.assertEqual(self.slot.room, row[11])
+                self.assertEqual(str(self.speaker1), row[12])
+                self.assertEqual(str(self.slot.registered_students()), row[13])
+                self.assertEqual(str(self.slot.n_places), row[14])
+                self.assertEqual(self.slot.additional_information, row[15])
+                self.assertEqual(_('High school student'), row[16])
+                self.assertEqual(self.high_school.label, row[17])
+                self.assertEqual(self.hs_record.level.label, row[18])
+                self.assertEqual(self.immersion.get_attendance_status(), row[19])
+            elif n == 2:
+                self.assertEqual(
+                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
+                    row[17]
+                )
+                self.assertEqual(self.student_record.level.label, row[18])
+            elif n == 5:  # high school slot
+                self.assertEqual(self.structure.label, row[0])
+                self.assertEqual(self.training.label, row[3])
+                self.assertEqual(self.highschool_course.label, row[4])
+                self.assertIn(self.slot2.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.slot2.end_time.strftime("%H:%M"), row[8])
+                self.assertEqual(self.slot2.room, row[11])
+                self.assertEqual(str(self.highschool_slot.registered_students()), row[13])
+                self.assertEqual(self.slot2.additional_information, row[15])
 
-    #     request.user = self.ref_str
-    #     response = client.get(url, request)
+            n += 1
 
-    #     content = csv.reader(response.content.decode().split('\n'))
-    #     headers = [
-    #         _('establishment'),
-    #         _('structure'),
-    #         _('training domain'),
-    #         _('training subdomain'),
-    #         _('training'),
-    #         _('course'),
-    #         _('course_type'),
-    #         _('date'),
-    #         _('start_time'),
-    #         _('end_time'),
-    #         _('campus'),
-    #         _('building'),
-    #         _('meeting place'),
-    #         _('speakers'),
-    #         _('registration number'),
-    #         _('place number'),
-    #         _('additional information'),
-    #     ]
+        # # type=visit
+        # url = '/api/get_csv_anonymous/?type=visit'
+        # response = self.client.get(url, request)
+        # content = csv.reader(response.content.decode().split('\n'))
 
-    #     n = 0
+        # headers = [
+        #     _('establishment'),
+        #     _('structure'),
+        #     _('highschool'),
+        #     _('purpose'),
+        #     _('meeting place'),
+        #     _('date'),
+        #     _('start_time'),
+        #     _('end_time'),
+        #     _('speakers'),
+        #     _('registration number'),
+        #     _('place number'),
+        #     _('additional information'),
+        #     _('student level'),
+        #     _('attendance status'),
+        # ]
+        # n = 0
 
-    #     for row in content:
-    #         if n == 0:
-    #             for h in headers:
-    #                 self.assertIn(h, row)
-    #         elif n == 1:
-    #             self.assertIn(self.t_domain.label, row[0].split('|'))
-    #             self.assertIn(self.t_sub_domain.label, row[1].split('|'))
-    #             self.assertIn(self.training.label, row[2])
-    #             self.assertIn(self.course.label, row[3])
-    #             self.assertIn(self.course_type.label, row[4])
-    #             self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[5])
-    #             self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[6])
-    #             self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[7])
-    #             self.assertIn(self.past_slot.campus.label, row[8])
-    #             self.assertIn(self.past_slot.building.label, row[9])
-    #             self.assertEqual(self.past_slot.room, row[10])
-    #             self.assertIn(
-    #                 f'{self.speaker1.first_name} {self.speaker1.last_name}',
-    #                 row[11].split('|')
-    #             ),
-    #             self.assertEqual(str(self.past_slot.registered_students()), row[12])
-    #             self.assertEqual(str(self.past_slot.n_places), row[13])
-    #             self.assertEqual(self.past_slot.additional_information, row[14])
 
-    #         n += 1
+        # for row in content:
+        #     # header check
+        #     if n == 0:
+        #         for h in headers:
+        #             self.assertIn(h, row)
+        #     elif n == 1:
+        #         self.assertEqual(str(self.establishment), row[0])
+        #         self.assertEqual(self.structure.label, row[1])
+        #         self.assertIn(self.highschool.label, row[2].split('|'))
+        #         self.assertIn(self.t_sub_domain.label, row[3].split('|'))
+        #         self.assertEqual(self.training.label, row[4])
+        #         self.assertEqual(self.course.label, row[5])
+        #         self.assertEqual(self.course_type.label, row[6])
+        #         self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[7])
+        #         self.assertIn(self.slot.start_time.strftime("%H:%M"), row[8])
+        #         self.assertIn(self.slot.end_time.strftime("%H:%M"), row[9])
+        #         self.assertEqual(self.campus.label, row[10])
+        #         self.assertEqual(self.building.label, row[11])
+        #         self.assertEqual(self.slot.room, row[12])
+        #         self.assertEqual(str(self.speaker1), row[13])
+        #         self.assertEqual(str(self.slot.registered_students()), row[14])
+        #         self.assertEqual(str(self.slot.n_places), row[15])
+        #         self.assertEqual(self.slot.additional_information, row[16])
+        #         self.assertEqual(_('High school student'), row[17])
+        #         self.assertEqual(self.high_school.label, row[18])
+        #         self.assertEqual(self.hs_record.level.label, row[19])
+        #         self.assertEqual(self.immersion.get_attendance_status(), row[20])
+        #     elif n == 2:
+        #         self.assertEqual(
+        #             HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
+        #             row[18]
+        #         )
+        #         self.assertEqual(self.student_record.level.label, row[19])
+        #     elif n == 5:  # high school slot
+        #         self.assertEqual(f"{self.high_school.label} - {self.high_school.city}", row[0])
+        #         self.assertEqual(self.highschool_training.label, row[4])
+        #         self.assertEqual(self.highschool_course.label, row[5])
+        #         self.assertIn(self.highschool_slot.start_time.strftime("%H:%M"), row[8])
+        #         self.assertIn(self.highschool_slot.end_time.strftime("%H:%M"), row[9])
+        #         self.assertEqual("", row[10])
+        #         self.assertEqual("", row[11])
+        #         self.assertEqual(self.highschool_slot.room, row[12])
+        #         self.assertEqual(str(self.highschool_slot.registered_students()), row[14])
+        #         self.assertEqual(self.highschool_slot.additional_information, row[16])
+
+        #     n += 1
+
+
+    def test_API_get_csv_highschool(self):
+        # Ref highschool
+        self.client.login(username='ref_lyc', password='pass')
+        url = '/api/get_csv_highschool/'
+        response = self.client.get(url, request)
+
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('last name'),
+            _('first name'),
+            _('birthdate'),
+            _('level'),
+            _('class name'),
+            _('bachelor type'),
+            _('establishment'),
+            _('type'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course/event/visit label'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('attendance status'),
+        ]
+
+        n = 0
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(self.hs_record.student.last_name, row[0])
+                self.assertEqual(self.hs_record.student.first_name, row[1])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
+                self.assertEqual(self.hs_record.level.label, row[3])
+                self.assertEqual(self.hs_record.class_name, row[4])
+                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
+                self.assertIn('', row[6])
+                self.assertIn('', row[7])
+                self.assertIn(self.t_domain.label, row[8].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[9].split('|'))
+                self.assertIn(self.training.label, row[10])
+                self.assertIn(self.course.label, row[11])
+                self.assertIn('', row[12])
+                self.assertIn('', row[13])
+                self.assertIn('', row[14])
+
+            n += 1
+
+
+    def test_API_get_csv_structures(self):
+        # No type specified
+        url = '/api/get_csv_structures/'
+        response = self.client.get(url, request)
+        self.assertEqual(response.status_code, 404)
+
+        url = '/api/get_csv_structures/?type=course'
+        # Ref structure
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get(url, request)
+
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+        ]
+
+        n = 0
+
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertIn(self.t_domain.label, row[0].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[1].split('|'))
+                self.assertIn(self.training.label, row[2])
+                self.assertIn(self.course.label, row[3])
+                self.assertIn(self.course_type.label, row[4])
+                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[5])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[6])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.past_slot.campus.label, row[8])
+                self.assertIn(self.past_slot.building.label, row[9])
+                self.assertEqual(self.past_slot.room, row[10])
+                self.assertIn(
+                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    row[11].split('|')
+                ),
+                self.assertEqual(str(self.past_slot.registered_students()), row[12])
+                self.assertEqual(str(self.past_slot.n_places), row[13])
+                self.assertEqual(self.past_slot.additional_information, row[14])
+
+            n += 1
+
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url, request)
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+        ]
+
+        n = 0
+
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(str(self.structure), row[0])
+                self.assertIn(self.t_domain.label, row[1].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[2].split('|'))
+                self.assertIn(self.training.label, row[3])
+                self.assertIn(self.course.label, row[4])
+                self.assertIn(self.course_type.label, row[5])
+                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[6])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.past_slot.campus.label, row[9])
+                self.assertIn(self.past_slot.building.label, row[10])
+                self.assertEqual(self.past_slot.room, row[11])
+                self.assertIn(
+                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    row[12].split('|')
+                ),
+                self.assertEqual(str(self.past_slot.registered_students()), row[13])
+                self.assertEqual(str(self.past_slot.n_places), row[14])
+                self.assertEqual(self.past_slot.additional_information, row[15])
+
+            n += 1
+
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get(url, request)
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('establishment'),
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+        ]
+
+        n = 0
+
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(str(self.establishment), row[0])
+                self.assertEqual(str(self.structure), row[1])
+                self.assertIn(self.t_domain.label, row[2].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[3].split('|'))
+                self.assertIn(self.training.label, row[4])
+                self.assertIn(self.course.label, row[5])
+                self.assertIn(self.course_type.label, row[6])
+                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[7])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[9])
+                self.assertIn(self.past_slot.campus.label, row[10])
+                self.assertIn(self.past_slot.building.label, row[11])
+                self.assertEqual(self.past_slot.room, row[12])
+                self.assertIn(
+                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    row[13].split('|')
+                ),
+                self.assertEqual(str(self.past_slot.registered_students()), row[14])
+                self.assertEqual(str(self.past_slot.n_places), row[15])
+                self.assertEqual(self.past_slot.additional_information, row[16])
+
+            n += 1
 
 
     def test_API_ajax_get_available_vars(self):
