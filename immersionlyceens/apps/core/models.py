@@ -1031,7 +1031,7 @@ class CourseType(models.Model):
     class Meta:
         """Meta class"""
         verbose_name = _('Course type')
-        verbose_name_plural = _('Course type')
+        verbose_name_plural = _('Course types')
         ordering = ['label', ]
 
 
