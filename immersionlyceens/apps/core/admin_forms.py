@@ -362,7 +362,8 @@ class EstablishmentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.fields:
-            self.fields["active"].initial = True
+            if self.fields.get("active"):
+                self.fields["active"].initial = True
 
             # First establishment is always 'master'
             if not Establishment.objects.exists():
