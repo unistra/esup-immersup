@@ -14,6 +14,9 @@ from django_admin_listfilter_dropdown.filters import (
 )
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
+from rest_framework.authtoken.admin import TokenAdmin
+from rest_framework.authtoken.models import TokenProxy
+
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
 from .admin_forms import (
@@ -1793,6 +1796,32 @@ class StudentLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
 
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
+
+
+class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
+    def custom_has_something_permission(self, request, obj=None):
+        if request.user.is_operator:
+            return True
+        return super().has_add_permission(request)
+
+    def has_module_permission(self, request):
+        return self.custom_has_something_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+        return self.custom_has_something_permission(request, obj)
+
+    def has_add_permission(self, request):
+        return self.custom_has_something_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self.custom_has_something_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.custom_has_something_permission(request, obj)
+
+
+admin.site.unregister(TokenProxy)
+admin.site.register(TokenProxy, TokenCustomAdmin)
 
 
 admin.site = CustomAdminSite(name='Repositories')
