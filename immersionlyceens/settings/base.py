@@ -547,6 +547,7 @@ CONTENT_TYPES = [
     'ods',
     'odt',
     'docx',
+    'xlsx',
 ]
 
 # Max size
