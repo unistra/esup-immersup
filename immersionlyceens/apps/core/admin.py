@@ -782,16 +782,16 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if not any([user.is_master_establishment_manager(), user.is_operator(), user.is_superuser]):
             return super().get_readonly_fields(request, obj) + (
-                'activated', 'code', 'label', 'uai_reference', 'short_label', 'department', 'address', 'address2',
-                'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color', 'email',
-                'data_source_plugin', 'data_source_settings', 'logo', 'signature', 'objects',
+                'active', 'signed_charter', 'code', 'label', 'uai_reference', 'short_label', 'department',
+                'address', 'address2', 'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color',
+                'email', 'data_source_plugin', 'data_source_settings', 'logo', 'signature', 'objects',
                 'certificate_header', 'certificate_footer'
             )
         elif request.user.is_master_establishment_manager() and not user.is_superuser:
             return super().get_readonly_fields(request, obj) + (
-                'activated', 'code', 'label', 'uai_reference', 'short_label', 'department', 'address', 'address2',
-                'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color', 'email',
-                'data_source_plugin', 'data_source_settings', 'objects',
+                'active', 'signed_charter' 'code', 'label', 'uai_reference', 'short_label', 'department',
+                'address', 'address2', 'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color',
+                'email', 'data_source_plugin', 'data_source_settings', 'objects',
             )
 
         return super().get_readonly_fields(request, obj)
