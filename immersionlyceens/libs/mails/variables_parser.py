@@ -87,7 +87,7 @@ class ParserFaker:
             "estintervenant": False,
             "estreflycee": False,
             "estrefstructure": False,
-            "utilisateur_compte_local": local_account,
+            "utilisateurcomptelocal": local_account,
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
@@ -387,7 +387,7 @@ class Parser:
                 "estintervenant": user.is_speaker(),
                 "estreflycee": user.is_high_school_manager(),
                 "estrefstructure": user.is_structure_manager(),
-                "utilisateur_compte_local": local_account
+                "utilisateurcomptelocal": local_account
             }
 
             if user.is_high_school_student():

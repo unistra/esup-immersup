@@ -411,7 +411,7 @@
     "model": "core.mailtemplatevars",
     "pk": 59,
     "fields": {
-        "code": "{{ utilisateur_compte_local }}",
+        "code": "{{ utilisateurcomptelocal }}",
         "description": "Indique si l'utilisateur(trice) possède un compte local"
     }
 },
