@@ -353,14 +353,6 @@
 },
 {
     "model": "core.mailtemplatevars",
-    "pk": 52,
-    "fields": {
-        "code": "{{ referentlycee.lycee }}",
-        "description": "Lycée du référent lycée connecté"
-    }
-},
-{
-    "model": "core.mailtemplatevars",
     "pk": 53,
     "fields": {
         "code": "{{ estetudiant }}",

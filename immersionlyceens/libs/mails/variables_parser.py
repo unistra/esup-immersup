@@ -76,9 +76,6 @@ class ParserFaker:
         context.update({
             "prenom": cls.add_tooltip("prenom", "Dominique"),
             "nom": cls.add_tooltip("nom", "MARTIN"),
-            "referentlycee": {
-                "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
-            },
             "identifiant": cls.add_tooltip("identifiant", "d.martin@service-plublic.fr"),
             "jourDestructionCptMin": cls.add_tooltip("jourDestructionCptMin", "17-10-2022"),
             "estetudiant": False,
@@ -376,9 +373,6 @@ class Parser:
             context: Dict[str, Any] = {
                 "nom": user.last_name,
                 "prenom": user.first_name,
-                "referentlycee": {
-                    "lycee": f"{user.highschool.label} ({user.highschool.city}" if user.highschool else "",
-                },
                 "identifiant": user.get_cleaned_username(),
                 "jourDestructionCptMin": user.get_localized_destruction_date(),
                 "estetudiant": user.is_student(),
