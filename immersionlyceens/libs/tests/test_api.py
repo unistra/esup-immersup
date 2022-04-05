@@ -729,6 +729,27 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(content['data'], [])
 
+        # No object id :
+        data = {
+            'type': 'structure',
+        }
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
+
+        # Highschool type
+        data = {
+            'type': 'highschool',
+            'object_id': self.high_school.id
+        }
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 1)
+        t1 = content['data'][0]
+        self.assertEqual(t1['label'], self.highschool_training.label)
+        self.assertEqual(t1['subdomain'], [s.label for s in self.training.training_subdomains.filter(active=True)])
+
 
     def test_API_get_student_records(self):
         self.client.login(username='ref_etab', password='pass')
