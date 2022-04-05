@@ -30,8 +30,8 @@ from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
     Calendar, CancelType, CertificateLogo, CertificateSignature,
     HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
-    MailTemplate, PostBachelorLevel, StudentLevel, UniversityYear,
-    UserCourseAlert, PendingUserGroup
+    MailTemplate, PendingUserGroup, PostBachelorLevel, StudentLevel,
+    UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
@@ -954,7 +954,7 @@ def immersion_attestation_download(request, immersion_id):
             else CertificateSignature.objects.get(pk=1)
 
         context = {
-            'city': slot_entity.city.capitalize() if slot_entity else get_general_setting('PDF_CERTIFICATE_CITY'),
+            'city': slot_entity.city.capitalize() if slot_entity else '',
             'certificate_header': slot_entity.certificate_header if slot_entity and slot_entity.certificate_header else '',
             'certificate_body': certificate_body,
             'certificate_footer': slot_entity.certificate_footer if slot_entity and slot_entity.certificate_footer else '',
