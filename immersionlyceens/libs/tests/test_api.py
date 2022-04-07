@@ -1928,6 +1928,8 @@ class APITestCase(TestCase):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
 
+
+
         url = f"/api/get_slot_registrations/{self.slot.id}"
 
         response = self.client.get(url, request, **self.header)
@@ -2032,6 +2034,13 @@ class APITestCase(TestCase):
         # Add a highschool restriction on self.slot
         self.slot.establishments_restrictions = True
         self.slot.allowed_highschools.add(self.high_school)
+        self.slot.levels_restrictions = True
+        h_levels = HighSchoolLevel.objects.all()
+        s_levels = StudentLevel.objects.all()
+        p_levels = PostBachelorLevel.objects.all()
+        self.slot.allowed_highschool_levels.add(*h_levels)
+        self.slot.allowed_student_levels.add(*s_levels)
+        self.slot.allowed_post_bachelor_levels.add(*p_levels)
         self.slot.save()
 
         url = f"/api/get_available_students/{self.slot.id}"
