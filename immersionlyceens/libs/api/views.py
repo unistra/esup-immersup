@@ -14,7 +14,7 @@ import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, JsonResponse
@@ -656,6 +656,7 @@ def slots(request):
 def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
+    # TODO: this tests are not useful should never happen !!!!
     if not structure_id:
         response['msg'] = gettext("Error : a valid structure must be selected")
     if not training_id:
@@ -1297,7 +1298,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
     try:
         immersion = Immersion.objects.get(pk=immersion_id, student=request.user)
-    except Immersion.DoesNotExists:
+    except ObjectDoesNotExist:
         response['msg'] = gettext("Error : invalid user or immersion id")
 
     if immersion:
@@ -1331,7 +1332,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
     try:
         slot = Slot.objects.get(pk=slot_id)
-    except Slot.DoesNotExists:
+    except ObjectDoesNotExist:
         response['msg'] = gettext("Error : invalid slot id")
 
     if slot:

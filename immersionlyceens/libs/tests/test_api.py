@@ -618,6 +618,8 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_courses_by_training(self):
         self.client.login(username='ref_etab', password='pass')
+
+        # structure id & training
         url = f"/api/get_courses_by_training/{self.structure.id}/{self.training.id}"
         response = self.client.post(url, {}, **self.header)
         content = json.loads(response.content.decode())
@@ -666,6 +668,15 @@ class APITestCase(TestCase):
         # Logged as structure manager
         client = Client()
         client.login(username='ref_str', password='pass')
+        data = {'training_id': self.training.id}
+        response = client.get(url, data, **self.header)
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 6)
+
+        # Logged as highschool manager
+        client = Client()
+        client.login(username='ref_lyc', password='pass')
         data = {'training_id': self.training.id}
         response = client.get(url, data, **self.header)
         self.assertEqual(response.status_code, 200)
@@ -729,9 +740,9 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(content['data'], [])
 
-        # No object id :
+        # No object id & bad type parameter
         data = {
-            'type': 'structure',
+            'type': 'badtype',
         }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
@@ -749,6 +760,18 @@ class APITestCase(TestCase):
         t1 = content['data'][0]
         self.assertEqual(t1['label'], self.highschool_training.label)
         self.assertEqual(t1['subdomain'], [s.label for s in self.training.training_subdomains.filter(active=True)])
+
+        # Bad object_id value
+        data = {
+            'type': 'highschool',
+            'object_id': '',
+        }
+
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
+
 
 
     def test_API_get_student_records(self):
@@ -1376,12 +1399,35 @@ class APITestCase(TestCase):
 
 
         # Establishment has no source plugin configured : look for 'local' speakers
-        data["username"] = "whatever"
+        data = {
+            'username': "whatever",
+        }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], "")
+        self.assertEqual(content['msg'], "Please select an establishment or a high school first")
         self.assertEqual(content['data'], [])
+
+
+        # Structure does not exist & no establishment
+        data = {
+            'username': "whatever",
+            'structure_id': self.structure.id
+        }
+
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], "Please select an establishment or a high school first")
+
+        # Establishment does not exist
+        data = {
+            'establishment_id': 99999,
+            'username': 'whatever'
+        }
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], "Sorry, establishment not found")
+
 
         # Establishment does not exist
         data = {
@@ -1459,6 +1505,12 @@ class APITestCase(TestCase):
         self.assertEqual(c['registered_students_count'], self.course.registrations_count())
         self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
         self.assertEqual(c['can_delete'], not self.course.slots.exists())
+
+        url = "/api/get_courses/"
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
 
 
     def test_API_ajax_delete_course(self):
@@ -1833,6 +1885,14 @@ class APITestCase(TestCase):
         )
         self.assertEqual(i['email'], self.highschool_user.email)
 
+        # Unknown immersion
+        url = f"/api/get_other_registrants/9999999"
+
+        response = client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : invalid user or immersion id')
+
 
     def test_API_ajax_get_slot_registrations(self):
         request.user = self.ref_etab_user
@@ -1864,6 +1924,13 @@ class APITestCase(TestCase):
             HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label
         )
         self.assertEqual(stu['city'], '')
+
+        url = f"/api/get_slot_registrations/999999"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : invalid slot id')
 
     def test_API_ajax_get_available_students(self):
         request.user = self.ref_etab_user
@@ -1913,6 +1980,14 @@ class APITestCase(TestCase):
         self.assertEqual('', stu['class'])
         self.assertEqual(True, stu['can_register'])
         self.assertEqual([], stu['reasons'])
+
+        # Unknown slot
+        url = f"/api/get_available_students/99999"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : slot not found')
 
 
     def test_API_ajax_get_available_students_with_restrictions(self):
@@ -2505,6 +2580,26 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], "")
 
 
+    def test_API_ajax_get_trainings(self):
+        self.client.login(username='ref_etab', password='pass')
+        url = "/api/get_trainings"
+
+        # No data
+        data = {}
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
+
+        # No object_id value
+        data = {
+            'type': 'structure'
+        }
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
+
 
 
     # def test_API_ajax_set_course_alert(self):
@@ -2748,36 +2843,36 @@ class APITestCase(TestCase):
     #     content = json.loads(response.content.decode('utf-8'))
     #     self.assertEqual("This student has no more remaining slots to register to", content['msg'])
 
-    # def test_ajax_get_duplicates(self):
-    #     self.hs_record.duplicates = "[%s]" % self.hs_record2.id
-    #     self.hs_record.save()
+    def test_ajax_get_duplicates(self):
+        self.hs_record.duplicates = "[%s]" % self.hs_record2.id
+        self.hs_record.save()
 
-    #     self.hs_record2.duplicates = "[%s]" % self.hs_record.id
-    #     self.hs_record2.save()
+        self.hs_record2.duplicates = "[%s]" % self.hs_record.id
+        self.hs_record2.save()
 
-    #     client = Client()
+        client = Client()
 
-    #     for username in ['ref_master_etab', 'operator']:
-    #         client.login(username=username, password='pass')
+        for username in ['ref_master_etab', 'operator']:
+            client.login(username=username, password='pass')
 
-    #         response = client.get("/api/get_duplicates", **self.header, follow=True)
-    #         content = json.loads(response.content.decode('utf-8'))
+            response = client.get("/api/get_duplicates", **self.header, follow=True)
+            content = json.loads(response.content.decode('utf-8'))
 
-    #         self.assertEqual(content['data'], [
-    #             {'id': 0,
-    #              'record_ids': [self.hs_record.id, self.hs_record2.id],
-    #              'account_ids': [self.hs_record.student.id, self.hs_record2.student.id],
-    #              'names': ['SCHOOL high', 'SCHOOL2 high2'],
-    #              'birthdates': [_date(self.hs_record.birth_date), _date(self.hs_record2.birth_date)],
-    #              'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],
-    #              'emails': ['hs@no-reply.com', 'hs2@no-reply.com'],
-    #              'record_links': [
-    #                  f'/immersion/hs_record/{self.hs_record.id}',
-    #                  f'/immersion/hs_record/{self.hs_record2.id}'
-    #              ],
-    #              'record_status': [self.hs_record.validation,self.hs_record2.validation],
-    #              'registrations': ['Yes', 'No']}
-    #         ])
+            self.assertEqual(content['data'], [
+                {'id': 0,
+                 'record_ids': [self.hs_record.id, self.hs_record2.id],
+                 'account_ids': [self.hs_record.student.id, self.hs_record2.student.id],
+                 'names': ['SCHOOL high', 'SCHOOL2 high2'],
+                 'birthdates': [_date(self.hs_record.birth_date), _date(self.hs_record2.birth_date)],
+                 'highschools': ['HS1, 1ere S 3', 'HS1, TS 3'],
+                 'emails': ['hs@no-reply.com', 'hs2@no-reply.com'],
+                 'record_links': [
+                     f'/immersion/hs_record/{self.hs_record.id}',
+                     f'/immersion/hs_record/{self.hs_record2.id}'
+                 ],
+                 'record_status': [self.hs_record.validation,self.hs_record2.validation],
+                 'registrations': ['Yes', 'No']}
+            ])
 
     # def test_ajax_keep_entries_master_etab(self):
     #     self.hs_record.duplicates = "[%s]" % self.hs_record2.id
