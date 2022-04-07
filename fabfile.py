@@ -98,7 +98,7 @@ def test():
     env.roledefs = {
         'web': ['django-test2.di.unistra.fr'],
         'lb': ['django-test2.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
+        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
@@ -138,7 +138,7 @@ def preprod():
     env.roledefs = {
         'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
+        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
 
     # env.user = 'root'  # user for ssh
