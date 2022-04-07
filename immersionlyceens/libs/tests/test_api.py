@@ -713,6 +713,36 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['id'], slot.id)
 
 
+    def test_API_get_events_slots(self):
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            event_type=self.event_type,
+            label="Whatever",
+            published=True
+        )
+
+        slot = Slot.objects.create(
+            event=event,
+            room='Here',
+            date=self.today + timedelta(days=1),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
+        )
+
+        self.client.login(username='ref_etab', password='pass')
+        data = {
+            'events': True
+        }
+        response = self.client.get(reverse('slots_list'), {'events': 'true'}, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 1)
+        self.assertEqual(content['data'][0]['id'], slot.id)
+
+
 
     def test_API_get_trainings(self):
         self.client.login(username='ref_etab', password='pass')
