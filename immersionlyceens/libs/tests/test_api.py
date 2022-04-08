@@ -2641,246 +2641,246 @@ class APITestCase(TestCase):
 
 
 
-    # def test_API_ajax_set_course_alert(self):
-    #     request.user = self.ref_etab_user
-    #     self.client.login(username='ref_etab', password='pass')
-    #     url = "/api/set_course_alert"
+    def test_API_ajax_set_course_alert(self):
+        request.user = self.ref_etab_user
+        self.client.login(username='ref_etab', password='pass')
+        url = "/api/set_course_alert"
 
-    #     # Bad course id
-    #     data = {
-    #         'course_id': 0
-    #     }
-    #     content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        # Bad course id
+        data = {
+            'course_id': 0
+        }
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-    #     self.assertEqual(content['data'], [])
-    #     self.assertEqual(content['msg'], "Invalid parameter : course not found")
-    #     self.assertTrue(content['error'])
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['msg'], "Invalid parameter : course not found")
+        self.assertTrue(content['error'])
 
-    #     # Invalid email
-    #     data = {
-    #         'course_id': self.course.id,
-    #         'email': 'wrong_email_address'
-    #     }
-    #     content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        # Invalid email
+        data = {
+            'course_id': self.course.id,
+            'email': 'wrong_email_address'
+        }
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-    #     self.assertEqual(content['data'], [])
-    #     self.assertEqual(content['msg'], "Invalid email format")
-    #     self.assertTrue(content['error'])
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['msg'], "Invalid email format")
+        self.assertTrue(content['error'])
 
-    #     # Success
-    #     data = {
-    #         'course_id': self.course.id,
-    #         'email': 'a@unittest.fr'
-    #     }
+        # Success
+        data = {
+            'course_id': self.course.id,
+            'email': 'a@unittest.fr'
+        }
 
-    #     self.assertFalse(UserCourseAlert.objects.filter(course_id=data['course_id'], email=data['email']).exists())
+        self.assertFalse(UserCourseAlert.objects.filter(course_id=data['course_id'], email=data['email']).exists())
 
-    #     content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-    #     self.assertEqual(content['data'], [])
-    #     self.assertFalse(content['error'])
-    #     self.assertEqual(content['msg'], "Alert successfully set")
+        self.assertEqual(content['data'], [])
+        self.assertFalse(content['error'])
+        self.assertEqual(content['msg'], "Alert successfully set")
 
-    #     self.assertTrue(UserCourseAlert.objects.filter(course_id=data['course_id'], email=data['email']).exists())
+        self.assertTrue(UserCourseAlert.objects.filter(course_id=data['course_id'], email=data['email']).exists())
 
-    #     # Alert already set (and not sent yet) for this student
-    #     data = {
-    #         'course_id': self.course.id,
-    #         'email': self.student.email
-    #     }
-    #     content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        # Alert already set (and not sent yet) for this student
+        data = {
+            'course_id': self.course.id,
+            'email': self.student.email
+        }
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-    #     self.assertEqual(content['data'], [])
-    #     self.assertTrue(content['error'])
-    #     self.assertEqual(content['msg'], "You have already set an alert on this course")
+        self.assertEqual(content['data'], [])
+        self.assertTrue(content['error'])
+        self.assertEqual(content['msg'], "You have already set an alert on this course")
 
-    #     # Alert already sent : reset the 'sent' status
-    #     self.alert.email_sent = True
-    #     self.alert.save()
+        # Alert already sent : reset the 'sent' status
+        self.alert.email_sent = True
+        self.alert.save()
 
-    #     content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
 
-    #     self.assertEqual(content['data'], [])
-    #     self.assertFalse(content['error'])
-    #     self.assertEqual(content['msg'], "Alert successfully set")
-
-
-    # def test_API_ajax_cancel_alert(self):
-    #     request.user = self.student
-    #     client = Client()
-    #     client.login(username='student', password='pass')
-    #     url = "/api/cancel_alert"
-
-    #     # Bad alert id
-    #     data = {
-    #         'alert_id': 0
-    #     }
-    #     response = client.post(url, data, **self.header)
-    #     content = json.loads(response.content.decode())
-
-    #     self.assertEqual(content['data'], [])
-    #     self.assertEqual(content['msg'], "")
-
-    #     # Success
-    #     self.assertTrue(UserCourseAlert.objects.filter(pk=self.alert.id).exists())
-
-    #     data = {
-    #         'alert_id': self.alert.id
-    #     }
-    #     response = client.post(url, data, **self.header)
-    #     content = json.loads(response.content.decode())
-
-    #     self.assertEqual(content['data'], [])
-    #     self.assertEqual(content['error'], '')
-    #     self.assertEqual(content['msg'], "Alert successfully cancelled")
-
-    #     self.assertFalse(UserCourseAlert.objects.filter(pk=self.alert.id).exists())
+        self.assertEqual(content['data'], [])
+        self.assertFalse(content['error'])
+        self.assertEqual(content['msg'], "Alert successfully set")
 
 
-    # def test_ajax_slot_registration(self):
-    #     self.hs_record.validation = 2
-    #     self.hs_record.save()
+    def test_API_ajax_cancel_alert(self):
+        request.user = self.student
+        client = Client()
+        client.login(username='student', password='pass')
+        url = "/api/cancel_alert"
 
-    #     self.immersion3.delete()
+        # Bad alert id
+        data = {
+            'alert_id': 0
+        }
+        response = client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
 
-    #     self.assertEqual(
-    #         self.highschool_user.remaining_registrations_count(),
-    #         {'semester1': 2, 'semester2': 2, 'annually': 1}
-    #     )
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['msg'], "")
 
-    #     client = Client()
-    #     client.login(username=self.highschool_user.username, password='pass')
+        # Success
+        self.assertTrue(UserCourseAlert.objects.filter(pk=self.alert.id).exists())
 
-    #     # Should work
-    #     data = {
-    #         'slot_id': self.slot3.id,
-    #         'student_id': self.highschool_user.id
-    #     }
+        data = {
+            'alert_id': self.alert.id
+        }
+        response = client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
 
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['error'], '')
+        self.assertEqual(content['msg'], "Alert successfully cancelled")
 
-    #     # FIXME Careful, the following test may fail if the message template has syntax errors (use "assertIn" ?)
-    #     self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
-    #     self.assertEqual(
-    #         self.highschool_user.remaining_registrations_count(),
-    #         {'semester1': 2, 'semester2': 2, 'annually': 0}
-    #     )
-    #     self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
-
-    #     # Fail : already registered
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("Already registered to this slot", content['msg'])
-
-    #     # Fail : no more registration allowed
-    #     data['slot_id'] = self.slot2.id
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("""You have no more remaining registration available, """
-    #                      """you should cancel an immersion or contact immersion service""", content['msg'])
-
-    #     # As a structure manager
-    #     client.login(username=self.ref_str.username, password='pass')
-    #     data['slot_id'] = self.slot2.id
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("This student has no more remaining slots to register to", content['msg'])
-
-    #     # reset immersions
-    #     client.login(username=self.highschool_user.username, password='pass')
-
-    #     Immersion.objects.filter(student=self.highschool_user).delete()
-
-    #     # Fail with past slot registration
-    #     data['slot_id'] = self.past_slot.id
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("Register to past slot is not available", content['msg'])
-
-    #     # Fail with full slot registration
-    #     data['slot_id'] = self.full_slot.id
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("No seat available for selected slot", content['msg'])
-
-    #     # Fail with unpublished slot
-    #     data['slot_id'] = self.unpublished_slot.id
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
-
-    #     # Fail with highschool level Restrictions
-    #     response = client.post("/api/register",
-    #                            {'slot_id': self.highschool_level_restricted_slot.id},
-    #                            **self.header,
-    #                            follow=True
-    #                            )
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
-
-    #     # Todo : needs more tests with other users (ref-etab, ref-str, ...)
+        self.assertFalse(UserCourseAlert.objects.filter(pk=self.alert.id).exists())
 
 
-    # def test_ajax_slot_registration_semester_mode(self):
-    #     self.hs_record.validation = 2
-    #     self.hs_record.save()
+    def test_ajax_slot_registration(self):
+        self.hs_record.validation = 2
+        self.hs_record.save()
 
-    #     # Recreate a calendar in semester mode
-    #     Calendar.objects.all().delete()
+        self.immersion3.delete()
 
-    #     calendar = Calendar.objects.create(
-    #         label="Calendrier2",
-    #         calendar_mode=Calendar.CALENDAR_MODE[1][0],
-    #         semester1_start_date=self.today - timedelta(days=10),
-    #         semester1_end_date=self.today + timedelta(days=10),
-    #         semester1_registration_start_date=self.today - timedelta(days=9),
-    #         semester2_start_date=self.today + timedelta(days=11),
-    #         semester2_end_date=self.today + timedelta(days=31),
-    #         semester2_registration_start_date=self.today + timedelta(days=11),
-    #         nb_authorized_immersion_per_semester=3,
-    #     )
+        self.assertEqual(
+            self.highschool_user.remaining_registrations_count(),
+            {'semester1': 2, 'semester2': 2, 'annually': 1}
+        )
 
-    #     self.hs_record.allowed_first_semester_registrations = 3
-    #     self.hs_record.allowed_second_semester_registrations = 3
-    #     self.hs_record.save()
+        client = Client()
+        client.login(username=self.highschool_user.username, password='pass')
 
-    #     self.assertEqual(
-    #         self.highschool_user.remaining_registrations_count(),
-    #         {'semester1': 1, 'semester2': 3, 'annually': 2}
-    #     )
+        # Should work
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.highschool_user.id
+        }
 
-    #     client = Client()
-    #     client.login(username=self.highschool_user.username, password='pass')
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
 
-    #     # Should work
-    #     data = {
-    #         'slot_id': self.slot3.id,
-    #         'student_id': self.highschool_user.id
-    #     }
+        # FIXME Careful, the following test may fail if the message template has syntax errors (use "assertIn" ?)
+        self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
+        self.assertEqual(
+            self.highschool_user.remaining_registrations_count(),
+            {'semester1': 2, 'semester2': 2, 'annually': 0}
+        )
+        self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
 
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
-    #     self.assertEqual(
-    #         self.highschool_user.remaining_registrations_count(),
-    #         {'semester1': 0, 'semester2': 3, 'annually': 2}
-    #     )
-    #     self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
+        # Fail : already registered
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Already registered to this slot", content['msg'])
 
-    #     # Fail : no more registration allowed
-    #     data['slot_id'] = self.slot2.id
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("""You have no more remaining registration available, """
-    #                      """you should cancel an immersion or contact immersion service""", content['msg'])
+        # Fail : no more registration allowed
+        data['slot_id'] = self.slot2.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("""You have no more remaining registration available, """
+                         """you should cancel an immersion or contact immersion service""", content['msg'])
 
-    #     # As a structure manager
-    #     client.login(username=self.ref_str.username, password='pass')
-    #     data['slot_id'] = self.slot2.id
-    #     response = client.post("/api/register", data, **self.header, follow=True)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("This student has no more remaining slots to register to", content['msg'])
+        # As a structure manager
+        client.login(username=self.ref_str.username, password='pass')
+        data['slot_id'] = self.slot2.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("This student has no more remaining slots to register to", content['msg'])
+
+        # reset immersions
+        client.login(username=self.highschool_user.username, password='pass')
+
+        Immersion.objects.filter(student=self.highschool_user).delete()
+
+        # Fail with past slot registration
+        data['slot_id'] = self.past_slot.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Register to past slot is not available", content['msg'])
+
+        # Fail with full slot registration
+        data['slot_id'] = self.full_slot.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("No seat available for selected slot", content['msg'])
+
+        # Fail with unpublished slot
+        data['slot_id'] = self.unpublished_slot.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Registering an unpublished slot is forbidden", content['msg'])
+
+        # Fail with highschool level Restrictions
+        response = client.post("/api/register",
+                               {'slot_id': self.highschool_level_restricted_slot.id},
+                               **self.header,
+                               follow=True
+                               )
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Cannot register slot due to slot's restrictions", content['msg'])
+
+        # Todo : needs more tests with other users (ref-etab, ref-str, ...)
+
+
+    def test_ajax_slot_registration_semester_mode(self):
+        self.hs_record.validation = 2
+        self.hs_record.save()
+
+        # Recreate a calendar in semester mode
+        Calendar.objects.all().delete()
+
+        calendar = Calendar.objects.create(
+            label="Calendrier2",
+            calendar_mode=Calendar.CALENDAR_MODE[1][0],
+            semester1_start_date=self.today - timedelta(days=10),
+            semester1_end_date=self.today + timedelta(days=10),
+            semester1_registration_start_date=self.today - timedelta(days=9),
+            semester2_start_date=self.today + timedelta(days=11),
+            semester2_end_date=self.today + timedelta(days=31),
+            semester2_registration_start_date=self.today + timedelta(days=11),
+            nb_authorized_immersion_per_semester=3,
+        )
+
+        self.hs_record.allowed_first_semester_registrations = 3
+        self.hs_record.allowed_second_semester_registrations = 3
+        self.hs_record.save()
+
+        self.assertEqual(
+            self.highschool_user.remaining_registrations_count(),
+            {'semester1': 1, 'semester2': 3, 'annually': 2}
+        )
+
+        client = Client()
+        client.login(username=self.highschool_user.username, password='pass')
+
+        # Should work
+        data = {
+            'slot_id': self.slot3.id,
+            'student_id': self.highschool_user.id
+        }
+
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Registration successfully added, confirmation email sent", content['msg'])
+        self.assertEqual(
+            self.highschool_user.remaining_registrations_count(),
+            {'semester1': 0, 'semester2': 3, 'annually': 2}
+        )
+        self.assertTrue(Immersion.objects.filter(student=self.highschool_user, slot=self.slot3).exists())
+
+        # Fail : no more registration allowed
+        data['slot_id'] = self.slot2.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("""You have no more remaining registration available, """
+                         """you should cancel an immersion or contact immersion service""", content['msg'])
+
+        # As a structure manager
+        client.login(username=self.ref_str.username, password='pass')
+        data['slot_id'] = self.slot2.id
+        response = client.post("/api/register", data, **self.header, follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("This student has no more remaining slots to register to", content['msg'])
 
     def test_ajax_get_duplicates(self):
         self.hs_record.duplicates = "[%s]" % self.hs_record2.id
@@ -2913,514 +2913,514 @@ class APITestCase(TestCase):
                  'registrations': ['Yes', 'No']}
             ])
 
-    # def test_ajax_keep_entries_master_etab(self):
-    #     self.hs_record.duplicates = "[%s]" % self.hs_record2.id
-    #     self.hs_record.save()
-
-    #     self.hs_record2.duplicates = "[%s]" % self.hs_record.id
-    #     self.hs_record2.save()
-
-    #     client = Client()
-    #     client.login(username='ref_master_etab', password='pass')
-
-    #     data = {
-    #         "entries[]": [self.hs_record.id, self.hs_record2.id]
-    #     }
-    #     response = client.post("/api/keep_entries", data, **self.header)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("Duplicates data cleared", content['msg'])
-
-    #     r1 = HighSchoolStudentRecord.objects.get(pk=self.hs_record.id)
-    #     r2 = HighSchoolStudentRecord.objects.get(pk=self.hs_record2.id)
-
-    #     self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
-    #     self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
-
-
-    # def test_ajax_keep_entries_operator(self):
-    #     self.hs_record.duplicates = "[%s]" % self.hs_record2.id
-    #     self.hs_record.save()
-
-    #     self.hs_record2.duplicates = "[%s]" % self.hs_record.id
-    #     self.hs_record2.save()
-
-    #     client = Client()
-    #     client.login(username='operator', password='pass')
-
-    #     data = {
-    #         "entries[]": [self.hs_record.id, self.hs_record2.id]
-    #     }
-    #     response = client.post("/api/keep_entries", data, **self.header)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual("Duplicates data cleared", content['msg'])
-
-    #     r1 = HighSchoolStudentRecord.objects.get(pk=self.hs_record.id)
-    #     r2 = HighSchoolStudentRecord.objects.get(pk=self.hs_record2.id)
-
-    #     self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
-    #     self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
-
-
-    # def test_campus(self):
-    #     campus = Campus.objects.create(label='Campus', establishment=self.establishment, active=True)
-
-    #     client = Client()
-    #     client.login(username='ref_etab', password='pass')
-
-    #     response = client.get(reverse("campus_list"))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual(content[0]['label'], campus.label)
-
-
-    # def test_high_school_speakers(self):
-    #     client = Client()
-
-    #     # Success
-    #     client.login(username='ref_lyc', password='pass')
-    #     response = client.get(
-    #         reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}),
-    #         **self.header
-    #     )
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual(content['data'], [{
-    #         'id': self.highschool_speaker.id,
-    #         'last_name': 'highschool_speaker',
-    #         'first_name': 'highschool_speaker',
-    #         'email': 'highschool_speaker@no-reply.com',
-    #         'is_active': 'Yes',
-    #         'has_courses': 'Yes',
-    #         'can_delete': False
-    #     }])
-
-
-    # def test_visit(self):
-    #     visit = Visit.objects.create(
-    #         establishment=self.establishment,
-    #         structure=self.structure,
-    #         highschool=self.high_school,
-    #         purpose="Whatever",
-    #         published=True
-    #     )
-
-    #     visit2 = Visit.objects.create(
-    #         establishment=self.establishment,
-    #         structure=self.structure,
-    #         highschool=self.high_school,
-    #         purpose="Whatever 2",
-    #         published=True
-    #     )
-
-    #     client = Client()
-    #     client.login(username='ref_etab', password='pass')
-
-    #     # List
-    #     response = client.get(reverse("visit_list"))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     content = json.loads(response.content.decode('utf-8'))
-
-    #     self.assertEqual(content[0]['purpose'], 'Whatever')
-    #     self.assertEqual(content[0]['establishment']['code'], "ETA1")
-    #     self.assertEqual(content[0]['establishment']['label'], "Etablissement 1")
-
-    #     # As ref-str (with no structure) : empty
-    #     self.ref_str.structures.remove(self.structure)
-    #     client.login(username='ref_str', password='pass')
-    #     response = client.get(reverse("visit_list"))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual(len(content), 0)
-
-    #     # Deletion
-    #     # as ref_str : fail (bad structure)
-    #     response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
-    #     self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #     self.assertEqual(Visit.objects.count(), 2)
-
-    #     # as ref_etab
-    #     client.login(username='ref_etab', password='pass')
-    #     response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(Visit.objects.count(), 1)
-
-    #     # as master_ref_etab
-    #     client.login(username='ref_master_etab', password='pass')
-    #     response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(Visit.objects.count(), 0)
-
-    #     # as operator
-    #     visit2 = Visit.objects.create(
-    #         establishment=self.establishment,
-    #         structure=self.structure,
-    #         highschool=self.high_school,
-    #         purpose="Whatever 2",
-    #         published=True
-    #     )
-
-    #     client.login(username='operator', password='pass')
-    #     response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(Visit.objects.count(), 0)
-
-
-    # def test_off_offer_event(self):
-    #     event = OffOfferEvent.objects.create(
-    #         establishment=self.establishment,
-    #         structure=self.structure,
-    #         highschool=None,
-    #         event_type=self.event_type,
-    #         label="Establishment event",
-    #         description="Whatever",
-    #         published=True
-    #     )
-
-    #     event2 = OffOfferEvent.objects.create(
-    #         establishment=None,
-    #         structure=None,
-    #         highschool=self.high_school,
-    #         event_type=self.event_type,
-    #         label="High school event",
-    #         description="Whatever",
-    #         published=True
-    #     )
-
-    #     client = Client()
-    #     client.login(username='ref_etab', password='pass')
-
-    #     # List
-    #     response = client.get(reverse("off_offer_event_list"))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual(len(content), 1)
-    #     self.assertEqual(content[0]['label'], 'Establishment event')
-    #     self.assertEqual(content[0]['establishment']['id'], self.establishment.id)
-    #     self.assertEqual(content[0]['establishment']['code'], 'ETA1')
-    #     self.assertEqual(content[0]['establishment']['label'], 'Etablissement 1')
-
-    #     # As ref-lyc
-    #     client.login(username='ref_lyc', password='pass')
-    #     response = client.get(reverse("off_offer_event_list"))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual(len(content), 1)
-    #     self.assertEqual(content[0]['label'], 'High school event')
-    #     self.assertEqual(content[0]['highschool']["city"], self.high_school.city)
-    #     self.assertEqual(content[0]['highschool']["label"], self.high_school.label)
-
-    #     # As ref-str (with no structure) : empty
-    #     self.ref_str.structures.remove(self.structure)
-    #     client.login(username='ref_str', password='pass')
-    #     response = client.get(reverse("off_offer_event_list"))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     content = json.loads(response.content.decode('utf-8'))
-    #     self.assertEqual(len(content), 0)
-
-    #     # Deletion
-    #     # as ref_str : fail (bad structure)
-    #     response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
-    #     self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #     self.assertEqual(OffOfferEvent.objects.count(), 2)
-
-    #     # as ref_etab : same establishment : success
-    #     client.login(username='ref_etab', password='pass')
-    #     response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(OffOfferEvent.objects.count(), 1)
-
-    #     # as master_ref_etab : full access
-    #     client.login(username='ref_master_etab', password='pass')
-    #     response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(OffOfferEvent.objects.count(), 0)
-
-    #     # as operator : full access
-    #     event2 = OffOfferEvent.objects.create(
-    #         establishment=None,
-    #         structure=None,
-    #         highschool=self.high_school,
-    #         event_type=self.event_type,
-    #         label="High school event",
-    #         description="Whatever",
-    #         published=True
-    #     )
-
-    #     client.login(username='operator', password='pass')
-    #     response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(OffOfferEvent.objects.count(), 0)
-
-    # def test_API__get_visitor_records__bad_operation(self):
-    #     url = "/api/visitor/records/wrong"
-    #     response = self.client.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("data", content)
-    #     self.assertIn("msg", content)
-    #     self.assertIsNone(content["data"])
-    #     self.assertIsInstance(content["msg"], str)
-    #     self.assertGreater(len(content["msg"]), 0)
-
-    # def test_API__get_visitor_records__to_validate(self):
-    #     url = "/api/visitor/records/to_validate"
-    #     response = self.client.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("data", content)
-    #     self.assertIn("msg", content)
-
-    #     self.assertIsInstance(content["msg"], str)
-    #     self.assertEqual(len(content["msg"]), 0)
-
-    #     self.assertIsInstance(content["data"], list)
-    #     data = content["data"]
-    #     self.assertEqual(len(data), 1)
-    #     self.assertIsInstance(data[0], dict)
-    #     for field_name in ("id", "first_name", "last_name", "birth_date"):
-    #         self.assertIn(field_name, data[0])
-
-    #     self.assertEqual(data[0]["id"], self.visitor_record.id)
-    #     self.assertEqual(data[0]["first_name"], self.visitor.first_name)
-    #     self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-    #     self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
-
-    # def test_API__get_visitor_records__validated(self):
-    #     self.visitor_record.validation = 2
-    #     self.visitor_record.save()
-    #     url = "/api/visitor/records/validated"
-    #     response = self.client.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("data", content)
-    #     self.assertIn("msg", content)
-
-    #     self.assertIsInstance(content["msg"], str)
-    #     self.assertEqual(len(content["msg"]), 0)
-
-    #     self.assertIsInstance(content["data"], list)
-    #     data = content["data"]
-    #     self.assertEqual(len(data), 1)
-    #     self.assertIsInstance(data[0], dict)
-    #     for field_name in ("id", "first_name", "last_name", "birth_date"):
-    #         self.assertIn(field_name, data[0])
-
-    #     self.assertEqual(data[0]["id"], self.visitor_record.id)
-    #     self.assertEqual(data[0]["first_name"], self.visitor.first_name)
-    #     self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-    #     self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
-
-    # def test_API__get_visitor_records__rejected(self):
-    #     self.visitor_record.validation = 3
-    #     self.visitor_record.save()
-    #     url = "/api/visitor/records/rejected"
-    #     response = self.client.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("data", content)
-    #     self.assertIn("msg", content)
-
-    #     self.assertIsInstance(content["msg"], str)
-    #     self.assertEqual(len(content["msg"]), 0)
-
-    #     self.assertIsInstance(content["data"], list)
-    #     data = content["data"]
-    #     self.assertEqual(len(data), 1)
-    #     self.assertIsInstance(data[0], dict)
-    #     for field_name in ("id", "first_name", "last_name", "birth_date"):
-    #         self.assertIn(field_name, data[0])
-
-    #     self.assertEqual(data[0]["id"], self.visitor_record.id)
-    #     self.assertEqual(data[0]["first_name"], self.visitor.first_name)
-    #     self.assertEqual(data[0]["last_name"], self.visitor.last_name)
-    #     self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
-
-    # def test_API_visitor_record_operation__wrong_operation(self):
-    #     client = Client()
-    #     client.login(username='ref_master_etab', password='pass')
-    #     url = f"/api/visitor/record/{self.visitor_record.id}/wrong"
-    #     response = client.post(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("msg", content)
-    #     self.assertIn("data", content)
-    #     self.assertIsNone(content["data"])
-    #     self.assertGreater(len(content["msg"]), 0)
-
-    #     # no change
-    #     record = VisitorRecord.objects.get(id=self.visitor_record.id)
-    #     self.assertEqual(record.validation, self.visitor_record.validation)
-
-    # def test_API_visitor_record_operation__validate(self):
-    #     client = Client()
-    #     client.login(username='ref_master_etab', password='pass')
-    #     url = f"/api/visitor/record/{self.visitor_record.id}/validate"
-    #     response = client.post(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("msg", content)
-    #     self.assertIn("data", content)
-    #     self.assertIsInstance(content["data"], dict)
-    #     self.assertEqual(len(content["msg"]), 0)
-
-    #     self.assertIn("record_id", content["data"])
-    #     self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
-
-    #     # value changed
-    #     record = VisitorRecord.objects.get(id=self.visitor_record.id)
-    #     self.assertEqual(record.validation, 2)
-
-    # def test_API_visitor_record_operation__reject(self):
-    #     client = Client()
-    #     client.login(username='ref_master_etab', password='pass')
-    #     url = f"/api/visitor/record/{self.visitor_record.id}/reject"
-    #     response = client.post(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("msg", content)
-    #     self.assertIn("data", content)
-    #     self.assertIsInstance(content["data"], dict)
-    #     self.assertEqual(len(content["msg"]), 0)
-
-    #     self.assertIn("record_id", content["data"])
-    #     self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
-
-    #     # value changed
-    #     record = VisitorRecord.objects.get(id=self.visitor_record.id)
-    #     self.assertEqual(record.validation, 3)
-
-    # def test_API_visitor_record_operation__bad_record_id(self):
-    #     client = Client()
-    #     client.login(username='ref_master_etab', password='pass')
-
-    #     url = f"/api/visitor/record/99999999999/validate"
-    #     response = client.post(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertIsInstance(content, dict)
-    #     self.assertIn("msg", content)
-    #     self.assertIn("data", content)
-    #     self.assertIsNone(content["data"])
-    #     self.assertGreater(len(content["msg"]), 0)
-
-    # def test_API_mailing_list_global__valid(self):
-    #     self.hs_record.validation = 2
-    #     self.visitor_record.validation = 2
-    #     self.hs_record.save()
-    #     self.visitor_record.save()
-
-    #     url = "/api/mailing_list/global"
-    #     response = self.client_token.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     email = get_general_setting("GLOBAL_MAILING_LIST")
-
-    #     self.assertEqual(content["msg"], "")
-    #     self.assertIsInstance(content["data"], dict)
-    #     self.assertIn(email, content["data"])
-
-    #     self.assertEqual(len(content["data"][email]), 4)
-    #     self.assertIn(self.student.email, content["data"][email])
-    #     self.assertIn(self.student2.email, content["data"][email])
-    #     self.assertIn(self.highschool_user.email, content["data"][email])
-    #     self.assertIn(self.visitor.email, content["data"][email])
-
-    #     self.hs_record.validation = 0
-    #     self.visitor_record.validation = 0
-    #     self.hs_record.save()
-    #     self.visitor_record.save()
-
-    # def test_API_mailing_list_global__wrong_global_setting(self):
-    #     g = GeneralSettings.objects.get(setting="GLOBAL_MAILING_LIST")
-    #     g.setting = "GLOBAL_MAILING_LIST_"
-    #     g.save()
-
-    #     url = "/api/mailing_list/global"
-    #     response = self.client_token.get(url)
-
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
-    #     self.assertGreater(len(content["msg"]), 0)
-    #     self.assertIsNone(content["data"])
-
-    #     g.setting = "GLOBAL_MAILING_LIST"
-    #     g.save()
-
-    # def test_API_mailing_list_structure(self):
-    #     url = "/api/mailing_list/structures"
-    #     response = self.client_token.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(content["msg"], "")
-    #     self.assertIsInstance(content["data"], dict)
-
-    #     self.assertEqual(len(content["data"]), 1)
-
-    #     self.assertIn(self.structure.mailing_list, content["data"])
-
-    #     str_list = content["data"][self.structure.mailing_list]
-    #     self.assertEqual(len(str_list), 2)
-    #     self.assertIn(self.highschool_user.email, str_list)
-    #     self.assertIn(self.student.email, str_list)
-
-    # def test_API_mailing_list_establishments(self):
-    #     url = "/api/mailing_list/establishments"
-
-    #     event = OffOfferEvent.objects.create(
-    #         label="event_xxx", description="event_xxx",
-    #         establishment=self.establishment, event_type=self.event_type
-    #     )
-    #     slot = Slot.objects.create(event=event, n_places=30)
-    #     immersion = Immersion.objects.create(student=self.visitor, slot=slot)
-
-    #     response = self.client_token.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(content["msg"], "")
-    #     self.assertIsInstance(content["data"], dict)
-
-    #     self.assertEqual(len(content["data"]), 1)
-    #     self.assertIn(self.establishment.mailing_list, content["data"])
-
-    #     str_list = content["data"][self.establishment.mailing_list]
-    #     self.assertEqual(len(str_list), 3)
-    #     self.assertIn(self.highschool_user.email, str_list)
-    #     self.assertIn(self.student.email, str_list)
-    #     self.assertIn(self.visitor.email, str_list)
-
-
-    # def test_API_mailing_list_high_schools(self):
-    #     url = "/api/mailing_list/high_schools"
-
-    #     event = OffOfferEvent.objects.create(
-    #         label="event_xxx", description="event_xxx",
-    #         highschool=self.high_school, event_type=self.event_type
-    #     )
-    #     slot = Slot.objects.create(event=event, n_places=30)
-    #     immersion = Immersion.objects.create(student=self.highschool_user, slot=slot)
-
-    #     response = self.client_token.get(url)
-    #     content = json.loads(response.content.decode("utf-8"))
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(content["msg"], "")
-    #     self.assertIsInstance(content["data"], dict)
-
-    #     self.assertEqual(len(content["data"]), 1)
-    #     self.assertIn(self.high_school.mailing_list, content["data"])
-
-    #     str_list = content["data"][self.high_school.mailing_list]
-    #     self.assertEqual(len(str_list), 1)
-    #     self.assertIn(self.highschool_user.email, str_list)
+    def test_ajax_keep_entries_master_etab(self):
+        self.hs_record.duplicates = "[%s]" % self.hs_record2.id
+        self.hs_record.save()
+
+        self.hs_record2.duplicates = "[%s]" % self.hs_record.id
+        self.hs_record2.save()
+
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
+
+        data = {
+            "entries[]": [self.hs_record.id, self.hs_record2.id]
+        }
+        response = client.post("/api/keep_entries", data, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Duplicates data cleared", content['msg'])
+
+        r1 = HighSchoolStudentRecord.objects.get(pk=self.hs_record.id)
+        r2 = HighSchoolStudentRecord.objects.get(pk=self.hs_record2.id)
+
+        self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
+        self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
+
+
+    def test_ajax_keep_entries_operator(self):
+        self.hs_record.duplicates = "[%s]" % self.hs_record2.id
+        self.hs_record.save()
+
+        self.hs_record2.duplicates = "[%s]" % self.hs_record.id
+        self.hs_record2.save()
+
+        client = Client()
+        client.login(username='operator', password='pass')
+
+        data = {
+            "entries[]": [self.hs_record.id, self.hs_record2.id]
+        }
+        response = client.post("/api/keep_entries", data, **self.header)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual("Duplicates data cleared", content['msg'])
+
+        r1 = HighSchoolStudentRecord.objects.get(pk=self.hs_record.id)
+        r2 = HighSchoolStudentRecord.objects.get(pk=self.hs_record2.id)
+
+        self.assertEqual(r1.solved_duplicates, f"{self.hs_record2.id}")
+        self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
+
+
+    def test_campus(self):
+        campus = Campus.objects.create(label='Campus', establishment=self.establishment, active=True)
+
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        response = client.get(reverse("campus_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content[0]['label'], campus.label)
+
+
+    def test_high_school_speakers(self):
+        client = Client()
+
+        # Success
+        client.login(username='ref_lyc', password='pass')
+        response = client.get(
+            reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}),
+            **self.header
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['data'], [{
+            'id': self.highschool_speaker.id,
+            'last_name': 'highschool_speaker',
+            'first_name': 'highschool_speaker',
+            'email': 'highschool_speaker@no-reply.com',
+            'is_active': 'Yes',
+            'has_courses': 'Yes',
+            'can_delete': False
+        }])
+
+
+    def test_visit(self):
+        visit = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever",
+            published=True
+        )
+
+        visit2 = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever 2",
+            published=True
+        )
+
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        # List
+        response = client.get(reverse("visit_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(content[0]['purpose'], 'Whatever')
+        self.assertEqual(content[0]['establishment']['code'], "ETA1")
+        self.assertEqual(content[0]['establishment']['label'], "Etablissement 1")
+
+        # As ref-str (with no structure) : empty
+        self.ref_str.structures.remove(self.structure)
+        client.login(username='ref_str', password='pass')
+        response = client.get(reverse("visit_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 0)
+
+        # Deletion
+        # as ref_str : fail (bad structure)
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
+        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Visit.objects.count(), 2)
+
+        # as ref_etab
+        client.login(username='ref_etab', password='pass')
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Visit.objects.count(), 1)
+
+        # as master_ref_etab
+        client.login(username='ref_master_etab', password='pass')
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Visit.objects.count(), 0)
+
+        # as operator
+        visit2 = Visit.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            purpose="Whatever 2",
+            published=True
+        )
+
+        client.login(username='operator', password='pass')
+        response = client.delete(reverse("visit_detail", kwargs={'pk': visit2.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Visit.objects.count(), 0)
+
+
+    def test_off_offer_event(self):
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=None,
+            event_type=self.event_type,
+            label="Establishment event",
+            description="Whatever",
+            published=True
+        )
+
+        event2 = OffOfferEvent.objects.create(
+            establishment=None,
+            structure=None,
+            highschool=self.high_school,
+            event_type=self.event_type,
+            label="High school event",
+            description="Whatever",
+            published=True
+        )
+
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        # List
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 1)
+        self.assertEqual(content[0]['label'], 'Establishment event')
+        self.assertEqual(content[0]['establishment']['id'], self.establishment.id)
+        self.assertEqual(content[0]['establishment']['code'], 'ETA1')
+        self.assertEqual(content[0]['establishment']['label'], 'Etablissement 1')
+
+        # As ref-lyc
+        client.login(username='ref_lyc', password='pass')
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 1)
+        self.assertEqual(content[0]['label'], 'High school event')
+        self.assertEqual(content[0]['highschool']["city"], self.high_school.city)
+        self.assertEqual(content[0]['highschool']["label"], self.high_school.label)
+
+        # As ref-str (with no structure) : empty
+        self.ref_str.structures.remove(self.structure)
+        client.login(username='ref_str', password='pass')
+        response = client.get(reverse("off_offer_event_list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(content), 0)
+
+        # Deletion
+        # as ref_str : fail (bad structure)
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
+        self.assertIn("Insufficient privileges", response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(OffOfferEvent.objects.count(), 2)
+
+        # as ref_etab : same establishment : success
+        client.login(username='ref_etab', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 1)
+
+        # as master_ref_etab : full access
+        client.login(username='ref_master_etab', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 0)
+
+        # as operator : full access
+        event2 = OffOfferEvent.objects.create(
+            establishment=None,
+            structure=None,
+            highschool=self.high_school,
+            event_type=self.event_type,
+            label="High school event",
+            description="Whatever",
+            published=True
+        )
+
+        client.login(username='operator', password='pass')
+        response = client.delete(reverse("off_offer_event_detail", kwargs={'pk': event2.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(OffOfferEvent.objects.count(), 0)
+
+    def test_API__get_visitor_records__bad_operation(self):
+        url = "/api/visitor/records/wrong"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+        self.assertIsNone(content["data"])
+        self.assertIsInstance(content["msg"], str)
+        self.assertGreater(len(content["msg"]), 0)
+
+    def test_API__get_visitor_records__to_validate(self):
+        url = "/api/visitor/records/to_validate"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+
+        self.assertIsInstance(content["msg"], str)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIsInstance(content["data"], list)
+        data = content["data"]
+        self.assertEqual(len(data), 1)
+        self.assertIsInstance(data[0], dict)
+        for field_name in ("id", "first_name", "last_name", "birth_date"):
+            self.assertIn(field_name, data[0])
+
+        self.assertEqual(data[0]["id"], self.visitor_record.id)
+        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
+
+    def test_API__get_visitor_records__validated(self):
+        self.visitor_record.validation = 2
+        self.visitor_record.save()
+        url = "/api/visitor/records/validated"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+
+        self.assertIsInstance(content["msg"], str)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIsInstance(content["data"], list)
+        data = content["data"]
+        self.assertEqual(len(data), 1)
+        self.assertIsInstance(data[0], dict)
+        for field_name in ("id", "first_name", "last_name", "birth_date"):
+            self.assertIn(field_name, data[0])
+
+        self.assertEqual(data[0]["id"], self.visitor_record.id)
+        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
+
+    def test_API__get_visitor_records__rejected(self):
+        self.visitor_record.validation = 3
+        self.visitor_record.save()
+        url = "/api/visitor/records/rejected"
+        response = self.client.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("data", content)
+        self.assertIn("msg", content)
+
+        self.assertIsInstance(content["msg"], str)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIsInstance(content["data"], list)
+        data = content["data"]
+        self.assertEqual(len(data), 1)
+        self.assertIsInstance(data[0], dict)
+        for field_name in ("id", "first_name", "last_name", "birth_date"):
+            self.assertIn(field_name, data[0])
+
+        self.assertEqual(data[0]["id"], self.visitor_record.id)
+        self.assertEqual(data[0]["first_name"], self.visitor.first_name)
+        self.assertEqual(data[0]["last_name"], self.visitor.last_name)
+        self.assertEqual(data[0]["birth_date"], self.visitor_record.birth_date.strftime("%d/%m/%Y"))
+
+    def test_API_visitor_record_operation__wrong_operation(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
+        url = f"/api/visitor/record/{self.visitor_record.id}/wrong"
+        response = client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsNone(content["data"])
+        self.assertGreater(len(content["msg"]), 0)
+
+        # no change
+        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        self.assertEqual(record.validation, self.visitor_record.validation)
+
+    def test_API_visitor_record_operation__validate(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
+        url = f"/api/visitor/record/{self.visitor_record.id}/validate"
+        response = client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsInstance(content["data"], dict)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIn("record_id", content["data"])
+        self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
+
+        # value changed
+        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        self.assertEqual(record.validation, 2)
+
+    def test_API_visitor_record_operation__reject(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
+        url = f"/api/visitor/record/{self.visitor_record.id}/reject"
+        response = client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsInstance(content["data"], dict)
+        self.assertEqual(len(content["msg"]), 0)
+
+        self.assertIn("record_id", content["data"])
+        self.assertEqual(content["data"]["record_id"], self.visitor_record.id)
+
+        # value changed
+        record = VisitorRecord.objects.get(id=self.visitor_record.id)
+        self.assertEqual(record.validation, 3)
+
+    def test_API_visitor_record_operation__bad_record_id(self):
+        client = Client()
+        client.login(username='ref_master_etab', password='pass')
+
+        url = f"/api/visitor/record/99999999999/validate"
+        response = client.post(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertIsInstance(content, dict)
+        self.assertIn("msg", content)
+        self.assertIn("data", content)
+        self.assertIsNone(content["data"])
+        self.assertGreater(len(content["msg"]), 0)
+
+    def test_API_mailing_list_global__valid(self):
+        self.hs_record.validation = 2
+        self.visitor_record.validation = 2
+        self.hs_record.save()
+        self.visitor_record.save()
+
+        url = "/api/mailing_list/global"
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        email = get_general_setting("GLOBAL_MAILING_LIST")
+
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+        self.assertIn(email, content["data"])
+
+        self.assertEqual(len(content["data"][email]), 4)
+        self.assertIn(self.student.email, content["data"][email])
+        self.assertIn(self.student2.email, content["data"][email])
+        self.assertIn(self.highschool_user.email, content["data"][email])
+        self.assertIn(self.visitor.email, content["data"][email])
+
+        self.hs_record.validation = 0
+        self.visitor_record.validation = 0
+        self.hs_record.save()
+        self.visitor_record.save()
+
+    def test_API_mailing_list_global__wrong_global_setting(self):
+        g = GeneralSettings.objects.get(setting="GLOBAL_MAILING_LIST")
+        g.setting = "GLOBAL_MAILING_LIST_"
+        g.save()
+
+        url = "/api/mailing_list/global"
+        response = self.client_token.get(url)
+
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertGreater(len(content["msg"]), 0)
+        self.assertIsNone(content["data"])
+
+        g.setting = "GLOBAL_MAILING_LIST"
+        g.save()
+
+    def test_API_mailing_list_structure(self):
+        url = "/api/mailing_list/structures"
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+
+        self.assertEqual(len(content["data"]), 1)
+
+        self.assertIn(self.structure.mailing_list, content["data"])
+
+        str_list = content["data"][self.structure.mailing_list]
+        self.assertEqual(len(str_list), 2)
+        self.assertIn(self.highschool_user.email, str_list)
+        self.assertIn(self.student.email, str_list)
+
+    def test_API_mailing_list_establishments(self):
+        url = "/api/mailing_list/establishments"
+
+        event = OffOfferEvent.objects.create(
+            label="event_xxx", description="event_xxx",
+            establishment=self.establishment, event_type=self.event_type
+        )
+        slot = Slot.objects.create(event=event, n_places=30)
+        immersion = Immersion.objects.create(student=self.visitor, slot=slot)
+
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+
+        self.assertEqual(len(content["data"]), 1)
+        self.assertIn(self.establishment.mailing_list, content["data"])
+
+        str_list = content["data"][self.establishment.mailing_list]
+        self.assertEqual(len(str_list), 3)
+        self.assertIn(self.highschool_user.email, str_list)
+        self.assertIn(self.student.email, str_list)
+        self.assertIn(self.visitor.email, str_list)
+
+
+    def test_API_mailing_list_high_schools(self):
+        url = "/api/mailing_list/high_schools"
+
+        event = OffOfferEvent.objects.create(
+            label="event_xxx", description="event_xxx",
+            highschool=self.high_school, event_type=self.event_type
+        )
+        slot = Slot.objects.create(event=event, n_places=30)
+        immersion = Immersion.objects.create(student=self.highschool_user, slot=slot)
+
+        response = self.client_token.get(url)
+        content = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content["msg"], "")
+        self.assertIsInstance(content["data"], dict)
+
+        self.assertEqual(len(content["data"]), 1)
+        self.assertIn(self.high_school.mailing_list, content["data"])
+
+        str_list = content["data"][self.high_school.mailing_list]
+        self.assertEqual(len(str_list), 1)
+        self.assertIn(self.highschool_user.email, str_list)
