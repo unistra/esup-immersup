@@ -1710,10 +1710,16 @@ def get_slots_charts(request):
             else:
                 name = structure.label
 
+            # Avoid division by 0 error
+            if establishments_slots_count[structure.establishment.id]:
+                percentage = round(slots_count / establishments_slots_count[structure.establishment.id] * 100, 1)
+            else:
+                percentage = 0
+
             datasets.append({
                 'name': name,
                 'slots_count': slots_count,
-                'percentage': round(slots_count / establishments_slots_count[structure.establishment.id] * 100, 1),
+                'percentage': percentage,
                 'none': 0
             })
 
