@@ -398,7 +398,7 @@ def slots(request):
 
     if not user_filter:
         if visits and not establishment_id and not structure_id:
-            if user.is_high_school_manager():
+            if user.is_high_school_manager() and user.highschool:
                 filters["visit__highschool__id"] = user.highschool.id
             else:
                 try:
