@@ -1114,7 +1114,7 @@ def ajax_get_immersions(request, user_id=None):
         user.is_master_establishment_manager(),
         user.is_operator(),
         user.is_establishment_manager(),
-        user.is_high_school_manager() and user.highschool and user.highschool.postbac_immersion,
+        user.is_high_school_manager() and user.highschool,
         user.id == user_id
     ]
 
@@ -1859,11 +1859,12 @@ def ajax_get_available_students(request, slot_id):
 @login_required
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_get_highschool_students(request, highschool_id=None):
+def ajax_get_highschool_students(request):
     """
     Retrieve students from a highschool or all students if user is ref-etab manager
     and no highschool id is specified
     """
+    highschool_id = None
     no_record_filter: bool = False
     response: Dict[str, Any] = {'data': [], 'msg': ''}
 
@@ -1877,13 +1878,9 @@ def ajax_get_highschool_students(request, highschool_id=None):
     if any(admin_groups):
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
-    if not highschool_id:
-        try:
-            highschool_id = request.user.highschool.id
-        except Exception:
-            if not any(admin_groups):
-                response: Dict[str, Any] = {'data': [], 'msg': _('Invalid parameters')}
-                return JsonResponse(response, safe=False)
+    if request.user.is_high_school_manager() and request.user.highschool\
+            and not request.user.highschool.postbac_immersion:
+        highschool_id = request.user.highschool.id
 
     if highschool_id:
         students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(

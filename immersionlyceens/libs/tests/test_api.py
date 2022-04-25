@@ -2122,7 +2122,7 @@ class APITestCase(TestCase):
 
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 5)
 
         # Students
         level = HighSchoolLevel.objects.filter(is_post_bachelor=True).first()
@@ -2136,7 +2136,7 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], '')
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 5)
 
         one = False
         for h in content['data']:

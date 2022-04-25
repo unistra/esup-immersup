@@ -87,7 +87,6 @@
 </div>
 <script type="text/javascript">
   var dt;
-  var highschool_id = "{{ request.user.highschool.id }}";
   var current_student_id;
   const is_ref_etab = "{{ is_establishment_manager }}" === "True";
   const is_ref_etab_maitre = "{{ request.user.is_master_establishment_manager }}" === "True";
@@ -114,7 +113,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_highschool_students/" + highschool_id,
+        url: "/api/get_highschool_students",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
             return json['data'];
