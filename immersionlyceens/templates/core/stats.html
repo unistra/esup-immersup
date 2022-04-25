@@ -58,14 +58,16 @@
         <label class="col-form-label col-sm-3" >{% trans 'High schools data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_highschool">{% trans 'Extract data' %}</button>
       </div>
-      <div class="row">
-        <label class="col-form-label col-sm-3" for="structure">{% trans 'High school immersions data' %}</label>
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
-        {% if events_off_offer %}
-        <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+        {% if request.user.highschool.postbac_immersion %}
+          <div class="row">
+            <label class="col-form-label col-sm-3" for="structure">{% trans 'High school immersions data' %}</label>
+            <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
+            {% if events_off_offer %}
+            <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_events">{% trans 'Extract events data' %}</button>
+            {% endif %}
+          </div>
         {% endif %}
-      </div>
-      {% elif request.user.is_structure_manager%}
+      {% elif request.user.is_structure_manager %}
       <div class="row">
         <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
