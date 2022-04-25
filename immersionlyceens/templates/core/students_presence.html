@@ -36,10 +36,12 @@
         <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
             <tr>
-            {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
+            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
               <th id="establishment_filter" class="align-top">{% trans 'Establishment' %}</th>
             {% endif %}
+            {% if not request.user.is_high_school_manager %}
               <th id="structure_filter" class="align-top">{% trans 'Structure' %}</th>
+            {% endif %}
               <th id="datetime_filter" class="align-top">{% trans 'Date' %}</th>
               <th id="student_profile_filter" class="align-top">{% trans  'Profile' %}</th>
               <th id="student_filter" class="align-top">{% trans 'Student' %}</th>
@@ -54,15 +56,15 @@
           </thead>
           <tbody>
             <tr>
-            {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
+            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
               <td></td>
             {% endif %}
               <td></td>
               <td></td>
               <td></td>
               <td></td>
-              <td></td>
               {% if not request.user.is_high_school_manager %}
+              <td></td>
               <td></td>
               <td></td>
               {% endif %}
@@ -97,9 +99,13 @@
     $.fn.dataTableExt.errMode = 'console';
     dt = $('#students_table').DataTable({
       'processing': false,
-      {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
+      {% if request.user.is_master_establishment_manager or request.user.is_operator %}
       'order': [
         [2, "asc"],
+      ],
+      {% elif request.user.is_high_school_manager %}
+      'order': [
+        [0, "asc"],
       ],
       {% else %}
       'order': [
@@ -113,7 +119,7 @@
       'ajax': {
         url: "/api/get_students_presence",
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'];
           }
         }
@@ -123,13 +129,15 @@
         url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
-    {% if  request.user.is_master_establishment_manager or request.user.is_operator %}
+    {% if request.user.is_master_establishment_manager or request.user.is_operator %}
       { "data": "establishment"},
     {% endif %}
+    {% if not request.user.is_high_school_manager %}
       { "data": "structure"},
+    {% endif %}
       { "data": "datetime",
         "render": function(data, type, row) {
-          if(type == "display" || type == "filter") {
+          if(type === "display" || type === "filter") {
             return row.date + " <br />" + row.time['start'] + " - " + row.time['end'];
           }
 
@@ -142,8 +150,8 @@
       { "data": "",
         "render": function(data, type, row) {
           var txt = "<ul>";
-          if(row.phone != "") { txt += "<li>" + row.phone + "</li>"; }
-          if(row.email != "") { txt += "<li>" + row.email + "</li>"; }
+          if(row.phone !== "") { txt += "<li>" + row.phone + "</li>"; }
+          if(row.email !== "") { txt += "<li>" + row.email + "</li>"; }
           txt += "</ul>";
           return txt;
         }
@@ -238,43 +246,37 @@
   {
     column_number: 0,
     filter_default_label: "",
-    filter_container_id: "structure_filter",
+    filter_container_id: "datetime_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   },{
     column_number: 1,
     filter_default_label: "",
-    filter_container_id: "datetime_filter",
-    style_class: "form-control form-control-sm",
-    filter_reset_button_text: false,
-  },{
-    column_number: 2,
-    filter_default_label: "",
     filter_container_id: "student_profile_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   },{
-    column_number: 3,
+    column_number: 2,
     filter_type: "text",
     filter_default_label: "",
     filter_container_id: "student_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   },{
-    column_number: 4,
+    column_number: 3,
     filter_default_label: "",
     filter_container_id: "institution_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   },{
-    column_number: 5,
+    column_number: 4,
     filter_type: "text",
     filter_default_label: "",
     filter_container_id: "contact_filter",
     style_class: "form-control form-control-sm",
     filter_reset_button_text: false,
   },{
-    column_number: 6,
+    column_number: 5,
     filter_default_label: "",
     filter_container_id: "meeting_place_filter",
     style_class: "form-control form-control-sm",
@@ -344,21 +346,17 @@
   $('#id_dates_apply').click(function () {
     var from_date_val = $('#id_from').val();
     var until_date_val = $('#id_until').val();
+    var from_date = "None"
+    var until_date = "None"
 
-    if(from_date_val != "") {
+    if(from_date_val !== "") {
       var f = from_date_val.split("/");
-      var from_date = f[2]+"-"+f[1]+"-"+f[0];
-    }
-    else {
-      var from_date = "None"
+      from_date = f[2]+"-"+f[1]+"-"+f[0];
     }
 
-    if(until_date_val != "") {
+    if(until_date_val !== "") {
       var u = until_date_val.split("/");
-      var until_date = u[2]+"-"+u[1]+"-"+u[0];
-    }
-    else {
-      var until_date = "None"
+      until_date = u[2]+"-"+u[1]+"-"+u[0];
     }
 
     dt.ajax.url('/api/get_students_presence/'+from_date+'/'+until_date);
@@ -372,17 +370,17 @@
     var from_date = "";
     var until_date = "";
 
-    if(from_date_val != "") {
+    if(from_date_val !== "") {
       var f = from_date_val.split("/");
       from_date = f[2]+"-"+f[1]+"-"+f[0];
     }
 
-    if(until_date_val != "") {
+    if(until_date_val !== "") {
       var u = until_date_val.split("/");
       until_date = u[2]+"-"+u[1]+"-"+u[0];
     }
 
-    if(from_date != "" && until_date != "" && from_date > until_date) {
+    if(from_date !== "" && until_date !== "" && from_date > until_date) {
       alert(alert1);
       $('#id_from').val("");
     }
@@ -394,17 +392,17 @@
     var from_date = "";
     var until_date = "";
 
-    if(from_date_val != "") {
+    if(from_date_val !== "") {
       var f = from_date_val.split("/");
       from_date = f[2]+"-"+f[1]+"-"+f[0];
     }
 
-    if(until_date_val != "") {
+    if(until_date_val !== "") {
       var u = until_date_val.split("/");
       until_date = u[2]+"-"+u[1]+"-"+u[0];
     }
 
-    if(from_date != "" && until_date != "" && from_date > until_date) {
+    if(from_date !== "" && until_date !== "" && from_date > until_date) {
       alert(alert2);
       $('#id_until').val("");
     }
