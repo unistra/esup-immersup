@@ -1,3 +1,5 @@
+from typing import Optional, Dict, Any, List, Union
+
 import ldap3
 import sys
 import logging
@@ -57,11 +59,13 @@ class AccountAPI(BaseAccountsAPI):
                 raise Exception(attr, e)
 
 
-    def decode_value(self, value):
-        return value.decode(utf8) if isinstance(value, bytes) else value
+    def decode_value(self, value: Union[bytes, str]) -> str:
+        return value.decode("utf8") if isinstance(value, bytes) else value
 
-    
-    def search_user(self, search_value):
+    def search_user(self, search_value: str, search_attr: Optional[str] = None) -> List[Dict[str, Any]]:
+        if search_attr is None:
+            search_attr = self.SEARCH_ATTR
+
         attributes = {
             'username': self.USERNAME_ATTR,
             'email': self.EMAIL_ATTR,
@@ -69,7 +73,7 @@ class AccountAPI(BaseAccountsAPI):
             'firstname': self.FIRSTNAME_ATTR,
             'display_name': self.DISPLAY_ATTR,
         }
-        search_filter = f"({self.SEARCH_ATTR}={search_value}*)"
+        search_filter = f"({search_attr}={search_value}*)"
 
         if self.ACCOUNTS_FILTER:
             search_filter = f"(&{search_filter}{self.ACCOUNTS_FILTER})"
@@ -88,7 +92,7 @@ class AccountAPI(BaseAccountsAPI):
             return False
 
         results = []
-        
+
         for account in self.ldap_connection.response:
             result = {}
             for k in attributes.keys():
@@ -98,3 +102,6 @@ class AccountAPI(BaseAccountsAPI):
             results.append(result)
 
         return results
+
+    def search_user_by_email(self, email: str) -> List[Dict[str, Any]]:
+        return self.search_user(email, self.EMAIL_ATTR)
