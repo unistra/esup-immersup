@@ -4,7 +4,7 @@ from typing import List, Any
 from django.core.management import BaseCommand
 from django.db.models import QuerySet
 
-from immersionlyceens.apps.core.models import Establishment, ImmersionUser
+from immersionlyceens.apps.core.models import ImmersionUser
 from immersionlyceens.libs.api.accounts import AccountAPI
 
 
