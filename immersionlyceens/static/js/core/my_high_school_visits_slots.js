@@ -130,6 +130,26 @@ function init_datatable() {
             return element;
           }
         },
+        { "data": "attendances_status",
+          "render": function(data, type, row) {
+            let msg = "";
+            let edit_mode = 0;
+
+            if(row.attendances_value === 1 && (row.can_update_visit_slot || row.can_update_attendances)) {
+              edit_mode = 1
+              msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"edit\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+","+row.is_past+","+row.can_update_registrations+","+row.face_to_face+")\" title=\"" + attendances_text + "\">" +
+                  "<i class='fa fas fa-edit fa-2x'></i>" +
+                  "</button>";
+            }
+            else if (row.attendances_value !== -1) {
+              msg = "<button class=\"btn btn-light btn-sm mr-4\" name=\"view\" onclick=\"open_modal("+ row.id +","+ edit_mode +","+row.n_places+")\" title=\"" + registered_text + "\">" +
+                    "<i class='fa fas fa-eye fa-2x'></i>" +
+                    "</button>";
+            }
+
+            return msg + data;
+          }
+        },
         { data: 'additional_information',
           render: function(data) {
             if (data) {
@@ -185,7 +205,7 @@ function init_datatable() {
         targets: '_all'
     }, {
       orderable: false,
-      targets: [8]
+      targets: [8, 9]
     }],
 
     initComplete: function () {
