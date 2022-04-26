@@ -2175,6 +2175,7 @@ def get_csv_structures(request):
 
         if request.user.is_structure_manager():
             header = [
+                _('structure'),
                 _('training domain'),
                 _('training subdomain'),
                 _('training'),
@@ -2254,6 +2255,7 @@ def get_csv_structures(request):
             elif request.user.is_structure_manager():
 
                 line = [
+                    structure,
                     infield_separator.join(
                         [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                     ),
@@ -2340,6 +2342,7 @@ def get_csv_structures(request):
         elif request.user.is_structure_manager():
 
             header = [
+                _('structure'),
                 _('highschool'),
                 _('purpose'),
                 _('meeting place'),
@@ -2399,9 +2402,25 @@ def get_csv_structures(request):
                     slot.additional_information,
                 ]
 
-            elif (request.user.is_high_school_manager() or request.user.is_structure_manager()):
+            elif request.user.is_high_school_manager():
 
                 line = [
+                    highschool,
+                    slot.visit.purpose,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+
+            elif request.user.is_structure_manager():
+
+                line = [
+                    structure,
                     highschool,
                     slot.visit.purpose,
                     slot.room if slot.face_to_face else _('Remote'),
@@ -2469,6 +2488,7 @@ def get_csv_structures(request):
         elif request.user.is_structure_manager():
 
             header = [
+                _('structure'),
                 _('event type'),
                 _('label'),
                 _('description'),
@@ -2576,6 +2596,7 @@ def get_csv_structures(request):
             elif request.user.is_structure_manager():
                 content.append(
                     [
+                        structure,
                         slot.event.event_type,
                         slot.event.label,
                         slot.event.description,
