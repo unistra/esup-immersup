@@ -127,3 +127,9 @@ class Command(BaseCommand):
             logger.info(_('{} user(s) with group INTER and with establishment without SI deactivated').format(updated))
         else:
             logger.info(_("no user with group INTER and with LDAP establishment to deactivate"))
+
+
+        try:
+            call_command('delete_account_not_in_ldap')
+        except CommandError:
+            logger.error("Could not finish 'delete_account_not_in_ldap' command")
