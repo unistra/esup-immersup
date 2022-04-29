@@ -5,6 +5,7 @@
   <div class="container">
     <div class="row">
       <div class="logo col-auto offset-lg-2">
+        {% if unistra %}
         <div class="signature-unistra sun sun-theme-secondary">
           <span class="sun-row sun-offset-6">
             <span class="sun-cell sun-empty-1"></span>
@@ -31,6 +32,9 @@
             <span class="sun-cell sun-empty-6"></span>
           </span>
         </div>
+        {% else %}
+        <div class="establishment-logo"></div>
+        {% endif %}
       </div>
       {% if user.is_superuser %}
         {% include "./user_selector.html" %}

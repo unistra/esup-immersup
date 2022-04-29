@@ -54,7 +54,9 @@
     {% if not contact_form_url %}
     {% include './modals/modal_contact_us.html'%}
     {% endif %}
+    {% if unistra %}
     {% include './fragments/main_share.html' %}
+    {% endif %}
     {% include './fragments/main_footer.html' %}
     <script src="{% static 'fonts/unistra-signature/3.0.1/js/sun.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
