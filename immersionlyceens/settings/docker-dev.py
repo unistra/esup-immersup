@@ -195,4 +195,4 @@ BASE_FILES_DIR = "/tmp"
 MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 
 # Use Unistra theme & css
-UNISTRA = environ.get('USE_UNISTRA_THEME', True)
+UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')

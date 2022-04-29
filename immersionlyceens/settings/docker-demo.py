@@ -111,4 +111,4 @@ STATIC_ROOT = normpath(join(SITE_ROOT, 'staticfiles'))
 STATIC_URL = '/static/'
 
 # Use Unistra theme & css
-UNISTRA = environ.get('USE_UNISTRA_THEME', True)
+UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')

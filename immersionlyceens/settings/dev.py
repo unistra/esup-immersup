@@ -131,4 +131,4 @@ STAGE = 'Dev'
 # S3_FILEPATH = 'dev'
 
 # Use Unistra theme & css
-UNISTRA = environ.get('USE_UNISTRA_THEME', True)
+UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')
