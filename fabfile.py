@@ -126,7 +126,14 @@ def test():
         's3_bucket': "AWS_STORAGE_BUCKET_NAME",
         's3_endpoint': "AWS_S3_ENDPOINT_URL",
         'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID"
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
     }
     env.extra_symlink_dirs = ['media']
     execute(build_env)
@@ -168,7 +175,14 @@ def preprod():
         's3_bucket': "AWS_STORAGE_BUCKET_NAME",
         's3_endpoint': "AWS_S3_ENDPOINT_URL",
         'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID"
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
     }
     execute(build_env)
 
@@ -208,6 +222,13 @@ def prod():
         's3_secret_key': "AWS_SECRET_ACCESS_KEY",
         's3_bucket': "AWS_STORAGE_BUCKET_NAME",
         's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
         # TODO: should be used later
         # 'matomo_url': "MATOMO_URL",
         # 'matomo_site_id': "MATOMO_SITE_ID"

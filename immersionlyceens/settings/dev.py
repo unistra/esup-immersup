@@ -56,14 +56,11 @@ ALLOWED_HOSTS = [
 # Log configuration #
 #####################
 
-LOGGING['handlers']['file']['filename'] = environ.get('LOG_DIR',
-                                                      normpath(join('/tmp', '%s.log' % SITE_NAME)))
+LOGGING['handlers']['file']['filename'] = environ.get('LOG_DIR', normpath(join('/tmp', '%s.log' % SITE_NAME)))
 LOGGING['handlers']['file']['level'] = 'DEBUG'
 
 for logger in LOGGING['loggers']:
     LOGGING['loggers'][logger]['level'] = 'DEBUG'
-
-
 
 
 ###########################
@@ -105,6 +102,13 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
 EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.ConsoleBackend'
 # FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
+
+EMAIL_HOST = environ.get('EMAIL_HOST', '127.0.0.1')
+EMAIL_USE_TLS = environ.get('EMAIL_USE_TLS', False)
+EMAIL_PORT = environ.get('EMAIL_PORT', 25)
+EMAIL_HOST_USER = environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
+
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
 

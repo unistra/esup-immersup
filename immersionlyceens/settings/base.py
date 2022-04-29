@@ -445,6 +445,11 @@ DEFAULT_FROM_EMAIL = 'support@unistra.fr'
 #     - immersionlyceens.libs.mails.backends.FileBackend
 EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
 EMAIL_HOST = '127.0.0.1'
+EMAIL_USE_TLS = False
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+
 FROM_ADDR = 'no.reply@unistra.fr'
 
 FORCE_EMAIL_ADDRESS = None
