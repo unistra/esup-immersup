@@ -55,7 +55,7 @@
     {% if not contact_form_url %}
     {% include './modals/modal_contact_us.html'%}
     {% endif %}
-    {% if unistra %}
+    {% if unistra == "true" %}
     {% include './fragments/main_share.html' %}
     {% endif %}
     {% include './fragments/main_footer.html' %}
