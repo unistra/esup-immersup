@@ -118,4 +118,4 @@ MATOMO_URL = '{{ matomo_url }}'
 MATOMO_SITE_ID = '{{ matomo_site_id }}'
 
 # Use Unistra theme & css
-UNISTRA = '{{ use_unistra_theme }}'
+UNISTRA = {{ use_unistra_theme }}
