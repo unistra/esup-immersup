@@ -108,3 +108,6 @@ AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
 AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
 AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
 S3_FILEPATH = 'preprod'
+
+# Use Unistra theme & css
+UNISTRA = '{{ use_unistra_theme }}'
