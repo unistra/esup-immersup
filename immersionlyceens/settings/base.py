@@ -594,4 +594,6 @@ LOGIN_REDIRECT_URL = '/'
 # Ignored queries for 404 error
 IGNORABLE_404_URLS = [
     re.compile(r'^/apple-touch-icon.*\.png$'),
-    re.co{% settings_get 'UNISTRA' as unistra %}
+    re.compile(r'^/favicon\.ico$'),
+    re.compile(r'^/robots\.txt$'),
+]
