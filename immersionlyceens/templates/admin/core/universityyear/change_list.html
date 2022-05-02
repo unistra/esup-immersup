@@ -6,14 +6,16 @@
 
 
 {% block content %}
-  {% include '../modals/modal_annual_purge.html' %}
-  {{ block.super }}
-{% endblock %}
 
-{% block object-tools-items %}
-  <li>
-    <button class="red_button" id="purge_btn"><strong>⚠</strong> {% trans "Annual purge" %} <strong>⚠</strong></button>
-  </li>
-  <br/>
+  {% if authorized_groups|in_groups:"REF-TEC" or user.is_superuser %}
+    {% include '../modals/modal_annual_purge.html' %}
+  {% endif %}
+
   {{ block.super }}
+
+  <div id="extra-buttons">
+      {% if authorized_groups|in_groups:"REF-TEC" or user.is_superuser %}
+      <button class="red_button" id="purge_btn"><strong>⚠</strong> {% trans "Annual purge" %} <strong>⚠</strong></button>
+      {% endif %}
+  </div>
 {% endblock %}

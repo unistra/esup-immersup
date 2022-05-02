@@ -1,3 +1,4 @@
+#extra-buttons button { float: right; }
 .red_button {
     background: #BA2121;
     color: #FFF;
@@ -9,15 +10,12 @@
     transition: color 150ms, background 150ms;
     cursor: pointer;
 }
-.red_button:hover, .red_button:focus, .red_button:active {
-    background: #A41515;
-}
+.red_button:hover, .red_button:focus, .red_button:active { background: #A41515; }
 .red_button[disabled] {
     background: #8d1616;
     color: #AAA;
     cursor: not-allowed;
 }
-
 #annual_purge_checker {
     background: none;
     color: #000;
@@ -30,13 +28,10 @@
     cursor: not-allowed;
     border-color: #333;
 }
-
 #purge_text {
     padding: 2px;
     background: #f2f2f2;
     border-radius: 4px;
     margin-bottom: 10px;
 }
-#purge_text > pre {
-    color: #333;
-}
+#purge_text > pre { color: #333; }
