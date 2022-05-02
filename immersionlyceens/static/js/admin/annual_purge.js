@@ -49,7 +49,7 @@ window.onload = function () {
 
   purge_submit.addEventListener("click", (event) => {
     const content = document.getElementById("fetch_content")
-    content.innerHTML = "<br/></br.><p class='center'>" + gettext("Command running...") + "</p>"
+    content.innerHTML = "<br/></br.><p class='center'>" + gettext("Command running ...") + "</p>"
     purge_submit.setAttribute("disabled", "")
 
     fetch("/api/commands/annual_purge/",
