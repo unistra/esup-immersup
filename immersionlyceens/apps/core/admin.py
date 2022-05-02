@@ -1000,6 +1000,7 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
+
     form = HolidayForm
     list_display = ('label', 'date')
     ordering = ('date',)
@@ -1121,6 +1122,7 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
+    change_list_template = "admin/core/universityyear/change_list.html"
     form = UniversityYearForm
     list_display = (
         'label',
@@ -1176,6 +1178,19 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                 return False
 
         return True
+
+    class Media:
+        js = (
+            "js/vendor/jquery/jquery-3.4.1.min.js",
+            "js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js",
+            "js/admin/annual_purge.js",
+        )
+        css = {
+            "all": (
+                "js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css",
+                "css/admin_university_year.css",
+            )
+        }
 
 
 class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):

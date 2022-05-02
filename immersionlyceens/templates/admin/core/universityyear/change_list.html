@@ -1,0 +1,19 @@
+{% extends "admin/change_list.html" %}
+
+{% load static %}
+{% load i18n %}
+{% load immersionlyceens_tags %}
+
+
+{% block content %}
+  {% include '../modals/modal_annual_purge.html' %}
+  {{ block.super }}
+{% endblock %}
+
+{% block object-tools-items %}
+  <li>
+    <button class="red_button" id="purge_btn"><strong>⚠</strong> {% trans "Annual purge" %} <strong>⚠</strong></button>
+  </li>
+  <br/>
+  {{ block.super }}
+{% endblock %}

@@ -1,0 +1,42 @@
+.red_button {
+    background: #BA2121;
+    color: #FFF;
+
+    border-radius: 4px;
+    border: none;
+    padding: 10px 15px;
+
+    transition: color 150ms, background 150ms;
+    cursor: pointer;
+}
+.red_button:hover, .red_button:focus, .red_button:active {
+    background: #A41515;
+}
+.red_button[disabled] {
+    background: #8d1616;
+    color: #AAA;
+    cursor: not-allowed;
+}
+
+#annual_purge_checker {
+    background: none;
+    color: #000;
+    border-color: #888;
+    padding: 10px 15px;
+}
+#annual_purge_checker[disabled] {
+    background: #ddd;
+    color: #333;
+    cursor: not-allowed;
+    border-color: #333;
+}
+
+#purge_text {
+    padding: 2px;
+    background: #f2f2f2;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+#purge_text > pre {
+    color: #333;
+}
