@@ -1,0 +1,21 @@
+{% load immersionlyceens_tags %}
+{% load i18n %}
+{% load static %}
+<script>const verify_purge_text = "{% trans 'I want to launch the annual purge' %}" </script>
+<div id="purge_modal" title="{% trans 'Annual purge' %} - {% trans 'Validation' %}">
+
+  <div>
+    <p>{% trans 'To launch the annual purge, you must write this sentence on this field: ' %}</p>
+    <div id="purge_text" class="content">
+      <pre>{% trans "I want to launch the annual purge" %}</pre>
+    </div>
+    <input type="text" id="annual_purge_checker">
+  </div>
+  <br>
+  {% csrf_token %}
+  <button id="submit_purge" class="red_button" disabled="">{% trans "Launch annual purge" %}</button>
+  <div id="fetch_content"></div>
+</div>
+
+<script>
+</script>
