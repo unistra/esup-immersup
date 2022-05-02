@@ -6,9 +6,10 @@ import datetime
 import importlib
 import json
 import logging
+import time
 from functools import reduce
 from itertools import permutations
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import django_filters.rest_framework
 from django.conf import settings
@@ -4425,5 +4426,27 @@ class MailTemplatePreviewAPI(View):
             response["data"] = body
         except TemplateSyntaxError:
             response["msg"] = _("A syntax error occured in template #%s") % pk
+
+        return JsonResponse(response)
+
+
+@method_decorator(groups_required('REF-TEC'), name="dispatch")
+class AnnualPurgeAPI(View):
+    def post(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"ok": False, "msg": "", "time": 0}
+
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+
+        command_time: float = time.thread_time()
+        try:
+            call_command("delete_account_not_in_ldap")
+            response["ok"] = True
+        except CommandError:
+            msg: str = _("An error occured while annual purge running. For more details, check the logs.")
+            logger.error(msg)
+            response["msg"] = msg
+
+        response["time"] = round(time.thread_time() - command_time, 3)
 
         return JsonResponse(response)
