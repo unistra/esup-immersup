@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-02 16:27+0200\n"
+"POT-Creation-Date: 2022-05-03 14:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4419,8 +4419,9 @@ msgstr "Une erreur s'est produite dans le modèle #%s"
 msgid ""
 "An error occured while annual purge running. For more details, check the "
 "logs."
-msgstr "Une erreur est survenue pendant l'exécution de la purge annuelle."
-" Pour plus de détails, consultez les logs."
+msgstr ""
+"Une erreur est survenue pendant l'exécution de la purge annuelle. Pour plus "
+"de détails, consultez les logs."
 
 #: immersionlyceens/libs/mails/variables_parser.py:71
 #: immersionlyceens/libs/mails/variables_parser.py:552
@@ -4552,21 +4553,31 @@ msgid "Import holidays"
 msgstr "Import des jours fériés"
 
 #: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:4
-#: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:10
+#: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:13
 msgid "I want to launch the annual purge"
 msgstr "Je veux lancer la purge annuelle"
 
 #: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:5
-#: immersionlyceens/templates/admin/core/universityyear/change_list.html:18
+#: immersionlyceens/templates/admin/core/universityyear/change_list.html:19
 msgid "Annual purge"
 msgstr "Purge annuelle"
 
-#: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:8
+#: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:9
+msgid ""
+"This action delete all registrations, all high school student accounts, all "
+"students accounts, all visitors accounts, all slots, all visits and all "
+"events."
+msgstr ""
+"Cette action supprimera toutes les inscriptions, tous les comptes lycéens, "
+"étudiants, visiteurs, tous les créneaux de cours, de visites et d'évènements."
+
+#: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:11
 msgid ""
 "To launch the annual purge, you must write this sentence on this field: "
-msgstr "Pour lancer la purge annuelle, vous devez réécrire la phrase suivante: "
+msgstr ""
+"Pour lancer la purge annuelle, vous devez réécrire la phrase suivante: "
 
-#: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:16
+#: immersionlyceens/templates/admin/core/modals/modal_annual_purge.html:19
 msgid "Launch annual purge"
 msgstr "Lancer la purge annuelle"
 
