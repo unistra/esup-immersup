@@ -35,3 +35,11 @@
     margin-bottom: 10px;
 }
 #purge_text > pre { color: #333; }
+#purge_warning {
+    border-radius: 4px;
+    padding: 10px 15px;
+    color: #BA2121;
+    font-weight: bold;
+    border: 1px solid #BA2121;
+    background: #faefef;
+}
