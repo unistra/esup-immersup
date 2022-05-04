@@ -29,6 +29,7 @@ from .admin_forms import (
     OffOfferEventTypeForm, PostBachelorLevelForm, PublicDocumentForm,
     PublicTypeForm, StructureForm, StudentLevelForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    ImmersupFileForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -38,7 +39,7 @@ from .models import (
     Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
     OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UniversityYear, Vacation, ImmersupFile
 )
 
 
@@ -1667,6 +1668,16 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     show_signature.short_description = _('Certificate signature')
 
 
+class ImmersupFileAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ImmersupFileForm
+    ordering = ('code',)
+
+    list_display = [
+        'code',
+        'file'
+    ]
+
+
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = OffOfferEventTypeForm
     list_display = ('label', 'active')
@@ -1868,6 +1879,7 @@ admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
+admin.site.register(ImmersupFile, ImmersupFileAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)

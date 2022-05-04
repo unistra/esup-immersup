@@ -391,6 +391,17 @@ class VisitorRecord(models.Model):
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )
+    parental_auth_document = models.FileField(
+        _("Parental authorization"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
     civil_liability_insurance = models.FileField(
         _("Civil liability insurance"),
         upload_to=get_file_path,

@@ -429,7 +429,7 @@ class VisitorRecordForm(forms.ModelForm):
         model = VisitorRecord
         fields = ['id',
             'birth_date', 'phone', 'visitor',
-            'motivation', 'identity_document', 'civil_liability_insurance',
+            'motivation', 'identity_document', 'civil_liability_insurance', 'parental_auth_document',
             'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
             'allowed_global_registrations',
         ]

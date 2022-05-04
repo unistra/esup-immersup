@@ -17,6 +17,7 @@ from django.views import generic
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
     PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
+    ImmersupFile
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -166,6 +167,26 @@ def serve_public_document(request, public_document_id):
         doc = get_object_or_404(PublicDocument, pk=public_document_id)
 
         _file = doc.document.path
+        _file_type = mimetypes.guess_type(_file)[0]
+
+        chunk_size = 8192
+        response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
+        response['Content-Length'] = os.path.getsize(_file)
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(_file)}"'
+
+    except Exception as e:
+        return HttpResponseNotFound()
+
+    return response
+
+
+def serve_immersup_file(request, file_code):
+    """Serve public documents files"""
+
+    try:
+        immersupfile = get_object_or_404(ImmersupFile, pk=file_code)
+
+        _file = immersupfile.file.path
         _file_type = mimetypes.guess_type(_file)[0]
 
         chunk_size = 8192
