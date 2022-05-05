@@ -177,5 +177,17 @@
           "description": "Activation des visiteurs"
       }
   }
+},
+{
+  "model": "core.generalsettings",
+  "pk": 17,
+  "fields": {
+      "setting": "DELETE_VISITOR_ATTACHMENTS_AFTER_VALIDATION",
+      "parameters": {
+          "type": "boolean",
+          "value": true,
+          "description": "Si le paramètre est à 'true', la pièce d'identité des visiteurs est supprimée après la validation de leur fiche."
+      }
+  }
 }
 ]
