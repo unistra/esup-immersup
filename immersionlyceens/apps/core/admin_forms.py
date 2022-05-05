@@ -1653,6 +1653,7 @@ class ImmersupFileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        self.fields["code"].widget.attrs['readonly'] = 'readonly'
 
     def clean_file(self):
         file = self.cleaned_data['file']

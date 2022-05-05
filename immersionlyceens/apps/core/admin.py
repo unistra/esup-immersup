@@ -1677,6 +1677,24 @@ class ImmersupFileAdmin(AdminWithRequest, admin.ModelAdmin):
         'file'
     ]
 
+    def has_add_permission(self, request):
+        """
+        No one can add any new file since the existing codes are hardcoded in app
+        """
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        For now, no one can delete existing files (hardcoded)
+        """
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return any([
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ])
+
 
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = OffOfferEventTypeForm
