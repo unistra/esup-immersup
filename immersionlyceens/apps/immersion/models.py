@@ -411,6 +411,12 @@ class VisitorRecord(models.Model):
     allowed_second_semester_registrations = models.SmallIntegerField(
         _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
 
+    def delete(self, using=None, keep_parents=False):
+        """Delete the visitor record and attachments"""
+        self.identity_document.storage.delete(self.identity_document.name)
+        self.civil_liability_insurance.storage.delete(self.civil_liability_insurance.name)
+        super().delete(using, keep_parents)
+
     def save(self, *args, **kwargs):
         if self.allowed_first_semester_registrations is None and self.allowed_second_semester_registrations is None \
                 and self.allowed_global_registrations is None:
