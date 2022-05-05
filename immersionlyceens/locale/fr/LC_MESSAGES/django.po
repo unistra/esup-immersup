@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-04 14:53+0200\n"
+"POT-Creation-Date: 2022-05-05 11:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -586,7 +586,7 @@ msgstr "Signature du certificat"
 #: immersionlyceens/apps/core/admin_forms.py:1557
 #: immersionlyceens/apps/core/admin_forms.py:1598
 #: immersionlyceens/apps/core/admin_forms.py:1639
-#: immersionlyceens/apps/core/admin_forms.py:1680
+#: immersionlyceens/apps/core/admin_forms.py:1681
 msgid "You don't have the required privileges"
 msgstr "Vous n'avez pas les droits suffisants"
 
@@ -948,7 +948,7 @@ msgstr ""
 #: immersionlyceens/apps/core/admin_forms.py:1456
 #: immersionlyceens/apps/core/admin_forms.py:1582
 #: immersionlyceens/apps/core/admin_forms.py:1623
-#: immersionlyceens/apps/core/admin_forms.py:1664
+#: immersionlyceens/apps/core/admin_forms.py:1665
 msgid "File type is not allowed"
 msgstr "Type de fichier non autorisé"
 
@@ -968,12 +968,12 @@ msgstr ""
 "Des visiteurs sont enregistrés, vous ne pouvez pas désactiver cette "
 "fonctionnalité"
 
-#: immersionlyceens/apps/core/admin_forms.py:1707
-#: immersionlyceens/apps/core/admin_forms.py:1725
+#: immersionlyceens/apps/core/admin_forms.py:1708
+#: immersionlyceens/apps/core/admin_forms.py:1726
 msgid "Field locked : a high school record uses this level"
 msgstr "Verrouillé : une fiche lycéen(ne) utilise ce niveau"
 
-#: immersionlyceens/apps/core/admin_forms.py:1743
+#: immersionlyceens/apps/core/admin_forms.py:1744
 msgid "Field locked : a student record uses this level"
 msgstr "Verrouillé : une fiche étudiant(te) utilise ce niveau"
 
@@ -2219,6 +2219,7 @@ msgstr "Document"
 
 #: immersionlyceens/apps/core/models.py:1961
 #: immersionlyceens/apps/core/models.py:2013
+#: immersionlyceens/apps/core/models.py:2573
 #: immersionlyceens/apps/immersion/models.py:388
 #: immersionlyceens/apps/immersion/models.py:399
 #: immersionlyceens/apps/immersion/models.py:410
@@ -2587,8 +2588,6 @@ msgstr "Statistiques annuelles"
 
 #: immersionlyceens/apps/core/models.py:2515
 #: immersionlyceens/apps/core/models.py:2516
-#: immersionlyceens/apps/core/models.py:2595
-#: immersionlyceens/apps/core/models.py:2596
 msgid "Logo for attendance certificate"
 msgstr "Logo de l'attestation de présence"
 
@@ -2598,18 +2597,25 @@ msgid "Signature for attendance certificate"
 msgstr "Signature pour l'attestation de présence"
 
 #: immersionlyceens/apps/core/models.py:2566
-#, fuzzy
-#| msgid "Zip code"
 msgid "File code"
-msgstr "Code postal"
+msgstr "Code"
 
 #: immersionlyceens/apps/core/models.py:2569
 msgid "File"
-msgstr ""
+msgstr "Fichier"
 
-#: immersionlyceens/apps/core/models.py:2591
-msgid "File "
-msgstr ""
+#: immersionlyceens/apps/core/models.py:2595
+#, python-format
+msgid "'%s' - file : %s"
+msgstr "'%s' - fichier : %s"
+
+#: immersionlyceens/apps/core/models.py:2599
+msgid "ImmerSup file"
+msgstr "Fichier ImmerSup"
+
+#: immersionlyceens/apps/core/models.py:2600
+msgid "ImmerSup files"
+msgstr "Fichiers ImmerSup"
 
 #: immersionlyceens/apps/core/views.py:127
 #: immersionlyceens/apps/core/views.py:1180
@@ -3066,7 +3072,7 @@ msgstr "Pièce d'identité"
 
 #: immersionlyceens/apps/immersion/models.py:395
 msgid "Parental authorization"
-msgstr ""
+msgstr "Autorisation parentale"
 
 #: immersionlyceens/apps/immersion/models.py:406
 msgid "Civil liability insurance"
@@ -6900,13 +6906,11 @@ msgstr "Documents justificatifs"
 
 #: immersionlyceens/templates/immersion/visitor_record.html:100
 msgid "if minor"
-msgstr ""
+msgstr "si mineur"
 
 #: immersionlyceens/templates/immersion/visitor_record.html:104
-#, fuzzy
-#| msgid "Mail template preview"
 msgid "Get template here"
-msgstr "Prévisualisation du modèle de message"
+msgstr "Télécharger le fichier à compléter"
 
 #: immersionlyceens/templates/modals/modal_alerts.html:6
 msgid "Do you really want to cancel this alert ?"
@@ -7466,7 +7470,7 @@ msgstr "visites disponibles"
 msgid "No visit available"
 msgstr "Pas de visite disponible"
 
-#: immersionlyceens/views.py:264 immersionlyceens/views.py:437
-#: immersionlyceens/views.py:566
+#: immersionlyceens/views.py:265 immersionlyceens/views.py:438
+#: immersionlyceens/views.py:567
 msgid "Calendar not initialized"
 msgstr "Calendrier non initialisé"
