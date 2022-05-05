@@ -6906,7 +6906,7 @@ msgstr "Documents justificatifs"
 
 #: immersionlyceens/templates/immersion/visitor_record.html:100
 msgid "if minor"
-msgstr "si mineur"
+msgstr "si mineur(e)"
 
 #: immersionlyceens/templates/immersion/visitor_record.html:104
 msgid "Get template here"
