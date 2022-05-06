@@ -42,7 +42,7 @@ bandit:
     - pip3 install -r requirements/dev.txt
     - bandit --exit-zero $(cat /tmp/find.txt)
 
-bandit:
+pytype:
   stage: test
   tags:
     - python3.7
