@@ -4265,10 +4265,12 @@ class VisitorRecordRejectValidate(View):
         operation: str = self.kwargs["operation"]
         validation_value: int = 1
         validation_email_template: str = ""
+        delete_attachments: bool = False
 
         if operation == "validate":
             validation_value = 2
             validation_email_template = "CPT_MIN_VALIDE"
+            delete_attachments = get_general_setting("DELETE_VISITOR_ATTACHMENTS_AT_VALIDATION")
         elif operation == "reject":
             validation_value = 3
             validation_email_template = "CPT_MIN_REJET"
@@ -4281,6 +4283,10 @@ class VisitorRecordRejectValidate(View):
         except VisitorRecord.DoesNotExist:
             data["msg"] = f"Error - No record with id: {record_id}."
             return JsonResponse(data)
+
+        if delete_attachments:
+            record.identity_document.storage.delete(record.identity_document.name)
+            record.identity_document.delete()
 
         record.validation = validation_value
         record.save()
