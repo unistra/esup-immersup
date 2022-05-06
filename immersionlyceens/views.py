@@ -9,10 +9,11 @@ from django.http import (
     HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
     HttpResponseNotFound, StreamingHttpResponse,
 )
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
+from django.core.files.storage import default_storage
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
@@ -181,23 +182,15 @@ def serve_public_document(request, public_document_id):
 
 
 def serve_immersup_file(request, file_code):
-    """Serve public documents files"""
+    """
+    Returns a redirection to a stored file
+    """
 
     try:
         immersupfile = get_object_or_404(ImmersupFile, pk=file_code)
-
-        _file = immersupfile.file.path
-        _file_type = mimetypes.guess_type(_file)[0]
-
-        chunk_size = 8192
-        response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
-        response['Content-Length'] = os.path.getsize(_file)
-        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(_file)}"'
-
+        return redirect(default_storage.url(immersupfile.file.name))
     except Exception as e:
         return HttpResponseNotFound()
-
-    return response
 
 
 def offer_subdomain(request, subdomain_id):
