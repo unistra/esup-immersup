@@ -510,7 +510,7 @@ class Parser:
 
     @staticmethod
     def get_accounts_link_context(
-            request: Any, platform_url: str, link_validation_string: str, link_source_user: ImmersionUser
+            request: Any, platform_url: str, link_validation_string: str, link_source_user: str
     ) -> Dict[str, Any]:
 
         link_dict = {
@@ -541,7 +541,7 @@ class Parser:
         event: Optional[OffOfferEvent] = kwargs.get('event')
         immersion: Optional[Immersion] = kwargs.get('immersion')
         link_validation_string: Optional[str] = kwargs.get('link_validation_string', '')
-        link_source_user: Optional[ImmersionUser] = kwargs.get('link_source_user', '')
+        link_source_user: Optional[str] = kwargs.get('link_source_user', '')
 
         slot_survey: Optional[EvaluationFormLink] = cls.get_slot_survey()
         global_survey: Optional[EvaluationFormLink] = cls.get_global_survey()

@@ -31,7 +31,7 @@ class AccountAPI(BaseAccountsAPI):
             logger.debug(f"Host: {self.HOST}, port: {self.PORT}, dn: {self.DN}, base: {self.BASE_DN}")
             ldap_server = Server(self.HOST, port=int(self.PORT), get_info=ALL)
             logger.debug(f"Server: {ldap_server}")
-            self.ldap_connection = Connection(ldap_server, auto_bind=True, user=self.DN, password=self.PASSWORD)
+            self.ldap_connection = Connection(ldap_server, auto_bind=True, user=self.DN, password=self.PASSWORD) # type: ignore
         except Exception as e:
             logger.error("Cannot connect to LDAP server : %s", e)
             raise
@@ -62,7 +62,7 @@ class AccountAPI(BaseAccountsAPI):
     def decode_value(self, value: Union[bytes, str]) -> str:
         return value.decode("utf8") if isinstance(value, bytes) else value
 
-    def search_user(self, search_value: str, search_attr: Optional[str] = None) -> List[Dict[str, Any]]:
+    def search_user(self, search_value: str, search_attr: Optional[str] = None) -> Union[bool, List[Dict[str, Any]]]:
         if search_attr is None:
             search_attr = self.SEARCH_ATTR
 
@@ -103,5 +103,5 @@ class AccountAPI(BaseAccountsAPI):
 
         return results
 
-    def search_user_by_email(self, email: str) -> List[Dict[str, Any]]:
+    def search_user_by_email(self, email: str) -> Union[bool, List[Dict[str, Any]]]:
         return self.search_user(email, self.EMAIL_ATTR)

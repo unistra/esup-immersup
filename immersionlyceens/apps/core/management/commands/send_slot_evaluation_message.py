@@ -27,7 +27,9 @@ class Command(BaseCommand):
             eval_link = EvaluationFormLink.objects.get(evaluation_type__code='EVA_CRENEAU', active=True)
             logger.debug("Evaluation link found : %s" % eval_link)
         except EvaluationFormLink.DoesNotExist:
-            logger.error("Cannot find an active evaluation link. Please check the Evaluation forms links in admin section.", template_code)
+            # template code ? it's a copy past ?
+            # logger.error("Cannot find an active evaluation link. Please check the Evaluation forms links in admin section.", template_code)
+            logger.error("Cannot find an active evaluation link. Please check the Evaluation forms links in admin section.")
             return
 
         immersions = Immersion.objects.filter(

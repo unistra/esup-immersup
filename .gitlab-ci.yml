@@ -41,3 +41,11 @@ bandit:
     - apt update && apt install -y build-essential libcairo2 libpango1.0-0 libffi-dev shared-mime-info libpq-dev libsasl2-dev python-dev libssl-dev libldap2-dev
     - pip3 install -r requirements/dev.txt
     - bandit --exit-zero $(cat /tmp/find.txt)
+
+bandit:
+  stage: test
+  tags:
+    - python3.7
+  script:
+    - pip3 install -r requirements/dev.txt
+    - pytype --config=pytype.cfg

@@ -39,6 +39,7 @@ from .managers import (
     ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
     HighSchoolAgreedManager, StructureQuerySet,
 )
+from ...libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 

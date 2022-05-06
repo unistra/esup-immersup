@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import List, Any
+from typing import List, Any, Union
 
 from django.core.management import BaseCommand
 from django.db.models import QuerySet
@@ -25,8 +25,8 @@ class Command(BaseCommand):
         username_list: List[str] = []
         for user in users:
             account_api: AccountAPI = AccountAPI(user.establishment)
-            ldap_reponse: List[Any] = account_api.search_user_by_email(user.email)
-            if ldap_reponse == []:
+            ldap_reponse: Union[bool, List[Any]] = account_api.search_user_by_email(user.email)
+            if ldap_reponse == [] or ldap_reponse is False:
                 username_list.append(user.username)
 
         n = ImmersionUser.objects.filter(username__in=username_list).delete()
