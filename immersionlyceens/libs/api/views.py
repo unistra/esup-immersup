@@ -31,7 +31,7 @@ from immersionlyceens.apps.core.models import (
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersionUserGroup,
     MailTemplate, MailTemplateVars, OffOfferEvent, PublicDocument, Slot,
     Structure, Training, TrainingDomain, UniversityYear, UserCourseAlert,
-    Vacation, Visit,
+    Vacation, Visit, GeneralSettings,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
@@ -4285,9 +4285,12 @@ class VisitorRecordRejectValidate(View):
             return JsonResponse(data)
 
         if delete_attachments:
-            record.identity_document.storage.delete(record.identity_document.name)
-            record.identity_document.delete()
-
+            try:
+                record.identity_document.storage.delete(record.identity_document.name)
+                record.identity_document.delete()
+            except Exception as e:
+                # no document to delete
+                pass
         record.validation = validation_value
         record.save()
         record.visitor.send_message(self.request, validation_email_template)
