@@ -198,6 +198,7 @@
 // }
 
 var age = 0;
+var has_parental_auth_document = "{{ record.parental_auth_document }}" !== "";
 
 function open_modal() {
   $('#modal_nuke_account').modal('show');
@@ -221,14 +222,14 @@ function update_minor_warning() {
       $('#id_minor').hide()
       $('#id_parental_auth_document').removeAttr("required")
     }
-    else {
+    else if (has_parental_auth_document === false) {
       $('#id_minor').show()
-      $('#id_parental_auth_document').setAttribute("required", "")
+      $('#id_parental_auth_document').prop("required", true)
     }
   }
-  else {
+  else if (has_parental_auth_document === false) {
     $('#id_minor').show()
-    $('#id_parental_auth_document').setAttribute("required", "")
+    $('#id_parental_auth_document').prop("required", true)
   }
 }
 
