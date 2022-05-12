@@ -47,7 +47,5 @@ pytype:
   tags:
     - python3.7
   script:
-    - apt-get install tree
     - pip3 install -r requirements/dev.txt
-    - tree .
     - pytype --config=pytype.cfg
