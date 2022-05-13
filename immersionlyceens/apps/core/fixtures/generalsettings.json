@@ -108,18 +108,6 @@
 },
 {
   "model": "core.generalsettings",
-  "pk": 11,
-  "fields": {
-    "setting": "PDF_CERTIFICATE_CITY",
-    "parameters" : {
-      "description": "Ville a afficher dans le certificat de pr\u00e9sence",
-      "type": "text",
-      "value": "Strasbourg"
-    }
-  }
-},
-{
-  "model": "core.generalsettings",
   "pk": 12,
   "fields": {
     "setting": "CHARTER_SIGN",

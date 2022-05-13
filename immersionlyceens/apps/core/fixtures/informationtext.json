@@ -157,7 +157,7 @@
     "model": "core.informationtext",
     "pk": 15,
     "fields": {
-      "label": "TODO: Charte",
+      "label": "Charte à signer pour les établissements d'accueil",
       "code": "CHARTE_ETABLISSEMENT_ACCUEIL",
       "content": "<p>TODO: Lorem Elsass Ipsum mitt picon bi\u00e8re munster du ftomi! Ponchour bisame. Flammekueche kn\u00e8kes rossbolla schneck choucroute un schwanz geburtst\u00e0g, Gal!</p>",
       "description": "Texte à valider lors de la connexion d'un nouvel établissement d'accueil",
