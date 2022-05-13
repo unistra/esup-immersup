@@ -127,12 +127,12 @@ def procedure(request):
     """Procedure view"""
 
     try:
-        procedure_txt = InformationText.objects.get(code="PROCEDURE_LYCEE", active=True).content
+        procedure_txt = InformationText.objects.get(code="PROCEDURE_LYCEEA", active=True).content
     except InformationText.DoesNotExist:
         procedure_txt = ''
 
     try:
-        procedure_group_txt = InformationText.objects.get(code="PROCEDURE_IMMERSION_GROUPE", active=True).content
+        procedure_group_txt = InformationText.objects.get(code="PROCEDURE_LYCEEB", active=True).content
     except InformationText.DoesNotExist:
         procedure_group_txt = ''
 

@@ -2435,10 +2435,13 @@ msgid "Slot"
 msgstr "Créneau"
 
 #: immersionlyceens/apps/core/models.py:2357
-#: immersionlyceens/templates/core/courses_slots_list.html:23
 #: immersionlyceens/templates/modals/modal_public_slots.html:7
 msgid "Slots"
 msgstr "Créneaux"
+
+#: immersionlyceens/templates/core/courses_slots_list.html:23
+msgid "Course slots"
+msgstr "Créneaux de cours"
 
 #: immersionlyceens/apps/core/models.py:2366
 msgid "Not entered"
@@ -6286,8 +6289,8 @@ msgid "Off offer Events"
 msgstr "Évènements hors offre"
 
 #: immersionlyceens/templates/fragments/main_menu.html:54
-msgid "Slots list"
-msgstr "Liste des créneaux"
+msgid "Course slots list"
+msgstr "Liste des créneaux de cours"
 
 #: immersionlyceens/templates/fragments/main_menu.html:69
 msgid "Visits slots list"
@@ -7439,10 +7442,9 @@ msgid "Affiliated high schools"
 msgstr "Lycées conventionnés"
 
 #: immersionlyceens/templates/procedure.html:88
-msgid "If your school is on this list, you can register for an immersion."
+msgid "If your school is on this list, immersions are available for you"
 msgstr ""
-"Si votre lycée fait partie de cette liste, vous pouvez vous inscrire à une "
-"immersion."
+"Si votre lycée fait partie de cette liste, les immersions vous sont ouvertes"
 
 #: immersionlyceens/templates/procedure.html:93
 msgid "Search Highschool"
