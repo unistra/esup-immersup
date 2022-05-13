@@ -74,7 +74,7 @@
                 <option value=""></option>
                 {% for highschool in highschools %}
                   <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
-                    {{ highschool.city }} - {{ highschool.label }}
+                    {{ highschool.label }} ({{ highschool.city }})
                   </option>
                 {% endfor %}
               </select>

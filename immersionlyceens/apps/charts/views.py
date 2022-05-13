@@ -70,7 +70,7 @@ def global_trainings_charts(request, my_trainings=False):
 
     highschools = [
         {'id': h.id, 'label': h.label, 'city': h.city}
-        for h in HighSchool.objects.filter(**filter).order_by('city', 'label')
+        for h in HighSchool.objects.filter(**filter).order_by('label', 'city')
     ]
 
     # This will be only useful to structure managers
