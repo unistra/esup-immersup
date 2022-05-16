@@ -171,6 +171,7 @@ def test2():
         'matomo_site_id': "MATOMO_SITE_ID",
         'use_unistra_theme': "UNISTRA",
     }
+    env.use_unistra_theme='true'
     env.extra_symlink_dirs = ['media']
     execute(build_env)
 
