@@ -12,7 +12,7 @@ from ..models import (
     EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     Holiday, ImmersionUser, PublicDocument, PublicType, Slot, Structure,
     Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    HigherEducationInstitution, StudentLevel
+    HigherEducationInstitution, StudentLevel, ImmersupFile
 )
 
 from immersionlyceens.apps.immersion.models import StudentRecord
@@ -248,6 +248,18 @@ class TestPublicDocumentCase(TestCase):
         }
         o = PublicDocument.objects.create(**data)
         self.assertEqual(str(o), label)
+
+
+class TestImmersupFileCase(TestCase):
+    def test_immersupfile_str(self):
+        code = "TEST_CODE"
+
+        data = {
+            'code': code,
+            'file': SimpleUploadedFile("testpron.pdf", b"toto", content_type="application/pdf"),
+        }
+        o = ImmersupFile.objects.create(**data)
+        self.assertEqual(str(o), "'%s' - file : %s" % (code, o.file.name))
 
 
 class TestEvaluationTypeCase(TestCase):

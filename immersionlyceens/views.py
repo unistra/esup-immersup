@@ -9,14 +9,16 @@ from django.http import (
     HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
     HttpResponseNotFound, StreamingHttpResponse,
 )
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
+from django.core.files.storage import default_storage
 
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
     PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
+    ImmersupFile
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -125,12 +127,12 @@ def procedure(request):
     """Procedure view"""
 
     try:
-        procedure_txt = InformationText.objects.get(code="PROCEDURE_LYCEE", active=True).content
+        procedure_txt = InformationText.objects.get(code="PROCEDURE_LYCEEA", active=True).content
     except InformationText.DoesNotExist:
         procedure_txt = ''
 
     try:
-        procedure_group_txt = InformationText.objects.get(code="PROCEDURE_IMMERSION_GROUPE", active=True).content
+        procedure_group_txt = InformationText.objects.get(code="PROCEDURE_LYCEEB", active=True).content
     except InformationText.DoesNotExist:
         procedure_group_txt = ''
 
@@ -177,6 +179,18 @@ def serve_public_document(request, public_document_id):
         return HttpResponseNotFound()
 
     return response
+
+
+def serve_immersup_file(request, file_code):
+    """
+    Returns a redirection to a stored file
+    """
+
+    try:
+        immersupfile = get_object_or_404(ImmersupFile, pk=file_code)
+        return redirect(default_storage.url(immersupfile.file.name))
+    except Exception as e:
+        return HttpResponseNotFound()
 
 
 def offer_subdomain(request, subdomain_id):

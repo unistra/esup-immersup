@@ -1114,6 +1114,13 @@ class CourseSlotAdd(generic.CreateView):
 
                 context["origin_id"] = slot.id
                 context["form"] = self.form
+
+                # Set <select> initial values from the slot to duplicate
+                context["establishment_id"] = establishment_id
+                context["structure_id"] = structure_id
+                context["highschool_id"] = highschool_id
+                context["training_id"] = training_id
+
             except Slot.DoesNotExist:
                 pass
         elif not self.request.POST and course and training:
@@ -1135,10 +1142,18 @@ class CourseSlotAdd(generic.CreateView):
 
         context["can_update"] = True  # FixMe
         context["slot_mode"] = "course"
-        context["establishment_id"] = self.request.session.get('current_establishment_id')
-        context["structure_id"] = self.request.session.get('current_structure_id')
-        context["highschool_id"] = self.request.session.get('current_highschool_id')
-        context["training_id"] = self.request.session.get('current_training_id')
+
+        if "establishment_id" not in context:
+            context["establishment_id"] = self.request.session.get('current_establishment_id')
+
+        if "structure_id" not in context:
+            context["structure_id"] = self.request.session.get('current_structure_id')
+
+        if "highschool_id" not in context:
+            context["highschool_id"] = self.request.session.get('current_highschool_id')
+
+        if "training_id" not in context:
+            context["training_id"] = self.request.session.get('current_training_id')
 
         return context
 

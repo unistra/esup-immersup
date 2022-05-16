@@ -29,6 +29,7 @@ from .admin_forms import (
     OffOfferEventTypeForm, PostBachelorLevelForm, PublicDocumentForm,
     PublicTypeForm, StructureForm, StudentLevelForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    ImmersupFileForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -38,7 +39,7 @@ from .models import (
     Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
     OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UniversityYear, Vacation, ImmersupFile
 )
 
 
@@ -1000,6 +1001,7 @@ class PublicTypeAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class HolidayAdmin(AdminWithRequest, admin.ModelAdmin):
+
     form = HolidayForm
     list_display = ('label', 'date')
     ordering = ('date',)
@@ -1121,6 +1123,7 @@ class VacationAdmin(AdminWithRequest, admin.ModelAdmin):
 
 
 class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
+    change_list_template = "admin/core/universityyear/change_list.html"
     form = UniversityYearForm
     list_display = (
         'label',
@@ -1176,6 +1179,19 @@ class UniversityYearAdmin(AdminWithRequest, admin.ModelAdmin):
                 return False
 
         return True
+
+    class Media:
+        js = (
+            "js/vendor/jquery/jquery-3.4.1.min.js",
+            "js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js",
+            "js/admin/annual_purge.js",
+        )
+        css = {
+            "all": (
+                "js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css",
+                "css/admin_university_year.css",
+            )
+        }
 
 
 class CalendarAdmin(AdminWithRequest, admin.ModelAdmin):
@@ -1652,6 +1668,34 @@ class CertificateSignatureAdmin(AdminWithRequest, admin.ModelAdmin):
     show_signature.short_description = _('Certificate signature')
 
 
+class ImmersupFileAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ImmersupFileForm
+    ordering = ('code',)
+
+    list_display = [
+        'code',
+        'file'
+    ]
+
+    def has_add_permission(self, request):
+        """
+        No one can add any new file since the existing codes are hardcoded in app
+        """
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        For now, no one can delete existing files (hardcoded)
+        """
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return any([
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ])
+
+
 class OffOfferEventTypeAdmin(AdminWithRequest, admin.ModelAdmin):
     form = OffOfferEventTypeForm
     list_display = ('label', 'active')
@@ -1853,6 +1897,7 @@ admin.site.register(EvaluationType, EvaluationTypeAdmin)
 admin.site.register(GeneralSettings, GeneralSettingsAdmin)
 admin.site.register(AnnualStatistics, AnnualStatisticsAdmin)
 admin.site.register(CertificateLogo, CertificateLogoAdmin)
+admin.site.register(ImmersupFile, ImmersupFileAdmin)
 admin.site.register(CertificateSignature, CertificateSignatureAdmin)
 admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)

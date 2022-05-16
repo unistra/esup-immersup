@@ -39,6 +39,7 @@ from .managers import (
     ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
     HighSchoolAgreedManager, StructureQuerySet,
 )
+from ...libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -2557,3 +2558,44 @@ class CertificateSignature(models.Model):
         """Meta class"""
         verbose_name = _('Signature for attendance certificate')
         verbose_name_plural = _('Signature for attendance certificate')
+
+
+class ImmersupFile(models.Model):
+    """
+    Any file used by ImmerSup (PDF, images, ...)
+    """
+    code = models.CharField(_("File code"), max_length=64, blank=False, null=False, primary_key=True)
+
+    file = models.FileField(
+        _("File"),
+        upload_to=get_file_path,
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(settings.CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
+
+    objects = CustomDeleteManager()
+
+    @classmethod
+    def object(cls):
+        """get only allowed object"""
+        return cls._default_manager.all().first()
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded from logo Filefield"""
+        self.file.storage.delete(self.file.name)
+        super().delete()
+
+
+    def __str__(self):
+        """str"""
+        return gettext("'%s' - file : %s" % (self.code, self.file.name))
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('ImmerSup file')
+        verbose_name_plural = _('ImmerSup files')

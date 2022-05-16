@@ -391,6 +391,17 @@ class VisitorRecord(models.Model):
                       'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
                   },
     )
+    parental_auth_document = models.FileField(
+        _("Parental authorization"),
+        upload_to=get_file_path,
+        blank=True,
+        null=True,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(AUTH_CONTENT_TYPES),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
     civil_liability_insurance = models.FileField(
         _("Civil liability insurance"),
         upload_to=get_file_path,
@@ -410,6 +421,12 @@ class VisitorRecord(models.Model):
         _("Number of allowed registrations for second semester (excluding visits and events)"), null=True, blank=True)
     allowed_second_semester_registrations = models.SmallIntegerField(
         _("Number of allowed registrations for first semester (excluding visits and events)"), null=True, blank=True)
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete the visitor record and attachments"""
+        self.identity_document.storage.delete(self.identity_document.name)
+        self.civil_liability_insurance.storage.delete(self.civil_liability_insurance.name)
+        super().delete(using, keep_parents)
 
     def save(self, *args, **kwargs):
         if self.allowed_first_semester_registrations is None and self.allowed_second_semester_registrations is None \

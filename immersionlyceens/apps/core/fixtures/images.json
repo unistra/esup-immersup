@@ -1,1 +1,14 @@
-[{"model": "core.certificatelogo", "pk": 1, "fields": {"logo": "uploads/certificate_logo/white.jpg"}}, {"model": "core.certificatesignature", "pk": 1, "fields": {"signature": "uploads/certificate_signature/white.jpg"}}]
+[{
+  "model": "core.certificatelogo",
+  "pk": 1,
+  "fields": {
+    "logo": "uploads/certificate_logo/white.jpg"}
+},
+{
+  "model": "core.certificatesignature",
+  "pk": 1,
+  "fields": {
+    "signature": "uploads/certificate_signature/white.jpg"
+  }
+}
+]

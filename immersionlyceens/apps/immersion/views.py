@@ -1067,7 +1067,8 @@ class VisitorRecordView(FormView):
             context.update({"record": record})  # for modal nuke purpose
         context.update({
             "past_immersions": past_immersions, "future_immersions": future_immersions,
-            "visitor": visitor, "student": visitor,  # visitor = student for modal nuke purpose
+            "visitor": visitor,
+            "student": visitor,  # visitor = student for modal nuke purpose
             "user_form": user_form,
             "back_url": self.request.session.get("back"),
             "calendar": calendar,

@@ -29,7 +29,7 @@ from .models import (
     ImmersionUserGroup, InformationText, MailTemplate, MailTemplateVars,
     OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    UniversityYear, Vacation, ImmersupFile
 )
 
 
@@ -1642,6 +1642,48 @@ class CertificateSignatureForm(forms.ModelForm):
 
     class Meta:
         model = CertificateSignature
+        fields = '__all__'
+
+
+class ImmersupFileForm(forms.ModelForm):
+    """
+    Immersup File form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        self.fields["code"].widget.attrs['readonly'] = 'readonly'
+
+    def clean_file(self):
+        file = self.cleaned_data['file']
+        if file and isinstance(file, UploadedFile):
+
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'pdf']]
+
+            if not file.content_type in allowed_content_type:
+                raise forms.ValidationError(_('File type is not allowed'))
+
+        return file
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_master_establishment_manager() or user.is_operator()
+        except AttributeError:
+            pass
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = ImmersupFile
         fields = '__all__'
 
 

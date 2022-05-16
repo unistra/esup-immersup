@@ -6,9 +6,10 @@ import datetime
 import importlib
 import json
 import logging
+import time
 from functools import reduce
 from itertools import permutations
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import django_filters.rest_framework
 from django.conf import settings
@@ -30,7 +31,7 @@ from immersionlyceens.apps.core.models import (
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersionUserGroup,
     MailTemplate, MailTemplateVars, OffOfferEvent, PublicDocument, Slot,
     Structure, Training, TrainingDomain, UniversityYear, UserCourseAlert,
-    Vacation, Visit,
+    Vacation, Visit, GeneralSettings,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
@@ -4264,10 +4265,12 @@ class VisitorRecordRejectValidate(View):
         operation: str = self.kwargs["operation"]
         validation_value: int = 1
         validation_email_template: str = ""
+        delete_attachments: bool = False
 
         if operation == "validate":
             validation_value = 2
             validation_email_template = "CPT_MIN_VALIDE"
+            delete_attachments = get_general_setting("DELETE_VISITOR_ATTACHMENTS_AT_VALIDATION")
         elif operation == "reject":
             validation_value = 3
             validation_email_template = "CPT_MIN_REJET"
@@ -4281,6 +4284,13 @@ class VisitorRecordRejectValidate(View):
             data["msg"] = f"Error - No record with id: {record_id}."
             return JsonResponse(data)
 
+        if delete_attachments:
+            try:
+                record.identity_document.storage.delete(record.identity_document.name)
+                record.identity_document.delete()
+            except Exception as e:
+                # no document to delete
+                pass
         record.validation = validation_value
         record.save()
         record.visitor.send_message(self.request, validation_email_template)
@@ -4425,5 +4435,27 @@ class MailTemplatePreviewAPI(View):
             response["data"] = body
         except TemplateSyntaxError:
             response["msg"] = _("A syntax error occured in template #%s") % pk
+
+        return JsonResponse(response)
+
+
+@method_decorator(groups_required('REF-TEC'), name="dispatch")
+class AnnualPurgeAPI(View):
+    def post(self, request, *args, **kwargs):
+        response: Dict[str, Any] = {"ok": False, "msg": "", "time": 0}
+
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+
+        command_time: float = time.thread_time()
+        try:
+            call_command("delete_account_not_in_ldap")
+            response["ok"] = True
+        except CommandError:
+            msg: str = _("An error occured while annual purge running. For more details, check the logs.")
+            logger.error(msg)
+            response["msg"] = msg
+
+        response["time"] = round(time.thread_time() - command_time, 3)
 
         return JsonResponse(response)

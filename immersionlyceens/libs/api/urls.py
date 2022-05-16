@@ -99,4 +99,7 @@ urlpatterns = [
     path("mailing_list/high_schools", views.MailingListHighSchoolsView.as_view(), name="mailing_list_global"),
 
     path("mail_template/<int:pk>/preview", views.MailTemplatePreviewAPI.as_view(), name="mail_template_preview"),
+
+
+    path("commands/annual_purge/", views.AnnualPurgeAPI.as_view(), name="annual_purge"),
 ]

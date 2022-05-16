@@ -69,8 +69,15 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 #######################
 
 EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
-FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-pprd@unistra.fr"
-DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
+
+EMAIL_HOST = '{{ email_host }}'
+EMAIL_USE_TLS = '{{ email_use_tls }}'.lower() == 'true'
+EMAIL_PORT = '{{ email_port }}'
+EMAIL_HOST_USER = '{{ email_host_user }}'
+EMAIL_HOST_PASSWORD = '{{ email_host_password }}'
+
+FORCE_EMAIL_ADDRESS = '{{ force_email_address }}'
+DEFAULT_FROM_EMAIL = '{{ default_from_email }}'
 
 ########################
 # UPLOAD configuration #
@@ -109,8 +116,8 @@ AWS_DEFAULT_ACL = None
 AWS_AUTO_CREATE_BUCKET = True
 AWS_ACCESS_KEY_ID = '{{ s3_access_key }}'
 AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
-AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
-AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
+AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
+AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
 S3_FILEPATH = 'preprod'
 
 # Use Unistra theme & css

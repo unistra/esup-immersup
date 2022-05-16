@@ -384,8 +384,7 @@ class HighSchoolStudentRecordManagerForm(forms.ModelForm):
 class VisitorRecordForm(forms.ModelForm):
 
     validation_disabled_fields: Tuple[str, ...] = (
-        "birth_date", "motivation", "identity_document",
-        "civil_liability_insurance",
+        "birth_date", "motivation", "identity_document", "parental_auth_document", "civil_liability_insurance",
     )
 
     def has_change_permission(self):
@@ -406,7 +405,7 @@ class VisitorRecordForm(forms.ModelForm):
         ]
         for field_name in fields:
             self.fields[field_name].widget.attrs["class"] = 'form-control'
-        for field_name in ["identity_document", "civil_liability_insurance"]:
+        for field_name in ["identity_document", "civil_liability_insurance", "parental_auth_document"]:
             self.fields[field_name].widget.attrs["class"] = "form-control-file"
 
         is_hs_manager_or_master: bool = self.has_change_permission()
@@ -427,10 +426,9 @@ class VisitorRecordForm(forms.ModelForm):
 
     class Meta:
         model = VisitorRecord
-        fields = ['id',
-            'birth_date', 'phone', 'visitor',
-            'motivation', 'identity_document', 'civil_liability_insurance',
-            'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
+        fields = [
+            'id', 'birth_date', 'phone', 'visitor', 'motivation', 'identity_document', 'civil_liability_insurance',
+            'parental_auth_document', 'allowed_first_semester_registrations', 'allowed_second_semester_registrations',
             'allowed_global_registrations',
         ]
 
