@@ -1,42 +1,22 @@
-from datetime import datetime
-
-from adminsortable2.admin import SortableAdminMixin
-from django.conf import settings
 from django.contrib import admin, messages
-from django.contrib.admin.actions import (
-    delete_selected, delete_selected as default_delete_selected,
-)
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 from django.db.models import JSONField, Q
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
-from django.urls import path, reverse
-from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
-from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _, ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
-from django_json_widget.widgets import JSONEditorWidget
-from django_summernote.admin import SummernoteModelAdmin
 from hijack.contrib.admin import HijackUserAdminMixin
+
 from immersionlyceens.apps.core.admin import (
     ActivationFilter, AdminWithRequest, CustomUserAdmin, HighschoolListFilter,
 )
+
+from immersionlyceens.apps.core.admin_forms import ImmersionUserGroupForm
+
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
-    Calendar, Campus, CancelType, CertificateLogo, CertificateSignature,
-    Course, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
-    Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
-    OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
-    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation,
+    ImmersionUser
 )
+
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
@@ -44,7 +24,7 @@ from immersionlyceens.apps.immersion.models import (
 from .models import (
     EstablishmentManager, HighSchoolManager, HighSchoolStudent,
     LegalDepartmentStaff, MasterEstablishmentManager, Operator, Speaker,
-    StructureManager, Student, Visitor,
+    StructureManager, Student, Visitor, UserGroup
 )
 
 
@@ -365,6 +345,53 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
     def has_add_permission(self, request):
         return request.user.is_superuser
 
+
+class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ImmersionUserGroupForm
+    list_display = ('id', 'get_immersionusers')
+    filter_horizontal = ('immersionusers', )
+
+    def get_immersionusers(self, obj):
+        return format_html("<br>".join([f"{user} ({user.email})" for user in obj.immersionusers.all()]))
+
+    def has_module_permission(self, request):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+    def has_view_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_master_establishment_manager(),
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+    def has_add_permission(self, request):
+        # Only a superuser can add a template
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_delete_permission(self, request, obj=None):
+        # Only a superuser can delete a template
+        return request.user.is_superuser or request.user.is_operator()
+
+    def has_change_permission(self, request, obj=None):
+        valid_groups = [
+            request.user.is_superuser,
+            request.user.is_operator()
+        ]
+
+        return any(valid_groups)
+
+    get_immersionusers.short_description = _('Linked users')
+    get_immersionusers.allow_tags = True
+
+
 admin.site.register(HighSchoolStudent, HighschoolStudentAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Visitor, VisitorAdmin)
@@ -375,3 +402,4 @@ admin.site.register(EstablishmentManager, EstablishmentManagerAdmin)
 admin.site.register(StructureManager, StructureManagerAdmin)
 admin.site.register(HighSchoolManager, HighSchoolManagerAdmin)
 admin.site.register(LegalDepartmentStaff, LegalDepartmentStaffAdmin)
+admin.site.register(UserGroup, ImmersionUserGroupAdmin)

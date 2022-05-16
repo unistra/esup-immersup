@@ -2440,18 +2440,6 @@
   },
   {
     "model": "core.generalsettings",
-    "pk": 11,
-    "fields": {
-      "setting": "PDF_CERTIFICATE_CITY",
-      "parameters" : {
-        "description": "Ville a afficher dans le certificat de pr\u00e9sence",
-        "type": "text",
-        "value": "Strasbourg"
-      }
-    }
-  },
-  {
-    "model": "core.generalsettings",
     "pk": 12,
     "fields": {
       "setting": "CHARTER_SIGN",
@@ -6108,69 +6096,6 @@
     }
   },
   {
-    "model": "auth.group",
-    "pk": 1,
-    "fields": {
-      "name": "REF-ETAB",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 2,
-    "fields": {
-      "name": "INTER",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 3,
-    "fields": {
-      "name": "REF-STR",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 4,
-    "fields": {
-      "name": "REF-LYC",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 5,
-    "fields": {
-      "name": "ETU",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 6,
-    "fields": {
-      "name": "SRV-JUR",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 7,
-    "fields": {
-      "name": "LYC",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 8,
-    "fields": {
-      "name": "REF-ETAB-MAITRE"
-    }
-  },
-  {
     "model": "core.immersionuser",
     "pk": 2,
     "fields": {
@@ -6213,6 +6138,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         1
       ],
@@ -6284,6 +6210,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         8
       ],
@@ -6309,6 +6236,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3,
         2
@@ -6337,6 +6265,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6362,6 +6291,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3
       ],
@@ -6389,6 +6319,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3
       ],
@@ -6416,6 +6347,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6441,6 +6373,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6466,6 +6399,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6491,6 +6425,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6516,6 +6451,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6541,6 +6477,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6566,6 +6503,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6580,7 +6518,7 @@
       "password": "pbkdf2_sha256$150000$wmcSCImSlxrT$D9r0x9B2zlVIZTYiS1z+CFw/UCKmQKRiWLy6yoEaq3w=",
       "last_login": null,
       "is_superuser": false,
-      "username": "R\u00e9f\u00e9rent_lyc\u00e9eMarieCurie",
+      "username": "test-ref-lyc",
       "first_name": "Marie Curie",
       "last_name": "Test",
       "email": "mariecurie@ac-strasbourg.eu",
@@ -6616,6 +6554,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6787,6 +6726,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6812,6 +6752,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6837,6 +6778,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6862,6 +6804,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6887,6 +6830,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6912,6 +6856,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -6937,6 +6882,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7062,6 +7008,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7087,6 +7034,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7112,6 +7060,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7212,6 +7161,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7237,6 +7187,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7262,6 +7213,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7362,6 +7314,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7387,6 +7340,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7412,6 +7366,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         6
       ],
@@ -7437,6 +7392,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         6
       ],
@@ -7462,6 +7418,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         3
       ],
@@ -7489,6 +7446,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         2
       ],
@@ -7539,6 +7497,7 @@
       "destruction_date": null,
       "validation_string": null,
       "recovery_string": null,
+      "establishment": 1,
       "groups": [
         1
       ],
@@ -9634,7 +9593,7 @@
       "student": 73,
       "slot": 5,
       "cancellation_type": null,
-      "attendance_status": 2,
+      "attendance_status": 1,
       "survey_email_sent": false
     }
   },

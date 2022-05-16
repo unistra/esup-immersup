@@ -6,12 +6,12 @@ from typing import Any, Dict
 
 from django import forms, template
 from django.conf import settings
-from django.db.models import Count
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
+from django.db.models import Count
 from django.forms.widgets import TextInput
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext_lazy as _
@@ -26,10 +26,10 @@ from .models import (
     CancelType, CertificateLogo, CertificateSignature, CourseType,
     Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, ImmersionUser,
-    InformationText, MailTemplate, MailTemplateVars, OffOfferEventType,
-    PostBachelorLevel, PublicDocument, PublicType, Structure, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    ImmersionUserGroup
+    ImmersionUserGroup, InformationText, MailTemplate, MailTemplateVars,
+    OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -362,7 +362,8 @@ class EstablishmentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.fields:
-            self.fields["active"].initial = True
+            if self.fields.get("active"):
+                self.fields["active"].initial = True
 
             # First establishment is always 'master'
             if not Establishment.objects.exists():
@@ -1166,8 +1167,7 @@ class HighSchoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-
-        if settings.USE_GEOAPI:
+        if settings.USE_GEOAPI and self.instance.country == 'FR' and (not self.is_bound or self.errors):
             city_choices = [
                 ('', '---------'),
             ]

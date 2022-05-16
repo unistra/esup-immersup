@@ -498,7 +498,7 @@
         "label": "Mail création compte (ref Etab maitre ou non, ref structure, ref lycée, intervenant)",
         "description": "Mail envoyé lors de la création d’un compte (ref Etab maitre ou non, ref structure, ref lycée, intervenant)",
         "subject": "Votre compte immersion",
-        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion sur la plateforme {{ urlPlateforme }} vient de vous \r\nêtre créé pour l'année {{ annee }}</p><p>{% if utilisateur_compte_local %}Votre identifiant de connexion est : {{ identifiant }}<br></p><p><br>Pour\r\n initialiser votre mot de passe, merci de vous connecter à l'adresse \r\nsuivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en \r\nutilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
+        "body": "<p>Bonjour {{ prenom }} {{ nom }}, </p><p>un compte immersion sur la plateforme {{ urlPlateforme }} vient de vous \r\nêtre créé pour l'année {{ annee }}</p><p>{% if utilisateurcomptelocal %}Votre identifiant de connexion est : {{ identifiant }}<br></p><p><br>Pour\r\n initialiser votre mot de passe, merci de vous connecter à l'adresse \r\nsuivante : {{ lienMotDePasse }}{% else%}Vous pouvez vous connecter en \r\nutilisant vos identifiants ENT habituels.{% endif%}<br></p><p>La plateforme a l'adresse suivante {{ urlPlateforme }}. </p><p>Cordialement, </p><p>Le service en ligne d'immersions</p>",
         "active": true,
         "available_vars": [
             1,

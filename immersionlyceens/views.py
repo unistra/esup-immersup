@@ -35,7 +35,7 @@ def home(request):
         procedure_txt = ''
 
     try:
-        offer_txt = InformationText.objects.get(code="INFO_BULimmersionlyceens/apps/core/views.pyLE_OFFRE", active=True).content
+        offer_txt = InformationText.objects.get(code="INFO_BULLE_OFFRE", active=True).content
     except InformationText.DoesNotExist:
         offer_txt = ''
 
@@ -101,6 +101,11 @@ def accompanying(request):
     docs = []
     types = PublicType.activated.all()
 
+    try:
+        accomp_txt = InformationText.objects.get(code="ACCOMPAGNEMENT", active=True).content
+    except InformationText.DoesNotExist:
+        accomp_txt = ''
+
     for type in types:
         data = {
             'type': type.label,
@@ -110,7 +115,7 @@ def accompanying(request):
             docs.append(data.copy())
 
     context = {
-        'accomp_txt': InformationText.objects.get(code="ACCOMPAGNEMENT").content,
+        'accomp_txt': accomp_txt,
         'accomp_docs': docs,
     }
     return render(request, 'accompanying.html', context)
@@ -118,9 +123,20 @@ def accompanying(request):
 
 def procedure(request):
     """Procedure view"""
+
+    try:
+        procedure_txt = InformationText.objects.get(code="PROCEDURE_LYCEE", active=True).content
+    except InformationText.DoesNotExist:
+        procedure_txt = ''
+
+    try:
+        procedure_group_txt = InformationText.objects.get(code="PROCEDURE_IMMERSION_GROUPE", active=True).content
+    except InformationText.DoesNotExist:
+        procedure_group_txt = ''
+
     context = {
-        'procedure_txt': InformationText.objects.get(code="PROCEDURE_LYCEE").content,
-        'procedure_group_txt': InformationText.objects.get(code="PROCEDURE_IMMERSION_GROUPE").content,
+        'procedure_txt': procedure_txt,
+        'procedure_group_txt': procedure_group_txt,
     }
     return render(request, 'procedure.html', context)
 

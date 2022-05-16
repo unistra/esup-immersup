@@ -353,14 +353,6 @@
 },
 {
     "model": "core.mailtemplatevars",
-    "pk": 52,
-    "fields": {
-        "code": "{{ referentlycee.lycee }}",
-        "description": "Lycée du référent lycée connecté"
-    }
-},
-{
-    "model": "core.mailtemplatevars",
     "pk": 53,
     "fields": {
         "code": "{{ estetudiant }}",
@@ -411,7 +403,7 @@
     "model": "core.mailtemplatevars",
     "pk": 59,
     "fields": {
-        "code": "{{ utilisateur_compte_local }}",
+        "code": "{{ utilisateurcomptelocal }}",
         "description": "Indique si l'utilisateur(trice) possède un compte local"
     }
 },

@@ -158,9 +158,7 @@ def slots_charts(request, my_trainings=False):
     """
     user = request.user
 
-    structures = user.get_authorized_structures()
     establishments = Establishment.objects.filter(active=True).order_by('label')
-
     establishment_id = request.GET.get("establishment_id", None)
 
     context = {

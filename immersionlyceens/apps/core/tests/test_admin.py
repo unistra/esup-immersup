@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from ..admin import (
     CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin,
-    StructureAdmin, TrainingAdmin,
+    StructureAdmin, TrainingAdmin, CalendarAdmin
 )
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
@@ -28,10 +28,10 @@ from ..admin_forms import (
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HighSchool, Holiday,
-    ImmersionUser, InformationText, MailTemplate, MailTemplateVars,
-    PublicDocument, PublicType, Structure, Training, TrainingDomain,
-    TrainingSubdomain, UniversityYear, Vacation, HigherEducationInstitution
+    GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
+    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
+    MailTemplateVars, PublicDocument, PublicType, Structure, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -63,6 +63,8 @@ class AdminFormsTestCase(TestCase):
         # TODO Use test fixtures for all these objects
 
         self.site = AdminSite()
+        self.today = datetime.datetime.today()
+
         self.superuser = get_user_model().objects.create_superuser(
             username='super', password='pass', email='immersion1@no-reply.com'
         )
@@ -91,6 +93,7 @@ class AdminFormsTestCase(TestCase):
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
+            country='FR',
             department=67,
             city='STRASBOURG',
             zip_code=67000,
@@ -104,6 +107,7 @@ class AdminFormsTestCase(TestCase):
         self.high_school_2 = HighSchool.objects.create(
             label='HS2',
             address='here',
+            country='FR',
             department=67,
             city='STRASBOURG',
             zip_code=67000,
@@ -945,6 +949,7 @@ class AdminFormsTestCase(TestCase):
 
         data = {
             'label': 'Santo Domingo',
+            'country': 'FR',
             'address': 'rue Larry Kubiac',
             'address2': '',
             'address3': '',
@@ -1507,6 +1512,79 @@ class AdminFormsTestCase(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         self.assertTrue(Calendar.objects.filter(label=calendar_data['label']).exists())
+
+    def test_calendar_admin(self):
+        """
+        Test calendar admin rights
+        """
+        adminsite = CustomAdminSite(name='Repositories')
+        calendar_admin = CalendarAdmin(admin_site=adminsite, model=Calendar)
+
+        success_user_list = [self.ref_master_etab_user, self.superuser, self.operator_user]
+        fail_user_list = [self.ref_etab_user, self.ref_str_user, self.ref_lyc_user]
+
+        # Creation rights : ok for these users, and only if no calendar exists yet
+        for user in success_user_list:
+            request.user = user
+            self.assertTrue(calendar_admin.has_add_permission(request=request))
+
+        # Bad user : fail
+        for user in fail_user_list:
+            request.user = user
+            self.assertFalse(calendar_admin.has_add_permission(request=request))
+
+        # deletion : superuser only
+        success_user_list = [self.superuser, ]
+        fail_user_list = [
+            self.ref_master_etab_user,
+            self.operator_user,
+            self.ref_etab_user,
+            self.ref_str_user,
+            self.ref_lyc_user
+        ]
+
+        request.user = self.superuser
+        self.assertTrue(calendar_admin.has_delete_permission(request=request))
+
+        for user in fail_user_list:
+            request.user = user
+            self.assertFalse(calendar_admin.has_delete_permission(request=request))
+
+        # Readonly fields
+        calendar = Calendar.objects.create(
+            label='my calendar',
+            calendar_mode='YEAR',
+            year_start_date=self.today - datetime.timedelta(days=10),
+            year_end_date=self.today + datetime.timedelta(days=10),
+            year_registration_start_date=self.today + datetime.timedelta(days=2),
+            year_nb_authorized_immersion=4
+        )
+
+        university_year = UniversityYear.objects.create(
+            label='2020-2021',
+            start_date=self.today.date() - datetime.timedelta(days=365),
+            end_date=self.today.date() + datetime.timedelta(days=20),
+            registration_start_date=self.today.date() - datetime.timedelta(days=1),
+            active=True,
+        )
+
+        request.user = self.superuser
+        self.assertEqual(calendar_admin.get_readonly_fields(request=request, obj=calendar), [])
+
+        for user in fail_user_list:
+            request.user = user
+            self.assertEqual(
+                sorted(calendar_admin.get_readonly_fields(request=request, obj=calendar)),
+                ['calendar_mode', 'label', 'nb_authorized_immersion_per_semester', 'semester1_end_date',
+                 'semester1_registration_start_date', 'semester1_start_date', 'semester2_end_date',
+                 'semester2_registration_start_date', 'semester2_start_date', 'year_end_date',
+                 'year_nb_authorized_immersion', 'year_registration_start_date', 'year_start_date']
+            )
+
+        # Creation with an existing calendar : no more allowed
+        for user in success_user_list + fail_user_list:
+            request.user = user
+            self.assertFalse(calendar_admin.has_add_permission(request=request))
 
 
     def test_public_document_creation(self):
@@ -2197,6 +2275,4 @@ class AdminFormsTestCase(TestCase):
         error = "Error : 'value' is a required property\n\nFailed validating 'required' in schema:\n    {'properties': {'description': {'minLength': 1, 'type': 'string'},\n                    'type': {'minLength': 1, 'type': 'string'},\n                    'value': {'minLength': 1,\n                              'type': ['boolean', 'string']}},\n     'required': ['description', 'type', 'value'],\n     'type': 'object'}\n\nOn instance:\n    {'description': 'dummy wrong format setting',\n     'missing_value': 'value',\n     'type': 'wrong type'}"
 
         self.assertIn(error, form.errors['parameters'][0])
-
-
 

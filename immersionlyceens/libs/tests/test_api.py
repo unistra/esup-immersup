@@ -78,6 +78,18 @@ class APITestCase(TestCase):
             uai_reference=HigherEducationInstitution.objects.last()
         )
 
+        self.establishment3 = Establishment.objects.create(
+            code='ETA3',
+            label='Etablissement 3',
+            short_label='Eta 3',
+            active=True,
+            master=False,
+            email='test3@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.get(pk='0062120X'),
+            data_source_plugin="LDAP",
+        )
+
         self.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
@@ -114,6 +126,17 @@ class APITestCase(TestCase):
         )
         self.ref_etab_user.set_password('pass')
         self.ref_etab_user.save()
+
+        self.ref_etab3_user = get_user_model().objects.create_user(
+            username='ref_etab3',
+            password='pass',
+            email='ref_etab3@no-reply.com',
+            first_name='ref_etab3',
+            last_name='ref_etab3',
+            establishment=self.establishment3
+        )
+        self.ref_etab3_user.set_password('pass')
+        self.ref_etab3_user.save()
 
         self.ref_master_etab_user = get_user_model().objects.create_user(
             username='ref_master_etab',
@@ -197,8 +220,8 @@ class APITestCase(TestCase):
             last_name='highschool_speaker',
             highschool=self.high_school
         )
-        self.lyc_ref = get_user_model().objects.create_user(
-            username='lycref',
+        self.ref_lyc = get_user_model().objects.create_user(
+            username='ref_lyc',
             password='pass',
             email='lycref-immersion@no-reply.com',
             first_name='lyc',
@@ -243,8 +266,9 @@ class APITestCase(TestCase):
         Group.objects.get(name='LYC').user_set.add(self.highschool_user3)
         Group.objects.get(name='ETU').user_set.add(self.student)
         Group.objects.get(name='ETU').user_set.add(self.student2)
-        Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
+        Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc)
         Group.objects.get(name='VIS').user_set.add(self.visitor)
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab3_user)
 
         self.calendar = Calendar.objects.create(
             label="Calendrier1",
@@ -594,6 +618,8 @@ class APITestCase(TestCase):
 
     def test_API_ajax_get_courses_by_training(self):
         self.client.login(username='ref_etab', password='pass')
+
+        # structure id & training
         url = f"/api/get_courses_by_training/{self.structure.id}/{self.training.id}"
         response = self.client.post(url, {}, **self.header)
         content = json.loads(response.content.decode())
@@ -648,6 +674,15 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
         self.assertEqual(len(content['data']), 6)
 
+        # Logged as highschool manager
+        client = Client()
+        client.login(username='ref_lyc', password='pass')
+        data = {'training_id': self.training.id}
+        response = client.get(url, data, **self.header)
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 6)
+
 
     def test_API_get_visits_slots(self):
         visit = Visit.objects.create(
@@ -673,6 +708,36 @@ class APITestCase(TestCase):
             'visits': True
         }
         response = self.client.get(reverse('slots_list'), {'visits': 'true'}, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 1)
+        self.assertEqual(content['data'][0]['id'], slot.id)
+
+
+    def test_API_get_events_slots(self):
+        event = OffOfferEvent.objects.create(
+            establishment=self.establishment,
+            structure=self.structure,
+            highschool=self.high_school,
+            event_type=self.event_type,
+            label="Whatever",
+            published=True
+        )
+
+        slot = Slot.objects.create(
+            event=event,
+            room='Here',
+            date=self.today + timedelta(days=1),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            n_places=20,
+            additional_information="Hello there!"
+        )
+
+        self.client.login(username='ref_etab', password='pass')
+        data = {
+            'events': True
+        }
+        response = self.client.get(reverse('slots_list'), {'events': 'true'}, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(len(content['data']), 1)
         self.assertEqual(content['data'][0]['id'], slot.id)
@@ -704,6 +769,39 @@ class APITestCase(TestCase):
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['data'], [])
+
+        # No object id & bad type parameter
+        data = {
+            'type': 'badtype',
+        }
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
+
+        # Highschool type
+        data = {
+            'type': 'highschool',
+            'object_id': self.high_school.id
+        }
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 1)
+        t1 = content['data'][0]
+        self.assertEqual(t1['label'], self.highschool_training.label)
+        self.assertEqual(t1['subdomain'], [s.label for s in self.training.training_subdomains.filter(active=True)])
+
+        # Bad object_id value
+        data = {
+            'type': 'highschool',
+            'object_id': '',
+        }
+
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['data'], [])
+        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
+
 
 
     def test_API_get_student_records(self):
@@ -813,7 +911,7 @@ class APITestCase(TestCase):
         self.hs_record.save()
 
         client = Client()
-        client.login(username='lycref', password='pass')
+        client.login(username='ref_lyc', password='pass')
         response = client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
 
@@ -839,33 +937,191 @@ class APITestCase(TestCase):
         self.assertEqual(self.hs_record.validation, 2)  # validated
 
 
-    # TODO: Fixed later !!!!
-    # def test_API_get_csv_anonymous(self):
-        # url = f'/api/get_csv_anonymous_immersion/'
-        # response = self.client.get(url, request)
+    def test_API_get_csv_anonymous(self):
+        # ref master etab
+        self.client.login(username='ref_master_etab', password='pass')
 
+        # No type specified
+        url = '/api/get_csv_anonymous/'
+        response = self.client.get(url, request)
+        self.assertEqual(response.status_code, 404)
+
+        # type=course
+        url = '/api/get_csv_anonymous/?type=course'
+        response = self.client.get(url, request)
+        content = csv.reader(response.content.decode().split('\n'))
+
+        headers = [
+            _('establishment'),
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+            _('registrant profile'),
+            _('origin institution'),
+            _('student level'),
+            _('attendance status'),
+        ]
+        n = 0
+
+
+        for row in content:
+            # header check
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(str(self.establishment), row[0])
+                self.assertEqual(self.structure.label, row[1])
+                self.assertIn(self.t_domain.label, row[2].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[3].split('|'))
+                self.assertEqual(self.training.label, row[4])
+                self.assertEqual(self.course.label, row[5])
+                self.assertEqual(self.course_type.label, row[6])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[7])
+                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[9])
+                self.assertEqual(self.campus.label, row[10])
+                self.assertEqual(self.building.label, row[11])
+                self.assertEqual(self.slot.room, row[12])
+                self.assertEqual(str(self.speaker1), row[13])
+                self.assertEqual(str(self.slot.registered_students()), row[14])
+                self.assertEqual(str(self.slot.n_places), row[15])
+                self.assertEqual(self.slot.additional_information, row[16])
+                self.assertEqual(_('High school student'), row[17])
+                self.assertEqual(self.high_school.label, row[18])
+                self.assertEqual(self.hs_record.level.label, row[19])
+                self.assertEqual(self.immersion.get_attendance_status(), row[20])
+            elif n == 2:
+                self.assertEqual(
+                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
+                    row[18]
+                )
+                self.assertEqual(self.student_record.level.label, row[19])
+            elif n == 5:  # high school slot
+                self.assertEqual(f"{self.high_school.label} - {self.high_school.city}", row[0])
+                self.assertEqual(self.highschool_training.label, row[4])
+                self.assertEqual(self.highschool_course.label, row[5])
+                self.assertIn(self.highschool_slot.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.highschool_slot.end_time.strftime("%H:%M"), row[9])
+                self.assertEqual("", row[10])
+                self.assertEqual("", row[11])
+                self.assertEqual(self.highschool_slot.room, row[12])
+                self.assertEqual(str(self.highschool_slot.registered_students()), row[14])
+                self.assertEqual(self.highschool_slot.additional_information, row[16])
+
+            n += 1
+
+
+        # ref etab
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url, request)
+        content = csv.reader(response.content.decode().split('\n'))
+
+        headers = [
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+            _('registrant profile'),
+            _('origin institution'),
+            _('student level'),
+            _('attendance status'),
+        ]
+        n = 0
+
+
+        for row in content:
+            # header check
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(self.structure.label, row[0])
+                self.assertIn(self.t_domain.label, row[1].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[2].split('|'))
+                self.assertEqual(self.training.label, row[3])
+                self.assertEqual(self.course.label, row[4])
+                self.assertEqual(self.course_type.label, row[5])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[6])
+                self.assertIn(self.slot.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.slot.end_time.strftime("%H:%M"), row[8])
+                self.assertEqual(self.campus.label, row[9])
+                self.assertEqual(self.building.label, row[10])
+                self.assertEqual(self.slot.room, row[11])
+                self.assertEqual(str(self.speaker1), row[12])
+                self.assertEqual(str(self.slot.registered_students()), row[13])
+                self.assertEqual(str(self.slot.n_places), row[14])
+                self.assertEqual(self.slot.additional_information, row[15])
+                self.assertEqual(_('High school student'), row[16])
+                self.assertEqual(self.high_school.label, row[17])
+                self.assertEqual(self.hs_record.level.label, row[18])
+                self.assertEqual(self.immersion.get_attendance_status(), row[19])
+            elif n == 2:
+                self.assertEqual(
+                    HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
+                    row[17]
+                )
+                self.assertEqual(self.student_record.level.label, row[18])
+            elif n == 5:  # high school slot
+                self.assertEqual(self.structure.label, row[0])
+                self.assertEqual(self.training.label, row[3])
+                self.assertEqual(self.highschool_course.label, row[4])
+                self.assertIn(self.slot2.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.slot2.end_time.strftime("%H:%M"), row[8])
+                self.assertEqual(self.slot2.room, row[11])
+                self.assertEqual(str(self.highschool_slot.registered_students()), row[13])
+                self.assertEqual(self.slot2.additional_information, row[15])
+
+            n += 1
+
+        # # type=visit
+        # url = '/api/get_csv_anonymous/?type=visit'
+        # response = self.client.get(url, request)
         # content = csv.reader(response.content.decode().split('\n'))
 
         # headers = [
-        #     _('structure') + " / " + _('highschool'),
-        #     _('training domain'),
-        #     _('training subdomain'),
-        #     _('training'),
-        #     _('course'),
-        #     _('course_type'),
+        #     _('establishment'),
+        #     _('structure'),
+        #     _('highschool'),
+        #     _('purpose'),
+        #     _('meeting place'),
         #     _('date'),
         #     _('start_time'),
         #     _('end_time'),
-        #     _('campus'),
-        #     _('building'),
-        #     _('room'),
+        #     _('speakers'),
         #     _('registration number'),
         #     _('place number'),
         #     _('additional information'),
-        #     _('origin institution'),
         #     _('student level'),
+        #     _('attendance status'),
         # ]
         # n = 0
+
 
         # for row in content:
         #     # header check
@@ -873,150 +1129,266 @@ class APITestCase(TestCase):
         #         for h in headers:
         #             self.assertIn(h, row)
         #     elif n == 1:
-        #         self.assertEqual(self.structure.label, row[0])
-        #         self.assertIn(self.t_domain.label, row[1].split('|'))
-        #         self.assertIn(self.t_sub_domain.label, row[2].split('|'))
-        #         self.assertEqual(self.training.label, row[3])
-        #         self.assertEqual(self.course.label, row[4])
-        #         self.assertEqual(self.course_type.label, row[5])
-        #         self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[6])
-        #         self.assertIn(self.slot.start_time.strftime("%H:%M"), row[7])
-        #         self.assertIn(self.slot.end_time.strftime("%H:%M"), row[8])
-        #         self.assertEqual(self.campus.label, row[9])
-        #         self.assertEqual(self.building.label, row[10])
-        #         self.assertEqual(self.slot.room, row[11])
-        #         self.assertEqual(str(self.slot.registered_students()), row[12])
-        #         self.assertEqual(str(self.slot.n_places), row[13])
-        #         self.assertEqual(self.slot.additional_information, row[14])
-        #         self.assertEqual(self.high_school.label, row[15])
-        #         self.assertEqual(self.hs_record.level.label, row[16])
+        #         self.assertEqual(str(self.establishment), row[0])
+        #         self.assertEqual(self.structure.label, row[1])
+        #         self.assertIn(self.highschool.label, row[2].split('|'))
+        #         self.assertIn(self.t_sub_domain.label, row[3].split('|'))
+        #         self.assertEqual(self.training.label, row[4])
+        #         self.assertEqual(self.course.label, row[5])
+        #         self.assertEqual(self.course_type.label, row[6])
+        #         self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[7])
+        #         self.assertIn(self.slot.start_time.strftime("%H:%M"), row[8])
+        #         self.assertIn(self.slot.end_time.strftime("%H:%M"), row[9])
+        #         self.assertEqual(self.campus.label, row[10])
+        #         self.assertEqual(self.building.label, row[11])
+        #         self.assertEqual(self.slot.room, row[12])
+        #         self.assertEqual(str(self.speaker1), row[13])
+        #         self.assertEqual(str(self.slot.registered_students()), row[14])
+        #         self.assertEqual(str(self.slot.n_places), row[15])
+        #         self.assertEqual(self.slot.additional_information, row[16])
+        #         self.assertEqual(_('High school student'), row[17])
+        #         self.assertEqual(self.high_school.label, row[18])
+        #         self.assertEqual(self.hs_record.level.label, row[19])
+        #         self.assertEqual(self.immersion.get_attendance_status(), row[20])
         #     elif n == 2:
         #         self.assertEqual(
         #             HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label,
-        #             row[15]
+        #             row[18]
         #         )
-        #         self.assertEqual(self.student_record.level.label, row[16])
+        #         self.assertEqual(self.student_record.level.label, row[19])
         #     elif n == 5:  # high school slot
-        #         self.assertEqual(f"{self.high_school.city} - {self.high_school.label}", row[0])
-        #         self.assertEqual(self.highschool_training.label, row[3])
-        #         self.assertEqual(self.highschool_course.label, row[4])
-        #         self.assertIn(self.highschool_slot.start_time.strftime("%H:%M"), row[7])
-        #         self.assertIn(self.highschool_slot.end_time.strftime("%H:%M"), row[8])
-        #         self.assertEqual("", row[9])
+        #         self.assertEqual(f"{self.high_school.label} - {self.high_school.city}", row[0])
+        #         self.assertEqual(self.highschool_training.label, row[4])
+        #         self.assertEqual(self.highschool_course.label, row[5])
+        #         self.assertIn(self.highschool_slot.start_time.strftime("%H:%M"), row[8])
+        #         self.assertIn(self.highschool_slot.end_time.strftime("%H:%M"), row[9])
         #         self.assertEqual("", row[10])
-        #         self.assertEqual(self.highschool_slot.room, row[11])
-        #         self.assertEqual(str(self.highschool_slot.registered_students()), row[12])
-        #         self.assertEqual(self.highschool_slot.additional_information, row[14])
+        #         self.assertEqual("", row[11])
+        #         self.assertEqual(self.highschool_slot.room, row[12])
+        #         self.assertEqual(str(self.highschool_slot.registered_students()), row[14])
+        #         self.assertEqual(self.highschool_slot.additional_information, row[16])
 
         #     n += 1
 
-    # TODO: will be fixed later !
-    # def test_API_get_csv_highschool(self):
-    #     url = f'/api/get_csv_highschool/'
-    #     client = Client()
-    #     client.login(username='lycref', password='pass')
 
-    #     request.user = self.lyc_ref
-    #     response = client.get(url, request)
+    def test_API_get_csv_highschool(self):
+        # Ref highschool
+        self.client.login(username='ref_lyc', password='pass')
+        url = '/api/get_csv_highschool/'
+        response = self.client.get(url, request)
 
-    #     content = csv.reader(response.content.decode().split('\n'))
-    #     headers = [
-    #         _('last name'),
-    #         _('first name'),
-    #         _('birthdate'),
-    #         _('level'),
-    #         _('class name'),
-    #         _('bachelor type'),
-    #         _('establishment'),
-    #         _('type'),
-    #         _('training domain'),
-    #         _('training subdomain'),
-    #         _('training'),
-    #         _('course'),
-    #         _('date'),
-    #         _('start_time'),
-    #         _('end_time'),
-    #     ]
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('last name'),
+            _('first name'),
+            _('birthdate'),
+            _('level'),
+            _('class name'),
+            _('bachelor type'),
+            _('establishment'),
+            _('type'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course/event/visit label'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('attendance status'),
+        ]
 
-    #     n = 0
-    #     for row in content:
-    #         if n == 0:
-    #             for h in headers:
-    #                 self.assertIn(h, row)
-    #         elif n == 1:
-    #             self.assertEqual(self.hs_record.student.last_name, row[0])
-    #             self.assertEqual(self.hs_record.student.first_name, row[1])
-    #             self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
-    #             self.assertEqual(self.hs_record.level.label, row[3])
-    #             self.assertEqual(self.hs_record.class_name, row[4])
-    #             self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
-    #             self.assertIn('', row[6])
-    #             self.assertIn('', row[7])
-    #             self.assertIn(self.t_domain.label, row[8].split('|'))
-    #             self.assertIn(self.t_sub_domain.label, row[9].split('|'))
-    #             self.assertIn(self.training.label, row[10])
-    #             self.assertIn(self.course.label, row[11])
-    #             self.assertIn('', row[12])
-    #             self.assertIn('', row[13])
-    #             self.assertIn('', row[14])
+        n = 0
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(self.hs_record.student.last_name, row[0])
+                self.assertEqual(self.hs_record.student.first_name, row[1])
+                self.assertEqual(_date(self.hs_record.birth_date, 'd/m/Y'), row[2])
+                self.assertEqual(self.hs_record.level.label, row[3])
+                self.assertEqual(self.hs_record.class_name, row[4])
+                self.assertEqual(HighSchoolStudentRecord.BACHELOR_TYPES[self.hs_record.bachelor_type - 1][1], row[5])
+                self.assertIn('', row[6])
+                self.assertIn('', row[7])
+                self.assertIn(self.t_domain.label, row[8].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[9].split('|'))
+                self.assertIn(self.training.label, row[10])
+                self.assertIn(self.course.label, row[11])
+                self.assertIn('', row[12])
+                self.assertIn('', row[13])
+                self.assertIn('', row[14])
 
-    #         n += 1
+            n += 1
 
 
-    # def test_API_get_csv_structures(self):
-    #     url = f'/api/get_csv_structures/{self.structure.id}'
-    #     client = Client()
-    #     client.login(username='ref_str', password='pass')
+    def test_API_get_csv_structures(self):
+        # No type specified
+        url = '/api/get_csv_structures/'
+        response = self.client.get(url, request)
+        self.assertEqual(response.status_code, 404)
 
-    #     request.user = self.ref_str
-    #     response = client.get(url, request)
+        url = '/api/get_csv_structures/?type=course'
+        # Ref structure
+        self.client.login(username='ref_str', password='pass')
+        response = self.client.get(url, request)
 
-    #     content = csv.reader(response.content.decode().split('\n'))
-    #     headers = [
-    #         _('domain'),
-    #         _('subdomain'),
-    #         _('training'),
-    #         _('course'),
-    #         _('course type'),
-    #         _('date'),
-    #         _('start_time'),
-    #         _('end_time'),
-    #         _('campus'),
-    #         _('building'),
-    #         _('room'),
-    #         _('speakers'),
-    #         _('registration number'),
-    #         _('place number'),
-    #         _('additional information'),
-    #     ]
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+        ]
 
-    #     n = 0
+        n = 0
 
-    #     for row in content:
-    #         if n == 0:
-    #             for h in headers:
-    #                 self.assertIn(h, row)
-    #         elif n == 1:
-    #             self.assertIn(self.t_domain.label, row[0].split('|'))
-    #             self.assertIn(self.t_sub_domain.label, row[1].split('|'))
-    #             self.assertIn(self.training.label, row[2])
-    #             self.assertIn(self.course.label, row[3])
-    #             self.assertIn(self.course_type.label, row[4])
-    #             self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[5])
-    #             self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[6])
-    #             self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[7])
-    #             self.assertIn(self.past_slot.campus.label, row[8])
-    #             self.assertIn(self.past_slot.building.label, row[9])
-    #             self.assertEqual(self.past_slot.room, row[10])
-    #             self.assertIn(
-    #                 f'{self.speaker1.first_name} {self.speaker1.last_name}',
-    #                 row[11].split('|')
-    #             ),
-    #             self.assertEqual(str(self.past_slot.registered_students()), row[12])
-    #             self.assertEqual(str(self.past_slot.n_places), row[13])
-    #             self.assertEqual(self.past_slot.additional_information, row[14])
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertIn(str(self.structure), row[0].split('|'))
+                self.assertIn(self.t_domain.label, row[1].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[2].split('|'))
+                self.assertIn(self.training.label, row[3])
+                self.assertIn(self.course.label, row[4])
+                self.assertIn(self.course_type.label, row[5])
+                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[6])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.past_slot.campus.label, row[9])
+                self.assertIn(self.past_slot.building.label, row[10])
+                self.assertEqual(self.past_slot.room, row[11])
+                self.assertIn(
+                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    row[12].split('|')
+                ),
+                self.assertEqual(str(self.past_slot.registered_students()), row[13])
+                self.assertEqual(str(self.past_slot.n_places), row[14])
+                self.assertEqual(self.past_slot.additional_information, row[15])
 
-    #         n += 1
+            n += 1
+
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url, request)
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+        ]
+
+        n = 0
+
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(str(self.structure), row[0])
+                self.assertIn(self.t_domain.label, row[1].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[2].split('|'))
+                self.assertIn(self.training.label, row[3])
+                self.assertIn(self.course.label, row[4])
+                self.assertIn(self.course_type.label, row[5])
+                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[6])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[7])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.past_slot.campus.label, row[9])
+                self.assertIn(self.past_slot.building.label, row[10])
+                self.assertEqual(self.past_slot.room, row[11])
+                self.assertIn(
+                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    row[12].split('|')
+                ),
+                self.assertEqual(str(self.past_slot.registered_students()), row[13])
+                self.assertEqual(str(self.past_slot.n_places), row[14])
+                self.assertEqual(self.past_slot.additional_information, row[15])
+
+            n += 1
+
+        self.client.login(username='ref_master_etab', password='pass')
+        response = self.client.get(url, request)
+        content = csv.reader(response.content.decode().split('\n'))
+        headers = [
+            _('establishment'),
+            _('structure'),
+            _('training domain'),
+            _('training subdomain'),
+            _('training'),
+            _('course'),
+            _('course_type'),
+            _('date'),
+            _('start_time'),
+            _('end_time'),
+            _('campus'),
+            _('building'),
+            _('meeting place'),
+            _('speakers'),
+            _('registration number'),
+            _('place number'),
+            _('additional information'),
+        ]
+
+        n = 0
+
+        for row in content:
+            if n == 0:
+                for h in headers:
+                    self.assertIn(h, row)
+            elif n == 1:
+                self.assertEqual(str(self.establishment), row[0])
+                self.assertEqual(str(self.structure), row[1])
+                self.assertIn(self.t_domain.label, row[2].split('|'))
+                self.assertIn(self.t_sub_domain.label, row[3].split('|'))
+                self.assertIn(self.training.label, row[4])
+                self.assertIn(self.course.label, row[5])
+                self.assertIn(self.course_type.label, row[6])
+                self.assertIn(_date(self.today - timedelta(days=1), 'd/m/Y'), row[7])
+                self.assertIn(self.past_slot.start_time.strftime("%H:%M"), row[8])
+                self.assertIn(self.past_slot.end_time.strftime("%H:%M"), row[9])
+                self.assertIn(self.past_slot.campus.label, row[10])
+                self.assertIn(self.past_slot.building.label, row[11])
+                self.assertEqual(self.past_slot.room, row[12])
+                self.assertIn(
+                    f'{self.speaker1.first_name} {self.speaker1.last_name}',
+                    row[13].split('|')
+                ),
+                self.assertEqual(str(self.past_slot.registered_students()), row[14])
+                self.assertEqual(str(self.past_slot.n_places), row[15])
+                self.assertEqual(self.past_slot.additional_information, row[16])
+
+            n += 1
+
 
     def test_API_ajax_get_available_vars(self):
         self.client.login(username='ref_etab', password='pass')
@@ -1057,13 +1429,37 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], "Search string is empty")
         self.assertEqual(content['data'], [])
 
+
         # Establishment has no source plugin configured : look for 'local' speakers
-        data["username"] = "whatever"
+        data = {
+            'username': "whatever",
+        }
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
 
-        self.assertEqual(content['msg'], "")
+        self.assertEqual(content['msg'], "Please select an establishment or a high school first")
         self.assertEqual(content['data'], [])
+
+
+        # Structure does not exist & no establishment
+        data = {
+            'username': "whatever",
+            'structure_id': self.structure.id
+        }
+
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], "Please select an establishment or a high school first")
+
+        # Establishment does not exist
+        data = {
+            'establishment_id': 99999,
+            'username': 'whatever'
+        }
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], "Sorry, establishment not found")
+
 
         # Establishment does not exist
         data = {
@@ -1082,6 +1478,30 @@ class APITestCase(TestCase):
         response = self.client.post(url, data, **self.header)
         content = json.loads(response.content.decode())
         self.assertEqual(content['msg'], "Sorry, high school not found")
+
+        # No establishment or highschool in search query
+        data = {
+            'username': 'bofh',
+        }
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "Please select an establishment or a high school first")
+        self.assertEqual(content['data'], [])
+
+        # local plugin
+        data = {
+            'username': 'ref_etab3',
+            'establishment_id': self.establishment3.id
+        }
+        self.client.login(username='ref_etab3', password='pass')
+        response = self.client.post(url, data, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "Error : Please check establishment LDAP plugin settings : LDAP plugin settings are empty")
+        self.assertEqual(content['data'], [])
+
+        settings
 
 
     def test_API_get_courses(self):
@@ -1117,6 +1537,12 @@ class APITestCase(TestCase):
         self.assertEqual(c['registered_students_count'], self.course.registrations_count())
         self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
         self.assertEqual(c['can_delete'], not self.course.slots.exists())
+
+        url = "/api/get_courses/"
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
 
 
     def test_API_ajax_delete_course(self):
@@ -1491,10 +1917,20 @@ class APITestCase(TestCase):
         )
         self.assertEqual(i['email'], self.highschool_user.email)
 
+        # Unknown immersion
+        url = f"/api/get_other_registrants/9999999"
+
+        response = client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : invalid user or immersion id')
+
 
     def test_API_ajax_get_slot_registrations(self):
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
+
+
 
         url = f"/api/get_slot_registrations/{self.slot.id}"
 
@@ -1522,6 +1958,13 @@ class APITestCase(TestCase):
             HigherEducationInstitution.objects.get(pk=self.student_record.uai_code).label
         )
         self.assertEqual(stu['city'], '')
+
+        url = f"/api/get_slot_registrations/999999"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : invalid slot id')
 
     def test_API_ajax_get_available_students(self):
         request.user = self.ref_etab_user
@@ -1572,6 +2015,14 @@ class APITestCase(TestCase):
         self.assertEqual(True, stu['can_register'])
         self.assertEqual([], stu['reasons'])
 
+        # Unknown slot
+        url = f"/api/get_available_students/99999"
+
+        response = self.client.get(url, request, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], 'Error : slot not found')
+
 
     def test_API_ajax_get_available_students_with_restrictions(self):
         request.user = self.ref_etab_user
@@ -1585,6 +2036,13 @@ class APITestCase(TestCase):
         # Add a highschool restriction on self.slot
         self.slot.establishments_restrictions = True
         self.slot.allowed_highschools.add(self.high_school)
+        self.slot.levels_restrictions = True
+        h_levels = HighSchoolLevel.objects.all()
+        s_levels = StudentLevel.objects.all()
+        p_levels = PostBachelorLevel.objects.all()
+        self.slot.allowed_highschool_levels.add(*h_levels)
+        self.slot.allowed_student_levels.add(*s_levels)
+        self.slot.allowed_post_bachelor_levels.add(*p_levels)
         self.slot.save()
 
         url = f"/api/get_available_students/{self.slot.id}"
@@ -1657,16 +2115,16 @@ class APITestCase(TestCase):
 
         # As a high school manager
         url = "/api/get_highschool_students/"
-        request.user = self.lyc_ref
+        request.user = self.ref_lyc
         client = Client()
-        client.login(username='lycref', password='pass')
+        client.login(username='ref_lyc', password='pass')
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], '')
         self.assertIsInstance(content['data'], list)
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 5)
 
         # Students
         level = HighSchoolLevel.objects.filter(is_post_bachelor=True).first()
@@ -1680,7 +2138,7 @@ class APITestCase(TestCase):
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], '')
-        self.assertEqual(len(content['data']), 2)
+        self.assertEqual(len(content['data']), 5)
 
         one = False
         for h in content['data']:
@@ -1698,8 +2156,8 @@ class APITestCase(TestCase):
         """
         FIXME : this test will fail because the user will be redirected to the charter sign form
 
-        self.lyc_ref.highschool = None
-        self.lyc_ref.save()
+        self.ref_lyc.highschool = None
+        self.ref_lyc.save()
 
         response = client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
@@ -2106,6 +2564,8 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], "Config parameter not found")
 
     def test_API_ajax_get_students_presence(self):
+
+        # ref_etab
         request.user = self.ref_etab_user
         self.client.login(username='ref_etab', password='pass')
         url = "/api/get_students_presence"
@@ -2133,6 +2593,55 @@ class APITestCase(TestCase):
         self.assertEqual(self.immersion.slot.building.label, i['building'])
         self.assertEqual(self.immersion.slot.room, i['meeting_place'])
         self.assertEqual(student_profile, i['student_profile'])
+
+
+        url2 = f'/api/get_students_presence/{self.today.date()- timedelta(days=90)}/{self.today.date()}'
+        content = json.loads(self.client.post(url2, data, **self.header).content.decode())
+        i = content['data'][0]
+        self.assertEqual(self.immersion.id, i['id'])
+        self.assertEqual(_date(self.immersion.slot.date, 'l d/m/Y'), i['date'])
+        self.assertEqual(self.immersion.slot.start_time.strftime('%Hh%M'), i['time']['start'])
+        self.assertEqual(self.immersion.slot.end_time.strftime('%Hh%M'), i['time']['end'])
+        self.assertEqual(f'{self.highschool_user.last_name} {self.highschool_user.first_name}', i['name'])
+        self.assertEqual(self.hs_record.highschool.label, i['institution'])
+        self.assertEqual(self.hs_record.phone, i['phone'])
+        self.assertEqual(self.highschool_user.email, i['email'])
+        self.assertEqual(self.immersion.slot.campus.label, i['campus'])
+        self.assertEqual(self.immersion.slot.building.label, i['building'])
+        self.assertEqual(self.immersion.slot.room, i['meeting_place'])
+        self.assertEqual(student_profile, i['student_profile'])
+
+        # ref_lyc
+        request.user = self.ref_lyc
+        self.client.login(username='ref_lyc', password='pass')
+        url = "/api/get_students_presence"
+
+        # No data
+        content = json.loads(self.client.post(url, data, **self.header).content.decode())
+        self.assertEqual(content['msg'], "")
+
+
+    def test_API_ajax_get_trainings(self):
+        self.client.login(username='ref_etab', password='pass')
+        url = "/api/get_trainings"
+
+        # No data
+        data = {}
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
+
+        # No object_id value
+        data = {
+            'type': 'structure'
+        }
+        response = self.client.get(url, data, **self.header)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
+
+
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user
@@ -2470,7 +2979,7 @@ class APITestCase(TestCase):
         client = Client()
 
         # Success
-        client.login(username='lycref', password='pass')
+        client.login(username='ref_lyc', password='pass')
         response = client.get(
             reverse("get_highschool_speakers", kwargs={'highschool_id': self.high_school.id}),
             **self.header
@@ -2594,7 +3103,7 @@ class APITestCase(TestCase):
         self.assertEqual(content[0]['establishment']['label'], 'Etablissement 1')
 
         # As ref-lyc
-        client.login(username='lycref', password='pass')
+        client.login(username='ref_lyc', password='pass')
         response = client.get(reverse("off_offer_event_list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))

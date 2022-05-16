@@ -2,7 +2,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
-from immersionlyceens.apps.core.models import ImmersionUser
+from immersionlyceens.apps.core.models import ImmersionUser, ImmersionUserGroup
 
 
 class HighSchoolStudent(ImmersionUser):
@@ -82,4 +82,13 @@ class LegalDepartmentStaff(ImmersionUser):
         app_label = 'user'
         verbose_name = _('Legal department staff')
         verbose_name_plural = _('Legal department staffs')
+        proxy = True
+
+
+class UserGroup(ImmersionUserGroup):
+    class Meta:
+        app_label = 'user'
+        verbose_name = _('User group')
+        verbose_name_plural = _('User groups')
+        ordering = ['pk', ]
         proxy = True

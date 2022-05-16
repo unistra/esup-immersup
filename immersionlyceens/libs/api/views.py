@@ -14,10 +14,10 @@ import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
 from django.urls import resolve, reverse
@@ -386,6 +386,7 @@ def slots(request):
         user.is_speaker() and not any([
             user.is_master_establishment_manager(),
             user.is_establishment_manager(),
+            user.is_high_school_manager() and visits,
             user.is_structure_manager(),
             user.is_operator()
         ])
@@ -397,7 +398,7 @@ def slots(request):
 
     if not user_filter:
         if visits and not establishment_id and not structure_id:
-            if user.is_high_school_manager():
+            if user.is_high_school_manager() and user.highschool:
                 filters["visit__highschool__id"] = user.highschool.id
             else:
                 try:
@@ -656,6 +657,7 @@ def slots(request):
 def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
     response = {'msg': '', 'data': []}
 
+    # TODO: this tests are not useful should never happen !!!!
     if not structure_id:
         response['msg'] = gettext("Error : a valid structure must be selected")
     if not training_id:
@@ -1113,7 +1115,7 @@ def ajax_get_immersions(request, user_id=None):
         user.is_master_establishment_manager(),
         user.is_operator(),
         user.is_establishment_manager(),
-        user.is_high_school_manager() and user.highschool and user.highschool.postbac_immersion,
+        user.is_high_school_manager() and user.highschool,
         user.id == user_id
     ]
 
@@ -1297,7 +1299,7 @@ def ajax_get_other_registrants(request, immersion_id):
 
     try:
         immersion = Immersion.objects.get(pk=immersion_id, student=request.user)
-    except Immersion.DoesNotExists:
+    except ObjectDoesNotExist:
         response['msg'] = gettext("Error : invalid user or immersion id")
 
     if immersion:
@@ -1331,7 +1333,7 @@ def ajax_get_slot_registrations(request, slot_id):
 
     try:
         slot = Slot.objects.get(pk=slot_id)
-    except Slot.DoesNotExists:
+    except ObjectDoesNotExist:
         response['msg'] = gettext("Error : invalid slot id")
 
     if slot:
@@ -1858,11 +1860,12 @@ def ajax_get_available_students(request, slot_id):
 @login_required
 @is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_get_highschool_students(request, highschool_id=None):
+def ajax_get_highschool_students(request):
     """
     Retrieve students from a highschool or all students if user is ref-etab manager
     and no highschool id is specified
     """
+    highschool_id = None
     no_record_filter: bool = False
     response: Dict[str, Any] = {'data': [], 'msg': ''}
 
@@ -1876,13 +1879,9 @@ def ajax_get_highschool_students(request, highschool_id=None):
     if any(admin_groups):
         no_record_filter = resolve(request.path_info).url_name == 'get_students_without_record'
 
-    if not highschool_id:
-        try:
-            highschool_id = request.user.highschool.id
-        except Exception:
-            if not any(admin_groups):
-                response: Dict[str, Any] = {'data': [], 'msg': _('Invalid parameters')}
-                return JsonResponse(response, safe=False)
+    if request.user.is_high_school_manager() and request.user.highschool\
+            and not request.user.highschool.postbac_immersion:
+        highschool_id = request.user.highschool.id
 
     if highschool_id:
         students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
@@ -1963,133 +1962,6 @@ def ajax_get_highschool_students(request, highschool_id=None):
         response['data'].append(student_data.copy())
 
     return JsonResponse(response, safe=False)
-
-
-@method_decorator(groups_required('REF-ETAB', 'REF-STR', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
-class AjaxGetRegisteredUsers(View):
-    def common_data(self, user: ImmersionUser) -> Dict[str, Any]:
-        return {
-            'id': user.pk,
-            'name': f"{user.last_name} {user.first_name}",
-            'registered': user.immersions.exists(),
-            'student_type': _('Unknown'),
-        }
-
-    def fill_void(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        fields_name = [
-            'institution', 'level', 'bachelor', 'post_bachelor_level',
-            'class', 'registered', 'record_link', 'student_type',
-        ]
-        for name in fields_name:
-            if name not in data:
-                data.update({name: "-"})
-        return data
-
-    def get_data(self, user: ImmersionUser):
-        data = self.common_data(user)
-        if user.is_high_school_student():
-            data.update(self.hs_data(user))
-        elif user.is_student():
-            data.update(self.student_data(user))
-        else:
-            data.update(self.visitor_data(user))
-        return self.fill_void(data)
-
-    def hs_data(self, user: ImmersionUser) -> Dict[str, Any]:
-        data = {
-            "student_type": pgettext("person type", "Student"),
-        }
-        record = user.get_high_school_student_record()
-        if record:
-            data["record_link"] = reverse('immersion:modify_hs_record', kwargs={'record_id': record.id})
-            data["level"] = record.level.label if record and record.level else "-"
-            data["class"] = record.class_name
-            data["institution"] = record.highschool.label
-            data["birthdate"] = date_format(record.birth_date) if record else "-"
-
-            if record.level.is_post_bachelor:
-                data['bachelor'] = record.get_origin_bachelor_type_display()
-                data['post_bachelor_level'] = record.level.label
-
-                if record.post_bachelor_level:
-                    data['post_bachelor_level'] += f" - {record.post_bachelor_level.label}"
-            else:
-                data['bachelor'] = record.get_bachelor_type_display()
-        return data
-
-    def student_data(self, user: ImmersionUser) -> Dict[str, Any]:
-        data = {
-            "student_type": pgettext("person type", "High school student"),
-        }
-        record = user.get_student_record()
-        if record:
-            uai_code, institution = record.home_institution()
-            data["level"] = record.level.label if record and record.level else "-",
-            data["record_link"] = reverse('immersion:modify_student_record', kwargs={'record_id': record.id})
-            data["bachelor"] = record.get_origin_bachelor_type_display()
-            data["institution"] = institution.label if institution else uai_code
-            data["post_bachelor_level"] = record.current_diploma
-            data["birthdate"] = date_format(record.birth_date) if record else "-"
-        return data
-
-    def visitor_data(self, user: ImmersionUser) -> Dict[str, Any]:
-        data = {
-            "student_type": pgettext("person type", "Visitor"),
-        }
-        record = user.get_visitor_record()
-        if record:
-            data["record_link"] = reverse('immersion:visitor_record_by_id', kwargs={'record_id': record.id})
-            data["birthdate"] = date_format(record.birth_date) if record else "-"
-
-        return data
-
-    def get(self, request):
-        no_record_filter: bool = False
-        highschool_id = self.kwargs.get("highschool_id")
-        response: Dict[str, Any] = {'data': [], 'msg': ''}
-
-        admin_groups: List[bool] = [
-            self.request.user.is_establishment_manager(),
-            self.request.user.is_master_establishment_manager(),
-            self.request.user.is_operator()
-        ]
-
-        if any(admin_groups):
-            no_record_filter = resolve(self.request.path_info).url_name == 'get_students_without_record'
-
-        if not highschool_id:
-            try:
-                highschool_id = self.request.user.highschool.id
-            except Exception:
-                if not any(admin_groups):
-                    response: Dict[str, Any] = {'data': [], 'msg': _('Invalid parameters')}
-                    return JsonResponse(response, safe=False)
-
-        if highschool_id:
-            students = ImmersionUser.objects.prefetch_related('high_school_student_record', 'immersions').filter(
-                validation_string__isnull=True, high_school_student_record__highschool__id=highschool_id
-            )
-        else:
-            students = ImmersionUser.objects.prefetch_related(
-                'high_school_student_record', 'student_record', 'visitor_record', 'immersions'
-            ).filter(validation_string__isnull=True, groups__name__in=['ETU', 'LYC', 'VIS'])
-
-        if no_record_filter:
-            students = students.filter(
-                high_school_student_record__isnull=True,
-                student_record__isnull=True,
-                visitor_record__isnull=True
-            )
-        else:
-            students = students.filter(Q(high_school_student_record__isnull=False) | Q(student_record__isnull=False) | Q(
-                visitor_record__isnull=False))
-
-        # for student in students:
-        #     my_data = self.get_data(student)
-        #     response['data'].append(my_data.copy())
-
-            response["data"] = [self.get_data(user).copy() for user in students]
-        return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
@@ -2224,6 +2096,9 @@ def get_csv_structures(request):
     t = request.GET.get('type')
     infield_separator = '|'
 
+    if not t:
+        raise Http404
+
     if t == 'course':
 
         label = _('courses')
@@ -2300,6 +2175,7 @@ def get_csv_structures(request):
 
         if request.user.is_structure_manager():
             header = [
+                _('structure'),
                 _('training domain'),
                 _('training subdomain'),
                 _('training'),
@@ -2379,6 +2255,7 @@ def get_csv_structures(request):
             elif request.user.is_structure_manager():
 
                 line = [
+                    structure,
                     infield_separator.join(
                         [sub.training_domain.label for sub in slot.course.training.training_subdomains.all()]
                     ),
@@ -2465,6 +2342,7 @@ def get_csv_structures(request):
         elif request.user.is_structure_manager():
 
             header = [
+                _('structure'),
                 _('highschool'),
                 _('purpose'),
                 _('meeting place'),
@@ -2524,9 +2402,25 @@ def get_csv_structures(request):
                     slot.additional_information,
                 ]
 
-            elif (request.user.is_high_school_manager() or request.user.is_structure_manager()):
+            elif request.user.is_high_school_manager():
 
                 line = [
+                    highschool,
+                    slot.visit.purpose,
+                    slot.room if slot.face_to_face else _('Remote'),
+                    _date(slot.date, 'l d/m/Y'),
+                    slot.start_time.strftime('%H:%M'),
+                    slot.end_time.strftime('%H:%M'),
+                    '|'.join([f'{t.first_name} {t.last_name}' for t in slot.speakers.all()]),
+                    slot.registered_students(),
+                    slot.n_places,
+                    slot.additional_information,
+                ]
+
+            elif request.user.is_structure_manager():
+
+                line = [
+                    structure,
                     highschool,
                     slot.visit.purpose,
                     slot.room if slot.face_to_face else _('Remote'),
@@ -2594,6 +2488,7 @@ def get_csv_structures(request):
         elif request.user.is_structure_manager():
 
             header = [
+                _('structure'),
                 _('event type'),
                 _('label'),
                 _('description'),
@@ -2701,6 +2596,7 @@ def get_csv_structures(request):
             elif request.user.is_structure_manager():
                 content.append(
                     [
+                        structure,
                         slot.event.event_type,
                         slot.event.label,
                         slot.event.description,
@@ -2856,6 +2752,9 @@ def get_csv_anonymous(request):
     infield_separator = '|'
     t = request.GET.get('type')
     filters = {}
+
+    if not t:
+        raise Http404
 
     if t == 'course':
 
@@ -3625,6 +3524,8 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
     if date_until and date_until != "None":
         filters["slot__date__lte"] = date_until
 
+    filters["slot__visit__isnull"] = True
+
     if (
         not request.user.is_superuser
         and(request.user.is_establishment_manager()
@@ -3635,19 +3536,24 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
 
         Q_filters = (
             Q(slot__course__structure__in=structures) |
-            Q(slot__event__structure__in=structures) |
-            Q(slot__visit__structure__in=structures)
+            Q(slot__event__structure__in=structures, slot__face_to_face=True)
         )
 
     elif request.user.is_high_school_manager() and not request.user.is_superuser:
 
         Q_filters = (
             Q(slot__course__highschool=request.user.highschool) |
-            Q(slot__event__highschool=request.user.highschool) |
-            Q(slot__visit__highschool=request.user.highschool)
+            Q(slot__event__highschool=request.user.highschool, slot__face_to_face=True)
+        )
+    else:
+
+        Q_filters = (
+            Q(slot__event__isnull=False, slot__face_to_face=True) |
+            Q(slot__course__isnull=False)
+
         )
 
-    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(Q_filters, **filters)
+    immersions = Immersion.objects.prefetch_related('slot', 'student').filter(Q_filters, **filters, cancellation_type__isnull=True)
 
     for immersion in immersions:
         institution = ''
@@ -3667,6 +3573,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             student_profile = _('Visitor')
 
         establishment = immersion.slot.get_establishment()
+        structure = immersion.slot.get_structure()
 
         if not establishment:
             establishment = immersion.slot.get_highschool()
@@ -3698,6 +3605,7 @@ def ajax_get_student_presence(request, date_from=None, date_until=None):
             'building': immersion.slot.building.label if immersion.slot.building else '',
             'meeting_place': immersion.slot.room if immersion.slot.face_to_face else _('Remote'),
             'establishment': establishment.label if establishment else '',
+            'structure': structure.label if structure else '',
         }
 
         response['data'].append(immersion_data.copy())

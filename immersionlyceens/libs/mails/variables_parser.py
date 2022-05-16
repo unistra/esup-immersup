@@ -45,7 +45,6 @@ class ParserFaker:
                user: Optional[ImmersionUser] = None, request: Optional[Request] = None, **kwargs) -> str:
 
         context: Dict[str, Any] = cls.get_context(request, **context_params)
-        # context: Dict[str, Any] = cls.get_context(request, user_is, slot_type, local_account, is_face_to_face)
         return render_text(template_data=message_body, data=context)
 
     @classmethod
@@ -77,9 +76,6 @@ class ParserFaker:
         context.update({
             "prenom": cls.add_tooltip("prenom", "Dominique"),
             "nom": cls.add_tooltip("nom", "MARTIN"),
-            "referentlycee": {
-                "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
-            },
             "identifiant": cls.add_tooltip("identifiant", "d.martin@service-plublic.fr"),
             "jourDestructionCptMin": cls.add_tooltip("jourDestructionCptMin", "17-10-2022"),
             "estetudiant": False,
@@ -88,7 +84,7 @@ class ParserFaker:
             "estintervenant": False,
             "estreflycee": False,
             "estrefstructure": False,
-            "utilisateur_compte_local": local_account,
+            "utilisateurcomptelocal": local_account,
             "lycee": cls.add_tooltip("lycee", "Lycée Georges Brassens (Saint-Gély-du-Fesc)"),
             "datedenaissance": cls.add_tooltip("datedenaissance", "14-07-1980"),
             "inscrit_datedenaissance": cls.add_tooltip("inscrit_datedenaissance", "14-07-1980"),
@@ -214,9 +210,6 @@ class ParserFaker:
         })
 
         return context
-
-
-
 
 
 class Parser:
@@ -380,9 +373,6 @@ class Parser:
             context: Dict[str, Any] = {
                 "nom": user.last_name,
                 "prenom": user.first_name,
-                "referentlycee": {
-                    "lycee": f"{user.highschool.label} ({user.highschool.city}" if user.highschool else "",
-                },
                 "identifiant": user.get_cleaned_username(),
                 "jourDestructionCptMin": user.get_localized_destruction_date(),
                 "estetudiant": user.is_student(),
@@ -391,7 +381,7 @@ class Parser:
                 "estintervenant": user.is_speaker(),
                 "estreflycee": user.is_high_school_manager(),
                 "estrefstructure": user.is_structure_manager(),
-                "utilisateur_compte_local": local_account
+                "utilisateurcomptelocal": local_account
             }
 
             if user.is_high_school_student():
@@ -584,30 +574,3 @@ class Parser:
 
         context.update()
         return context
-
-    @staticmethod
-    def get_registered_students(slot: Optional[Slot]) -> Dict[str, Any]:
-        if slot:
-            institution_label: str = _("Unknown home institution")
-            registered_students: List[str] = []
-            registered: Immersion
-            for registration in Immersion.objects.filter(slot=slot, cancellation_type__isnull=True):
-                if registration.student.is_high_school_student():
-                    record = registration.student.get_high_school_student_record()
-                    if record and record.highschool:
-                        institution_label = record.highschool.label
-                elif registration.student.is_student():
-                    record = registration.student.get_student_record()
-                    if record:
-                        uai_code, institution = record.home_institution()
-                        institution_label = institution.label if institution else uai_code
-
-                registered_students.append(
-                    f"{registration.student.last_name} {registration.student.first_name} - {institution_label}"
-                )
-
-            return registered_students
-
-        return []
-
-

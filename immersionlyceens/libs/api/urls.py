@@ -37,12 +37,7 @@ urlpatterns = [
     path('get_csv_highschool/', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_csv_structures/', views.get_csv_structures, name='get_csv_structures'),
     path('get_duplicates', views.ajax_get_duplicates, name='get_duplicates'),
-    path('get_highschool_students/', views.ajax_get_highschool_students, name='get_all_students'),
-    path(
-        'get_highschool_students/<int:highschool_id>/',
-        views.ajax_get_highschool_students,
-        name='get_highschool_students',
-    ),
+    path('get_highschool_students/', views.ajax_get_highschool_students, name='get_highschool_students'),
     path('get_highschool_students/no_record', views.ajax_get_highschool_students, name='get_students_without_record'),
     path('get_immersions/<int:user_id>', views.ajax_get_immersions, name='get_immersions',),
 

@@ -16,17 +16,16 @@ class ChartsAPITestCase(TestCase):
     """Tests for API"""
 
     # This file contains a complete set of users, slots, etc
-    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels',
+    fixtures = ['high_school_levels', 'post_bachelor_levels', 'student_levels', 'group',
         'immersionlyceens/apps/charts/tests/fixtures/all_test.json',
     ]
 
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.master_establishment = Establishment.objects.first()
+        self.master_establishment = Establishment.objects.filter(master=True).first()
 
         self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
-        self.ref_etab_user.establishment = self.master_establishment
         self.ref_etab_user.set_password('hiddenpassword')
         self.ref_etab_user.save()
         Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
@@ -42,11 +41,15 @@ class ChartsAPITestCase(TestCase):
         self.reflyc_user.save()
         Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
 
+        self.ref_str_user = get_user_model().objects.get(username='test-eco')
+        self.ref_str_user.set_password('hiddenpassword')
+        self.ref_str_user.save()
+
         self.client = Client()
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
 
-    def test_highschool_global_domains_charts_api(self):
+    def test_global_domains_charts_by_population(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')
         # Global domain charts
         url = "/charts/get_global_domains_charts_by_population"
@@ -56,7 +59,7 @@ class ChartsAPITestCase(TestCase):
 
         self.assertEqual(json_content['datasets'],
              [{'domain': 'Art, Lettres, Langues', 'count': 24,
-               'subData': [{'name': 'Art plastiques', 'count': 12},{'name': 'Art visuels', 'count': 12}]},
+               'subData': [{'name': 'Art plastiques', 'count': 12}, {'name': 'Art visuels', 'count': 12}]},
               {'domain': 'Droit, Economie, Gestion', 'count': 6,
                'subData': [{'name': 'Economie, Gestion', 'count': 6}]},
               {'domain': 'Sciences Humaines et sociales', 'count': 3,
@@ -85,6 +88,90 @@ class ChartsAPITestCase(TestCase):
                'subData': [{'name': 'Informatique', 'count': 4},
                            {'name': 'Mathématiques', 'count': 7}]}]
         )
+
+        # As a high school manager
+        self.client.login(username='test-ref-lyc', password='hiddenpassword')
+        response = self.client.post(url, {})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content['datasets'],
+            [{'domain': 'Art, Lettres, Langues', 'count': 24,
+              'subData': [{'name': 'Art plastiques', 'count': 12}, {'name': 'Art visuels', 'count': 12}]},
+             {'domain': 'Droit, Economie, Gestion', 'count': 6,
+              'subData': [{'name': 'Economie, Gestion', 'count': 6}]},
+             {'domain': 'Sciences Humaines et sociales', 'count': 3,
+              'subData': [{'name': 'Sport', 'count': 3}]},
+             {'domain': 'Sciences et Technologies', 'count': 20,
+              'subData': [{'name': 'Informatique', 'count': 10}, {'name': 'Mathématiques', 'count': 10}]}]
+        )
+
+        # With a filter on level
+        response = self.client.post(url, {'level': 2})
+        content = response.content.decode()
+        json_content = json.loads(content)
+        self.assertEqual(json_content['datasets'],
+            [{'domain': 'Art, Lettres, Langues', 'count': 9,
+              'subData': [{'name': 'Art plastiques', 'count': 4}, {'name': 'Art visuels', 'count': 5}]},
+             {'domain': 'Droit, Economie, Gestion', 'count': 3,
+              'subData': [{'name': 'Economie, Gestion', 'count': 3}]},
+             {'domain': 'Sciences Humaines et sociales', 'count': 1,
+              'subData': [{'name': 'Sport', 'count': 1}]},
+             {'domain': 'Sciences et Technologies', 'count': 9,
+              'subData': [{'name': 'Informatique', 'count': 4}, {'name': 'Mathématiques', 'count': 5}]}]
+        )
+
+
+    def test_global_domains_charts_by_trainings(self):
+        self.client.login(username='test-ref-etab', password='hiddenpassword')
+        # Global domain charts
+        url = "/charts/get_global_domains_charts_by_trainings"
+        response = self.client.post(url, {})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content['datasets'],
+           [{'domain': 'Art, Lettres, Langues', 'count': 24,
+             'subData': [{'name': 'Art plastiques', 'count': 12}, {'name': 'Art visuels', 'count': 12}]},
+            {'domain': 'Droit, Economie, Gestion', 'count': 6,
+             'subData': [{'name': 'Economie, Gestion', 'count': 6}]},
+            {'domain': 'Sciences Humaines et sociales', 'count': 3,
+             'subData': [{'name': 'Sport', 'count': 3}]},
+            {'domain': 'Sciences et Technologies', 'count': 20,
+             'subData': [{'name': 'Informatique', 'count': 10}, {'name': 'Mathématiques', 'count': 10}]}]
+        )
+
+        # With a level filter
+        response = self.client.post(url, {'level': 1})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content["datasets"],
+            [{'domain': 'Art, Lettres, Langues', 'count': 12,
+              'subData': [{'name': 'Art plastiques', 'count': 6}, {'name': 'Art visuels', 'count': 6}]},
+              {'domain': 'Droit, Economie, Gestion', 'count': 2,
+               'subData': [{'name': 'Economie, Gestion', 'count': 2}]},
+              {'domain': 'Sciences Humaines et sociales', 'count': 1,
+               'subData': [{'name': 'Sport', 'count': 1}]},
+              {'domain': 'Sciences et Technologies', 'count': 7,
+               'subData': [{'name': 'Informatique', 'count': 4}, {'name': 'Mathématiques', 'count': 3}]}]
+        )
+
+
+        # as a master establishment manager with a filter on a highschool
+        # FIXME : add test data : highschool courses, slots and immersions
+        """
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        response = self.client.post(url, {'highschools_ids[]': [5]})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        # As a high school manager
+        self.client.login(username='test-ref-lyc', password='hiddenpassword')
+        response = self.client.post(url, {})
+        content = response.content.decode()
+        json_content = json.loads(content)
+        """
 
 
     def test_charts_filters_data_api(self):
@@ -158,6 +245,133 @@ class ChartsAPITestCase(TestCase):
               }]
         )
 
+        # As a master establishment manager : see all establishments and high schools
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        response = self.client.get(
+            url,
+            {
+                'filter_by_my_trainings': "true",
+                'include_structures': "true",
+            },
+            **self.header
+        )
+
+        content = response.content.decode()
+        json_content = json.loads(content)
+        self.assertEqual(json_content['data'], [{
+                'institution': 'Université de Strasbourg',
+                'institution_id': 1,
+                'structure_id': '',
+                'type': 'Higher education institution',
+                'type_code': 1,
+                'city': 'STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'Faculté des Arts',
+                'structure_id': 1,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'Faculté des Sciences économiques et de gestion',
+                'structure_id': 6,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'Faculté des sciences du sport',
+                'structure_id': 3,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'IUT Louis Pasteur',
+                'structure_id': 7,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }, {
+                'institution': 'Université de Strasbourg',
+                'structure': 'UFR Mathématiques et Informatique',
+                'structure_id': 2,
+                'institution_id': '',
+                'type': 'Higher education institution',
+                'type_code': 2,
+                'city': '67081 - STRASBOURG',
+                'department': 'BAS-RHIN',
+                'country': ''
+            }]
+        )
+
+        # With no filter by training (filter by population)
+        # We should only see establishments (and high schools) students and pupils can come from (no structures)
+        response = self.client.get(url, {'filter_by_my_trainings': "false"}, **self.header)
+        content = response.content.decode()
+        json_content = json.loads(content)
+        self.assertEqual(json_content['data'], [{
+                 'institution': 'Lycée Coufignal',
+                 'institution_id': 3,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '68000 - COLMAR',
+                 'department': '68',
+                 'country': ''
+             }, {
+                 'institution': 'Lycée Jean Monnet',
+                 'institution_id': 2,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '67100 - STRASBOURG',
+                 'department': '67',
+                 'country': ''
+             }, {
+                 'institution': 'Lycée Kléber',
+                 'institution_id': 6,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '67000 - STRASBOURG',
+                 'department': '67',
+                 'country': ''
+             }, {
+                 'institution': 'Lycée Marie Curie',
+                 'institution_id': 5,
+                 'structure_id': '',
+                 'type': 'Highschool',
+                 'type_code': 0,
+                 'city': '67100 - STRASBOURG',
+                 'department': '67',
+                 'country': ''
+             }, {
+                 'institution': 'Université de Strasbourg',
+                 'institution_id': '0673021V',
+                 'structure_id': '',
+                 'type': 'Higher education institution',
+                 'type_code': 1,
+                 'city': ['67081 - Strasbourg'],
+                 'department': ['Bas-Rhin'],
+                 'country': ['France']
+             }]
+        )
 
     def test_global_trainings_charts_api(self):
         """
@@ -480,8 +694,83 @@ class ChartsAPITestCase(TestCase):
              }]
         )
 
+    def test_registration_charts_by_training(self):
+        # Registration charts
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        url = "/charts/get_registration_charts_by_trainings"
+
+        response = self.client.get(url, {'level': 0})
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        # As a master establishment manager, charts include by default trainings of all establishments/high schools
+        self.assertEqual(json_content['datasets'], [{
+                'name': 'Attended to at least one immersion',
+                'none': 0,
+                'Seconde': 2,
+                'Première': 2,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations to at least one immersion',
+                'none': 0,
+                'Seconde': 3,
+                'Première': 4,
+                'Terminale': 1,
+                'Post-bac': 1,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations count',
+                'none': 0,
+                'Seconde': 4,
+                'Première': 4,
+                'Terminale': 2,
+                'Post-bac': 2,
+                'Visitors': 0
+            }]
+        )
+
+        # Filter by structure : see only registrations for trainings of this structure
+        # This one includes the calculation of the median accross structures of the same establishment
+        self.client.login(username='test-eco', password='hiddenpassword')
+        response = self.client.get(url, {'level': 0, 'structure_id': 6})
+
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content["datasets"], [{
+                'name': 'Attended to at least one immersion [bold](m = 1)[/bold]',
+                'none': 0,
+                'Seconde': 1,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations to at least one immersion [bold](m = 7)[/bold]',
+                'none': 0,
+                'Seconde': 1,
+                'Première': 1,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {
+                'name': 'Registrations count',
+                'none': 0,
+                'Seconde': 4,
+                'Première': 4,
+                'Terminale': 2,
+                'Post-bac': 2,
+                'Visitors': 0
+            }]
+        )
+
 
     def test_registration_charts_cats_by_population(self):
+        """
+        Charts by population with filters on establishments and high schools
+        """
         self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
 
         # Registration charts cats (ajax query, headers needed)
@@ -552,3 +841,120 @@ class ChartsAPITestCase(TestCase):
             'name': 'Lycée Jean Monnet',
             'none': 0
         }])
+
+
+    def test_get_registration_charts_cats_by_trainings(self):
+        """
+        Charts by trainings with filters on establishments, structures and high schools
+        """
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+
+        # Registration charts cats (ajax query, headers needed)
+        url = "/charts/get_registration_charts_cats_by_trainings"
+        response = self.client.post(
+            url,
+            {
+                'highschools_ids[]': [2],
+                'higher_institutions_ids[]': [self.master_establishment.id],
+                'structure_ids[]': [6]
+            },
+            **self.header
+        )
+
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        # TODO : add test data for high schools with postbac immersions
+        self.assertEqual(json_content['one_immersion']["datasets"], [{
+                'name': 'Lycée Jean Monnet',
+                'none': 0,
+                'Seconde': 0,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {'name': 'Université de Strasbourg',
+                'none': 0,
+                'Seconde': 3,
+                'Première': 4,
+                'Terminale': 1,
+                'Post-bac': 1,
+                'Visitors': 0
+            }, {'name': 'Unistra - Faculté des Sciences économiques et de gestion',
+                'none': 0,
+                'Seconde': 1,
+                'Première': 1,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0}]
+        )
+
+        self.assertEqual(json_content['attended_one']["datasets"],  [{
+                'name': 'Lycée Jean Monnet',
+                'none': 0,
+                'Seconde': 0,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {'name': 'Université de Strasbourg',
+                'none': 0,
+                'Seconde': 2,
+                'Première': 2,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0
+            }, {'name': 'Unistra - Faculté des Sciences économiques et de gestion',
+                'none': 0,
+                'Seconde': 1,
+                'Première': 0,
+                'Terminale': 0,
+                'Post-bac': 0,
+                'Visitors': 0}]
+        )
+
+    def test_get_slots_charts(self):
+        """
+        Test slots charts
+        """
+        self.client.login(username='test-ref-etab-maitre', password='hiddenpassword')
+        url = "/charts/get_slots_charts"
+        response = self.client.post(
+            url,
+            {
+                'empty_structures': 'false',
+                'establishment_id': self.master_establishment.id
+            },
+            **self.header
+        )
+        content = response.content.decode()
+        json_content = json.loads(content)
+
+        self.assertEqual(json_content['datasets'], [
+            {
+                'name': 'IUT Louis Pasteur (Unistra)',
+                'slots_count': 1,
+                'percentage': 1.9,
+                'none': 0
+            }, {
+                'name': 'Faculté des sciences du sport (Unistra)',
+                'slots_count': 5,
+                'percentage': 9.4,
+                'none': 0
+            }, {
+                'name': 'Faculté des Sciences économiques et de gestion (Unistra)',
+                'slots_count': 9,
+                'percentage': 17.0,
+                'none': 0
+            }, {
+                'name': 'UFR Mathématiques et Informatique (Unistra)',
+                'slots_count': 17,
+                'percentage': 32.1,
+                'none': 0
+            }, {
+                'name': 'Faculté des Arts (Unistra)',
+                'slots_count': 21,
+                'percentage': 39.6,
+                'none': 0
+            }]
+        )

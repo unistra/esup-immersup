@@ -17,6 +17,9 @@ DATABASES['default']['USER'] = '{{ default_db_user }}'
 DATABASES['default']['PASSWORD'] = '{{ default_db_password }}'
 DATABASES['default']['NAME'] = '{{ default_db_name }}'
 
+# PostgreSQL unaccent extension
+POSTGRESQL_ADD_UNACCENT_EXTENSION = False # For migration file
+POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 
 ############################
 # Allowed hosts & Security #
@@ -48,8 +51,9 @@ SECRET_KEY = '{{ secret_key }}'
 ####################
 
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
+CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
-
 
 #################
 # APIs settings #
@@ -111,3 +115,9 @@ S3_FILEPATH = 'preprod'
 
 # Use Unistra theme & css
 UNISTRA = '{{ use_unistra_theme }}'
+##########
+# Matomo #
+##########
+USE_MATOMO = True
+MATOMO_URL = '{{ matomo_url }}'
+MATOMO_SITE_ID = '{{ matomo_site_id }}'

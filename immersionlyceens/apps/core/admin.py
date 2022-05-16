@@ -14,6 +14,8 @@ from django_admin_listfilter_dropdown.filters import (
 )
 from django_json_widget.widgets import JSONEditorWidget
 from django_summernote.admin import SummernoteModelAdmin
+from rest_framework.authtoken.admin import TokenAdmin
+from rest_framework.authtoken.models import TokenProxy
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
@@ -27,7 +29,6 @@ from .admin_forms import (
     OffOfferEventTypeForm, PostBachelorLevelForm, PublicDocumentForm,
     PublicTypeForm, StructureForm, StudentLevelForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
-    ImmersionUserGroupForm
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -37,7 +38,7 @@ from .models import (
     Holiday, Immersion, ImmersionUser, InformationText, MailTemplate,
     OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType, Slot,
     Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation, ImmersionUserGroup
+    UniversityYear, Vacation,
 )
 
 
@@ -517,52 +518,6 @@ class CustomUserAdmin(AdminWithRequest, UserAdmin):
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
-class ImmersionUserGroupAdmin(AdminWithRequest, admin.ModelAdmin):
-    form = ImmersionUserGroupForm
-    list_display = ('id', 'get_immersionusers')
-    filter_horizontal = ('immersionusers', )
-
-    def get_immersionusers(self, obj):
-        return format_html("<br>".join([f"{user} ({user.email})" for user in obj.immersionusers.all()]))
-
-    def has_module_permission(self, request):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
-
-    def has_view_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_master_establishment_manager(),
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
-
-    def has_add_permission(self, request):
-        # Only a superuser can add a template
-        return request.user.is_superuser or request.user.is_operator()
-
-    def has_delete_permission(self, request, obj=None):
-        # Only a superuser can delete a template
-        return request.user.is_superuser or request.user.is_operator()
-
-    def has_change_permission(self, request, obj=None):
-        valid_groups = [
-            request.user.is_superuser,
-            request.user.is_operator()
-        ]
-
-        return any(valid_groups)
-
-    get_immersionusers.short_description = _('Linked users')
-    get_immersionusers.allow_tags = True
-
-
 class TrainingDomainAdmin(AdminWithRequest, admin.ModelAdmin):
     form = TrainingDomainForm
     list_display = ('label', 'active')
@@ -830,17 +785,16 @@ class EstablishmentAdmin(AdminWithRequest, admin.ModelAdmin):
 
         if not any([user.is_master_establishment_manager(), user.is_operator(), user.is_superuser]):
             return super().get_readonly_fields(request, obj) + (
-                'code', 'label', 'short_label', 'department', 'city', 'zip_code', 'phone_number', 'fax',
-                'badge_html_color', 'email', 'data_source_plugin',
-                'data_source_settings', 'logo', 'signature', 'objects', 'activated',
-                'address', 'address2', 'address3', 'certificate_header', 'certificate_footer'
+                'active', 'signed_charter', 'code', 'label', 'uai_reference', 'short_label', 'department',
+                'address', 'address2', 'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color',
+                'email', 'data_source_plugin', 'data_source_settings', 'logo', 'signature', 'objects',
+                'certificate_header', 'certificate_footer'
             )
         elif request.user.is_master_establishment_manager() and not user.is_superuser:
             return super().get_readonly_fields(request, obj) + (
-                'code', 'label', 'short_label', 'department', 'city', 'zip_code', 'phone_number', 'fax',
-                'badge_html_color', 'email', 'data_source_plugin',
-                'data_source_settings', 'objects', 'activated',
-                'address', 'address2', 'address3'
+                'active', 'signed_charter', 'code', 'label', 'uai_reference', 'short_label', 'department',
+                'address', 'address2', 'address3', 'city', 'zip_code', 'phone_number', 'fax', 'badge_html_color',
+                'email', 'data_source_plugin', 'data_source_settings', 'objects',
             )
 
         return super().get_readonly_fields(request, obj)
@@ -1314,6 +1268,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     list_display = (
         'label',
         'city',
+        'country',
         'email',
         'head_teacher_name',
         'referents_list',
@@ -1324,6 +1279,7 @@ class HighSchoolAdmin(AdminWithRequest, admin.ModelAdmin):
     )
     list_filter = (
         'postbac_immersion',
+        ('country', DropdownFilter),
         ('city', DropdownFilter),
         HighschoolConventionFilter,
     )
@@ -1842,6 +1798,32 @@ class StudentLevelAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
         css = {'all': ('css/immersionlyceens.min.css',)}
 
 
+class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
+    def custom_has_something_permission(self, request, obj=None):
+        if request.user.is_operator:
+            return True
+        return super().has_add_permission(request)
+
+    def has_module_permission(self, request):
+        return self.custom_has_something_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+        return self.custom_has_something_permission(request, obj)
+
+    def has_add_permission(self, request):
+        return self.custom_has_something_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self.custom_has_something_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.custom_has_something_permission(request, obj)
+
+
+admin.site.unregister(TokenProxy)
+admin.site.register(TokenProxy, TokenCustomAdmin)
+
+
 admin.site = CustomAdminSite(name='Repositories')
 
 admin.site.register(ImmersionUser, CustomUserAdmin)
@@ -1876,4 +1858,4 @@ admin.site.register(OffOfferEventType, OffOfferEventTypeAdmin)
 admin.site.register(HighSchoolLevel, HighSchoolLevelAdmin)
 admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
-admin.site.register(ImmersionUserGroup, ImmersionUserGroupAdmin)
+

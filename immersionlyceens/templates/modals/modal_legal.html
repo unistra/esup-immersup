@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load immersionlyceens_tags %}
 {% information_text_get 'MENTIONS_LEGALES' as legal_txt %}
+{% if legal_txt %}
 <!-- Modal -->
 <div class="modal fade" id="modalLegal" tabindex="-1" role="dialog" aria-labelledby="modalLegalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -21,3 +22,4 @@
         </div>
     </div>
 </div>
+{% endif %}

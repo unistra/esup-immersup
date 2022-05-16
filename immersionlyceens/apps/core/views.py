@@ -460,6 +460,11 @@ def myslots(request, slots_type=None):
     if slots_type == "visits":
         context["slot_mode"] = "visit"
         return render(request, 'core/my_visits_slots.html', context)
+    if slots_type == "hs_visits":
+        context["slot_mode"] = "visit"
+        context["user_slots"] = False
+        context["highschool_id"] = request.user.highschool.id if request.user.highschool else ''
+        return render(request, 'core/my_high_school_visits_slots.html', context)
     elif slots_type == "events":
         context["slot_mode"] = "event"
         return render(request, 'core/my_events_slots.html', context)

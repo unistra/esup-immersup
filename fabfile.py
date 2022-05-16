@@ -98,7 +98,7 @@ def test():
     env.roledefs = {
         'web': ['django-test2.di.unistra.fr'],
         'lb': ['django-test2.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
+        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
@@ -171,7 +171,7 @@ def test2():
         'matomo_site_id': "MATOMO_SITE_ID",
         'use_unistra_theme': "UNISTRA",
     }
-    env.use_unistra_theme='true'
+    env.use_unistra_theme='false'
     env.extra_symlink_dirs = ['media']
     execute(build_env)
 
@@ -182,7 +182,7 @@ def preprod():
     env.roledefs = {
         'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
-        'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
+        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
 
     # env.user = 'root'  # user for ssh
@@ -212,6 +212,8 @@ def preprod():
         's3_bucket': "AWS_STORAGE_BUCKET_NAME",
         's3_endpoint': "AWS_S3_ENDPOINT_URL",
         'use_unistra_theme': "UNISTRA",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID"
     }
     execute(build_env)
 
