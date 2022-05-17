@@ -49,7 +49,7 @@
     {% for subdomain in subdomains_list %}
       <div class="col">
         <div class="card domain">
-          <header style="background-image: url({% static 'img/backgrounds/'%}{{ subdomain.list.0.training_domain.pk }}.jpg)">
+          <header>
             <div class="domain-title">
             {% if unistra == "true" %}
             <div class="sun sun-theme-primary">
