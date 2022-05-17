@@ -1,24 +1,27 @@
 import datetime
 import mimetypes
 import os
+from email.policy import default
 from wsgiref.util import FileWrapper
 
+import requests
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db.models.query_utils import Q
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
+    FileResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
     HttpResponseNotFound, StreamingHttpResponse,
 )
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
-from django.core.files.storage import default_storage
+from storages.backends.s3boto3 import S3Boto3Storage
 
 from immersionlyceens.apps.core.models import (
-    AccompanyingDocument, Calendar, Course, InformationText, PublicDocument,
-    PublicType, Slot, Training, TrainingSubdomain, UserCourseAlert, Visit,
-    ImmersupFile
+    AccompanyingDocument, Calendar, Course, ImmersupFile, InformationText,
+    PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
+    UserCourseAlert, Visit,
 )
 from immersionlyceens.libs.utils import get_general_setting
 
@@ -143,42 +146,39 @@ def procedure(request):
     return render(request, 'procedure.html', context)
 
 
+def file_response(*args, **kwargs):
+    try:
+        return FileResponse(*args, **kwargs)
+    except OSError:
+        raise HttpResponseNotFound()
+
+
 def serve_accompanying_document(request, accompanying_document_id):
     """Serve accompanying documents files"""
     try:
         doc = get_object_or_404(AccompanyingDocument, pk=accompanying_document_id)
+        if isinstance(default_storage, S3Boto3Storage):
+            response = requests.get(doc.document.url, stream=True)
+            return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
+        else:
+            return redirect(doc.document.url)
 
-        _file = doc.document.path
-        _file_type = mimetypes.guess_type(_file)[0]
-
-        chunk_size = 8192
-        response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
-        response['Content-Length'] = os.path.getsize(_file)
-        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(_file)}"'
-
-    except Exception as e:
+    except Exception:
         return HttpResponseNotFound()
-
-    return response
 
 
 def serve_public_document(request, public_document_id):
     """Serve public documents files"""
     try:
         doc = get_object_or_404(PublicDocument, pk=public_document_id)
+        if isinstance(default_storage, S3Boto3Storage):
+            response = requests.get(doc.document.url, stream=True)
+            return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
+        else:
+            return redirect(doc.document.url)
 
-        _file = doc.document.path
-        _file_type = mimetypes.guess_type(_file)[0]
-
-        chunk_size = 8192
-        response = StreamingHttpResponse(FileWrapper(open(_file, 'rb'), chunk_size), content_type=_file_type)
-        response['Content-Length'] = os.path.getsize(_file)
-        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(_file)}"'
-
-    except Exception as e:
+    except Exception:
         return HttpResponseNotFound()
-
-    return response
 
 
 def serve_immersup_file(request, file_code):
@@ -188,8 +188,13 @@ def serve_immersup_file(request, file_code):
 
     try:
         immersupfile = get_object_or_404(ImmersupFile, pk=file_code)
-        return redirect(default_storage.url(immersupfile.file.name))
-    except Exception as e:
+        if isinstance(default_storage, S3Boto3Storage):
+            response = requests.get(immersupfile.file.url, stream=True)
+            return file_response(response.raw, as_attachment=True, content_type=response.headers['content-type'])
+        else:
+            return redirect(immersupfile.file.url)
+
+    except Exception:
         return HttpResponseNotFound()
 
 
