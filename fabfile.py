@@ -185,7 +185,7 @@ def test2():
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
     }
-    env.use_unistra_theme='false'
+    #env.use_unistra_theme='false'
     env.extra_symlink_dirs = ['media']
     execute(build_env)
 
