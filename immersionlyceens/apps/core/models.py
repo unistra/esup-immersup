@@ -2452,19 +2452,25 @@ class AnnualStatistics(models.Model):
     year = models.CharField(_("Year label"), primary_key=True, max_length=256, null=False)
     platform_registrations = models.SmallIntegerField(_("Platform registrations count"), default=0)
     one_immersion_registrations = models.SmallIntegerField(
-        _("Students registered to at least one immersion count"), default=0)
+        _("Students registered to at least one course immersion count"), default=0)
     multiple_immersions_registrations = models.SmallIntegerField(
-        _("Students registered to more than one immersion count"), default=0)
+        _("Students registered to more than one course immersion count"), default=0)
+    no_course_immersions_registrations = models.SmallIntegerField(
+        _("Students without any course immersion registration"), default=0)
+    immersion_registrations = models.SmallIntegerField(_("Course immersions registrations count"), default=0)
+    immersion_participations = models.SmallIntegerField(_("Course immersions participations count"), default=0)
+    immersion_participation_ratio = models.FloatField(_("Course immersions participations ratio"), default=0)
     participants_one_immersion = models.SmallIntegerField(
         _("Participants in at least one immersion count"), default=0)
     participants_multiple_immersions = models.SmallIntegerField(
         _("Participants in multiple immersions count"), default=0)
-    immersion_registrations = models.SmallIntegerField(_("Immersion registrations count"), default=0)
-    seats_count = models.SmallIntegerField(_("Global seats count"), default=0)
     structures_count = models.SmallIntegerField(_("Participating structures count"), default=0)
+    active_trainings_count = models.SmallIntegerField(_("Active trainings count"), default=0)
     trainings_one_slot_count = models.SmallIntegerField(_("Trainings offering at least one slot count"), default=0)
+    active_courses_count = models.SmallIntegerField(_("Active courses count"), default=0)
     courses_one_slot_count = models.SmallIntegerField(_("Courses offering at least one slot count"), default=0)
     total_slots_count = models.SmallIntegerField(_("Total slots count"), default=0)
+    seats_count = models.SmallIntegerField(_("Global seats count"), default=0)
     approved_highschools = models.SmallIntegerField(_("Approved highschools count"), default=0)
     highschools_without_students = models.SmallIntegerField(_("Highschools with no students"), default=0)
 
