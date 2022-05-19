@@ -2460,19 +2460,17 @@ class AnnualStatistics(models.Model):
     immersion_registrations = models.SmallIntegerField(_("Course immersions registrations count"), default=0)
     immersion_participations = models.SmallIntegerField(_("Course immersions participations count"), default=0)
     immersion_participation_ratio = models.FloatField(_("Course immersions participations ratio"), default=0)
-
-
-
     participants_one_immersion = models.SmallIntegerField(
         _("Participants in at least one immersion count"), default=0)
     participants_multiple_immersions = models.SmallIntegerField(
         _("Participants in multiple immersions count"), default=0)
-
-    seats_count = models.SmallIntegerField(_("Global seats count"), default=0)
     structures_count = models.SmallIntegerField(_("Participating structures count"), default=0)
+    active_trainings_count = models.SmallIntegerField(_("Active trainings count"), default=0)
     trainings_one_slot_count = models.SmallIntegerField(_("Trainings offering at least one slot count"), default=0)
+    active_courses_count = models.SmallIntegerField(_("Active courses count"), default=0)
     courses_one_slot_count = models.SmallIntegerField(_("Courses offering at least one slot count"), default=0)
     total_slots_count = models.SmallIntegerField(_("Total slots count"), default=0)
+    seats_count = models.SmallIntegerField(_("Global seats count"), default=0)
     approved_highschools = models.SmallIntegerField(_("Approved highschools count"), default=0)
     highschools_without_students = models.SmallIntegerField(_("Highschools with no students"), default=0)
 

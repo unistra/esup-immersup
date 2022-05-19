@@ -97,46 +97,51 @@ class Command(BaseCommand):
                 slot__course__isnull=False,
             ).count()
 
+        # Number of participants in at least one immersion
+        annual_stats.participants_one_immersion = ImmersionUser.objects.filter(
+            immersions__attendance_status=1
+        ).distinct().count()
+
         # Course immersions participations ratio
         if annual_stats.immersion_registrations:
             annual_stats.immersion_participation_ratio = round(
                 (annual_stats.immersion_participations / annual_stats.immersion_registrations) * 100,
                 2
             )
-
-
-
-
-
-        # Number of participants in at least one immersion
-        annual_stats.participants_one_immersion = ImmersionUser.objects.filter(
-            immersions__attendance_status=1
-        ).distinct().count()
+        else:
+            annual_stats.immersion_participation_ratio = 0
 
         # Number of participants in more than one immersion
         annual_stats.participants_multiple_immersions = ImmersionUser.objects.annotate(
             imm_count=Count('immersions', filter=Q(immersions__attendance_status=1))).filter(
             imm_count__gt=1).count()
 
-        # Number of offered seats
-        annual_stats.seats_count = Slot.objects.filter(published=True).aggregate(
-            seats_count=Sum('n_places'))['seats_count'] or 0
-
-        # Participating structures
-        annual_stats.strucures_count = Structure.objects.annotate(
-            slot_nb=Count('courses__slots', filter=Q(courses__slots__published=True)))\
+        # Structures with published slots
+        annual_stats.structures_count = Structure.objects.filter(active=True).annotate(
+            slot_nb=Count('courses__slots', filter=Q(courses__slots__published=True))) \
             .filter(slot_nb__gt=0).count()
+
+        # Active trainings
+        annual_stats.active_trainings_count = Training.objects.filter(active=True).count()
 
         # Trainings with at least one slot
-        annual_stats.trainings_one_slot_count = Training.objects.annotate(
-            slot_nb=Count('courses__slots', filter=Q(courses__slots__published=True)))\
+        annual_stats.trainings_one_slot_count = Training.objects.filter(active=True).annotate(
+            slot_nb=Count('courses__slots', filter=Q(courses__slots__published=True))) \
             .filter(slot_nb__gt=0).count()
+
+        # Active courses
+        annual_stats.courses_one_slot_count = Course.objects.filter(published=True).count()
 
         # Courses with at least one slot
         annual_stats.courses_one_slot_count = Course.objects.annotate(
             slot_nb=Count('slots', filter=Q(slots__published=True))) \
             .filter(slot_nb__gt=0).count()
 
-        annual_stats.total_slots_count = Slot.objects.filter(published=True).count()
+        # Published course slots
+        annual_stats.total_slots_count = Slot.objects.filter(course__isnull=False, published=True).count()
+
+        # Number of offered seats of course slots
+        annual_stats.seats_count = Slot.objects.filter(course__isnull=False, published=True).aggregate(
+            seats_count=Sum('n_places'))['seats_count'] or 0
 
         annual_stats.save()
