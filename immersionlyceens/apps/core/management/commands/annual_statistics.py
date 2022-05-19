@@ -32,8 +32,9 @@ class Command(BaseCommand):
         except AnnualStatistics.DoesNotExist:
             annual_stats = AnnualStatistics.objects.create(year=year.label)
 
-        hs_queryset = HighSchool.objects.filter(
-            convention_start_date__isnull=False, convention_end_date__isnull=False)
+        hs_queryset = HighSchool.objects\
+            .prefetch_related('student_records')\
+            .filter(convention_start_date__isnull=False, convention_end_date__isnull=False)
 
         # Approved high schools
         annual_stats.approved_highschools = hs_queryset.count()
@@ -41,20 +42,71 @@ class Command(BaseCommand):
         # Approved high schools with no registered students
         annual_stats.highschools_without_students = hs_queryset.filter(student_records__isnull=True).count()
 
-        # Total number of registered students
-        annual_stats.platform_registrations = ImmersionUser.objects.filter(
-            Q(student_record__isnull=False)|Q(high_school_student_record__validation=2)
-        ).count()
+        # Total number of registered students + high school pupils
+        annual_stats.platform_registrations = ImmersionUser.objects\
+            .prefetch_related('student_record', 'high_school_student_record')\
+            .filter(
+                Q(student_record__isnull=False)|Q(high_school_student_record__validation=2)
+            )\
+            .count()
 
-        # Number of registered students to at least one immersion
-        annual_stats.one_immersion_registrations = ImmersionUser.objects.filter(
-            immersions__isnull=False, immersions__cancellation_type__isnull=True
-        ).distinct().count()
+        # Number of registered students to at least one course immersion
+        annual_stats.one_immersion_registrations = ImmersionUser.objects \
+            .prefetch_related('immersions__slot__course')\
+            .filter(
+                immersions__isnull=False,
+                immersions__slot__course__isnull=False,
+                immersions__cancellation_type__isnull=True
+            )\
+            .distinct().count()
 
         # Number of registered students to more than one immersion
-        annual_stats.multiple_immersions_registrations = ImmersionUser.objects.annotate(
-            imm_count=Count('immersions', filter=Q(immersions__cancellation_type__isnull=True))).filter(
-            imm_count__gt=1).count()
+        annual_stats.multiple_immersions_registrations = ImmersionUser.objects\
+            .prefetch_related('immersions__slot__course')\
+            .annotate(
+                imm_count=Count(
+                    'immersions',
+                    filter=Q(immersions__cancellation_type__isnull=True, immersions__slot__course__isnull=False,))
+                )\
+            .filter(imm_count__gt=1).count()
+
+        # User with no course immersion registration
+        annual_stats.no_course_immersions_registrations = ImmersionUser.objects\
+            .prefetch_related('immersions__slot__course')\
+            .annotate(
+                imm_count=Count(
+                    'immersions',
+                    filter=Q(immersions__slot__course__isnull=False))
+                )\
+            .filter(imm_count=0).count()
+
+        # Number of course immersions registrations
+        annual_stats.immersion_registrations = Immersion.objects.\
+            prefetch_related('slot__course')\
+            .filter(
+                cancellation_type__isnull=True,
+                slot__course__isnull=False,
+            ).count()
+
+        # Number of participations to courses immersions
+        annual_stats.immersion_participations = Immersion.objects. \
+            prefetch_related('slot__course') \
+            .filter(
+                cancellation_type__isnull=True,
+                attendance_status=1,
+                slot__course__isnull=False,
+            ).count()
+
+        # Course immersions participations ratio
+        if annual_stats.immersion_registrations:
+            annual_stats.immersion_participation_ratio = round(
+                (annual_stats.immersion_participations / annual_stats.immersion_registrations) * 100,
+                2
+            )
+
+
+
+
 
         # Number of participants in at least one immersion
         annual_stats.participants_one_immersion = ImmersionUser.objects.filter(
@@ -65,11 +117,6 @@ class Command(BaseCommand):
         annual_stats.participants_multiple_immersions = ImmersionUser.objects.annotate(
             imm_count=Count('immersions', filter=Q(immersions__attendance_status=1))).filter(
             imm_count__gt=1).count()
-
-        # Number of immersions registrations
-        annual_stats.immersion_registrations = Immersion.objects.filter(
-            cancellation_type__isnull=True
-        ).count()
 
         # Number of offered seats
         annual_stats.seats_count = Slot.objects.filter(published=True).aggregate(
