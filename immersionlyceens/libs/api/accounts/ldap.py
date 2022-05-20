@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class AccountAPI(BaseAccountsAPI):
     attrs_list = [
         'HOST', 'PORT', 'DN', 'PASSWORD', 'BASE_DN', 'ACCOUNTS_FILTER', 'SEARCH_ATTR', 'DISPLAY_ATTR',
-        'EMAIL_ATTR', 'USERNAME_ATTR', 'LASTNAME_ATTR', 'FIRSTNAME_ATTR'
+        'EMAIL_ATTR', 'LASTNAME_ATTR', 'FIRSTNAME_ATTR'
     ]
 
     def __init__(self, establishment: Establishment):
@@ -67,7 +67,6 @@ class AccountAPI(BaseAccountsAPI):
             search_attr = self.SEARCH_ATTR
 
         attributes = {
-            'username': self.USERNAME_ATTR,
             'email': self.EMAIL_ATTR,
             'lastname': self.LASTNAME_ATTR,
             'firstname': self.FIRSTNAME_ATTR,
