@@ -283,7 +283,6 @@
               {% endif %}
               <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
-              <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
               <a class="dropdown-item dropdown-collapsible dropdown-toggle" data-toggle="collapse" href="#navbarDropdownSubMenu1" role="button" aria-expanded="false" aria-controls="navbarDropdownSubMenu1">{% trans "Member of "%} ... </a>
               <div class="collapse bg-light" id="navbarDropdownSubMenu1">
                 {% for establishment in core_establishments %}
