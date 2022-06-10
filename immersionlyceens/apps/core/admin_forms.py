@@ -24,12 +24,12 @@ from ...libs.geoapi.utils import get_cities, get_departments, get_zipcodes
 from .models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, CertificateLogo, CertificateSignature, CourseType,
-    Establishment, EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HighSchool, HighSchoolLevel, Holiday, ImmersionUser,
-    ImmersionUserGroup, InformationText, MailTemplate, MailTemplateVars,
-    OffOfferEventType, PostBachelorLevel, PublicDocument, PublicType,
-    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
-    UniversityYear, Vacation, ImmersupFile
+    CustomThemeFile, Establishment, EvaluationFormLink, EvaluationType,
+    GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
+    Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
+    MailTemplate, MailTemplateVars, OffOfferEventType, PostBachelorLevel,
+    PublicDocument, PublicType, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1745,4 +1745,50 @@ class StudentLevelForm(TypeFormMixin):
 
     class Meta:
         model = StudentLevel
+        fields = '__all__'
+
+
+class CustomThemeFileForm(forms.ModelForm):
+    """
+    Custome theme file form class
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_file(self):
+        file = self.cleaned_data['file']
+        if file and isinstance(file, UploadedFile):
+
+            allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
+
+            if not file.content_type in allowed_content_type:
+                raise forms.ValidationError(_('File type is not allowed'))
+
+        return file
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_user = False
+
+        try:
+            user = self.request.user
+            valid_user = user.is_superuser or user.is_operator()
+        except AttributeError:
+            pass
+
+
+        if cleaned_data["type"] == 'FAVICON' and CustomThemeFile.objects.filter(type='FAVICON').first():
+            raise forms.ValidationError(
+                _("A favicon already exists"))
+
+
+        if not valid_user:
+            raise forms.ValidationError(_("You don't have the required privileges"))
+
+        return cleaned_data
+
+    class Meta:
+        model = CustomThemeFile
         fields = '__all__'

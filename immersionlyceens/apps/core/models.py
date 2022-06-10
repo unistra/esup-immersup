@@ -35,11 +35,11 @@ from immersionlyceens.fields import UpperCharField
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.validators import JsonSchemaValidator
 
+from ...libs.utils import get_general_setting
 from .managers import (
     ActiveManager, CustomDeleteManager, EstablishmentQuerySet,
     HighSchoolAgreedManager, StructureQuerySet,
 )
-from ...libs.utils import get_general_setting
 
 logger = logging.getLogger(__name__)
 
@@ -2605,3 +2605,51 @@ class ImmersupFile(models.Model):
         """Meta class"""
         verbose_name = _('ImmerSup file')
         verbose_name_plural = _('ImmerSup files')
+
+
+class CustomThemeFile(models.Model):
+    """
+    Any file used to pimp immersup theme
+    """
+
+    FILE_TYPE = [
+        ('JS', _('Js')),
+        ('CSS', _('Css')),
+        ('IMG', _('Image')),
+        ('FAVICON', _('Favicon'))
+    ]
+
+    type = models.CharField(_("File type"), max_length=7, choices=FILE_TYPE, default="CSS")
+    file = models.FileField(
+        _("File"),
+        upload_to=get_file_path,
+        blank=False,
+        null=False,
+        help_text=_('Only files with type (%(authorized_types)s). Max file size : %(max_size)s')
+                  % {
+                      'authorized_types': ', '.join(['png', 'jpeg', 'jpg', 'ico', 'css', 'js']),
+                      'max_size': filesizeformat(settings.MAX_UPLOAD_SIZE)
+                  },
+    )
+
+    objects = CustomDeleteManager()
+
+    @classmethod
+    def object(cls):
+        """get only allowed object"""
+        return cls._default_manager.all().first()
+
+    def delete(self, using=None, keep_parents=False):
+        """Delete file uploaded"""
+        self.file.storage.delete(self.file.name)
+        super().delete()
+
+
+    def __str__(self):
+        """str"""
+        return gettext("file : %s" % self.file.name)
+
+    class Meta:
+        """Meta class"""
+        verbose_name = _('Custom theme file')
+        verbose_name_plural = _('Custom theme files')
