@@ -215,7 +215,7 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = "core.ImmersionUser"
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/" 
+LOGOUT_REDIRECT_URL = "/"
 
 #####################
 # Url configuration #
