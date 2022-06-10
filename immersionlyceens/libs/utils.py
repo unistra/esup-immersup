@@ -90,3 +90,22 @@ def render_text(template_data: str, data: Dict[str, Any]) -> str:
     django_engine: Engine = engines["django"]
     template: Template = django_engine.from_string(template_data)
     return template.render(context=data)
+
+
+def get_custom_favicon_url():
+    """
+    Get favicon custom theme file if exists
+
+    """
+    try:
+        favicon = core_models.CustomThemeFile.objects.get(type='FAVICON')
+    except core_models.CustomThemeFile.DoesNotExist:
+        raise NameError
+    except AttributeError:
+        raise ValueError
+
+    # Variable is empty
+    if not favicon:
+        raise ValueError
+
+    return favicon

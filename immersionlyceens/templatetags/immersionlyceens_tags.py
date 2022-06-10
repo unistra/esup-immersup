@@ -11,7 +11,7 @@ from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.libs.utils import (
-    get_general_setting, get_information_text,
+    get_custom_favicon_url, get_general_setting, get_information_text,
 )
 
 from ..apps.core.models import GeneralSettings, HighSchool, ImmersionUser
@@ -175,4 +175,11 @@ def get_etab_label(obj):
     try:
         return f'{obj.label} - {obj.city}' if isinstance(obj, HighSchool) else obj.label
     except Exception as e:
+        return ""
+
+@register.simple_tag
+def get_custom_favicon():
+    try:
+        return get_custom_favicon_url()
+    except (ValueError, NameError):
         return ""
