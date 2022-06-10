@@ -1,0 +1,21 @@
+@font-face {
+	font-family:'Cosimo';
+	src:	url('cosimo/Cosimo-Regular-205TF.eot');
+	src:	url('cosimo/Cosimo-Regular-205TF.eot#iefix') format('embedded-opentype'),
+			url('cosimo/Cosimo-Regular-205TF.woff2') format('woff2'),
+			url('cosimo/Cosimo-Regular-205TF.woff') format('woff'),
+			url('cosimo/Cosimo-Regular-205TF.svg') format('svg');
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family:'Cosimo';
+	src:	url('cosimo/Cosimo-Bold-205TF.eot');
+	src:	url('cosimo/Cosimo-Bold-205TF.eot#iefix') format('embedded-opentype'),
+			url('cosimo/Cosimo-Bold-205TF.woff2') format('woff2'),
+			url('cosimo/Cosimo-Bold-205TF.woff') format('woff'),
+			url('cosimo/Cosimo-Bold-205TF.svg') format('svg');
+	font-weight: 700;
+	font-style: normal;
+}
