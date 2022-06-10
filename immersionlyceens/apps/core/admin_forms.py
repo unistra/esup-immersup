@@ -1760,9 +1760,9 @@ class CustomThemeFileForm(forms.ModelForm):
     def clean_file(self):
         file = self.cleaned_data['file']
         if file and isinstance(file, UploadedFile):
-
+            # TODO: check later cause text/javascript is deprecated !
+            mimetypes.add_type("text/javascript", ".js")
             allowed_content_type = [mimetypes.types_map[f'.{c}'] for c in ['png', 'jpeg', 'jpg', 'ico', 'css', 'js']]
-
             if not file.content_type in allowed_content_type:
                 raise forms.ValidationError(_('File type is not allowed'))
 

@@ -11,7 +11,7 @@ from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.libs.utils import (
-    get_custom_favicon_url, get_general_setting, get_information_text,
+    get_custom_theme_files, get_general_setting, get_information_text,
 )
 
 from ..apps.core.models import GeneralSettings, HighSchool, ImmersionUser
@@ -170,6 +170,7 @@ def is_local_superuser(context):
 def sub(value, arg):
     return value - arg
 
+
 @register.filter()
 def get_etab_label(obj):
     try:
@@ -177,9 +178,32 @@ def get_etab_label(obj):
     except Exception as e:
         return ""
 
+
 @register.simple_tag
 def get_custom_favicon():
     try:
-        return get_custom_favicon_url()
-    except (ValueError, NameError):
+        return get_custom_theme_files("FAVICON").first()
+    except:
+        return ""
+
+
+@register.simple_tag
+def get_custom_css_files():
+    try:
+        return get_custom_theme_files("CSS")
+    except:
+        return ""
+
+@register.simple_tag
+def get_custom_js_files():
+    try:
+        return get_custom_theme_files("JS")
+    except:
+        return ""
+
+@register.simple_tag
+def get_custom_images_files():
+    try:
+        return get_custom_theme_files("IMG")
+    except:
         return ""
