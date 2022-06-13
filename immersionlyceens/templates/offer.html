@@ -7,7 +7,7 @@
 {% settings_get 'UNISTRA' as unistra %}
 
 <div class="main-title inside text-center">
-  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div></div>
   <div class="container">
     <div class="row">
       <div class="col">
@@ -51,22 +51,7 @@
         <div class="card domain">
           <header>
             <div class="domain-title">
-            {% if unistra == "true" %}
-            <div class="sun sun-theme-primary">
-              <span class="sun-row">
-                <span class="sun-cell sun-empty-1"></span>
-                  <span class="sun-cell">
-                    <span class="sun-cell-inner">
-                      <strong>{{ subdomain.grouper }}</strong>
-                    </span>
-                  </span>
-                  <span class="sun-cell sun-empty-4"></span>
-                  <span class="sun-cell sun-empty-1"></span>
-                </span>
-            </div>
-            {% else %}
             {{ subdomain.grouper }}
-            {% endif %}
             </div>
           </header>
           <div class="card-body">

@@ -6,31 +6,8 @@
     <div class="row">
       <div class="logo col-auto offset-lg-2">
         {% if unistra == "true" %}
-        <div class="signature-unistra sun sun-theme-primary">
-          <span class="sun-row sun-offset-6">
-            <span class="sun-cell sun-empty-1"></span>
-            <span class="sun-cell sun-empty-3"></span>
-            <a href="{{ platform_url }}" class="sun-cell sun-hover-primary" title="ImmerSup - Immersion dans l'Enseignement supérieur - {{ master_establishment_label }}">
-              <span class="sun-cell-inner"><strong>ImmerSup</strong></span>
-            </a>
-            <span class="sun-cell sun-empty-6"></span>
-            <span class="sun-cell sun-empty-1"></span>
-          </span>
-          <span class="sun-row">
-            <span class="sun-cell sun-empty-2"></span>
-            <a href="{{ platform_url }}" class="sun-cell sun-hover-primary" title="ImmerSup - Immersion dans l'Enseignement supérieur - {{ master_establishment_label }}" aria-hidden="true">
-              <span class="sun-cell-inner">Immersion dans l'Enseignement supérieur</span>
-            </a>
-            <span class="sun-cell sun-empty-4"></span>
-            <span class="sun-cell sun-empty-1"></span>
-          </span>
-          <span class="sun-row sun-offset-18">
-            <span class="sun-cell sun-empty-1"></span>
-            <a href="http://www.unistra.fr" class="sun-cell sun-hover-light" title="{{ master_establishment_label }}">
-              <span class="sun-cell-inner">{{ master_establishment_label }}</span>
-            </a>
-            <span class="sun-cell sun-empty-6"></span>
-          </span>
+        <div class="establishment-logo">
+            <img src="https://typodnum2022.unistra.fr/immersup/img/logo.png" alt="">
         </div>
         {% else %}
         <div class="establishment-logo"></div>
