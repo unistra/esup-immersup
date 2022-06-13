@@ -72,7 +72,7 @@
                   <span class="badge badge-pill immersup-badge" style="background-color: {{training.grouper.highschool.badge_html_color }};margin: 2px;">{{ training.grouper.highschool.label }} - {{ training.grouper.highschool.city }}</span>
                 {% endif %}
                 <button class="btn btn-link" data-toggle="collapse" data-target="#training{{training.grouper.pk}}" aria-expanded="false" aria-controls="training{{training.grouper.pk}}">
-                <i class="fa fa-arrow-right fa-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.grouper.label }}
+                <i class="us us-arrow-right us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Training' %}"></i>{{ training.grouper.label }}
                 </button>
                 {% if training.grouper.url %}<a href="{{ training.grouper.url }}" target=”_blank” data-toggle="tooltip" data-placement="top" title="{% trans 'Click here for more informations'%}"><i class="fa fas fa-info-circle subdomains-icons"></i></a>{% endif %}
               </h5>
@@ -82,7 +82,7 @@
               {% for d in training.list %}
                 <div class="card-header">
                   <h6 class="mb-5 mb-sm-0 more-less-title">
-                    <i class="fa fa-graduation-cap fa-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
+                    <i class="nv nv-graduation-hat nv-fw" data-toggle="tooltip" title="{% trans 'Course' %}"></i>
                     {% if d.slots %}
                       <button class="btn btn-link pl-0" data-toggle="collapse" data-target="#course{{d.course.pk}}" aria-expanded="false" aria-controls="course{{d.course.pk}}">
                     {% endif %}
@@ -119,7 +119,7 @@
                             <tr>
                               <td style="width: 20%"><i class="fa fas fa-calendar text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Date' %}"></i> {{ slot.date | date:"l d F Y"}}</td>
                               <td style="width: 20%"><i class="fa fas fa-clock-o text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Schedules' %}"></i> {{ slot.start_time }} - {{ slot.end_time }}</td>
-                              <td style="width: 20%"><i class="fa fa-books fa-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Course type' %}"></i> {{ slot.course_type }}</td>
+                              <td style="width: 20%"><i class="us us-books us-fw text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Course type' %}"></i> {{ slot.course_type }}</td>
                               <td style="width: 10%" rowspan="2">
                                 <i class="fa fas fa-users text-secondary d-none d-md-inline-block subdomains-icons" data-toggle="tooltip" title="{% trans 'Speaker(s)' %}"></i>
                                 {% trans 'Speaker(s)' %} :
