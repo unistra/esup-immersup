@@ -2647,7 +2647,7 @@ class CustomThemeFile(models.Model):
 
     def __str__(self):
         """str"""
-        return gettext("file : %s" % self.file.name)
+        return gettext("file : %s (%s)" % (self.file.name, self.type))
 
     class Meta:
         """Meta class"""

@@ -13,27 +13,27 @@ from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
 from ..admin import (
-    CampusAdmin, CustomAdminSite, CustomUserAdmin, EstablishmentAdmin,
-    StructureAdmin, TrainingAdmin, CalendarAdmin
+    CalendarAdmin, CampusAdmin, CustomAdminSite, CustomUserAdmin,
+    EstablishmentAdmin, StructureAdmin, TrainingAdmin,
 )
 from ..admin_forms import (
     AccompanyingDocumentForm, BachelorMentionForm, BuildingForm, CalendarForm,
-    CampusForm, CancelTypeForm, CourseTypeForm, EstablishmentForm,
-    EvaluationFormLinkForm, EvaluationTypeForm, GeneralBachelorTeachingForm,
-    GeneralSettingsForm, HighSchoolForm, HolidayForm, ImmersionUserChangeForm,
-    ImmersionUserCreationForm, InformationTextForm, MailTemplateForm,
+    CampusForm, CancelTypeForm, CourseTypeForm, CustomThemeFileForm,
+    EstablishmentForm, EvaluationFormLinkForm, EvaluationTypeForm,
+    GeneralBachelorTeachingForm, GeneralSettingsForm, HighSchoolForm,
+    HolidayForm, ImmersionUserChangeForm, ImmersionUserCreationForm,
+    ImmersupFileForm, InformationTextForm, MailTemplateForm,
     PublicDocumentForm, PublicTypeForm, StructureForm, TrainingDomainForm,
     TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
-    ImmersupFileForm
 )
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
-    CancelType, CourseType, Establishment, EvaluationFormLink, EvaluationType,
-    GeneralBachelorTeaching, GeneralSettings, HigherEducationInstitution,
-    HighSchool, Holiday, ImmersionUser, InformationText, MailTemplate,
-    MailTemplateVars, PublicDocument, PublicType, Structure, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    ImmersupFile
+    CancelType, CourseType, CustomThemeFile, Establishment, EvaluationFormLink,
+    EvaluationType, GeneralBachelorTeaching, GeneralSettings,
+    HigherEducationInstitution, HighSchool, Holiday, ImmersionUser,
+    ImmersupFile, InformationText, MailTemplate, MailTemplateVars,
+    PublicDocument, PublicType, Structure, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -2324,3 +2324,47 @@ class AdminFormsTestCase(TestCase):
 
         self.assertIn(error, form.errors['parameters'][0])
 
+
+def test_custom_theme_file_creation(self):
+        """
+        Test custom theme file creation with group rights
+        """
+
+        file = {'file': SimpleUploadedFile("shiny_css.css", b"toto", content_type="text/css")}
+        data = {
+            'type': 'CSS',
+        }
+
+        # Failures (invalid users)
+        request.user = self.ref_str_user
+        form = CustomThemeFileForm(data=data, files=file, request=request)
+        self.assertFalse(form.is_valid())
+
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+
+        request.user = self.ref_etab_user
+        form = CustomThemeFileForm(data=data, files=file, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("You don't have the required privileges", form.errors["__all__"])
+
+        # Success
+        request.user = self.operator_user
+
+        form = CustomThemeFileForm(data=data, files=file, request=request)
+        self.assertTrue(form.is_valid())
+
+        # Favicon
+        file2 = {'file': SimpleUploadedFile("favicon.png", b"toto", content_type="image/png")}
+        data2 = {
+            'type': 'FAVICON',
+        }
+
+        form = CustomThemeFileForm(data=data2, files=file2, request=request)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        # Try to upload an other favicon file is not possible
+        file3 = {'file': SimpleUploadedFile("favicon2.png", b"toto", content_type="image/png")}
+        form = CustomThemeFileForm(data=data2, files=file3, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("A favicon already exists", form.errors["__all__"])
