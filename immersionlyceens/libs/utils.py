@@ -90,3 +90,21 @@ def render_text(template_data: str, data: Dict[str, Any]) -> str:
     django_engine: Engine = engines["django"]
     template: Template = django_engine.from_string(template_data)
     return template.render(context=data)
+
+
+def get_custom_theme_files(type=None):
+    if not type:
+        return None
+
+    try:
+        files = core_models.CustomThemeFile.objects.filter(type=type)
+    except core_models.CustomThemeFile.DoesNotExist:
+        raise NameError
+    except AttributeError:
+        raise ValueError
+
+    # Variable is empty
+    if not files:
+        raise ValueError
+
+    return files

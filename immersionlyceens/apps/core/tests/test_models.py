@@ -1,21 +1,22 @@
-from datetime import time, datetime, timedelta
+from asyncio import DatagramTransport
+from datetime import datetime, time, timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
+from immersionlyceens.apps.immersion.models import StudentRecord
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
-    CancelType, Course, CourseType, Establishment, EvaluationFormLink,
-    EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
-    Holiday, ImmersionUser, PublicDocument, PublicType, Slot, Structure,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
-    HigherEducationInstitution, StudentLevel, ImmersupFile
+    CancelType, Course, CourseType, CustomThemeFile, Establishment,
+    EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
+    GeneralSettings, HigherEducationInstitution, HighSchool, Holiday,
+    ImmersionUser, ImmersupFile, PublicDocument, PublicType, Slot, Structure,
+    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
+    Vacation,
 )
-
-from immersionlyceens.apps.immersion.models import StudentRecord
 
 
 class CampusTestCase(TestCase):
@@ -736,7 +737,18 @@ class CourseTestCase(TestCase):
 
         self.assertEqual(str(course),'my super course')
 
+
 class GeneralSettingsTestCase(TestCase):
     def test_str_general_settings(self):
         g = GeneralSettings.objects.create(setting="MySetting", parameters=[{'my_setting': 'myvalue'}])
         self.assertEqual(str(g), 'MySetting')
+
+
+class CustomThemeFileTestCase(TestCase):
+    def test_str_custom_theme_file(self):
+        data = {
+            'type': 'CSS',
+            'file': SimpleUploadedFile("test.css", b"toto", content_type="text/css"),
+        }
+        c = CustomThemeFile.objects.create(**data)
+        self.assertEqual(str(c), "file : %s (%s)" % (c.file.name, c.type))

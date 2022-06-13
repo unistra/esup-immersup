@@ -5,6 +5,9 @@
 {% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
 {% settings_get 'STAGE' as stage %}
 {% settings_get 'USE_MATOMO' as use_matomo %}
+{% get_custom_favicon as custom_favicon %}
+{% get_custom_css_files as custom_css_files %}
+{% get_custom_js_files as custom_js_files %}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
     <title>{% block title %}ImmerSup{% endblock %}</title>
@@ -14,7 +17,11 @@
     <meta name="author" content='Direction du Numérique - Université de Strasbourg'>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
+    {% if custom_favicon %}
+    <link rel="shortcut icon" href="{{ custom_favicon.file.url }}" type="image/png">
+    {% else %}
     <link rel="shortcut icon" href="{% static 'img/favicon-unistra-32px.png' %}" type="image/png">
+    {% endif %}
     {% comment %} Fonts {% endcomment %}
     <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.css' %}">
     {% comment %} TODO: add a boolean conditionnal statement to load or not unistra design {% endcomment %}
@@ -26,6 +33,9 @@
     <link rel="stylesheet" href="{% static 'fonts/unistra-signature/3.0.1/css/themes/sun-theme-immersion.min.css' %}">
     {% comment %} End of fonts {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/styles-unistra.min.css' %}">
+    {% for css_file in custom_css_files %}
+    <link rel="stylesheet" href="{{ css_file.file.url }}">
+    {% endfor %}
     {% block head-css %}{% endblock %}
     <script src="{% static 'js/vendor/jquery/jquery-3.4.1.min.js' %}"></script>
     <script src="{{ STATIC_URL }}/summernote/summernote-bs4.min.js"></script>
@@ -34,9 +44,11 @@
     {% settings_get 'MATOMO_SITE_ID' as matomo_site_id %}
     <script>var _paq=window._paq=window._paq||[];_paq.push(['trackPageView']),_paq.push(['enableLinkTracking']),function(){var a='{{ matomo_url }}';_paq.push(['setTrackerUrl',a+'matomo.php']),_paq.push(['setSiteId','{{ matomo_site_id }}']);var e=document,t=e.createElement('script'),p=e.getElementsByTagName('script')[0];t.async=!0,t.src=a+'matomo.js',p.parentNode.insertBefore(t,p)}()</script>
     {% endif %}
+    {% for js_file in custom_js_files %}
+    <script src="{{ js_file.file.url }}"></script>
+    {% endfor %}
     {% block head-javascript %}
     {% endblock %}
-    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
 </head>
 <body>
     {% include './fragments/main_header.html'%}
