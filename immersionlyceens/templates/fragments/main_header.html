@@ -7,7 +7,7 @@
       <div class="logo col-auto offset-lg-2">
         {% if unistra == "true" %}
         <div class="establishment-logo">
-            <img src="https://typodnum2022.unistra.fr/immersup/img/logo.png" alt="">
+            <a href="{% url 'home' %}"><img src="{% static 'img/logo.png' %}" alt=""></a>
         </div>
         {% else %}
         <div class="establishment-logo"></div>
