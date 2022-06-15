@@ -445,8 +445,8 @@ mark,
   position: relative;
 }
 .list-arrows li::before {
-  content: "3";
-  font-family: "Unistra Symbol";
+  content: "\f105";
+  font-family: "FontAwesome";
   position: absolute;
   margin: -0.1em 0 0 -1.1em;
   -webkit-align-self: normal;
@@ -4532,7 +4532,7 @@ input[type="button"].btn-block {
   display: inline-block;
   padding-right: 0.5rem;
   color: #3d6e7d;
-  content: "3";
+  content: "";
 }
 .breadcrumb-item + .breadcrumb-item:hover::before {
   text-decoration: underline;
@@ -9248,7 +9248,7 @@ a.text-gray:focus {
   padding-right: 5px;
 }
 .breadcrumb-item + .breadcrumb-item::before {
-  font-family: "Unistra Symbol";
+  font-family: "FontAwesome";
   line-height: 1;
 }
 #navbarDropdownUser {

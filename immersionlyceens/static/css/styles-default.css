@@ -315,7 +315,7 @@ h2,
 h3,
 .h3 {
   font-size: 1.75rem;
-  color: #6c757d;
+  color: #007bff;
 }
 h4,
 .h4 {
@@ -391,8 +391,8 @@ mark,
   position: relative;
 }
 .list-arrows li::before {
-  content: "3";
-  font-family: "Unistra Symbol";
+  content: "\f105";
+  font-family: "FontAwesome";
   position: absolute;
   margin: -0.1em 0 0 -1.1em;
   -webkit-align-self: normal;
@@ -2224,6 +2224,10 @@ textarea.form-control.is-invalid {
     transition: none;
   }
 }
+.btn .fa,
+#navbarDropdownUser .fa {
+  font-size: 1em;
+}
 .btn:hover,
 #navbarDropdownUser:hover {
   color: #212529;
@@ -2598,38 +2602,38 @@ fieldset:disabled a.btn {
 }
 #navbarDropdownUser {
   color: #fff;
-  background-color: #6c757d;
-  border-color: #6c757d;
+  background-color: #007bff;
+  border-color: #007bff;
 }
 #navbarDropdownUser:hover {
   color: #fff;
-  background-color: #5a6268;
-  border-color: #545b62;
+  background-color: #0069d9;
+  border-color: #0062cc;
 }
 #navbarDropdownUser:focus,
 #navbarDropdownUser.focus {
   color: #fff;
-  background-color: #5a6268;
-  border-color: #545b62;
-  box-shadow: 0 0 0 0.2rem rgba(130, 138, 145, 0.5);
+  background-color: #0069d9;
+  border-color: #0062cc;
+  box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.5);
 }
 #navbarDropdownUser.disabled,
 #navbarDropdownUser:disabled {
   color: #fff;
-  background-color: #6c757d;
-  border-color: #6c757d;
+  background-color: #007bff;
+  border-color: #007bff;
 }
 #navbarDropdownUser:not(:disabled):not(.disabled):active,
 #navbarDropdownUser:not(:disabled):not(.disabled).active,
 .show > #navbarDropdownUser.dropdown-toggle {
   color: #fff;
-  background-color: #545b62;
-  border-color: #4e555b;
+  background-color: #0062cc;
+  border-color: #005cbf;
 }
 #navbarDropdownUser:not(:disabled):not(.disabled):active:focus,
 #navbarDropdownUser:not(:disabled):not(.disabled).active:focus,
 .show > #navbarDropdownUser.dropdown-toggle:focus {
-  box-shadow: 0 0 0 0.2rem rgba(130, 138, 145, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.5);
 }
 .btn-outline-primary {
   color: #007bff;
