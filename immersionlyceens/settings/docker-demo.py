@@ -109,3 +109,6 @@ FORCE_EMAIL_ADDRESS = environ.get('FORCE_EMAIL_ADDRESS', None)
 
 STATIC_ROOT = normpath(join(SITE_ROOT, 'staticfiles'))
 STATIC_URL = '/static/'
+
+# Use Unistra theme & css
+UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')

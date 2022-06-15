@@ -133,3 +133,6 @@ STAGE = 'Dev'
 # AWS_ACCESS_KEY_ID = environ.get('AWS_ACCESS_KEY_ID')
 # AWS_SECRET_ACCESS_KEY = environ.get('AWS_SECRET_ACCESS_KEY')
 # S3_FILEPATH = 'dev'
+
+# Use Unistra theme & css
+UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')

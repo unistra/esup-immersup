@@ -4,10 +4,10 @@
 {% trans "Offer" %}
 {% endblock %}
 {% block content %}
-
+{% settings_get 'UNISTRA' as unistra %}
 
 <div class="main-title inside text-center">
-  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div></div>
   <div class="container">
     <div class="row">
       <div class="col">
@@ -49,20 +49,9 @@
     {% for subdomain in subdomains_list %}
       <div class="col">
         <div class="card domain">
-          <header style="background-image: url({% static 'img/backgrounds/'%}{{ subdomain.list.0.training_domain.pk }}.jpg)">
+          <header>
             <div class="domain-title">
-              <div class="sun sun-theme-primary">
-                <span class="sun-row">
-                  <span class="sun-cell sun-empty-1"></span>
-                    <span class="sun-cell">
-                      <span class="sun-cell-inner">
-                        <strong>{{ subdomain.grouper }}</strong>
-                      </span>
-                    </span>
-                    <span class="sun-cell sun-empty-4"></span>
-                    <span class="sun-cell sun-empty-1"></span>
-                  </span>
-              </div>
+            {{ subdomain.grouper }}
             </div>
           </header>
           <div class="card-body">

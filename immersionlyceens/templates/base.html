@@ -5,6 +5,7 @@
 {% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
 {% settings_get 'STAGE' as stage %}
 {% settings_get 'USE_MATOMO' as use_matomo %}
+{% settings_get 'UNISTRA' as unistra %}
 {% get_custom_favicon as custom_favicon %}
 {% get_custom_css_files as custom_css_files %}
 {% get_custom_js_files as custom_js_files %}
@@ -22,17 +23,14 @@
     {% else %}
     <link rel="shortcut icon" href="{% static 'img/favicon-unistra-32px.png' %}" type="image/png">
     {% endif %}
-    {% comment %} Fonts {% endcomment %}
-    <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.css' %}">
-    {% comment %} TODO: add a boolean conditionnal statement to load or not unistra design {% endcomment %}
-    <link rel="stylesheet" href="{% static 'fonts/unistra-font/1.0.0/css/unistra-font.min.css' %}">
-    <link rel="stylesheet" href="{% static 'fonts/unistra-symbol/1.0.4/css/unistra-symbol.min.css' %}">
-    <link rel="stylesheet" href="{% static 'fonts/nova-icons/1.0.2/css/nova-icons.css' %} ">
-    <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.css' %}">
-    <link rel="stylesheet" href="{% static 'fonts/unistra-signature/3.0.1/css/sun.min.css' %}">
-    <link rel="stylesheet" href="{% static 'fonts/unistra-signature/3.0.1/css/themes/sun-theme-immersion.min.css' %}">
-    {% comment %} End of fonts {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/styles-unistra.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.min.css' %}">
+    {% if unistra == "true" %}
+    <link rel="stylesheet" href="{% static 'css/styles-noria.min.css'%}">
+    <link rel="stylesheet" href="{% static 'fonts/fonts-noria/font-abc.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/fonts-noria/font-cosimo.min.css' %}">
+    {% else %}
+    <link rel="stylesheet" href="css/styles-default.min.css">
+    {% endif %}
     {% for css_file in custom_css_files %}
     <link rel="stylesheet" href="{{ css_file.file.url }}">
     {% endfor %}
@@ -74,7 +72,6 @@
     {% if not contact_form_url %}
     {% include './modals/modal_contact_us.html'%}
     {% endif %}
-    {% include './fragments/main_share.html' %}
     {% include './fragments/main_footer.html' %}
     <script src="{% static 'fonts/unistra-signature/3.0.1/js/sun.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
