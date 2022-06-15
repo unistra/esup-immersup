@@ -23,12 +23,13 @@
     {% else %}
     <link rel="shortcut icon" href="{% static 'img/favicon-unistra-32px.png' %}" type="image/png">
     {% endif %}
-    <link rel="stylesheet" href="https://typodnum2022.unistra.fr/immersup/styles-default.min.css">
-    <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/fontawesome/4.7.0/css/font-awesome.min.css' %}">
     {% if unistra == "true" %}
-    <link rel="stylesheet" href="https://typodnum2022.unistra.fr/immersup/styles-noria.min.css">
+    <link rel="stylesheet" href="css/styles-noria.min.css">
     <link rel="stylesheet" href="{% static 'fonts/fonts-noria/font-abc.min.css' %}">
     <link rel="stylesheet" href="{% static 'fonts/fonts-noria/font-cosimo.min.css' %}">
+    {% else %}
+    <link rel="stylesheet" href="css/styles-default.min.css">
     {% endif %}
     {% for css_file in custom_css_files %}
     <link rel="stylesheet" href="{{ css_file.file.url }}">
