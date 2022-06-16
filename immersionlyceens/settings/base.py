@@ -180,7 +180,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
                 'immersionlyceens.apps.context_processors.establishments',
-                'immersionlyceens.apps.context_processors.master_establishment'
             ],
         },
     },
@@ -217,11 +216,16 @@ AUTHENTICATION_BACKENDS = (
 ######################
 
 AUTH_USER_MODEL = "core.ImmersionUser"
-
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/" 
 
 #####################
 #       CAS         #
 #####################
+
+# By default, do not activate CAS features, Shibboleth is prefered
+# Use CAS only in dev instances where Shibboleth is not available
+USE_CAS = False
 
 CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
 CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
@@ -264,8 +268,8 @@ DJANGO_APPS = [
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'django.contrib.postgres',
-    # 'django.contrib.admindocs',
     'django_cas',
+    # 'django.contrib.admindocs',
 ]
 
 THIRD_PARTY_APPS = [

@@ -4,6 +4,8 @@
 {% general_settings_get 'EVENTS_OFF_OFFER' as events_off_offer %}
 {% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
 {% general_settings_get 'ACTIVATE_STUDENTS' as students_activated %}
+{% settings_get 'USE_CAS' as use_cas %}
+
 <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
   <div class="container">
     <a href="/" class="navbar-brand d-md-none">Plateforme ImmerSup</a>
@@ -283,7 +285,9 @@
               {% endif %}
               <a class="dropdown-item" href="{% url 'immersion:login' profile='ref-lyc' %}">{% trans 'Highschool manager' %}</a>
               <a class="dropdown-item" href="{% url 'immersion:login' profile='speaker' %}">{% trans 'External speaker' %}</a>
-              <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
+              {% if use_cas == 'True' %}
+                  <a class="dropdown-item" href="{% url 'django_cas:login' %}">{% trans 'University member' %} (CAS)</a>
+              {% endif %}
               <a class="dropdown-item dropdown-collapsible dropdown-toggle" data-toggle="collapse" href="#navbarDropdownSubMenu1" role="button" aria-expanded="false" aria-controls="navbarDropdownSubMenu1">{% trans "Member of "%} ... </a>
               <div class="collapse bg-light" id="navbarDropdownSubMenu1">
                 {% for establishment in core_establishments %}

@@ -154,7 +154,7 @@ def get_logout_url(context):
         return reverse('shibboleth:logout')
     # TODO: check urls.py accounts namespace is using django_cas for now
     elif backend == 'django.contrib.auth.backends.ModelBackend':
-        return reverse('django_cas:logout')
+        return reverse('logout')
     else:
         return ''
 
