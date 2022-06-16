@@ -199,6 +199,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_cas.middleware.CASMiddleware',
     'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
     'middlewares.charter_management.ImmersionCharterManagement.ImmersionCharterManagement',
     'hijack.middleware.HijackUserMiddleware',
@@ -207,6 +208,7 @@ MIDDLEWARE = [
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
+    'django_cas.backends.CASBackend',
     'shibboleth.backends.ShibbolethRemoteUserBackend',
 )
 
@@ -217,6 +219,26 @@ AUTHENTICATION_BACKENDS = (
 AUTH_USER_MODEL = "core.ImmersionUser"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/" 
+
+#####################
+#       CAS         #
+#####################
+
+# By default, do not activate CAS features, Shibboleth is prefered
+# Use CAS only in dev instances where Shibboleth is not available
+USE_CAS = False
+
+CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
+CAS_USER_CREATION = False
+CAS_IGNORE_REFERER = True
+CAS_REDIRECT_URL = '/'
+CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
+CAS_RETRY_LOGIN = True
+
+# CAS_LOGOUT_COMPLETELY = True
+CAS_FORCE_SSL_SERVICE_URL = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 #####################
 # Url configuration #
@@ -247,6 +269,7 @@ DJANGO_APPS = [
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'django.contrib.postgres',
+    'django_cas',
     # 'django.contrib.admindocs',
 ]
 

@@ -49,6 +49,7 @@ SECRET_KEY = '{{ secret_key }}'
 ####################
 #       CAS        #
 ####################
+USE_CAS = False
 
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
 CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'

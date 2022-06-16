@@ -46,7 +46,7 @@ SECRET_KEY = '{{ secret_key }}'
 ####################
 #       CAS        #
 ####################
-
+USE_CAS = False
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
 CAS_FORCE_SSL_SERVICE_URL = True
 

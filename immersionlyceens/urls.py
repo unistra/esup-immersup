@@ -22,6 +22,7 @@ urlpatterns = [
     path('accompanying', accompanying, name='accompanying'),
     path('charter_not_signed', charter_not_signed, name='charter_not_signed'),
     path("accounts/", include("django.contrib.auth.urls")),
+    path('cas_accounts/', include('django_cas.urls', namespace='django_cas')),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('admin/', admin.site.urls),
     path('api/', include('immersionlyceens.libs.api.urls')),
