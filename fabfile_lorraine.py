@@ -129,6 +129,7 @@ def preprod():
         's3_endpoint': "AWS_S3_ENDPOINT_URL",
         'matomo_url': "MATOMO_URL",
         'matomo_site_id': "MATOMO_SITE_ID",
+        'use_unistra_theme': "UNISTRA",
         'email_host': "EMAIL_HOST",
         'email_port': "EMAIL_PORT",
         'email_use_tls': "EMAIL_USE_TLS",
