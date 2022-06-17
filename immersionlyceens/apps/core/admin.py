@@ -1871,10 +1871,21 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CustomThemeFileForm
 
 
-    list_display = [
-        'type',
-        'file'
-    ]
+    def get_list_display(self, request):
+        def copy_link_btn(obj):
+            url = request.build_absolute_uri(obj.file.url)
+            return format_html(f"""
+                <a href="#" class="btn btn-secondary mb-1" onclick="navigator.clipboard.writeText('{url}')">
+                <i class="fa fas fa-copy" data-toggle="tooltip" title="{_('Copy file link')}"></i>
+
+                </a>
+                """
+            )
+
+
+        copy_link_btn.short_description = _('Copy file link')
+        return ('type', 'file', copy_link_btn, )
+
 
     def has_add_permission(self, request):
         return request.user.is_operator() or request.user.is_superuser
@@ -1890,6 +1901,11 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_operator() or request.user.is_superuser
+
+    class Media:
+        css = {
+             'all': ('fonts/fontawesome/4.7.0/css/font-awesome.min.css',)
+        }
 
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
