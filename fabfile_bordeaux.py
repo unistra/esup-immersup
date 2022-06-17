@@ -42,7 +42,7 @@ env.no_circus_web = True
 # env.excluded_files = ['pron.jpg'] # file(s) that rsync should exclude when deploying app
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
 # extra debian/ubuntu package(s) to install on remote :
-env.extra_pkg_to_install = ['python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client', 
+env.extra_pkg_to_install = ['python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
                             'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev']
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
@@ -148,7 +148,7 @@ def prod():
         # 'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
         'web': ['django-w7.di.unistra.fr', 'django-w8.di.unistra.fr'],
         'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
-        'shib': ['root@rp-apache-shib2-m.di.unistra.fr', 'root@rp-apache-shib2-s.di.unistra.fr']
+        'shib': ['rp-apache-shib2-m.di.unistra.fr', 'rp-apache-shib2-s.di.unistra.fr']
     }
 
     # env.user = 'root'  # user for ssh
