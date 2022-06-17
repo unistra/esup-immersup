@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="{% static 'fonts/fonts-noria/font-abc.min.css' %}">
     <link rel="stylesheet" href="{% static 'fonts/fonts-noria/font-cosimo.min.css' %}">
     {% else %}
-    <link rel="stylesheet" href="css/styles-default.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles-default.min.css' %}">
     {% endif %}
     {% for css_file in custom_css_files %}
     <link rel="stylesheet" href="{{ css_file.file.url }}">
