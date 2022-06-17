@@ -1874,9 +1874,10 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_list_display(self, request):
         def copy_link_btn(obj):
             url = request.build_absolute_uri(obj.file.url)
+            label = _('Copy file link')
             return format_html(f"""
                 <a href="#" class="btn btn-secondary mb-1" onclick="navigator.clipboard.writeText('{url}')">
-                <i class="fa fas fa-copy" data-toggle="tooltip" title="{_('Copy file link')}"></i>
+                <i class="fa fas fa-copy" data-toggle="tooltip" title="{label}"></i>
 
                 </a>
                 """
