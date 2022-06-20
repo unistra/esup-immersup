@@ -3,6 +3,7 @@
 {% load static %}
 
 {% block extrahead %}
+    <script src="{% url 'javascript-catalog' %}"></script>
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}">
     {{ block.super }}
 {% endblock %}

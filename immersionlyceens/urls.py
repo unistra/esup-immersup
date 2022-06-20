@@ -8,9 +8,9 @@ from immersionlyceens.apps.immersion.views import shibbolethLogin
 
 from .apps.core import views as core_views
 from .views import (
-    accompanying, home, offer, offer_off_offer_events, offer_subdomain,
-    procedure, serve_accompanying_document, serve_public_document,
-    visits_offer, charter_not_signed, serve_immersup_file
+    accompanying, charter_not_signed, home, offer, offer_off_offer_events,
+    offer_subdomain, procedure, serve_accompanying_document,
+    serve_immersup_file, serve_public_document, visits_offer,
 )
 
 admin.autodiscover()
