@@ -308,7 +308,10 @@ class RecoveryView(TemplateView):
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
 
-            use_external_auth = user.establishment and user.establishment.data_source_plugin
+            use_external_auth = any([
+                user.establishment and user.establishment.data_source_plugin,
+                user.is_student()
+            ])
 
             if use_external_auth:
                 messages.warning(request, _("Please use your establishment credentials."))

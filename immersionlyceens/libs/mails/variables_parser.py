@@ -365,10 +365,10 @@ class Parser:
     @staticmethod
     def get_user_context(user: Optional[ImmersionUser]):
         if user:
-            local_account = True
-
-            if all([user.establishment and user.establishment.data_source_plugin]):
-                local_account = False
+            local_account = not any([
+                user.is_student(),
+                user.establishment and user.establishment.data_source_plugin
+            ])
 
             context: Dict[str, Any] = {
                 "nom": user.last_name,
