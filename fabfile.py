@@ -350,16 +350,16 @@ def prod():
 
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
-    env.server_name = 'immersup.unistra.fr'
+    env.server_name = 'immersion.projet-noria.fr'
     env.short_server_name = 'immersup'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.214'
     env.no_shared_sessions = False
     env.server_ssl_on = True
-    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
-    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.path_to_cert = '/etc/ssl/certs/immersion.projet-noria.fr.crt'
+    env.path_to_cert_key = '/etc/ssl/private/immersion.projet-noria.fr.key'
     env.goal = 'prod'
-    env.socket_port = '8010'
+    env.socket_port = '8012'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",
@@ -381,9 +381,8 @@ def prod():
         'email_host_password': "EMAIL_HOST_PASSWORD",
         'force_email_address': "FORCE_EMAIL_ADDRESS",
         'default_from_email': "DEFAULT_FROM_EMAIL",
-        # TODO: should be used later
-        # 'matomo_url': "MATOMO_URL",
-        # 'matomo_site_id': "MATOMO_SITE_ID"
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID"
     }
     execute(build_env)
 
