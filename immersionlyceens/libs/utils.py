@@ -1,5 +1,9 @@
+# pylint: disable=E1101
+"""File for utils content"""
 from datetime import datetime
+from typing import Any, Dict
 
+from django.template import Engine, Template, engines
 from immersionlyceens.apps.core import models as core_models
 
 
@@ -37,7 +41,7 @@ def get_general_setting(name=None):
         return None
 
     try:
-        value = core_models.GeneralSettings.objects.get(setting=name).value.strip()
+        value = core_models.GeneralSettings.objects.get(setting=name).parameters
     except core_models.GeneralSettings.DoesNotExist:
         # Variable not found
         raise NameError
@@ -49,7 +53,7 @@ def get_general_setting(name=None):
     if not value:
         raise ValueError
 
-    return value
+    return value.get('value', '')
 
 
 def get_information_text(code=None):
@@ -74,3 +78,33 @@ def get_information_text(code=None):
         raise ValueError
 
     return value
+
+
+def render_text(template_data: str, data: Dict[str, Any]) -> str:
+    """
+    Render a text base on jinja2 engine
+    :param template_data:
+    :param data:
+    :return:
+    """
+    django_engine: Engine = engines["django"]
+    template: Template = django_engine.from_string(template_data)
+    return template.render(context=data)
+
+
+def get_custom_theme_files(type=None):
+    if not type:
+        return None
+
+    try:
+        files = core_models.CustomThemeFile.objects.filter(type=type)
+    except core_models.CustomThemeFile.DoesNotExist:
+        raise NameError
+    except AttributeError:
+        raise ValueError
+
+    # Variable is empty
+    if not files:
+        raise ValueError
+
+    return files

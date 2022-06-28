@@ -1,99 +1,127 @@
+import json
 import logging
 import uuid
 from datetime import datetime, timedelta
 from io import BytesIO
+from typing import Any, Dict, Optional
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, update_session_auth_hash
-from django.contrib.auth import views as auth_views
+from django.contrib.auth import (
+    authenticate, login, update_session_auth_hash, views as auth_views,
+)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group
-from django.contrib.auth.password_validation import password_validators_help_text_html, validate_password
+from django.contrib.auth.password_validation import (
+    password_validators_help_text_html, validate_password,
+)
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import resolve, reverse
+from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
-from django.utils.translation import ugettext_lazy as _
-
-from shibboleth.decorators import login_optional
-from shibboleth.middleware import ShibbolethRemoteUserMiddleware
-
+from django.utils.translation import gettext_lazy as _
+from django.views import View
+from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
-    Calendar, CancelType, CertificateLogo, CertificateSignature, HigherEducationInstitution,
-    Immersion, ImmersionUser, MailTemplate, UniversityYear, UserCourseAlert,
+    Calendar, CancelType, CertificateLogo, CertificateSignature,
+    HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
+    MailTemplate, PendingUserGroup, PostBachelorLevel, StudentLevel,
+    UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
 from immersionlyceens.decorators import groups_required
 from immersionlyceens.libs.mails.variables_parser import parser
 from immersionlyceens.libs.utils import check_active_year, get_general_setting
+from shibboleth.decorators import login_optional
+from shibboleth.middleware import ShibbolethRemoteUserMiddleware
 
 from .forms import (
-    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm,
-    NewPassForm, RegistrationForm, StudentForm, StudentRecordForm,
+    HighSchoolStudentForm, HighSchoolStudentRecordForm, LoginForm, NewPassForm,
+    RegistrationForm, StudentForm, StudentRecordForm, VisitorForm,
+    VisitorRecordForm,
 )
-from .models import HighSchoolStudentRecord, StudentRecord
+from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
 logger = logging.getLogger(__name__)
 
 
-def customLogin(request, profile=None):
-    """
-    Common login function for multiple users profiles
-    :param request: request object
-    :param profile: name of the profile (None = students)
-    """
-    # Clear all client sessions
-    # Session.objects.all().delete()
+class CustomLoginView(FormView):
+    template_name: str = "immersion/login.html"
+    invalid_no_login_template: str = "immersion/nologin.html"
+    success_url = "/immersion/login"
+    form_class = LoginForm
 
-    is_reg_possible, is_year_valid, year = check_active_year()
+    def get_form_kwargs(self):
+        kwargs: Dict[str, Any] = super().get_form_kwargs()
+        kwargs.update({"profile": self.kwargs.get("profile")})
+        return kwargs
 
-    if not profile and (not year or not is_year_valid):
-        messages.error(request, _("Sorry, the university year has not begun (or already over), you can't login yet."))
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "profile": self.kwargs.get("profile"),
+        })
+        return context
 
+    def dispatch(self, request, *args, **kwargs):
+        profile: Optional[str] = self.kwargs.get("profile")
+        is_reg_possible, is_year_valid, year = check_active_year()
+        if not profile and (not year or not is_year_valid):
+            self.invalid_year(year)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def invalid_year(self, year: UniversityYear):
+        messages.error(self.request, _("Sorry, the university year has not begun (or already over), you can't login yet."))
         context = {
             'start_date': year.start_date if year else None,
             'end_date': year.end_date if year else None,
             'reg_date': year.registration_start_date if year else None,
         }
-        return render(request, 'immersion/nologin.html',context)
+        return render(self.request, self.invalid_no_login_template, context)
 
-    if request.method == 'POST':
-        form = LoginForm(request.POST, profile=profile)
+    def form_valid(self, form):
+        username = form.cleaned_data['login']
+        password = form.cleaned_data['password']
 
-        if form.is_valid():
-            username = form.cleaned_data['login']
-            password = form.cleaned_data['password']
+        user: Optional[ImmersionUser] = authenticate(self.request, username=username, password=password)
 
-            user = authenticate(request, username=username, password=password)
-
-            if user is not None:
-                # Activated account ?
-                if not user.is_valid():
-                    messages.error(request, _("Your account hasn't been enabled yet."))
-                else:
-                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
-                    if user.is_high_school_student():
-                        # If student has filled his record
-                        if user.get_high_school_student_record():
-                            return HttpResponseRedirect("/immersion")
-                        else:
-                            return HttpResponseRedirect("/immersion/hs_record")
-                    elif user.is_high_school_manager() and user.highschool:
-                        return HttpResponseRedirect(reverse('home'))
+        self.user = user
+        if user is not None:
+            if not user.is_valid():
+                messages.error(self.request, _("Your account hasn't been enabled yet."))
+                return self.form_invalid(form)
             else:
-                messages.error(request, _("Authentication error"))
-    else:
-        form = LoginForm()
+                login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
+        else:
+            messages.error(self.request, _("Authentication error"))
+            return self.form_invalid(form)
 
-    context = {'form': form, 'profile': profile}
+        return super().form_valid(form)
 
-    return render(request, 'immersion/login.html', context)
+    def get_success_url(self):
+        go_home = [
+            self.user.is_high_school_manager() and self.user.highschool,
+            self.user.is_speaker(),
+            self.user.is_establishment_manager(),
+            self.user.is_structure_manager(),
+            self.user.is_high_school_manager(),
+            self.user.is_legal_department_staff(),
+        ]
+
+        if self.user.is_high_school_student():
+            return "/immersion" if self.user.get_high_school_student_record() else "/immersion/hs_record"
+        elif self.user.is_visitor():
+            return "/immersion" if self.user.get_visitor_record() else "/immersion/visitor_record"
+        elif any(go_home):
+            return reverse('home')
+        else:
+            return super().get_success_url()
 
 
 @login_optional
@@ -112,9 +140,23 @@ def shibbolethLogin(request, profile=None):
              "<br>Please use the 'contact' link at the bottom of this page, specifying your institution."))
         return HttpResponseRedirect("/")
 
+    try:
+        affiliations = shib_attrs.pop("affiliation", "").split(";")
+    except Exception as e:
+        logger.warning(e)
+        affiliations = []
 
-    if request.POST.get('submit'):
+    is_student = any(list(filter(lambda a: a.startswith("student@"), affiliations)))
+    is_employee = not is_student
+
+    # Account creation confirmed
+    if is_student and request.POST.get('submit'):
+        if not get_general_setting('ACTIVATE_STUDENTS'):
+            messages.error(request, _("Students deactivated"))
+            return HttpResponseRedirect("/")
+
         shib_attrs.pop("uai_code", None)
+
         new_user = ImmersionUser.objects.create(**shib_attrs)
         new_user.set_validation_string()
         new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
@@ -123,11 +165,11 @@ def shibbolethLogin(request, profile=None):
         try:
             Group.objects.get(name='ETU').user_set.add(new_user)
         except Exception:
-            logger.exception("Cannot add 'ETU' group to user {}".format(new_user))
+            logger.exception(f"Cannot add 'ETU' group to user {new_user}")
             messages.error(request, _("Group error"))
 
         try:
-            msg = new_user.send_message(request, 'CPT_MIN_CREATE_ETU')
+            msg = new_user.send_message(request, 'CPT_MIN_CREATE')
         except Exception as e:
             logger.exception("Cannot send activation message : %s", e)
 
@@ -136,14 +178,51 @@ def shibbolethLogin(request, profile=None):
 
 
     if request.user.is_anonymous:
+        err = None
+
+        if is_employee:
+            err = _("Your account must be first created by a master establishment manager or an operator.")
+        elif not is_student:
+            err = _("The attributes sent by Shibboleth show you may not be a student.")
+
+        if err:
+            err += _("<br>If you think this is a mistake, please use the 'contact' link at the " +
+                     "<br>bottom of this page, specifying your institution.")
+            messages.error(request, err)
+            return HttpResponseRedirect("/")
+
         context = shib_attrs
         return render(request, "immersion/confirm_creation.html", context)
     else:
+        # Update user attributes
+        try:
+            user = ImmersionUser.objects.get(username=shib_attrs["username"])
+            user.last_name = shib_attrs["last_name"]
+            user.first_name = shib_attrs["first_name"]
+            user.email = shib_attrs["email"]
+            user.username = shib_attrs["username"]
+            user.save()
+        except (ImmersionUser.DoesNotExist, KeyError):
+            err = _("Unable to find a matching user in database")
+            return HttpResponseRedirect("/")
+
         # Activated account ?
         if not request.user.is_valid():
             messages.error(request, _("Your account hasn't been enabled yet."))
         else:
-            if request.user.is_student():
+            # Existing account or external student
+            staff_accounts = [
+                request.user.is_operator(),
+                request.user.is_master_establishment_manager(),
+                request.user.is_establishment_manager(),
+                request.user.is_structure_manager(),
+                request.user.is_structure_manager(),
+                request.user.is_speaker(),
+            ]
+
+            if is_employee and any(staff_accounts):
+                return HttpResponseRedirect("/")
+            elif is_student and request.user.is_student():
                 # If student has filled his record
                 if request.user.get_student_record():
                     return HttpResponseRedirect("/immersion")
@@ -153,7 +232,7 @@ def shibbolethLogin(request, profile=None):
     return HttpResponseRedirect("/")
 
 
-def register(request):
+def register(request, profile=None):
     # Is current university year valid ?
     is_reg_possible, is_year_valid, year = check_active_year()
 
@@ -168,6 +247,9 @@ def register(request):
 
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
+        redirect_url_name: str = "/immersion/login"
+
+        registration_type: Optional[str] = request.POST.get("registration_type")
 
         if form.is_valid():
             new_user = form.save(commit=False)
@@ -177,19 +259,28 @@ def register(request):
             new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
 
+            group_name: str = "LYC"
+
             try:
-                Group.objects.get(name='LYC').user_set.add(new_user)
+                if get_general_setting('ACTIVATE_VISITORS') and registration_type == "vis":
+                    group_name = "VIS"
+            except:
+                # Should only happen if ACTIVATE_VISITORS setting is not present
+                pass
+
+            try:
+                Group.objects.get(name=group_name).user_set.add(new_user)
             except Exception:
-                logger.exception("Cannot add 'LYC' group to user {}".format(new_user))
+                logger.exception(f"Cannot add '{group_name}' group to user {new_user}")
                 messages.error(request, _("Group error"))
 
             try:
-                msg = new_user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
+                msg = new_user.send_message(request, 'CPT_MIN_CREATE')
             except Exception as e:
                 logger.exception("Cannot send activation message : %s", e)
 
             messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
-            return HttpResponseRedirect("/immersion/login")
+            return HttpResponseRedirect(redirect_url_name)
         else:
             for err_field, err_list in form.errors.get_json_data().items():
                 for error in err_list:
@@ -198,21 +289,31 @@ def register(request):
     else:
         form = RegistrationForm()
 
-    context = {'form': form}
+    context = {'form': form, 'profile': profile}
 
     return render(request, 'immersion/registration.html', context)
 
 
-def recovery(request):
-    email = ""
+class RecoveryView(TemplateView):
+    template_name: str = "immersion/recovery.html"
 
-    if request.method == "POST":
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs).update({
+            "email": self.request.POST.get('email', '').strip().lower()
+        })
+
+    def post(self, request, *args, **kwargs):
         email = request.POST.get('email', '').strip().lower()
 
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
 
-            if not user.username.startswith(settings.USERNAME_PREFIX) and not user.is_high_school_manager():
+            use_external_auth = any([
+                user.establishment and user.establishment.data_source_plugin,
+                user.is_student()
+            ])
+
+            if use_external_auth:
                 messages.warning(request, _("Please use your establishment credentials."))
             else:
                 user.set_recovery_string()
@@ -222,13 +323,10 @@ def recovery(request):
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("No account found with this email address"))
         except ImmersionUser.MultipleObjectsReturned:
-            messages.error(request, _("Error : please contact the SCUIO-IP"))
+            messages.error(request, _("Error : please contact the establishment referent"))
 
-    context = {
-        'email': email,
-    }
-
-    return render(request, 'immersion/recovery.html', context)
+        context: Dict[str, Any] = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
 
 
 def reset_password(request, hash=None):
@@ -264,7 +362,7 @@ def reset_password(request, hash=None):
             messages.error(request, _("Password recovery : invalid data"))
             return HttpResponseRedirect("/immersion/login")
         except ImmersionUser.MultipleObjectsReturned:
-            messages.error(request, _("Error : please contact the SCUIO-IP"))
+            messages.error(request, _("Error : please contact the establishment referent"))
             return HttpResponseRedirect("/immersion/login")
 
         form = NewPassForm(instance=user)
@@ -279,8 +377,9 @@ def reset_password(request, hash=None):
         return HttpResponseRedirect("/immersion/login")
 
 
+# todo: refactor this into class :)
 @login_required
-@groups_required("LYC", "REF-LYC")
+@groups_required("LYC", "REF-LYC", "VIS", "INTER", "REF-ETAB", "REF-STR", "SRV-JUR")
 def change_password(request):
     """
     Change password view for high-school students and high-school managers
@@ -314,30 +413,42 @@ def change_password(request):
     return render(request, 'immersion/change_password.html', context)
 
 
-def activate(request, hash=None):
-    if hash:
-        try:
-            user = ImmersionUser.objects.get(validation_string=hash)
-            user.validate_account()
-            messages.success(request, _("Your account is now enabled. Thanks !"))
+class ActivateView(View):
+    redirect_url: str = "/immersion/login"
 
-            if user.is_student():
-                return HttpResponseRedirect("/shib")
+    def get(self, request, *args, **kwargs):
+        hash = kwargs.get("hash", None)
+        if hash:
+            try:
+                user = ImmersionUser.objects.get(validation_string=hash)
+                user.validate_account()
+                messages.success(request, _("Your account is now enabled. Thanks !"))
 
-        except ImmersionUser.DoesNotExist:
-            messages.error(request, _("Invalid activation data"))
-        except Exception as e:
-            logger.exception("Activation error : %s", e)
-            messages.error(request, _("Something went wrong"))
+                if user.is_student():
+                    return HttpResponseRedirect("/shib")
 
-    return HttpResponseRedirect("/immersion/login")
+            except ImmersionUser.DoesNotExist:
+                messages.error(request, _("Invalid activation data"))
+            except Exception as e:
+                logger.exception("Activation error : %s", e)
+                messages.error(request, _("Something went wrong"))
+
+        return HttpResponseRedirect(self.redirect_url)
 
 
-def resend_activation(request):
-    email = ""
+class ResendActivationView(TemplateView):
+    template_name: str = "immersion/resend_activation.html"
 
-    if request.method == "POST":
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "context": self.request.POST.get('email', '').strip().lower()
+        })
+        return context
+
+    def post(self, request, *args, **kwargs):
         email = request.POST.get('email', '').strip().lower()
+        redirect_url: str = "/shib"
 
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
@@ -346,14 +457,108 @@ def resend_activation(request):
         else:
             if user.is_valid():
                 messages.error(request, _("This account has already been activated, please login."))
-                return HttpResponseRedirect("/immersion/login")
+                return HttpResponseRedirect(redirect_url)
             else:
-                msg = user.send_message(request, 'CPT_MIN_CREATE_LYCEEN')
-                messages.success(request, _("The activation message have been resent."))
+                msg = user.send_message(request, 'CPT_MIN_CREATE')
+                if not msg:
+                    messages.success(request, _("The activation message has been resent."))
+                else:
+                    messages.error(request, _("The activation message has not been sent") + " : " + msg)
 
-    context = {'email': email}
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
 
-    return render(request, 'immersion/resend_activation.html', context)
+
+@method_decorator(groups_required('INTER'), name="dispatch")
+class LinkAccountsView(TemplateView):
+    template_name: str = "immersion/link_accounts.html"
+
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "context": self.request.POST.get('email', '').strip().lower()
+        })
+        return context
+
+
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get('email', '').strip().lower()
+
+        try:
+            user = ImmersionUser.objects.get(email__iexact=email)
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("No account found with this email address"))
+        else:
+            if user.is_valid():
+                if not user.is_only_speaker():
+                    messages.error(request, _("This account is not a speaker-only one, it can't be linked"))
+                elif user in request.user.linked_users():
+                    messages.success(request, _("These accounts are already linked"))
+
+                else:
+                    try:
+                        pending = PendingUserGroup.objects.get(
+                            Q(immersionuser1=request.user, immersionuser2=user)
+                            |Q(immersionuser2=request.user, immersionuser1=user)
+                        )
+                    except PendingUserGroup.DoesNotExist:
+                        pending = PendingUserGroup.objects.create(
+                            immersionuser1 = request.user,
+                            immersionuser2 = user,
+                            validation_string = uuid.uuid4().hex
+                        )
+
+                    link_validation_string = pending.validation_string
+
+                    msg = user.send_message(
+                        request,
+                        'CPT_FUSION',
+                        link_validation_string=link_validation_string,
+                        link_source_user=request.user
+                    )
+
+                    if not msg:
+                        messages.success(request, _("The link message has been sent to this email address"))
+                    else:
+                        messages.error(request, _("Message not sent : %s") % msg)
+            else:
+                messages.error(request, _("This account has not been validated (yet)"))
+
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+
+@method_decorator(groups_required('INTER'), name="dispatch")
+class LinkView(View):
+    redirect_url: str = "/immersion/link_accounts"
+
+    def get(self, request, *args, **kwargs):
+        hash = kwargs.get("hash", None)
+        if hash:
+            try:
+                pending_link = PendingUserGroup.objects.get(validation_string=hash)
+                u1 = pending_link.immersionuser1
+                u2 = pending_link.immersionuser2
+
+                if u1.usergroup.exists():
+                    usergroup = u1.usergroup.first()
+                    if u2 not in u1.linked_users():
+                        usergroup.immersionusers.add(u2)
+                else:
+                    usergroup = u1.usergroup.create()
+                    usergroup.immersionusers.add(u2)
+
+                pending_link.delete()
+
+                messages.success(request, _("Your accounts have been linked"))
+
+            except PendingUserGroup.DoesNotExist:
+                messages.error(request, _("Invalid link data"))
+            except Exception as e:
+                logger.exception("Link error : %s", e)
+                messages.error(request, _("Something went wrong"))
+
+        return HttpResponseRedirect(self.redirect_url)
 
 
 @login_required
@@ -363,11 +568,12 @@ def home(request):
 
 
 @login_required
-@groups_required('SCUIO-IP', 'LYC')
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'LYC', 'REF-TEC', 'REF-LYC')
 def high_school_student_record(request, student_id=None, record_id=None):
     """
     High school student record
     """
+    template_name: str = 'immersion/hs_record.html'
     record = None
     student = None
     calendar = None
@@ -383,7 +589,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             student = ImmersionUser.objects.get(pk=student_id)
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("Invalid student id"))
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+            return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
     if request.user.is_high_school_student():
         student = request.user
@@ -411,7 +617,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                 record = student.get_high_school_student_record()
             except ImmersionUser.DoesNotExist:
                 messages.error(request, _("Invalid student id"))
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+                return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
         current_email = student.email
         try:
@@ -426,7 +632,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
             student = studentform.save()
 
             if current_email != student.email:
-                student.username = settings.USERNAME_PREFIX + student.email
+                student.username = student.email
                 student.set_validation_string()
                 try:
                     msg = student.send_message(request, 'CPT_MIN_CHANGE_MAIL')
@@ -458,7 +664,8 @@ def high_school_student_record(request, student_id=None, record_id=None):
             if record.search_duplicates():
                 if request.user.is_high_school_student():
                     messages.warning(
-                        request, _("A record already exists with this identity, please contact the SCUIO-IP team.")
+                        request,
+                        _("A record already exists with this identity, please contact the establishment referent.")
                     )
                 else:
                     messages.warning(
@@ -479,7 +686,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     if error.get("message"):
                         messages.error(request, error.get("message"))
     else:
-        request.session['back'] = request.META.get('HTTP_REFERER')
+        request.session['back'] = request.headers.get('Referer')
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
         studentform = HighSchoolStudentForm(request=request, instance=student)
 
@@ -497,6 +704,25 @@ def high_school_student_record(request, student_id=None, record_id=None):
         Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
     ).count()
 
+    immersion_number = None
+    immersions = student.immersions.filter(
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
+                cancellation_type__isnull=True
+    )
+
+    if calendar.calendar_mode == "YEAR":
+        immersion_number = immersions.count()
+    else:
+        immersion_number = {
+            "semester_1": immersions.filter(
+                slot__date__lte=calendar.semester1_end_date
+            ).count(),
+            "semester_2": immersions.filter(
+                slot__date__gte=calendar.semester2_start_date
+            ).count(),
+        }
+
     context = {
         'calendar': calendar,
         'student_form': studentform,
@@ -506,20 +732,29 @@ def high_school_student_record(request, student_id=None, record_id=None):
         'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
+        'high_school_levels': json.dumps(
+            {l.id: {
+                'is_post_bachelor': l.is_post_bachelor,
+                'requires_bachelor_speciality': l.requires_bachelor_speciality
+            } for l in HighSchoolLevel.objects.all()}
+        ),
+        'immersion_number': immersion_number
     }
 
-    return render(request, 'immersion/hs_record.html', context)
+    return render(request, template_name, context)
 
 
 @login_required
-@groups_required('SCUIO-IP', 'ETU')
+@groups_required('REF-ETAB-MAITRE', 'REF-ETAB', 'REF-TEC', 'ETU')
 def student_record(request, student_id=None, record_id=None):
     """
     Student record
     """
+    template_name: str = 'immersion/student_record.html'
     record = None
     student = None
     calendar = None
+    no_record = False
 
     calendars = Calendar.objects.all()
     if calendars:
@@ -531,12 +766,14 @@ def student_record(request, student_id=None, record_id=None):
             student = ImmersionUser.objects.get(pk=student_id)
         except ImmersionUser.DoesNotExist:
             messages.error(request, _("Invalid student id"))
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+            return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
     if request.user.is_student():
         student = request.user
         record = student.get_student_record()
         uai_code = None
+
+        no_record = record is None
 
         try:
             shib_attrs = request.session.get("shib", {})
@@ -573,7 +810,7 @@ def student_record(request, student_id=None, record_id=None):
                 record = student.get_student_record()
             except ImmersionUser.DoesNotExist:
                 messages.error(request, _("Invalid student id"))
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+                return HttpResponseRedirect(request.headers.get('Referer', '/'))
 
         current_email = student.email
         recordform = StudentRecordForm(request.POST, instance=record, request=request)
@@ -608,7 +845,7 @@ def student_record(request, student_id=None, record_id=None):
                     if error.get("message"):
                         messages.error(request, error.get("message"))
     else:
-        request.session['back'] = request.META.get('HTTP_REFERER')
+        request.session['back'] = request.headers.get('Referer')
         recordform = StudentRecordForm(request=request, instance=record)
         studentform = StudentForm(request=request, instance=student)
 
@@ -624,8 +861,27 @@ def student_record(request, student_id=None, record_id=None):
         Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
     ).count()
 
+    immersion_number = None
+    immersions = student.immersions.filter(
+                slot__event__isnull=True,
+                slot__visit__isnull=True,
+                cancellation_type__isnull=True,
+    )
+    if calendar.calendar_mode == "YEAR":
+        immersion_number = immersions.count()
+    else:
+        immersion_number = {
+            "semester_1": immersions.filter(
+                slot__date__lte=calendar.semester1_end_date
+            ).count(),
+            "semester_2": immersions.filter(
+                slot__date__gte=calendar.semester2_start_date
+            ).count(),
+        }
+
     context = {
-        'calender': calendar,
+        'no_record': no_record,
+        'calendar': calendar,
         'student_form': studentform,
         'record_form': recordform,
         'record': record,
@@ -633,16 +889,17 @@ def student_record(request, student_id=None, record_id=None):
         'back_url': request.session.get('back'),
         'past_immersions': past_immersions,
         'future_immersions': future_immersions,
+        'immersion_number': immersion_number,
     }
 
-    return render(request, 'immersion/student_record.html', context)
+    return render(request, template_name, context)
 
 
 @login_required
-@groups_required('LYC', 'ETU')
-def immersions(request):
+@groups_required('LYC', 'ETU', 'VIS')
+def registrations(request):
     """
-    Students : display to come, past and cancelled immersions
+    Students : display to come, past and cancelled immersions/events/visits
     Also display the number of active alerts
     """
     cancellation_reasons = CancelType.objects.filter(active=True).order_by('label')
@@ -657,23 +914,24 @@ def immersions(request):
         'sent_alerts_cnt': sent_alerts_cnt,
     }
 
-    return render(request, 'immersion/my_immersions.html', context)
+    return render(request, 'immersion/my_registrations.html', context)
 
 
 @login_required
-@groups_required('LYC', 'ETU', 'REF-LYC', 'SCUIO-IP')
+@groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def immersion_attestation_download(request, immersion_id):
     """
-    Attestation download
+    Attestation downloadtest_home
     """
     try:
         immersion = Immersion.objects.prefetch_related(
-            'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__teachers',
-        ).get(pk=immersion_id, attendance_status=1)
+            'slot__course__training', 'slot__course_type', 'slot__campus', 'slot__building', 'slot__speakers',
+        ).get(Q(attendance_status=1) | Q(slot__face_to_face=False), pk=immersion_id)
 
         student = immersion.student
 
         tpl = MailTemplate.objects.get(code='CERTIFICATE_BODY', active=True)
+
         certificate_body = parser(
             user=student,
             request=request,
@@ -683,14 +941,19 @@ def immersion_attestation_download(request, immersion_id):
             slot=immersion.slot,
         )
 
-        certificate_logo = CertificateLogo.objects.get(pk=1)
-        certificate_sig = CertificateSignature.objects.get(pk=1)
+        slot_entity = immersion.slot.get_establishment() \
+            if immersion.slot.get_establishment() else immersion.slot.get_highschool()
+
+        certificate_logo = slot_entity if slot_entity and slot_entity.logo \
+            else CertificateLogo.objects.get(pk=1)
+        certificate_sig = slot_entity if slot_entity and slot_entity.signature \
+            else CertificateSignature.objects.get(pk=1)
 
         context = {
-            'city': get_general_setting('PDF_CERTIFICATE_CITY'),
-            'certificate_header': MailTemplate.objects.get(code='CERTIFICATE_HEADER', active=True).body,
+            'city': slot_entity.city.capitalize() if slot_entity else '',
+            'certificate_header': slot_entity.certificate_header if slot_entity and slot_entity.certificate_header else '',
             'certificate_body': certificate_body,
-            'certificate_footer': MailTemplate.objects.get(code='CERTIFICATE_FOOTER', active=True).body,
+            'certificate_footer': slot_entity.certificate_footer if slot_entity and slot_entity.certificate_footer else '',
             'certificate_logo': certificate_logo,
             'certificate_sig': certificate_sig,
         }
@@ -703,3 +966,171 @@ def immersion_attestation_download(request, immersion_id):
     except Exception as e:
         logger.error('Certificate download error', e)
         raise Http404()
+
+
+@method_decorator(groups_required('VIS', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
+class VisitorRecordView(FormView):
+    template_name = "immersion/visitor_record.html"
+    form_class = VisitorRecordForm
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs["request"] = self.request
+        record_id: Optional[int] = self.kwargs.get("record_id")
+
+        if self.request.user.is_visitor():
+            record = self.request.user.get_visitor_record()
+            if record:
+                form_kwargs["instance"] = record
+        elif record_id:
+            try:
+                record: VisitorRecord = VisitorRecord.objects.get(id=record_id)
+                form_kwargs["instance"] = record
+            except VisitorRecord.DoesNotExist:
+                # todo: handle it
+                pass
+
+        return form_kwargs
+
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data()
+        record_id: Optional[int] = self.kwargs.get("record_id")
+        user_form: Optional[VisitorForm] = None
+        visitor: Optional[ImmersionUser] = None
+        record: Optional[VisitorRecordForm] = None
+        hash_change_permission = any([
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_operator()
+        ])
+
+        self.request.session['back'] = self.request.headers.get('Referer')
+
+        calendars: QuerySet = Calendar.objects.all()
+        calendar: Optional[Calendar] = None
+        if calendars:
+            calendar = calendars.first()
+
+        if self.request.user.is_visitor():
+            visitor = self.request.user
+            record = visitor.get_visitor_record()
+            if record:
+                messages.info(self.request, _("Current record status : %s") % record.get_validation_display())
+            user_form = VisitorForm(request=self.request, instance=visitor)
+        elif record_id:
+            try:
+                record: VisitorRecord = VisitorRecord.objects.get(pk=record_id)
+            except VisitorRecord.DoesNotExist:
+                messages.error(self.request, _("Invalid visitor record id"))
+                raise Http404
+            visitor = record.visitor
+            form_kwargs = self.get_form_kwargs()
+            if "data" in form_kwargs:
+                user_form = VisitorForm(form_kwargs, instance=visitor, request=self.request)
+            else:
+                user_form = VisitorForm(instance=visitor, request=self.request)
+
+
+        # Stats for user deletion
+        today = datetime.today().date()
+        now = datetime.today().time()
+        past_immersions = visitor.immersions.filter(
+            Q(slot__date__lt=today) | Q(slot__date=today, slot__end_time__lt=now), cancellation_type__isnull=True
+        ).count()
+        future_immersions = visitor.immersions.filter(
+            Q(slot__date__gt=today) | Q(slot__date=today, slot__start_time__gt=now), cancellation_type__isnull=True
+        ).count()
+
+        immersion_number = None
+        immersions = visitor.immersions.filter(
+            slot__event__isnull=True,
+            slot__visit__isnull=True,
+            cancellation_type__isnull=True
+        )
+        if calendar.calendar_mode == "YEAR":
+            immersion_number = immersions.count()
+        else:
+            immersion_number = {
+                "semester_1": immersions.filter(
+                    slot__date__lte=calendar.semester1_end_date
+                ).count(),
+                "semester_2": immersions.filter(
+                    slot__date__gte=calendar.semester2_start_date
+                ).count(),
+            }
+
+        if record:
+            context.update({"record": record})  # for modal nuke purpose
+        context.update({
+            "past_immersions": past_immersions, "future_immersions": future_immersions,
+            "visitor": visitor,
+            "student": visitor,  # visitor = student for modal nuke purpose
+            "user_form": user_form,
+            "back_url": self.request.session.get("back"),
+            "calendar": calendar,
+            "can_change": hash_change_permission,  # can change number of allowed positions
+            "immersion_number": immersion_number,
+        })
+        return context
+
+    def email_changed(self, user: ImmersionUser):
+        user.username = user.email
+        user.set_validation_string()
+
+        try:
+            msg = user.send_message(self.request, "CPT_MIN_CHANGE_MAIL")
+            messages.warning(
+                self.request,
+                _(
+                    """You have updated the email."""
+                    """<br>Warning : the new email is also the new login."""
+                    """<br>A new activation email has been sent."""
+                ),
+            )
+        except Exception as exc:
+            logger.exception("Cannot send 'change mail' message : %s", exc)
+
+    def post(self, request, *args, **kwargs):
+        # multi validation for multiple form
+        form = self.get_form()
+        form_user: VisitorForm
+        record_id: Optional[int] = self.kwargs.get("record_id")
+        current_email: Optional[str] = None
+        user: Optional[ImmersionUser] = None
+
+        if request.user.is_visitor():
+            user = request.user
+            form_user = VisitorForm(request.POST, request.FILES , instance=request.user, request=request, )
+        elif record_id:
+            record: Optional[VisitorRecord] = VisitorRecord.objects.get(pk=record_id)
+            user = record.visitor
+            form_user = VisitorForm(request.POST, request.FILES, instance=record.visitor, request=request)
+        else:
+            form_user = VisitorForm(request.POST, request.FILES, request=request)
+
+        if user:
+            current_email = user.email
+
+        if form.is_valid() and form_user.is_valid():
+            form.save()
+            saved_user = form_user.save()
+
+            if current_email != saved_user.email:
+                self.email_changed(saved_user)
+
+            return self.form_valid(form)
+        else:
+            for form_ in (form, form_user):
+                for err_field, err_list in form_.errors.get_json_data().items():
+                    for error in err_list:
+                        if error.get("message"):
+                            messages.error(self.request, error.get("message"))
+                            print(f'err: {error.get("message")} ==> {form_.__class__}')
+
+            return self.form_invalid(form)
+
+    def get_success_url(self) -> str:
+        if self.request.user.is_visitor():
+            return reverse("immersion:visitor_record")
+        else:
+            return reverse("immersion:visitor_record_by_id", kwargs=self.kwargs)

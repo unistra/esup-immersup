@@ -9,7 +9,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-class BaseEmailBackend(object):
+class BaseEmailBackend:
     def __init__(self, fail_silently=False, **kwargs):
         self.fail_silently = fail_silently
 
@@ -26,7 +26,7 @@ class EmailBackend(BaseEmailBackend):
         self.host_user = getattr(settings, 'EMAIL_HOST_USER', '')
         self.host_password = getattr(settings, 'EMAIL_HOST_PASSWORD', '')
         # self.from_addr = getattr(settings, 'FROM_ADDR', None)
-        super(EmailBackend, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def send_message(self, email_message):
         sent = False

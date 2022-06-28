@@ -1,15 +1,20 @@
 {% extends 'base.html' %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block content %}
 {% information_text_get 'MENTIONS_INSCRIPTION' as mentions %}
+{% general_settings_get 'ACTIVATE_VISITORS' as visitors_activated %}
 <div class="main-title inside text-center">
-  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+    <div></div>
     <div class="container">
       <div class="row">
         <div class="col">
-          <h1>{% trans 'Immersion Lycéens - New account' %}</h1>
+          {% if profile == "vis" %}
+            <h1>{% trans 'Immersion Lycéens - New visitor account' %}</h1>
+          {% else %}
+            <h1>{% trans 'Immersion Lycéens - New high school student account' %}</h1>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -19,6 +24,13 @@
       <h3>{% trans 'Please fill this form to create your account' %} :</h3>
       <form method="post">
         {% csrf_token %}
+
+        {% if visitors_activated and profile == "vis" %}
+          <input type="hidden" name="registration_type" value="vis">
+        {% else %}
+          <input type="hidden" name="registration_type" value="hs">
+        {% endif %}
+
         <div class="form-group row justify-content-center">
           <label for="id_lastname" class="col-sm-2 col-form-label">{% trans 'Last name' %} :</label>
           <div class="col-sm-9 col-md-6">

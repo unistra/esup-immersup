@@ -13,17 +13,26 @@ class ActiveManager(models.Manager):
         return super().get_queryset().filter(active=True)
 
 
-class ComponentQuerySet(models.QuerySet):
+class EstablishmentQuerySet(models.QuerySet):
+    def user_establishments(self, user):
+        if user.is_master_establishment_manager() or user.is_operator():
+            return self
+        elif (user.is_establishment_manager() or user.is_structure_manager()) and user.establishment:
+            return self.filter(pk=user.establishment.id)
+
+        return self.none()
+
+class StructureQuerySet(models.QuerySet):
     """
     """
 
-    def user_cmps(self, user, *groups):
-        cmp_filter = {'referents': user}
-        # Check if the user is in a group authorized to manage all the components
+    def user_strs(self, user, *groups):
+        str_filter = {'referents': user}
+        # Check if the user is in a group authorized to manage all structures
         if user.has_groups(*groups):
-            cmp_filter = {}
+            str_filter = {}
 
-        return self.filter(**cmp_filter)
+        return self.filter(**str_filter)
 
 
 class HighSchoolAgreedManager(models.Manager):
@@ -46,3 +55,13 @@ class CustomDeleteManager(models.Manager):
     def delete(self):
         for obj in self.get_queryset():
             obj.delete()
+
+
+
+class PostBacImmersionManager(models.Manager):
+    """
+    Get high schools offering immersions
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().filter(postbac_immersion=True)

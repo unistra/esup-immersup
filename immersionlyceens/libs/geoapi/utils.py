@@ -8,8 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_json_from_url(url):
+    connect_timeout = 1.0
+    read_timeout = 10.0
+
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=(connect_timeout, read_timeout))
         return r.json()
     except Exception:
         logger.error("Cannot connect to url : %s", sys.exc_info()[0])
@@ -30,7 +33,7 @@ def get_cities(dep_code=None):
     try:
         if dep_code:
             results = get_json_from_url(
-                '%s/departements/%s/communes/?fields=nom' % (settings.GEOAPI_BASE_URL, dep_code)
+                f'{settings.GEOAPI_BASE_URL}/departements/{dep_code}/communes/?fields=nom'
             )
             return [(r['nom'].upper(), r['nom'].upper()) for r in results]
         return []
@@ -50,7 +53,7 @@ def get_zipcodes(dep_code=None, city=None):
             )
             for r in results:
                 if r['nom'].upper() == city.upper():
-                    return sorted([(i, i) for i in r['codesPostaux']])
+                    return sorted((i, i) for i in r['codesPostaux'])
         return []
     except Exception as e:
         logger.error("Error %s" % (e))

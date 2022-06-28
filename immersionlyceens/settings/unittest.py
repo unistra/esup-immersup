@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-import os
 from os import environ
 from os.path import normpath
 
@@ -20,11 +17,16 @@ DEBUG = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': environ.get('DEFAULT_DB_TEST_NAME', 'immersionlyceens'),
+        'NAME': environ.get('DEFAULT_DB_NAME', 'immersionlyceens'),
         'USER': environ.get('DEFAULT_DB_USER', 'immersionlyceens'),
         'PASSWORD': environ.get('DEFAULT_DB_PASSWORD', 'immersionlyceens'),
         'HOST': environ.get('DEFAULT_DB_HOST', 'postgres'),
         'PORT': environ.get('DEFAULT_DB_PORT', '5432'),
+        'TEST':  {
+            'NAME': None,
+            'CHARSET': "UTF-8' LC_COLLATE 'C' LC_CTYPE 'C",
+            'TEMPLATE': "template0",
+        }
     }
 }
 
@@ -61,88 +63,3 @@ HOLIDAY_API_MAP = {
 }
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
-
-# SUMMER NOTE
-BASE_DIR = os.getcwd()
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {
-        'lang': 'fr-FR',
-    },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
-    'toolbar': [
-        [
-            'style',
-            [
-                'style',
-                'bold',
-                'italic',
-                'underline',
-                'strikethrough',
-                'superscript',
-                'subscript',
-                'clear',
-            ]
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ]
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
-            ],
-        ],
-        [
-            'others',
-            [
-                'link',
-                'table',
-                'hr'
-            ],
-        ],
-        [
-            'view',
-            [
-                'codeview',
-                'undo',
-                'redo',
-                'fullscreen'
-            ],
-        ],
-    ],
-    'popover': {
-        'link': ['link', ['linkDialogShow', 'unlink']],
-        'table': [
-            [
-                'add',
-                [
-                    'addRowDown',
-                    'addRowUp',
-                    'addColLeft',
-                    'addColRight'
-                ]
-            ],
-            [
-                'delete',
-                [
-                    'deleteRow',
-                    'deleteCol',
-                    'deleteTable'
-                ]
-            ],
-        ],
-    }
-}

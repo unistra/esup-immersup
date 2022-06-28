@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
@@ -12,7 +12,7 @@
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 {% endblock %}
 {% block title %}
 {% trans "Student profiles" %}
@@ -39,7 +39,7 @@
     </div>
     <div class="card-body">
       <div class="alert alert-danger hide" id="fail_message">
-        {% trans "An error occured. The validation or rejection failed." %}
+        {% trans "An error occurred. The validation or rejection failed." %}
       </div>
       <div class="alert alert-success hide" id="validate_message">
         {% trans "Student validated" %}
@@ -293,7 +293,7 @@ $(document).ready(function () {
                 },
             },
             searching: true,
-            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
                 {data: 'first_name', render: function(data, type, row) {
                     let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
@@ -346,7 +346,7 @@ $(document).ready(function () {
                 },
             },
             searching: true,
-            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
                 {data: 'first_name', render: function(data, type, row) {
                     let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';
@@ -394,7 +394,7 @@ $(document).ready(function () {
                 },
             },
             searching: true,
-            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE }}.json",},
+            language: {url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json",},
             columns: [
                 {data: 'first_name', render: function(data, type, row) {
                     let elem = '<a href="/core/hs_record_manager/' + row['id'] + '">' + data + '</a>';

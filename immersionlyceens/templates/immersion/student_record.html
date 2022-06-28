@@ -1,38 +1,24 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
-<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 {% endblock %}
 {% block title %}{% trans "Student record" %}{% endblock %}
 
+
+{% block section_title %}
+<h2 class="ml-2">{% trans "Student record" %}</h2>
+{% endblock %}
+
 {% block content %}
-<div class="main-title inside text-center">
-  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
-  <div class="container">
-    <div class="row">
-      <div class="col">
-          <h1>{% trans 'Student record' %}</h1>
-      </div>
-    </div>
-  </div>
-</div>
-<section class="py-2">
-  <div class="container">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "My record" %}</li>
-      </ol>
-    </nav>
-  </div>
-</section>
+
 {% authorized_groups request.user %}
 {% include '../modals/modal_nuke.html' %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
@@ -46,13 +32,6 @@
         {% trans "Please fill this form to complete the personal record" %}
       </div>
       <div class="card-body">
-        <div class="form-group row">
-          <label for="id_civility" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Civility' %} :
-          </label>
-          <div class="col-sm-3">{{ record_form.civility }}</div>
-          <div class="col-sm-6">{{ record_form.civility.errors }}</div>
-        </div>
         <div class="form-group row">
           <label for="id_lastname" class="col-sm-3 col-form-label">
             <i class="fa fas fa-asterisk" focusable="false"></i>{% trans 'Lastname' %} :
@@ -125,50 +104,71 @@
           <div class="col-sm-3">{{ record_form.current_diploma }}</div>
           <div class="col-sm-6">{{ record_form.current_diploma.errors }}</div>
         </div>
+
         {% if calendar.calendar_mode == "YEAR" %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-3 col-form-label">
-              {% trans 'Annually allowed registrations' %} :
-            </label>
             {% if record_form.allowed_global_registrations %}
-              <div class="col-sm-1">{{ record_form.allowed_global_registrations }}</div>
-            {% else %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-2">{{ record_form.allowed_global_registrations }}</div>
+            {% elif no_record %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Annually allowed registrations (excluding visits and events)' %} :
+              </label>
               <div class="col-sm-1 col-form-label">{{ record.allowed_global_registrations }}</div>
+            {% else %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Annually registrations realized (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-1 col-form-label">{{ immersion_number }} / {{ record.allowed_global_registrations }}</div>
             {% endif %}
           </div>
         {% else %}
           <div class="form-group row align-items-center">
-            <label class="col-sm-3 col-form-label">
-              {% trans 'Allowed registrations for first semester' %} :
-            </label>
             {% if record_form.allowed_first_semester_registrations %}
-              <div class="col-sm-1">{{ record_form.allowed_first_semester_registrations }}</div>
-            {% else %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-2">{{ record_form.allowed_first_semester_registrations }}</div>
+            {% elif no_record %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Allowed registrations for first semester (excluding visits and events)' %} :
+              </label>
               <div class="col-sm-1 col-form-label">{{ record.allowed_first_semester_registrations | default:'' }}</div>
+            {% else %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Registrations realized for first semester (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_1 }} / {{ record.allowed_first_semester_registrations|default:'' }}</div>
             {% endif %}
           </div>
           <div class="form-group row align-items-center">
-            <label class="col-sm-3 col-form-label">
-              {% trans 'Allowed registrations for second semester' %} :
-            </label>
             {% if record_form.allowed_second_semester_registrations %}
-              <div class="col-sm-1">{{ record_form.allowed_second_semester_registrations }}</div>
-            {% else %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-2">{{ record_form.allowed_second_semester_registrations }}</div>
+            {% elif no_record %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Allowed registrations for second semester (excluding visits and events)' %} :
+              </label>
               <div class="col-sm-1 col-form-label">{{ record.allowed_second_semester_registrations| default:'' }}</div>
+            {% else %}
+              <label class="col-sm-9 col-form-label">
+                {% trans 'Registrations realized for second semester (excluding visits and events)' %} :
+              </label>
+              <div class="col-sm-1 col-form-label">{{ immersion_number.semester_2 }} / {{ record.allowed_second_semester_registrations| default:'' }}</div>
             {% endif %}
           </div>
         {% endif %}
       </div>
     </div>
     <div class="row mt-4">
-      <div class="col-sm-2">
-        <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
-        <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4" style='margin-left:40px;'>{% trans 'Back' %}</a>
-      </div>
-      {% if authorized_groups|in_groups:"SCUIO-IP" %}
-        <div class="col-sm-10 text-right">
-          <input type="button" class="btn btn-secondary btn-sm" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
-        </div>
+      <input type="submit" class="btn btn-secondary btn-sm ml-4" name="submit" value="{% trans 'Submit' %}">
+      <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary btn-sm ml-4" style='margin-left:40px;'>{% trans 'Back' %}</a>
+      {% if authorized_groups|in_groups:"REF-ETAB-MAITRE,REF-TEC" %}
+        <input type="button" class="btn btn-secondary btn-sm ml-4" name="nuke" onclick="open_modal()" value="{% trans 'Delete this account' %}">
       {% endif %}
     </div>
   </form>

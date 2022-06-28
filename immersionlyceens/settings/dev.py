@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import socket
 from os import environ
@@ -42,6 +40,8 @@ DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 ########################
 #     CAS SETTINGS     #
 ########################
+USE_CAS = True
+
 CAS_SERVER_URL = 'https://cas-dev.unistra.fr/cas/'
 CAS_LOGOUT_REQUEST_ALLOWED = ('cas-dev.unistra.fr', 'cas-dev.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = False
@@ -58,8 +58,7 @@ ALLOWED_HOSTS = [
 # Log configuration #
 #####################
 
-LOGGING['handlers']['file']['filename'] = environ.get('LOG_DIR',
-        normpath(join('/tmp', '%s.log' % SITE_NAME)))
+LOGGING['handlers']['file']['filename'] = environ.get('LOG_DIR', normpath(join('/tmp', '%s.log' % SITE_NAME)))
 LOGGING['handlers']['file']['level'] = 'DEBUG'
 
 for logger in LOGGING['loggers']:
@@ -86,32 +85,10 @@ MIDDLEWARE += [
 ]
 INTERNAL_IPS = ['127.0.0.1', '0.0.0.0']
 
-#################
-# APIs settings #
-#################
 
-ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
-
-
-#####################
-# LDAP API settings #
-#####################
-
-# Server
-LDAP_API_HOST = environ.get('LDAP_API_HOST', '')
-LDAP_API_PORT = environ.get('LDAP_API_PORT', '')
-LDAP_API_DN = environ.get('LDAP_API_DN', '')
-LDAP_API_PASSWORD = environ.get('LDAP_API_PASSWORD', '')
-LDAP_API_BASE_DN = environ.get('LDAP_API_BASE_DN', '')
-
-# Filters and attributes
-LDAP_API_ACCOUNTS_FILTER = environ.get('LDAP_API_ACCOUNTS_FILTER', '')
-LDAP_API_SEARCH_ATTR = environ.get('LDAP_API_SEARCH_ATTR', '')
-LDAP_API_DISPLAY_ATTR = environ.get('LDAP_API_DISPLAY_ATTR', '')
-LDAP_API_EMAIL_ATTR = environ.get('LDAP_API_EMAIL_ATTR', '')
-LDAP_API_USERNAME_ATTR = environ.get('LDAP_API_USERNAME_ATTR', '')
-LDAP_API_LASTNAME_ATTR = environ.get('LDAP_API_LASTNAME_ATTR', '')
-LDAP_API_FIRSTNAME_ATTR = environ.get('LDAP_API_FIRSTNAME_ATTR', '')
+################
+# API settings #
+################
 
 WITH_HOLIDAY_API = True
 HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'
@@ -127,93 +104,15 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
 EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.ConsoleBackend'
 # FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-test@unistra.fr"
+
+EMAIL_HOST = environ.get('EMAIL_HOST', '127.0.0.1')
+EMAIL_USE_TLS = environ.get('EMAIL_USE_TLS', "false").lower() == 'true'
+EMAIL_PORT = environ.get('EMAIL_PORT', 25)
+EMAIL_HOST_USER = environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
+
 DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
-
-# SUMMER NOTE
-BASE_DIR = os.getcwd()
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {
-        'lang': 'fr-FR',
-    },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
-    'toolbar': [
-        [
-            'style',
-            [
-                'style',
-                'bold',
-                'italic',
-                'underline',
-                'strikethrough',
-                'superscript',
-                'subscript',
-                'clear',
-            ]
-        ],
-        [
-            'font',
-            [
-                'fontsize',
-                'forecolor',
-                'paragraph',
-            ]
-        ],
-        [
-            'misc',
-            [
-                'ol',
-                'ul',
-                'height',
-            ],
-        ],
-        [
-            'others',
-            [
-                'link',
-                'table',
-                'hr'
-            ],
-        ],
-        [
-            'view',
-            [
-                'codeview',
-                'undo',
-                'redo',
-                'fullscreen'
-            ],
-        ],
-    ],
-    'popover': {
-        'link': ['link', ['linkDialogShow', 'unlink']],
-        'table': [
-            [
-                'add',
-                [
-                    'addRowDown',
-                    'addRowUp',
-                    'addColLeft',
-                    'addColRight'
-                ]
-            ],
-            [
-                'delete',
-                [
-                    'deleteRow',
-                    'deleteCol',
-                    'deleteTable'
-                ]
-            ],
-        ],
-    }
-}
 
 # Mailing list subscriber files directory
 BASE_FILES_DIR = "/tmp"
@@ -221,3 +120,21 @@ MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 
 # Goal
 STAGE = 'Dev'
+
+#####################
+# S3 storage config #
+#####################
+
+# Uncomment/comment below switching to s3 media (uploads) file storage
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# AWS_S3_FILE_OVERWRITE = True
+# AWS_DEFAULT_ACL = None
+# AWS_AUTO_CREATE_BUCKET = True
+# AWS_S3_ENDPOINT_URL = environ.get('AWS_S3_ENDPOINT_URL')
+# AWS_STORAGE_BUCKET_NAME = environ.get('AWS_STORAGE_BUCKET_NAME', 'immersup')
+# AWS_ACCESS_KEY_ID = environ.get('AWS_ACCESS_KEY_ID')
+# AWS_SECRET_ACCESS_KEY = environ.get('AWS_SECRET_ACCESS_KEY')
+# S3_FILEPATH = 'dev'
+
+# Use Unistra theme & css
+UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')

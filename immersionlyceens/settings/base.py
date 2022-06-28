@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-
+import os
+import re
 from os.path import abspath, basename, dirname, join, normpath
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 ######################
 # Path configuration #
@@ -55,6 +55,12 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# PostgreSQL unaccent extension
+POSTGRESQL_ADD_UNACCENT_EXTENSION = True # For migration file
+POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 
 
 ######################
@@ -161,7 +167,7 @@ SECRET_KEY = 'ma8r116)33!-#pty4!sht8tsa(1bfe%(+!&9xfack+2e9alah!'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [join(DJANGO_ROOT, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -173,6 +179,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
+                'immersionlyceens.apps.context_processors.establishments',
             ],
         },
     },
@@ -192,8 +199,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_cas.middleware.CASMiddleware',
-    # 'shibboleth.middleware.ShibbolethRemoteUserMiddleware',
     'middlewares.custom_shibboleth.CustomHeaderShibboleth.CustomHeaderMiddleware',
+    'middlewares.charter_management.ImmersionCharterManagement.ImmersionCharterManagement',
+    'hijack.middleware.HijackUserMiddleware',
+
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -207,11 +216,16 @@ AUTHENTICATION_BACKENDS = (
 ######################
 
 AUTH_USER_MODEL = "core.ImmersionUser"
-
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 #####################
 #       CAS         #
 #####################
+
+# By default, do not activate CAS features, Shibboleth is prefered
+# Use CAS only in dev instances where Shibboleth is not available
+USE_CAS = False
 
 CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
 CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
@@ -219,9 +233,10 @@ CAS_USER_CREATION = False
 CAS_IGNORE_REFERER = True
 CAS_REDIRECT_URL = '/'
 CAS_USERNAME_FORMAT = lambda username: username.lower().strip()
-CAS_LOGOUT_COMPLETELY = False
-CAS_FORCE_SSL_SERVICE_URL=True
+CAS_RETRY_LOGIN = True
 
+# CAS_LOGOUT_COMPLETELY = True
+CAS_FORCE_SSL_SERVICE_URL = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 #####################
@@ -252,17 +267,25 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
-    # 'django.contrib.admindocs',
+    'django.contrib.postgres',
     'django_cas',
+    # 'django.contrib.admindocs',
 ]
 
 THIRD_PARTY_APPS = [
     'django_extensions',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_filters',
     'hijack',
-    'compat',
-    'hijack_admin',
+    'hijack.contrib.admin',
     'django_summernote',
+    'django_json_widget',
+    'django_admin_listfilter_dropdown',
+    'adminsortable2',
     'shibboleth',
+    'django_countries',
+
 ]
 
 LOCAL_APPS = [
@@ -270,6 +293,7 @@ LOCAL_APPS = [
     'immersionlyceens.apps.core',
     'immersionlyceens.apps.immersion',
     'immersionlyceens.apps.charts',
+    'immersionlyceens.apps.user',
 ]
 
 
@@ -287,9 +311,9 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 ########################
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
 
@@ -302,15 +326,15 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'default': {'format': '%(levelname)s %(asctime)s %(name)s:%(lineno)s %(message)s'},
-        'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s',},
+        'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s', },
     },
     'filters': {
-        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse',},
-        'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue',},
+        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse', },
+        'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue', },
     },
     'handlers': {
-        'console': {'level': 'INFO', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler',},
-        'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server',},
+        'console': {'level': 'INFO', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler', },
+        'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server', },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -326,60 +350,66 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django': {'handlers': ['console', 'mail_admins'], 'level': 'INFO',},
-        'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False,},
-        'immersionlyceens': {'handlers': ['mail_admins', 'file'], 'level': 'ERROR', 'propagate': True,},
+        'django': {'handlers': ['console', 'mail_admins'], 'level': 'INFO', },
+        'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False, },
+        'immersionlyceens': {'handlers': ['mail_admins', 'file'], 'level': 'ERROR', 'propagate': True, },
     },
 }
 
-#################
-# Django hijack #
-#################
-# Bootstrap notification bar that does not overlap with the default navbar.
-HIJACK_USE_BOOTSTRAP = True
-# Where admins are redirected to after hijacking a user
-HIJACK_LOGIN_REDIRECT_URL = '/'
-# Where admins are redirected to after releasing a user
-HIJACK_LOGOUT_REDIRECT_URL = '/'  # Add to your settings file
-HIJACK_ALLOW_GET_REQUESTS = True
-HIJACK_REGISTER_ADMIN = False
+######################################
+# django-restframework configuration #
+######################################
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'rest_framework_custom_exceptions.exceptions.simple_error_handler',
+}
 
 #######################
 # Admin page settings #
 #######################
 
-ADMIN_SITE_HEADER = _('Immersion')
-ADMIN_SITE_TITLE = _('Immersion Admin Page')
-ADMIN_SITE_INDEX_TITLE = _('Welcome to immersion administration page')
+ADMIN_SITE_HEADER = "ImmerSup %s" % __import__('immersionlyceens').get_version()
+ADMIN_SITE_TITLE = _('ImmerSup Admin Page')
+ADMIN_SITE_INDEX_TITLE = _('Welcome to ImmerSup administration page')
+
+#################
+# Django hijack #
+#################
+
+# TODO: deprecated settings
+# # Bootstrap notification bar that does not overlap with the default navbar.
+# HIJACK_USE_BOOTSTRAP = True
+# # Where admins are redirected to after hijacking a user
+# HIJACK_LOGIN_REDIRECT_URL = '/'
+# # Where admins are redirected to after releasing a user
+# HIJACK_LOGOUT_REDIRECT_URL = '/'  # Add to your settings file
+# HIJACK_ALLOW_GET_REQUESTS = True
+# HIJACK_REGISTER_ADMIN = False
+HIJACK_PERMISSION_CHECK = "hijack.permissions.superusers_only"
+#"hijack.permissions.superusers_and_staff"
+
 
 #################
 # APIs settings #
 #################
 
-ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
+# Feel free to implement your own accounts search functions and
+# enter your plugin name here :)
 
-#####################
-# LDAP API settings #
-#####################
+ACCOUNTS_PLUGINS = {
+    'LDAP': 'immersionlyceens.libs.api.accounts.ldap'
+}
 
-# Server
-LDAP_API_HOST = ''
-LDAP_API_PORT = ''
-LDAP_API_DN = ''
-LDAP_API_PASSWORD = ''
-LDAP_API_BASE_DN = ''
-
-# Filters
-LDAP_API_ACCOUNTS_FILTER = ''
-
-# Attributes
-LDAP_API_SEARCH_ATTR = ''
-LDAP_API_DISPLAY_ATTR = ''
-LDAP_API_EMAIL_ATTR = ''
-LDAP_API_EMAIL_USERNAME = ''
-LDAP_API_LASTNAME_ATTR = ''
-LDAP_API_FIRSTNAME_ATTR = ''
+AVAILABLE_ACCOUNTS_PLUGINS = (
+    ('LDAP', 'LDAP'),
+)
 
 #######################
 # SHIBBOLETH settings #
@@ -391,16 +421,20 @@ LDAP_API_FIRSTNAME_ATTR = ''
 
 SHIBBOLETH_REMOTE_USER_ATTR = "HTTP_REMOTE_USER"
 
+# Old : "HTTP_REMOTE_USER": (False, "username"),
+
 SHIBBOLETH_ATTRIBUTE_MAP = {
     "HTTP_REMOTE_USER": (False, "username"),
     "HTTP_GIVENNAME": (False, "first_name"),
     "HTTP_SN": (False, "last_name"),
     "HTTP_MAIL": (False, "email"),
     "HTTP_SUPANNETABLISSEMENT": (False, "uai_code"),
+    "HTTP_AFFILIATION": (False, "affiliation"),
 }
 
-SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout"
+SHIBBOLETH_LOGOUT_URL = "/Shibboleth.sso/Logout?return=%s"
 SHIBBOLETH_LOGOUT_REDIRECT_URL = "/"
+SHIBBOLETH_UNQUOTE_ATTRIBUTES = True
 
 CREATE_UNKNOWN_USER = False
 
@@ -416,24 +450,30 @@ DEFAULT_FROM_EMAIL = 'support@unistra.fr'
 #     - immersionlyceens.libs.mails.backends.FileBackend
 EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
 EMAIL_HOST = '127.0.0.1'
+EMAIL_USE_TLS = False
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+
 FROM_ADDR = 'no.reply@unistra.fr'
 
 FORCE_EMAIL_ADDRESS = None
 
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = ['auth', 'core']
+ADMIN_APPS_ORDER = ['auth', 'core', 'user']
 
 ADMIN_MODELS_ORDER = {
     'core': [
         'ImmersionUser',
         'UniversityYear',
+        'Establishment',
         'HighSchool',
         'GeneralBachelorTeaching',
         'BachelorMention',
         'Campus',
         'Building',
-        'Component',
+        'Structure',
         'TrainingDomain',
         'TrainingSubdomain',
         'Training',
@@ -444,11 +484,57 @@ ADMIN_MODELS_ORDER = {
         'Vacation',
         'Calendar',
         'MailTemplate',
-    ]
+    ],
+    'user': [
+        'Student',
+        'HighSchoolStudent',
+        'Visitor',
+        'Speaker',
+        'Operator',
+        'MasterEstablishmentManager',
+        'EstablishmentManager',
+        'StructureManager',
+        'HighSchoolManager',
+        'LegalDepartmentStaff',
+    ],
 }
 
-# Define groups rights on others here ?
-HAS_RIGHTS_ON_GROUP = {'SCUIO-IP': ['REF-CMP', 'REF-LYC', 'SRV-JUR']}
+# Define groups rights on others
+# DO NOT EDIT
+HAS_RIGHTS_ON_GROUP = {
+    'REF-TEC': ['REF-TEC', 'REF-ETAB-MAITRE', 'REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER', 'LYC', 'VIS', 'ETU'],
+    'REF-ETAB-MAITRE': ['REF-ETAB', 'REF-STR', 'REF-LYC', 'SRV-JUR', 'INTER'],
+    'REF-ETAB': ['REF-STR', 'SRV-JUR', 'INTER'],
+    'REF-LYC': ['INTER']
+}
+
+###############
+# SUMMER NOTE #
+###############
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SUMMERNOTE_THEME = 'bs4'
+SUMMERNOTE_CONFIG = {
+    'spellCheck': True,
+    'iframe': True,
+    'summernote': {'lang': 'fr-FR', },
+    'codeviewIframeFilter': True,
+    'disable_attachment': True,
+    'toolbar': [
+        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
+        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
+        ['misc', ['ol', 'ul', 'height', ], ],
+        ['others', ['link', 'table', 'hr'], ],
+        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
+    ],
+    'popover': {
+        'link': ['link', ['linkDialogShow', 'unlink']],
+        'table': [
+            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+        ],
+    },
+}
+
 
 ####################
 # Geo Api settings #
@@ -471,6 +557,7 @@ CONTENT_TYPES = [
     'ods',
     'odt',
     'docx',
+    'xlsx',
 ]
 
 # Max size
@@ -487,13 +574,13 @@ MAX_UPLOAD_SIZE = "20971520"
 # 500MB - 429916160
 
 # Highschool students settings
-USERNAME_PREFIX = "@EXTERNAL@_"
+# USERNAME_PREFIX = "@EXTERNAL@_"
 DESTRUCTION_DELAY = 5  # in days
 
 # Some general settings default values
 DEFAULT_NB_DAYS_SLOT_REMINDER = 4
-DEFAULT_NB_DAYS_TEACHER_SLOT_REMINDER = 4
-DEFAULT_NB_WEEKS_COMPONENTS_SLOT_REMINDER = 1
+DEFAULT_NB_DAYS_SPEAKER_SLOT_REMINDER = 4
+DEFAULT_NB_WEEKS_STRUCTURES_SLOT_REMINDER = 1
 
 # Mailing list subscriber files directory
 BASE_FILES_DIR = ""
@@ -512,4 +599,16 @@ INSTITUTES_URL = (
 
 
 # Notifications display time (milliseconds)
-MESSAGES_TIMEOUT = 3000
+MESSAGES_TIMEOUT = 5000
+
+LOGIN_REDIRECT_URL = '/'
+
+# Ignored queries for 404 error
+IGNORABLE_404_URLS = [
+    re.compile(r'^/apple-touch-icon.*\.png$'),
+    re.compile(r'^/favicon\.ico$'),
+    re.compile(r'^/robots\.txt$'),
+]
+
+# django countries settings
+COUNTRIES_FIRST = ['FR',]

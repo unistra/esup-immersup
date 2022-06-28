@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
@@ -12,10 +12,14 @@
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 {% endblock %}
 {% block title %}
-{% trans "My slots" %}
+  {% if can_show_users_without_record %}
+    {% trans "All registered students" %}
+  {% else %}
+    {% trans "Student profiles" %}
+  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -23,14 +27,14 @@
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% if request.user.is_scuio_ip_manager %}
+      {% if can_show_users_without_record %}
         {% trans "All registered students" %}
       {% else %}
         {% trans "Student profiles" %}
       {% endif %}
     </div>
     <div class="card-body">
-      {% if request.user.is_scuio_ip_manager %}
+      {% if can_show_users_without_record %}
       <form class="form-inline">
         <div class="form-group">
           <div class="form-group form-check mx-sm-3 mb-2">
@@ -44,18 +48,18 @@
         <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
           <thead>
             <tr>
-              {% if request.user.is_scuio_ip_manager %}
+              {% if can_show_users_without_record %}
               <th id="type_filter" class="align-top">{% trans 'Profile type' %}</th>
               {% endif %}
               <th class="align-top">{% trans 'Name' %}</th>
               <th class="align-top">{% trans 'Birth date' %}</th>
-              {% if request.user.is_scuio_ip_manager %}
+              {% if can_show_users_without_record %}
               <th id="etab_filter" class="align-top">{% trans 'Institution' %}</th>
               {% endif %}
               <th id="level_filter" class="align-top">{% trans 'Level' %}</th>
               <th id="class_filter" class="align-top">{% trans 'Class' %}</th>
               <th id="bachelor_filter" class="align-top">{% trans 'Bachelor/diploma' %}</th>
-              {% if request.user.is_scuio_ip_manager %}
+              {% if can_show_users_without_record %}
               <th id="post_bachelor_filter" class="align-top">{% trans 'Post bachelor level' %}</th>
               {% endif %}
               <th id="registered_filter" class="align-top">{% trans 'Registrations ≥ 1' %}</th>
@@ -63,7 +67,7 @@
           </thead>
           <tbody>
             <tr>
-              {% if request.user.is_scuio_ip_manager %}
+              {% if can_show_users_without_record %}
               <td></td>
               <td></td>
               <td></td>
@@ -83,9 +87,11 @@
 </div>
 <script type="text/javascript">
   var dt;
-  var highschool_id = "{{ request.user.highschool.id }}";
   var current_student_id;
-  let is_scuio_ip = "{{ is_scuio_ip_manager }}" === "True";
+  const is_ref_etab = "{{ is_establishment_manager }}" === "True";
+  const is_ref_etab_maitre = "{{ request.user.is_master_establishment_manager }}" === "True";
+  const is_ref_tec = "{{ request.user.is_operator }}" === "True";
+  const is_ref_lyc = "{{ request.user.is_high_school_manager }}" === "True";
   let order = [[0, "asc"],];
 
   function open_modal(student_id) {
@@ -93,7 +99,7 @@
     $('#modal_student_details').modal('show');
   }
 
-  if(is_scuio_ip) {
+  if(is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc) {
     order = [[3, "asc"], [1, "asc"], ];
   }
 
@@ -107,7 +113,7 @@
       'serverSide': false,
       'responsive': true,
       'ajax': {
-        url: "/api/get_highschool_students/" + highschool_id,
+        url: "/api/get_highschool_students",
         dataSrc: function (json) {
           if (json['data'] !== undefined) {
             return json['data'];
@@ -116,15 +122,15 @@
       },
     'searching': true,
     'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
-    {% if is_scuio_ip_manager %}
+    {% if can_show_users_without_record %}
     { "data": "student_type" },
     {% endif %}
     { "data": "name",
       "render": function(data, type, row) {
-        if(is_scuio_ip && row.record_link !== '') {
+        if((is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc) && row.record_link !== '') {
           return "<a href='"+row.record_link+"'>"+data+"</a>";
         }
         else {
@@ -133,13 +139,13 @@
       }
     },
     { "data": "birthdate" },
-    {% if is_scuio_ip_manager %}
+    {% if can_show_users_without_record %}
     { "data": "institution" },
     {% endif %}
     { "data": "level" },
     { "data": "class" },
     { "data": "bachelor" },
-    {% if is_scuio_ip_manager %}
+    {% if can_show_users_without_record %}
     { "data": "post_bachelor_level" },
     {% endif %}
     { "data": "registered",
@@ -171,7 +177,7 @@
   });
 
   // Filters init
-  if (is_scuio_ip) {
+  if (is_ref_etab || is_ref_etab_maitre || is_ref_tec || is_ref_lyc) {
     yadcf.init(dt, [
       {
         column_number: 0,
@@ -259,6 +265,8 @@
   });
 
   $('#filter_no_record').click(function () {
+    let u = ""
+
     if ($('#filter_no_record').is(':checked')){
       u = "/api/get_highschool_students/no_record";
     }

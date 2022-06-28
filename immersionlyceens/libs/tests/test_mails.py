@@ -2,10 +2,12 @@
 Mails tests
 """
 import datetime
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.utils.formats import date_format
-from django.test import Client, RequestFactory, TestCase
+from django.urls import reverse
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.conf import settings
 from django.contrib.auth.models import Group
 
@@ -13,51 +15,96 @@ from immersionlyceens.libs.utils import get_general_setting
 from ..mails.variables_parser import parser
 
 from immersionlyceens.apps.core.models import (
-    UniversityYear, MailTemplate, Component, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
+    UniversityYear, MailTemplate, Structure, Slot, Course, TrainingDomain, TrainingSubdomain, Campus,
     Building, CourseType, Training, Calendar, Vacation, HighSchool, Immersion, EvaluationFormLink, EvaluationType,
-    CancelType
+    CancelType, HighSchoolLevel, StudentLevel, PostBachelorLevel, Establishment, HigherEducationInstitution,
+    PendingUserGroup
 )
 
 from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
 
-class APITestCase(TestCase):
-    """Tests for API"""
+class MailsTestCase(TestCase):
+    """Mail templates tests"""
 
-    fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype']
+    fixtures = ['group', 'generalsettings', 'mailtemplate', 'mailtemplatevars', 'evaluationtype', 'canceltype',
+                'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher']
 
     def setUp(self):
+        # TODO : use test fixtures
+
         self.today = datetime.datetime.today()
 
+        self.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            signed_charter=True,
+        )
+
         self.highschool_user = get_user_model().objects.create_user(
-            username='the_username', password='pass', email='hs@no-reply.com', first_name='Jean', last_name='MICHEL',
+            username='the_username',
+            password='pass',
+            email='hs@no-reply.com',
+            first_name='Jean',
+            last_name='MICHEL',
         )
 
         self.highschool_user.set_validation_string()
         self.highschool_user.destruction_date = self.today.date() + datetime.timedelta(days=settings.DESTRUCTION_DELAY)
         self.highschool_user.save()
 
-        self.teacher1 = get_user_model().objects.create_user(
-            username='teacher1',
+        self.speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
             password='pass',
-            email='teacher-immersion@no-reply.com',
-            first_name='teach',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
             last_name='HER',
+            highschool=self.high_school,
         )
 
-        self.ref_comp = get_user_model().objects.create_user(
-            username='refcomp',
+        self.speaker2 = get_user_model().objects.create_user(
+            username='speaker2',
             password='pass',
-            email='refcomp@no-reply.com',
-            first_name='refcomp',
-            last_name='refcomp',
+            email='speaker-immersion2@no-reply.com',
+            first_name='Jean',
+            last_name='Philippe',
+            establishment=self.establishment,
+        )
+
+        self.ref_str = get_user_model().objects.create_user(
+            username='ref_str',
+            password='pass',
+            email='ref_str@no-reply.com',
+            first_name='ref_str',
+            last_name='ref_str',
+            establishment=self.establishment,
         )
 
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='teacher-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school,
         )
 
         self.university_year = UniversityYear.objects.create(
@@ -68,10 +115,11 @@ class APITestCase(TestCase):
             active=True,
         )
 
-        Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-        Group.objects.get(name='REF-CMP').user_set.add(self.ref_comp)
+        Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
 
         self.calendar = Calendar.objects.create(
             calendar_mode=Calendar.CALENDAR_MODE[0][0],
@@ -85,17 +133,17 @@ class APITestCase(TestCase):
             start_date=self.today - datetime.timedelta(days=2),
             end_date=self.today + datetime.timedelta(days=2)
         )
-        self.component = Component.objects.create(label="test component")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
-        self.course.teachers.add(self.teacher1)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
+        self.course.speakers.add(self.speaker1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM', full_label='Cours magistral')
@@ -123,30 +171,15 @@ class APITestCase(TestCase):
             n_places=20,
             additional_information="Hello there!"
         )
-        self.slot.teachers.add(self.teacher1),
-        self.slot2.teachers.add(self.teacher1),
-        self.high_school = HighSchool.objects.create(
-            label='HS1',
-            address='here',
-            department=67,
-            city='STRASBOURG',
-            zip_code=67000,
-            phone_number='0123456789',
-            email='a@b.c',
-            head_teacher_name='M. A B',
-            convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10),
-        )
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
+        self.slot.speakers.add(self.speaker1),
+        self.slot2.speakers.add(self.speaker1),
 
         self.hs_record = HighSchoolStudentRecord.objects.create(
             student=self.highschool_user,
             highschool=self.high_school,
             birth_date=datetime.datetime.today(),
-            civility=1,
             phone='0123456789',
-            level=1,
+            level=HighSchoolLevel.objects.get(pk=1),
             class_name='1ere S 3',
             bachelor_type=3,
             professional_bachelor_mention='My spe',
@@ -168,11 +201,12 @@ class APITestCase(TestCase):
         self.global_eval_link = EvaluationFormLink.objects.create(
             evaluation_type=self.global_eval_type, active=True, url='http://disp.evaluation.test/')
 
+
     def test_variables(self):
         # user : ${prenom} ${nom} ${jourDestructionCptMin} ${lienValidation} ${identifiant}
         # university year : ${annee}
 
-        message_body = MailTemplate.objects.get(code='CPT_MIN_CREATE_LYCEEN')
+        message_body = MailTemplate.objects.get(code='CPT_MIN_CREATE')
         parsed_body = parser(message_body.body, user=self.highschool_user)
 
         self.assertIn(self.highschool_user.first_name, parsed_body)
@@ -199,21 +233,22 @@ class APITestCase(TestCase):
         self.assertIn(self.slot.end_time.strftime("%-Hh%M"), parsed_body)
 
         # Slots : registered users list
-        message_body = MailTemplate.objects.get(code='IMMERSION_RAPPEL_ENS')
-        parsed_body = parser(message_body.body, user=self.teacher1, slot=self.slot)
-        self.assertIn(self.teacher1.first_name, parsed_body)
-        self.assertIn(self.teacher1.last_name, parsed_body)
+        message_body = MailTemplate.objects.get(code='IMMERSION_RAPPEL_INT')
+        parsed_body = parser(message_body.body, user=self.speaker1, slot=self.slot)
+
+        self.assertIn(self.speaker1.first_name, parsed_body)
+        self.assertIn(self.speaker1.last_name, parsed_body)
         self.assertIn(self.highschool_user.first_name, parsed_body)
         self.assertIn(self.highschool_user.last_name, parsed_body)
 
         # Slots : slot list
-        message_body = MailTemplate.objects.get(code='RAPPEL_COMPOSANTE')
-        parsed_body = parser(message_body.body, user=self.ref_comp, slot_list=[self.slot])
+        message_body = MailTemplate.objects.get(code='RAPPEL_STRUCTURE')
+        parsed_body = parser(message_body.body, user=self.ref_str, slot_list=[self.slot])
         self.assertIn(self.slot.course.label, parsed_body)
         self.assertIn(self.slot.course_type.label, parsed_body)
         self.assertIn(self.slot.building.label, parsed_body)
         self.assertIn(self.slot.room, parsed_body)
-        self.assertIn(self.teacher1.last_name, parsed_body)
+        self.assertIn(self.speaker1.last_name, parsed_body)
 
         # Slots : availability
         message_body = MailTemplate.objects.get(code='ALERTE_DISPO')
@@ -226,7 +261,8 @@ class APITestCase(TestCase):
         parsed_body = parser(message_body.body, user=self.highschool_user, slot=self.slot)
         self.assertIn(self.slot_eval_link.url, parsed_body)
         self.assertIn(self.slot.course_type.full_label, parsed_body)
-        self.assertIn(self.teacher1.last_name, parsed_body)
+
+        # self.assertIn(self.speaker1.last_name, parsed_body)
 
         # highschool
         message_body = MailTemplate.objects.get(code='CPT_AVALIDER_LYCEE')
@@ -239,7 +275,7 @@ class APITestCase(TestCase):
 
         # high school referent account creation : check recovery string
         self.lyc_ref.set_recovery_string()
-        message_body = MailTemplate.objects.get(code='CPT_CREATE_LYCEE')
+        message_body = MailTemplate.objects.get(code='CPT_CREATE')
         parsed_body = parser(message_body.body, user=self.lyc_ref)
         self.assertIn(self.lyc_ref.recovery_string, parsed_body)
 
@@ -257,7 +293,32 @@ class APITestCase(TestCase):
         parsed_body = parser(message_body.body, user=self.highschool_user, immersion=self.immersion)
         self.assertIn(self.immersion.cancellation_type.label, parsed_body)
 
-        """
-        ${cours.nbplaceslibre}
-        ${creneau.composante}
-        """
+        # Account links
+        pending = PendingUserGroup.objects.create(
+            immersionuser1=self.speaker1,
+            immersionuser2=self.speaker2,
+            validation_string=uuid.uuid4().hex
+        )
+
+        platform_url = get_general_setting("PLATFORM_URL")
+        url = reverse("immersion:link", kwargs={'hash': pending.validation_string})
+
+        message_body = MailTemplate.objects.get(code='CPT_FUSION')
+        parsed_body = parser(
+            message_body.body,
+            link_validation_string=pending.validation_string,
+            link_source_user=self.speaker1
+        )
+        self.assertIn(f"{self.speaker1.last_name} {self.speaker1.first_name}", parsed_body)
+        self.assertIn(f"{platform_url}{url}", parsed_body)
+
+
+    def test_condition(self):
+        message_body = "{% if prenom == 'Jean' %}Hello{% else %}World{% endif %}"
+        parsed_body = parser(message_body, user=self.highschool_user)
+
+        self.assertEqual("Hello", parsed_body)
+
+        self.highschool_user.first_name = "dsfgfd"
+        parsed_body = parser(message_body, user=self.highschool_user)
+        self.assertEqual("World", parsed_body)

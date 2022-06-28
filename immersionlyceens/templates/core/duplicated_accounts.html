@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
@@ -11,9 +11,9 @@
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% comment %} Comment following line if using english ! {% endcomment %}
-<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{LANGUAGE_CODE}}.js"></script>
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/i18n/datepicker-' %}{{ LANGUAGE_CODE|fix_lang_code }}.js"></script>
 {% endblock %}
 {% block section_title %}
 <h2 class="ml-2">{% trans "Duplicated accounts" %}</h2>
@@ -21,6 +21,7 @@
 
 {% block content %}
 <div id="feedback" class="container"></div>
+{% include '../modals/modal_nuke_account.html' %}
 <div class="container-fluid" style="padding-top:20px;">
   <div class="card">
     <div class="card-header text-white bg-secondary">
@@ -35,11 +36,15 @@
               <th id="birth_date_filter" class="align-top">{% trans 'Birth date' %}</th>
               <th id="highschool_filter" class="align-top">{% trans 'High School' %}</th>
               <th id="email_filter" class="align-top">{% trans 'Email' %}</th>
+              <th id="record_status" class="align-top">{% trans 'Record status' %}</th>
+              <th id="registrations" class="align-top">{% trans 'Registrations' %}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td></td>
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -56,6 +61,7 @@
   var dt;
   var feedback;
   var keep_all = "{% trans 'Keep all entries' %}";
+  var account_id
 
   function keep_entries(rowId) {
     var data = dt.row(rowId).data();
@@ -86,6 +92,11 @@
     })
   }
 
+  function confirm_remove_entry(accountId) {
+    account_id = accountId
+    $('#modal_nuke_account').modal('show');
+  }  
+
   $(document).ready(function () {
     initFeedback();
     feedback = $("#feedback");
@@ -110,7 +121,7 @@
       },
     'searching': true,
     'language': {
-        url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
       { "data": "names",
@@ -120,7 +131,7 @@
             if (txt != "") {
               txt += "<br />";
             }
-            txt +=  "<a href='"+row.record_links[i]+"'>"+item+"</a>";
+            txt +=  "<a href='"+row.record_links[i]+"' class=\"p-0 m-0\">"+item+"</a>";
           });
 
           return txt;
@@ -165,10 +176,45 @@
           return txt;
         }
       },
-      { "data": "record_ids",
+      { "data": "record_status",
         "render": function(data, type, row) {
-          return "<button class='btn btn-secondary btn-sm' onclick='keep_entries("+row.id+")'>"+keep_all+"</button>";
+          var txt = "";
+          var labels = ["", "{% trans 'To validate' %}", "{% trans 'Validated' %}", "{% trans 'Rejected' %}"]
+          $.each(data, function(i, item) {
+            if (txt != "") {
+              txt += "<br />";
+            }
+            txt += labels[item];
+          });
+
+          return txt;
         }
+      },
+      { "data": "registrations",
+        "render": function(data, type, row) {
+          var txt = "";
+          $.each(data, function(i, item) {
+            if (txt != "") {
+              txt += "<br />";
+            }
+            txt += item;
+          });
+
+          return txt;
+        }
+      },            
+      { "data": "account_ids",
+        "render": function(data, type, row) {
+          var txt = "<div class=\"row\"><div class=\"col-sm\">";
+          $.each(data, function(i, item) {
+            txt +="<button class=\"btn btn-light btn-xs btn-block p-0 m-0\" onclick=\"confirm_remove_entry('"+row.account_ids[i]+"')\" title=''>" +
+                  "<i class=\"fa fas fa-trash fa-1x\"></i></button>";
+          });
+          txt += "</div><div class=\"col-sm\">" +
+                 "<button class='btn btn-secondary btn-sm' onclick='keep_entries("+row.id+")'>"+keep_all+"</button>" +
+                 "</div></div>";
+          return txt;          
+        } 
       },
   ],
     "columnDefs": [
@@ -179,11 +225,10 @@
       },
       {
         "orderable": false,
-        "targets": [4]
+        "targets": [-1]
       },
     ],
   });
-
 
   // Filters init
   yadcf.init(dt, [

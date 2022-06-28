@@ -17,11 +17,11 @@ from pydiploy.decorators import do_verbose
 env.remote_owner = 'django'  # remote server user
 env.remote_group = 'di'  # remote server group
 
-env.application_name = 'immersionlyceens'  # name of webapp
+env.application_name = 'immersup'  # name of webapp
 env.root_package_name = 'immersionlyceens'  # name of app in webapp
 
 env.remote_home = '/home/django'  # remote home root
-env.remote_python_version = '3.7'  # python version
+env.remote_python_version = '3.8'  # python version
 env.remote_virtualenv_root = join(env.remote_home, '.virtualenvs')  # venv root
 env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)  # venv for webapp dir
 # git repository url
@@ -34,14 +34,18 @@ env.keep_releases = 2  # number of old releases to keep before cleaning
 env.extra_goals = ['preprod']  # add extra goal(s) to defaults (test,dev,prod)
 env.dipstrap_version = 'latest'
 env.verbose_output = False  # True for verbose output
+env.no_circus_web = True
 
 # optional parameters
 
 # env.dest_path = '' # if not set using env_local_tmp_dir
 # env.excluded_files = ['pron.jpg'] # file(s) that rsync should exclude when deploying app
 # env.extra_ppa_to_install = ['ppa:vincent-c/ponysay'] # extra ppa source(s) to use
-env.extra_pkg_to_install = ['python3.7-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev',
-                            'libcairo2-dev', 'libpango1.0-dev']  # extra debian/ubuntu package(s) to install on remote
+
+# extra debian/ubuntu package(s) to install on remote
+env.extra_pkg_to_install = ['python3.8-dev', 'libxml2-dev', 'libxslt-dev', 'libffi-dev', 'postgresql-client',
+                            'postgresql-client-common', 'libcairo2-dev', 'libpango1.0-dev', 'libpq-dev']
+
 # env.cfg_shared_files = ['config','/app/path/to/config/config_file'] # config files to be placed in shared config dir
 # env.extra_symlink_dirs = ['mydir','/app/mydir'] # dirs to be symlinked in shared directory
 # env.verbose = True # verbose display for pydiploy default value = True
@@ -97,12 +101,12 @@ def test():
     env.roledefs = {
         'web': ['django-test2.di.unistra.fr'],
         'lb': ['django-test2.di.unistra.fr'],
-        'shib': ['root@rp-apache-shib2-test.di.unistra.fr'],
+        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
     # env.user = 'root'  # user for ssh
     env.backends = ['0.0.0.0']
-    env.server_name = 'immersion-test.app.unistra.fr'
-    env.short_server_name = 'immersion-test'
+    env.server_name = 'immersup-test.app.unistra.fr'
+    env.short_server_name = 'immersup-test'
     env.static_folder = '/site_media/'
     env.server_ip = ''
     env.no_shared_sessions = False
@@ -110,29 +114,81 @@ def test():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'test'
-    env.socket_port = '8031'
+    env.socket_port = '8022'
     env.socket_host = '127.0.0.1'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",
         'default_db_password': "DATABASES['default']['PASSWORD']",
         'default_db_name': "DATABASES['default']['NAME']",
-        'ldap_api_host': "LDAP_API_HOST",
-        'ldap_api_port': "LDAP_API_PORT",
-        'ldap_api_dn': "LDAP_API_DN",
-        'ldap_api_password': "LDAP_API_PASSWORD",
-        'ldap_api_base_dn': "LDAP_API_BASE_DN",
-        'ldap_api_accounts_filter': "LDAP_API_ACCOUNTS_FILTER",
-        'ldap_api_search_attr': "LDAP_API_SEARCH_ATTR",
-        'ldap_api_display_attr': "LDAP_API_DISPLAY_ATTR",
-        'ldap_api_email_attr': "LDAP_API_EMAIL_ATTR",
-        'ldap_api_username_attr': "LDAP_API_USERNAME_ATTR",
-        'ldap_api_lastname_attr': "LDAP_API_LASTNAME_ATTR",
-        'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'use_unistra_theme': "UNISTRA",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
     }
+    env.extra_symlink_dirs = ['media']
+    execute(build_env)
+
+@task
+def test2():
+    """Define test stage"""
+    env.roledefs = {
+        'web': ['django-test2.di.unistra.fr'],
+        'lb': ['django-test2.di.unistra.fr'],
+        'shib': ['rp-apache-shib2-pprd.di.unistra.fr'],
+    }
+    # env.user = 'root'  # user for ssh
+    env.application_name = 'immersup-test2'
+    env.remote_virtualenv_dir = join(env.remote_virtualenv_root, env.application_name)
+    env.backends = ['0.0.0.0']
+    env.server_name = 'immersup-test2.app.unistra.fr'
+    env.short_server_name = 'immersup-test2'
+    env.static_folder = '/site_media/'
+    env.server_ip = ''
+    env.no_shared_sessions = False
+    env.server_ssl_on = True
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.goal = 'test'
+    env.socket_port = '8026'
+    env.socket_host = '127.0.0.1'
+    env.map_settings = {
+        'default_db_host': "DATABASES['default']['HOST']",
+        'default_db_user': "DATABASES['default']['USER']",
+        'default_db_password': "DATABASES['default']['PASSWORD']",
+        'default_db_name': "DATABASES['default']['NAME']",
+        'cas_redirect_url': "CAS_REDIRECT_URL",
+        'base_files_dir': "BASE_FILES_DIR",
+        'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'use_unistra_theme': "UNISTRA",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
+    }
+    #env.use_unistra_theme='false'
     env.extra_symlink_dirs = ['media']
     execute(build_env)
 
@@ -141,17 +197,16 @@ def test():
 def preprod():
     """Define preprod stage"""
     env.roledefs = {
-        # 'web': ['django-pprd-w1.u-strasbg.fr', 'django-pprd-w2.u-strasbg.fr'],
         'web': ['django-pprd-w3.di.unistra.fr', 'django-pprd-w4.di.unistra.fr'],
         'lb': ['rp-dip-pprd-public.di.unistra.fr'],
-        'shib': [],
+        'shib': ['rp-apache-shib2-m-pprd.di.unistra.fr', 'rp-apache-shib2-s-pprd.di.unistra.fr'],
     }
 
     # env.user = 'root'  # user for ssh
 
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion-pprd.unistra.fr'
-    env.short_server_name = 'immersion-pprd'
+    env.server_name = 'immersup-pprd.app.unistra.fr'
+    env.short_server_name = 'immersup-pprd'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.212'
     env.no_shared_sessions = False
@@ -159,28 +214,126 @@ def preprod():
     env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
     env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
     env.goal = 'preprod'
-    env.socket_port = '8032'
+    env.socket_port = '8044'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",
         'default_db_password': "DATABASES['default']['PASSWORD']",
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
-        'ldap_api_host': "LDAP_API_HOST",
-        'ldap_api_port': "LDAP_API_PORT",
-        'ldap_api_dn': "LDAP_API_DN",
-        'ldap_api_password': "LDAP_API_PASSWORD",
-        'ldap_api_base_dn': "LDAP_API_BASE_DN",
-        'ldap_api_accounts_filter': "LDAP_API_ACCOUNTS_FILTER",
-        'ldap_api_search_attr': "LDAP_API_SEARCH_ATTR",
-        'ldap_api_display_attr': "LDAP_API_DISPLAY_ATTR",
-        'ldap_api_email_attr': "LDAP_API_EMAIL_ATTR",
-        'ldap_api_username_attr': "LDAP_API_USERNAME_ATTR",
-        'ldap_api_lastname_attr': "LDAP_API_LASTNAME_ATTR",
-        'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'use_unistra_theme': "UNISTRA",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
+    }
+    execute(build_env)
+
+
+@task
+def preprod_lorraine():
+    """Define preprod stage for Lorraine instance"""
+    env.roledefs = {
+        'web': ['saas-lorraine-pprd-1.srv.unistra.fr', 'saas-lorraine-pprd-2.srv.unistra.fr'],
+        'lb': ['saas-lorraine-pprd-1.srv.unistra.fr', 'saas-lorraine-pprd-2.srv.unistra.fr'],
+        'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
+
+    # env.user = 'root'  # user for ssh
+
+    env.backends = env.roledefs['web']
+    env.server_name = 'immersup-pprd.univ-lorraine.fr'
+    env.short_server_name = 'immersup-pprd'
+    env.static_folder = '/site_media/'
+    env.server_ip = '130.79.245.212'
+    env.no_shared_sessions = False
+    env.server_ssl_on = True
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.goal = 'preprod'
+    env.socket_port = '8001'
+    env.map_settings = {
+        'default_db_host': "DATABASES['default']['HOST']",
+        'default_db_user': "DATABASES['default']['USER']",
+        'default_db_password': "DATABASES['default']['PASSWORD']",
+        'default_db_name': "DATABASES['default']['NAME']",
+        'secret_key': "SECRET_KEY",
+        'cas_redirect_url': "CAS_REDIRECT_URL",
+        'base_files_dir': "BASE_FILES_DIR",
+        'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'use_unistra_theme': "UNISTRA",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
+    }
+    execute(build_env)
+
+
+@task
+def preprod_bordeaux():
+    """Define preprod stage for Bordeaux instance"""
+    env.roledefs = {
+        'web': ['saas-bordeaux-pprd-1.srv.unistra.fr', 'saas-bordeaux-pprd-2.srv.unistra.fr'],
+        'lb': ['saas-bordeaux-pprd-1.srv.unistra.fr', 'saas-bordeaux-pprd-2.srv.unistra.fr'],
+        'shib': ['rp-shib3-pprd-1.srv.unistra.fr', 'rp-shib3-pprd-2.srv.unistra.fr'],  }
+
+    # env.user = 'root'  # user for ssh
+
+    env.backends = env.roledefs['web']
+    env.server_name = 'immersup-pprd.u-bordeaux.fr'
+    env.short_server_name = 'immersup-pprd'
+    env.static_folder = '/site_media/'
+    env.server_ip = '130.79.245.212'
+    env.no_shared_sessions = False
+    env.server_ssl_on = True
+    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
+    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.goal = 'preprod'
+    env.socket_port = '8001'
+    env.map_settings = {
+        'default_db_host': "DATABASES['default']['HOST']",
+        'default_db_user': "DATABASES['default']['USER']",
+        'default_db_password': "DATABASES['default']['PASSWORD']",
+        'default_db_name': "DATABASES['default']['NAME']",
+        'secret_key': "SECRET_KEY",
+        'cas_redirect_url': "CAS_REDIRECT_URL",
+        'base_files_dir': "BASE_FILES_DIR",
+        'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'matomo_url': "MATOMO_URL",
+        'matomo_site_id': "MATOMO_SITE_ID",
+        'use_unistra_theme': "UNISTRA",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
     }
     execute(build_env)
 
@@ -192,44 +345,44 @@ def prod():
         # 'web': ['django-w3.u-strasbg.fr', 'django-w4.u-strasbg.fr'],
         'web': ['django-w7.di.unistra.fr', 'django-w8.di.unistra.fr'],
         'lb': ['rp-dip-public-m.di.unistra.fr', 'rp-dip-public-s.di.unistra.fr'],
-        'shib': ['root@rp-apache-shib2-m.di.unistra.fr', 'root@rp-apache-shib2-s.di.unistra.fr']
+        'shib': ['rp-apache-shib2-m.di.unistra.fr', 'rp-apache-shib2-s.di.unistra.fr']
     }
 
     # env.user = 'root'  # user for ssh
     env.backends = env.roledefs['web']
-    env.server_name = 'immersion.unistra.fr'
-    env.short_server_name = 'immersion'
+    env.server_name = 'immersion.projet-noria.fr'
+    env.short_server_name = 'immersup'
     env.static_folder = '/site_media/'
     env.server_ip = '130.79.245.214'
     env.no_shared_sessions = False
     env.server_ssl_on = True
-    env.path_to_cert = '/etc/ssl/certs/mega_wildcard.pem'
-    env.path_to_cert_key = '/etc/ssl/private/mega_wildcard.key'
+    env.path_to_cert = '/etc/ssl/certs/immersion.projet-noria.fr.crt'
+    env.path_to_cert_key = '/etc/ssl/private/immersion.projet-noria.fr.key'
     env.goal = 'prod'
-    env.socket_port = '8042'
+    env.socket_port = '8012'
     env.map_settings = {
         'default_db_host': "DATABASES['default']['HOST']",
         'default_db_user': "DATABASES['default']['USER']",
         'default_db_password': "DATABASES['default']['PASSWORD']",
         'default_db_name': "DATABASES['default']['NAME']",
         'secret_key': "SECRET_KEY",
-        'ldap_api_host': "LDAP_API_HOST",
-        'ldap_api_port': "LDAP_API_PORT",
-        'ldap_api_dn': "LDAP_API_DN",
-        'ldap_api_password': "LDAP_API_PASSWORD",
-        'ldap_api_base_dn': "LDAP_API_BASE_DN",
-        'ldap_api_accounts_filter': "LDAP_API_ACCOUNTS_FILTER",
-        'ldap_api_search_attr': "LDAP_API_SEARCH_ATTR",
-        'ldap_api_display_attr': "LDAP_API_DISPLAY_ATTR",
-        'ldap_api_email_attr': "LDAP_API_EMAIL_ATTR",
-        'ldap_api_username_attr': "LDAP_API_USERNAME_ATTR",
-        'ldap_api_lastname_attr': "LDAP_API_LASTNAME_ATTR",
-        'ldap_api_firstname_attr': "LDAP_API_FIRSTNAME_ATTR",
         'cas_redirect_url': "CAS_REDIRECT_URL",
         'base_files_dir': "BASE_FILES_DIR",
         'release': "RELEASE",
+        's3_access_key': "AWS_ACCESS_KEY_ID",
+        's3_secret_key': "AWS_SECRET_ACCESS_KEY",
+        's3_bucket': "AWS_STORAGE_BUCKET_NAME",
+        's3_endpoint': "AWS_S3_ENDPOINT_URL",
+        'use_unistra_theme': "UNISTRA",
+        'email_host': "EMAIL_HOST",
+        'email_port': "EMAIL_PORT",
+        'email_use_tls': "EMAIL_USE_TLS",
+        'email_host_user': "EMAIL_HOST_USER",
+        'email_host_password': "EMAIL_HOST_PASSWORD",
+        'force_email_address': "FORCE_EMAIL_ADDRESS",
+        'default_from_email': "DEFAULT_FROM_EMAIL",
         'matomo_url': "MATOMO_URL",
-        'matomo_site_id': "MATOMO_SITE_ID",
+        'matomo_site_id': "MATOMO_SITE_ID"
     }
     execute(build_env)
 

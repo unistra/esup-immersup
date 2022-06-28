@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<!-- <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}"> -->
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Training list" %}
+{% endblock %}
+
+{% block content %}
+<div id="feedback" class="container"></div>
+
+<div class="container-fluid" style="padding-top:20px; width:70%;">
+
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+        {% trans "My high school" %} - {{ user.highschool.label }}
+    </div>
+    <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
+    <span>
+      {% trans "Do you really want to delete this training ?" %}
+    </span>
+  </div>
+    <div class="card-body">
+
+      <div class="card">
+        <div class="card-title card-header d-flex justify-content-between align-items-center">
+          {% trans "Training list" %}
+          <a class="btn btn-secondary btn-sm" href="{% url 'training_add' %}">{% trans 'New training' %}</a></div>
+        <div class="card-body">
+
+          <div class="table-responsive">
+            <table id="training_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+            <thead>
+              <tr>
+                <th><span id="label_filter">{% trans 'Label' %}</span></th>
+                <th><span id="subdomain_filter">{% trans 'Subdomains' %}</span></th>
+                <th><span id="active_filter">{% trans 'active' %}</span></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tfoot>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+<script type="text/javascript">
+  let dt;
+  let updatable = "{{ can_update }}";
+  let feedback;
+  let duplicate_text = "{% trans 'Duplicate' %}";
+  let delete_text = "{% trans 'Delete' %}";
+  let confirmDialog;
+
+  function delete_training(training_id) {
+    var csrftoken = getCookie('csrftoken');
+
+    $.ajax({
+      beforeSend: (request) => { request.setRequestHeader("X-CSRFToken", csrftoken)},
+
+      url: "/api/training/" + training_id,
+      type: "DELETE",
+
+      success: (json) =>  {
+        let msg = json['msg']
+        let error = json['error']
+
+        if(error != '' && error != undefined) {
+          feedback.trigger("showFeedback", [[error, "danger"]]);
+        }
+        else if(msg != '' && msg != undefined) {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+        dt.ajax.url("/api/trainings/highschool").load();
+      },
+      error: function (e) {
+        obj = JSON.stringify(e);
+        console.log("Error : " + obj);
+      }
+    });
+  }
+
+  $(document).ready(() => {
+    initFeedback();
+    feedback = $("#feedback");
+
+    confirmDialog = $("#confirm-dialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            delete_training($("#confirm-dialog-form").data('training_id'));
+            confirmDialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            confirmDialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+
+    dt = $('#training_table').DataTable({
+      'processing': false,
+      'order': [
+          [0, "asc"], // label
+          [2, "asc"]  // high school label
+       ],
+      'pageLength': 15,
+      'lengthMenu': [[5,10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': false,
+      'ajax': {
+          url: "/api/trainings/highschool",
+          dataSrc: (json) => { return json },
+      },
+      'searching': true,
+      'language': {
+          url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+          {
+              data: "label",
+              render: (data, type, row) => {
+                  return '<a href="/core/training/' + row.id + '/update">' + data + '</a>'
+              }
+          },
+          { data: "training_subdomains",
+            render: function (data, type, row) {
+              return "<ul>" + data.map(({label}) => "<li>" + label + "</li>").join("") + "</ul>"
+            },
+          },
+          {
+              data: "active",
+              render: (data, type, row) => {
+                  return  data ? "{% trans 'Yes' %}" : "{% trans 'No' %}"
+              }
+          },
+          {
+              data: "can_delete",
+              render: function (data, type, row) {
+                  if ( data === false ) {
+                      return ""
+                  }
+                  let delete_text = "{% trans 'Delete' %}"
+                  let icons = ''
+
+                  if(row.can_delete) {
+                      icons = '<button type="button" class="btn btn-light btn-sm" onclick="confirmDialog.data(\'training_id\', ' + row.id + ').dialog(\'open\')" title="' + delete_text + '">' +
+                          '<i class="fa fas fa-trash fa-2x"></i>' +
+                          '</button>'
+                  }
+                  return icons
+              }
+
+          }
+      ],
+      "columnDefs": [
+        {
+          "defaultContent": "",
+          "targets": "_all"
+        },
+      ],
+    });
+
+    // Filters init
+    yadcf.init(dt, [{
+        column_number: 0,
+        filter_default_label: "",
+        filter_type: "text",
+        filter_container_id: "label_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 1,
+        filter_type: "text",
+        filter_default_label: "",
+        filter_container_id: "subdomain_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 2,
+        filter_default_label: "",
+        filter_container_id: "active_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+    ]);
+
+
+  })
+
+</script>
+
+{% endblock %}

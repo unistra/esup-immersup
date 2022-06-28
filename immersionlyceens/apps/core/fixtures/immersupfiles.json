@@ -1,0 +1,8 @@
+[{
+  "model": "core.immersupfile",
+  "pk": "AUTORISATION_PARENTALE",
+  "fields": {
+    "file": "uploads/immersupfiles/autorisation parentale.pdf"
+  }
+}
+]

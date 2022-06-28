@@ -3,16 +3,18 @@ from decimal import Decimal
 
 from django import template
 from django.conf import settings
+from django.contrib.auth import BACKEND_SESSION_KEY
 from django.contrib.auth.models import Group
-from django.utils.encoding import force_text
+from django.urls import reverse
+from django.utils.encoding import force_str
 from django.utils.formats import number_format
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
+from immersionlyceens.libs.utils import (
+    get_custom_theme_files, get_general_setting, get_information_text,
+)
 
-from immersionlyceens.libs.utils import get_general_setting, get_information_text
-
-# TODO: uncomment later
-from ..apps.core.models import GeneralSettings, ImmersionUser
+from ..apps.core.models import GeneralSettings, HighSchool, ImmersionUser
 
 register = template.Library()
 
@@ -25,7 +27,7 @@ def redify(value, redvalue):
 @register.filter
 def redorgreenify(value, redvalue):
     color = "green" if value == _(redvalue) else "red"
-    return '<span class="%s">%s</span>' % (color, value)
+    return f'<span class="{color}">{value}</span>'
 
 
 @register.simple_tag
@@ -116,4 +118,92 @@ def information_text_get(code):
     try:
         return get_information_text(code=code)
     except (ValueError, NameError):
+        return ""
+
+
+@register.filter
+def fix_lang_code(code):
+    # Dirty fix for safari and old browsers
+    if code == 'fr-fr' or code =='fr':
+        return 'fr-FR'
+    # TODO: other languages here ?
+    else:
+        return code
+
+
+@register.filter()
+def grouper_sort(grouper):
+    grouper.sort(key=grouper)
+    return grouper
+
+
+@register.filter()
+def grouper_sort_reversed(grouper):
+    grouper.sort(reverse=True)
+    return grouper
+
+
+@register.simple_tag(takes_context = True)
+def get_logout_url(context):
+    backend = context.request.session.get(BACKEND_SESSION_KEY)
+
+    #TODO: check if other backends needed and use them
+    if backend == 'django_cas.backends.CASBackend':
+        return reverse('django_cas:logout')
+    elif backend == 'shibboleth.backends.ShibbolethRemoteUserBackend':
+        return reverse('shibboleth:logout')
+    # TODO: check urls.py accounts namespace is using django_cas for now
+    elif backend == 'django.contrib.auth.backends.ModelBackend':
+        return reverse('logout')
+    else:
+        return ''
+
+@register.simple_tag(takes_context = True)
+def is_local_superuser(context):
+    #TODO: check if other backends needed and use them
+    return context.request.session[BACKEND_SESSION_KEY] \
+        not in ('shibboleth.backends.ShibbolethRemoteUserBackend', 'django_cas.backends.CASBackend') \
+        and context.request.user.is_superuser
+
+
+@register.filter()
+def sub(value, arg):
+    return value - arg
+
+
+@register.filter()
+def get_etab_label(obj):
+    try:
+        return f'{obj.label} - {obj.city}' if isinstance(obj, HighSchool) else obj.label
+    except Exception as e:
+        return ""
+
+
+@register.simple_tag
+def get_custom_favicon():
+    try:
+        return get_custom_theme_files("FAVICON").first()
+    except:
+        return ""
+
+
+@register.simple_tag
+def get_custom_css_files():
+    try:
+        return get_custom_theme_files("CSS")
+    except:
+        return ""
+
+@register.simple_tag
+def get_custom_js_files():
+    try:
+        return get_custom_theme_files("JS")
+    except:
+        return ""
+
+@register.simple_tag
+def get_custom_images_files():
+    try:
+        return get_custom_theme_files("IMG")
+    except:
         return ""

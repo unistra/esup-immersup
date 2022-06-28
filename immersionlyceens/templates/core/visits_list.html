@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% block head-css %}
+<link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
+<!-- <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}"> -->
+{% endblock %}
+{% block head-javascript %}
+<script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Visits list" %}
+{% endblock %}
+
+{% block content %}
+<div id="feedback" class="container"></div>
+<div class="container-fluid" style="padding-top:20px;">
+  <div id="confirm-dialog-form" title='{% trans "Please confirm" %}'>
+    <span>
+      {% trans "Do you really want to delete this visit ?" %}
+    </span>
+  </div>
+  <div class="card">
+    <div class="card-header text-white bg-secondary">
+      {% trans "Visits list" %}
+    </div>
+    <div class="card-body">
+      {% if can_update %}
+      <div class="row">
+        <div class="col-md-6">
+          <a class="btn btn-secondary btn-sm" href="{% url 'add_visit' %}">{% trans 'New visit' %}</a>
+        </div>
+      </div>
+      {% endif %}
+      <div class="row">
+        {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+        <div class="col-md-3">
+          <div id="id_div_establishment" style="padding-bottom:10px; padding-top:20px;">
+            <label for="establishments">{% trans 'Select an establishment' %} :</label>
+            <select id="establishments" class="form-control">
+              <option value="">------------</option>
+              {% for establishment in establishments %}
+                <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="selected"{% endif %}>
+                  {{ establishment.code }} - {{ establishment.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        {% endif %}
+        <div class="col-md-5" id="id_div_structures">
+          <div id="id_div_structure" style="padding-bottom:10px; padding-top:20px;">
+            <label for="structures">{% trans 'Select a structure' %} :</label>
+            <select id="structures" class="form-control">
+              <option value="">------------</option>
+              {% for structure in structures %}
+                <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="selected"{% endif %}>
+                  {{ structure.code }} - {{ structure.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table id="visits_table" class="table table-striped table-bordered compact nowrap dt-body-nowrap">
+        <thead>
+          <tr>
+            <th><span id="published_filter">{% trans 'Published' %}</span></th>
+            <th><span id="managed_by_filter">{% trans 'Managed by' context "visits" %}</span></th>
+            <th><span id="highschool_filter">{% trans 'High school' %}</span></th>
+            <th id="purpose_filter">{% trans 'Purpose' %}</th>
+            <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
+            <th class="align-top">{% trans 'Published slots' %}</th>
+            <th class="align-top">{% trans 'Registered students' %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var dt;
+  var updatable = "{{ can_update_visits }}";
+  var feedback;
+  var current_structure_id = "{{ structure_id }}";
+  var current_establishment_id = "{{ establishment_id }}";
+  var duplicate_text = "{% trans 'Duplicate' %}";
+  var delete_text = "{% trans 'Delete' %}";
+  var confirmDialog;
+
+  if(!is_set($("#establishments").val())) {
+    $("#id_div_structures").hide()
+  }
+
+  function delete_visit(visit_id) {
+    var csrftoken = getCookie('csrftoken');
+
+    $.ajax({
+      beforeSend: function (request) {
+        request.setRequestHeader("X-CSRFToken", csrftoken);
+      },
+
+      url: "/api/visit/" + visit_id,
+      type: "DELETE",
+      success: function (json) {
+        let msg = json['msg'];
+        let error = json['error'];
+
+        if(error !== undefined && error !== '') {
+          feedback.trigger("showFeedback", [[error, "danger"]]);
+        }
+        else if(msg !== undefined && msg !== '') {
+          feedback.trigger("showFeedback", [[msg, "success"]]);
+        }
+
+        load_visits();
+      },
+      error: function (e) {
+        obj = JSON.stringify(e);
+        console.log("Error : " + obj);
+      }
+    });
+  }
+
+  function empty_structures() {
+    let options = '<option value="">---------</option>'
+    $('select#structures').html(options)
+    current_structure_id = ''
+  }
+
+  $('#establishments').change( function() {
+    current_establishment_id = $('#establishments option:selected').val();
+    current_structure_id = ""
+
+    if(current_establishment_id) {
+      set_structures(current_establishment_id);
+      load_visits()
+    }
+    else {
+      empty_structures()
+    }
+  });
+
+  // Reload the table when structure changes in selectbox
+  $('#structures').change( function() {
+    current_structure_id = $('#structures option:selected').val()
+    load_visits()
+  });
+
+  function set_structures(establishment_id) {
+    $.ajax({
+      url: "{% url 'structure_list' %}",
+      type: 'GET',
+      data: {
+        'establishment': establishment_id,
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (json) {
+        let options = '<option value="">---------</option>'
+        for (let i = 0; i < json.length; i++) {
+          options += `<option value="${json[i]['id']}">${json[i]['code']} - ${json[i]['label']}</option>`
+        }
+        $('select#structures').html(options)
+
+        if(current_structure_id) {
+          $("#structures").val(current_structure_id);
+        }
+        else {
+          $("#structures").val($("#structures option:first").val());
+        }
+
+        $("#id_div_structures").show()
+      }
+    })
+  }
+
+  function load_visits() {
+    yadcf.exResetAllFilters(dt);
+    dt.clear().draw()
+    dt.ajax.reload()
+  }
+
+  $(document).ready(function() {
+    initFeedback();
+    feedback = $("#feedback");
+
+    confirmDialog = $("#confirm-dialog-form").dialog({
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function (event, ui) {
+        $(".ui-dialog-titlebar-close").hide();
+      },
+      closeText: "hide",
+      width: 'auto',
+      modal: true,
+
+      buttons: [
+        {
+          text: "{% trans 'Yes' %}",
+          "class": 'dialog-button',
+          click: function () {
+            delete_visit($("#confirm-dialog-form").data('visit_id'));
+            confirmDialog.dialog("close");
+          },
+        },
+        {
+          text: "{% trans 'No' %}",
+          "class": 'dialog-button',
+          click: function () {
+            confirmDialog.dialog("close");
+          },
+        }
+      ],
+    });
+
+    dt = $('#visits_table').DataTable({
+      'processing': false,
+      'order': [
+        [1, "asc"],
+        [2, "asc"]
+      ],
+      'pageLength': 15,
+      'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
+      'serverSide': false,
+      'responsive': false,
+      'ajax': {
+        url: "/api/visits/",
+        data: function (d) {
+          d.establishment = current_establishment_id
+          if (current_structure_id) {
+            d.structure = current_structure_id;
+          }
+          return d
+        },
+        dataSrc: function (json) {
+          if (json !== undefined && json.length !== 0) {
+            return json;
+          }
+
+          return ""
+        }
+      },
+      'searching': true,
+      'language': {
+        url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+      },
+      'columns': [
+        {
+          "data": "published",
+          "render": function (data) {
+            if (data) {
+              txt = "{% trans 'Yes' %}";
+            } else {
+              txt = "{% trans 'No' %}";
+            }
+
+            return txt;
+          },
+        },
+        { "data": "establishment",
+          "render": function (data, type, row) {
+            let txt = row.establishment.code
+
+            if(row.structure)
+              txt += " - " + row.structure.code
+
+            return txt
+          }
+        },
+        {"data": "highschool",
+         render: function (data) {
+            if(data) {
+                return data.city + " - " + data.label
+            }
+
+            return ""
+         }
+        },
+        {"data": "purpose",
+         "render": function (data, type, row) {
+           if(type === 'filter') {
+              return data.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+           }
+
+           return data
+         }
+        },
+        {
+          "data": "speakers",
+          "render": function (data, type, row) {
+            let txt = "";
+            $.each(data, function (index, speaker) {
+              txt += "<a href='mailto:" + speaker.email + "'>" + speaker.first_name + " " + speaker.last_name +"</a><br>";
+            });
+
+            if(type === 'filter') {
+              return txt.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+            }
+
+            return txt;
+          },
+        },
+        { "data": "published_slots_count",
+          "render": function(data, type, row) {
+            return data + "/" + row.slots_count;
+          }
+        },
+        { "data": "registrations_count",
+          "render": function(data, type, row) {
+            let current = data;
+            let n = row.n_places;
+
+            element = '<span>' + current + '/' + n + '</span>' +
+                  '<div class="progress">' +
+                  '  <div' +
+                  '    class="progress-bar"' +
+                  '    role="progressbar"' +
+                  '    aria-valuenow="' + current + '"' +
+                  '    aria-valuemin="0"' +
+                  '    aria-valuemax="' + n + '"' +
+                  '    style="width: ' + Math.round(current/n * 100) + '%">' +
+                  '  </div>' +
+                  '</div>';
+            return element;
+          }
+        },
+        {
+          "data": "",
+          "render": function (data, type, row) {
+            let icons = "";
+            let slot_url = '/core/visits_slots/'
+            let add_slot_url = '/core/visit_slot/add/'
+
+            if(is_set(row.establishment) && is_set(row.id) && is_set(row.highschool)) {
+                let structure_id = is_set(row.structure) ? row.structure.id : null
+                slot_url += row.establishment.id + "/" + structure_id + "/" + row.highschool.id + "/" + row.id
+                add_slot_url += row.establishment.id + "/" + structure_id + "/" + row.highschool.id + "/" + row.id
+            }
+
+            // direct link to slots list
+            if(row.slots_count) {
+              icons += "<a href='"+ slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'View slots for this visit' %}\">" +
+                       "<i class=\"fa fas fa-calendar fa-2x\"></i>" +
+                       "</a>\n";
+            }
+
+            // direct link to new slot form
+            icons += "<a href='"+ add_slot_url + "' class=\"btn btn-light btn-sm\" title=\"{% trans 'Add a slot for this visit' %}\">" +
+                     "<i class=\"fa fas fa-plus fa-2x\"></i>" +
+                     "</a>\n";
+
+            icons += "<a href='/core/visit/" + row.id + "/1' class=\"btn btn-light btn-sm\" title='" + duplicate_text + "'>" +
+                "<i class=\"fa fas fa-copy fa-2x\"></i>" +
+                "</a>\n";
+
+            icons += "<a href='/core/visit/" + row.id + "' class=\"btn btn-light btn-sm\" title='" + "{% trans 'Modify' %}" + "'>" +
+                "<i class=\"fa fas fa-pencil fa-2x centered-icon\"></i>" +
+                "</a>\n";
+
+            if (row.can_delete) {
+              icons += "<button type=\"button\" class=\"btn btn-light btn-sm\" onclick=\"confirmDialog.data('visit_id', " + row.id + ").dialog('open')\" title='" + delete_text + "'>" +
+                  "<i class=\"fa fas fa-trash fa-2x\"></i>" +
+                  "</button>";
+            }
+
+            return icons;
+          },
+        },
+      ],
+      columnDefs: [{
+        defaultContent: "",
+        targets: "_all"
+      }, {
+        orderable: false,
+        targets: [6]
+      }],
+
+      initComplete: function () {
+        var api = this.api();
+
+        var columns_idx = [3, 4]
+
+        columns_idx.forEach(function(col_idx) {
+          var column = api.column(col_idx);
+          var column_header_id = column.header().id;
+          var cell = $(`#${column_header_id}`);
+          var filter_id = `${column_header_id}_input`;
+          var title = $(cell).text();
+
+          $(cell).html(title + `<div><input id="${filter_id}" class="form-control form-control-sm" type="text" style="padding: 3px 4px 3px 4px"/></div>`);
+
+          $(`#${filter_id}`).click(function(event) {
+            event.stopPropagation()
+          })
+
+          $(`#${filter_id}`)
+          .off('keyup change')
+          .on('keyup change', function (e) {
+              e.stopPropagation();
+
+              // Get the search value
+              $(this).attr('title', $(this).val());
+
+              var cursorPosition = this.selectionStart;
+
+              // Column search with cleaned value
+              api
+                  .column(col_idx)
+                  .search(
+                      this.value !== '' ? this.value.normalize("NFD").replace(/\p{Diacritic}/gu, "") : '',
+                      this.value !== '',
+                      this.value === ''
+                  )
+                  .draw();
+
+              $(this)
+                  .focus()[0]
+                  .setSelectionRange(cursorPosition, cursorPosition);
+          });
+        })
+      }
+    });
+
+    // Filters init
+    yadcf.init(dt, [{
+      column_number: 0,
+      filter_default_label: "",
+      filter_container_id: "published_filter",
+      style_class: "form-control form-control-sm",
+      filter_reset_button_text: false,
+    },
+      {
+        column_number: 1,
+        filter_default_label: "",
+        filter_match_mode: "exact",
+        filter_container_id: "managed_by_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      {
+        column_number: 2,
+        filter_default_label: "",
+        filter_match_mode: "exact",
+        filter_container_id: "highschool_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+      /*
+      {
+        column_number: 3,
+        filter_default_label: "",
+        filter_match_mode: "exact",
+        filter_container_id: "purpose_filter",
+        style_class: "form-control form-control-sm",
+        filter_reset_button_text: false,
+      },
+       */
+    ]);
+
+    if (!is_set(current_establishment_id)) {
+      current_establishment_id = $("#establishments").val()
+    } else {
+      $("#establishments").val(current_establishment_id)
+    }
+
+    if(is_set(current_establishment_id)) {
+      set_structures(current_establishment_id)
+    }
+
+    if (!is_set(current_structure_id)) {
+      current_structure_id = $("#structures").val()
+    }
+    else {
+      $("#structures").val(current_structure_id)
+    }
+  });
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-# Immersions Lycéens
+# ImmerSup
 
 ## Organismes
 

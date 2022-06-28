@@ -1,1 +1,1 @@
-from .ldap import LdapAPI
+from .ldap import AccountAPI

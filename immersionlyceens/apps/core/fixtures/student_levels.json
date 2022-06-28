@@ -1,0 +1,50 @@
+[
+{
+    "model": "core.studentlevel",
+    "pk": 1,
+    "fields": {
+        "label": "Licence 1",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 2,
+    "fields": {
+        "label": "Licence 2",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 3,
+    "fields": {
+        "label": "Licence 3",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 4,
+    "fields": {
+        "label": "DUT 1",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 5,
+    "fields": {
+        "label": "DUT 2",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 6,
+    "fields": {
+        "label": "Autre",
+        "active": true
+    }
+}
+]

@@ -1,10 +1,10 @@
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 <div class="modal fade" id="modal_cancel_immersion" tabindex="-1" role="dialog" aria-labelledby="modal_cancel_immersion_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal_cancel_immersion_title">{% trans 'Cancel an immersion registration' %}</h5>
+        <h5 class="modal-title" id="modal_cancel_immersion_title">{% trans 'Cancel a registration' %}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -57,6 +57,24 @@
         dt_future.ajax.reload();
         dt_past.ajax.reload();
         dt_cancelled.ajax.reload();
+        if ( $.fn.DataTable.isDataTable('#events_to_come') ) {
+          dte_future.ajax.reload();
+        }
+        if ( $.fn.DataTable.isDataTable('#past_events' )) {
+          dte_past.ajax.reload();
+        }
+        if ( $.fn.DataTable.isDataTable('#cancelled_events')) {
+          dte_cancelled.ajax.reload();
+        }
+        if ( $.fn.DataTable.isDataTable('#visits_to_come' )) {
+          dtv_future.ajax.reload();
+        }
+        if ( $.fn.DataTable.isDataTable('#past_visits')) {
+          dtv_past.ajax.reload();
+        }
+        if ( $.fn.DataTable.isDataTable('#cancelled_visits')) {
+          dtv_cancelled.ajax.reload();
+        }
 
         $('#modal_cancel_immersion').modal('toggle');
       },

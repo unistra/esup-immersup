@@ -3,20 +3,21 @@ Immersion app forms tests
 """
 import datetime
 
-from django.conf import settings
-from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, TestCase, Client
+from django.test import Client, RequestFactory, TestCase
+from django.urls import reverse
 
 from immersionlyceens.apps.core.models import (
-    Component, TrainingDomain, TrainingSubdomain, Training, Course, Building, CourseType, Slot, Campus,
-    HighSchool, Calendar, UniversityYear, ImmersionUser, GeneralBachelorTeaching, BachelorMention,
-    Immersion
+    BachelorMention, Building, Calendar, Campus, Course, CourseType,
+    GeneralBachelorTeaching, HighSchool, HighSchoolLevel, Immersion,
+    ImmersionUser, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Establishment,
+    HigherEducationInstitution, ImmersionUserGroup, PendingUserGroup
 )
-from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
-from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord, StudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -26,14 +27,56 @@ class ImmersionViewsTestCase(TestCase):
     Immersion app views tests
     """
 
-    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images']
+    fixtures = ['group', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'high_school_levels',
+                'student_levels', 'post_bachelor_levels', 'higher']
 
     def setUp(self):
         """
         SetUp for Immersion app tests
         """
+        self.today = datetime.datetime.today()
+
+        self.establishment = Establishment.objects.create(
+            code='ETA1',
+            label='Etablissement 1',
+            short_label='Eta 1',
+            active=True,
+            master=True,
+            email='test@test.com',
+            signed_charter=True,
+            uai_reference=HigherEducationInstitution.objects.first()
+        )
+
+        self.high_school = HighSchool.objects.create(
+            label='HS1',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='a@b.c',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            signed_charter=True,
+        )
+
+        self.high_school2 = HighSchool.objects.create(
+            label='HS2',
+            address='here',
+            department=67,
+            city='STRASBOURG',
+            zip_code=67000,
+            phone_number='0123456789',
+            email='d@e.fr',
+            head_teacher_name='M. A B',
+            convention_start_date=self.today - datetime.timedelta(days=10),
+            convention_end_date=self.today + datetime.timedelta(days=10),
+            signed_charter=True,
+        )
+
         self.highschool_user = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs',
+            username='hs',
             password='pass',
             email='hs@no-reply.com',
             first_name='high',
@@ -46,7 +89,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Set a second high school student for duplicates search
         self.highschool_user2 = get_user_model().objects.create_user(
-            username='@EXTERNAL@_hs2',
+            username='hs2',
             password='pass',
             email='hs2@no-reply.com',
             first_name='high',
@@ -68,39 +111,51 @@ class ImmersionViewsTestCase(TestCase):
         self.student_user.set_password('pass')
         self.student_user.save()
 
-        self.teacher1 = get_user_model().objects.create_user(
-            username='teacher1',
+        self.speaker1 = get_user_model().objects.create_user(
+            username='speaker1',
             password='pass',
-            email='teacher-immersion@no-reply.com',
-            first_name='teach',
+            email='speaker-immersion@no-reply.com',
+            first_name='speak',
             last_name='HER',
+            establishment=self.establishment,
+        )
+        self.speaker2 = get_user_model().objects.create_user(
+            username='speaker2',
+            password='pass',
+            email='speaker-immersion2@no-reply.com',
+            first_name='Another',
+            last_name='Speaker',
+            establishment=self.establishment,
         )
         self.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
-            email='teacher-immersion@no-reply.com',
+            email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
+            highschool=self.high_school,
         )
-        self.scuio_user = get_user_model().objects.create_user(
-            username='scuio',
+        self.ref_etab_user = get_user_model().objects.create_user(
+            username='ref_etab',
             password='pass',
-            email='immersion@no-reply.com',
-            first_name='scuio',
-            last_name='scuio',
+            email='ref_etab@no-reply.com',
+            first_name='ref_etab',
+            last_name='ref_etab',
+            establishment=self.establishment,
         )
 
-        self.scuio_user.set_password('pass')
-        self.scuio_user.save()
+        self.ref_etab_user.set_password('pass')
+        self.ref_etab_user.save()
 
         self.client = Client()
 
-        Group.objects.get(name='ENS-CH').user_set.add(self.teacher1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker1)
+        Group.objects.get(name='INTER').user_set.add(self.speaker2)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user)
         Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
         Group.objects.get(name='ETU').user_set.add(self.student_user)
         Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-        Group.objects.get(name='SCUIO-IP').user_set.add(self.scuio_user)
+        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
 
         BachelorMention.objects.create(
             label="Sciences et technologies du management et de la gestion (STMG)",
@@ -109,18 +164,17 @@ class ImmersionViewsTestCase(TestCase):
 
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
 
-        self.today = datetime.datetime.today()
-        self.component = Component.objects.create(label="test component")
+        self.structure = Structure.objects.create(label="test structure")
         self.t_domain = TrainingDomain.objects.create(label="test t_domain")
         self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
         self.training = Training.objects.create(label="test training")
         self.training2 = Training.objects.create(label="test training 2")
         self.training.training_subdomains.add(self.t_sub_domain)
         self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training.components.add(self.component)
-        self.training2.components.add(self.component)
-        self.course = Course.objects.create(label="course 1", training=self.training, component=self.component)
-        self.course.teachers.add(self.teacher1)
+        self.training.structures.add(self.structure)
+        self.training2.structures.add(self.structure)
+        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
+        self.course.speakers.add(self.speaker1)
         self.campus = Campus.objects.create(label='Esplanade')
         self.building = Building.objects.create(label='Le portique', campus=self.campus)
         self.course_type = CourseType.objects.create(label='CM')
@@ -129,24 +183,8 @@ class ImmersionViewsTestCase(TestCase):
             building=self.building, room='room 1', date=self.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.teachers.add(self.teacher1),
-        self.high_school = HighSchool.objects.create(
-            label='HS1', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-            email='a@b.c', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10))
+        self.slot.speakers.add(self.speaker1)
 
-        self.high_school2 = HighSchool.objects.create(
-            label='HS2', address='here', department=67, city='STRASBOURG', zip_code=67000, phone_number='0123456789',
-            email='d@e.fr', head_teacher_name='M. A B', convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10))
-        """
-        self.hs_record = HighSchoolStudentRecord.objects.create(student=self.highschool_user,
-                        highschool=self.high_school, birth_date=datetime.datetime.today(), civility=1,
-                        phone='0123456789', level=1, class_name='1ere S 3',
-                        bachelor_type=3, professional_bachelor_mention='My spe')
-        """
-        self.lyc_ref.highschool = self.high_school
-        self.lyc_ref.save()
         self.calendar = Calendar.objects.create(
             label='my calendar',
             calendar_mode='YEAR',
@@ -210,6 +248,7 @@ class ImmersionViewsTestCase(TestCase):
             'HTTP_GIVENNAME': 'student',
             'HTTP_SN': 'user',
             'HTTP_MAIL': 'new_student@domain.fr',
+            'HTTP_AFFILIATION': 'student@domain.fr;member@domain.fr'
         }
         response = self.client.get('/shib/', request, **header, follow=True)
         self.assertIn("Missing attributes, account not created.", response.content.decode('utf-8'))
@@ -217,13 +256,16 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/shib/', data={'submit': 1}, request=request, **header, follow=True)
         self.assertIn("Missing attributes, account not created.", response.content.decode('utf-8'))
 
+        # FIXME : test use cases where a non-student try to authenticate
+
         # Tests with all attributes
         header = {
             'HTTP_REMOTE_USER': 'new_student@domain.fr',
             'HTTP_GIVENNAME': 'student',
             'HTTP_SN': 'user',
             'HTTP_MAIL': 'new_student@domain.fr',
-            'HTTP_SUPANNETABLISSEMENT': '{UAI}0673021V'
+            'HTTP_SUPANNETABLISSEMENT': '{UAI}0673021V',
+            'HTTP_AFFILIATION': 'student@domain.fr;member@domain.fr'
         }
 
         response = self.client.get('/shib/', request, **header)
@@ -254,7 +296,6 @@ class ImmersionViewsTestCase(TestCase):
         # Student record data
         record_data = {
             "student": new_user.id,
-            "civility": 1,
             "last_name": "",
             "first_name": new_user.first_name,
             "email": new_user.email,
@@ -295,9 +336,9 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(record.uai_code, "0673021V")
 
 
-        # Test get route as scuio-ip user
+        # Test get route as ref-etab user
         record = StudentRecord.objects.get(student=user)
-        self.client.login(username='scuio', password='pass')
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get('/immersion/student_record/%s' % record.id)
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
@@ -309,12 +350,13 @@ class ImmersionViewsTestCase(TestCase):
             'email': 'mon_email@mondomaine.fr',
             'password1': 'passw',
             'password2': 'passw_2',
+            'registration_type': 'hs',
         }
 
         # Will fail (passwords don't match, missing email2)
         response = self.client.post('/immersion/register', data)
 
-        self.assertIn("The two password fields didn't match.", response.content.decode('utf-8'))
+        self.assertIn("The two password fields didn’t match.", response.content.decode('utf-8'))
         self.assertIn("This field is required.", response.content.decode('utf-8'))
         self.assertIn("Error : emails don't match", response.content.decode('utf-8'))
 
@@ -335,7 +377,7 @@ class ImmersionViewsTestCase(TestCase):
             response.content.decode('utf-8'))
 
         # Check some attributes
-        new_account = ImmersionUser.objects.get(username="@EXTERNAL@_mon_email@mondomaine.fr")
+        new_account = ImmersionUser.objects.get(username="mon_email@mondomaine.fr")
         self.assertNotEqual(new_account.validation_string, None)
         self.assertNotEqual(new_account.destruction_date, None)
         self.assertIsInstance(new_account.destruction_date, datetime.date)
@@ -362,10 +404,10 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("No account found with this email address", response.content.decode('utf-8'))
 
         # Success
-        response = self.client.post('/immersion/recovery', {'email': 'hs@no-reply.com'})
+        response = self.client.post('/immersion/recovery', {'email': "lycref-immersion@no-reply.com"})
         self.assertIn("An email has been sent with the procedure to set a new password.", response.content.decode('utf-8'))
 
-        user = ImmersionUser.objects.get(username="@EXTERNAL@_hs")
+        user = ImmersionUser.objects.get(username="lycref")
         self.assertNotEqual(user.recovery_string, None)
 
     def test_reset_password(self):
@@ -395,7 +437,7 @@ class ImmersionViewsTestCase(TestCase):
 
     def test_change_password(self):
         # Simple get change password page
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/change_password', follow=True)
         self.assertIn("Password change", response.content.decode('utf-8'))
 
@@ -409,7 +451,7 @@ class ImmersionViewsTestCase(TestCase):
             "new_password2": "this_is_my_new_pass_with_error",
         }
         response = self.client.post('/immersion/change_password', data)
-        self.assertIn("The two password fields didn't match", response.content.decode('utf-8'))
+        self.assertIn("The two password fields didn’t match", response.content.decode('utf-8'))
 
         # Success
         data["new_password2"] = "this_is_my_new_pass"
@@ -438,7 +480,7 @@ class ImmersionViewsTestCase(TestCase):
 
         # Success
         response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)
-        self.assertIn("The activation message have been resent.", response.content.decode('utf-8'))
+        self.assertIn("The activation message has been resent.", response.content.decode('utf-8'))
 
         # Fail with account already activated
         self.highschool_user.validation_string = None
@@ -452,7 +494,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(response.url, "/accounts/login/?next=/immersion/")
 
         # Logged
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.post('/immersion/')
         self.assertEqual(response.status_code, 200)
 
@@ -460,7 +502,7 @@ class ImmersionViewsTestCase(TestCase):
         # First check that high school student record doesn't exist yet
         self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user).exists())
 
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/hs_record')
 
         self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
@@ -468,7 +510,6 @@ class ImmersionViewsTestCase(TestCase):
 
         record_data = {
             "student": self.highschool_user.id,
-            "civility": 1,
             "last_name": "",
             "first_name": self.highschool_user.first_name,
             "email": self.highschool_user.email,
@@ -478,7 +519,7 @@ class ImmersionViewsTestCase(TestCase):
             "level": 1,
             "class_name": "S10",
             "bachelor_type": 1,
-            "general_bachelor_teachings": [1],
+            "general_bachelor_teachings": [GeneralBachelorTeaching.objects.first().id],
             "technological_bachelor_mention": "",
             "professional_bachelor_mention": "",
             "post_bachelor_level": "",
@@ -524,7 +565,7 @@ class ImmersionViewsTestCase(TestCase):
         self.assertEqual(record.validation, 1)
 
         # Test record duplication with another student
-        self.client.login(username='@EXTERNAL@_hs2', password='pass')
+        self.client.login(username='hs2', password='pass')
         self.assertFalse(HighSchoolStudentRecord.objects.filter(student=self.highschool_user2).exists())
         response = self.client.get('/immersion/hs_record')
         self.assertIn("Current record status : To validate", response.content.decode('utf-8'))
@@ -536,55 +577,78 @@ class ImmersionViewsTestCase(TestCase):
         record_data["email"] = self.highschool_user2.email,
 
         response = self.client.post('/immersion/hs_record', record_data, follow=True)
-        self.assertIn("A record already exists with this identity, please contact the SCUIO-IP team.",
+        self.assertIn("A record already exists with this identity, please contact the establishment referent.",
             response.content.decode('utf-8'))
 
-        # Test get route as scuio-ip user
-        self.client.login(username='scuio', password='pass')
+        # Test get route as ref_etab user
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get('/immersion/hs_record/%s' % record.id)
         self.assertIn("Please fill this form to complete the personal record", response.content.decode('utf-8'))
 
 
     def test_immersions(self):
         # Should redirect to login page
-        response = self.client.get('/immersion/immersions')
+        response = self.client.get('/immersion/registrations')
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/accounts/login/?next=/immersion/immersions")
+        self.assertEqual(response.url, "/accounts/login/?next=/immersion/registrations")
 
         # Simple view check
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
-        response = self.client.get('/immersion/immersions')
+        self.client.login(username='hs', password='pass')
+        response = self.client.get('/immersion/registrations')
         self.assertIn("Immersions to come", response.content.decode('utf-8'))
 
 
     def test_immersion_attestation_download(self):
         # as a student
-        self.client.login(username='@EXTERNAL@_hs', password='pass')
+        self.client.login(username='hs', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response._headers['content-type'], ('Content-Type', 'application/pdf'))
+        self.assertEqual(response.headers['content-type'], 'application/pdf')
 
-        # as scuio-ip manager
-        self.client.login(username='scuio', password='pass')
+        # as a ref-etab manager
+        self.client.login(username='ref_etab', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response._headers['content-type'], ('Content-Type', 'application/pdf'))
+        self.assertEqual(response.headers['content-type'], 'application/pdf')
 
 
     def test_record_duplicates(self):
-        record = HighSchoolStudentRecord.objects.create(student=self.highschool_user, highschool=self.high_school,
-            birth_date="1990-02-19", civility=1, level=1, class_name="S20", bachelor_type=1,
-            visible_immersion_registrations=False, visible_email=False, allowed_global_registrations=None,
-            allowed_first_semester_registrations=2, allowed_second_semester_registrations=2, validation=2,
-            duplicates="[5,6,4]")
+        record = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user,
+            highschool=self.high_school,
+            birth_date="1990-02-19",
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name="S20",
+            bachelor_type=1,
+            visible_immersion_registrations=False,
+            visible_email=False,
+            allowed_global_registrations=None,
+            allowed_first_semester_registrations=2,
+            allowed_second_semester_registrations=2,
+            validation=2,
+            duplicates="[5,6,4]"
+        )
 
-        record2 = HighSchoolStudentRecord.objects.create(student=self.highschool_user2, highschool=self.high_school,
-            birth_date="1990-02-19", civility=1, level=1, class_name="S20", bachelor_type=1,
-            visible_immersion_registrations=False, visible_email=False, allowed_global_registrations=None,
-            allowed_first_semester_registrations=2, allowed_second_semester_registrations=2, validation=2,
-            duplicates="[5,6,4]")
+        record2 = HighSchoolStudentRecord.objects.create(
+            student=self.highschool_user2,
+            highschool=self.high_school,
+            birth_date="1990-02-19",
+            level=HighSchoolLevel.objects.get(pk=1),
+            class_name="S20",
+            bachelor_type=1,
+            visible_immersion_registrations=False,
+            visible_email=False,
+            allowed_global_registrations=None,
+            allowed_first_semester_registrations=2,
+            allowed_second_semester_registrations=2,
+            validation=2,
+            duplicates="[5,6,4]"
+        )
 
-        self.assertEqual(HighSchoolStudentRecord.get_duplicate_tuples(), {(record2.id, 4, 5, 6), (record.id, 4, 5, 6)})
+        self.assertEqual(
+            HighSchoolStudentRecord.get_duplicate_tuples(),
+            {tuple(sorted([4, 5, 6, record2.id])), tuple(sorted([4, 5, 6, record.id]))}
+        )
 
         self.assertTrue(record.has_duplicates())
         self.assertEqual(record.get_duplicates(), [4,5,6])
@@ -597,9 +661,73 @@ class ImmersionViewsTestCase(TestCase):
 
         HighSchoolStudentRecord.clear_duplicate(6)
 
-        record = HighSchoolStudentRecord.objects.get(pk=1)
-        record2 = HighSchoolStudentRecord.objects.get(pk=2)
+        record = HighSchoolStudentRecord.objects.get(pk=record.id)
+        record2 = HighSchoolStudentRecord.objects.get(pk=record2.id)
 
         self.assertEqual(record.get_duplicates(), [4])
         self.assertEqual(record.solved_duplicates, "7")
         self.assertEqual(record2.get_duplicates(), [4,5])
+
+    def test_link_accounts(self):
+        url = reverse('immersion:link_accounts')
+
+        self.assertFalse(PendingUserGroup.objects.all().exists())
+
+        # as a ref-etab manager : redirection
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # Post requests
+        # With an unknown email
+        response = self.client.post(url, {'email': 'unknown@email.net'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("No account found with this email address", response.content.decode('utf8'))
+
+        # Attempt to link a non-speaker user
+        response = self.client.post(url, {'email': self.lyc_ref.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("This account is not a speaker-only one, it can't be linked", response.content.decode('utf8'))
+
+        # Success
+        response = self.client.post(url, {'email': self.speaker2.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("The link message has been sent to this email address", response.content.decode('utf8'))
+
+        self.assertTrue(PendingUserGroup.objects.all().exists())
+        pending_group = PendingUserGroup.objects.first()
+        self.assertEqual(pending_group.creation_date.date(), self.today.date())
+        self.assertEqual(pending_group.immersionuser1, self.speaker1)
+        self.assertEqual(pending_group.immersionuser2, self.speaker2)
+
+        # Accepted as a success : users are already linked
+        user_group = ImmersionUserGroup.objects.create()
+        user_group.immersionusers.add(self.speaker1)
+        user_group.immersionusers.add(self.speaker2)
+
+        response = self.client.post(url, {'email': self.speaker2.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("These accounts are already linked", response.content.decode('utf8'))
+
+
+    def test_link_validation(self):
+        self.assertFalse(PendingUserGroup.objects.all().exists())
+        self.assertEqual(self.speaker1.linked_users(), [self.speaker1, ])
+        self.assertEqual(self.speaker2.linked_users(), [self.speaker2, ])
+
+        PendingUserGroup.objects.create(
+            immersionuser1=self.speaker1,
+            immersionuser2=self.speaker2,
+            validation_string="whatever"
+        )
+
+        self.client.login(username='speaker1', password='pass')
+        response = self.client.get(reverse('immersion:link', args=("whatever", )), follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertIn("Your accounts have been linked", response.content.decode('utf8'))
+        self.assertEqual(self.speaker1.linked_users(), [self.speaker1, self.speaker2])

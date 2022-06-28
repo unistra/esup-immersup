@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import socket
 from os import environ
@@ -22,7 +20,7 @@ DATABASES['default']['PORT'] = environ.get('DEFAULT_DB_PORT', '5432')
 # Allowed hosts & Security #
 ############################
 
-ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
 
 #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
 
@@ -51,32 +49,6 @@ CAS_SERVER_URL = environ.get('CAS_SERVER_URL', 'https://cas-dev.unistra.fr/cas/'
 #################
 # APIs settings #
 #################
-
-# Feel free to implement your own accounts search functions and
-# enter your plugin name here :)
-
-ACCOUNTS_CLIENT = environ.get('ACCOUNTS_CLIENT','immersionlyceens.libs.api.accounts.LdapAPI')
-
-
-#####################
-# LDAP API settings #
-#####################
-
-# Server
-LDAP_API_HOST = environ.get('LDAP_API_HOST', '')
-LDAP_API_PORT = environ.get('LDAP_API_PORT', '')
-LDAP_API_DN = environ.get('LDAP_API_DN', '')
-LDAP_API_PASSWORD = environ.get('LDAP_API_PASSWORD', '')
-LDAP_API_BASE_DN = environ.get('LDAP_API_BASE_DN', '')
-
-# Filters and attributes
-LDAP_API_ACCOUNTS_FILTER = environ.get('LDAP_API_ACCOUNTS_FILTER', '')
-LDAP_API_SEARCH_ATTR = environ.get('LDAP_API_SEARCH_ATTR', '')
-LDAP_API_DISPLAY_ATTR = environ.get('LDAP_API_DISPLAY_ATTR', '')
-LDAP_API_EMAIL_ATTR = environ.get('LDAP_API_EMAIL_ATTR', '')
-LDAP_API_USERNAME_ATTR = environ.get('LDAP_API_USERNAME_ATTR', '')
-LDAP_API_LASTNAME_ATTR = environ.get('LDAP_API_LASTNAME_ATTR', '')
-LDAP_API_FIRSTNAME_ATTR = environ.get('LDAP_API_FIRSTNAME_ATTR', '')
 
 WITH_HOLIDAY_API = environ.get('WITH_HOLIDAY_API', True)
 HOLIDAY_API_URL = environ.get('HOLIDAY_API_URL', 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json')
@@ -137,3 +109,6 @@ FORCE_EMAIL_ADDRESS = environ.get('FORCE_EMAIL_ADDRESS', None)
 
 STATIC_ROOT = normpath(join(SITE_ROOT, 'staticfiles'))
 STATIC_URL = '/static/'
+
+# Use Unistra theme & css
+UNISTRA = environ.get('USE_UNISTRA_THEME', 'true')

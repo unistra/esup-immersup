@@ -1,0 +1,109 @@
+{% extends "./common_slot.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% include '../modals/modal_slot_repetition.html' %}
+
+{% block confirm_slot_creation %}
+<div id="date-dialog-form" style="z-index:3000;" title="{% trans "Confirm course slot creation" %}">
+  <span>
+    {% trans 'This date is inside a vacation or a holiday. Do you really want to create a course slot with this date ?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block confirm_publication %}
+<div id="publication-dialog-form" style='z-index:3000;' title='{% trans "Confirm course publication" %}'>
+  <span>
+    {% trans 'This course is unpublished. By creating this slot the associated course will be published. Do you want to continue?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block dates_selection %}
+<div id="dates-selection-form" style='z-index:3000;' title='{% trans "Select slots date" %}'>
+  <div id="id_days_div"></div>
+</div>
+{% endblock %}
+
+{% block card_header %}
+<div class="card-header text-white bg-secondary">
+  {% if duplicate %}
+    {% trans "Duplicate a course slot" %}
+  {% elif slot %}
+    {% trans "Update a course slot" %}
+  {% else %}
+    {% trans "Add a new course slot" %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block specific_fields %}
+<input type="hidden" id="id_face_to_face" name="face_to_face" value="1">
+
+<div class="form-group row">
+  <label for="id_training" class="col-sm-3 col-form-label">
+    <i id='id_mandatory_training' class="fa fas fa-asterisk" style="display:none"></i>
+    {% trans 'Training' %} :
+  </label>
+  <div class="col-sm-3">
+    {{ form.training }}
+  </div>
+  <div class="col-sm-6">
+    {{ form.training.errors }}
+  </div>
+</div>
+
+<div class="form-group row">
+  <label for="id_course" class="col-form-label col-sm-3">
+      <i id='id_mandatory_course' class="fa fas fa-asterisk" style="display:none"></i>
+      {% trans 'Course' %}
+  </label>
+  <div class="col-sm-3">
+    {{ form.course }}
+  </div>
+  {% if form.course.errors %}
+    <div class="col-sm-6 alert alert-danger">
+      {{ form.course.errors }}
+    </div>
+  {% endif %}
+</div>
+<div class="form-group row">
+  <label for="id_course_type" class="col-form-label col-sm-3">
+      <i id='id_mandatory_course_type' class="fa fas fa-asterisk" style="display:none"></i>
+      {% trans 'Course type' %}
+  </label>
+  <div class="col-sm-3">
+    {{ form.course_type }}
+  </div>
+  {% if slot_form.course_type.errors %}
+    <div class="col-sm-6 alert alert-danger">
+      {{ form.course_type.errors }}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block slot_repetition_field %}
+  {% if not form.instance.id %}
+    <div class="form-group row" id="id_div_repeat">
+      <label for="id_repeat" class="col-form-label col-sm-3">{% trans 'Repeat weekly until' %}</label>
+      <div class="col-sm-3">
+          {{ form.repeat }}
+      </div>
+      <div class="col-sm-2" id="id_div_repeat_button">
+          <button type="button" role="button" name="date_selection" class="btn btn-secondary duplicate_save_btn mb-1" onclick="repetitionDialog.dialog('open')">
+            {% trans 'Dates selection' %}
+          </button>
+      </div>
+      {% if form.repeat.errors %}
+      <div class="col-sm-5 alert alert-danger">
+        {{ form.repeat.errors }}
+      </div>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}$

@@ -1,10 +1,10 @@
-{% load immersionlyceens_tags i18n static staticfiles %}
+{% load immersionlyceens_tags i18n static %}
 <!-- Modal -->
 <div class="modal fade" id="modal_other_registrants" tabindex="-1" role="dialog" aria-labelledby="modal_other_registrants_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal_other_registrants_title">{% trans 'Other registrants from the same school' %}</h5>
+        <h5 class="modal-title" id="modal_other_registrants_title">{% if authorized_groups|in_groups:"LYC" %}{% trans 'Other registrants from the same school' %} {% else %} {% trans 'Other registrants from the same school/establishment' %} {% endif %}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -38,53 +38,59 @@
   </div>
 </div>
 <script>
-var dtr;
-$('#modal_other_registrants').on('show.bs.modal', function (e) {
-  $.fn.dataTableExt.errMode = 'console';
+function reload_other_registrants() {
+  dtr.ajax.url("/api/get_other_registrants/"+current_immersion_id).load();
+}
 
-  dtr = $('#students_list').DataTable({
-    'processing': false,
-    'order': [
-      [0, "asc"]
-    ],
-    'serverSide': false,
-    'responsive': false,
-    'info': false,
-    'ajax': {
-      url: "/api/get_other_registrants/" + current_immersion_id,
-      dataSrc: function (json) {
-        if (json['data'] != undefined) {
-          return json['data'];
+
+$.fn.dataTableExt.errMode = 'console';
+
+
+dtr = $('#students_list').DataTable({
+  'processing': false,
+  'order': [
+    [0, "asc"]
+  ],
+  'serverSide': false,
+  'responsive': false,
+  'info': false,
+  'ajax': {
+    url: "",
+    dataSrc: function (json) {
+      if (json['data'] != undefined) {
+        return json['data'];
+      }
+    }
+  },
+  'searching': true,
+  'paging': true,
+  'ordering': true,
+  'language': {
+    url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
+  },
+  'columns': [
+    {"data": "name"},
+    {"data": "email",
+      "render": function(data) {
+        if(data=="") {
+            return "<i class='fa fas fa-eye-slash'></i>";
+        }
+        else {
+          return '<a href="mailto:'+data+'">'+data+'</a>';
         }
       }
     },
-    'searching': true,
-    'paging': true,
-    'ordering': true,
-    'language': {
-      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
-    },
-    'columns': [
-      {"data": "name"},
-      {"data": "email",
-       "render": function(data) {
-         if(data=="") {
-             return "<i class='fa fas fa-eye-slash'></i>";
-         }
-         else {
-           return '<a href="mailto:'+data+'">'+data+'</a>';
-         }
-       }
-      },
-    ],
-    "columnDefs": [
-      {
-        "defaultContent": "",
-        "targets": "_all"
-      }
-    ],
-  });
+  ],
+  "columnDefs": [
+    {
+      "defaultContent": "",
+      "targets": "_all"
+    }
+  ],
+});
 
+$('#modal_other_registrants').on('show.bs.modal', function (e) {
+  reload_other_registrants()
 });
 
 </script>

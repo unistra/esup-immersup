@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static i18n immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block content %}
+<div class="main-title inside text-center">
+  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+          <h1>{% trans 'Welcome on Immersion Lycéens' %}</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="py-2">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Update structures settings" %}</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+<div class="container">
+  <div class="card mt-4">
+    <div class="card-header text-white bg-secondary">
+      {% if structures %}
+{% comment %}
+        {% trans 'Select a structure to update' %}
+{% endcomment %}
+        {% trans 'Settings for structures' %}
+      {% else %}
+        {% trans 'Settings for structure' %} : {{ structure.label }}
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if structures %}
+        <ul>
+        {% for structure in structures %}
+
+{% comment %}
+          <li class="mb-3"><a href="{% url 'update_structure' structure_code=structure.code %}">{{ structure.label }}</a><br />
+            {% trans 'Mailing list' %} : {{ structure.mailing_list|default_if_none:"-" }}</li>
+{% endcomment %}
+
+          <li class="mb-3">{{ structure.label }}<br />
+            {% trans 'Mailing list' %} : {{ structure.mailing_list|default_if_none:"-" }}</li>
+
+        {% endfor %}
+        </ul>
+      {% else %}
+
+      <div class="form-group row">
+        <label class="col-sm-6">{% trans "Mailing list" %} :</label>
+        <p class="col-sm-6">{{ structure.mailing_list }}</p>
+      </div>
+
+      {% comment %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="code" value="{{ structure.code }}">
+        <div class="form-group row">
+          <label for="id_mailing_list" class="col-sm-3 col-form-label">{% trans 'Mailing list email address' %} :</label>
+          <div class="col-sm-4">
+            {{ form.mailing_list }}
+          </div>
+          <div class="col-sm-4">
+            {{ form.mailing_list.errors }}
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-6 text-right">
+            <input type="submit" class="btn btn-secondary btn-sm" name="submit" value="{% trans 'Submit' %}">
+          </div>
+        </div>
+      </form>
+      {% endcomment %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

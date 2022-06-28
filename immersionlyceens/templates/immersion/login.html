@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block content %}
 <div class="main-title inside text-center">
-  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+    <div></div>
     <div class="container">
       <div class="row">
         <div class="col">
@@ -39,12 +39,12 @@
           </div>
         </div>
       </form>
-      {% if profile != 'ref-lyc' %}
+      {% if profile != 'ref-lyc' and profile != 'speaker' %}
       <div class="row justify-content-center">
         <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
           <hr>
           <ul>
-            <li><a href="{% url 'immersion:register' %}">{% trans 'Not registered yet ?' %}</a></li>
+            <li><a href="{% url 'immersion:register' %}{% if profile %}/{{ profile }}{% endif %}">{% trans 'Not registered yet ?' %}</a></li>
             <li><a href="{% url 'immersion:resend_activation' %}">{% trans 'I have not received the activation email' %}</a></li>
           </ul>
         </div>

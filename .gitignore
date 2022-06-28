@@ -64,3 +64,10 @@ pyvenv.cfg
 
 .env.dev
 .env.demo
+.pre-commit-config.yaml
+lefthook.yml
+
+# pylintrc
+.pylintrc
+
+assets/

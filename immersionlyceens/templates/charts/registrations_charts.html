@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'css/vendor/Chart/Chart.min.css' %}">
@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/Select-1.3.1/css/select.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'js/vendor/datatables/DataTables-1.10.20/css/dataTables.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/vendor/yadcf/jquery.dataTables.yadcf.css' %}">
-<link rel="stylesheet" href="{% static 'css/immersionlyceens.css' %}">
+<link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
@@ -17,11 +17,27 @@
 <script src="{% static 'js/vendor/amcharts4/themes/material.js' %}"></script>
 <script src="{% static 'js/vendor/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'js/vendor/yadcf/jquery.dataTables.yadcf.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 
 {% block section_title %}
-<h3 class="ml-2">{% trans 'Registrations and participation statistics' %}</h3>
+<h3 class="ml-2">
+    {% if request.user.is_structure_manager %}
+      {% trans "Structure statistics - registrations and participations in my structure(s)" %}
+    {% elif request.user.is_master_establishment_manager and filter_by_my_trainings %}
+      {% trans "Trainings registrations and participations statistics" %}
+    {% elif request.user.is_establishment_manager and filter_by_my_trainings %}
+      {% trans "Establishment statistics - registrations and participations to my trainings" %}
+    {% elif request.user.is_high_school_manager %}
+      {% if filter_by_my_trainings %}
+        {% trans "Highschools statistics - registrations and participations to my trainings" %}
+      {% else %}
+        {% trans "Highschools statistics - my high school students registrations and participations" %}
+      {% endif %}
+    {% else %}
+      {% trans "Populations registrations and participations statistics" %}
+    {% endif %}
+</h3>
 {% endblock %}
 
 {% block content %}
@@ -30,69 +46,197 @@
 <div class="container-fluid mt-4">
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans 'Global statistics (all institutions)' %}
-      <br>
-      <label class='mt-2' for="id_level_part1">{% trans 'Students level' %} :</label>
-      <select id="id_level_part1" name="level" class="mt-2">
-        {% for level in levels %}
-          <option value="{{ level.0 }}" {% if part1_level_filter == level.0 %}selected{% endif %}>{{ level.1 }}</option>
-        {% endfor %}
-      </select>
+      <div class="form-group mx-sm-3 mb-2">
+        <label class="form-check-label ml-md-2">
+          {% if request.user.is_high_school_manager %}
+            {{ highschool_name }}
+          {% elif request.user.is_structure_manager %}
+            {% trans "Structure statistics - registrations and participations in my structure(s) courses" %}
+          {% else %}
+            {% trans 'Global statistics (all institutions)' %}
+          {% endif %}
+        </label>
+      </div>
+      {% if request.user.is_structure_manager %}
+        <div class="form-group mx-sm-3 mb-2">
+          <label for="id_structures" class="form-check-label ml-md-2">{% trans 'Select a structure' %} :</label>
+          <select id="id_structures">
+            {% for structure in structures %}
+              <option value="{{ structure.id }}" {% if structure.id == structure_id %}selected="True"{% endif %}>
+                {{ structure.label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+      {% if not filter_by_my_trainings and not request.user.is_high_school_manager and not request.user.is_structure_manager %}
+        <!--
+        <div class="form-group mx-sm-3 mb-2">
+          <label for="id_highschool" class="form-check-label ml-md-2">
+            {% trans 'Filter by pupils from' %}
+          </label>
+          <select id="id_highschool">
+            <option value="all">{% trans 'All high schools and establishments' %}</option>
+            <option value="all_highschools">{% trans 'High schools only' %}</option>
+            {% for highschool in all_highschools %}
+              <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
+                {{ highschool.city }} - {{ highschool.label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        -->
+      {% endif %}
+      <div class="form-group mx-sm-3 mb-2">
+        <label for="id_level_part1" class="form-check-label ml-md-2">{% trans 'Students level / categories' %} :</label>
+        <select id="id_level_part1" name="level" class="mt-2">
+          <option value="0" {% if part1_level_filter == 0 %}selected{% endif %}>{% trans 'All' %}</option>
+          {% for level in levels %}
+            <option value="{{ level.pk }}" {% if part1_level_filter == level.id %}selected{% endif %}>{{ level.label }}</option>
+          {% endfor %}
+          {% if not request.user.is_high_school_manager or filter_by_my_trainings %}
+            <option value="visitors" {% if part1_level_filter == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
+          {% endif %}
+        </select>
+      </div>
     </div>
     <div class="card-body">
       <div id="chartdiv" style="width:100%; height:400px;"></div>
     </div>
   </div>
+  {% if not request.user.is_high_school_manager and not request.user.is_structure_manager %}
   <div class="card">
     <div class="card-header text-white bg-secondary">
-      {% trans 'By institutions statistics' %}
+      {% if filter_by_my_trainings %}
+        {% trans 'Filter by courses of establishments, structures or high schools' %}
+      {% else %}
+        {% trans 'By institutions/structures statistics' %}
+      {% endif %}
       <button class="btn btn-light btn-sm ml-4" name="config_filters" onclick="open_filter_modal()" title="{% trans 'Manage filters' %}">{% trans 'Manage filters' %}</button>
     </div>
-    {% if highschools_ids or higher_institutions_ids %}
-    <h5 class="card-subtitle text-muted mt-2">{% trans 'Registered users count' %}</h5>
-    <div id="chartdiv_platform_regs" style="width:100%;"></div>
-    <h5 class="card-subtitle text-muted mt-4">{% trans 'Registered to at least one immersion' %}</h5>
-    <div id="chartdiv_one_immersion" style="width:100%;"></div>
-    <h5 class="card-subtitle text-muted mt-4">{% trans 'Attended to at least one immersion' %}</h5>
-    <div id="chartdiv_attended_one" style="width:100%;"></div>
+    {% if part2_filters.highschools_ids or part2_filters.higher_institutions_ids or part2_filters.structure_ids %}
+      {% if not filter_by_my_trainings %}
+        <h5 class="card-subtitle text-muted mt-2">{% trans 'Registered users count' %}</h5>
+        <div id="chartdiv_platform_regs" style="width:100%;"></div>
+      {% endif %}
+      <h5 class="card-subtitle text-muted mt-4">{% trans 'Registered to at least one immersion' %}</h5>
+      <div id="chartdiv_one_immersion" style="width:100%;"></div>
+      <h5 class="card-subtitle text-muted mt-4">{% trans 'Attended to at least one immersion' %}</h5>
+      <div id="chartdiv_attended_one" style="width:100%;"></div>
     {% else %}
     <span class="mt-3 mb-3"><i>{% trans 'Set the filters to build charts' %}</i></span>
     {% endif %}
   </div>
+  {% endif %}
 </div>
 <script type="text/javascript">
   {% autoescape off %}
-    var highschools_ids = {{ highschools_ids }};
-    var higher_institutions_ids = {{ higher_institutions_ids }};
-    var level_filter = "{{ level_filter }}";
+    var part1_highschool_id = "{{ highschool_id }}";
+    var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
+    var is_high_school_manager = "{{ request.user.is_high_school_manager }}" === "True"
+    var is_structure_manager = "{{ request.user.is_structure_manager }}" === "True"
+
+    var level_filter = "{{ part2_filters.level }}";
+    var highschools_ids = {{ part2_filters.highschools_ids }};
+    var structure_ids = {{ part2_filters.structure_ids }};
+    var higher_institutions_ids = {{ part2_filters.higher_institutions_ids }};
   {% endautoescape %}
+
+  var structure_id = "{{ structure_id }}";
+  var data;
+  var chart;
+  var chart_platform;
+  var chart_attended_one;
+  var chart_one_immersion;
 
   /* First part XY Chart */
   var part1_level = $('#id_level_part1 option:selected').val();
 
-  function init_first_graph(level) {
-    $.get("/charts/get_registration_charts/"+level, function(response) {
+  if($('#id_highschool').length) {
+    part1_highschool_id = $('#id_highschool option:selected').val();
+  }
+
+  if($('#id_structures').length) {
+    structure_id = $('#id_structures option:selected').val();
+  }
+
+  function init_first_graph() {
+    let url;
+    let get_data = {};
+
+    if(filter_by_my_trainings === true) {
+      url = "/charts/get_registration_charts_by_trainings"
+    }
+    else {
+      url = "/charts/get_registration_charts_by_population"
+    }
+
+    if(is_set(part1_level)) get_data.level = part1_level
+    if(is_set(part1_highschool_id)) get_data.highschool_id = part1_highschool_id
+    if(is_set(structure_id)) get_data.structure_id = structure_id
+
+    response = $.ajax({
+      'url': url,
+      'data': get_data
+    }).done(function () {
+      data = JSON.parse(response.responseText);
+
       am4core.useTheme(am4themes_animated);
 
-      let chart = am4core.createFromConfig({
-        "xAxes": response.axes.x,
-        "yAxes": response.axes.y,
-        "data": response.datasets,
-        "series": response.series,
+      if(is_set(chart)) {
+        chart.dispose();
+      }
+
+      chart = am4core.createFromConfig({
+        "xAxes": data.axes.x,
+        "yAxes": data.axes.y,
+        "data": data.datasets,
+        "series": data.series,
         "legend": {
           'position': 'right',
         },
       }, "chartdiv", am4charts.XYChart);
 
+      /* Custom serie to add the total as a new bullet */
+      var totalSeries = chart.series.push(new am4charts.ColumnSeries());
+      totalSeries.dataFields.valueX = "none";
+      totalSeries.dataFields.categoryY = "name";
+      totalSeries.stacked = true;
+      totalSeries.hiddenInLegend = true;
+      totalSeries.columns.template.strokeOpacity = 0;
+
+      var totalBullet = totalSeries.bullets.push(new am4charts.LabelBullet());
+      totalBullet.dx = 40;
+      totalBullet.label.text = "{valueX.total}";
+      totalBullet.label.truncate = false;
+      totalBullet.label.hideOversized = false;
+      totalBullet.label.fontSize = 18;
+      totalBullet.label.background.fill = totalSeries.stroke;
+      totalBullet.label.background.fillOpacity = 0.2;
+      totalBullet.label.padding(5, 10, 5, 10);
     });
   }
 
-  init_first_graph(part1_level);
+  init_first_graph()
 
   $('#id_level_part1').change(function() {
-    let level = $('#id_level_part1 option:selected').val();
-    init_first_graph(level);
+    part1_level = $('#id_level_part1 option:selected').val();
+    init_first_graph();
   });
+
+  if($('#id_highschool').length) {
+    $('#id_highschool').change(function () {
+      part1_highschool_id = $('#id_highschool option:selected').val();
+      init_first_graph();
+    });
+  }
+
+  if($('#id_structures').length) {
+    $('#id_structures').change(function () {
+      structure_id = $('#id_structures option:selected').val();
+      init_first_graph();
+    })
+  }
 
   /* Second part XY charts */
   function open_filter_modal() {
@@ -113,16 +257,26 @@
 
     // Set it on chart's container
     chart.svgContainer.htmlElement.style.height = targetHeight + "px";
-  };
+  }
 
-  function init_second_graphs(part2_level, highschools_ids, higher_institutions_ids) {
+  function init_second_graphs() {
+    let url;
+
+    if(filter_by_my_trainings === true) {
+      url = "/charts/get_registration_charts_cats_by_trainings"
+    }
+    else {
+      url = "/charts/get_registration_charts_cats_by_population"
+    }
+
     $.ajax({
-      url: "/charts/get_registration_charts_cats",
+      url: url,
       type: 'POST',
       data: {
         'highschools_ids' : highschools_ids,
         'higher_institutions_ids': higher_institutions_ids,
-        'level': part2_level,
+        'structure_ids': structure_ids,
+        'level': level_filter,
          csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function (json) {
@@ -130,44 +284,117 @@
         one_immersion = json["one_immersion"];
         attended_one = json["attended_one"];
 
-        let chart_platform = am4core.createFromConfig({
-          "xAxes": platform_regs.axes.x,
-          "yAxes": platform_regs.axes.y,
-          "data": platform_regs.datasets,
-          "series": platform_regs.series,
-          "legend": {
-            'position': 'right',
-          },
-          "events": {
-            "datavalidated": function(ev) { auto_adjust_height(ev) },
+        if(filter_by_my_trainings === false) {
+          if(is_set(chart_platform)) {
+            chart_platform.dispose();
           }
-        }, "chartdiv_platform_regs", am4charts.XYChart);
 
-        let chart_one_immersion = am4core.createFromConfig({
+          chart_platform = am4core.createFromConfig({
+            "xAxes": platform_regs.axes.x,
+            "yAxes": platform_regs.axes.y,
+            "data": platform_regs.datasets,
+            "series": platform_regs.series,
+            "legend": {
+              'position': 'right',
+              'scrollable': true
+            },
+            "events": {
+              "datavalidated": function (ev) {
+                auto_adjust_height(ev)
+              },
+            }
+          }, "chartdiv_platform_regs", am4charts.XYChart);
+
+          /* Custom serie to add the total as a new bullet */
+          var platform_totalSeries = chart_platform.series.push(new am4charts.ColumnSeries());
+          platform_totalSeries.dataFields.valueX = "none";
+          platform_totalSeries.dataFields.categoryY = "name";
+          platform_totalSeries.stacked = true;
+          platform_totalSeries.hiddenInLegend = true;
+          platform_totalSeries.columns.template.strokeOpacity = 0;
+
+          var platform_totalBullet = platform_totalSeries.bullets.push(new am4charts.LabelBullet());
+          platform_totalBullet.dx = 40;
+          platform_totalBullet.label.text = "{valueX.total}";
+          platform_totalBullet.label.truncate = false;
+          platform_totalBullet.label.hideOversized = false;
+          platform_totalBullet.label.fontSize = 18;
+          platform_totalBullet.label.background.fill = platform_totalSeries.stroke;
+          platform_totalBullet.label.background.fillOpacity = 0.2;
+          platform_totalBullet.label.padding(5, 10, 5, 10);
+        }
+
+        if(is_set(chart_one_immersion)) {
+          chart_one_immersion.dispose();
+        }
+
+        chart_one_immersion = am4core.createFromConfig({
           "xAxes": one_immersion.axes.x,
           "yAxes": one_immersion.axes.y,
           "data": one_immersion.datasets,
           "series": one_immersion.series,
           "legend": {
             'position': 'right',
+            'scrollable': true
           },
           "events": {
             "datavalidated": function(ev) { auto_adjust_height(ev) }
           }
         }, "chartdiv_one_immersion", am4charts.XYChart);
+        
+        /* Custom serie to add the total as a new bullet */
+        var one_immersion_totalSeries = chart_one_immersion.series.push(new am4charts.ColumnSeries());
+        one_immersion_totalSeries.dataFields.valueX = "none";
+        one_immersion_totalSeries.dataFields.categoryY = "name";
+        one_immersion_totalSeries.stacked = true;
+        one_immersion_totalSeries.hiddenInLegend = true;
+        one_immersion_totalSeries.columns.template.strokeOpacity = 0;
 
-        let chart_attended_one = am4core.createFromConfig({
+        var one_immersion_totalBullet = one_immersion_totalSeries.bullets.push(new am4charts.LabelBullet());
+        one_immersion_totalBullet.dx = 40;
+        one_immersion_totalBullet.label.text = "{valueX.total}";
+        one_immersion_totalBullet.label.truncate = false;
+        one_immersion_totalBullet.label.hideOversized = false;
+        one_immersion_totalBullet.label.fontSize = 18;
+        one_immersion_totalBullet.label.background.fill = one_immersion_totalSeries.stroke;
+        one_immersion_totalBullet.label.background.fillOpacity = 0.2;
+        one_immersion_totalBullet.label.padding(5, 10, 5, 10);
+
+        if(is_set(chart_attended_one)) {
+          chart_attended_one.dispose();
+        }
+
+        chart_attended_one = am4core.createFromConfig({
           "xAxes": attended_one.axes.x,
           "yAxes": attended_one.axes.y,
           "data": attended_one.datasets,
           "series": attended_one.series,
           "legend": {
             'position': 'right',
+            'scrollable': true
           },
           "events": {
             "datavalidated": function(ev) { auto_adjust_height(ev) }
           }
         }, "chartdiv_attended_one", am4charts.XYChart);
+        
+        /* Custom serie to add the total as a new bullet */
+        var attended_one_totalSeries = chart_attended_one.series.push(new am4charts.ColumnSeries());
+        attended_one_totalSeries.dataFields.valueX = "none";
+        attended_one_totalSeries.dataFields.categoryY = "name";
+        attended_one_totalSeries.stacked = true;
+        attended_one_totalSeries.hiddenInLegend = true;
+        attended_one_totalSeries.columns.template.strokeOpacity = 0;
+
+        var attended_one_totalBullet = attended_one_totalSeries.bullets.push(new am4charts.LabelBullet());
+        attended_one_totalBullet.dx = 40;
+        attended_one_totalBullet.label.text = "{valueX.total}";
+        attended_one_totalBullet.label.truncate = false;
+        attended_one_totalBullet.label.hideOversized = false;
+        attended_one_totalBullet.label.fontSize = 18;
+        attended_one_totalBullet.label.background.fill = attended_one_totalSeries.stroke;
+        attended_one_totalBullet.label.background.fillOpacity = 0.2;
+        attended_one_totalBullet.label.padding(5, 10, 5, 10);
 
       },
       error: function(json) {
@@ -177,8 +404,10 @@
     });
   }
 
-  if(highschools_ids.length > 0 || higher_institutions_ids.length > 0) {
-    init_second_graphs(level_filter, highschools_ids, higher_institutions_ids);
+  if(is_high_school_manager === false && is_structure_manager === false) {
+    if (highschools_ids.length > 0 || higher_institutions_ids.length > 0 || structure_ids.length > 0) {
+      init_second_graphs();
+    }
   }
 
 

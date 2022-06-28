@@ -1,0 +1,53 @@
+{% extends "./common_slots_list.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head-javascript %}
+{{ block.super }}
+<script src="{% static 'js/core/my_events_slots.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}
+  {% trans "My events slots" %}
+{% endblock %}
+
+{% block card_header %}
+<div class="card-header text-white bg-secondary">
+  {% trans "My events slots" %} - {{ request.user.last_name }} {{ request.user.first_name }}
+</div>
+{% endblock %}
+
+{% block table_definition %}
+<thead>
+  <tr>
+    <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+    <th id="managed_by_filter" class="align-top">{% trans 'Managed by' context "slots" %}</th>
+    <th id="event_filter" class="align-top">{% trans 'Event label' %}</th>
+    <th id="schedules_filter" class="align-top">{% trans 'Schedules' %}</th>
+    <th id="location_filter" class="align-top">{% trans 'Location' %}</th>
+    <th id="speaker_filter" class="align-top">{% trans 'Speakers' %}</th>
+    <th class="align-top">{% trans 'Registered students' %}</th>
+    <th id="attendances_filter" class="align-top">{% trans 'Attendance' %}</th>
+    <th id="additionnals_info"></th>
+    <th class="align-top">{% trans 'Restr.' %}</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+{% endblock %}
+

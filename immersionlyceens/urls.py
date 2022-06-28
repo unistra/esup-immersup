@@ -8,35 +8,42 @@ from immersionlyceens.apps.immersion.views import shibbolethLogin
 
 from .apps.core import views as core_views
 from .views import (
-    accompanying, home, offer, offer_subdomain, procedure,
-    serve_accompanying_document, serve_public_document,
+    accompanying, charter_not_signed, home, offer, offer_off_offer_events,
+    offer_subdomain, procedure, serve_accompanying_document,
+    serve_immersup_file, serve_public_document, visits_offer,
 )
 
 admin.autodiscover()
 
 
 urlpatterns = [
+    path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('', home, name='home'),
     path('accompanying', accompanying, name='accompanying'),
-    path('accounts/', include('django_cas.urls', namespace='django_cas')),
-    path('admin/', admin.site.urls),
+    path('charter_not_signed', charter_not_signed, name='charter_not_signed'),
+    path("accounts/", include("django.contrib.auth.urls")),
+    path('cas_accounts/', include('django_cas.urls', namespace='django_cas')),
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
+    path('admin/', admin.site.urls),
     path('api/', include('immersionlyceens.libs.api.urls')),
     path('charts/', include('immersionlyceens.apps.charts.urls', namespace='charts')),
     path('core/', include('immersionlyceens.apps.core.urls')),
     path('dl/accdoc/<int:accompanying_document_id>', serve_accompanying_document, name='accompanying_document',),
     path('dl/pubdoc/<int:public_document_id>', serve_public_document, name='public_document',),
+    path('dl/immersupfile/<str:file_code>', serve_immersup_file, name='immersup_file',),
     path('geoapi/', include('immersionlyceens.libs.geoapi.urls')),
     path('hijack/', include('hijack.urls', namespace='hijack')),
     path('immersion/', include('immersionlyceens.apps.immersion.urls', namespace='immersion')),
-    path('jsi18n/', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     path('offer', offer, name='offer'),
     path('offer/<int:subdomain_id>', offer_subdomain, name='offer_subdomain'),
+    path('offer_off_offer_events', offer_off_offer_events, name='offer_off_offer_events'),
     path('procedure', procedure, name='procedure'),
-    path('shib_secure', include('shibboleth.urls', namespace='shibboleth')),
+    path('shib_secure/', include('shibboleth.urls', namespace='shibboleth')),
     path('shib/', shibbolethLogin, name='shibboleth_login'),
     path('summernote/', include('django_summernote.urls')),
+    path('visits_offer', visits_offer, name='visits_offer')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 # debug toolbar for dev
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     import debug_toolbar

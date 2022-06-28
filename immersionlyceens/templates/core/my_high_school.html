@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/immersionlyceens.js' %}"></script>
+<script src="{% static 'js/immersionlyceens.min.js' %}"></script>
 {% endblock %}
 {% block title %}
     {{ high_school.label }}
@@ -32,6 +32,17 @@
                 <div class="readonly">{{ high_school.label }}</div>
               </div>
             </div>
+            <div class="form-group row">
+                <label class="col-sm-3" for="id_country"><strong>{% trans "Country" %}*</strong></label>
+                <div class="col-sm-6">
+                  {{ high_school_form.country }}
+                </div>
+                {% if high_school_form.country.errors %}
+                <div class="col-sm-3 alert alert-danger">
+                  {{ high_school_form.country.errors }}
+                </div>
+                {% endif %}
+              </div>
             <div class="form-group row">
               <label class="col-sm-3" for="id_address"><strong>{% trans "Address" %}*</strong></label>
               <div class="col-sm-6">
@@ -131,6 +142,14 @@
               </div>
               {% endif %}
             </div>
+
+            <div class="form-group row">
+              <label class="col-sm-3">{% trans "Mailing list" %}</label>
+              <div class="col-sm-6">
+                <output class="form-control" readonly>{{ high_school.mailing_list | default:"-" }}</output>
+              </div>
+            </div>
+
           </div>
         </div>
         <br>
@@ -210,6 +229,6 @@
 {% endblock %}
 
 {% block foot-javascript %}
-<script src="{% static 'js/admin_highschool.js' %}"></script>
-<script src="{% static 'js/core/my_high_school.js' %}"></script>
+<script src="{% static 'js/admin_highschool.min.js' %}"></script>
+<script src="{% static 'js/core/my_high_school.min.js' %}"></script>
 {% endblock %}

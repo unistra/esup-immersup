@@ -3,15 +3,15 @@ stages:
   - test
 
 services:
-  - postgres:9.5
+  - postgres
 
 variables:
-  POSTGRES_DB: immersionlyceens
+  POSTGRES_DB: immersionlyceens-test
   POSTGRES_USER: immersionlyceens
   POSTGRES_PASSWORD: immersionlyceens
 
 before_script:
-  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0
+  - apt-get update && apt-get install -y build-essential libffi-dev libxslt1-dev libxml2-dev zlib1g-dev libcairo2 libpango1.0-0 libpq-dev
 
 unittest:
   stage: test
@@ -31,3 +31,21 @@ safety:
   only:
     - develop
     - master
+
+bandit:
+  stage: test
+  tags:
+    - python3.7
+  script:
+    - find immersionlyceens -name "*.py" ! -path "**/wsgi.py" ! -path "**/settings/**" ! -path "**/tests/**" ! -path "**/__init__.py" ! -path "**/migrations/**" ! -path "**/urls.py" | tee /tmp/find.txt
+    - apt update && apt install -y build-essential libcairo2 libpango1.0-0 libffi-dev shared-mime-info libpq-dev libsasl2-dev python-dev libssl-dev libldap2-dev
+    - pip3 install -r requirements/dev.txt
+    - bandit --exit-zero $(cat /tmp/find.txt)
+
+pytype:
+  stage: test
+  tags:
+    - python3.7
+  script:
+    - pip3 install -r requirements/dev.txt
+    - pytype --config=pytype.cfg

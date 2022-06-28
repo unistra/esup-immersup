@@ -1,4 +1,4 @@
-{% load immersionlyceens_tags i18n static staticfiles %}
+{% load immersionlyceens_tags i18n static %}
 {% authorized_groups request.user %}
 <!-- Modal -->
 <div class="modal fade" id="modal_global_charts_filter" tabindex="-1" role="dialog" aria-labelledby="modal_global_charts_filter_title" aria-hidden="true">
@@ -17,16 +17,21 @@
               {% csrf_token %}
               <label class='mb-4' for="id_level">{% trans 'Students level' %} :</label>
               <select id="id_level" name="level" class="mb-4">
-                {% for level in levels %}
-                  <option value="{{ level.0 }}" {% if level_filter == level.0 %}selected{% endif %}>{{ level.1 }}</option>
+                <option value="0" {% if part2_filters.level == 0 %}selected{% endif %}>{% trans 'All' %}</option>
+                {% for high_school_level in levels %}
+                  <option value="{{ high_school_level.pk }}" {% if part2_filters.level == high_school_level.id %}selected{% endif %}>
+                    {{ high_school_level.label }}
+                  </option>
                 {% endfor %}
+                <option value="visitors" {% if part2_filters.level == 'visitors' %}selected{% endif %}>{% trans 'Visitors' %}</option>
               </select>
               <table id="filters_table" class="table table-sm table-bordered compact nowrap dt-body-nowrap" width="100%">
               <thead>
                 <tr>
                   <th class="td-centered"><input type="checkbox" id="select_all"></th>
-                  <th id="institution_filter">{% trans 'Institution' %}</th>
                   <th id="type_filter">{% trans 'Type' %}</th>
+                  <th id="institution_filter">{% trans 'Establishment / High school' %}</th>
+                  <th id="structure_filter">{% trans 'Structure' %}</th>
                   <th id="city_filter">{% trans 'City' %}</th>
                   <th id="department_filter">{% trans 'Department' %}</th>
                   <th id="country_filter">{% trans 'Country' %}</th>
@@ -34,6 +39,7 @@
               </thead>
               <tbody>
                 <tr>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -53,12 +59,15 @@
 <script>
 
 var $select_all = $('#select_all');
+var filter_by_my_trainings = "{{ filter_by_my_trainings }}" === "True"
+var include_structures = "{{ include_structures }}" === "True"
 $.fn.dataTableExt.errMode = 'console';
 
 dtr = $('#filters_table').DataTable({
   'processing': false,
   'order': [
-    [1, "asc"],
+    [2, "asc"],
+    [3, "asc"],
   ],
   'pageLength': 5,
   'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, "{% trans 'All' %}"]],
@@ -66,15 +75,19 @@ dtr = $('#filters_table').DataTable({
   'responsive': true,
   'ajax': {
     url: "/charts/get_charts_filters_data",
+    data: {
+      'filter_by_my_trainings': filter_by_my_trainings,
+      'include_structures': include_structures,
+    },
     dataSrc: function (json) {
-      if (json['data'] != undefined) {
+      if (json['data'] !== undefined) {
         return json['data'];
       }
     }
   },
   'searching': true,
   'language': {
-      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+      url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
   },
   'select': {
     style: 'multi',
@@ -86,8 +99,9 @@ dtr = $('#filters_table').DataTable({
         "className": 'select-checkbox',
         "targets": 0
     },
-    { "data": "institution" },
     { "data": "type" },
+    { "data": "institution" },
+    { "data": "structure" },
     { "data": "city" },
     { "data": "department" },
     { "data": "country" },
@@ -108,11 +122,16 @@ dtr = $('#filters_table').DataTable({
     // Select rows according to existing filters
     api.rows().every(function(rowIdx, tableLoop, rowLoop) {
       var data = this.data();
-      if($.inArray(data['institution_id'], highschools_ids) !== -1) {
+
+      if(data['type_code'] === 0 && $.inArray(data['institution_id'], highschools_ids) !== -1) {
         this.select();
       }
 
-      if($.inArray(data['institution_id'], higher_institutions_ids) !== -1) {
+      if(data['type_code'] === 1 && $.inArray(data['institution_id'], higher_institutions_ids) !== -1) {
+        this.select();
+      }
+
+      if(data['type_code'] === 2 && $.inArray(data['structure_id'], structure_ids) !== -1) {
         this.select();
       }
     });
@@ -123,35 +142,40 @@ dtr = $('#filters_table').DataTable({
 yadcf.init(dtr, [{
   column_number: 1,
   filter_default_label: "",
-  filter_type: "text",
-  filter_container_id: "institution_filter",
+  filter_container_id: "type_filter",
   style_class: "form-control form-control-sm",
   filter_reset_button_text: false,
 },
 {
   column_number: 2,
   filter_default_label: "",
-  filter_container_id: "type_filter",
+  filter_container_id: "institution_filter",
   style_class: "form-control form-control-sm",
   filter_reset_button_text: false,
 },
 {
   column_number: 3,
   filter_default_label: "",
-  filter_type: "text",
-  filter_container_id: "city_filter",
+  filter_container_id: "structure_filter",
   style_class: "form-control form-control-sm",
   filter_reset_button_text: false,
 },
 {
   column_number: 4,
   filter_default_label: "",
-  filter_container_id: "department_filter",
+  filter_container_id: "city_filter",
   style_class: "form-control form-control-sm",
   filter_reset_button_text: false,
 },
 {
   column_number: 5,
+  filter_default_label: "",
+  filter_container_id: "department_filter",
+  style_class: "form-control form-control-sm",
+  filter_reset_button_text: false,
+},
+{
+  column_number: 6,
   filter_default_label: "",
   filter_container_id: "country_filter",
   style_class: "form-control form-control-sm",
@@ -173,7 +197,7 @@ $('#submit_filters').click(function(event) {
    var insts = [];
    // Iterate over all checkboxes in the table
    $.each(dtr.rows('.selected').data(), function() {
-      var values = [this.type_code, this.institution_id];
+      var values = [this.type_code, this.institution_id, this.structure_id];
       insts.push(values);
   });
 

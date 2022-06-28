@@ -1,4 +1,4 @@
-{% load immersionlyceens_tags i18n static staticfiles %}
+{% load immersionlyceens_tags i18n static %}
 {% authorized_groups request.user %}
 <!-- Modal -->
 <div class="modal fade" id="modal_view_slot_immersions" tabindex="-1" role="dialog" aria-labelledby="modal_view_slot_immersions_title" aria-hidden="true">
@@ -27,7 +27,7 @@
                   <th>{% trans 'Level' %}</th>
                   <th>{% trans 'Attendances' %}</th>
                 </tr>
-                <tr>
+                <tr id="id_attendances">
                   <th colspan='7'></th>
                   <th>
                     <div id="id_update_attendances" style="display:none">
@@ -61,7 +61,11 @@
       </div>
       <div class="modal-footer">
         <div class="form-group row justify-content-center">
-        {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP" %}
+        {% comment %}
+          The following groups can update (add/cancel) registrations
+        {% endcomment %}
+
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
           <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
           <div class="col">
             <select class="form-control form-control mr-2 mb-2" name="cancel-type" id="select_cancel_type" disabled>
@@ -74,7 +78,12 @@
           <button type="button" id="btn_cancel_registrations" class="btn btn-primary mr-2 mb-2 resp-btn" disabled>{% trans 'Cancel registrations' %}</button>
           <button type="button" id="btn_register_student" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_register_students_list">{% trans 'Add registration' %}</button>
         {% endif %}
-        {% if authorized_groups|in_groups:"SCUIO-IP,REF-CMP,ENS-CH" %}
+
+        {% comment %}
+          Attendances : same groups but INTER users can also update attendances for their courses/visits/events
+        {% endcomment %}
+
+        {% if authorized_groups|in_groups:"REF-ETAB,REF-STR,INTER,REF-ETAB-MAITRE,REF-TEC,REF-LYC" %}
           <button type="button" id="btn_contact_students" class="btn btn-primary mr-2 mb-2 resp-btn" data-toggle="modal" data-target="#modal_contact_students">{% trans 'Contact' %}</button>
         {% endif %}
           <button type="button" class="btn btn-primary mr-2 mb-2 resp-btn" data-dismiss="modal">{% trans 'Close' %}</button>
@@ -96,6 +105,10 @@ function set_attendance(immersion_id, value) {
       csrfmiddlewaretoken: '{{ csrf_token }}'
     },
     success: function (json) {
+      if(json['error']) {
+        $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
+        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
       dtr.ajax.reload();
       dt.ajax.reload();
     },
@@ -122,6 +135,10 @@ function set_all_attendances(value) {
       csrfmiddlewaretoken: '{{ csrf_token }}'
     },
     success: function (json) {
+      if(json['error']) {
+        $("#cancel_feedback").html('<div class="alert alert-danger">' + json['error'] +'</div>');
+        setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+      }
       reload_table();
       dt.ajax.reload();
     },
@@ -151,7 +168,7 @@ dtr = $('#students_list').DataTable({
   'ajax': {
     url: "",
     dataSrc: function (json) {
-      if (json['data'] != undefined) {
+      if (json['data'] !== undefined) {
         return json['data'];
       }
     }
@@ -165,7 +182,7 @@ dtr = $('#students_list').DataTable({
     selector: 'td:first-child'
   },
   'language': {
-    url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+    url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
   },
   'columns': [
     {"data": "isChecked",
@@ -181,11 +198,11 @@ dtr = $('#students_list').DataTable({
     },
     {"data": "lastname",
      "render": function(data, type, row) {
-       if(type=="display") {
-         if(row.attendance_status == 1) {
+       if(type === "display") {
+         if(row.attendance_status === 1) {
            return "<span class='text-success'>"+data+"</span>";
          }
-         else if (row.attendance_status == 2) {
+         else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";
          }
        }
@@ -195,11 +212,11 @@ dtr = $('#students_list').DataTable({
     },
     {"data": "firstname",
      "render": function(data, type, row) {
-       if(type=="display") {
-         if(row.attendance_status == 1) {
+       if(type === "display") {
+         if(row.attendance_status === 1) {
            return "<span class='text-success'>"+data+"</span>";
          }
-         else if (row.attendance_status == 2) {
+         else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";
          }
        }
@@ -216,14 +233,13 @@ dtr = $('#students_list').DataTable({
         var present_color="";
         var absent_color="";
 
-        if(row.attendance_status == 1) {
+        if(row.attendance_status === 1) {
           present_color="style='color:green';";
         }
-        else if (row.attendance_status == 2) {
+        else if (row.attendance_status === 2) {
           absent_color="style='color:red';";
         }
-
-        if(can_update_attendances == true) {
+        if(can_update_attendances === true && face_to_face === true) {
           return "<button class=\"btn btn-sm btn-light mr-4\" name=\"present\" onclick=\"set_attendance("+row.id+", 1)\" title=\"{% trans 'Present' %}\">" +
                  "<i class='fa fas fa-check' "+present_color+"></i>" +
                  "</button>" +
@@ -278,13 +294,14 @@ $('#students_list').on('draw.dt', function () {
 
 $('#modal_view_slot_immersions').on('show.bs.modal', function (e) {
   reload_table();
-  // show or hide register & cancel btn when slot != past
-  if ($('#modal_view_slot_immersions').data('ispast')) {
+
+  // show or hide register & cancel btn when slot != past or authenticated user can't update registrations
+  if ($('#modal_view_slot_immersions').data('ispast') || can_update_registrations === false) {
     $('#btn_cancel_registrations').hide();
     $('#btn_register_student').hide();
     $('#lbl_select_cancel_type').hide();
     $('#select_cancel_type').hide();
-  } else {
+  } else if(can_update_registrations === true) {
     $('#btn_cancel_registrations').show();
     $('#btn_register_student').show();
     $('#lbl_select_cancel_type').show();
@@ -346,6 +363,9 @@ $(document).ready(function(){
             if(json['error']) {
               $("#cancel_feedback").html('<div class="alert alert-danger">' + json['msg'] +'</div>');
               setTimeout(function() { $("#cancel_feedback").html('');}, {%  settings_get 'MESSAGES_TIMEOUT' %});
+              $('#checkall').prop('checked', false);
+              dtr.ajax.reload();
+              dt.ajax.reload();
             } else {
               dtr.ajax.reload();
               dt.ajax.reload();

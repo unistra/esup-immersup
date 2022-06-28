@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% load static staticfiles i18n immersionlyceens_tags %}
+{% load static i18n immersionlyceens_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 
 
 {% block content %}
 <div class="main-title inside text-center">
-  <div class="bg-main-title bg-parallax" data-scroll-speed=".3"></div>
+    <div></div>
     <div class="container">
       <div class="row">
         <div class="col">
@@ -28,7 +28,11 @@
         <div class="form-group row justify-content-center">
           <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
             <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Resend' %}">
-            <a href="{% url 'immersion:login' %}" class="btn btn-outline-secondary">{% trans 'Back' %}</a>
+            {% if profile == "vis" %}
+              <a href="{% url 'immersion:login' profile='vis' %}" class="btn btn-outline-secondary">{% trans 'Back' %}</a>
+            {% else %}
+              <a href="{% url 'immersion:login' %}" class="btn btn-outline-secondary">{% trans 'Back' %}</a>
+            {% endif %}
           </div>
         </div>
       </form>

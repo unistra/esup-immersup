@@ -1,46 +1,79 @@
+# pylint: disable=E1101
+"""
+Views file
+
+pylint ignore:
+- E1101: object has no member "XX". ignore because of models object query
+"""
 import json
 import logging
 from datetime import datetime
+from typing import Any, Dict, Optional
+from hijack import signals
 
+import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.core import serializers
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils.translation import gettext
-from django.utils.translation import ugettext_lazy as _
-
-import requests
-
+from django.utils.decorators import method_decorator
+from django.utils.translation import gettext, gettext_lazy as _
+from django.views import generic
 from immersionlyceens.decorators import groups_required
 
-from .forms import (ComponentForm, ContactForm, CourseForm, MyHighSchoolForm, SlotForm,
-    HighSchoolStudentImmersionUserForm)
-from .models import (Campus, CancelType, Component, Course, HighSchool, Holiday, Immersion, ImmersionUser, Slot,
-    Training, UniversityYear)
+from .admin_forms import (
+    ImmersionUserChangeForm, ImmersionUserCreationForm, TrainingForm,
+)
+from .forms import (
+    ContactForm, CourseForm, HighSchoolStudentImmersionUserForm,
+    MyHighSchoolForm, OffOfferEventForm, OffOfferEventSlotForm, SlotForm,
+    StructureForm, TrainingFormHighSchool, VisitForm, VisitSlotForm,
+)
+from .models import (
+    Campus, CancelType, Course, Establishment, HighSchool, Holiday, Immersion,
+    ImmersionUser, InformationText, OffOfferEvent, Slot, Structure, Training,
+    UniversityYear, Visit,
+)
 
 logger = logging.getLogger(__name__)
 
 
-@groups_required('SCUIO-IP')
+# Define and register a signal for hijack
+def hijack_clean_session_vars(sender, hijacker, hijacked, request, **kwargs):
+    """
+    On each hijack, clean these session vars
+    """
+    session_vars = [
+        'current_establishment_id',
+        'current_structure_id',
+        'current_highschool_id',
+        'current_training_id',
+    ]
+
+    for var in session_vars:
+        request.session.pop(var, None)
+
+signals.hijack_started.connect(hijack_clean_session_vars)
+
+
+@groups_required('REF-ETAB-MAITRE', 'REF-TEC')
 def import_holidays(request):
     """
     Import holidays from API if it has been configured
     """
-    redirect_url = '/admin/core/holiday'
 
-    if all(
-        [
-            settings.WITH_HOLIDAY_API,
-            settings.HOLIDAY_API_URL,
-            settings.HOLIDAY_API_MAP,
-            settings.HOLIDAY_API_DATE_FORMAT,
-        ]
-    ):
+    redirect_url = '/admin/core/holiday/'
+
+    if all([
+        settings.WITH_HOLIDAY_API,
+        settings.HOLIDAY_API_URL,
+        settings.HOLIDAY_API_MAP,
+        settings.HOLIDAY_API_DATE_FORMAT]):
         url = settings.HOLIDAY_API_URL
 
         # get holidays data
@@ -70,7 +103,8 @@ def import_holidays(request):
                     _date_unformated = holiday[settings.HOLIDAY_API_MAP['date']]
                     _date = datetime.strptime(_date_unformated, settings.HOLIDAY_API_DATE_FORMAT)
                     _label = holiday[settings.HOLIDAY_API_MAP['label']] + ' ' + str(_date.year)
-                    Holiday.objects.create(label=_label, date=_date)
+                    if year.start_date <= _date.date() <= year.end_date:
+                        Holiday.objects.create(label=_label, date=_date)
                 except ValueError as exc:
                     logger.error(str(exc))
                 except IntegrityError as exc:
@@ -79,261 +113,19 @@ def import_holidays(request):
     return redirect(redirect_url)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
-def slots_list(request, comp_id=None, train_id=None):
-    """
-    Get slots list
-    get filters : component and trainings
-    """
-    template = 'slots/list_slots.html'
-
-    if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all().order_by("code")
-    elif request.user.is_component_manager():
-        components = request.user.components.all().order_by("code")
-    else:
-        return render(request, 'base.html')
-
-    contact_form = ContactForm()
-
-    context = {
-        'components': components.order_by('code'),
-        'contact_form': contact_form,
-        'cancel_types': CancelType.objects.filter(active=True),
-    }
-
-    if comp_id and int(comp_id) in [c.id for c in components]:
-        context['component_id'] = comp_id
-        context['trainings'] = []
-
-        # Make sure the training is active and belongs to the selected component
-        try:
-            if train_id and Training.objects.filter(id=int(train_id), components=comp_id, active=True).exists():
-                context['training_id'] = train_id
-        except ValueError:
-            pass
-
-        trainings = Training.objects.prefetch_related('training_subdomains') \
-                .filter(components=comp_id, active=True) \
-                .order_by('label')
-
-        for training in trainings:
-            context['trainings'].append({
-                'id': training.id,
-                'label': training.label,
-                'subdomain': [s.label for s in training.training_subdomains.filter(active=True)],
-            })
-
-    return render(request, template, context=context)
-
-
-@groups_required('SCUIO-IP', 'REF-CMP')
-def add_slot(request, slot_id=None):
-    slot = None
-    teachers_idx = None
-
-    if slot_id:
-        try:
-            slot = Slot.objects.get(id=slot_id)
-            teachers_idx = [t.id for t in slot.teachers.all()]
-            slot.id = None
-        except Slot.DoesNotExist:  # id not found : make an empty slot
-            slot = Slot()
-            teachers_idx = []
-
-    # get components
-    components = []
-    if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all().order_by('code')
-    elif request.user.is_component_manager():
-        components = request.user.components.all().order_by('code')
-
-    if request.method == 'POST' and any(
-        [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
-    ):
-        slot_form = SlotForm(request.POST, instance=slot)
-        teachers = []
-        teacher_prefix = 'teacher_'
-        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-            teachers.append(teacher_id)
-
-        # if published, teachers count must be > 0
-        # else no teacher needed
-        published = request.POST.get('published') == 'on'
-        if slot_form.is_valid() and (not published or len(teachers) > 0):
-            slot_form.save()
-            for teacher in teachers:
-                slot_form.instance.teachers.add(teacher)
-            messages.success(request, _("Slot successfully added"))
-
-            if published:
-                course = Course.objects.get(id=request.POST.get('course'))
-                if course and course.published:
-                    messages.success(request, _("Course published"))
-        else:
-            context = {
-                "campus": Campus.objects.filter(active=True).order_by('label'),
-                "course": Course.objects.get(id=request.POST.get('course', None)),
-                "components": components,
-                "slot_form": slot_form,
-                "ready_load": True,
-                "errors": slot_form.errors,
-                "teacher_error": len(teachers) < 1,
-                "teachers_idx": [int(t) for t in teachers],
-            }
-            return render(request, 'slots/add_slot.html', context=context)
-
-        if request.POST.get('save'):
-            return HttpResponseRedirect(
-                reverse(
-                    'slots_list',
-                    kwargs={
-                        'comp_id': request.POST.get('component', ''),
-                        'train_id': request.POST.get('training', '')
-                    }
-                )
-            )
-        elif request.POST.get('save_add'):
-            return redirect('add_slot')
-        elif request.POST.get('duplicate'):
-            return redirect('duplicate_slot', slot_id=slot_form.instance.id)
-        else:
-            return redirect('/')
-    elif slot:
-        slot_form = SlotForm(instance=slot)
-    else:
-        slot_form = SlotForm()
-
-    context = {
-        "components": components,
-        "campus": Campus.objects.filter(active=True).order_by('label'),
-        "slot_form": slot_form,
-        "ready_load": True,
-    }
-    if slot:
-        context['slot'] = slot
-        context['course'] = slot.course
-        context['teachers_idx'] = teachers_idx
-
-    return render(request, 'slots/add_slot.html', context=context)
-
-
-@groups_required('SCUIO-IP', 'REF-CMP')
-def modify_slot(request, slot_id):
-    """
-    Update a slot
-    """
-    try:
-        slot = Slot.objects.get(id=slot_id)
-    except Slot.DoesNotExist:
-        messages.warning(request, _("This slot id does not exist"))
-        return redirect('/core/slots/')
-
-    # Check whether the user has access to this slot
-    if request.user.is_component_manager() and slot.course.component not in request.user.components.all():
-        messages.error(request, _("This slot belongs to another component"))
-        return redirect('/core/slots/')
-
-    slot_form = SlotForm(instance=slot)
-    # get components
-    components = []
-    if request.user.is_superuser or request.user.is_scuio_ip_manager():
-        components = Component.activated.all().order_by('code')
-    elif request.user.is_component_manager():
-        components = request.user.components.all().order_by('code')
-
-    if request.method == 'POST' and any(
-        [request.POST.get('save'), request.POST.get('duplicate'), request.POST.get('save_add')]
-    ):
-        slot_form = SlotForm(request.POST, instance=slot)
-        teachers = []
-        teacher_prefix = 'teacher_'
-        for teacher_id in [e.replace(teacher_prefix, '') for e in request.POST if teacher_prefix in e]:
-            teachers.append(teacher_id)
-
-        published = request.POST.get('published') == 'on'
-        notify_student = request.POST.get('notify_student') == 'on'
-        if slot_form.is_valid() and (not published or len(teachers) > 0):
-            slot_form.save()
-            slot_form.instance.teachers.clear()
-            for teacher in teachers:
-                slot_form.instance.teachers.add(teacher)
-            messages.success(request, _("Slot successfully updated"))
-        else:
-            context = {
-                "slot": slot,
-                "components": components,
-                "campus": Campus.objects.filter(active=True).order_by('label'),
-                "trainings": Training.objects.filter(active=True),
-                "slot_form": slot_form,
-                "ready_load": True,
-                "errors": slot_form.errors,
-                "teacher_error": len(teachers) < 1,
-                "teachers_idx": [int(t) for t in teachers],
-            }
-            return render(request, 'slots/add_slot.html', context=context)
-
-        if published:
-            course = Course.objects.get(id=request.POST.get('course'))
-            if course and course.published:
-                messages.success(request, _("Course published"))
-
-        if notify_student:
-            sent_msg = 0
-            immersions = Immersion.objects.filter(slot=slot, cancellation_type__isnull=True)
-            for immersion in immersions:
-                if not immersion.student.send_message(request, 'CRENEAU_MODIFY_NOTIF', immersion=immersion, slot=slot):
-                    sent_msg += 1
-
-            if sent_msg:
-                messages.success(request, _("Notifications have been sent (%s)") % sent_msg)
-
-        if request.POST.get('save'):
-            return HttpResponseRedirect(
-                reverse(
-                    'slots_list',
-                    kwargs={
-                        'comp_id': request.POST.get('component', ''),
-                        'train_id': request.POST.get('training', '')
-                    }
-                )
-            )
-        elif request.POST.get('save_add'):
-            return redirect('add_slot')
-        elif request.POST.get('duplicate'):
-            return redirect('duplicate_slot', slot_id=slot_form.instance.id)
-        else:
-            context = {
-                "slot": slot,
-                "course": Course.objects.get(id=request.POST.get('course', None)),
-                "components": components,
-                "campus": Campus.objects.filter(active=True).order_by('label'),
-                "trainings": Training.objects.filter(active=True).order_by('label'),
-                "slot_form": slot_form,
-                "ready_load": True,
-                "teachers_idx": [t.id for t in slot.teachers.all()],
-            }
-            return render(request, 'slots/add_slot.html', context=context)
-
-    context = {
-        "slot": slot,
-        "components": components,
-        "campus": Campus.objects.filter(active=True).order_by('label'),
-        "trainings": Training.objects.filter(active=True),
-        "slot_form": slot_form,
-        "ready_load": True,
-        "teachers_idx": [t.id for t in slot.teachers.all()],
-    }
-    return render(request, 'slots/add_slot.html', context=context)
-
-
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def del_slot(request, slot_id):
     try:
         slot = Slot.objects.get(id=slot_id)
         # Check whether the user has access to this slot
-        if request.user.is_component_manager() and slot.course.component not in request.user.components.all():
-            return HttpResponse(gettext("This slot belongs to another component"))
+        if request.user.is_structure_manager():
+            conditions = [
+                slot.course and slot.course.structure not in request.user.structures.all(),
+                slot.visit and slot.visit.structure not in request.user.structures.all()
+            ]
+            if any(conditions):
+                return HttpResponse(gettext("This slot belongs to another structure"))
+
         slot.delete()
     except Slot.DoesNotExist:
         pass
@@ -341,15 +133,44 @@ def del_slot(request, slot_id):
     return HttpResponse('ok')
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-ETAB-MAITRE', 'REF-LYC')
 def courses_list(request):
-    can_update_courses = False
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
+    if request.user.is_high_school_manager() and request.user.highschool \
+        and not request.user.highschool.postbac_immersion:
+        return HttpResponseRedirect("/")
 
-    if allowed_comps.count() == 1:
-        component_id = allowed_comps.first().id
+    can_update_courses = False
+
+    allowed_highschools = HighSchool.objects.none()
+    allowed_establishments = Establishment.objects.none()
+    allowed_strs = Structure.objects.none()
+
+    if request.user.is_master_establishment_manager() or request.user.is_operator():
+        allowed_highschools = HighSchool.agreed.filter(postbac_immersion=True)
+        allowed_establishments = Establishment.activated.all()
+        allowed_strs = request.user.get_authorized_structures()
+    elif request.user.is_establishment_manager():
+        allowed_establishments = Establishment.objects.filter(pk=request.user.establishment.id)
+        allowed_strs = request.user.get_authorized_structures()
+    elif request.user.is_structure_manager():
+        allowed_strs = request.user.get_authorized_structures()
+    elif request.user.is_high_school_manager():
+        allowed_highschools = HighSchool.objects.filter(pk=request.user.highschool.id)
+
+    if allowed_establishments.count() == 1:
+        establishment_id = allowed_establishments.first().id
     else:
-        component_id = request.session.get("current_component_id", None)
+        establishment_id = request.session.get("current_establishment_id", None)
+
+    if request.user.is_high_school_manager() and allowed_highschools.count() == 1:
+        highschool_id = allowed_highschools.first().id
+    else:
+        highschool_id = request.session.get("current_highschool_id", None)
+
+    if allowed_strs.count() == 1:
+        structure_id = allowed_strs.first().id
+    else:
+        structure_id = request.session.get("current_structure_id", None)
 
     # Check if we can add/update courses
     try:
@@ -369,23 +190,31 @@ def courses_list(request):
             ),
         )
 
-    context = {"components": allowed_comps, "component_id": component_id, "can_update_courses": can_update_courses}
+    context = {
+        "structures": allowed_strs.order_by('code'),
+        "establishments": allowed_establishments,
+        "highschools": allowed_highschools,
+        "structure_id": structure_id,
+        "establishment_id": establishment_id,
+        "highschool_id": highschool_id,
+        "can_update_courses": can_update_courses
+    }
 
     return render(request, 'core/courses_list.html', context)
 
 
-@groups_required('SCUIO-IP', 'REF-CMP')
+@groups_required('REF-ETAB', 'REF-TEC', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC')
 def course(request, course_id=None, duplicate=False):
     """
     Course creation / update / deletion
     """
-    teachers_list = []
+    speakers_list = []
     save_method = None
     course = None
     course_form = None
     update_rights = True
     can_update_courses = False
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP').order_by("code", "label")
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
 
     # Check if we can add/update courses
     try:
@@ -409,22 +238,20 @@ def course(request, course_id=None, duplicate=False):
     if course_id:
         try:
             course = Course.objects.get(pk=course_id)
-            request.session["current_component_id"] = course.component_id
-            teachers_list = [
-                {
-                    "username": t.username,
-                    "lastname": t.last_name,
-                    "firstname": t.first_name,
-                    "email": t.email,
-                    "display_name": "%s %s" % (t.last_name, t.first_name),
-                    "is_removable": not t.slots.filter(course=course_id).exists(),
-                }
-                for t in course.teachers.all()
-            ]
+
+            speakers_list = [{
+                "username": t.username,
+                "lastname": t.last_name,
+                "firstname": t.first_name,
+                "email": t.email,
+                "display_name": f"{t.last_name} {t.first_name}",
+                "is_removable": not t.slots.filter(course=course_id).exists(),
+            } for t in course.speakers.all()]
 
             if duplicate:
                 data = {
-                    'component': course.component,
+                    'highschool': course.highschool,
+                    'structure': course.structure,
                     'training': course.training,
                     'published': course.published,
                     'label': course.label,
@@ -438,7 +265,14 @@ def course(request, course_id=None, duplicate=False):
             course_form = CourseForm(request=request)
 
         # check user rights
-        if course and not (course.get_components_queryset() & allowed_comps).exists():
+        cannot_update_conditions = [
+            not course,
+            course and course.structure and not (course.get_structures_queryset() & allowed_strs).exists(),
+            request.user.is_high_school_manager() and course and course.highschool
+                and course.highschool != request.user.highschool,
+        ]
+
+        if any(cannot_update_conditions):
             if request.method == 'POST':
                 return HttpResponseRedirect("/core/courses_list")
             update_rights = False
@@ -454,63 +288,80 @@ def course(request, course_id=None, duplicate=False):
     if request.method == 'POST' and save_method:
         course_form = CourseForm(request.POST, instance=course, request=request)
 
-        # Teachers
-        teachers_list = request.POST.get('teachers_list', "[]")
+        # speakers
+        speakers_list = request.POST.get('speakers_list', "[]")
 
         try:
-            teachers_list = json.loads(teachers_list)
-            assert len(teachers_list) > 0
+            speakers_list = json.loads(speakers_list)
+            assert len(speakers_list) > 0
         except Exception:
-            messages.error(request, _("At least one teacher is required"))
+            messages.error(request, _("At least one speaker is required"))
         else:
             if course_form.is_valid():
                 new_course = course_form.save()
 
-                request.session["current_component_id"] = new_course.component_id
+                request.session["current_structure_id"] = new_course.structure.id if new_course.structure else None
+                request.session["current_highschool_id"] = new_course.highschool.id if new_course.highschool else None
+                request.session["current_establishment_id"] = \
+                    new_course.structure.establishment.id if new_course.structure else None
 
-                current_teachers = [u for u in new_course.teachers.all().values_list('username', flat=True)]
-                new_teachers = [teacher.get('username') for teacher in teachers_list]
+                current_speakers = [u for u in new_course.speakers.all().values_list('username', flat=True)]
+                new_speakers = [speaker.get('username') for speaker in speakers_list]
 
-                # Teachers to add
-                for teacher in teachers_list:
-                    if isinstance(teacher, dict):
+                # speakers to add
+                for speaker in speakers_list:
+                    if isinstance(speaker, dict):
+                        send_creation_msg = False
+
                         try:
-                            teacher_user = ImmersionUser.objects.get(username=teacher['username'])
+                            speaker_user = ImmersionUser.objects.get(
+                                Q(username=speaker['username']) | Q(email=speaker['email'])
+                            )
                         except ImmersionUser.DoesNotExist:
-                            teacher_user = ImmersionUser.objects.create(
-                                username=teacher['username'],
-                                last_name=teacher['lastname'],
-                                first_name=teacher['firstname'],
-                                email=teacher['email'],
+                            establishment = new_course.structure.establishment if new_course.structure else None
+
+                            speaker_user = ImmersionUser.objects.create(
+                                username=speaker['email'],
+                                last_name=speaker['lastname'],
+                                first_name=speaker['firstname'],
+                                email=speaker['email'],
+                                establishment=establishment
                             )
 
-                            messages.success(request, gettext("User '{}' created").format(teacher['username']))
-                            return_msg = teacher_user.send_message(request, 'CPT_CREATE_ENS')
+                            messages.success(request, gettext("User '{}' created").format(speaker['username']))
+                            if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
+                                speaker_user.set_recovery_string()
+                            send_creation_msg = True
+
+                        try:
+                            Group.objects.get(name='INTER').user_set.add(speaker_user)
+                        except Exception:
+                            messages.error(
+                                request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                            )
+
+                        if send_creation_msg:
+                            return_msg = speaker_user.send_message(request, 'CPT_CREATE')
 
                             if not return_msg:
                                 messages.success(
                                     request,
-                                    gettext("A confirmation email has been sent to {}").format(teacher['email']),
+                                    gettext("A confirmation email has been sent to {}").format(speaker['email']),
                                 )
+                                speaker_user.creation_email_sent = True
+                                speaker_user.save()
                             else:
-                                messages.warning(request, return_msg)
+                                messages.warning(request, gettext("Couldn't send email : %s" % return_msg))
 
-                        try:
-                            Group.objects.get(name='ENS-CH').user_set.add(teacher_user)
-                        except Exception:
-                            messages.error(
-                                request, _("Couldn't add group 'ENS-CH' to user '%s'" % teacher['username']),
-                            )
+                        if speaker_user:
+                            new_course.speakers.add(speaker_user)
 
-                        if teacher_user:
-                            new_course.teachers.add(teacher_user)
-
-                # Teachers to remove
-                remove_list = set(current_teachers) - set(new_teachers)
+                # speakers to remove
+                remove_list = set(current_speakers) - set(new_speakers)
                 for username in remove_list:
                     try:
                         user = ImmersionUser.objects.get(username=username)
-                        new_course.teachers.remove(user)
+                        new_course.speakers.remove(user)
                     except ImmersionUser.DoesNotExist:
                         pass
 
@@ -539,52 +390,105 @@ def course(request, course_id=None, duplicate=False):
         "course": course,
         "course_form": course_form,
         "duplicate": True if duplicate else False,
-        "teachers": json.dumps(teachers_list),
+        "speakers": json.dumps(speakers_list),
         "update_rights": update_rights,
     }
 
     return render(request, 'core/course.html', context)
 
 
-@groups_required('ENS-CH',)
+@groups_required('INTER',)
 def mycourses(request):
 
-    component_id = None
-    allowed_comps = Component.activated.user_cmps(request.user, 'SCUIO-IP')
+    structure_id = None
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
 
-    if allowed_comps.count() == 1:
-        component_id = allowed_comps.first().id
+    if allowed_strs.count() == 1:
+        structure_id = allowed_strs.first().id
 
-    context = {"components": allowed_comps, "component_id": component_id}
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id
+    }
 
-    return render(request, 'core/mycourses.html', context)
+    return render(request, 'core/my_courses.html', context)
 
 
-@groups_required('ENS-CH',)
-def myslots(request):
+@groups_required('INTER',)
+def myvisits(request):
+
+    structure_id = None
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+
+    if allowed_strs.count() == 1:
+        structure_id = allowed_strs.first().id
+
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id
+    }
+
+    return render(request, 'core/my_visits.html', context)
+
+
+@groups_required('INTER',)
+def myevents(request):
+
+    structure_id = None
+    allowed_strs = request.user.get_authorized_structures().order_by('code', 'label')
+
+    if allowed_strs.count() == 1:
+        structure_id = allowed_strs.first().id
+
+    context = {
+        "structures": allowed_strs,
+        "structure_id": structure_id
+    }
+
+    return render(request, 'core/my_events.html', context)
+
+
+@groups_required('INTER','REF-LYC', )
+def myslots(request, slots_type=None):
     contact_form = ContactForm()
 
     context = {
         'contact_form': contact_form,
+        'user_slots': True
     }
 
-    return render(request, 'core/myslots.html', context)
+    if slots_type == "visits":
+        context["slot_mode"] = "visit"
+        return render(request, 'core/my_visits_slots.html', context)
+    if slots_type == "hs_visits":
+        context["slot_mode"] = "visit"
+        context["user_slots"] = False
+        context["highschool_id"] = request.user.highschool.id if request.user.highschool else ''
+        return render(request, 'core/my_high_school_visits_slots.html', context)
+    elif slots_type == "events":
+        context["slot_mode"] = "event"
+        return render(request, 'core/my_events_slots.html', context)
+    elif slots_type == "courses":
+        context["slot_mode"] = "course"
+        return render(request, 'core/my_courses_slots.html', context)
 
 
 @groups_required('REF-LYC',)
 def my_high_school(request, high_school_id=None):
-    if request.user.highschool.id != high_school_id:
+    if request.user.highschool and request.user.highschool.id != high_school_id:
         return redirect('home')
 
     hs = HighSchool.objects.get(id=high_school_id)
     post_values = request.POST.copy()
     post_values['label'] = hs.label
 
-    high_school_form = None
     context = {
         'high_school': hs,
         'modified': False,
-        'referents': ImmersionUser.objects.filter(highschool=request.user.highschool),
+        'referents': ImmersionUser.objects.filter(
+            highschool=request.user.highschool,
+            groups__name__in=['REF-LYC', ]
+        ),
     }
 
     if request.method == 'POST':
@@ -600,24 +504,142 @@ def my_high_school(request, high_school_id=None):
     return render(request, 'core/my_high_school.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP')
-def my_students(request):
-    highschool = None
+@groups_required('REF-LYC',)
+def my_high_school_speakers(request, high_school_id=None):
+    """
+    Display high school speakers (INTER group)
+    """
+    highschool = request.user.highschool
 
-    try:
-        highschool = request.user.highschool
-    except Exception:
-        pass
+    if highschool and (highschool.id != high_school_id or not highschool.postbac_immersion):
+        return redirect('home')
 
     context = {
-        'highschool': highschool,
-        'is_scuio_ip_manager': request.user.is_scuio_ip_manager(),
+        'high_school': highschool,
+        'speakers': ImmersionUser.objects.filter(
+            highschool=highschool,
+            groups__name__in=['INTER', ]
+        ),
     }
 
-    return render(request, 'core/highschool_students.html', context)
+    return render(request, 'core/my_high_school_speakers.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP')
+@groups_required('REF-LYC',)
+def speaker(request, id=None):
+    """
+    Speaker form for high school managers
+    :param id: speaker to edit
+    :return: speaker form
+    """
+    speaker = None
+    initial = {}
+    high_school = request.user.highschool
+    speaker_id = id or request.POST.get("id")
+
+    if not high_school:
+        return redirect('home')
+
+    if speaker_id:
+        try:
+            speaker = ImmersionUser.objects.get(pk=speaker_id)
+        except ImmersionUser.DoesNotExist:
+            messages.error(request, _("Speaker not found"))
+            return redirect(reverse('my_high_school_speakers', kwargs={'high_school_id': high_school.id}))
+    else:
+        initial = {
+            'highschool': high_school,
+            'is_active': True,
+            'establishment': None
+        }
+
+    if request.method == 'POST':
+        speaker_form = ImmersionUserCreationForm(request.POST, instance=speaker, initial=initial, request=request)
+        if speaker_form.is_valid():
+            new_speaker = speaker_form.save()
+
+            if not new_speaker.establishment or not new_speaker.establishment.data_source_plugin:
+                new_speaker.set_recovery_string()
+
+            Group.objects.get(name='INTER').user_set.add(new_speaker)
+
+            if speaker:
+                messages.success(request, _("Speaker successfully updated."))
+                if 'email' in speaker_form.changed_data:
+                    messages.warning(request, _("Warning : the username is now the new speaker's email address"))
+            else:
+                messages.success(request, _("Speaker successfully created."))
+
+                # Send creation message
+                return_msg = new_speaker.send_message(request, 'CPT_CREATE')
+
+                if not return_msg:
+                    messages.success(
+                        request,
+                        gettext("A confirmation email has been sent to {}").format(new_speaker.email),
+                    )
+                    new_speaker.creation_email_sent = True
+                    new_speaker.save()
+                else:
+                    messages.warning(request, gettext("Couldn't send email : %s" % return_msg))
+
+            return redirect(reverse('my_high_school_speakers', kwargs={'high_school_id': high_school.id}))
+        else:
+            messages.error(request, speaker_form.errors)
+    else:
+        speaker_form = ImmersionUserCreationForm(instance=speaker, initial=initial, request=request)
+
+    context = {
+        'high_school': high_school,
+        'speaker_form': speaker_form,
+        'speaker': speaker
+    }
+
+    return render(request, 'core/speaker.html', context)
+
+
+# @groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
+# def my_students(request):
+#     highschool = None
+#
+#     try:
+#         highschool = request.user.highschool
+#     except Exception:
+#         pass
+#
+#     context = {
+#         'highschool': highschool,
+#         'is_establishment_manager': request.user.is_establishment_manager(),
+#     }
+#
+#     return render(request, 'core/highschool_students.html', context)
+
+
+@method_decorator(groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
+class MyStudents(generic.TemplateView):
+    template_name: str = "core/highschool_students.html"
+
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
+        can_show_users_without_record: bool = any([
+            self.request.user.is_operator(),
+            self.request.user.is_master_establishment_manager(),
+            self.request.user.is_establishment_manager(),
+            self.request.user.is_high_school_manager()
+                and self.request.user.highschool
+                and self.request.user.highschool.postbac_immersion,
+        ])
+
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context.update({
+            "highschool": self.request.user.highschool,
+            'can_show_users_without_record': can_show_users_without_record,
+        })
+
+        return context
+
+
+# todo: remove this function
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def student_validation(request, high_school_id=None):
     if request.user.is_high_school_manager() and request.user.highschool:
         try:
@@ -636,7 +658,7 @@ def student_validation(request, high_school_id=None):
             messages.error(request, _("This high school id does not exist"))
             return redirect('/core/student_validation/')
     else:
-        context['high_schools'] = HighSchool.objects.all().order_by('city')
+        context['high_schools'] = HighSchool.agreed.order_by('city')
 
     try:
         context['hs_id'] = int(request.GET.get('hs_id'))
@@ -646,10 +668,55 @@ def student_validation(request, high_school_id=None):
     return render(request, 'core/student_validation.html', context)
 
 
-@groups_required('REF-LYC', 'SCUIO-IP')
+@method_decorator(groups_required("REF-ETAB-MAITRE", "REF-TEC"), name="dispatch")
+class VisitorValidationView(generic.TemplateView):
+    template_name = "core/visitor_validation.html"
+
+# @method_decorator(groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE'), name="dispatch")
+# class StudentValidationView(generic.TemplateView):
+#     template_name: str = "core/student_validation.html"
+#
+#     def get(self, request, *args, **kwargs):
+#         if request.user.is_high_school_manager() and request.user.highschool:
+#             try:
+#                 high_school_id = request.user.highschool.id
+#             except AttributeError:
+#                 messages.error(request, _("Your account is not bound to any high school"))
+#                 return redirect('/')
+#         return super().get(request, *args, **kwargs)
+#
+#     def get_context_data(self, **kwargs):
+#         context: Dict[str, Any] = super().get_context_data(**kwargs)
+#         high_school_id = self.kwargs.get("high_school_id", None)
+#         if self.request.user.is_high_school_manager() and self.request.user.highschool:
+#             try:
+#                 high_school_id = self.request.user.highschool.id
+#             except AttributeError:
+#                 pass
+#
+#         if high_school_id:
+#             try:
+#                 context['high_school'] = HighSchool.objects.get(id=high_school_id)
+#             except HighSchool.DoesNotExist:
+#                 messages.error(self.request, _("This high school id does not exist"))
+#                 return redirect('/core/student_validation/')
+#         else:
+#             context['high_schools'] = HighSchool.agreed.order_by('city')
+#
+#         try:
+#             context['hs_id'] = int(self.request.GET.get('hs_id'))
+#         except (ValueError, TypeError):
+#             pass
+#
+#         return context
+
+
+@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
 def highschool_student_record_form_manager(request, hs_record_id):
+    from immersionlyceens.apps.immersion.forms import (
+        HighSchoolStudentRecordManagerForm,
+    )
     from immersionlyceens.apps.immersion.models import HighSchoolStudentRecord
-    from immersionlyceens.apps.immersion.forms import HighSchoolStudentRecordManagerForm
 
     try:
         hs = HighSchoolStudentRecord.objects.get(id=hs_record_id)
@@ -695,67 +762,83 @@ def highschool_student_record_form_manager(request, hs_record_id):
     return render(request, 'core/hs_record_manager.html', context)
 
 
-@groups_required('REF-CMP')
-def component(request, component_code=None):
-    """
-    Update component url and mailing list
-    """
-    form = None
-    component = None
-    components = None
+@method_decorator(groups_required('REF-STR'), name="dispatch")
+class MyStructureView(generic.TemplateView):
+    template_name = "core/structure.html"
 
-    if request.method == "POST":
-        try:
-            component = Component.objects.get(code=request.POST.get('code'))
-        except Exception:
-            messages.error(request, _("Invalid parameter"))
-            return redirect('component')
+    def get_context_data(self, **kwargs):
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
 
-        form = ComponentForm(request.POST, instance=component)
+        my_structures = Structure.objects.filter(referents=self.request.user).order_by('label')
 
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Component settings successfully saved"))
-            return redirect('component')
-    elif component_code:
-        try:
-            component = Component.objects.get(code=component_code)
-            form = ComponentForm(instance=component)
-        except Component.DoesNotExist:
-            messages.error(request, _("Invalid parameter"))
-            return redirect('component')
-    else:
-        my_components = Component.objects.filter(referents=request.user).order_by('label')
-
-        if my_components.count() == 1:
-            component = my_components.first()
-            form = ComponentForm(instance=component)
+        if my_structures.count() == 1:
+            context.update({"structure": my_structures.first()})
         else:
-            components = [c for c in my_components]
+            context.update({"structures": list(my_structures)})
+        return context
 
-    context = {
-        'form': form,
-        'component': component,
-        'components': components,
-    }
-
-    return render(request, 'core/component.html', context)
+#
+# @groups_required('REF-STR')
+# def structure(request, structure_code=None):
+#     """
+#     Update structure url and mailing list
+#     """
+#     form = None
+#     structure = None
+#     structures = None
+#
+#     if request.method == "POST":
+#         try:
+#             structure = Structure.objects.get(code=request.POST.get('code'))
+#         except Exception:
+#             messages.error(request, _("Invalid parameter"))
+#             return redirect('structure')
+#
+#         form = StructureForm(request.POST, instance=structure)
+#
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, _("Structure settings successfully saved"))
+#             return redirect('structure')
+#     elif structure_code:
+#         try:
+#             structure = Structure.objects.get(code=structure_code)
+#             form = StructureForm(instance=structure)
+#         except Structure.DoesNotExist:
+#             messages.error(request, _("Invalid parameter"))
+#             return redirect('structure')
+#     else:
+#         my_structures = Structure.objects.filter(referents=request.user).order_by('label')
+#
+#         if my_structures.count() == 1:
+#             structure = my_structures.first()
+#             form = StructureForm(instance=structure)
+#         else:
+#             structures = [c for c in my_structures]
+#
+#     context = {
+#         'form': form,
+#         'structure': structure,
+#         'structures': structures,
+#     }
+#
+#     return render(request, 'core/structure.html', context)
 
 
 @groups_required(
-    'REF-CMP', 'SCUIO-IP', 'REF-LYC',
+    'REF-STR', 'REF-ETAB', 'REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'
 )
 def stats(request):
     template = 'core/stats.html'
-    components = None
+    structures = None
 
-    if request.user.is_scuio_ip_manager():
-        components = Component.activated.all()
-    elif request.user.is_component_manager():
-        components = request.user.components.all()
+    if request.user.is_master_establishment_manager():
+        structures = Structure.activated.all()
+    elif request.user.is_structure_manager():
+        structures = request.user.structures.all()
 
     context = {
-        'components': components,
+        'structures': structures,
     }
 
     if request.user.is_high_school_manager() and request.user.highschool:
@@ -765,7 +848,7 @@ def stats(request):
 
 
 @login_required
-@groups_required('SRV-JUR', 'SCUIO-IP')
+@groups_required('SRV-JUR', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'REF-LYC')
 def students_presence(request):
     """
     Displays a list of students registered to slots between min_date and max_date
@@ -787,7 +870,7 @@ def students_presence(request):
 
 
 @login_required
-@groups_required('SCUIO-IP')
+@groups_required('REF-ETAB-MAITRE', 'REF-TEC')
 def duplicated_accounts(request):
     """
     Manage duplicated accounts
@@ -796,3 +879,1482 @@ def duplicated_accounts(request):
     context = {}
 
     return render(request, 'core/duplicated_accounts.html', context)
+
+
+@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
+class TrainingList(generic.TemplateView):
+    template_name = "core/training/list.html"
+
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
+        context: Dict[str, Any] = super().get_context_data(**kwargs)
+        context["can_update"] = True
+        if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
+            context["highschools"] = HighSchool.objects.filter(postbac_immersion=True).order_by("city", "label")
+
+        return context
+
+
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
+class TrainingAdd(generic.CreateView):
+    form_class = TrainingFormHighSchool
+    template_name: str = "core/training/training.html"
+
+    def get_success_url(self) ->  str:
+        return reverse("training_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+    def get_form_kwargs(self) -> Dict[str, Any]:
+        kw: Dict[str, Any] = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Training %s created.") % str(form.instance))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Training not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-LYC'), name="dispatch")
+class TrainingUpdate(generic.UpdateView):
+    form_class = TrainingFormHighSchool
+    template_name: str = "core/training/training.html"
+
+    queryset = Training.objects.filter(highschool__isnull=False)
+
+    def get_success_url(self) -> str:
+        return reverse("training_list")
+
+    def get_form_kwargs(self) -> Dict[str, Any]:
+        kw: Dict[str, Any] = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Training \"%s\" updated.") % str(form.instance))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Training \"%s\" not updated.") % str(form.instance))
+        return super().form_invalid(form)
+
+
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class CourseSlotList(generic.TemplateView):
+    template_name = "core/courses_slots_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True #FixMe
+        context["slot_mode"] = "course"
+        context["contact_form"] = ContactForm()
+        context["cancel_types"] = CancelType.objects.filter(active=True)
+
+        # Defaults
+        context["establishments"] = Establishment.activated.all()
+        context["structures"] = Structure.activated.all()
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
+
+        context["establishment_id"] = \
+            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+
+        context["structure_id"] = \
+            kwargs.get('structure_id', None) or self.request.session.get('current_structure_id', None)
+
+        context["highschool_id"] = \
+            kwargs.get('highschool_id', None) or self.request.session.get('current_highschool_id', None)
+
+        context["training_id"] = \
+            kwargs.get('training_id', None) or self.request.session.get('current_training_id', None)
+
+        context["course_id"] = kwargs.get('course_id', None)
+
+        if context["course_id"]:
+            try:
+                course = Course.objects.get(pk=context["course_id"])
+                context["course_label_filter"] = course.label
+            except Course.DoesNotExist:
+                pass
+
+        if context["training_id"]:
+            try:
+                training = Training.objects.get(pk=context["training_id"])
+                context["training_id"] = training.id
+            except Training.DoesNotExist:
+                pass
+
+        if not self.request.user.is_superuser:
+            if self.request.user.is_establishment_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["establishment_id"] = self.request.user.establishment.id
+
+            if self.request.user.is_structure_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = self.request.user.structures.filter(active=True)
+                context["establishment_id"] = self.request.user.establishment.id
+                context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
+
+            if self.request.user.is_high_school_manager():
+                context["establishments"] = Establishment.objects.none()
+                context["structures"] = Structure.objects.none()
+                context["highschools"] = HighSchool.agreed.filter(
+                    postbac_immersion=True, pk=self.request.user.highschool.id
+                )
+                context["highschool_id"] = self.request.user.highschool.id
+
+        return context
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class CourseSlotAdd(generic.CreateView):
+    form_class = SlotForm
+    template_name = "core/course_slot.html"
+    duplicate = False
+
+    def get_success_url(self):
+        self.request.session['current_establishment_id'] = \
+            self.object.course.structure.establishment.id if self.object.course.structure else None
+        self.request.session['current_structure_id'] = \
+            self.object.course.structure.id if self.object.course.structure else None
+        self.request.session['current_training_id'] = \
+            self.object.course.training.id if self.object.course.training else None
+        self.request.session['current_highschool_id'] = \
+            self.object.course.highschool.id if self.object.course.highschool else None
+
+        if self.add_new:
+            return reverse("add_course_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_course_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("courses_slots")
+
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        course = None
+        training = None
+
+        self.duplicate = self.kwargs.get('duplicate', False)
+        object_pk = self.kwargs.get('pk', None)
+
+        if self.kwargs.get('course_id', None):
+            context["establishment_id"] = self.kwargs.get('establishment_id', None)
+            context["structure_id"] = self.kwargs.get('structure_id', None)
+            context["highschool_id"] = self.kwargs.get('highschool_id', None)
+            context["course_id"] = self.kwargs.get('course_id')
+            context["training_id"] = self.kwargs.get('training_id')
+
+            try:
+                course = Course.objects.get(pk=context["course_id"])
+            except Course.DoesNotExist:
+                pass
+
+            try:
+                training = Training.objects.get(pk=context["training_id"])
+            except Training.DoesNotExist:
+                pass
+
+        if self.duplicate and object_pk:
+            context = {'duplicate': True}
+            try:
+                slot = Slot.objects.get(pk=object_pk)
+
+                establishment_id = slot.course.structure.establishment.id if slot.course.structure else None
+                structure_id = slot.course.structure.id if slot.course.structure else None
+                highschool_id = slot.course.highschool.id if slot.course.highschool else None
+                training_id = slot.course.training.id if slot.course.training else None
+
+                initials = {
+                    'establishment': establishment_id,
+                    'structure': structure_id,
+                    'highschool': highschool_id,
+                    'training': training_id,
+                    'course': slot.course.id,
+                    'course_type': slot.course_type.id,
+                    'campus': slot.campus,
+                    'building': slot.building,
+                    'published': slot.published,
+                    'room': slot.room,
+                    'url': slot.url,
+                    'date': slot.date,
+                    'start_time': slot.start_time,
+                    'end_time': slot.end_time,
+                    'n_places': slot.n_places,
+                    'additional_information': slot.additional_information,
+                    'face_to_face': slot.face_to_face,
+                    'establishments_restrictions': slot.establishments_restrictions,
+                    'levels_restrictions': slot.levels_restrictions,
+                    'allowed_establishments': [e.id for e in slot.allowed_establishments.all()],
+                    'allowed_highschools': [h.id for h in slot.allowed_highschools.all()],
+                    'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
+                    'allowed_student_levels': slot.allowed_student_levels.all(),
+                    'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels.all(),
+                    'speakers': [s.id for s in slot.speakers.all()]
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    # careful, some fields are lists
+                    if k in ['allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
+                             'allowed_student_levels', 'allowed_post_bachelor_levels', 'speakers']:
+                        initials[k] = data.getlist(k, initials[k])
+                    else:
+                        initials[k] = data.get(k, initials[k])
+
+                self.form = self.form_class(initial=initials, request=self.request)
+
+                context["origin_id"] = slot.id
+                context["form"] = self.form
+
+                # Set <select> initial values from the slot to duplicate
+                context["establishment_id"] = establishment_id
+                context["structure_id"] = structure_id
+                context["highschool_id"] = highschool_id
+                context["training_id"] = training_id
+
+            except Slot.DoesNotExist:
+                pass
+        elif not self.request.POST and course and training:
+            initials = {
+                'establishment': context.get("establishment_id", None),
+                'structure': context.get("structure_id", None),
+                'highschool': context.get("highschool_id", None),
+                'training': training,
+                'course': course,
+            }
+
+            self.form = self.form_class(initial=initials, request=self.request)
+            context["form"] = self.form
+
+        if self.request.POST:
+            context["slot_dates"] = ",".join([str(i) for i in self.request.POST.getlist("slot_dates[]")])
+        else:
+            context["slot_dates"] = None
+
+        context["can_update"] = True  # FixMe
+        context["slot_mode"] = "course"
+
+        if "establishment_id" not in context:
+            context["establishment_id"] = self.request.session.get('current_establishment_id')
+
+        if "structure_id" not in context:
+            context["structure_id"] = self.request.session.get('current_structure_id')
+
+        if "highschool_id" not in context:
+            context["highschool_id"] = self.request.session.get('current_highschool_id')
+
+        if "training_id" not in context:
+            context["training_id"] = self.request.session.get('current_training_id')
+
+        return context
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
+        messages.success(self.request, _("Course slot \"%s\" created.") % form.instance)
+
+        repeat_until = self.request.POST.get('repeat')
+        if repeat_until:
+            self.slot_dates = self.request.POST.getlist('slot_dates')
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        for k, error in form.errors.items():
+            messages.error(self.request, error)
+        messages.error(self.request, _("Course slot not created."))
+
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class CourseSlotUpdate(generic.UpdateView):
+    model = Slot
+    form_class = SlotForm
+    template_name = "core/course_slot.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.get_object()
+        except Exception as e:
+            if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
+                messages.error(request, _("This slot belongs to another structure"))
+            else:
+                messages.error(request, _("Slot not found"))
+            return redirect(reverse('courses_slots'))
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager() or user.is_operator():
+            return Slot.objects.filter(course__isnull=False)
+
+        if user.is_establishment_manager():
+            return Slot.objects.filter(course__structure__establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return Slot.objects.filter(course__highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return Slot.objects.filter(course__structure__in=user.get_authorized_structures())
+
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
+
+        slot_id = self.object.id
+        if slot_id:
+            try:
+                slot = Slot.objects.get(pk=slot_id)
+                self.request.session["current_structure_id"] = \
+                    slot.course.structure.id if slot.course.structure else None
+                self.request.session["current_highschool_id"] = \
+                    slot.course.highschool.id if slot.course.highschool else None
+                self.request.session["current_establishment_id"] = \
+                    slot.course.structure.establishment.id if slot.course.structure else None
+                self.request.session["current_training_id"] = \
+                    slot.course.training.id if slot.course.training else None
+
+                speakers_list = [{
+                    "id": t.id,
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": True,
+                } for t in slot.speakers.all()]
+
+                context["speakers"] = json.dumps(speakers_list)
+                self.form = self.form_class(instance=slot, request=self.request)
+            except Slot.DoesNotExist:
+                self.form = self.form_class(request=self.request)
+
+        context["slot_mode"] = "course"
+        context["can_update"] = True  # FixMe
+        return context
+
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_course_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_course_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("courses_slots")
+
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
+
+        messages.success(self.request, _("Course slot \"%s\" updated.") % form.instance)
+
+        self.request.session["current_structure_id"] = \
+            self.object.course.structure.id if self.object.course.structure else None
+        self.request.session["current_highschool_id"] = \
+            self.object.course.highschool.id if self.object.course.highschool else None
+        self.request.session["current_establishment_id"] = \
+            self.object.course.structure.establishment.id if self.object.course.structure else None
+        self.request.session["current_training_id"] = \
+            self.object.course.training.id if self.object.course.training else None
+
+        if self.object.course and not self.object.course.published and self.object.published:
+            self.object.course.published = True
+            self.object.course.save()
+            messages.success(self.request, _("Course published"))
+
+        if self.request.POST.get('notify_student') == 'on':
+            sent_msg = 0
+            not_sent_msg = 0
+            errors_list = []
+
+            immersions = Immersion.objects.filter(slot=self.object, cancellation_type__isnull=True)
+
+            for immersion in immersions:
+                ret = immersion.student.send_message(
+                    self.request,
+                    'CRENEAU_MODIFY_NOTIF',
+                    immersion=immersion,
+                    slot=self.object
+                )
+
+                if not ret:
+                    sent_msg += 1
+                elif ret not in errors_list:
+                    not_sent_msg += 1
+                    errors_list.append(ret)
+
+            if sent_msg:
+                messages.success(self.request, gettext("Notifications have been sent (%s)") % sent_msg)
+
+            if errors_list:
+                messages.warning(
+                    self.request,
+                    gettext("{} error(s) occurred :".format(not_sent_msg))  + "<br /".join(errors_list)
+                )
+
+        return super().form_valid(form)
+
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Course slot \"%s\" not updated.") % form.instance)
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
+class VisitList(generic.TemplateView):
+    template_name = "core/visits_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True #FixMe
+
+        context["highschools"] = HighSchool.agreed.order_by("city", "label")
+        context["establishments"] = Establishment.activated.all()
+        context["structures"] = Structure.activated.all()
+
+        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+        context["structure_id"] = self.request.session.get('current_structure_id', None)
+
+        if not self.request.user.is_superuser:
+            if self.request.user.is_establishment_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["establishment_id"] = self.request.user.establishment.id
+                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+
+            if self.request.user.is_structure_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["establishment_id"] = self.request.user.establishment.id
+                context["structures"] = self.request.user.structures.filter(active=True)
+                if self.request.user.structures.count() == 1:
+                    context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
+
+        return context
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
+class VisitAdd(generic.CreateView):
+    form_class = VisitForm
+    template_name = "core/visit.html"
+    duplicate = False
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_visit")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits")
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
+        self.duplicate = self.kwargs.get('duplicate', False)
+        object_pk = self.kwargs.get('pk', None)
+
+        if self.duplicate and object_pk:
+            context = {'duplicate': True}
+            try:
+                visit = Visit.objects.get(pk=object_pk)
+
+                initials = {
+                    'establishment': visit.establishment.id,
+                    'structure': visit.structure.id if visit.structure else None,
+                    'highschool': visit.highschool.id,
+                    'purpose': visit.purpose,
+                    'published': visit.published
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    initials[k] = data.get(k, initials[k])
+
+                self.form = VisitForm(initial=initials, request=self.request)
+
+                speakers_list = [{
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": True,
+                } for t in visit.speakers.all()]
+
+                context["speakers"] = json.dumps(speakers_list)
+                context["origin_id"] = visit.id
+                context["form"] = self.form
+            except Visit.DoesNotExist:
+                pass
+
+        context["can_update"] = True  # FixMe
+        context["establishment_id"] = self.request.session.get('current_establishment_id')
+        context["structure_id"] = self.request.session.get('current_structure_id')
+        return context
+
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("save_duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add_new", False) != False
+        response = super().form_valid(form)
+        messages.success(self.request, _("Visit \"%s\" created.") % form.instance)
+        return response
+
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Visit not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
+class VisitUpdate(generic.UpdateView):
+    model = Visit
+    form_class = VisitForm
+    template_name = "core/visit.html"
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager() or user.is_operator():
+            return Visit.objects.all()
+
+        if user.is_establishment_manager():
+            return Visit.objects.filter(establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return Visit.objects.filter(highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return Visit.objects.filter(structure__in=user.get_authorized_structures())
+
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
+        visit_id = self.object.id
+        if visit_id:
+            try:
+                visit = Visit.objects.get(pk=visit_id)
+                self.request.session["current_structure_id"] = visit.structure.id if visit.structure else None
+                self.request.session["current_highschool_id"] = visit.highschool.id
+                self.request.session["current_establishment_id"] = visit.establishment.id
+
+                speakers_list = [{
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": not t.slots.filter(visit=visit_id).exists(),
+                } for t in visit.speakers.all()]
+
+                context["speakers"] = json.dumps(speakers_list)
+
+                self.form = VisitForm(instance=visit, request=self.request)
+            except Visit.DoesNotExist:
+                self.form = VisitForm(request=self.request)
+
+        context["can_update"] = True  # FixMe
+        return context
+
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_visit")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits")
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Visit \"%s\" updated.") % form.instance)
+
+        self.request.session['current_establishment_id'] = self.object.establishment.id
+        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+
+        self.duplicate = self.request.POST.get("save_duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add_new", False) != False
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Visit \"%s\" not updated.") % str(form.instance))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
+class VisitSlotList(generic.TemplateView):
+    template_name = "core/visits_slots_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True #FixMe
+        context["slot_mode"] = "visit"
+        context["contact_form"] = ContactForm()
+        context["cancel_types"] = CancelType.objects.filter(active=True)
+
+        # Defaults
+        context["establishments"] = Establishment.activated.all()
+        context["structures"] = Structure.activated.all()
+        context["establishment_id"] = \
+            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+
+        try:
+            establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
+            context["managed_by_filter"] = establishment.code
+        except Establishment.DoesNotExist:
+            pass
+
+        context["structure_id"] = kwargs.get('structure_id')
+
+        if context["structure_id"] == "null":
+            context["structure_id"] = ""
+        elif context["structure_id"] is None:
+            context["structure_id"] = self.request.session.get('current_structure_id', None)
+        else:
+            try:
+                structure = Structure.objects.get(pk=context["structure_id"])
+                context["managed_by_filter"] += f" - {structure.code}"
+            except Structure.DoesNotExist:
+                pass
+
+        if kwargs.get('highschool_id', None):
+            try:
+                highschool = HighSchool.objects.get(pk=context["highschool_id"])
+                context["highschool_filter"] = str(highschool)
+            except HighSchool.DoesNotExist:
+                pass
+        else:
+            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+
+
+        context["visit_id"] = kwargs.get('visit_id', None)
+
+        if context["visit_id"]:
+            try:
+                visit = Visit.objects.get(pk=context["visit_id"])
+                context["visit_purpose_filter"] = visit.purpose
+            except Visit.DoesNotExist:
+                pass
+
+        if not self.request.user.is_superuser:
+            if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
+                context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
+
+            if self.request.user.is_establishment_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["establishment_id"] = self.request.user.establishment.id
+
+            if self.request.user.is_structure_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = self.request.user.structures.filter(active=True)
+                context["establishment_id"] = self.request.user.establishment.id
+                context["structure_id"] = context["structure_id"] or self.request.user.structures.first().id
+
+        return context
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
+class VisitSlotAdd(generic.CreateView):
+    form_class = VisitSlotForm
+    template_name = "core/visit_slot.html"
+    duplicate = False
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_visit_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits_slots")
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
+        context["speakers"] = json.dumps(speakers_list)
+        visit = None
+        self.duplicate = self.kwargs.get('duplicate', False)
+        object_pk = self.kwargs.get('pk', None)
+
+        if self.kwargs.get('visit_id', None):
+            context["establishment_id"] = self.kwargs.get('establishment_id', None)
+            context["highschool_id"] = self.kwargs.get('highschool_id', None)
+            context["visit_id"] = self.kwargs.get('visit_id')
+
+            try:
+                context["structure_id"] = int(self.kwargs.get('structure_id', None))
+            except Exception:
+                context["structure_id"] = ""
+
+            try:
+                visit = Visit.objects.get(pk=context["visit_id"])
+            except Visit.DoesNotExist:
+                pass
+
+        if self.duplicate and object_pk:
+            context['duplicate'] = True
+            try:
+                slot = Slot.objects.get(pk=object_pk)
+
+                initials = {
+                    'establishment': slot.visit.establishment.id,
+                    'structure': slot.visit.structure.id if slot.visit.structure else None,
+                    'highschool': slot.visit.highschool.id,
+                    'purpose': slot.visit.purpose,
+                    'published': slot.published,
+                    'visit': slot.visit,
+                    'room': slot.room,
+                    'url': slot.url,
+                    'date': slot.date,
+                    'start_time': slot.start_time,
+                    'end_time': slot.end_time,
+                    'n_places': slot.n_places,
+                    'additional_information': slot.additional_information,
+                    'face_to_face': slot.face_to_face,
+                    'establishments_restrictions': False,
+                    'levels_restrictions': slot.levels_restrictions,
+                    'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
+                    'speakers': [s.id for s in slot.speakers.all()]
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    # careful, some fields are lists
+                    if k in ['allowed_highschool_levels', 'speakers']:
+                        initials[k] = data.getlist(k, initials[k])
+                    else:
+                        initials[k] = data.get(k, initials[k])
+
+                self.form = self.form_class(initial=initials, request=self.request)
+                context["origin_id"] = slot.id
+                context["form"] = self.form
+            except Slot.DoesNotExist:
+                pass
+        elif not self.request.POST and visit:
+            initials = {
+                'establishment': context.get("establishment_id", None),
+                'structure': context.get("structure_id", None),
+                'highschool': context.get("highschool_id", None),
+                'visit': visit,
+            }
+
+            self.form = self.form_class(initial=initials, request=self.request)
+            context["form"] = self.form
+
+        context["can_update"] = True  # FixMe
+        context["slot_mode"] = "visit"
+        return context
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
+        messages.success(self.request, _("Visit slot \"%s\" created.") % str(form.instance))
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        for k, error in form.errors.items():
+            messages.error(self.request, error)
+        messages.error(self.request, _("Visit slot not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
+class VisitSlotUpdate(generic.UpdateView):
+    model = Slot
+    form_class = VisitSlotForm
+    template_name = "core/visit_slot.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.get_object()
+        except Exception as e:
+            if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
+                messages.error(request, _("This slot belongs to another structure"))
+            else:
+                messages.error(request, _("Slot not found"))
+            return redirect(reverse('visits_slots'))
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager() or user.is_operator():
+            return Slot.objects.filter(visit__isnull=False)
+
+        if user.is_establishment_manager():
+            return Slot.objects.filter(visit__establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return Slot.objects.filter(visit__highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return Slot.objects.filter(visit__structure__in=user.get_authorized_structures())
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
+
+        slot_id = self.object.id
+        if slot_id:
+            try:
+                slot = Slot.objects.get(pk=slot_id)
+                self.request.session["current_structure_id"] = slot.visit.structure.id if slot.visit.structure else None
+                self.request.session["current_highschool_id"] = slot.visit.highschool.id
+                self.request.session["current_establishment_id"] = slot.visit.establishment.id
+
+                speakers_list = [{
+                    "id": t.id,
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": True,
+                } for t in slot.speakers.all()]
+
+                context["speakers"] = json.dumps(speakers_list)
+                self.form = VisitSlotForm(instance=slot, request=self.request)
+            except Visit.DoesNotExist:
+                self.form = VisitSlotForm(request=self.request)
+
+        context["slot_mode"] = "visit"
+        context["can_update"] = True  # FixMe
+        return context
+
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_visit_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_visit_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("visits_slots")
+
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
+
+        messages.success(self.request, _("Visit slot \"%s\" updated.") % form.instance)
+
+        self.request.session['current_establishment_id'] = self.object.visit.establishment.id
+        self.request.session['current_structure_id'] = \
+            self.object.visit.structure.id if self.object.visit.structure else None
+
+        if self.object.visit and not self.object.visit.published and self.object.published:
+            self.object.visit.published = True
+            self.object.visit.save()
+            messages.success(self.request, _("Visit published"))
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Visit slot \"%s\" not updated.") % str(form.instance))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class OffOfferEventsList(generic.TemplateView):
+    template_name = "core/off_offer_events_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True #FixMe
+
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by("city", "label")
+        context["establishments"] = Establishment.activated.all()
+        context["structures"] = Structure.activated.all()
+
+        context["establishment_id"] = self.request.session.get('current_establishment_id', None)
+        context["structure_id"] = self.request.session.get('current_structure_id', None)
+        context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+
+        if not self.request.user.is_superuser:
+            if self.request.user.is_establishment_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["establishment_id"] = self.request.user.establishment.id
+
+            if self.request.user.is_structure_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = self.request.user.structures.filter(active=True)
+                context["establishment_id"] = self.request.user.establishment.id
+
+                if self.request.user.structures.filter(active=True).count() == 1:
+                    context["structure_id"] = self.request.user.structures.filter(active=True).first().id
+
+            if self.request.user.is_high_school_manager():
+                context["establishments"] = Establishment.objects.none()
+                context["structures"] = Structure.objects.none()
+                context["highschools"] = HighSchool.agreed.filter(id=self.request.user.highschool.id)
+                context["highschool_id"] = self.request.user.highschool.id
+
+        return context
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class OffOfferEventAdd(generic.CreateView):
+    form_class = OffOfferEventForm
+    template_name = "core/off_offer_event.html"
+    duplicate = False
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_off_offer_event")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_off_offer_event", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("off_offer_events")
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
+        self.duplicate = self.kwargs.get('duplicate', False)
+        object_pk = self.kwargs.get('pk', None)
+
+        if self.duplicate and object_pk:
+            context = {'duplicate': True}
+            try:
+                event = OffOfferEvent.objects.get(pk=object_pk)
+
+                initials = {
+                    'establishment': event.establishment.id if event.establishment else None,
+                    'structure': event.structure.id if event.structure else None,
+                    'highschool': event.highschool.id if event.highschool else None,
+                    'event_type': event.event_type.id,
+                    'label': event.label,
+                    'description': event.description,
+                    'published': event.published
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    initials[k] = data.get(k, initials[k])
+
+                self.form = OffOfferEventForm(initial=initials, request=self.request)
+
+                speakers_list = [{
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": True,
+                } for t in event.speakers.all()]
+
+                context["speakers"] = json.dumps(speakers_list)
+                context["origin_id"] = event.id
+                context["form"] = self.form
+            except OffOfferEvent.DoesNotExist:
+                pass
+
+        context["can_update"] = True  # FixMe
+        context["establishment_id"] = self.request.session.get('current_establishment_id')
+        context["structure_id"] = self.request.session.get('current_structure_id')
+        return context
+
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("save_duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add_new", False) != False
+        response = super().form_valid(form)
+        messages.success(self.request, _("Off offer event \"%s\" created.") % form.instance)
+
+        self.request.session['current_establishment_id'] = \
+            self.object.establishment.id if self.object.establishment else None
+        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+        self.request.session['current_highschool_id'] = self.object.highschool.id if self.object.highschool else None
+
+        return response
+
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Off offer event not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class OffOfferEventUpdate(generic.UpdateView):
+    model = OffOfferEvent
+    form_class = OffOfferEventForm
+    template_name = "core/off_offer_event.html"
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager() or user.is_operator():
+            return OffOfferEvent.objects.all()
+
+        if user.is_establishment_manager():
+            return OffOfferEvent.objects.filter(establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return OffOfferEvent.objects.filter(highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return OffOfferEvent.objects.filter(structure__in=user.get_authorized_structures())
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = self.request.POST.get("speakers_list", "[]") or "[]"
+
+        event_id = self.object.id
+
+        if event_id:
+            try:
+                event = OffOfferEvent.objects.get(pk=event_id)
+                self.request.session["current_structure_id"] = event.structure.id if event.structure else None
+                self.request.session["current_highschool_id"] = event.highschool.id if event.highschool else None
+                self.request.session["current_establishment_id"] = \
+                    event.establishment.id if event.establishment else None
+
+                speakers_list = [{
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": not t.slots.filter(event=event_id).exists(),
+                } for t in event.speakers.all()]
+
+                context["speakers"] = json.dumps(speakers_list)
+                self.form = OffOfferEventForm(instance=event, request=self.request)
+            except OffOfferEvent.DoesNotExist:
+                self.form = OffOfferEventForm(request=self.request)
+
+        context["can_update"] = True  # FixMe
+        return context
+
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_off_offer_event")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_off_offer_event", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("off_offer_events")
+
+    def form_valid(self, form):
+        messages.success(self.request, _("Off offer event \"%s\" updated.") % form.instance)
+
+        self.request.session['current_establishment_id'] = \
+            self.object.establishment.id if self.object.establishment else None
+        self.request.session['current_structure_id'] = self.object.structure.id if self.object.structure else None
+        self.request.session['current_highschool_id'] = self.object.highschool.id if self.object.highschool else None
+
+        self.duplicate = self.request.POST.get("save_duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add_new", False) != False
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Off offer event \"%s\" not updated.") % str(form.instance))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class OffOfferEventSlotList(generic.TemplateView):
+    template_name = "core/off_offer_events_slots_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_update"] = True #FixMe
+        context["slot_mode"] = "event"
+        context["contact_form"] = ContactForm()
+        context["cancel_types"] = CancelType.objects.filter(active=True)
+
+        # Defaults
+        context["establishments"] = Establishment.activated.all()
+        context["structures"] = Structure.activated.all()
+        context["highschools"] = HighSchool.agreed.filter(postbac_immersion=True).order_by('city', 'label')
+
+        context["establishment_id"] = \
+            kwargs.get('establishment_id', None) or self.request.session.get('current_establishment_id', None)
+
+        try:
+            establishment = Establishment.objects.get(pk=kwargs.get('establishment_id'))
+            context["managed_by_filter"] = establishment.code
+        except Establishment.DoesNotExist:
+            pass
+
+        context["structure_id"] = kwargs.get('structure_id')
+
+        if context["structure_id"] == "null":
+            context["structure_id"] = ""
+        elif context["structure_id"] is None:
+            context["structure_id"] = self.request.session.get('current_structure_id', None)
+        else:
+            try:
+                structure = Structure.objects.get(pk=context["structure_id"])
+                context["managed_by_filter"] += f" - {structure.code}"
+            except Structure.DoesNotExist:
+                pass
+
+        if kwargs.get('highschool_id'):
+            try:
+                highschool = HighSchool.objects.get(pk=kwargs.get('highschool_id'))
+                context["highschool_id"] = highschool.id
+                context["managed_by_filter"] = f"{highschool.city} - {highschool.label}"
+            except HighSchool.DoesNotExist:
+                pass
+        else:
+            context["highschool_id"] = self.request.session.get('current_highschool_id', None)
+
+        context["event_id"] = kwargs.get('event_id', None)
+
+        if context["event_id"]:
+            try:
+                event = OffOfferEvent.objects.get(pk=context["event_id"])
+                context["event_type_filter"] = event.event_type.label
+                context["event_label_filter"] = event.label
+            except OffOfferEvent.DoesNotExist:
+                pass
+
+        if not self.request.user.is_superuser:
+            if self.request.user.is_master_establishment_manager() or self.request.user.is_operator():
+                if not context.get("highschool_id"):
+                    context["establishment_id"] = context["establishment_id"] or self.request.user.establishment.id
+
+            if self.request.user.is_establishment_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = context["structures"].filter(establishment=self.request.user.establishment)
+                context["establishment_id"] = self.request.user.establishment.id
+
+            if self.request.user.is_structure_manager():
+                context["establishments"] = Establishment.objects.filter(pk=self.request.user.establishment.id)
+                context["structures"] = self.request.user.structures.filter(active=True)
+                context["establishment_id"] = self.request.user.establishment.id
+                context["structure_id"] = context.get("structure_id") or self.request.user.structures.first().id
+
+            if self.request.user.is_high_school_manager():
+                context["establishments"] = Establishment.objects.none()
+                context["structures"] = Structure.objects.none()
+                context["highschools"] = HighSchool.agreed.filter(
+                    postbac_immersion=True, pk=self.request.user.highschool.id
+                )
+                context["highschool_id"] = self.request.user.highschool.id
+
+        return context
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class OffOfferEventSlotAdd(generic.CreateView):
+    form_class = OffOfferEventSlotForm
+    template_name = "core/off_offer_event_slot.html"
+    duplicate = False
+
+    def get_success_url(self):
+        self.request.session['current_establishment_id'] = \
+            self.object.event.establishment.id if self.object.event.establishment else None
+        self.request.session['current_structure_id'] = \
+            self.object.event.structure.id if self.object.event.structure else None
+        self.request.session['current_highschool_id'] = \
+            self.object.event.highschool.id if self.object.event.highschool else None
+
+        if self.add_new:
+            return reverse("add_off_offer_event_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_off_offer_event_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("off_offer_events_slots")
+
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        speakers_list = [{"id": id} for id in self.request.POST.getlist("speakers_list", []) or []]
+        context["speakers"] = json.dumps(speakers_list)
+        event = None
+
+        self.duplicate = self.kwargs.get('duplicate', False)
+        object_pk = self.kwargs.get('pk', None)
+
+        if self.kwargs.get('event_id', None):
+            context["establishment_id"] = self.kwargs.get('establishment_id', None)
+            context["structure_id"] = ""
+
+            if self.kwargs.get('establishment_id'):
+                try:
+                    context["structure_id"] = int(self.kwargs.get('structure_id', None))
+                except Exception:
+                    context["structure_id"] = ""
+
+            context["highschool_id"] = self.kwargs.get('highschool_id', None)
+            context["event_id"] = self.kwargs.get('event_id')
+
+            try:
+                event = OffOfferEvent.objects.get(pk=context["event_id"])
+            except OffOfferEvent.DoesNotExist:
+                pass
+
+        if self.duplicate and object_pk:
+            context = {'duplicate': True}
+            try:
+                slot = Slot.objects.get(pk=object_pk)
+
+                initials = {
+                    'establishment': slot.event.establishment.id if slot.event.establishment else None,
+                    'structure': slot.event.structure.id if slot.event.structure else None,
+                    'highschool': slot.event.highschool.id if slot.event.highschool else None,
+                    'event_type': slot.event.event_type.id,
+                    'campus': slot.campus,
+                    'building': slot.building,
+                    'label': slot.event.label,
+                    'published': slot.published,
+                    'event': slot.event,
+                    'room': slot.room,
+                    'url': slot.url,
+                    'date': slot.date,
+                    'start_time': slot.start_time,
+                    'end_time': slot.end_time,
+                    'n_places': slot.n_places,
+                    'additional_information': slot.additional_information,
+                    'face_to_face': slot.face_to_face,
+                    'establishments_restrictions': slot.establishments_restrictions,
+                    'levels_restrictions': slot.levels_restrictions,
+                    'allowed_establishments': [e.id for e in slot.allowed_establishments.all()],
+                    'allowed_highschools': [h.id for h in slot.allowed_highschools.all()],
+                    'allowed_highschool_levels': slot.allowed_highschool_levels.all(),
+                    'allowed_student_levels': slot.allowed_student_levels.all(),
+                    'allowed_post_bachelor_levels': slot.allowed_post_bachelor_levels.all(),
+                    'speakers': [s.id for s in slot.speakers.all()]
+                }
+
+                # In case of form error, update initial values with POST ones (prevents a double call to clean())
+                data = self.request.POST
+                for k in initials.keys():
+                    # careful, some fields are lists
+                    if k in ['allowed_establishments', 'allowed_highschools', 'allowed_highschool_levels',
+                             'allowed_student_levels', 'allowed_post_bachelor_levels', 'speakers']:
+                        initials[k] = data.getlist(k, initials[k])
+                    else:
+                        initials[k] = data.get(k, initials[k])
+
+                self.form = self.form_class(initial=initials, request=self.request)
+                context["origin_id"] = slot.id
+                context["form"] = self.form
+            except Slot.DoesNotExist:
+                pass
+        elif not self.request.POST and event:
+            initials = {
+                'establishment': context.get("establishment_id", None),
+                'structure': context.get("structure_id", None),
+                'highschool': context.get("highschool_id", None),
+                'event': event,
+            }
+
+            self.form = self.form_class(initial=initials, request=self.request)
+            context["form"] = self.form
+
+        context["can_update"] = True  # FixMe
+        context["slot_mode"] = "event"
+        return context
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
+        messages.success(self.request, _("Event slot \"%s\" created.") % form.instance)
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        for k, error in form.errors.items():
+            messages.error(self.request, error)
+        messages.error(self.request, _("Event slot not created."))
+        return super().form_invalid(form)
+
+
+@method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
+class OffOfferEventSlotUpdate(generic.UpdateView):
+    model = Slot
+    form_class = OffOfferEventSlotForm
+    template_name = "core/off_offer_event_slot.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.get_object()
+        except Exception as e:
+            if Slot.objects.filter(pk=self.kwargs.get('pk')).exists():
+                messages.error(request, _("This slot belongs to another structure"))
+            else:
+                messages.error(request, _("Slot not found"))
+            return redirect(reverse('off_offer_events_slots'))
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_master_establishment_manager() or user.is_operator():
+            return Slot.objects.filter(event__isnull=False)
+
+        if user.is_establishment_manager():
+            return Slot.objects.filter(event__establishment=user.establishment)
+
+        if user.is_high_school_manager():
+            return Slot.objects.filter(event__highschool=user.highschool)
+
+        if user.is_structure_manager():
+            return Slot.objects.filter(event__structure__in=user.get_authorized_structures())
+
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["request"] = self.request
+        return kw
+
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["speakers"] = json.dumps(self.request.POST.getlist("speakers_list", []) or [])
+
+        slot_id = self.object.id
+        if slot_id:
+            try:
+                slot = Slot.objects.get(pk=slot_id)
+                self.request.session["current_structure_id"] = \
+                    slot.event.structure.id if slot.event.structure else None
+                self.request.session["current_highschool_id"] = \
+                    slot.event.highschool.id if slot.event.highschool else None
+                self.request.session["current_establishment_id"] = \
+                    slot.event.establishment.id if slot.event.establishment else None
+
+                speakers_list = [{
+                    "id": t.id,
+                    "username": t.username,
+                    "lastname": t.last_name,
+                    "firstname": t.first_name,
+                    "email": t.email,
+                    "display_name": f"{t.last_name} {t.first_name}",
+                    "is_removable": True,
+                } for t in slot.speakers.all()]
+
+                context["speakers"] = json.dumps(speakers_list)
+                self.form = self.form_class(instance=slot, request=self.request)
+            except Slot.DoesNotExist:
+                self.form = self.form_class(request=self.request)
+
+        context["slot_mode"] = "event"
+        context["can_update"] = True  # FixMe
+        return context
+
+
+    def get_success_url(self):
+        if self.add_new:
+            return reverse("add_off_offer_event_slot")
+        elif self.duplicate and self.object.pk:
+            return reverse("duplicate_off_offer_event_slot", kwargs={'pk': self.object.pk, 'duplicate': 1})
+        else:
+            return reverse("off_offer_events_slots")
+
+
+    def form_valid(self, form):
+        self.duplicate = self.request.POST.get("duplicate", False) != False
+        self.add_new = self.request.POST.get("save_add", False) != False
+
+        messages.success(self.request, _("Event slot \"%s\" updated.") % form.instance)
+
+        self.request.session["current_structure_id"] = \
+            self.object.event.structure.id if self.object.event.structure else None
+        self.request.session["current_highschool_id"] = \
+            self.object.event.highschool.id if self.object.event.highschool else None
+        self.request.session["current_establishment_id"] = \
+            self.object.event.establishment.id if self.object.event.establishment else None
+
+        if self.object.event and not self.object.event.published and self.object.published:
+            self.object.event.published = True
+            self.object.event.save()
+            messages.success(self.request, _("Event published"))
+
+        return super().form_valid(form)
+
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Event slot \"%s\" not updated.") % form.instance)
+        return super().form_invalid(form)
+
+
+def charter(request):
+    user = request.user
+    establishment_or_highschool = ""
+
+    try:
+        charter_txt = InformationText.objects.get(code="CHARTE_ETABLISSEMENT_ACCUEIL", active=True).content
+    except InformationText.DoesNotExist:
+        charter_txt = ''
+
+    if user.is_establishment_manager() and user.establishment:
+        establishment_or_highschool = user.establishment.label
+    elif user.is_high_school_manager() and user.highschool:
+        establishment_or_highschool = user.highschool
+
+    context = {
+        'establishment_or_highschool': establishment_or_highschool,
+        'charter_txt': charter_txt
+    }
+    return render(request, 'core/charter.html', context)

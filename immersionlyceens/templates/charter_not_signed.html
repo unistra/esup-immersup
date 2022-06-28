@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static i18n immersionlyceens_tags %}
+{% block head-css %}
+{% endblock %}
+{% block head-javascript %}
+    <script src="{% static 'js/immersionlyceens.min.js' %}"></script>
+{% endblock %}
+{% block title %}
+{% trans "Charter not signed" %}
+{% endblock %}
+{% block content %}
+<div class="main-title inside text-center">
+  <div></div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1>{% trans 'Charter has not been signed (yet)' %}</h1>
+        <p class="text-uppercase">
+          {% trans 'Your establishment is awaiting its charter to be signed by a referent' %}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

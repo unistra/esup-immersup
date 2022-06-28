@@ -1,0 +1,410 @@
+[
+{
+    "model": "contenttypes.contenttype",
+    "pk": 1,
+    "fields": {
+        "app_label": "auth",
+        "model": "permission"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 2,
+    "fields": {
+        "app_label": "auth",
+        "model": "group"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 3,
+    "fields": {
+        "app_label": "contenttypes",
+        "model": "contenttype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 4,
+    "fields": {
+        "app_label": "sessions",
+        "model": "session"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 5,
+    "fields": {
+        "app_label": "admin",
+        "model": "logentry"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 6,
+    "fields": {
+        "app_label": "django_cas",
+        "model": "pgtiou"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 7,
+    "fields": {
+        "app_label": "django_cas",
+        "model": "sessionserviceticket"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 8,
+    "fields": {
+        "app_label": "django_cas",
+        "model": "tgt"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 9,
+    "fields": {
+        "app_label": "django_summernote",
+        "model": "attachment"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 10,
+    "fields": {
+        "app_label": "core",
+        "model": "bachelormention"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 11,
+    "fields": {
+        "app_label": "core",
+        "model": "campus"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 12,
+    "fields": {
+        "app_label": "core",
+        "model": "trainingdomain"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 13,
+    "fields": {
+        "app_label": "core",
+        "model": "trainingsubdomain"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 14,
+    "fields": {
+        "app_label": "core",
+        "model": "immersionuser"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 15,
+    "fields": {
+        "app_label": "core",
+        "model": "building"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 16,
+    "fields": {
+        "app_label": "core",
+        "model": "structure"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 17,
+    "fields": {
+        "app_label": "core",
+        "model": "training"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 18,
+    "fields": {
+        "app_label": "core",
+        "model": "canceltype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 19,
+    "fields": {
+        "app_label": "core",
+        "model": "coursetype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 20,
+    "fields": {
+        "app_label": "core",
+        "model": "publictype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 21,
+    "fields": {
+        "app_label": "core",
+        "model": "generalbachelorteaching"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 22,
+    "fields": {
+        "app_label": "core",
+        "model": "universityyear"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 23,
+    "fields": {
+        "app_label": "core",
+        "model": "calendar"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 24,
+    "fields": {
+        "app_label": "core",
+        "model": "holiday"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 25,
+    "fields": {
+        "app_label": "core",
+        "model": "vacation"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 26,
+    "fields": {
+        "app_label": "core",
+        "model": "highschool"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 27,
+    "fields": {
+        "app_label": "core",
+        "model": "course"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 28,
+    "fields": {
+        "app_label": "core",
+        "model": "accompanyingdocument"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 29,
+    "fields": {
+        "app_label": "core",
+        "model": "informationtext"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 30,
+    "fields": {
+        "app_label": "core",
+        "model": "mailtemplate"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 31,
+    "fields": {
+        "app_label": "core",
+        "model": "mailtemplatevars"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 32,
+    "fields": {
+        "app_label": "core",
+        "model": "publicdocument"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 33,
+    "fields": {
+        "app_label": "core",
+        "model": "slot"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 34,
+    "fields": {
+        "app_label": "core",
+        "model": "evaluationtype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 35,
+    "fields": {
+        "app_label": "core",
+        "model": "evaluationformlink"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 36,
+    "fields": {
+        "app_label": "core",
+        "model": "generalsettings"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 37,
+    "fields": {
+        "app_label": "core",
+        "model": "immersion"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 38,
+    "fields": {
+        "app_label": "core",
+        "model": "usercoursealert"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 39,
+    "fields": {
+        "app_label": "core",
+        "model": "highereducationinstitution"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 40,
+    "fields": {
+        "app_label": "core",
+        "model": "annualstatistics"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 41,
+    "fields": {
+        "app_label": "core",
+        "model": "certificatelogo"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 42,
+    "fields": {
+        "app_label": "core",
+        "model": "certificatesignature"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 43,
+    "fields": {
+        "app_label": "immersion",
+        "model": "highschoolstudentrecord"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 44,
+    "fields": {
+        "app_label": "immersion",
+        "model": "studentrecord"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 45,
+    "fields": {
+        "app_label": "core",
+        "model": "establishment"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 46,
+    "fields": {
+        "app_label": "core",
+        "model": "offoffereventtype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 47,
+    "fields": {
+        "app_label": "core",
+        "model": "visit"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 48,
+    "fields": {
+        "app_label": "core",
+        "model": "offofferevent"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 49,
+    "fields": {
+        "app_label": "core",
+        "model": "highschoollevel"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 50,
+    "fields": {
+        "app_label": "core",
+        "model": "postbachelorlevel"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 51,
+    "fields": {
+        "app_label": "core",
+        "model": "studentlevel"
+    }
+}
+]

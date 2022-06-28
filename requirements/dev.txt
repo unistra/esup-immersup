@@ -3,6 +3,8 @@ coverage
 sphinx
 pylint
 pycodestyle
-django-debug-toolbar
+django-debug-toolbar==3.2.2
 tox
 safety
+bandit
+pytype

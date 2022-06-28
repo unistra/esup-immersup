@@ -1,0 +1,65 @@
+{% extends "./common_slots_list.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head-javascript %}
+{{ block.super }}
+<script src="{% static 'js/core/events_slots.min.js' %}"></script>
+{% endblock %}
+
+{% block slot_deletion %}
+<div id="delete-dialog-form" style='z-index:3000;' title='{% trans "Confirm slot deletion" %}'>
+  <span>
+    {% trans 'Do you really want to delete this event slot ?' %}
+  </span>
+</div>
+{% endblock %}
+
+{% block card_header %}
+<div class="card-header text-white bg-secondary">
+  {% trans "Event slots" %}
+</div>
+{% endblock %}
+
+{% block card_title %}
+<div>
+  <a href="{% url 'add_off_offer_event_slot' %}" class="btn btn-secondary" title="{% trans 'Add an event slot' %}">{% trans 'New event slot' %}</a>
+</div>
+{% endblock %}
+
+{% block table_definition %}
+<thead>
+  <tr>
+    <th id="published_filter" class="align-top">{% trans 'Published' %}</th>
+    <th id="managed_by_filter" class="align-top">{% trans 'Managed By' context "slots" %}</th>
+    <th id="event_type_filter" class="align-top">{% trans 'Event type' %}</th>
+    <th id="label_filter" class="align-top">{% trans 'Label' %}</th>
+    <th id="date_filter" class="align-top">{% trans 'Date' %}</th>
+    <th id="location_filter" class="align-top">{% trans 'Location / address' %}</th>
+    <th id="speakers_filter" class="align-top">{% trans 'Speakers' %}</th>
+    <th id="registration_filter" class="align-top">{% trans '# of registration' %}</th>
+    <th class="align-top">{% trans 'Info.' %}</th>
+    <th class="align-top">{% trans 'Restr.' %}</th>
+    <th class="align-top">{% trans 'Control' %}</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+{% endblock %}
+

@@ -1,7 +1,6 @@
 {% load immersionlyceens_tags %}
 {% load i18n %}
 {% load static %}
-{% load staticfiles %}
 <div id="docs_list_dialog" title="{% trans 'Available documents for this content' %}">
     <table id="docs_table" class="display dataTable" cellspacing="0" width="100%">
   <thead>
@@ -43,7 +42,7 @@ $(document).ready(function(){
     'paging': true,
     'ordering': true,
     'language': {
-      url: "{% static 'js/vendor/i18n/' %}{{LANGUAGE_CODE}}.json"
+      url: "{% static 'js/vendor/i18n/' %}{{ LANGUAGE_CODE|fix_lang_code }}.json"
     },
     'columns': [
       {"data": "label",

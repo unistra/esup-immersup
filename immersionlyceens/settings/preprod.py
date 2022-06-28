@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import socket
 from os import environ
@@ -19,6 +17,9 @@ DATABASES['default']['USER'] = '{{ default_db_user }}'
 DATABASES['default']['PASSWORD'] = '{{ default_db_password }}'
 DATABASES['default']['NAME'] = '{{ default_db_name }}'
 
+# PostgreSQL unaccent extension
+POSTGRESQL_ADD_UNACCENT_EXTENSION = False # For migration file
+POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 
 ############################
 # Allowed hosts & Security #
@@ -48,41 +49,16 @@ SECRET_KEY = '{{ secret_key }}'
 ####################
 #       CAS        #
 ####################
+USE_CAS = False
 
 CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
+CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
 CAS_FORCE_SSL_SERVICE_URL = True
-
 
 #################
 # APIs settings #
 #################
-
-# Feel free to implement your own accounts search functions and
-# enter your plugin name here :)
-
-ACCOUNTS_CLIENT = 'immersionlyceens.libs.api.accounts.LdapAPI'
-
-
-#####################
-# LDAP API settings #
-#####################
-
-# Server
-LDAP_API_HOST = '{{ ldap_api_host }}'
-LDAP_API_PORT = '{{ ldap_api_port }}'
-LDAP_API_DN = '{{ ldap_api_dn }}'
-LDAP_API_PASSWORD = '{{ ldap_api_password }}'
-LDAP_API_BASE_DN = '{{ ldap_api_base_dn }}'
-
-# Filters and attributes
-LDAP_API_ACCOUNTS_FILTER = '{{ ldap_api_accounts_filter }}'
-LDAP_API_SEARCH_ATTR = '{{ ldap_api_search_attr }}'
-LDAP_API_DISPLAY_ATTR = '{{ ldap_api_display_attr }}'
-LDAP_API_EMAIL_ATTR = '{{ ldap_api_email_attr }}'
-LDAP_API_USERNAME_ATTR = '{{ ldap_api_username_attr }}'
-LDAP_API_LASTNAME_ATTR = '{{ ldap_api_lastname_attr }}'
-LDAP_API_FIRSTNAME_ATTR = '{{ ldap_api_firstname_attr }}'
-
 
 WITH_HOLIDAY_API = True
 HOLIDAY_API_URL = 'http://rest-api.u-strasbg.fr/holidays/alsace-moselle/{year}.json'
@@ -94,33 +70,14 @@ HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 #######################
 
 EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
-FORCE_EMAIL_ADDRESS = "appli-immersionlyceens-pprd@unistra.fr"
-DEFAULT_FROM_EMAIL = 'no-reply@%s' % socket.getfqdn()
 
-
-# SUMMER NOTE
-SUMMERNOTE_THEME = 'bs4'
-SUMMERNOTE_CONFIG = {
-    'spellCheck': True,
-    'iframe': True,
-    'summernote': {'lang': 'fr-FR', },
-    'codeviewIframeFilter': True,
-    'disable_attachment': True,
-    'toolbar': [
-        ['style', ['style', 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear', ], ],
-        ['font', ['fontsize', 'forecolor', 'paragraph', ]],
-        ['misc', ['ol', 'ul', 'height', ], ],
-        ['others', ['link', 'table', 'hr'], ],
-        ['view', ['codeview', 'undo', 'redo', 'fullscreen'], ],
-    ],
-    'popover': {
-        'link': ['link', ['linkDialogShow', 'unlink']],
-        'table': [
-            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-        ],
-    },
-}
+EMAIL_HOST = '{{ email_host }}'
+EMAIL_USE_TLS = '{{ email_use_tls }}'.lower() == 'true'
+EMAIL_PORT = '{{ email_port }}'
+EMAIL_HOST_USER = '{{ email_host_user }}'
+EMAIL_HOST_PASSWORD = '{{ email_host_password }}'
+FORCE_EMAIL_ADDRESS = '{{ force_email_address }}'
+DEFAULT_FROM_EMAIL = '{{ default_from_email }}'
 
 ########################
 # UPLOAD configuration #
@@ -148,3 +105,27 @@ sentry_sdk.init(
 
 # Goal
 STAGE = 'Preprod'
+
+#####################
+# S3 storage config #
+#####################
+# Uncomment/comment below switching to s3 media (uploads) file storage
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_FILE_OVERWRITE = True
+AWS_DEFAULT_ACL = None
+AWS_AUTO_CREATE_BUCKET = True
+AWS_ACCESS_KEY_ID = '{{ s3_access_key }}'
+AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
+AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
+AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
+S3_FILEPATH = 'preprod'
+
+# Use Unistra theme & css
+UNISTRA = '{{ use_unistra_theme }}'
+
+##########
+# Matomo #
+##########
+USE_MATOMO = True
+MATOMO_URL = '{{ matomo_url }}'
+MATOMO_SITE_ID = '{{ matomo_site_id }}'
