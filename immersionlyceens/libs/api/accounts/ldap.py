@@ -4,6 +4,7 @@ import ldap3
 import sys
 import logging
 from ldap3 import Connection, Server, SUBTREE, ALL
+from ldap3.core.exceptions import LDAPBindError
 from django.conf import settings
 from django.utils.translation import gettext, gettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
@@ -31,10 +32,24 @@ class AccountAPI(BaseAccountsAPI):
             logger.debug(f"Host: {self.HOST}, port: {self.PORT}, dn: {self.DN}, base: {self.BASE_DN}")
             ldap_server = Server(self.HOST, port=int(self.PORT), get_info=ALL)
             logger.debug(f"Server: {ldap_server}")
-            self.ldap_connection = Connection(ldap_server, auto_bind=True, user=self.DN, password=self.PASSWORD) # type: ignore
         except Exception as e:
             logger.error("Cannot connect to LDAP server : %s", e)
             raise
+
+        try:
+            self.ldap_connection = Connection(ldap_server, auto_bind=True, user=self.DN, password=self.PASSWORD)
+        except LDAPBindError:
+            bound = False
+            # For older TLSv1 protocols
+            self.ldap_connection = Connection(ldap_server, auto_bind='NONE', user=self.DN, password=self.PASSWORD)
+            tls_success = self.ldap_connection.start_tls()
+
+            if tls_success:
+                bound = self.ldap_connection.bind()
+
+            if not bound:
+                logger.error("Cannot connect to LDAP server : %s", e)
+                raise
 
     @classmethod
     def get_plugin_attrs(self):
