@@ -17,14 +17,16 @@ DATABASES['default']['USER'] = '{{ default_db_user }}'
 DATABASES['default']['PASSWORD'] = '{{ default_db_password }}'
 DATABASES['default']['NAME'] = '{{ default_db_name }}'
 
+# PostgreSQL unaccent extension
+POSTGRESQL_ADD_UNACCENT_EXTENSION = False # For migration file
+POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 
 ############################
 # Allowed hosts & Security #
 ############################
 
 ALLOWED_HOSTS = [
-    '.u-strasbg.fr',
-    '.unistra.fr',
+    '*'
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
@@ -42,14 +44,15 @@ LOGGING['handlers']['file']['filename'] = '{{ remote_current_path }}/log/app.log
 
 SECRET_KEY = '{{ secret_key }}'
 
-
 ####################
 #       CAS        #
 ####################
 USE_CAS = False
-CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
-CAS_FORCE_SSL_SERVICE_URL = True
 
+CAS_REDIRECT_URL = '{{ cas_redirect_url }}'
+CAS_SERVER_URL = 'https://cas.unistra.fr:443/cas/'
+CAS_LOGOUT_REQUEST_ALLOWED = ('cas1.di.unistra.fr', 'cas2.di.unistra.fr')
+CAS_FORCE_SSL_SERVICE_URL = True
 
 #################
 # APIs settings #
@@ -76,7 +79,7 @@ DEFAULT_FROM_EMAIL = '{{ default_from_email }}'
 ########################
 
 # url for logos upload
-MEDIA_ROOT = '/nfs/immersion'
+MEDIA_ROOT = '/nfs/immersup'
 
 # Mailing list subscriber files directory
 BASE_FILES_DIR = '{{ base_files_dir }}'
@@ -89,10 +92,12 @@ MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 # TODO: add boolean to deactivate sentry integration ???
 RELEASE = '{{ release }}'
 sentry_sdk.init(
-    dsn="https://068693b77bd442eaa28c842d8c2ebb38@sentry.app.unistra.fr/34",
+    dsn="https://3cfbe81108164e99a144fa611280eb80@sentry.app.unistra.fr/50",
     integrations=[DjangoIntegration()],
     environment="prod",
     release=RELEASE,
+    traces_sample_rate=0.5,
+    send_default_pii=True
 )
 
 # Goal
@@ -108,8 +113,8 @@ AWS_DEFAULT_ACL = None
 AWS_AUTO_CREATE_BUCKET = True
 AWS_ACCESS_KEY_ID = '{{ s3_access_key }}'
 AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
-AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
-AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
+AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
+AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
 S3_FILEPATH = 'prod'
 
 USE_MATOMO = True

@@ -97,10 +97,12 @@ MAILING_LIST_FILES_DIR = join(BASE_FILES_DIR, 'mailing_lists')
 # TODO: add boolean to deactivate sentry integration ???
 RELEASE = '{{ release }}'
 sentry_sdk.init(
-    dsn="https://068693b77bd442eaa28c842d8c2ebb38@sentry.app.unistra.fr/34",
+    dsn="https://3cfbe81108164e99a144fa611280eb80@sentry.app.unistra.fr/50",
     integrations=[DjangoIntegration()],
     environment="preprod",
     release=RELEASE,
+    traces_sample_rate=0.5,
+    send_default_pii=True
 )
 
 # Goal
