@@ -391,7 +391,7 @@ def prod():
 def prod_lorraine():
     """Define preprod stage for Lorraine instance"""
     env.roledefs = {
-        'web': ['saas-lorraine-prod-1.srv.unistra.fr', 'saas-lorraine-prod-1.srv.unistra.fr'],
+        'web': ['saas-lorraine-prod-1.srv.unistra.fr', 'saas-lorraine-prod-2.srv.unistra.fr'],
         'lb': ['saas-lorraine-prod-1.srv.unistra.fr', 'saas-lorraine-prod-2.srv.unistra.fr'],
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
