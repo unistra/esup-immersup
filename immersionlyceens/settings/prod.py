@@ -108,18 +108,16 @@ AWS_DEFAULT_ACL = None
 AWS_AUTO_CREATE_BUCKET = True
 AWS_ACCESS_KEY_ID = '{{ s3_access_key }}'
 AWS_SECRET_ACCESS_KEY = '{{ s3_secret_key }}'
-AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
-AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
+AWS_STORAGE_BUCKET_NAME = '{{ s3_bucket }}'
+AWS_S3_ENDPOINT_URL = '{{ s3_endpoint }}'
 S3_FILEPATH = 'prod'
 
 ##########
 # Matomo #
 ##########
-
-# FIXME: be used later ...
-# USE_MATOMO = True
-# MATOMO_URL = '{{ matomo_url }}'
-# MATOMO_SITE_ID = '{{ matomo_site_id }}'
+USE_MATOMO = True
+MATOMO_URL = '{{ matomo_url }}'
+MATOMO_SITE_ID = '{{ matomo_site_id }}'
 
 # Use Unistra theme & css
 UNISTRA = '{{ use_unistra_theme }}'
