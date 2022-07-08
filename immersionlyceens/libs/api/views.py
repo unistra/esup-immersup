@@ -27,11 +27,11 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
 from immersionlyceens.apps.core.models import (
-    Building, Calendar, Campus, CancelType, Course, Establishment, HighSchool,
-    HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersionUserGroup,
-    MailTemplate, MailTemplateVars, OffOfferEvent, PublicDocument, Slot,
-    Structure, Training, TrainingDomain, UniversityYear, UserCourseAlert,
-    Vacation, Visit, GeneralSettings,
+    Building, Calendar, Campus, CancelType, Course, Establishment,
+    GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
+    ImmersionUser, ImmersionUserGroup, MailTemplate, MailTemplateVars,
+    OffOfferEvent, PublicDocument, Slot, Structure, Training, TrainingDomain,
+    UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
@@ -534,7 +534,7 @@ def slots(request):
             user.is_speaker() and user in slot.speakers.all()
         ]
 
-        if slot.course:
+        if slot.course and slot.course.training and slot.course_type:
             training_label = f'{slot.course.training.label} ({slot.course_type.label})'
             training_label_full = f'{slot.course.training.label} ({slot.course_type.full_label})'
         else:
