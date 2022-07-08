@@ -816,7 +816,7 @@ class VisitForm(forms.ModelForm):
                 send_creation_msg = False
 
                 try:
-                    speaker_user = ImmersionUser.objects.get(Q(username=speaker['username'])|Q(email=speaker['email']))
+                    speaker_user = ImmersionUser.objects.get(Q(username=speaker['email'])|Q(email=speaker['email']))
                 except ImmersionUser.DoesNotExist:
                     speaker_user = ImmersionUser.objects.create(
                         username=speaker['email'],
@@ -825,7 +825,7 @@ class VisitForm(forms.ModelForm):
                         email=speaker['email'],
                         establishment=instance.establishment
                     )
-                    messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
+                    messages.success(self.request, gettext("User '{}' created").format(speaker['email']))
                     if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
                         speaker_user.set_recovery_string()
                     send_creation_msg = True
@@ -834,7 +834,7 @@ class VisitForm(forms.ModelForm):
                     Group.objects.get(name='INTER').user_set.add(speaker_user)
                 except Exception:
                     messages.error(
-                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['email']),
                     )
 
                 if send_creation_msg:
@@ -971,7 +971,7 @@ class OffOfferEventForm(forms.ModelForm):
 
                 try:
                     speaker_user = ImmersionUser.objects.get(
-                        Q(username=speaker['username']) | Q(email=speaker['email']))
+                        Q(username=speaker['email']) | Q(email=speaker['email']))
                 except ImmersionUser.DoesNotExist:
                     speaker_user = ImmersionUser.objects.create(
                         username=speaker['email'],
@@ -980,7 +980,7 @@ class OffOfferEventForm(forms.ModelForm):
                         email=speaker['email'],
                         establishment=instance.establishment
                     )
-                    messages.success(self.request, gettext("User '{}' created").format(speaker['username']))
+                    messages.success(self.request, gettext("User '{}' created").format(speaker['email']))
                     if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
                         speaker_user.set_recovery_string()
 
@@ -990,7 +990,7 @@ class OffOfferEventForm(forms.ModelForm):
                     Group.objects.get(name='INTER').user_set.add(speaker_user)
                 except Exception:
                     messages.error(
-                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                        self.request, _("Couldn't add group 'INTER' to user '%s'" % speaker['email']),
                     )
 
                 if send_creation_msg:
