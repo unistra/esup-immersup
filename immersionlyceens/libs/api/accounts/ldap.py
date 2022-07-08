@@ -1,17 +1,17 @@
-from typing import Optional, Dict, Any, List, Union
+import logging
+import sys
+from typing import Any, Dict, List, Optional, Union
 
 import ldap3
-import sys
-import logging
-from ldap3 import Connection, Server, SUBTREE, ALL
-from ldap3.core.exceptions import LDAPBindError
 from django.conf import settings
-from django.utils.translation import gettext, gettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
-
+from django.utils.translation import gettext, gettext_lazy as _
 from immersionlyceens.apps.core.models import Establishment
+from ldap3 import ALL, SUBTREE, Connection, Server
+from ldap3.core.exceptions import LDAPBindError
 
 from .base import BaseAccountsAPI
+
 logger = logging.getLogger(__name__)
 
 class AccountAPI(BaseAccountsAPI):
@@ -37,7 +37,7 @@ class AccountAPI(BaseAccountsAPI):
             raise
 
         try:
-            self.ldap_connection = Connection(ldap_server, auto_bind=True, user=self.DN, password=self.PASSWORD)
+            self.ldap_connection = Connection(ldap_server, auto_bind='NO_TLS', user=self.DN, password=self.PASSWORD)
         except LDAPBindError:
             bound = False
             # For older TLSv1 protocols
@@ -48,7 +48,7 @@ class AccountAPI(BaseAccountsAPI):
                 bound = self.ldap_connection.bind()
 
             if not bound:
-                logger.error("Cannot connect to LDAP server : %s", e)
+                logger.error("Cannot connect to LDAP server")
                 raise
 
     @classmethod
