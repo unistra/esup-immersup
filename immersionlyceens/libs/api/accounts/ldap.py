@@ -37,7 +37,7 @@ class AccountAPI(BaseAccountsAPI):
             raise
 
         try:
-            self.ldap_connection = Connection(ldap_server, auto_bind='AUTO_BIND_NO_TLS', user=self.DN, password=self.PASSWORD)
+            self.ldap_connection = Connection(ldap_server, auto_bind='NO_TLS', user=self.DN, password=self.PASSWORD)
         except LDAPBindError:
             bound = False
             # For older TLSv1 protocols
