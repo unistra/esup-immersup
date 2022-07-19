@@ -44,10 +44,13 @@ class Command(BaseCommand):
 
         # Total number of registered students + high school pupils
         annual_stats.platform_registrations = ImmersionUser.objects\
-            .prefetch_related('student_record', 'high_school_student_record')\
+            .prefetch_related('student_record', 'high_school_student_record', 'visitor_record')\
             .filter(
-                Q(student_record__isnull=False)|Q(high_school_student_record__validation=2)
+                Q(student_record__isnull=False)
+                | Q(visitor_record__validation=2)
+                | Q(high_school_student_record__validation=2)
             )\
+            .distinct()\
             .count()
 
         # Number of registered students to at least one course immersion
@@ -72,7 +75,12 @@ class Command(BaseCommand):
 
         # User with no course immersion registration
         annual_stats.no_course_immersions_registrations = ImmersionUser.objects\
-            .prefetch_related('immersions__slot__course')\
+            .prefetch_related('immersions__slot__course') \
+            .filter(
+                Q(student_record__isnull=False)
+                | Q(visitor_record__validation=2)
+                | Q(high_school_student_record__validation=2)
+            ) \
             .annotate(
                 imm_count=Count(
                     'immersions',
@@ -130,7 +138,7 @@ class Command(BaseCommand):
             .filter(slot_nb__gt=0).count()
 
         # Active courses
-        annual_stats.courses_one_slot_count = Course.objects.filter(published=True).count()
+        annual_stats.active_courses_count = Course.objects.filter(published=True).count()
 
         # Courses with at least one slot
         annual_stats.courses_one_slot_count = Course.objects.annotate(

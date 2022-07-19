@@ -2465,7 +2465,7 @@ msgstr "Année"
 
 #: immersionlyceens/apps/core/models.py:2453
 msgid "Platform registrations count"
-msgstr "Nombre d'inscriptions sur la plateforme"
+msgstr "Nombre d'inscrits sur la plateforme"
 
 #: immersionlyceens/apps/core/models.py:2455
 msgid "Students registered to at least one course immersion count"
