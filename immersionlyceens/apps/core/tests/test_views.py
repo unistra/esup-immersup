@@ -779,7 +779,24 @@ class CoreViewsTestCase(TestCase):
 
         data['url'] = "http://new-course.test.fr"
 
+
+        ###############
         # Success
+        ###############
+
+        # Not published, without speakers
+        data.pop("published")
+        data["speakers_list"] = "[]"
+
+        response = self.client.post("/core/course", data, follow=True)
+        self.assertTrue(Course.objects.filter(label="New test course").exists())
+        Course.objects.get(label="New test course").delete() # cleanup
+
+        # Published, with speakers
+        data["published"] = True
+        data['speakers_list'] = \
+            """[{"username":"jean", "firstname":"Jean", "lastname":"Jacques", "email":"jean-jacques@domain.fr"},
+                {"username":"john", "firstname":"John", "lastname":"Jack", "email":"john.jack@domain.fr"}]"""
         response = self.client.post("/core/course", data, follow=True)
         # Course and speakers must exist
         self.assertTrue(Course.objects.filter(label="New test course").exists())
