@@ -118,19 +118,21 @@
           </div>
         </div>
         <div class="form-group row">
-          <label for="person_search" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk"></i>
-            {% trans 'Speakers' %} :
+          <label class="col-form-label col-sm-3">
+            <i id='id_mandatory_speakers' class="fa fas fa-asterisk" style="display:none"></i>
+            {% trans 'Speakers' %}
           </label>
-          <div class="col-sm-9">
-            <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
-            <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
-            <select id='live_select' style='display:none;'></select>
-            <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
-            <label id='ws_message' style='display:none; width:300px;'></label>
-            <ul id="id_speakers" class="mt-4"></ul>
-            {{ course_form.speakers.errors }}
-            <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
+          <div class="col-sm-3">
+            <div class="form-check" id="speakers">
+              <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
+              <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
+              <select id='live_select' style='display:none;'></select>
+              <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
+              <label id='ws_message' style='display:none; width:300px;'></label>
+              <ul id="id_speakers" class="mt-4"></ul>
+              {{ course_form.speakers.errors }}
+              <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
+            </div>
           </div>
         </div>
         {% if can_update_courses %}
@@ -440,6 +442,31 @@
       $("#person_search").hide();
       $('input[name^="save"]').hide();
     }
+
+    function toggle_required_fields () {
+      let published = $('#id_published').prop('checked');
+      if (published) {
+        let mandatory = ['speakers']
+
+        mandatory.forEach(function(e){
+          $('#id_' + e).attr('required', 'required');
+          $('#id_mandatory_' + e).show();
+        });
+      }
+      else {
+        let not_mandatory = ['speakers'];
+        let mandatory = [];
+
+        not_mandatory.forEach(function(e){
+          $('#id_' + e).removeAttr('required');
+          $('#id_mandatory_' + e).hide();
+        });
+      }
+    }
+
+    // toggle
+    toggle_required_fields();
+    $('#id_published').on('change', function(){ toggle_required_fields(); });
 
   });
 </script>

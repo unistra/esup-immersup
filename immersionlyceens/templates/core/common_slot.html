@@ -571,7 +571,10 @@
           options = '<option value="">---------</option>'
           for (let i = 0; i < json.length; i++) {
             let selected =  json[i]['id'] === parseInt(course_id) ? "selected='selected'" : ""
-            options += `<option value="${json[i]['id']}" ${selected}>${json[i]['label']}</option>`
+            let disabled = json[i]['speakers'].length === 0 ? "disabled" : ""
+            let comment = json[i]['speakers'].length === 0 ? "{% trans '(no speaker)' %}" : ""
+
+            options += `<option value="${json[i]['id']}" ${selected} ${disabled}>${json[i]['label']} ${comment}</option>`
             courses[json[i]['id']] = json[i]
           }
         }

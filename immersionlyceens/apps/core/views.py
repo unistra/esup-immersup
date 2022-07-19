@@ -291,9 +291,12 @@ def course(request, course_id=None, duplicate=False):
         # speakers
         speakers_list = request.POST.get('speakers_list', "[]")
 
+        # speakers are mandatory if the course is published
+        is_published = request.POST.get('published', False) == "on"
+
         try:
             speakers_list = json.loads(speakers_list)
-            assert len(speakers_list) > 0
+            assert not is_published or len(speakers_list) > 0
         except Exception:
             messages.error(request, _("At least one speaker is required"))
         else:
