@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-19 11:26+0200\n"
+"POT-Creation-Date: 2022-07-19 12:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4532,7 +4532,7 @@ msgid "Useful documents"
 msgstr "Documents utiles"
 
 #: immersionlyceens/templates/accompanying.html:23
-#: immersionlyceens/templates/core/charter.html:33
+#: immersionlyceens/templates/core/charter.html:36
 #: immersionlyceens/templates/core/structure.html:20
 #: immersionlyceens/templates/fragments/main_menu.html:20
 #: immersionlyceens/templates/fragments/main_menu.html:22
@@ -4883,16 +4883,28 @@ msgid "Filter by establishment"
 msgstr "Filtrer sur cet établissement"
 
 #: immersionlyceens/templates/core/charter.html:9
-#: immersionlyceens/templates/core/charter.html:21
-#: immersionlyceens/templates/core/charter.html:34
+#: immersionlyceens/templates/core/charter.html:37
 msgid "Charter"
 msgstr "Charte"
 
-#: immersionlyceens/templates/core/charter.html:23
-msgid "Please read and sign the charter for you establishment"
-msgstr "Merci de lire intégralement la charte suivante et de la signer"
+#: immersionlyceens/templates/core/charter.html:21
+msgid ""
+"Convention form for the NORIA partnership agreement and the reception system "
+"for high school students"
+msgstr ""
+"Formulaire d’adhésion à la convention de partenariat cadre NORIA et au dispositif "
+"d’accueil des lycéens et lycéennes"
 
-#: immersionlyceens/templates/core/charter.html:52
+#: immersionlyceens/templates/core/charter.html:23
+msgid ""
+"Please read carefully and sign the registration charter for the establishment"
+msgstr "Merci de lire attentivement et signer la charte d'inscription pour l'établissement"
+
+#: immersionlyceens/templates/core/charter.html:26
+msgid "as of"
+msgstr "en date du"
+
+#: immersionlyceens/templates/core/charter.html:55
 msgid "Accept and sign the charter"
 msgstr "Accepter et signer la charte"
 

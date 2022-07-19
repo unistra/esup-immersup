@@ -18,9 +18,12 @@
   <div class="container">
     <div class="row">
       <div class="col">
-        <h1>{% trans 'Charter' %}</h1>
-        <p class="text-uppercase">
-          {% trans 'Please read and sign the charter for you establishment' %} : {{ establishment_or_highschool }}
+        <h1>{% trans 'Convention form for the NORIA partnership agreement and the reception system for high school students' %}</h1>
+        <p>
+          {% trans 'Please read carefully and sign the registration charter for the establishment' %} :
+          <br>{{ establishment_or_highschool }}
+          <br>{{ establishment_or_highschool_address }}
+          <br>{% trans 'as of' %} {% now 'DATE_FORMAT' %}
         </p>
       </div>
     </div>

@@ -2352,12 +2352,17 @@ def charter(request):
         charter_txt = ''
 
     if user.is_establishment_manager() and user.establishment:
-        establishment_or_highschool = user.establishment.label
+        est = user.establishment
+        establishment_or_highschool = est.label
+        address = f"{est.address}, {est.zip_code} {est.city}"
     elif user.is_high_school_manager() and user.highschool:
-        establishment_or_highschool = user.highschool
+        hs = user.highschool
+        establishment_or_highschool = hs
+        address = f"{hs.address}, {hs.zip_code} {hs.city}"
 
     context = {
         'establishment_or_highschool': establishment_or_highschool,
+        'establishment_or_highschool_address': address,
         'charter_txt': charter_txt
     }
     return render(request, 'core/charter.html', context)
