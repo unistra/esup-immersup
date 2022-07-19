@@ -2345,6 +2345,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 def charter(request):
     user = request.user
     establishment_or_highschool = ""
+    address = ""
 
     try:
         charter_txt = InformationText.objects.get(code="CHARTE_ETABLISSEMENT_ACCUEIL", active=True).content
