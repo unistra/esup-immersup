@@ -3,9 +3,9 @@
 
 from rest_framework import serializers
 
-from .models import (Campus, Establishment, Training, TrainingSubdomain, HighSchool,
-    Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser, HighSchoolLevel,
-    PostBachelorLevel, StudentLevel
+from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
+    HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
+    HighSchoolLevel, PostBachelorLevel, StudentLevel
 )
 from ..immersion.models import VisitorRecord
 
@@ -51,11 +51,25 @@ class HighSchoolViewSerializer(serializers.ModelSerializer):
         fields = ("id", "city", "label")
 
 
+class TrainingSerializer(serializers.ModelSerializer):
+    """Trainings serializer"""
+    class Meta:
+        model = Training
+        fields = "__all__"
+
+
+class TrainingDomainSerializer(serializers.ModelSerializer):
+    """Training sub domains serializer"""
+    class Meta:
+        model = TrainingDomain
+        fields = "__all__"
+
+
 class TrainingSubdomainSerializer(serializers.ModelSerializer):
     """Training sub domains serializer"""
     class Meta:
         model = TrainingSubdomain
-        fields = ("id", "label", "active")
+        fields = "__all__"
 
 
 class TrainingHighSchoolSerializer(serializers.ModelSerializer):

@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from immersionlyceens.apps.immersion.views import shibbolethLogin
 
@@ -26,6 +27,8 @@ urlpatterns = [
     path('admin/holiday/import', core_views.import_holidays, name='import_holidays'),
     path('admin/', admin.site.urls),
     path('api/', include('immersionlyceens.libs.api.urls')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('charts/', include('immersionlyceens.apps.charts.urls', namespace='charts')),
     path('core/', include('immersionlyceens.apps.core.urls')),
     path('dl/accdoc/<int:accompanying_document_id>', serve_accompanying_document, name='accompanying_document',),

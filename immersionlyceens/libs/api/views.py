@@ -31,13 +31,12 @@ from immersionlyceens.apps.core.models import (
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
     ImmersionUser, ImmersionUserGroup, MailTemplate, MailTemplateVars,
     OffOfferEvent, PublicDocument, Slot, Structure, Training, TrainingDomain,
-    UniversityYear, UserCourseAlert, Vacation, Visit,
+    TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer,
-    EstablishmentSerializer, HighSchoolLevelSerializer,
-    OffOfferEventSerializer, StructureSerializer, TrainingHighSchoolSerializer,
-    VisitSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer,
+    HighSchoolLevelSerializer, OffOfferEventSerializer, StructureSerializer, TrainingDomainSerializer,
+    TrainingSerializer, TrainingHighSchoolSerializer, TrainingSubdomainSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -50,6 +49,7 @@ from immersionlyceens.libs.utils import get_general_setting, render_text
 from rest_framework import generics, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
@@ -3670,8 +3670,6 @@ def ajax_get_alerts(request):
         email=request.user.email
     )
 
-
-
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
         domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
@@ -3877,7 +3875,7 @@ class EstablishmentList(generics.ListAPIView):
         return queryset
 
 
-class StructureList(generics.ListAPIView):
+class StructureList(generics.ListCreateAPIView):
     """
     Structures list
     """
@@ -3898,10 +3896,50 @@ class StructureList(generics.ListAPIView):
         return queryset
 
 
-class CourseList(generics.ListAPIView):
+class TrainingList(generics.ListCreateAPIView):
+    """
+    Training list / creation
+    """
+    queryset = Training.objects.all()
+    serializer_class = TrainingSerializer
+    # Auth : default (see settings/base.py)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class TrainingDomainList(generics.ListCreateAPIView):
+    """
+    Training domain list / creation
+    """
+    queryset = TrainingDomain.objects.all()
+    serializer_class = TrainingDomainSerializer
+    # Auth : default (see settings/base.py)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class TrainingSubdomainList(generics.ListCreateAPIView):
+    """
+    Training subdomain list / creation
+    """
+    queryset = TrainingSubdomain.objects.all()
+    serializer_class = TrainingSubdomainSerializer
+    # Auth : default (see settings/base.py)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class CourseList(generics.ListCreateAPIView):
     """
     Courses list
     """
+    model = Course
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['training', 'structure', 'highschool', 'published']
@@ -3917,6 +3955,16 @@ class CourseList(generics.ListAPIView):
                 return Course.objects.filter(structure__in=user.establishment.structures.all()).order_by('label')
 
         return queryset
+
+
+    def post(self, request, *args, **kwargs):
+        published = request.data.get('published')
+        speakers = request.data.get('speakers')
+
+        if published and not speakers:
+            return Response("A published course requires at least one speaker", status.HTTP_400_BAD_REQUEST)
+
+        return super().post(request, *args, **kwargs)
 
 
 class BuildingList(generics.ListAPIView):
@@ -4459,3 +4507,5 @@ class AnnualPurgeAPI(View):
         response["time"] = round(time.thread_time() - command_time, 3)
 
         return JsonResponse(response)
+
+
