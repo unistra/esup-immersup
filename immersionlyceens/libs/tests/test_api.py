@@ -250,6 +250,17 @@ class APITestCase(TestCase):
             first_name='visitor666',
             last_name='VISITOR666',
         )
+
+        self.api_user = get_user_model().objects.create_user(
+            username='api',
+            password='pass',
+            email='api@no-reply.com',
+            first_name='api',
+            last_name='api'
+        )
+        self.api_user.set_password('pass')
+        self.api_user.save()
+
         self.cancel_type = CancelType.objects.create(label='Hello world')
         self.client = Client()
         self.client.login(username='ref_etab', password='pass')
@@ -544,6 +555,9 @@ class APITestCase(TestCase):
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
         self.token = Token.objects.create(user=self.ref_master_etab_user)
         self.client_token = Client(HTTP_AUTHORIZATION=f" Token {self.token.key}")
+
+        self.api_token = Token.objects.create(user=self.api_user)
+        self.api_client_token = Client(HTTP_AUTHORIZATION=f" Token {self.api_token.key}")
 
     def test_API_get_documents(self):
         url = "/api/get_available_documents/"
@@ -3426,3 +3440,35 @@ class APITestCase(TestCase):
         str_list = content["data"][self.high_school.mailing_list]
         self.assertEqual(len(str_list), 1)
         self.assertIn(self.highschool_user.email, str_list)
+
+
+    def test_structure_list(self):
+        # List
+        self.assertTrue(Structure.objects.exists())
+
+        response = self.api_client_token.get(reverse("structure_list"))
+        structures = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(len(structures), Structure.objects.count())
+
+
+    def test_training_domain_list(self):
+        # List
+        self.assertTrue(TrainingDomain.objects.exists())
+
+        response = self.api_client_token.get(reverse("training_domain_list"))
+        training_domains = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(len(training_domains), TrainingDomain.objects.count())
+
+
+    def test_training_subdomain_list(self):
+        pass
+
+
+    def test_training_list(self):
+        pass
+
+
+    def test_course_list(self):
+        pass

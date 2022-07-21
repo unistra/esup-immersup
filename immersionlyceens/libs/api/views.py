@@ -26,6 +26,13 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
+
+from rest_framework import generics, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment,
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
@@ -46,10 +53,6 @@ from immersionlyceens.decorators import (
 )
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
-from rest_framework import generics, status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.views import APIView
-from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
@@ -3882,6 +3885,7 @@ class StructureList(generics.ListCreateAPIView):
     serializer_class = StructureSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
+    permission_classes = [DjangoModelPermissions]
 
     def get_queryset(self):
         queryset = Structure.activated.order_by('code', 'label')
