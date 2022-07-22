@@ -28,7 +28,7 @@ from immersionlyceens.apps.immersion.models import (
 from immersionlyceens.libs.utils import get_general_setting
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient
 
 request_factory = RequestFactory()
 request = request_factory.get('/admin')
@@ -42,20 +42,17 @@ class APITestCase(TestCase):
         'mailtemplatevars', 'mailtemplate', 'higher'
     ]
 
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         """
-        GeneralSettings.objects.create(
-            setting='MAIL_CONTACT_REF_ETAB',
-            value='unittest@unittest.fr',
-            description='REF-ETAB email'
-        )
+        Data that do not change in tests below
+        They are only set once
         """
-        self.today = timezone.now()
-        self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
-        # TODO : put all these objects in test fixtures
+        cls.today = timezone.now()
+        cls.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
-        self.establishment = Establishment.objects.create(
+        cls.establishment = Establishment.objects.create(
             code='ETA1',
             label='Etablissement 1',
             short_label='Eta 1',
@@ -67,7 +64,7 @@ class APITestCase(TestCase):
             uai_reference=HigherEducationInstitution.objects.first()
         )
 
-        self.establishment2 = Establishment.objects.create(
+        cls.establishment2 = Establishment.objects.create(
             code='ETA2',
             label='Etablissement 2',
             short_label='Eta 2',
@@ -78,7 +75,7 @@ class APITestCase(TestCase):
             uai_reference=HigherEducationInstitution.objects.last()
         )
 
-        self.establishment3 = Establishment.objects.create(
+        cls.establishment3 = Establishment.objects.create(
             code='ETA3',
             label='Etablissement 3',
             short_label='Eta 3',
@@ -90,7 +87,20 @@ class APITestCase(TestCase):
             data_source_plugin="LDAP",
         )
 
-        self.high_school = HighSchool.objects.create(
+        cls.structure = Structure.objects.create(
+            label="test structure",
+            code="STR",
+            establishment=cls.establishment,
+            mailing_list="structure@no-reply.com"
+        )
+
+        cls.structure2 = Structure.objects.create(
+            label="test structure 2",
+            code="STR2",
+            establishment=cls.establishment2
+        )
+
+        cls.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
             department=67,
@@ -100,142 +110,142 @@ class APITestCase(TestCase):
             email='a@b.c',
             mailing_list='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - timedelta(days=10),
-            convention_end_date=self.today + timedelta(days=10),
+            convention_start_date=cls.today - timedelta(days=10),
+            convention_end_date=cls.today + timedelta(days=10),
             postbac_immersion=True,
             signed_charter=True,
         )
 
-        self.visitor = get_user_model().objects.create_user(
+        cls.visitor = get_user_model().objects.create_user(
             username="visitor",
             password="pass",
             email="visitor@no-reply.com",
             first_name="Godefroy",
             last_name="De Monmiraille",
         )
-        self.visitor.set_password("pass")
-        self.visitor.save()
+        cls.visitor.set_password("pass")
+        cls.visitor.save()
 
-        self.ref_etab_user = get_user_model().objects.create_user(
+        cls.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
             email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
-            establishment=self.establishment
+            establishment=cls.establishment
         )
-        self.ref_etab_user.set_password('pass')
-        self.ref_etab_user.save()
+        cls.ref_etab_user.set_password('pass')
+        cls.ref_etab_user.save()
 
-        self.ref_etab3_user = get_user_model().objects.create_user(
+        cls.ref_etab3_user = get_user_model().objects.create_user(
             username='ref_etab3',
             password='pass',
             email='ref_etab3@no-reply.com',
             first_name='ref_etab3',
             last_name='ref_etab3',
-            establishment=self.establishment3
+            establishment=cls.establishment3
         )
-        self.ref_etab3_user.set_password('pass')
-        self.ref_etab3_user.save()
+        cls.ref_etab3_user.set_password('pass')
+        cls.ref_etab3_user.save()
 
-        self.ref_master_etab_user = get_user_model().objects.create_user(
+        cls.ref_master_etab_user = get_user_model().objects.create_user(
             username='ref_master_etab',
             password='pass',
             email='ref_master_etab@no-reply.com',
             first_name='ref_master_etab',
             last_name='ref_master_etab',
-            establishment=self.establishment
+            establishment=cls.establishment
         )
-        self.ref_master_etab_user.set_password('pass')
-        self.ref_master_etab_user.save()
+        cls.ref_master_etab_user.set_password('pass')
+        cls.ref_master_etab_user.save()
 
-        self.operator_user = get_user_model().objects.create_user(
+        cls.operator_user = get_user_model().objects.create_user(
             username='operator',
             password='pass',
             email='operator@no-reply.com',
             first_name='operator',
             last_name='operator'
         )
-        self.operator_user.set_password('pass')
-        self.operator_user.save()
+        cls.operator_user.set_password('pass')
+        cls.operator_user.save()
 
-        self.highschool_user = get_user_model().objects.create_user(
+        cls.highschool_user = get_user_model().objects.create_user(
             username='hs',
             password='pass',
             email='hs@no-reply.com',
             first_name='high',
             last_name='SCHOOL',
         )
-        self.highschool_user.set_password('pass')
-        self.highschool_user.save()
+        cls.highschool_user.set_password('pass')
+        cls.highschool_user.save()
 
-        self.highschool_user2 = get_user_model().objects.create_user(
+        cls.highschool_user2 = get_user_model().objects.create_user(
             username='hs2',
             password='pass',
             email='hs2@no-reply.com',
             first_name='high2',
             last_name='SCHOOL2',
         )
-        self.highschool_user2.set_password('pass')
-        self.highschool_user2.save()
+        cls.highschool_user2.set_password('pass')
+        cls.highschool_user2.save()
 
-        self.highschool_user3 = get_user_model().objects.create_user(
+        cls.highschool_user3 = get_user_model().objects.create_user(
             username='hs3', password='pass',
             email='hs3@no-reply.com',
             first_name='high3',
             last_name='SCHOOL3',
         )
-        self.highschool_user3.set_password('pass')
-        self.highschool_user3.save()
+        cls.highschool_user3.set_password('pass')
+        cls.highschool_user3.save()
 
-        self.ref_str = get_user_model().objects.create_user(
+        cls.ref_str = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
             email='ref_str@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
-            establishment=self.establishment,
+            establishment=cls.establishment,
         )
-        self.ref_str2 = get_user_model().objects.create_user(
+        cls.ref_str2 = get_user_model().objects.create_user(
             username='ref_str2',
             password='pass',
             email='ref_str2@no-reply.com',
             first_name='ref_str2',
             last_name='ref_str2',
-            establishment=self.establishment,
+            establishment=cls.establishment,
         )
-        self.speaker1 = get_user_model().objects.create_user(
+        cls.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
-            establishment=self.establishment,
+            establishment=cls.establishment,
         )
-        self.highschool_speaker = get_user_model().objects.create_user(
+        cls.highschool_speaker = get_user_model().objects.create_user(
             username='highschool_speaker',
             password='pass',
             email='highschool_speaker@no-reply.com',
             first_name='highschool_speaker',
             last_name='highschool_speaker',
-            highschool=self.high_school
+            highschool=cls.high_school
         )
-        self.ref_lyc = get_user_model().objects.create_user(
+        cls.ref_lyc = get_user_model().objects.create_user(
             username='ref_lyc',
             password='pass',
             email='lycref-immersion@no-reply.com',
             first_name='lyc',
             last_name='REF',
-            highschool=self.high_school
+            highschool=cls.high_school
         )
-        self.student = get_user_model().objects.create_user(
+        cls.student = get_user_model().objects.create_user(
             username='student',
             password='pass',
             email='student@no-reply.com',
             first_name='student',
             last_name='STUDENT',
         )
-        self.student2 = get_user_model().objects.create_user(
+        cls.student2 = get_user_model().objects.create_user(
             username='student2',
             password='pass',
             email='student2@no-reply.com',
@@ -243,7 +253,7 @@ class APITestCase(TestCase):
             last_name='STUDENT2',
         )
 
-        self.visitor_user = get_user_model().objects.create_user(
+        cls.visitor_user = get_user_model().objects.create_user(
             username='visitor666',
             password='pass',
             email='visitor666@no-reply.com',
@@ -251,81 +261,83 @@ class APITestCase(TestCase):
             last_name='VISITOR666',
         )
 
-        self.api_user = get_user_model().objects.create_user(
+        cls.api_user = get_user_model().objects.create_user(
             username='api',
             password='pass',
             email='api@no-reply.com',
             first_name='api',
             last_name='api'
         )
-        self.api_user.set_password('pass')
-        self.api_user.save()
+        cls.api_user.set_password('pass')
+        cls.api_user.save()
 
-        self.cancel_type = CancelType.objects.create(label='Hello world')
-        self.client = Client()
-        self.client.login(username='ref_etab', password='pass')
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(cls.ref_master_etab_user)
+        Group.objects.get(name='REF-TEC').user_set.add(cls.operator_user)
+        Group.objects.get(name='INTER').user_set.add(cls.speaker1)
+        Group.objects.get(name='INTER').user_set.add(cls.highschool_speaker)
+        Group.objects.get(name='REF-STR').user_set.add(cls.ref_str)
+        Group.objects.get(name='REF-STR').user_set.add(cls.ref_str2)
+        Group.objects.get(name='LYC').user_set.add(cls.highschool_user)
+        Group.objects.get(name='LYC').user_set.add(cls.highschool_user2)
+        Group.objects.get(name='LYC').user_set.add(cls.highschool_user3)
+        Group.objects.get(name='ETU').user_set.add(cls.student)
+        Group.objects.get(name='ETU').user_set.add(cls.student2)
+        Group.objects.get(name='REF-LYC').user_set.add(cls.ref_lyc)
+        Group.objects.get(name='VIS').user_set.add(cls.visitor)
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab3_user)
 
-        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
-        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
-        Group.objects.get(name='REF-TEC').user_set.add(self.operator_user)
-        Group.objects.get(name='INTER').user_set.add(self.speaker1)
-        Group.objects.get(name='INTER').user_set.add(self.highschool_speaker)
-        Group.objects.get(name='REF-STR').user_set.add(self.ref_str)
-        Group.objects.get(name='REF-STR').user_set.add(self.ref_str2)
-        Group.objects.get(name='LYC').user_set.add(self.highschool_user)
-        Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
-        Group.objects.get(name='LYC').user_set.add(self.highschool_user3)
-        Group.objects.get(name='ETU').user_set.add(self.student)
-        Group.objects.get(name='ETU').user_set.add(self.student2)
-        Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc)
-        Group.objects.get(name='VIS').user_set.add(self.visitor)
-        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab3_user)
+        cls.ref_str.structures.add(cls.structure)
+        cls.ref_str2.structures.add(cls.structure2)
 
-        self.calendar = Calendar.objects.create(
+        cls.cancel_type = CancelType.objects.create(label='Hello world')
+
+        cls.calendar = Calendar.objects.create(
             label="Calendrier1",
             calendar_mode=Calendar.CALENDAR_MODE[0][0],
-            year_start_date=self.today - timedelta(days=10),
-            year_end_date=self.today + timedelta(days=10),
+            year_start_date=cls.today - timedelta(days=10),
+            year_end_date=cls.today + timedelta(days=10),
             year_nb_authorized_immersion=4,
-            year_registration_start_date=self.today - timedelta(days=9)
+            year_registration_start_date=cls.today - timedelta(days=9)
         )
 
-        self.vac = Vacation.objects.create(
+        cls.vac = Vacation.objects.create(
             label="vac",
-            start_date=self.today - timedelta(days=2),
-            end_date=self.today + timedelta(days=2)
-        )
-        self.structure = Structure.objects.create(
-            label="test structure",
-            code="STR",
-            establishment=self.establishment,
-            mailing_list="structure@no-reply.com"
+            start_date=cls.today - timedelta(days=2),
+            end_date=cls.today + timedelta(days=2)
         )
 
-        self.structure2 = Structure.objects.create(
-            label="test structure 2",
-            code="STR2",
-            establishment=self.establishment2
-        )
-
-        self.t_domain = TrainingDomain.objects.create(label="test t_domain")
-        self.t_sub_domain = TrainingSubdomain.objects.create(
+        cls.t_domain = TrainingDomain.objects.create(label="test t_domain")
+        cls.t_sub_domain = TrainingSubdomain.objects.create(
             label="test t_sub_domain",
-            training_domain=self.t_domain
+            training_domain=cls.t_domain
         )
-        self.training = Training.objects.create(label="test training")
-        self.training2 = Training.objects.create(label="test training 2")
-        self.highschool_training = Training.objects.create(
+        cls.training = Training.objects.create(label="test training")
+        cls.training2 = Training.objects.create(label="test training 2")
+        cls.highschool_training = Training.objects.create(
             label="test highschool training",
-            highschool=self.high_school
+            highschool=cls.high_school
         )
-        self.training.training_subdomains.add(self.t_sub_domain)
-        self.training2.training_subdomains.add(self.t_sub_domain)
-        self.highschool_training.training_subdomains.add(self.t_sub_domain)
-        self.training.structures.add(self.structure)
-        self.training2.structures.add(self.structure)
-        self.ref_str.structures.add(self.structure)
-        self.ref_str2.structures.add(self.structure2)
+        cls.training.training_subdomains.add(cls.t_sub_domain)
+        cls.training2.training_subdomains.add(cls.t_sub_domain)
+        cls.highschool_training.training_subdomains.add(cls.t_sub_domain)
+        cls.training.structures.add(cls.structure)
+        cls.training2.structures.add(cls.structure)
+
+        cls.highschool_course = Course.objects.create(
+            label="course 1",
+            training=cls.highschool_training,
+            highschool=cls.high_school
+        )
+        cls.highschool_course.speakers.add(cls.highschool_speaker)
+
+        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
+        cls.course_type = CourseType.objects.create(label='CM')
+
+    def setUp(self):
+        self.client = Client()
+        self.client.login(username='ref_etab', password='pass')
 
         self.course = Course.objects.create(
             label="course 1",
@@ -333,15 +345,7 @@ class APITestCase(TestCase):
             structure=self.structure
         )
         self.course.speakers.add(self.speaker1)
-        self.highschool_course = Course.objects.create(
-            label="course 1",
-            training=self.highschool_training,
-            highschool=self.high_school
-        )
-        self.highschool_course.speakers.add(self.highschool_speaker)
-        self.campus = Campus.objects.create(label='Esplanade')
-        self.building = Building.objects.create(label='Le portique', campus=self.campus)
-        self.course_type = CourseType.objects.create(label='CM')
+
         self.slot = Slot.objects.create(
             course=self.course,
             course_type=self.course_type,
@@ -1514,8 +1518,6 @@ class APITestCase(TestCase):
 
         self.assertEqual(content['msg'], "Error : Please check establishment LDAP plugin settings : LDAP plugin settings are empty")
         self.assertEqual(content['data'], [])
-
-        settings
 
 
     def test_API_get_courses(self):
