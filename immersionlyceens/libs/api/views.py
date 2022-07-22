@@ -17,6 +17,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
+from django.db import IntegrityError
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
@@ -53,6 +54,8 @@ from immersionlyceens.decorators import (
 )
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
+
+from .permissions import CustomDjangoModelPermissions
 
 logger = logging.getLogger(__name__)
 
@@ -3885,7 +3888,7 @@ class StructureList(generics.ListCreateAPIView):
     serializer_class = StructureSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [CustomDjangoModelPermissions]
 
     def get_queryset(self):
         queryset = Structure.activated.order_by('code', 'label')
@@ -3906,6 +3909,7 @@ class TrainingList(generics.ListCreateAPIView):
     """
     queryset = Training.objects.all()
     serializer_class = TrainingSerializer
+    permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 
     def post(self, request, *args, **kwargs):
@@ -3919,6 +3923,7 @@ class TrainingDomainList(generics.ListCreateAPIView):
     """
     queryset = TrainingDomain.objects.all()
     serializer_class = TrainingDomainSerializer
+    permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 
     def post(self, request, *args, **kwargs):
@@ -3930,9 +3935,21 @@ class TrainingSubdomainList(generics.ListCreateAPIView):
     """
     Training subdomain list / creation
     """
+    model = TrainingSubdomain
     queryset = TrainingSubdomain.objects.all()
     serializer_class = TrainingSubdomainSerializer
+    permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError as e:
+            content = {'error': f'IntegrityError : {e}'}
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            content = {'error': e}
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, *args, **kwargs):
         self.user = request.user
@@ -3946,6 +3963,7 @@ class CourseList(generics.ListCreateAPIView):
     model = Course
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [CustomDjangoModelPermissions]
     filterset_fields = ['training', 'structure', 'highschool', 'published']
 
     def get_queryset(self):
@@ -3962,7 +3980,7 @@ class CourseList(generics.ListCreateAPIView):
 
 
     def post(self, request, *args, **kwargs):
-        published = request.data.get('published')
+        published = request.data.get('published', False) in ('true', 'True')
         speakers = request.data.get('speakers')
 
         if published and not speakers:

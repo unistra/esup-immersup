@@ -105,7 +105,7 @@
               <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
               <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
             {% else %}
-              <a href="{% url 'training_list' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
+              <a href="{% url 'trainings' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
               <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
             {% endif %}
           </div>

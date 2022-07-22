@@ -8,7 +8,7 @@ from datetime import datetime, time, timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.template.defaultfilters import date as _date
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
@@ -3443,32 +3443,263 @@ class APITestCase(TestCase):
 
 
     def test_structure_list(self):
-        # List
+        view_permission = Permission.objects.get(codename='view_structure')
+        add_permission = Permission.objects.get(codename='add_structure')
+        url = reverse("structure_list")
+
+        # List (GET)
         self.assertTrue(Structure.objects.exists())
 
-        response = self.api_client_token.get(reverse("structure_list"))
-        structures = json.loads(response.content.decode('utf-8'))
+        # Without permission
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
 
-        self.assertEqual(len(structures), Structure.objects.count())
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all structures are there
+        for structure in Structure.objects.all():
+            self.assertTrue(structure.id in [s['id'] for s in result])
+
+        # Creation (POST)
+        self.assertFalse(Structure.objects.filter(code='STR-TEST').exists())
+        establishment = Establishment.objects.first()
+        data = {
+          "code": "STR-TEST",
+          "label": "Structure test",
+          "mailing_list": "str@example.com",
+          "active": True,
+          "establishment": establishment.id
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('code'), "STR-TEST")
+        self.assertTrue(Structure.objects.filter(code='STR-TEST').exists())
+
+        # Duplicated code : error
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {'code': ['Structure with this Code already exists.']})
 
 
     def test_training_domain_list(self):
+        view_permission = Permission.objects.get(codename='view_trainingdomain')
+        add_permission = Permission.objects.get(codename='add_trainingdomain')
+        url = reverse("training_domain_list")
+
         # List
         self.assertTrue(TrainingDomain.objects.exists())
 
-        response = self.api_client_token.get(reverse("training_domain_list"))
-        training_domains = json.loads(response.content.decode('utf-8'))
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
 
-        self.assertEqual(len(training_domains), TrainingDomain.objects.count())
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all training domains are there
+        for training_domain in TrainingDomain.objects.all():
+            self.assertTrue(training_domain.id in [td['id'] for td in result])
+
+        # Creation (POST)
+        self.assertFalse(TrainingDomain.objects.filter(label='Training domain test').exists())
+        data = {
+            "label": "Training domain test",
+            "active": True
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('label'), "Training domain test")
+        self.assertTrue(TrainingDomain.objects.filter(label='Training domain test').exists())
+        self.assertEqual(TrainingDomain.objects.filter(label__iexact='Training domain test').count(), 1)
+
+        # Unique label : fail
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {'label': ['Training domain with this Label already exists.']})
 
 
     def test_training_subdomain_list(self):
-        pass
+        view_permission = Permission.objects.get(codename='view_trainingsubdomain')
+        add_permission = Permission.objects.get(codename='add_trainingsubdomain')
+        url = reverse("training_subdomain_list")
+
+        # List
+        self.assertTrue(TrainingSubdomain.objects.exists())
+
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all training domains are there
+        for training_subdomain in TrainingSubdomain.objects.all():
+            self.assertTrue(training_subdomain.id in [tsd['id'] for tsd in result])
+
+        # Creation (POST)
+        training_domain = TrainingDomain.objects.first()
+
+        self.assertFalse(TrainingSubdomain.objects.filter(label='Training subdomain test').exists())
+        data = {
+            "label": "Training subdomain test",
+            "active": True,
+            "training_domain": training_domain.id
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('label'), "Training subdomain test")
+        self.assertTrue(TrainingSubdomain.objects.filter(label='Training subdomain test').exists())
+        self.assertEqual(TrainingSubdomain.objects.filter(label__iexact='Training subdomain test').count(), 1)
+
+        # Duplicated label : fail
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {'label': ['Training sub domain with this Label already exists.']})
+
+        # Missing training domain : fail
+        data = {
+            "label": "Another training subdomain test",
+            "active": True
+        }
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {'training_domain': ['This field is required.']})
 
 
     def test_training_list(self):
-        pass
+        view_permission = Permission.objects.get(codename='view_training')
+        add_permission = Permission.objects.get(codename='add_training')
+
+        # List
+        self.assertTrue(Training.objects.exists())
+
+        response = self.api_client_token.get(reverse("training_list"))
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(reverse("training_list"))
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all training domains are there
+        for training in Training.objects.all():
+            self.assertTrue(training.id in [t['id'] for t in result])
+
+        # Creation (POST)
+        structure = Structure.objects.first()
+        training_subdomain = TrainingSubdomain.objects.first()
+
+        self.assertFalse(Training.objects.filter(label='Training test').exists())
+        data = {
+            "label": "Training test",
+            "url": "http://test.com",
+            "active": True,
+            "training_subdomains": [training_subdomain.id],
+            "structures": [structure.id]
+        }
+
+        # Without permission
+        response = self.api_client_token.post(reverse("training_list"), data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(reverse("training_list"), data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('label'), "Training test")
+        self.assertTrue(Training.objects.filter(label='Training test').exists())
+        self.assertEqual(Training.objects.filter(label__iexact='Training test').count(), 1)
 
 
     def test_course_list(self):
-        pass
+        view_permission = Permission.objects.get(codename='view_course')
+        add_permission = Permission.objects.get(codename='add_course')
+
+        # List
+        self.assertTrue(Course.objects.exists())
+
+        response = self.api_client_token.get(reverse("course_list"))
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(reverse("course_list"))
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all training domains are there
+        for course in Course.objects.all():
+            self.assertTrue(course.id in [c['id'] for c in result])
+
+        # Creation (POST)
+        structure = Structure.objects.first()
+        training = Training.objects.first()
+
+        # Speakers are optional when the course is not published
+        self.assertFalse(Course.objects.filter(label='Course test').exists())
+        data = {
+            "label": "Course test",
+            "published": False,
+            "url": "http://test.com",
+            "training": training.id,
+            "structure": structure.id,
+            "speakers": []
+        }
+
+        # Without permission
+        response = self.api_client_token.post(reverse("course_list"), data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(reverse("course_list"), data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('label'), "Course test")
+        self.assertTrue(Course.objects.filter(label='Course test').exists())
+        self.assertEqual(Course.objects.filter(label__iexact='Course test').count(), 1)

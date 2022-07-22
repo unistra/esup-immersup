@@ -52,21 +52,23 @@ class HighSchoolViewSerializer(serializers.ModelSerializer):
 
 
 class TrainingSerializer(serializers.ModelSerializer):
-    """Trainings serializer"""
+    """Training serializer"""
     class Meta:
         model = Training
         fields = "__all__"
 
 
 class TrainingDomainSerializer(serializers.ModelSerializer):
-    """Training sub domains serializer"""
+    """Training domain serializer"""
     class Meta:
         model = TrainingDomain
         fields = "__all__"
 
 
 class TrainingSubdomainSerializer(serializers.ModelSerializer):
-    """Training sub domains serializer"""
+    """Training sub domain serializer"""
+    training_domain = TrainingDomainSerializer(many=False, read_only=True)
+
     class Meta:
         model = TrainingSubdomain
         fields = "__all__"

@@ -903,7 +903,7 @@ class TrainingAdd(generic.CreateView):
     template_name: str = "core/training/training.html"
 
     def get_success_url(self) ->  str:
-        return reverse("training_list")
+        return reverse("trainings")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -931,7 +931,7 @@ class TrainingUpdate(generic.UpdateView):
     queryset = Training.objects.filter(highschool__isnull=False)
 
     def get_success_url(self) -> str:
-        return reverse("training_list")
+        return reverse("trainings")
 
     def get_form_kwargs(self) -> Dict[str, Any]:
         kw: Dict[str, Any] = super().get_form_kwargs()
