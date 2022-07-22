@@ -3912,6 +3912,21 @@ class TrainingList(generics.ListCreateAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 
+    def create(self, request, *args, **kwargs):
+        content = None
+        structures = request.data.get("structures")
+        highschool = request.data.get("highschool")
+
+        if not structures and not highschool:
+            content = {'error': gettext("Please provide a structure or a high school")}
+        elif structures and highschool:
+            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
+
+        if content:
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().create(request, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         self.user = request.user
         return super().post(request, *args, **kwargs)
@@ -3940,16 +3955,6 @@ class TrainingSubdomainList(generics.ListCreateAPIView):
     serializer_class = TrainingSubdomainSerializer
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
-
-    def create(self, request, *args, **kwargs):
-        try:
-            return super().create(request, *args, **kwargs)
-        except IntegrityError as e:
-            content = {'error': f'IntegrityError : {e}'}
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            content = {'error': e}
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, *args, **kwargs):
         self.user = request.user
@@ -3980,11 +3985,22 @@ class CourseList(generics.ListCreateAPIView):
 
 
     def post(self, request, *args, **kwargs):
+        content = None
         published = request.data.get('published', False) in ('true', 'True')
         speakers = request.data.get('speakers')
+        structure = request.data.get("structure")
+        highschool = request.data.get("highschool")
 
         if published and not speakers:
-            return Response("A published course requires at least one speaker", status.HTTP_400_BAD_REQUEST)
+            content = {'error': gettext("A published course requires at least one speaker")}
+
+        if not structure and not highschool:
+            content = {'error': gettext("Please provide a structure or a high school")}
+        elif structure and highschool:
+            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
+
+        if content:
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return super().post(request, *args, **kwargs)
 

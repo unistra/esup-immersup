@@ -67,7 +67,12 @@ class TrainingDomainSerializer(serializers.ModelSerializer):
 
 class TrainingSubdomainSerializer(serializers.ModelSerializer):
     """Training sub domain serializer"""
-    training_domain = TrainingDomainSerializer(many=False, read_only=True)
+    # training_domain = TrainingDomainSerializer(many=False, required=True)
+    training_domain = serializers.PrimaryKeyRelatedField(
+        queryset=TrainingDomain.objects.all(),
+        many=False,
+        required=True
+    )
 
     class Meta:
         model = TrainingSubdomain

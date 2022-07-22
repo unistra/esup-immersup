@@ -3609,17 +3609,17 @@ class APITestCase(TestCase):
     def test_training_list(self):
         view_permission = Permission.objects.get(codename='view_training')
         add_permission = Permission.objects.get(codename='add_training')
-
+        url = reverse("training_list")
         # List
         self.assertTrue(Training.objects.exists())
 
-        response = self.api_client_token.get(reverse("training_list"))
+        response = self.api_client_token.get(url)
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(result['error'], 'You do not have permission to perform this action.')
 
         # Add view permission an try again
         self.api_user.user_permissions.add(view_permission)
-        response = self.api_client_token.get(reverse("training_list"))
+        response = self.api_client_token.get(url)
         result = json.loads(response.content.decode('utf-8'))
 
         # Make sure all training domains are there
@@ -3640,18 +3640,58 @@ class APITestCase(TestCase):
         }
 
         # Without permission
-        response = self.api_client_token.post(reverse("training_list"), data)
+        response = self.api_client_token.post(url, data)
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(result['error'], 'You do not have permission to perform this action.')
 
         # Add add permission and try again
         self.api_user.user_permissions.add(add_permission)
-        response = self.api_client_token.post(reverse("training_list"), data)
+        response = self.api_client_token.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(result.get('label'), "Training test")
         self.assertTrue(Training.objects.filter(label='Training test').exists())
         self.assertEqual(Training.objects.filter(label__iexact='Training test').count(), 1)
+
+        # Missing training subdomains : fail
+        data = {
+            "label": "Another training test",
+            "url": "http://test.com",
+            "active": True,
+            "training_subdomains": [],
+            "structures": [structure.id]
+        }
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {'training_subdomains': ['This list may not be empty.']})
+
+        # Missing structure and highschool : fail
+        data = {
+            "label": "Another training test",
+            "url": "http://test.com",
+            "active": True,
+            "training_subdomains": [training_subdomain.id],
+            "structures": []
+        }
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], "Please provide a structure or a high school")
+
+        # Structure and highschool : fail (only one allowed)
+        data = {
+            "label": "Another training test",
+            "url": "http://test.com",
+            "active": True,
+            "training_subdomains": [training_subdomain.id],
+            "structures": [structure.id],
+            "highschool": self.high_school.id
+        }
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], "High school and structures can't be set together. Please choose one.")
 
 
     def test_course_list(self):
@@ -3703,3 +3743,60 @@ class APITestCase(TestCase):
         self.assertEqual(result.get('label'), "Course test")
         self.assertTrue(Course.objects.filter(label='Course test').exists())
         self.assertEqual(Course.objects.filter(label__iexact='Course test').count(), 1)
+
+        # Missing training id : fail
+        data = {
+            "label": "Course test",
+            "published": False,
+            "url": "http://test.com",
+            "training": "",
+            "structure": structure.id,
+            "speakers": []
+        }
+        response = self.api_client_token.post(reverse("course_list"), data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {'training': ['This field may not be null.']})
+
+        # Missing structure and highschool : fail
+        data = {
+            "label": "Course test",
+            "published": False,
+            "url": "http://test.com",
+            "training": training.id,
+            "structure": "",
+            "speakers": []
+        }
+        response = self.api_client_token.post(reverse("course_list"), data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], "Please provide a structure or a high school")
+
+        # Both structure and highschool : fail
+        data = {
+            "label": "Course test",
+            "published": False,
+            "url": "http://test.com",
+            "training": training.id,
+            "structure": structure.id,
+            "highschool": self.high_school.id,
+            "speakers": []
+        }
+        response = self.api_client_token.post(reverse("course_list"), data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], "High school and structures can't be set together. Please choose one.")
+
+        # Published course : speakers required
+        data = {
+            "label": "Course test",
+            "published": True,
+            "url": "http://test.com",
+            "training": training.id,
+            "structure": structure.id,
+            "speakers": []
+        }
+        response = self.api_client_token.post(reverse("course_list"), data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], "A published course requires at least one speaker")
