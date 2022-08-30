@@ -24,8 +24,9 @@ class Command(BaseCommand):
         try:
             year = UniversityYear.objects.get(active=True)
         except UniversityYear.DoesNotExist:
-            logger.error(_("No active year found, can't update statistics"))
-            sys.exit()
+            msg = _("No active year found, can't update statistics")
+            logger.error(msg)
+            raise CommandError(msg)
 
         try:
             annual_stats = AnnualStatistics.objects.get(year=year.label)

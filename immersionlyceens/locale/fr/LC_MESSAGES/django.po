@@ -1136,8 +1136,8 @@ msgstr "Courriel non envoyé : %s"
 msgid "An event with these values already exists"
 msgstr "Un évènement avec ces valeurs existe déjà"
 
-#: immersionlyceens/apps/core/management/commands/annual_purge.py:34
-msgid "Cannot parse annual statistics, purge cancelled"
+#: immersionlyceens/apps/core/management/commands/annual_purge.py:31
+msgid "Could not finish 'annual_statistics' command, purge cancelled"
 msgstr "Impossible de traiter les statistiques annuelles, purge annulée"
 
 #: immersionlyceens/apps/core/management/commands/annual_purge.py:39
@@ -4428,16 +4428,24 @@ msgstr "Le modèle #%s est introuvable"
 
 #: immersionlyceens/libs/api/views.py:4437
 #, python-format
-msgid "A syntax error occured in template #%s"
-msgstr "Une erreur s'est produite dans le modèle #%s"
+msgid "A syntax error has been found in template #%s"
+msgstr "Une erreur de syntaxe a été détectée dans le modèle #%s"
 
-#: immersionlyceens/libs/api/views.py:4455
+#: immersionlyceens/libs/api/views.py:4543
 msgid ""
-"An error occured while annual purge running. For more details, check the "
-"logs."
+"An error occurred while running annual purge command. "
+"For more details, please contact the administrator."
 msgstr ""
-"Une erreur est survenue pendant l'exécution de la purge annuelle. Pour plus "
-"de détails, consultez les logs."
+"Une erreur est survenue lors de l'exécution de la purge annuelle. "
+"Pour plus de détails, merci de contacter l'administrateur."
+
+#: immersionlyceens/libs/api/views.py:4553
+msgid ""
+"An error occurred while deleting expired LDAP accounts. "
+"For more details, please contact the administrator."
+msgstr ""
+"Une erreur est survenue lors de la suppression des comptes LDAP expirés. "
+"Pour plus de détails, merci de contacter l'administrateur."
 
 #: immersionlyceens/libs/mails/variables_parser.py:71
 #: immersionlyceens/libs/mails/variables_parser.py:552

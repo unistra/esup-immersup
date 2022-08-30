@@ -4520,7 +4520,7 @@ class MailTemplatePreviewAPI(View):
             )
             response["data"] = body
         except TemplateSyntaxError:
-            response["msg"] = _("A syntax error occured in template #%s") % pk
+            response["msg"] = _("A syntax error has been found in template #%s") % pk
 
         return JsonResponse(response)
 
@@ -4534,11 +4534,24 @@ class AnnualPurgeAPI(View):
         from django.core.management.base import CommandError
 
         command_time: float = time.thread_time()
+
+        # Step 1 : run annual purge (annual stats included)
+        try:
+            call_command("annual_purge")
+            response["ok"] = True
+        except CommandError:
+            msg: str = _("""An error occurred while running annual purge command. """
+                         """For more details, please contact the administrator.""")
+            logger.error(msg)
+            response["msg"] = msg
+
+        # Step 2 : clear accounts that are no longer in establishment's LDAPs
         try:
             call_command("delete_account_not_in_ldap")
             response["ok"] = True
         except CommandError:
-            msg: str = _("An error occured while annual purge running. For more details, check the logs.")
+            msg: str = _("""An error occurred while deleting expired LDAP accounts. """
+                         """For more details, please contact the administrator.""")
             logger.error(msg)
             response["msg"] = msg
 
