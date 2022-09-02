@@ -2,13 +2,16 @@
 Charts API tests
 """
 import json
+import datetime
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import Client, RequestFactory, TestCase
 from django.contrib.auth.models import Group
 
-from immersionlyceens.apps.core.models import HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment
+from immersionlyceens.apps.core.models import (
+    HighSchoolLevel, PostBachelorLevel, StudentLevel, Establishment, HighSchool
+)
 
 from .. import api
 
@@ -48,6 +51,10 @@ class ChartsAPITestCase(TestCase):
         self.client = Client()
         self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
+
+        # Extend the first high school convention end date (other can stay in past)
+        now = datetime.datetime.today().date()
+        HighSchool.objects.filter(pk=2).update(convention_end_date = now + datetime.timedelta(days=30))
 
     def test_global_domains_charts_by_population(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')
