@@ -6,22 +6,6 @@ from django.urls import path
 
 from . import views
 
-"""
-    path('slot', views.slot, name='slot'),
-    path('slot/<int:slot_id>', views.slot, name='modify_slot'),
-    path('slot/<int:slot_id>/<int:duplicate>', views.slot, name='duplicate_slot'),
-    path('slot/delete/<int:slot_id>', views.del_slot, name='delete_slot'),
-    path('slot/add/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slot, name='add_high_school_slot'),
-    path('slot/add/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slot,
-         name='add_establishment_slot'),
-
-    path('slots/', views.slots_list, name='slots_list'),
-    path('slots/<int:highschool_id>/<int:training_id>/<int:course_id>', views.slots_list,
-         name='high_school_filtered_slots_list'),
-    path('slots/<int:establishment_id>/<int:structure_id>/<int:training_id>/<int:course_id>', views.slots_list,
-         name='establishment_filtered_slots_list'),
-    """
-
 urlpatterns = [
     # path('structure', views.structure, name='structure'),
     # path('structure/<structure_code>', views.structure, name='update_structure'),
@@ -66,7 +50,7 @@ urlpatterns = [
     path('speaker', views.speaker, name='speaker'),
     path('speaker/<int:id>', views.speaker, name='edit_speaker'),
 
-    path("training", views.TrainingList.as_view(), name="training_list"),
+    path("training", views.TrainingList.as_view(), name="trainings"),
     path("training/add", views.TrainingAdd.as_view(), name="training_add"),
     path("training/<int:pk>/update", views.TrainingUpdate.as_view(), name="training_update"),
 

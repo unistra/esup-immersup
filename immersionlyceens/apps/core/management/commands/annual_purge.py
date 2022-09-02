@@ -26,12 +26,9 @@ class Command(BaseCommand):
         # Run annual stats first
         try:
             call_command('annual_statistics')
-            finished = True
         except CommandError:
-            logger.error("Could not finish 'annual_statistics' command")
-
-        if not finished:
-            logger.error(_("Cannot parse annual statistics, purge cancelled"))
+            logger.error(_("Could not finish 'annual_statistics' command, purge cancelled"))
+            raise
 
         # Delete user alerts
         deleted = UserCourseAlert.objects.all().delete()
@@ -127,7 +124,6 @@ class Command(BaseCommand):
             logger.info(_('{} user(s) with group INTER and with establishment without SI deactivated').format(updated))
         else:
             logger.info(_("no user with group INTER and with LDAP establishment to deactivate"))
-
 
         try:
             call_command('delete_account_not_in_ldap')

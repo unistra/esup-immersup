@@ -25,7 +25,8 @@ safety:
   tags:
     - python3.8
   script:
-    - pip3 install -r requirements/dev.txt
+    - pip3 install safety
+    - pip3 install -r requirements/prod.txt
     - safety check
   only:
     - develop

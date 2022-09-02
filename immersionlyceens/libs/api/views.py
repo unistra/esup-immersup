@@ -17,6 +17,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
+from django.db import IntegrityError
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
@@ -26,18 +27,24 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
+
+from rest_framework import generics, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment,
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
     ImmersionUser, ImmersionUserGroup, MailTemplate, MailTemplateVars,
     OffOfferEvent, PublicDocument, Slot, Structure, Training, TrainingDomain,
-    UniversityYear, UserCourseAlert, Vacation, Visit,
+    TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer,
-    EstablishmentSerializer, HighSchoolLevelSerializer,
-    OffOfferEventSerializer, StructureSerializer, TrainingHighSchoolSerializer,
-    VisitSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer,
+    HighSchoolLevelSerializer, OffOfferEventSerializer, StructureSerializer, TrainingDomainSerializer,
+    TrainingSerializer, TrainingHighSchoolSerializer, TrainingSubdomainSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -47,9 +54,8 @@ from immersionlyceens.decorators import (
 )
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
-from rest_framework import generics, status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.views import APIView
+
+from .permissions import CustomDjangoModelPermissions
 
 logger = logging.getLogger(__name__)
 
@@ -3670,8 +3676,6 @@ def ajax_get_alerts(request):
         email=request.user.email
     )
 
-
-
     for alert in alerts:
         subdomains = alert.course.training.training_subdomains.all().order_by('label').distinct()
         domains = TrainingDomain.objects.filter(Subdomains__in=subdomains).distinct().order_by('label')
@@ -3877,13 +3881,14 @@ class EstablishmentList(generics.ListAPIView):
         return queryset
 
 
-class StructureList(generics.ListAPIView):
+class StructureList(generics.ListCreateAPIView):
     """
     Structures list
     """
     serializer_class = StructureSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
+    permission_classes = [CustomDjangoModelPermissions]
 
     def get_queryset(self):
         queryset = Structure.activated.order_by('code', 'label')
@@ -3898,12 +3903,72 @@ class StructureList(generics.ListAPIView):
         return queryset
 
 
-class CourseList(generics.ListAPIView):
+class TrainingList(generics.ListCreateAPIView):
+    """
+    Training list / creation
+    """
+    queryset = Training.objects.all()
+    serializer_class = TrainingSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    # Auth : default (see settings/base.py)
+
+    def create(self, request, *args, **kwargs):
+        content = None
+        structures = request.data.get("structures")
+        highschool = request.data.get("highschool")
+
+        if not structures and not highschool:
+            content = {'error': gettext("Please provide a structure or a high school")}
+        elif structures and highschool:
+            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
+
+        if content:
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().create(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class TrainingDomainList(generics.ListCreateAPIView):
+    """
+    Training domain list / creation
+    """
+    queryset = TrainingDomain.objects.all()
+    serializer_class = TrainingDomainSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    # Auth : default (see settings/base.py)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class TrainingSubdomainList(generics.ListCreateAPIView):
+    """
+    Training subdomain list / creation
+    """
+    model = TrainingSubdomain
+    queryset = TrainingSubdomain.objects.all()
+    serializer_class = TrainingSubdomainSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    # Auth : default (see settings/base.py)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class CourseList(generics.ListCreateAPIView):
     """
     Courses list
     """
+    model = Course
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [CustomDjangoModelPermissions]
     filterset_fields = ['training', 'structure', 'highschool', 'published']
 
     def get_queryset(self):
@@ -3917,6 +3982,27 @@ class CourseList(generics.ListAPIView):
                 return Course.objects.filter(structure__in=user.establishment.structures.all()).order_by('label')
 
         return queryset
+
+
+    def post(self, request, *args, **kwargs):
+        content = None
+        published = request.data.get('published', False) in ('true', 'True')
+        speakers = request.data.get('speakers')
+        structure = request.data.get("structure")
+        highschool = request.data.get("highschool")
+
+        if published and not speakers:
+            content = {'error': gettext("A published course requires at least one speaker")}
+
+        if not structure and not highschool:
+            content = {'error': gettext("Please provide a structure or a high school")}
+        elif structure and highschool:
+            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
+
+        if content:
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().post(request, *args, **kwargs)
 
 
 class BuildingList(generics.ListAPIView):
@@ -4434,7 +4520,7 @@ class MailTemplatePreviewAPI(View):
             )
             response["data"] = body
         except TemplateSyntaxError:
-            response["msg"] = _("A syntax error occured in template #%s") % pk
+            response["msg"] = _("A syntax error has been found in template #%s") % pk
 
         return JsonResponse(response)
 
@@ -4448,14 +4534,29 @@ class AnnualPurgeAPI(View):
         from django.core.management.base import CommandError
 
         command_time: float = time.thread_time()
+
+        # Step 1 : run annual purge (annual stats included)
+        try:
+            call_command("annual_purge")
+            response["ok"] = True
+        except CommandError:
+            msg: str = _("""An error occurred while running annual purge command. """
+                         """For more details, please contact the administrator.""")
+            logger.error(msg)
+            response["msg"] = msg
+
+        # Step 2 : clear accounts that are no longer in establishment's LDAPs
         try:
             call_command("delete_account_not_in_ldap")
             response["ok"] = True
         except CommandError:
-            msg: str = _("An error occured while annual purge running. For more details, check the logs.")
+            msg: str = _("""An error occurred while deleting expired LDAP accounts. """
+                         """For more details, please contact the administrator.""")
             logger.error(msg)
             response["msg"] = msg
 
         response["time"] = round(time.thread_time() - command_time, 3)
 
         return JsonResponse(response)
+
+

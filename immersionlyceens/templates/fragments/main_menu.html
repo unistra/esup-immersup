@@ -158,7 +158,7 @@
                   <a class="dropdown-item" href="{% url 'my_high_school' user.highschool.id %}">{% trans 'My high school' %}</a>
                   {% if user.highschool.postbac_immersion %}
                     <a class="dropdown-item" href="{% url 'my_high_school_speakers' user.highschool.id %}">{% trans 'My high school speakers' %}</a>
-                    <a class="dropdown-item" href="{% url 'training_list' %}">{% trans 'Trainings list' %}</a>
+                    <a class="dropdown-item" href="{% url 'trainings' %}">{% trans 'Trainings list' %}</a>
                     <a class="dropdown-item" href="{% url 'training_add' %}">{% trans 'New training' %}</a>
                   {% endif %}
                   <a class="dropdown-item" href="{% url 'my_students' %}">{% trans 'View all registrants' %}</a>

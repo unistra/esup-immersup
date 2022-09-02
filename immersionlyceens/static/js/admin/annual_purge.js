@@ -18,9 +18,9 @@ window.onload = function () {
   let purge_modal = document.getElementById('purge_modal')
   let purge_submit = document.getElementById("submit_purge")
   let annual_purge_checker = document.getElementById("annual_purge_checker")
+  let purge_btn = document.getElementById("purge_btn")
 
   const csrfToken = getCookie('csrftoken')
-  console.log(csrfToken)
   const csrfHeaders = new Headers({
       "X-CSRFToken": csrfToken,
       "Content-Type": "application/json"
@@ -32,40 +32,43 @@ window.onload = function () {
     width: 500,
   })
 
-  document.getElementById("purge_btn").addEventListener("click",function() {
-    purge_submit.setAttribute("disabled", "")
-    annual_purge_checker.removeAttribute("disabled")
-    annual_purge_checker.value = ""
-    document.getElementById("fetch_content").innerText = ""
-    $(purge_modal).dialog("open")
-  })
+  if (purge_btn !== null) {
+    purge_btn.addEventListener("click", function () {
+      purge_submit.setAttribute("disabled", "")
+      annual_purge_checker.removeAttribute("disabled")
+      annual_purge_checker.value = ""
+      document.getElementById("fetch_content").innerText = ""
+      $(purge_modal).dialog("open")
+    })
 
-  annual_purge_checker.addEventListener("input", (event) => {
-      if ( event.target.value === verify_purge_text ) {
-          purge_submit.removeAttribute("disabled")
-          event.target.setAttribute("disabled", "")
+    annual_purge_checker.addEventListener("input", (event) => {
+      if (event.target.value === verify_purge_text) {
+        purge_submit.removeAttribute("disabled")
+        event.target.setAttribute("disabled", "")
       }
-  })
-
-  purge_submit.addEventListener("click", (event) => {
-    const content = document.getElementById("fetch_content")
-    content.innerHTML = "<br/></br.><p class='center'>" + gettext("Command running ...") + "</p>"
-    purge_submit.setAttribute("disabled", "")
-
-    fetch("/api/commands/annual_purge/",
-    {
-      method: "POST",
-      headers: csrfHeaders,
     })
-    .then(response => response.json())
-    .then(data => {
-       if ( data.ok ) {
-           content.innerHTML = "<br/><ul class='messagelist'><li class='success'>" + gettext("Purge finished")  + "</li></ul>"
-           setTimeout( () => {window.location.reload()}, 3000)
-       } else {
-           content.innerHTML = "<br/><ul class='messagelist'><li class='error'>" + data.msg  + "</li></ul>"
-       }
+
+    purge_submit.addEventListener("click", (event) => {
+      const content = document.getElementById("fetch_content")
+      content.innerHTML = "<br/></br.><p class='center'>" + gettext("Command running ...") + "</p>"
+      purge_submit.setAttribute("disabled", "")
+
+      fetch("/api/commands/annual_purge/",{
+        method: "POST",
+        headers: csrfHeaders,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          content.innerHTML = "<br/><ul class='messagelist'><li class='success'>" + gettext("Purge finished") + "</li></ul>"
+          setTimeout(() => {
+            window.location.reload()
+          }, 3000)
+        } else {
+          content.innerHTML = "<br/><ul class='messagelist'><li class='error'>" + data.msg + "</li></ul>"
+        }
+      })
     })
-  })
+  }
 }
 

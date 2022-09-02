@@ -1,4 +1,4 @@
-Django<4.0
+Django==3.2.14
 django-hijack==3.0.4
 django-tinymce
 psycopg2==2.8.6
@@ -16,6 +16,7 @@ django-admin-list-filter-dropdown
 djangorestframework<4.0
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
+drf-spectacular<0.23
 django-storages[boto3]
 django-admin-sortable2
 -e git+https://github.com/t0mab/django-shibboleth-remoteuser#egg=django-shibboleth-remoteuser

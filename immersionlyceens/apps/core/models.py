@@ -1348,7 +1348,7 @@ class Course(models.Model):
 
     published = models.BooleanField(_("Published"), default=True)
 
-    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses')
+    speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='courses', blank=True)
 
     url = models.URLField(_("Website address"), max_length=1024, blank=True, null=True)
 

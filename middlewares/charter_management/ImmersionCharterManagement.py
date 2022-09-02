@@ -69,6 +69,7 @@ class ImmersionCharterManagement:
                     "/immersion/activate/",
                     "/immersion/login",
                     "/immersion/register",
+                    "/api"
                 ]
 
                 conditions = [

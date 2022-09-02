@@ -903,7 +903,7 @@ class TrainingAdd(generic.CreateView):
     template_name: str = "core/training/training.html"
 
     def get_success_url(self) ->  str:
-        return reverse("training_list")
+        return reverse("trainings")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -931,7 +931,7 @@ class TrainingUpdate(generic.UpdateView):
     queryset = Training.objects.filter(highschool__isnull=False)
 
     def get_success_url(self) -> str:
-        return reverse("training_list")
+        return reverse("trainings")
 
     def get_form_kwargs(self) -> Dict[str, Any]:
         kw: Dict[str, Any] = super().get_form_kwargs()
@@ -2345,6 +2345,7 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
 def charter(request):
     user = request.user
     establishment_or_highschool = ""
+    address = ""
 
     try:
         charter_txt = InformationText.objects.get(code="CHARTE_ETABLISSEMENT_ACCUEIL", active=True).content
@@ -2352,12 +2353,17 @@ def charter(request):
         charter_txt = ''
 
     if user.is_establishment_manager() and user.establishment:
-        establishment_or_highschool = user.establishment.label
+        est = user.establishment
+        establishment_or_highschool = est.label
+        address = f"{est.address}, {est.zip_code} {est.city}"
     elif user.is_high_school_manager() and user.highschool:
-        establishment_or_highschool = user.highschool
+        hs = user.highschool
+        establishment_or_highschool = hs
+        address = f"{hs.address}, {hs.zip_code} {hs.city}"
 
     context = {
         'establishment_or_highschool': establishment_or_highschool,
+        'establishment_or_highschool_address': address,
         'charter_txt': charter_txt
     }
     return render(request, 'core/charter.html', context)
