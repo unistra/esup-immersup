@@ -624,3 +624,6 @@ IGNORABLE_404_URLS = [
 
 # django countries settings
 COUNTRIES_FIRST = ['FR',]
+
+# Expiration of S3 url very looooooooooooooong :)
+AWS_QUERYSTRING_EXPIRE = 999999999

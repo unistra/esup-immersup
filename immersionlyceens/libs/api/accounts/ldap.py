@@ -107,7 +107,7 @@ class AccountAPI(BaseAccountsAPI):
 
         results = []
 
-        for account in self.ldap_connection.response:
+        for account in filter(lambda x: 'attributes' in x.keys(), self.ldap_connection.response):
             result = {}
             for k in attributes.keys():
                 val = account['attributes'].get(attributes[k], b'')
