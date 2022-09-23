@@ -318,7 +318,7 @@ def course(request, course_id=None, duplicate=False):
 
                         try:
                             speaker_user = ImmersionUser.objects.get(
-                                Q(username=speaker['username']) | Q(email=speaker['email'])
+                                Q(username=speaker.get('username')) | Q(email=speaker['email'])
                             )
                         except ImmersionUser.DoesNotExist:
                             establishment = new_course.structure.establishment if new_course.structure else None
@@ -331,7 +331,7 @@ def course(request, course_id=None, duplicate=False):
                                 establishment=establishment
                             )
 
-                            messages.success(request, gettext("User '{}' created").format(speaker['username']))
+                            messages.success(request, gettext("User '{}' created").format(speaker_user.username))
                             if not speaker_user.establishment or not speaker_user.establishment.data_source_plugin:
                                 speaker_user.set_recovery_string()
                             send_creation_msg = True
@@ -340,7 +340,7 @@ def course(request, course_id=None, duplicate=False):
                             Group.objects.get(name='INTER').user_set.add(speaker_user)
                         except Exception:
                             messages.error(
-                                request, _("Couldn't add group 'INTER' to user '%s'" % speaker['username']),
+                                request, _("Couldn't add group 'INTER' to user '%s'" % speaker_user.username),
                             )
 
                         if send_creation_msg:
