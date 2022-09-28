@@ -353,6 +353,7 @@ LOGGING = {
         'django': {'handlers': ['console', 'mail_admins'], 'level': 'INFO', },
         'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False, },
         'immersionlyceens': {'handlers': ['mail_admins', 'file'], 'level': 'ERROR', 'propagate': True, },
+        'default': {'handlers': ['file'], 'level': 'INFO', 'propagate': True, },
     },
 }
 
