@@ -4084,8 +4084,10 @@ class TrainingView(generics.DestroyAPIView):
 def ajax_get_immersions_proposal_establishments(request):
     response = {'msg': '', 'data': []}
     try:
-        establishments=Establishment.activated.all().values('city', 'label', 'email')
-        highschools=HighSchool.immersions_proposal.all().values('city', 'label', 'email')
+        establishments = Establishment.activated.all().values('city', 'label', 'email')
+        highschools = HighSchool.immersions_proposal\
+            .filter(signed_charter=True)\
+            .values('city', 'label', 'email')
         results = list(establishments.union(highschools).order_by('city'))
         response['data'].append(results)
     except:

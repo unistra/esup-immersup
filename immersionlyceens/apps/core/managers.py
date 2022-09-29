@@ -44,10 +44,6 @@ class HighSchoolAgreedManager(models.Manager):
             .exclude(convention_start_date__isnull=True)
             .exclude(convention_start_date__gt=datetime.datetime.now().date())
             .exclude(convention_end_date__lt=datetime.datetime.now().date())
-            # .filter(
-            #     # Q(convention_end_date__gte=date.today(), convention_start_date__lte=date.today())
-            #     Q(convention_start_date__lte=date.today(), convention_end_date__isnull=True,)
-            # )
         )
 
 
