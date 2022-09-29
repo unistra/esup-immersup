@@ -88,8 +88,9 @@ class PublicTypeTestCase(TestCase):
 
 
 class UniversityYearTestCase(TestCase):
-    def setUp(self):
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
     def test_university_year_model(self):
         label = "UniversityYear"
@@ -142,8 +143,9 @@ class UniversityYearTestCase(TestCase):
 
 
 class TestHolidayCase(TestCase):
-    def setUp(self):
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
     def test_holiday_model(self):
         label = "Holiday"
@@ -154,8 +156,9 @@ class TestHolidayCase(TestCase):
 
 
 class TestVacationCase(TestCase):
-    def setUp(self):
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
     def test_vacation_str(self):
         label = "Vacation"
@@ -198,8 +201,9 @@ class TestVacationCase(TestCase):
 
 
 class TestCalendarCase(TestCase):
-    def setUp(self):
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
     def test_calendar_str(self):
         label = "Calendar"
@@ -270,8 +274,9 @@ class TestEvaluationTypeCase(TestCase):
 
 
 class TestSlotCase(TestCase):
-    def setUp(self):
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
     def test_slot__creation(self):
         # Structure
@@ -316,10 +321,11 @@ class TestSlotCase(TestCase):
 class TrainingCase(TestCase):
     fixtures = ['higher']
 
-    def setUp(self) -> None:
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
-        self.hs = HighSchool.objects.create(
+        cls.hs = HighSchool.objects.create(
             label='HS1',
             address='here',
             department=67,
@@ -328,11 +334,11 @@ class TrainingCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - timedelta(days=10),
-            convention_end_date=self.today + timedelta(days=10),
+            convention_start_date=cls.today - timedelta(days=10),
+            convention_end_date=cls.today + timedelta(days=10),
             postbac_immersion=True
         )
-        self.structure = Structure.objects.create(label="test structure")
+        cls.structure = Structure.objects.create(label="test structure")
 
     def test_training__is_highschool(self):
         # False
@@ -432,18 +438,20 @@ class TrainingCase(TestCase):
 
 
 class StructureTestCase(TestCase):
-    def setUp(self):
-        self.structure = Structure.objects.create(code='test', label="test structure")
+    @classmethod
+    def setUpTestData(cls):
+        cls.structure = Structure.objects.create(code='test', label="test structure")
 
     def test_str_structure(self):
         self.assertEqual(str(self.structure), 'test : test structure')
 
 
 class HighSchoolTestCase(TestCase):
-    def setUp(self):
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
-        self.hs = HighSchool.objects.create(
+        cls.hs = HighSchool.objects.create(
             label='HS1',
             address='here',
             department=67,
@@ -452,8 +460,8 @@ class HighSchoolTestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - timedelta(days=10),
-            convention_end_date=self.today + timedelta(days=10),
+            convention_start_date=cls.today - timedelta(days=10),
+            convention_end_date=cls.today + timedelta(days=10),
             postbac_immersion=True
         )
 
@@ -464,10 +472,11 @@ class HighSchoolTestCase(TestCase):
 class ImmersionUserTestCase(TestCase):
     fixtures = ['group', 'higher', 'high_school_levels', 'student_levels', 'post_bachelor_levels']
 
-    def setUp(self) -> None:
-        self.today = timezone.now()
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.now()
 
-        self.no_si_establishment = Establishment.objects.create(
+        cls.no_si_establishment = Establishment.objects.create(
             code='ETA',
             label='Etablissement',
             short_label='Eta',
@@ -482,7 +491,7 @@ class ImmersionUserTestCase(TestCase):
             data_source_plugin=None,
             uai_reference=HigherEducationInstitution.objects.first()
         )
-        self.establishment = Establishment.objects.create(
+        cls.establishment = Establishment.objects.create(
             code='ETA2',
             label='Etablissement2',
             short_label='Eta2',
@@ -497,7 +506,7 @@ class ImmersionUserTestCase(TestCase):
             data_source_plugin="LDAP",
             uai_reference=HigherEducationInstitution.objects.last()
         )
-        self.hs = HighSchool.objects.create(
+        cls.hs = HighSchool.objects.create(
             label='HS1',
             address='here',
             department=67,
@@ -506,8 +515,8 @@ class ImmersionUserTestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - timedelta(days=10),
-            convention_end_date=self.today + timedelta(days=10),
+            convention_start_date=cls.today - timedelta(days=10),
+            convention_end_date=cls.today + timedelta(days=10),
             postbac_immersion=True,
             signed_charter=True,
         )
@@ -701,8 +710,9 @@ class TrainingDomainTestCase(TestCase):
 
 
 class TrainingSubDomainTestCase(TestCase):
-    def setUp(self):
-        self.td = TrainingDomain.objects.create(label="label")
+    @classmethod
+    def setUpTestData(cls):
+        cls.td = TrainingDomain.objects.create(label="label")
 
     def test_str_training_domain(self):
         tsd = TrainingSubdomain.objects.create(

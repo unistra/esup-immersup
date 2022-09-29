@@ -57,20 +57,19 @@ class AdminFormsTestCase(TestCase):
     fixtures = ['group', 'group_permissions', 'high_school_levels', 'post_bachelor_levels', 'student_levels', 'higher',
                 'mailtemplatevars', 'mailtemplate']
 
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         """
-        SetUp for Admin Forms tests
+        Data that do not change in tests below
+        They are only set once
         """
+        cls.site = AdminSite()
+        cls.today = datetime.datetime.today()
 
-        # TODO Use test fixtures for all these objects
-
-        self.site = AdminSite()
-        self.today = datetime.datetime.today()
-
-        self.superuser = get_user_model().objects.create_superuser(
+        cls.superuser = get_user_model().objects.create_superuser(
             username='super', password='pass', email='immersion1@no-reply.com'
         )
-        self.master_establishment = Establishment.objects.create(
+        cls.master_establishment = Establishment.objects.create(
             code='ETA1',
             label='Etablissement 1',
             short_label='Eta 1',
@@ -81,7 +80,7 @@ class AdminFormsTestCase(TestCase):
             uai_reference=HigherEducationInstitution.objects.first()
         )
 
-        self.establishment = Establishment.objects.create(
+        cls.establishment = Establishment.objects.create(
             code='ETA2',
             label='Etablissement 2',
             short_label='Eta 2',
@@ -92,7 +91,7 @@ class AdminFormsTestCase(TestCase):
             uai_reference=HigherEducationInstitution.objects.last()
         )
 
-        self.high_school = HighSchool.objects.create(
+        cls.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
             country='FR',
@@ -106,7 +105,7 @@ class AdminFormsTestCase(TestCase):
             signed_charter=True,
         )
 
-        self.high_school_2 = HighSchool.objects.create(
+        cls.high_school_2 = HighSchool.objects.create(
             label='HS2',
             address='here',
             country='FR',
@@ -120,18 +119,18 @@ class AdminFormsTestCase(TestCase):
             signed_charter=True,
         )
 
-        self.ref_master_etab_user = get_user_model().objects.create_user(
+        cls.ref_master_etab_user = get_user_model().objects.create_user(
             username='ref_master_etab',
             password='pass',
             email='immersion2@no-reply.com',
             first_name='ref_master_etab',
             last_name='ref_master_etab',
-            establishment=self.master_establishment,
+            establishment=cls.master_establishment,
             is_staff=True,
             date_joined=timezone.now()
         )
 
-        self.operator_user = get_user_model().objects.create_user(
+        cls.operator_user = get_user_model().objects.create_user(
             username='operator',
             password='pass',
             email='operator@no-reply.com',
@@ -139,79 +138,79 @@ class AdminFormsTestCase(TestCase):
             last_name='operator'
         )
 
-        self.ref_etab_user = get_user_model().objects.create_user(
+        cls.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
             email='immersion3@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
-            establishment=self.establishment,
+            establishment=cls.establishment,
             is_staff=True,
             date_joined=timezone.now()
         )
 
-        self.ref_str_user = get_user_model().objects.create_user(
+        cls.ref_str_user = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
             email='immersion4@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
             date_joined=timezone.now(),
-            establishment=self.master_establishment,
+            establishment=cls.master_establishment,
         )
 
-        self.ref_str_user_2 = get_user_model().objects.create_user(
+        cls.ref_str_user_2 = get_user_model().objects.create_user(
             username='ref_str_2',
             password='pass',
             email='immersion5@no-reply.com',
             first_name='ref_str_2',
             last_name='ref_str_2',
             date_joined=timezone.now(),
-            establishment=self.establishment,
+            establishment=cls.establishment,
         )
 
-        self.ref_lyc_user = get_user_model().objects.create_user(
+        cls.ref_lyc_user = get_user_model().objects.create_user(
             username='ref_lyc',
             password='pass',
             email='ref-lyc@no-reply.com',
             first_name='ref_lyc',
             last_name='ref_lyc',
             is_staff=True,
-            highschool=self.high_school,
+            highschool=cls.high_school,
             date_joined=timezone.now(),
         )
 
-        self.ref_lyc_user_2 = get_user_model().objects.create_user(
+        cls.ref_lyc_user_2 = get_user_model().objects.create_user(
             username='ref_lyc2',
             password='pass',
             email='ref-lyc2@no-reply.com',
             first_name='ref_lyc2',
             last_name='ref_lyc2',
-            highschool=self.high_school_2,
+            highschool=cls.high_school_2,
             date_joined=timezone.now(),
         )
 
-        self.speaker_user = get_user_model().objects.create_user(
+        cls.speaker_user = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
             email='speaker1@no-reply.com',
             first_name='speaker1',
             last_name='speaker1',
-            highschool=self.high_school,
+            highschool=cls.high_school,
             date_joined=timezone.now(),
         )
 
-        self.speaker_user_2 = get_user_model().objects.create_user(
+        cls.speaker_user_2 = get_user_model().objects.create_user(
             username='speaker2',
             password='pass',
             email='speaker2@no-reply.com',
             first_name='speaker2',
             last_name='speaker2',
-            highschool=self.high_school_2,
+            highschool=cls.high_school_2,
             date_joined=timezone.now()
         )
 
-        self.student = get_user_model().objects.create_user(
+        cls.student = get_user_model().objects.create_user(
             username='student',
             password='pass',
             email='student@no-reply.com',
@@ -219,7 +218,7 @@ class AdminFormsTestCase(TestCase):
             last_name='STUDENT',
         )
 
-        self.visitor = get_user_model().objects.create_user(
+        cls.visitor = get_user_model().objects.create_user(
             username='visitor',
             password='pass',
             email='visitor@no-reply.com',
@@ -227,17 +226,18 @@ class AdminFormsTestCase(TestCase):
             last_name='VISITOR',
         )
 
-        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
-        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
-        Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
-        Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user_2)
-        Group.objects.get(name='REF-TEC').user_set.add(self.operator_user)
-        Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc_user)
-        Group.objects.get(name='REF-LYC').user_set.add(self.ref_lyc_user_2)
-        Group.objects.get(name='INTER').user_set.add(self.speaker_user)
-        Group.objects.get(name='INTER').user_set.add(self.speaker_user_2)
-        Group.objects.get(name='ETU').user_set.add(self.student)
-        Group.objects.get(name='VIS').user_set.add(self.visitor)
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(cls.ref_master_etab_user)
+        Group.objects.get(name='REF-STR').user_set.add(cls.ref_str_user)
+        Group.objects.get(name='REF-STR').user_set.add(cls.ref_str_user_2)
+        Group.objects.get(name='REF-TEC').user_set.add(cls.operator_user)
+        Group.objects.get(name='REF-LYC').user_set.add(cls.ref_lyc_user)
+        Group.objects.get(name='REF-LYC').user_set.add(cls.ref_lyc_user_2)
+        Group.objects.get(name='INTER').user_set.add(cls.speaker_user)
+        Group.objects.get(name='INTER').user_set.add(cls.speaker_user_2)
+        Group.objects.get(name='ETU').user_set.add(cls.student)
+        Group.objects.get(name='VIS').user_set.add(cls.visitor)
+
 
     def test_training_domain_creation(self):
         """

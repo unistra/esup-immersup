@@ -143,7 +143,7 @@
       'ajax': {
         url: "{% url 'GetAgreedHighSchools' %}",
         dataSrc: function (json) {
-          if (json['data'] != undefined) {
+          if (json['data'] !== undefined) {
             return json['data'][0];
           }
         }
@@ -179,7 +179,6 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-        //url: "{% url 'GetAgreedHighSchools' %}",
         url: "{% url 'GetImmersionsProposalEstablishments' %}",
         dataSrc: function (json) {
           if (json['data'] != undefined) {

@@ -26,22 +26,30 @@ class ChartsViewsTestCase(TestCase):
         'high_school_levels', 'post_bachelor_levels', 'student_levels'
     ]
 
+
+    @classmethod
+    def setUpTestData(cls):
+        """
+        Data that do not change in tests below
+        They are only set once
+        """
+        cls.factory = RequestFactory()
+
+        cls.master_establishment = Establishment.objects.first()
+
+        cls.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
+        cls.ref_etab_user.set_password('hiddenpassword')
+        cls.ref_etab_user.establishment = cls.master_establishment
+        cls.ref_etab_user.save()
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
+
+        cls.reflyc_user = get_user_model().objects.get(username='jeanjacquesmonnet')
+        cls.reflyc_user.set_password('hiddenpassword')
+        cls.reflyc_user.save()
+        Group.objects.get(name='REF-LYC').user_set.add(cls.reflyc_user)
+
+
     def setUp(self):
-        self.factory = RequestFactory()
-
-        self.master_establishment = Establishment.objects.first()
-
-        self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
-        self.ref_etab_user.set_password('hiddenpassword')
-        self.ref_etab_user.establishment = self.master_establishment
-        self.ref_etab_user.save()
-        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
-
-        self.reflyc_user = get_user_model().objects.get(username='jeanjacquesmonnet')
-        self.reflyc_user.set_password('hiddenpassword')
-        self.reflyc_user.save()
-        Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
-
         self.client = Client()
         self.client.login(username='test-ref-etab', password='hiddenpassword')
 
