@@ -23,38 +23,46 @@ class ChartsAPITestCase(TestCase):
         'immersionlyceens/apps/charts/tests/fixtures/all_test.json',
     ]
 
-    def setUp(self):
-        self.factory = RequestFactory()
+    @classmethod
+    def setUpTestData(cls):
+        """
+        Data that do not change in tests below
+        They are only set once
+        """
+        cls.factory = RequestFactory()
 
-        self.master_establishment = Establishment.objects.filter(master=True).first()
+        cls.master_establishment = Establishment.objects.filter(master=True).first()
 
-        self.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
-        self.ref_etab_user.set_password('hiddenpassword')
-        self.ref_etab_user.save()
-        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
+        cls.ref_etab_user = get_user_model().objects.get(username='test-ref-etab')
+        cls.ref_etab_user.set_password('hiddenpassword')
+        cls.ref_etab_user.save()
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
 
-        self.ref_master_etab_user = get_user_model().objects.get(username='test-ref-etab-maitre')
-        self.ref_master_etab_user.establishment = self.master_establishment
-        self.ref_master_etab_user.set_password('hiddenpassword')
-        self.ref_master_etab_user.save()
-        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
+        cls.ref_master_etab_user = get_user_model().objects.get(username='test-ref-etab-maitre')
+        cls.ref_master_etab_user.establishment = cls.master_establishment
+        cls.ref_master_etab_user.set_password('hiddenpassword')
+        cls.ref_master_etab_user.save()
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(cls.ref_master_etab_user)
 
-        self.reflyc_user = get_user_model().objects.get(username='jeanjacquesmonnet')
-        self.reflyc_user.set_password('hiddenpassword')
-        self.reflyc_user.save()
-        Group.objects.get(name='REF-LYC').user_set.add(self.reflyc_user)
+        cls.reflyc_user = get_user_model().objects.get(username='jeanjacquesmonnet')
+        cls.reflyc_user.set_password('hiddenpassword')
+        cls.reflyc_user.save()
+        Group.objects.get(name='REF-LYC').user_set.add(cls.reflyc_user)
 
-        self.ref_str_user = get_user_model().objects.get(username='test-eco')
-        self.ref_str_user.set_password('hiddenpassword')
-        self.ref_str_user.save()
+        cls.ref_str_user = get_user_model().objects.get(username='test-eco')
+        cls.ref_str_user.set_password('hiddenpassword')
+        cls.ref_str_user.save()
 
-        self.client = Client()
-        self.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
-
+        cls.header = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
         # Extend the first high school convention end date (other can stay in past)
         now = datetime.datetime.today().date()
-        HighSchool.objects.filter(pk=2).update(convention_end_date = now + datetime.timedelta(days=30))
+        HighSchool.objects.filter(pk=2).update(convention_end_date=now + datetime.timedelta(days=30))
+
+
+    def setUp(self):
+        self.client = Client()
+
 
     def test_global_domains_charts_by_population(self):
         self.client.login(username='test-ref-etab', password='hiddenpassword')

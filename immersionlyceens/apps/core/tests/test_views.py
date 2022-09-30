@@ -33,14 +33,15 @@ request = request_factory.get('/admin')
 class CoreViewsTestCase(TestCase):
     fixtures = ['group', 'group_permissions', 'generalsettings', 'mailtemplatevars', 'mailtemplate', 'images', 'higher']
 
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         """
-        SetUp for Core app tests
+        Test data for Core app tests
         @TODO : this is a copy/paste from immersion app setup, it may need to be cleaned a little
         """
-        self.today = datetime.datetime.today()
+        cls.today = datetime.datetime.today()
 
-        self.master_establishment = Establishment.objects.create(
+        cls.master_establishment = Establishment.objects.create(
             code='ETA1',
             label='Etablissement 1',
             short_label='Eta 1',
@@ -51,7 +52,7 @@ class CoreViewsTestCase(TestCase):
             uai_reference=HigherEducationInstitution.objects.first()
         )
 
-        self.establishment = Establishment.objects.create(
+        cls.establishment = Establishment.objects.create(
             code='ETA2',
             label='Etablissement 2',
             short_label='Eta 2',
@@ -62,7 +63,7 @@ class CoreViewsTestCase(TestCase):
             uai_reference=HigherEducationInstitution.objects.last()
         )
 
-        self.high_school = HighSchool.objects.create(
+        cls.high_school = HighSchool.objects.create(
             label='HS1',
             address='here',
             country='FR',
@@ -72,13 +73,13 @@ class CoreViewsTestCase(TestCase):
             phone_number='0123456789',
             email='a@b.c',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10),
+            convention_start_date=cls.today - datetime.timedelta(days=10),
+            convention_end_date=cls.today + datetime.timedelta(days=10),
             postbac_immersion=True,
             signed_charter=True,
         )
 
-        self.high_school2 = HighSchool.objects.create(
+        cls.high_school2 = HighSchool.objects.create(
             label='HS2',
             address='here',
             department=67,
@@ -88,13 +89,13 @@ class CoreViewsTestCase(TestCase):
             phone_number='0123456789',
             email='d@e.fr',
             head_teacher_name='M. A B',
-            convention_start_date=self.today - datetime.timedelta(days=10),
-            convention_end_date=self.today + datetime.timedelta(days=10),
+            convention_start_date=cls.today - datetime.timedelta(days=10),
+            convention_end_date=cls.today + datetime.timedelta(days=10),
             postbac_immersion=False,
             signed_charter=True,
         )
 
-        self.highschool_user = get_user_model().objects.create_user(
+        cls.highschool_user = get_user_model().objects.create_user(
             username='hs',
             password='pass',
             email='hs@no-reply.com',
@@ -103,11 +104,11 @@ class CoreViewsTestCase(TestCase):
             validation_string='whatever',
         )
 
-        self.highschool_user.set_password('pass')
-        self.highschool_user.save()
+        cls.highschool_user.set_password('pass')
+        cls.highschool_user.save()
 
         # Set a second high school student for duplicates search
-        self.highschool_user2 = get_user_model().objects.create_user(
+        cls.highschool_user2 = get_user_model().objects.create_user(
             username='hs2',
             password='pass',
             email='hs2@no-reply.com',
@@ -116,10 +117,10 @@ class CoreViewsTestCase(TestCase):
             validation_string=None,
         )
 
-        self.highschool_user2.set_password('pass')
-        self.highschool_user2.save()
+        cls.highschool_user2.set_password('pass')
+        cls.highschool_user2.save()
 
-        self.student_user = get_user_model().objects.create_user(
+        cls.student_user = get_user_model().objects.create_user(
             username='test@student.fr',
             password='pass',
             email='test@student.fr',
@@ -127,104 +128,102 @@ class CoreViewsTestCase(TestCase):
             last_name='user'
         )
 
-        self.student_user.set_password('pass')
-        self.student_user.save()
+        cls.student_user.set_password('pass')
+        cls.student_user.save()
 
-        self.speaker1 = get_user_model().objects.create_user(
+        cls.speaker1 = get_user_model().objects.create_user(
             username='speaker1',
             password='pass',
             email='speaker-immersion@no-reply.com',
             first_name='speak',
             last_name='HER',
-            highschool=self.high_school
+            highschool=cls.high_school
         )
 
-        self.speaker1.set_password('pass')
-        self.speaker1.save()
+        cls.speaker1.set_password('pass')
+        cls.speaker1.save()
 
-        self.speaker2 = get_user_model().objects.create_user(
+        cls.speaker2 = get_user_model().objects.create_user(
             username='speaker2',
             password='pass',
             email='speaker-immersion2@no-reply.com',
             first_name='speak2',
             last_name='HER2',
-            highschool=self.high_school2
+            highschool=cls.high_school2
         )
 
-        self.lyc_ref = get_user_model().objects.create_user(
+        cls.lyc_ref = get_user_model().objects.create_user(
             username='lycref',
             password='pass',
             email='lycref@no-reply.com',
             first_name='lyc',
             last_name='REF',
-            highschool=self.high_school,
+            highschool=cls.high_school,
             is_staff=True
         )
 
-        self.lyc_ref.set_password('pass')
-        self.lyc_ref.save()
+        cls.lyc_ref.set_password('pass')
+        cls.lyc_ref.save()
 
-        self.ref_etab_user = get_user_model().objects.create_user(
+        cls.ref_etab_user = get_user_model().objects.create_user(
             username='ref_etab',
             password='pass',
             email='ref_etab@no-reply.com',
             first_name='ref_etab',
             last_name='ref_etab',
-            establishment=self.establishment,
+            establishment=cls.establishment,
             is_staff=True,
         )
 
-        self.ref_etab_user.set_password('pass')
-        self.ref_etab_user.save()
+        cls.ref_etab_user.set_password('pass')
+        cls.ref_etab_user.save()
 
-        self.ref_master_etab_user = get_user_model().objects.create_user(
+        cls.ref_master_etab_user = get_user_model().objects.create_user(
             username='ref_master_etab',
             password='pass',
             email='ref_master_etab@no-reply.com',
             first_name='ref_master_etab',
             last_name='ref_master_etab',
-            establishment=self.master_establishment,
+            establishment=cls.master_establishment,
             is_staff=True
         )
 
-        self.ref_etab_user.set_password('pass')
-        self.ref_etab_user.save()
+        cls.ref_etab_user.set_password('pass')
+        cls.ref_etab_user.save()
 
-        self.structure = Structure.objects.create(
+        cls.structure = Structure.objects.create(
             code='C1',
             label="test structure",
-            establishment=self.establishment
+            establishment=cls.establishment
         )
-        self.structure2 = Structure.objects.create(
+        cls.structure2 = Structure.objects.create(
             code='C2',
             label="Second test structure",
-            establishment=self.establishment
+            establishment=cls.establishment
         )
 
-        self.ref_str_user = get_user_model().objects.create_user(
+        cls.ref_str_user = get_user_model().objects.create_user(
             username='ref_str',
             password='pass',
             email='ref_str@no-reply.com',
             first_name='ref_str',
             last_name='ref_str',
-            establishment=self.establishment
+            establishment=cls.establishment
         )
 
-        self.ref_str_user.structures.add(self.structure)
-        self.ref_str_user.set_password('pass')
-        self.ref_str_user.save()
+        cls.ref_str_user.structures.add(cls.structure)
+        cls.ref_str_user.set_password('pass')
+        cls.ref_str_user.save()
 
-        self.client = Client()
-
-        Group.objects.get(name='INTER').user_set.add(self.speaker1)
-        Group.objects.get(name='INTER').user_set.add(self.speaker2)
-        Group.objects.get(name='LYC').user_set.add(self.highschool_user)
-        Group.objects.get(name='LYC').user_set.add(self.highschool_user2)
-        Group.objects.get(name='ETU').user_set.add(self.student_user)
-        Group.objects.get(name='REF-LYC').user_set.add(self.lyc_ref)
-        Group.objects.get(name='REF-ETAB').user_set.add(self.ref_etab_user)
-        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(self.ref_master_etab_user)
-        Group.objects.get(name='REF-STR').user_set.add(self.ref_str_user)
+        Group.objects.get(name='INTER').user_set.add(cls.speaker1)
+        Group.objects.get(name='INTER').user_set.add(cls.speaker2)
+        Group.objects.get(name='LYC').user_set.add(cls.highschool_user)
+        Group.objects.get(name='LYC').user_set.add(cls.highschool_user2)
+        Group.objects.get(name='ETU').user_set.add(cls.student_user)
+        Group.objects.get(name='REF-LYC').user_set.add(cls.lyc_ref)
+        Group.objects.get(name='REF-ETAB').user_set.add(cls.ref_etab_user)
+        Group.objects.get(name='REF-ETAB-MAITRE').user_set.add(cls.ref_master_etab_user)
+        Group.objects.get(name='REF-STR').user_set.add(cls.ref_str_user)
 
         BachelorMention.objects.create(
             label="Sciences et technologies du management et de la gestion (STMG)",
@@ -233,79 +232,84 @@ class CoreViewsTestCase(TestCase):
 
         GeneralBachelorTeaching.objects.create(label="Maths", active=True)
 
-        self.t_domain = TrainingDomain.objects.create(label="test t_domain")
-        self.t_domain2 = TrainingDomain.objects.create(label="test t_domain 2")
+        cls.t_domain = TrainingDomain.objects.create(label="test t_domain")
+        cls.t_domain2 = TrainingDomain.objects.create(label="test t_domain 2")
 
-        self.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=self.t_domain)
-        self.t_sub_domain2 = TrainingSubdomain.objects.create(label="test t_sub_domain 2", training_domain=self.t_domain2)
+        cls.t_sub_domain = TrainingSubdomain.objects.create(label="test t_sub_domain", training_domain=cls.t_domain)
+        cls.t_sub_domain2 = TrainingSubdomain.objects.create(label="test t_sub_domain 2",
+                                                              training_domain=cls.t_domain2)
 
-        self.training = Training.objects.create(label="test training")
-        self.training2 = Training.objects.create(label="test training 2")
-        self.training3 = Training.objects.create(label="test training 3")
+        cls.training = Training.objects.create(label="test training")
+        cls.training2 = Training.objects.create(label="test training 2")
+        cls.training3 = Training.objects.create(label="test training 3")
 
-        self.training.training_subdomains.add(self.t_sub_domain)
-        self.training.structures.add(self.structure)
-        self.training2.training_subdomains.add(self.t_sub_domain)
-        self.training2.structures.add(self.structure)
-        self.training3.training_subdomains.add(self.t_sub_domain2)
-        self.training3.structures.add(self.structure2)
+        cls.training.training_subdomains.add(cls.t_sub_domain)
+        cls.training.structures.add(cls.structure)
+        cls.training2.training_subdomains.add(cls.t_sub_domain)
+        cls.training2.structures.add(cls.structure)
+        cls.training3.training_subdomains.add(cls.t_sub_domain2)
+        cls.training3.structures.add(cls.structure2)
 
-        self.course = Course.objects.create(label="course 1", training=self.training, structure=self.structure)
-        self.course.speakers.add(self.speaker1)
+        cls.course = Course.objects.create(label="course 1", training=cls.training, structure=cls.structure)
+        cls.course.speakers.add(cls.speaker1)
 
-        self.course2 = Course.objects.create(label="course 2", training=self.training3, structure=self.structure2)
-        self.course2.speakers.add(self.speaker2)
+        cls.course2 = Course.objects.create(label="course 2", training=cls.training3, structure=cls.structure2)
+        cls.course2.speakers.add(cls.speaker2)
 
-        self.campus = Campus.objects.create(label='Esplanade')
-        self.building = Building.objects.create(label='Le portique', campus=self.campus)
-        self.course_type = CourseType.objects.create(label='CM')
-        self.slot = Slot.objects.create(
-            course=self.course, course_type=self.course_type, campus=self.campus,
-            building=self.building, room='room 1', date=self.today,
+        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
+        cls.course_type = CourseType.objects.create(label='CM')
+        cls.slot = Slot.objects.create(
+            course=cls.course, course_type=cls.course_type, campus=cls.campus,
+            building=cls.building, room='room 1', date=cls.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot.speakers.add(self.speaker1),
+        cls.slot.speakers.add(cls.speaker1),
 
         # Add another slot : structure referent shouldn't have access to this one
-        self.slot2 = Slot.objects.create(
-            course=self.course2, course_type=self.course_type, campus=self.campus,
-            building=self.building, room='room 12', date=self.today,
+        cls.slot2 = Slot.objects.create(
+            course=cls.course2, course_type=cls.course_type, campus=cls.campus,
+            building=cls.building, room='room 12', date=cls.today,
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot2.speakers.add(self.speaker2)
+        cls.slot2.speakers.add(cls.speaker2)
 
-        self.slot3 = Slot.objects.create(
-            course=self.course2, course_type=self.course_type, campus=self.campus,
-            building=self.building, room='room 12', date=self.today + datetime.timedelta(days=1),
+        cls.slot3 = Slot.objects.create(
+            course=cls.course2, course_type=cls.course_type, campus=cls.campus,
+            building=cls.building, room='room 12', date=cls.today + datetime.timedelta(days=1),
             start_time=datetime.time(12, 0), end_time=datetime.time(14, 0), n_places=20
         )
-        self.slot3.speakers.add(self.speaker2)
+        cls.slot3.speakers.add(cls.speaker2)
 
-        self.calendar = Calendar.objects.create(
+        cls.calendar = Calendar.objects.create(
             label='my calendar',
             calendar_mode='YEAR',
-            year_start_date=self.today - datetime.timedelta(days=10),
-            year_end_date=self.today + datetime.timedelta(days=10),
-            year_registration_start_date=self.today + datetime.timedelta(days=2),
+            year_start_date=cls.today - datetime.timedelta(days=10),
+            year_end_date=cls.today + datetime.timedelta(days=10),
+            year_registration_start_date=cls.today + datetime.timedelta(days=2),
             year_nb_authorized_immersion=4
         )
 
-        self.university_year = UniversityYear.objects.create(
+        cls.university_year = UniversityYear.objects.create(
             label='2020-2021',
-            start_date=self.today.date() - datetime.timedelta(days=365),
-            end_date=self.today.date() + datetime.timedelta(days=20),
-            registration_start_date=self.today.date() - datetime.timedelta(days=1),
+            start_date=cls.today.date() - datetime.timedelta(days=365),
+            end_date=cls.today.date() + datetime.timedelta(days=20),
+            registration_start_date=cls.today.date() - datetime.timedelta(days=1),
             active=True,
         )
 
-        self.immersion = Immersion.objects.create(
-            student=self.highschool_user,
-            slot=self.slot,
+        cls.immersion = Immersion.objects.create(
+            student=cls.highschool_user,
+            slot=cls.slot,
             attendance_status=1
         )
 
-        self.event_type = OffOfferEventType.objects.create(label="Event type label")
+        cls.event_type = OffOfferEventType.objects.create(label="Event type label")
+        
 
+    def setUp(self):
+        self.client = Client()
+        
 
     def test_import_holidays(self):
         self.assertFalse(Holiday.objects.all().exists())
