@@ -26,8 +26,7 @@ POSTGRESQL_HAS_UNACCENT_EXTENSION = True # For queries
 ############################
 
 ALLOWED_HOSTS = [
-    '.u-strasbg.fr',
-    '.unistra.fr',
+    '*',
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'ssl')
