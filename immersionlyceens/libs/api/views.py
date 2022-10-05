@@ -17,7 +17,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
-from django.db import IntegrityError
+from django.db.utils import IntegrityError
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
@@ -3645,20 +3645,17 @@ def ajax_set_course_alert(request):
         response['msg'] = gettext('Invalid email format')
         return JsonResponse(response, safe=False)
 
-    # Check unicity:
-    try:
-        alert = UserCourseAlert.objects.get(email=email, course=course)
+    # Add an alert and warn the user if it already exists:
+    alert, created = UserCourseAlert.objects.get_or_create(
+        email=email,
+        course=course,
+        defaults={'email_sent': False}
+    )
 
-        if not alert.email_sent:
-            response['error'] = True
-            response['msg'] = gettext('You have already set an alert on this course')
-            return JsonResponse(response, safe=False)
-        else:
-            alert.email_sent = False
-            alert.save()
-    except UserCourseAlert.DoesNotExist:
-        # Set alert:
-        UserCourseAlert.objects.create(email=email, course=course)
+    if not created and not alert.email_sent:
+        response['error'] = True
+        response['msg'] = gettext('You have already set an alert on this course')
+        return JsonResponse(response, safe=False)
 
     response['msg'] = gettext('Alert successfully set')
     return JsonResponse(response, safe=False)
