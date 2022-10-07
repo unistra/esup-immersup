@@ -1,0 +1,32 @@
+[
+{
+    "model": "core.establishment",
+    "pk": 1,
+    "fields": {
+        "code": "ETA1",
+        "uai_reference": "0673021V",
+        "label": "Etablissement 1",
+        "short_label": "Etablissement 1",
+        "address": "Dummy address",
+        "address2": null,
+        "address3": null,
+        "department": "BAS-RHIN",
+        "city": "STRASBOURG",
+        "zip_code": "67000",
+        "phone_number": "03.68.85.00.00",
+        "fax": null,
+        "badge_html_color": "#3584e4",
+        "email": "dummy-email@unistra.fr",
+        "mailing_list": null,
+        "active": true,
+        "master": true,
+        "signed_charter": false,
+        "data_source_plugin": null,
+        "data_source_settings": null,
+        "logo": "",
+        "signature": "",
+        "certificate_header": "",
+        "certificate_footer": ""
+    }
+}
+]
