@@ -1444,6 +1444,11 @@ class Course(models.Model):
 
             # Advanced test
             if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
                 qs = Course.objects.filter(
                     Q(training__id=self.training_id,
                       structure__id=self.structure_id,
@@ -1453,7 +1458,7 @@ class Course(models.Model):
                        structure__isnull=True,
                        highschool__id=self.highschool_id,
                        label__unaccent__iexact=self.label)
-                )
+                ).exclude(**excludes)
 
                 if qs.exists():
                     raise ValidationError(
@@ -1593,12 +1598,16 @@ class Visit(models.Model):
 
             # Advanced test
             if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+                if self.pk:
+                    excludes = {'id': self.pk}
+
                 qs = Visit.objects.filter(
                     establishment__id=self.establishment_id,
                     structure__id=self.structure_id,
                     highschool__id=self.highschool_id,
                     purpose__unaccent__iexact=self.purpose
-                )
+                ).exclude(**excludes)
 
                 if qs.exists():
                     raise ValidationError(
@@ -1780,6 +1789,10 @@ class OffOfferEvent(models.Model):
 
             # Advanced test
             if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+                if self.pk:
+                    excludes = {'id': self.pk}
+
                 qs = OffOfferEvent.objects.filter(
                     Q(establishment__id=self.establishment_id,
                       structure__id=self.structure_id,
@@ -1791,7 +1804,7 @@ class OffOfferEvent(models.Model):
                        highschool__id=self.highschool_id,
                        event_type__id=self.event_type_id,
                        label__unaccent__iexact=self.label)
-                )
+                ).exclude(**excludes)
 
                 if qs.exists():
                     raise ValidationError(
