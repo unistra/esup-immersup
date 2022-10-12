@@ -1,3 +1,4 @@
+-e git+https://github.com/t0mab/django-shibboleth-remoteuser#egg=django-shibboleth-remoteuser
 Django==3.2.15
 django-hijack==3.0.4
 django-tinymce
@@ -19,5 +20,6 @@ djangorestframework-custom-paginations
 drf-spectacular<0.23
 django-storages[boto3]
 django-admin-sortable2
--e git+https://github.com/t0mab/django-shibboleth-remoteuser#egg=django-shibboleth-remoteuser
+pillow==9.2.0
+lxml==4.9.1
 django-countries==7.3.2

@@ -8,12 +8,15 @@
       <div class="logo col-auto offset-lg-2">
         {% if unistra == "true" %}
         <div class="establishment-logo">
-            <a href="{% url 'home' %}"><img src="{% static 'img/logo.png' %}" alt=""></a>
+          <a href="{% url 'home' %}"><img src="{% static 'img/logo.png' %}" alt=""></a>
         </div>
         {% else %}
-        <div class="establishment-logo"></div>
+        <a href="{% url 'home' %}">
+          <div class="establishment-logo"></div>
+        </a>
         {% endif %}
       </div>
+
       {% if user.is_superuser %}
         {% include "./user_selector.html" %}
       {% endif %}
