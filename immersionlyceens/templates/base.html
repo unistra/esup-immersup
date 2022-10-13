@@ -43,7 +43,7 @@
     <script>var _paq=window._paq=window._paq||[];_paq.push(['trackPageView']),_paq.push(['enableLinkTracking']),function(){var a='{{ matomo_url }}';_paq.push(['setTrackerUrl',a+'matomo.php']),_paq.push(['setSiteId','{{ matomo_site_id }}']);var e=document,t=e.createElement('script'),p=e.getElementsByTagName('script')[0];t.async=!0,t.src=a+'matomo.js',p.parentNode.insertBefore(t,p)}()</script>
     {% endif %}
     {% for js_file in custom_js_files %}
-    <script src="{{ js_file.file.url }}"></script>
+      <script src="{{ js_file.file.url }}"></script>
     {% endfor %}
     {% block head-javascript %}
     {% endblock %}
