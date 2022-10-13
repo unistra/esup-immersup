@@ -7,13 +7,13 @@
   <div class="container">
     <div class="row">
       <div class="col-12 text-center">
-        <p>&copy; Direction du Num&eacute;rique - Universit&eacute; de Strasbourg - {% now "Y" %}
-          - <a {% if external_contact_form_url %} href="{{ external_contact_form_url }}" target="_blank"{% else%}href="#" data-toggle="modal" data-backdrop="static" data-target="#modal_contact_us"  {% endif %}>{% trans 'Contact us' %}</a>
+        <p>
+          <a {% if external_contact_form_url %} href="{{ external_contact_form_url }}" target="_blank"{% else%}href="#" data-toggle="modal" data-backdrop="static" data-target="#modal_contact_us"  {% endif %}>{% trans 'Contact us' %}</a>
           {% if  legal_show %}
           - <a href="#" data-toggle="modal" data-target="#modalLegal">{% trans 'Privacy & terms' %}</a>
           {% endif %}
-          - <a href="#"
-            data-toggle="modal" data-target="#modalCredits">{% trans 'Credits' %}</a>
+          - <a href="#" data-toggle="modal" data-target="#modalCredits">{% trans 'Credits' %}</a>
+          - &copy; Direction du Num&eacute;rique - Universit&eacute; de Strasbourg - {% now "Y" %}
         </p>
       </div>
     </div>

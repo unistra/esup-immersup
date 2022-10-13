@@ -1,8 +1,14 @@
 {% extends "admin/base_site.html" %}
 
-{% load static %}
-
 {% block extrahead %}
+    {% load static %}
+    {% load immersionlyceens_tags %}
+    {% get_custom_css_files as custom_css_files %}
+
+    {% for css_file in custom_css_files %}
+      <link rel="stylesheet" href="{{ css_file.file.url }}">
+    {% endfor %}
+
     <script src="{% url 'javascript-catalog' %}"></script>
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}">
     {{ block.super }}
