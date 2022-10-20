@@ -1,0 +1,18 @@
+[
+{
+    "model": "core.evaluationformlink",
+    "pk": 1,
+    "fields": {
+        "url": "",
+        "active": false
+    }
+},
+{
+    "model": "core.evaluationformlink",
+    "pk": 2,
+    "fields": {
+        "url": "",
+        "active": false
+    }
+}
+]

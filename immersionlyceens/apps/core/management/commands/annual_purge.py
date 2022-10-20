@@ -8,6 +8,7 @@ from datetime import datetime
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Count
 
 from ...models import (
     Calendar, Course, Holiday, Immersion, ImmersionUser, OffOfferEvent, Slot,
@@ -52,7 +53,7 @@ class Command(BaseCommand):
             logger.info(_("No slot to delete"))
 
         # Delete ENS, LYC, ETU ImmersionUser
-        deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'ENS', 'VIS']).delete()
+        deleted = ImmersionUser.objects.filter(groups__name__in=['ETU', 'LYC', 'VIS']).delete()
         if deleted[0]:
             logger.info(_('{} account(s) deleted').format(deleted[0]))
         else:
@@ -105,10 +106,12 @@ class Command(BaseCommand):
 
 
         # delete immersion users with group INTER and in an establishment with plugin set
-        deleted = ImmersionUser.objects.filter(
-            groups__name__in=("INTER",),
-            establishment__data_source_plugin__isnull=False
+        deleted = ImmersionUser.objects.annotate(cnt=Count('groups__name')).filter(
+            cnt=1,
+            groups__name='INTER',
+            establishment__data_source_plugin__isnull = False
         ).delete()
+
         if deleted[0]:
             logger.info(_('{} user(s) with group INTER and with LDAP establishment deleted').format(deleted[0]))
         else:
@@ -116,7 +119,8 @@ class Command(BaseCommand):
 
 
         # Deactivate immersion user with group INTER and in an establishment without SI
-        updated = ImmersionUser.objects.filter(
+        updated = ImmersionUser.objects.annotate(cnt=Count('groups__name')).filter(
+            cnt=1,
             groups__name__in=("INTER",),
             establishment__data_source_plugin__isnull=True
         ).update(is_active=False)

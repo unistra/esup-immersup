@@ -27,7 +27,7 @@
     "model": "core.studentlevel",
     "pk": 4,
     "fields": {
-        "label": "DUT 1",
+        "label": "BUT 1",
         "active": true
     }
 },
@@ -35,7 +35,31 @@
     "model": "core.studentlevel",
     "pk": 5,
     "fields": {
-        "label": "DUT 2",
+        "label": "BUT 2",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 7,
+    "fields": {
+        "label": "BUT 3",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 8,
+    "fields": {
+        "label": "DEUST 1",
+        "active": true
+    }
+},
+{
+    "model": "core.studentlevel",
+    "pk": 9,
+    "fields": {
+        "label": "DEUST 2",
         "active": true
     }
 },
