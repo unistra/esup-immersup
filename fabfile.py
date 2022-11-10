@@ -583,7 +583,7 @@ def prod_bordeaux():
 def prod_stetienne():
     """Define preprod stage for St-Etienne instance"""
     env.roledefs = {
-        'web': ['saas-stetienne-prod-1.srv.unistra.fr', 'saas-stetienne-prod-1.srv.unistra.fr'],
+        'web': ['saas-stetienne-prod-1.srv.unistra.fr', 'saas-stetienne-prod-2.srv.unistra.fr'],
         'lb': ['saas-stetienne-prod-1.srv.unistra.fr', 'saas-stetienne-prod-2.srv.unistra.fr'],
         'shib': ['rp-shib3-prod-1.srv.unistra.fr', 'rp-shib3-prod-2.srv.unistra.fr'],  }
 
