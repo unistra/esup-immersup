@@ -574,6 +574,7 @@ def high_school_student_record(request, student_id=None, record_id=None):
     High school student record
     """
     template_name: str = 'immersion/hs_record.html'
+    redirect_url: str = reverse('offer')
     record = None
     student = None
     calendar = None
@@ -679,12 +680,14 @@ def high_school_student_record(request, student_id=None, record_id=None):
                     )
 
             messages.success(request, _("Record successfully saved."))
-
         else:
             for err_field, err_list in recordform.errors.get_json_data().items():
                 for error in err_list:
                     if error.get("message"):
                         messages.error(request, error.get("message"))
+
+        if recordform.is_valid() and studentform.is_valid():
+            return HttpResponseRedirect(redirect_url)
     else:
         request.session['back'] = request.headers.get('Referer')
         recordform = HighSchoolStudentRecordForm(request=request, instance=record)
