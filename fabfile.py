@@ -761,6 +761,13 @@ def custom_manage_cmd(cmd):
     execute(pydiploy.django.custom_manage_command, cmd)
 
 
+@roles("web")
+@task
+def update_python_version():
+    """Update python version according to remote_python_version"""
+    execute(pydiploy.django.update_python_version)
+
+
 ##########
 # Sentry #
 ##########
