@@ -676,9 +676,7 @@ def prod_caen():
     execute(build_env)
 
 
-
 # dont touch after that point if you don't know what you are doing !
-
 
 @task
 def tag(version_number):
