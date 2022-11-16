@@ -4450,7 +4450,7 @@ msgstr ""
 #: immersionlyceens/libs/mails/variables_parser.py:71
 #: immersionlyceens/libs/mails/variables_parser.py:552
 msgid "not set"
-msgstr "non défini"
+msgstr "non définie"
 
 #: immersionlyceens/libs/mails/variables_parser.py:297
 msgid "Unknown home institution"
