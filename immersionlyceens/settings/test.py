@@ -76,6 +76,7 @@ EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.EmailBackend'
 
 EMAIL_HOST = '{{ email_host }}'
 EMAIL_USE_TLS = '{{ email_use_tls }}'.lower() == 'true'
+EMAIL_SSL_ON_CONNECT = '{{ email_ssl_on_connect }}'.lower() == 'true'
 EMAIL_PORT = '{{ email_port }}'
 EMAIL_HOST_USER = '{{ email_host_user }}'
 EMAIL_HOST_PASSWORD = '{{ email_host_password }}'

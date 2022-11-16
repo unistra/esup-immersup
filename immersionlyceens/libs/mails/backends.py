@@ -25,14 +25,19 @@ class EmailBackend(BaseEmailBackend):
         self.host = getattr(settings, 'EMAIL_HOST', '127.0.0.1')
         self.host_user = getattr(settings, 'EMAIL_HOST_USER', '')
         self.host_password = getattr(settings, 'EMAIL_HOST_PASSWORD', '')
+        self.ssl_on_connect = getattr(settings, 'EMAIL_SSL_ON_CONNECT', False)
         # self.from_addr = getattr(settings, 'FROM_ADDR', None)
         super().__init__(*args, **kwargs)
 
     def send_message(self, email_message):
         sent = False
-        with smtplib.SMTP(host=self.host, port=self.port) as s:
-            if self.use_tls:
+
+        smtp_func = smtplib.SMTP_SSL if self.ssl_on_connect else smtplib.SMTP
+
+        with smtp_func(host=self.host, port=self.port) as s:
+            if self.use_tls and not self.ssl_on_connect:
                 s.starttls()
+
             if self.host_user and self.host_password:
                 s.login(self.host_user, self.host_password)
 
