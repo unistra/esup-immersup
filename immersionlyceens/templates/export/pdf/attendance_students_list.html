@@ -1,0 +1,58 @@
+{% load i18n %}
+{% load static %}
+{% load immersionlyceens_tags %}
+{% comment %}
+See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for usefull infos
+{% endcomment %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+    @page {
+        size: A4 landscape;
+        margin: 27mm 10mm 27mm 10mm;
+        margin-bottom: 5%;
+    }
+
+    html {
+        font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
+        line-height: 1.5;
+        font-size: 12pt;
+        color: #000000;
+        background-color: transparent;
+        white-space: normal;
+    }
+    </style>
+</head>
+<body class="pdf-body">
+    <section class="container">
+        {% if tpl_vars.logo.logo %}
+        <img src="{{ tpl_vars.logo.logo.url }}" alt="{% trans 'Logo' %}" style="width:100%;max-width:200px;">
+        {% endif %}
+        {% if tpl_vars.students %}
+        <h6 style="font-family:arial">{% trans "Attendance list" %} - {{ tpl_vars.slot_desc }}</h6>
+        <table class="table table-condensed table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "Name" %}</th>
+                    <th scope="col">&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in tpl_vars.students %}
+                <tr>
+                    <td style="width:80%; white-space:nowrap;">{{ s.last_name }} {{ s.first_name }}</td>
+                    <td style="width:20%; white-space:nowrap;">&nbsp;</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>{% trans "No data" %}</p>
+        {% endif %}
+    </section>
+  </body>
+</html>
