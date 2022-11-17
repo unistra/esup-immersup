@@ -490,12 +490,12 @@ class ImmersionUser(AbstractUser):
         return redirect_url
 
 
-
     def is_valid(self):
         """
         :return: True if account is validated else False
         """
         return self.validation_string is None
+
 
     def get_high_school_student_record(self):
         try:
@@ -503,15 +503,17 @@ class ImmersionUser(AbstractUser):
         except ObjectDoesNotExist:
             return None
 
+
     def get_student_record(self):
         try:
             return self.student_record
         except ObjectDoesNotExist:
             return None
 
+
     def get_student_establishment(self):
         """
-        Match student record estabishment with core Establishment class
+        Match student record establishment with core Establishment class
         :return: Establishment object if found, else None
         """
         record = self.get_student_record()
@@ -523,6 +525,16 @@ class ImmersionUser(AbstractUser):
                 pass
 
         return None
+
+
+    def get_high_school(self):
+        """
+        Get pupil high school
+        :return: High school object if found, else None
+        """
+        record = self.get_high_school_student_record()
+        return record.highschool if record else None
+
 
     def get_visitor_record(self) -> Optional[Any]:
         try:
