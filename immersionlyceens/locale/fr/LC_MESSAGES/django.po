@@ -6459,8 +6459,8 @@ msgid "Social"
 msgstr "Social"
 
 #: immersionlyceens/templates/home.html:67
-msgid "Tweeter feed"
-msgstr "Fil tweeter"
+msgid "Twitter feed"
+msgstr "Fil Twitter"
 
 #: immersionlyceens/templates/immersion/change_password.html:17
 msgid "Password change"
