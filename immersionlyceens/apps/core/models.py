@@ -528,12 +528,10 @@ class ImmersionUser(AbstractUser):
         return record.highschool if record else None
 
     def get_high_school_or_student_establishment(self):
-        if self.is_high_school_student():
-            return self.get_high_school()
-        elif self.is_student():
-            return self.get_student_establishment()
+        if self.is_visitor():
+            return _('Visitor')
         else:
-            return None
+            return self.get_high_school() or self.get_student_establishment()
 
     def get_visitor_record(self) -> Optional[Any]:
         try:

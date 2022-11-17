@@ -618,6 +618,8 @@ class ImmersionUserTestCase(TestCase):
             password="pass"
         )
 
+        Group.objects.get(name='LYC').user_set.add(user)
+
         hs_record = HighSchoolStudentRecord.objects.create(
             student=user,
             highschool=self.hs,
