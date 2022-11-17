@@ -6,16 +6,18 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
-from immersionlyceens.apps.immersion.models import StudentRecord, HighSchoolStudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HigherEducationInstitution, HighSchool, Holiday,
-    ImmersionUser, ImmersupFile, PublicDocument, PublicType, Slot, Structure,
-    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation, HighSchoolLevel
+    GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
+    Holiday, ImmersionUser, ImmersupFile, PublicDocument, PublicType, Slot,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -607,6 +609,7 @@ class ImmersionUserTestCase(TestCase):
 
         # Check that the link between the student record and Establishment is good (same object)
         self.assertEqual(user.get_student_establishment(), self.establishment)
+        self.assertEqual(user.get_high_school_or_student_establishment(), self.establishment)
 
     def test_pupil_highschool(self):
         user = ImmersionUser.objects.create_user(
@@ -627,6 +630,7 @@ class ImmersionUserTestCase(TestCase):
         )
 
         self.assertEqual(user.get_high_school().label, self.hs.label)
+        self.assertEqual(user.get_high_school_or_student_establishment().label, self.hs.label)
 
 
     def test_can_register(self):

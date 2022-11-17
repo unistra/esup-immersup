@@ -990,8 +990,6 @@ def immersion_attendance_students_list_download(request, slot_id):
             logo = slot_entity if slot_entity and slot_entity.logo \
                 else CertificateLogo.objects.get(pk=1)
 
-
-
             context = {
                 'students' : [ i.student for i in immersions],
                 'logo' : logo if logo else '',
