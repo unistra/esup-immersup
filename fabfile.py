@@ -816,6 +816,33 @@ def update_python_version():
     execute(pydiploy.django.update_python_version)
 
 
+@task
+def deploy_all_preprod():
+    preprod()
+    deploy()
+    preprod_bordeaux()
+    deploy()
+    preprod_caen()
+    deploy()
+    preprod_lorraine()
+    deploy()
+    preprod_stetienne()
+    deploy()
+
+@task
+def deploy_all_prod():
+    prod()
+    deploy()
+    prod_bordeaux()
+    deploy()
+    prod_caen()
+    deploy()
+    prod_lorraine()
+    deploy()
+    prod_stetienne()
+    deploy()
+
+
 ##########
 # Sentry #
 ##########
