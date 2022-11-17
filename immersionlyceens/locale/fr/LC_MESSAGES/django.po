@@ -6153,7 +6153,7 @@ msgstr "Nouveau créneau de visite"
 #: immersionlyceens/templates/export/pdf/attendance_students_list.html:36
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:91
 msgid "Attendance list"
-msgstr "Liste d'émargements"
+msgstr "Liste d'émargement"
 
 #: immersionlyceens/templates/export/pdf/attendance_students_list.html:54
 msgid "No data"
