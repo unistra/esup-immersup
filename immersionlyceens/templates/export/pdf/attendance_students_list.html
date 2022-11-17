@@ -30,7 +30,7 @@ See https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ for u
 <body class="pdf-body">
     <section class="container">
         {% if tpl_vars.logo.logo %}
-        <img src="{{ tpl_vars.logo.logo.url }}" alt="{% trans 'Logo' %}" style="width:100%;max-width:200px;">
+        <img src="{{ tpl_vars.logo.logo.url }}" style="width:100%;max-width:200px;">
         {% endif %}
         {% if tpl_vars.students %}
         <h6 style="font-family:arial">{% trans "Attendance list" %} - {{ tpl_vars.slot_desc }}</h6>
