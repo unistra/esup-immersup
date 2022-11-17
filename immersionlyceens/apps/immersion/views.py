@@ -30,7 +30,7 @@ from django.views.generic import FormView, TemplateView
 from immersionlyceens.apps.core.models import (
     Calendar, CancelType, CertificateLogo, CertificateSignature,
     HigherEducationInstitution, HighSchoolLevel, Immersion, ImmersionUser,
-    MailTemplate, PendingUserGroup, PostBachelorLevel, StudentLevel,
+    MailTemplate, PendingUserGroup, PostBachelorLevel, Slot, StudentLevel,
     UniversityYear, UserCourseAlert,
 )
 from immersionlyceens.apps.immersion.utils import generate_pdf
@@ -924,7 +924,7 @@ def registrations(request):
 @groups_required('LYC', 'ETU', 'REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC', 'VIS')
 def immersion_attestation_download(request, immersion_id):
     """
-    Attestation downloadtest_home
+    Attestation download
     """
     try:
         immersion = Immersion.objects.prefetch_related(
@@ -965,6 +965,41 @@ def immersion_attestation_download(request, immersion_id):
         response = generate_pdf(request, 'export/pdf/attendance_certificate.html', context, filename=filename)
 
         return response
+    # TODO: Manage Mailtemplate not found (?) anyway returns 404
+    except Exception as e:
+        logger.error('Certificate download error', e)
+        raise Http404()
+
+
+@login_required
+@groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'INTER', 'REF-TEC', 'REF-LYC')
+def immersion_attendance_students_list_download(request, slot_id):
+    """
+    Attendance students list pdf download
+    """
+    try:
+
+        immersions = ""
+        slot = Slot.objects.get(pk=slot_id)
+
+        if slot:
+            immersions = Immersion.objects.prefetch_related('student').filter(slot=slot, cancellation_type__isnull=True)
+            slot_entity = slot.get_establishment() \
+                if slot.get_establishment() else slot.get_highschool()
+
+            logo = slot_entity if slot_entity and slot_entity.logo \
+                else CertificateLogo.objects.get(pk=1)
+
+            context = {
+                'students' : [ i.student for i in immersions],
+                'logo' : logo if logo else '',
+                'slot_desc' : slot,
+            }
+
+            filename = f'{date_format(slot.date,"dmY")}.pdf'
+            response = generate_pdf(request, 'export/pdf/attendance_students_list.html', context, filename=filename)
+
+            return response
     # TODO: Manage Mailtemplate not found (?) anyway returns 404
     except Exception as e:
         logger.error('Certificate download error', e)

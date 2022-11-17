@@ -135,7 +135,6 @@ class Establishment(models.Model):
     def __str__(self):
         return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
 
-
     class Meta:
         verbose_name = _('Establishment')
         verbose_name_plural = _('Establishments')
@@ -160,7 +159,6 @@ class Structure(models.Model):
 
     def __str__(self):
         return f"{self.code} : {self.label}"
-
 
     def validate_unique(self, exclude=None):
         try:
@@ -242,6 +240,7 @@ def get_object_default_order(object_class):
         pass
 
     return None
+
 
 class HighSchoolLevel(models.Model):
     """
@@ -377,7 +376,6 @@ class ImmersionUser(AbstractUser):
         """
         return self._user_filters[negated](self.is_superuser, self.groups.filter(name__in=groups).exists())
 
-
     def has_single_group(self, group):
         """
         :param group: group name to check
@@ -387,7 +385,6 @@ class ImmersionUser(AbstractUser):
             self.groups.filter(name=group).exists(),
             self.groups.count() == 1
         ])
-
 
     def has_course_rights(self, course_id):
         """
@@ -489,8 +486,6 @@ class ImmersionUser(AbstractUser):
                 redirect_url = "/immersion/login/speaker"
         return redirect_url
 
-
-
     def is_valid(self):
         """
         :return: True if account is validated else False
@@ -511,7 +506,7 @@ class ImmersionUser(AbstractUser):
 
     def get_student_establishment(self):
         """
-        Match student record estabishment with core Establishment class
+        Match student record establishment with core Establishment class
         :return: Establishment object if found, else None
         """
         record = self.get_student_record()
@@ -523,6 +518,20 @@ class ImmersionUser(AbstractUser):
                 pass
 
         return None
+
+    def get_high_school(self):
+        """
+        Get pupil high school
+        :return: High school object if found, else None
+        """
+        record = self.get_high_school_student_record()
+        return record.highschool if record else None
+
+    def get_high_school_or_student_establishment(self):
+        if self.is_visitor():
+            return _('Visitor')
+        else:
+            return self.get_high_school() or self.get_student_establishment()
 
     def get_visitor_record(self) -> Optional[Any]:
         try:
@@ -653,7 +662,6 @@ class ImmersionUser(AbstractUser):
             return
 
         record.save()
-
 
     def can_register_slot(self, slot=None):
         errors = []

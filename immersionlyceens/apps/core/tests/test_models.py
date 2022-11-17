@@ -6,16 +6,18 @@ from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
-from immersionlyceens.apps.immersion.models import StudentRecord
+from immersionlyceens.apps.immersion.models import (
+    HighSchoolStudentRecord, StudentRecord,
+)
 
 from ..models import (
     AccompanyingDocument, BachelorMention, Building, Calendar, Campus,
     CancelType, Course, CourseType, CustomThemeFile, Establishment,
     EvaluationFormLink, EvaluationType, GeneralBachelorTeaching,
-    GeneralSettings, HigherEducationInstitution, HighSchool, Holiday,
-    ImmersionUser, ImmersupFile, PublicDocument, PublicType, Slot, Structure,
-    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    GeneralSettings, HigherEducationInstitution, HighSchool, HighSchoolLevel,
+    Holiday, ImmersionUser, ImmersupFile, PublicDocument, PublicType, Slot,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -607,6 +609,31 @@ class ImmersionUserTestCase(TestCase):
 
         # Check that the link between the student record and Establishment is good (same object)
         self.assertEqual(user.get_student_establishment(), self.establishment)
+        self.assertEqual(user.get_high_school_or_student_establishment(), self.establishment)
+
+    def test_pupil_highschool(self):
+        user = ImmersionUser.objects.create_user(
+            username="test",
+            email="test@test.fr",
+            password="pass"
+        )
+
+        Group.objects.get(name='LYC').user_set.add(user)
+
+        hs_record = HighSchoolStudentRecord.objects.create(
+            student=user,
+            highschool=self.hs,
+            birth_date=datetime.today(),
+            phone='0123456789',
+            level=HighSchoolLevel.objects.order_by('order').first(),
+            class_name='1ere S 3',
+            bachelor_type=3,
+            professional_bachelor_mention='My spe'
+        )
+
+        self.assertEqual(user.get_high_school().label, self.hs.label)
+        self.assertEqual(user.get_high_school_or_student_establishment().label, self.hs.label)
+
 
     def test_can_register(self):
         # Create all objects we need
