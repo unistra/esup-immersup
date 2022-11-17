@@ -7,13 +7,12 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
-
 from immersionlyceens.apps.core.models import (
     BachelorMention, Building, Calendar, Campus, Course, CourseType,
-    GeneralBachelorTeaching, HighSchool, HighSchoolLevel, Immersion,
-    ImmersionUser, PostBachelorLevel, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Establishment,
-    HigherEducationInstitution, ImmersionUserGroup, PendingUserGroup
+    Establishment, GeneralBachelorTeaching, HigherEducationInstitution,
+    HighSchool, HighSchoolLevel, Immersion, ImmersionUser, ImmersionUserGroup,
+    PendingUserGroup, PostBachelorLevel, Slot, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
@@ -203,13 +202,13 @@ class ImmersionViewsTestCase(TestCase):
             slot=cls.slot,
             attendance_status=1
         )
-    
+
     def setUp(self):
         """
         SetUp for Immersion app tests
         """
         self.client = Client()
-        
+
 
     def test_login(self):
         self.university_year.start_date = self.today.date() + datetime.timedelta(days=10)
@@ -611,6 +610,14 @@ class ImmersionViewsTestCase(TestCase):
         # as a ref-etab manager
         self.client.login(username='ref_etab', password='pass')
         response = self.client.get('/immersion/dl/attestation/%s' % self.immersion.id, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['content-type'], 'application/pdf')
+
+
+    def test_immersion_attendance_list_download(self):
+        # as a ref-etab manager
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get('/immersion/dl/attendance_list/%s' % self.immersion.slot.id, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/pdf')
 
