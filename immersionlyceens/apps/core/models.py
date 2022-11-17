@@ -28,6 +28,7 @@ from django.db.models import Max, Q, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import date as _date, filesizeformat
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django_countries.fields import CountryField
 from immersionlyceens.apps.core.managers import PostBacImmersionManager
@@ -2277,9 +2278,9 @@ class Slot(models.Model):
 
     def __str__(self):
         slot_type = _("No type yet")
-        date = self.date or _("date unknown")
-        start_time = self.start_time or _("start time unknown")
-        end_time = self.end_time or _("end time unknown")
+        date = date_format(self.date, format='l d F Y', use_l10n=True) or _("date unknown")
+        start_time = self.start_time.isoformat(timespec='minutes') or _("start time unknown")
+        end_time = self.end_time.isoformat(timespec='minutes') or _("end time unknown")
 
         if self.visit:
             slot_type = _("Visit - %s") % self.visit.highschool
