@@ -27,7 +27,7 @@
         <div class="form-group row justify-content-center">
           <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
             <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Send me instructions !' %}">
-            <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-outline-secondary">{% trans 'Back' %}</a>
+            <a href="{% url 'immersion:login' %}" class="btn btn-outline-secondary">{% trans 'Back' %}</a>
           </div>
         </div>
       </form>

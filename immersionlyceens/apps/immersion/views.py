@@ -281,11 +281,12 @@ def register(request, profile=None):
 
             messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
             return HttpResponseRedirect(redirect_url_name)
-        else:
-            for err_field, err_list in form.errors.get_json_data().items():
-                for error in err_list:
-                    if error.get("message"):
-                        messages.error(request, error.get("message"))
+        # Not used anymore using form.erros displaying instead
+        # else:
+        #     for err_field, err_list in form.errors.get_json_data().items():
+        #         for error in err_list:
+        #             if error.get("message"):
+        #                 messages.error(request, error.get("message"))
     else:
         form = RegistrationForm()
 
