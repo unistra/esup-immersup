@@ -7184,7 +7184,7 @@ msgstr "Pas d'étudiant(e)s inscrit(e)s"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:287
 msgid "Download attendance list"
-msgstr "Télécharger la liste d'émargements"
+msgstr "Télécharger la liste d'émargement"
 
 #: immersionlyceens/templates/modals/modal_view_slot_immersions.html:295
 msgid "student(s) present on "
