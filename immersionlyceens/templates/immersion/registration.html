@@ -38,12 +38,12 @@
                 {% if form.last_name.field.required %}required{% endif %} class="form-control{% if form.last_name.errors %} is-invalid{% endif %}"
                 value="{% if form.last_name.value %}{{ form.last_name.value }}{% endif %}">
                 {% if form.last_name.help_text %}
-                <small class="text-muted">
+                <div class="small text-muted">
                 {{ form.last_name.help_text }}
-                </small>
+                </div>
                 {% endif %}
                 {% for err in form.last_name.errors %}
-                <span class="invalid-feedback">{{ err }}</span>
+                <div class="invalid-feedback">{{ err }}</div>
                 {% endfor %}
              </div>
         </div>
@@ -54,12 +54,12 @@
                 {% if form.first_name.field.required %}required{% endif %} class="form-control{% if form.first_name.errors %} is-invalid{% endif %}"
                 value="{% if form.last_name.value %}{{ form.last_name.value }}{% endif %}">
                 {% if form.first_name.help_text %}
-                <small class="text-muted">
+                <div class="small text-muted">
                 {{ form.first_name.help_text }}
-                </small>
+                </div>
                 {% endif %}
                 {% for err in form.first_name.errors %}
-                <span class="invalid-feedback">{{ err }}</span>
+                <div class="invalid-feedback">{{ err }}</div>
                 {% endfor %}
             </div>
         </div>
@@ -70,12 +70,12 @@
                 {% if form.email.field.required %}required{% endif %} class="form-control{% if form.email.errors %} is-invalid{% endif %}"
                 value="{% if form.email.value %}{{ form.email.value }}{% endif %}">
                 {% if form.email.help_text %}
-                <small class="text-muted">
+                <div class="small text-muted">
                 {{ form.email.help_text }}
-                </small>
+                </div>
                 {% endif %}
                 {% for err in form.email.errors %}
-                <span class="invalid-feedback">{{ err }}</span>
+                <div class="invalid-feedback">{{ err }}</div>
                 {% endfor %}
             </div>
         </div>
@@ -86,12 +86,12 @@
                 {% if form.email2.field.required %}required{% endif %} class="form-control{% if form.email2.errors %} is-invalid{% endif %}"
                 value="{% if form.email2.value %}{{ form.email2.value }}{% endif %}">
                 {% if form.email2.help_text %}
-                <small class="text-muted">
+                <div class="small text-muted">
                 {{ form.email2.help_text }}
-                </small>
+                </div>
                 {% endif %}
                 {% for err in form.email2.errors %}
-                <span class="invalid-feedback">{{ err }}</span>
+                <div class="invalid-feedback">{{ err }}</div>
                 {% endfor %}
             </div>
         </div>
@@ -101,22 +101,23 @@
             <div class="col-sm-9 col-md-6">
                 <div class="input-group">
                     <input type="password" id="{{ form.password1.id_for_label }}" name="{{ form.password1.html_name }}"
-                    {% if form.password1.field.required %}required{% endif %} class="form-control{% if form.password1.errors %} is-invalid{% endif %}"
+                    {% if form.password1.field.required %}required{% endif %} class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
                     value="{% if form.password1.value %}{{ form.password1.value }}{% endif %}">
                     <div class="input-group-append">
                         <button class="btn btn-secondary" id="view_button1" type="button">
                             <i class="fa fas fa-eye" ></i>
                         </button>
                     </div>
+                    {% for err in form.password2.errors %}
+                    <div class="invalid-feedback">{{ err }}</div>
+                    {% endfor %}
                 </div>
                 {% if form.password1.help_text %}
-                <small class="text-muted">
+                <div class="small text-muted">
                 {{ form.password1.help_text }}
-                </small>
+                </div>
                 {% endif %}
-                {% for err in form.password1.errors %}
-                <span class="invalid-feedback">{{ err }}</span>
-                {% endfor %}
+
             </div>
         </div>
         {% endif %}
@@ -133,15 +134,15 @@
                             <i class="fa fas fa-eye" ></i>
                         </button>
                     </div>
+                    {% for err in form.password2.errors %}
+                    <div class="invalid-feedback">{{ err }}</div>
+                    {% endfor %}
                 </div>
                 {% if form.password2.help_text %}
-                <small class="text-muted">
+                <div class="small text-muted">
                 {{ form.password2.help_text }}
-                </small>
+                </div>
                 {% endif %}
-                {% for err in form.password2.errors %}
-                <span class="invalid-feedback">{{ err }}</span>
-                {% endfor %}
             </div>
 
         </div>
@@ -159,8 +160,7 @@
         </div>
       </form>
     </div>
-  </section>
-</div>
+</section>
 <script>
 $(document).ready(function() {
     $("#view_button1").bind("mousedown touchstart", function() {

@@ -61,11 +61,6 @@ class RegistrationForm(UserCreationForm):
             self.add_error('email', _("Emails do not match"))
             self.add_error('email2', _("Emails do not match"))
 
-        if not all([cleaned_data.get('password1'), cleaned_data.get('password2'),
-                cleaned_data.get('password1')==cleaned_data.get('password2')]):
-            self.add_error('password1', _("Passwords do not match"))
-            self.add_error('password2', _("Passwords do not match"))
-
         email = cleaned_data.get('email')
 
         if ImmersionUser.objects.filter(email=email).exists():

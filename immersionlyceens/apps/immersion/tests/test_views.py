@@ -358,7 +358,7 @@ class ImmersionViewsTestCase(TestCase):
         # Will fail (passwords don't match, missing email2)
         response = self.client.post('/immersion/register', data)
 
-        self.assertIn("Passwords do not match", response.content.decode('utf-8'))
+        self.assertIn("The two password fields didn’t match.", response.content.decode('utf-8'))
         self.assertIn("This field is required.", response.content.decode('utf-8'))
         self.assertIn("Emails do not match", response.content.decode('utf-8'))
 

@@ -740,7 +740,6 @@ class ImmersionUser(AbstractUser):
 
         return True, errors
 
-
     def linked_users(self):
         """
         :return: a list of users linked to self (including self)
