@@ -27,7 +27,7 @@ safety:
   script:
     - pip3 install safety
     - pip3 install -r requirements/prod.txt
-    - safety check
+    - safety check -i 51457
   only:
     - develop
     - master
