@@ -13,7 +13,7 @@ WeasyPrint==54.1
 sentry-sdk
 django-json-widget
 jsonschema
-django-admin-list-filter-dropdown
+django-admin-list-filter-dropdown==1.0.3
 djangorestframework<4.0
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
