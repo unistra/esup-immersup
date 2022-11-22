@@ -1,15 +1,12 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
-from django.conf import settings
-from django.contrib.auth import authenticate
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    BachelorMention, Calendar, GeneralBachelorTeaching, HighSchool,
-    HighSchoolLevel, ImmersionUser, PostBachelorLevel, StudentLevel,
+    BachelorMention, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
+    ImmersionUser, PostBachelorLevel, StudentLevel,
 )
-from immersionlyceens.libs.utils import get_general_setting
 
 from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
@@ -76,7 +73,6 @@ class RegistrationForm(UserCreationForm):
         cleaned_data['username'] = username
         return cleaned_data
 
-
     class Meta:
         model = ImmersionUser
         fields = ('last_name', 'first_name', 'email', 'password1', 'password2')
@@ -122,7 +118,6 @@ class VisitorForm(PersonForm):
             if record and record.validation == 2:
                 for field_name in ("first_name", "last_name"):
                     self.fields[field_name].disabled = True
-
 
     class Meta:
         model = ImmersionUser
