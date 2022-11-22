@@ -401,9 +401,9 @@ class ImmersionViewsTestCase(TestCase):
         response = self.client.post('/immersion/recovery', {'email': 'test@student.fr'})
         self.assertIn("Please use your establishment credentials.", response.content.decode('utf-8'))
 
-        # Fail : email not found
+        # Fail : email not found but the response should not expose the fact that the mail is not found !
         response = self.client.post('/immersion/recovery', {'email': 'test@domaine.fr'})
-        self.assertIn("No account found with this email address", response.content.decode('utf-8'))
+        self.assertIn("An email has been sent with the procedure to set a new password.", response.content.decode('utf-8'))
 
         # Success
         response = self.client.post('/immersion/recovery', {'email': "lycref-immersion@no-reply.com"})
@@ -476,9 +476,9 @@ class ImmersionViewsTestCase(TestCase):
         self.assertIn("Your account is now enabled. Thanks !", response.content.decode('utf-8'))
 
     def test_resend_activation(self):
-        # Fail with account not found
+        # Fail with account not found but the response should not expose the fact that the mail is not found !
         response = self.client.post('/immersion/resend_activation', {'email': 'this.email@is_wrong.com'}, follow=True)
-        self.assertIn("No account found with this email address", response.content.decode('utf-8'))
+        self.assertIn("The activation message has been resent.", response.content.decode('utf-8'))
 
         # Success
         response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)

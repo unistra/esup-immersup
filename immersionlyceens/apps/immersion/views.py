@@ -281,7 +281,7 @@ def register(request, profile=None):
 
             messages.success(request, _("Account created. Please look at your emails for the activation procedure."))
             return HttpResponseRedirect(redirect_url_name)
-        # Not used anymore using form.erros displaying instead
+        # Not used anymore using form.errors displaying instead
         # else:
         #     for err_field, err_list in form.errors.get_json_data().items():
         #         for error in err_list:
@@ -322,7 +322,9 @@ class RecoveryView(TemplateView):
                 messages.success(request, _("An email has been sent with the procedure to set a new password."))
 
         except ImmersionUser.DoesNotExist:
-            messages.error(request, _("No account found with this email address"))
+            # Don't send error message as it can be used to detect valid url for accounts
+            # messages.error(request, _("No account found with this email address"))
+            messages.success(request, _("An email has been sent with the procedure to set a new password."))
         except ImmersionUser.MultipleObjectsReturned:
             messages.error(request, _("Error : please contact the establishment referent"))
 
@@ -454,7 +456,9 @@ class ResendActivationView(TemplateView):
         try:
             user = ImmersionUser.objects.get(email__iexact=email)
         except ImmersionUser.DoesNotExist:
-            messages.error(request, _("No account found with this email address"))
+            # Don't show error here as it could be used to get valid email address
+            # messages.error(request, _("No account found with this email address"))
+            messages.success(request, _("The activation message has been resent."))
         else:
             if user.is_valid():
                 messages.error(request, _("This account has already been activated, please login."))
