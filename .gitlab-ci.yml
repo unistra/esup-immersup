@@ -1,5 +1,4 @@
 stages:
-  - pre
   - test
 
 services:
@@ -15,7 +14,6 @@ before_script:
 
 unittest:
   stage: test
-  needs: [safety]
   tags:
     - python3.8
   script:
@@ -23,20 +21,19 @@ unittest:
     - tox
 
 safety:
-  stage: pre
+  stage: test
   tags:
     - python3.8
   script:
     - pip3 install safety
     - pip3 install -r requirements/prod.txt
-    - safety check
-    #- safety check -i 51457
+    - safety check -i 51457
   only:
     - develop
     - master
 
 bandit:
-  stage: pre
+  stage: test
   tags:
     - python3.8
   script:
@@ -46,7 +43,7 @@ bandit:
     - bandit --exit-zero $(cat /tmp/find.txt)
 
 pytype:
-  stage: pre
+  stage: test
   tags:
     - python3.8
   script:
