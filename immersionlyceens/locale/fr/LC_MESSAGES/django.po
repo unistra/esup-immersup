@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-22 16:24+0100\n"
+"POT-Creation-Date: 2022-11-23 09:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -6278,8 +6278,8 @@ msgid "High school - my high school students registrations, by domain"
 msgstr "Lycées - inscriptions de mes lycéens, par domaine"
 
 #: immersionlyceens/templates/fragments/main_menu.html:196
-msgid "High school - my high school students registrations, by training"
-msgstr "Lycées - inscriptions de mes lycéens, par formation"
+msgid "High school - my high school students registrations, by trainings"
+msgstr "Lycées - inscriptions de mes lycéens, par formations"
 
 #: immersionlyceens/templates/fragments/main_menu.html:198
 msgid "High school - registrations and participations to my trainings"
