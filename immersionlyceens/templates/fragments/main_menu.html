@@ -102,7 +102,7 @@
           </div>
         {% endif %}
         {# Speaker #}
-        {% if authorized_groups|in_groups:"INTER,REF-LYC" %}
+        {% if authorized_groups|in_groups:"INTER" or authorized_groups|in_groups:"REF-LYC" and highschool_visit %}
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownConsultSpeaker" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {% trans 'Consult' %}
