@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-23 09:03+0100\n"
+"POT-Creation-Date: 2022-11-23 09:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -6278,8 +6278,8 @@ msgid "High school - my high school students registrations, by domain"
 msgstr "Lycées - inscriptions de mes lycéens, par domaine"
 
 #: immersionlyceens/templates/fragments/main_menu.html:196
-msgid "High school - my high school students registrations, by trainings"
-msgstr "Lycées - inscriptions de mes lycéens, par formations"
+msgid "High school - my high school students registrations, by training"
+msgstr "Lycées - inscriptions de mes lycéens, par formation"
 
 #: immersionlyceens/templates/fragments/main_menu.html:198
 msgid "High school - registrations and participations to my trainings"
@@ -6307,10 +6307,10 @@ msgstr "Inscriptions par populations et par domaine"
 
 #: immersionlyceens/templates/fragments/main_menu.html:207
 msgid "Trainings registrations by domain"
-msgstr "Inscriptions par formations et par domaine"
+msgstr "Inscriptions par formation et par domaine"
 
 #: immersionlyceens/templates/fragments/main_menu.html:208
-msgid "All registrations by trainings"
+msgid "All registrations by training"
 msgstr "Toutes les inscriptions par formation"
 
 #: immersionlyceens/templates/fragments/main_menu.html:209
@@ -6339,7 +6339,7 @@ msgid "Structure - registrations and participations"
 msgstr "Structure - Inscriptions et participations"
 
 #: immersionlyceens/templates/fragments/main_menu.html:219
-msgid "Structure - registrations by trainings"
+msgid "Structure - registrations by training"
 msgstr "Structure - inscriptions par formation"
 
 #: immersionlyceens/templates/fragments/main_menu.html:228
