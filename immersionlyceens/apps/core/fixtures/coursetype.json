@@ -1,0 +1,38 @@
+[
+{
+    "model": "core.coursetype",
+    "pk": 1,
+    "fields": {
+        "label": "CM",
+        "full_label": "Cours magistral",
+        "active": true
+    }
+},
+{
+    "model": "core.coursetype",
+    "pk": 2,
+    "fields": {
+        "label": "TD",
+        "full_label": "Travaux dirigés",
+        "active": true
+    }
+},
+{
+    "model": "core.coursetype",
+    "pk": 3,
+    "fields": {
+        "label": "TP",
+        "full_label": "Travaux pratiques",
+        "active": true
+    }
+},
+{
+    "model": "core.coursetype",
+    "pk": 4,
+    "fields": {
+        "label": "CI",
+        "full_label": "Cours intégré",
+        "active": true
+    }
+}
+]
