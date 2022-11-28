@@ -4,6 +4,13 @@
 {% block head-css %}
 <link rel="stylesheet" href="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
+<style>
+    ul
+    {
+      list-style-type: none !important;
+      padding-inline-start: 1px;
+    }
+</style>
 {% endblock %}
 {% block head-javascript %}
 <script src="{% static 'js/vendor/jquery-ui/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
@@ -21,13 +28,6 @@
 {% authorized_groups request.user %}
 {% include '../modals/modal_nuke.html' %}
 {% comment %} remove bullet from django multichoices fields {% endcomment %}
-<style>
-ul
-{
-  list-style-type: none !important;
-  padding-inline-start: 1px;
-}
-</style>
 <div class="container" style="padding-top:20px; width:70%;">
   <form class="" role="form" action="/immersion/hs_record{% if record.id %}/{{ record.id }}{% endif %}" method="POST">
         {% csrf_token %}
@@ -40,7 +40,7 @@ ul
       </div>
       <div class="card-body">
         <div class="form-group row">
-          <label for="id_lastname" class="col-sm-3 col-md-4 col-form-label">
+          <label for="id_last_name" class="col-sm-3 col-md-4 col-form-label">
             {% trans 'Lastname' %} * :
           </label>
           <div class="col-sm-6 col-md-6">{{ student_form.last_name }}</div>
@@ -110,7 +110,7 @@ ul
           </div>
           <div id="id_general_bachelor_data" style="display:none">
             <div class="form-group row">
-              <label for="id_general_bachelor_teachings" class="col-sm-3 col-md-4 col-form-label">
+              <label class="col-sm-3 col-md-4 col-form-label">
                 {% trans 'General bachelor teachings' %} * :
               </label>
             </div>
