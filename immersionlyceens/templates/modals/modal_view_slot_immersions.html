@@ -202,7 +202,7 @@ dtr = $('#students_list').DataTable({
      "render": function(data, type, row) {
        if(type === "display") {
          if(row.attendance_status === 1) {
-           return "<span class='text-success'>"+data+"</span>";
+           return "<span class='text-primary'>"+data+"</span>";
          }
          else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";
@@ -216,7 +216,7 @@ dtr = $('#students_list').DataTable({
      "render": function(data, type, row) {
        if(type === "display") {
          if(row.attendance_status === 1) {
-           return "<span class='text-success'>"+data+"</span>";
+           return "<span class='text-primary'>"+data+"</span>";
          }
          else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";

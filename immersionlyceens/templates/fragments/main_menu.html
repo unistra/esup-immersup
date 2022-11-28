@@ -111,7 +111,7 @@
               {% if authorized_groups|in_groups:"INTER" %}
                 <a class="dropdown-item" href="{% url 'mycourses' %}">{% trans 'My courses' %}</a>
                 <a class="dropdown-item" href="{% url 'myslots' slots_type='courses' %}">{% trans 'My courses slots' %}</a>
-                {% if not request.user.highschool %}
+                {% if not request.user.highschool and highschool_visit %}
                   <a class="dropdown-item" href="{% url 'myvisits' %}">{% trans 'My visits' %}</a>
                   <a class="dropdown-item" href="{% url 'myslots' slots_type='visits' %}">{% trans 'My visits slots' %}</a>
                 {% endif %}
