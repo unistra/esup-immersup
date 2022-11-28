@@ -33,7 +33,7 @@
         <button id="id_dates_apply" name="dates_apply" class="btn btn-secondary btn-sm ml-2">{% trans 'Apply' %}</button>
       </div>
       <div class="table-responsive">
-        <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <table id="students_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
           <thead>
             <tr>
             {% if request.user.is_master_establishment_manager or request.user.is_operator %}

@@ -71,7 +71,7 @@
             <div class="form-group mx-sm-3 mb-2">
               <label for="id_highschools" class="form-check-label ml-md-2">{% trans 'Filter by pupils from this high school' %} :</label>
               <select id="id_highschools">
-                <option value=""></option>
+                <option value="" label=" "></option>
                 {% for highschool in highschools %}
                   <option value="{{ highschool.id }}" {% if highschool.id == highschool_id %}selected="True"{% endif %}>
                     {{ highschool.label }} ({{ highschool.city }})
@@ -116,8 +116,8 @@
       <br />
 
       <div class="table-responsive">
-        <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
-          <thead><tr></tr></thead>
+        <table id="statistics_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
+          <thead><tr><td></td></tr></thead>
         </table>
       </div>
     </div>
@@ -174,7 +174,7 @@
             str = header + colObj.name + '</th>';
             $(str).appendTo(tableName+'>thead>tr');
           });
-          
+
           cnt_columns = data.cnt_columns
           registrations_columns = data.registrations_columns
 
