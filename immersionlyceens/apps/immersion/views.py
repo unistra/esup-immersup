@@ -86,7 +86,7 @@ class CustomLoginView(FormView):
         return render(self.request, self.invalid_no_login_template, context)
 
     def form_valid(self, form):
-        username = form.cleaned_data['login']
+        username = form.cleaned_data['login'].strip().lower()
         password = form.cleaned_data['password']
 
         user: Optional[ImmersionUser] = authenticate(self.request, username=username, password=password)

@@ -53,24 +53,26 @@ class RegistrationForm(UserCreationForm):
     def clean(self):
         cleaned_data = super().clean()
 
+        cleaned_data["email"] = cleaned_data.get('email', '').strip().lower()
+        cleaned_data["email2"] = cleaned_data.get('email2', '').strip().lower()
+
         if not all([cleaned_data.get('email'), cleaned_data.get('email2'),
-                cleaned_data.get('email')==cleaned_data.get('email2')]):
+                cleaned_data.get('email') == cleaned_data.get('email2')]):
             self.add_error('email', _("Emails do not match"))
             self.add_error('email2', _("Emails do not match"))
 
-        email = cleaned_data.get('email')
+        if cleaned_data.get("email"):
+            if ImmersionUser.objects.filter(email__iexact=cleaned_data["email"]).exists():
+                self.add_error('email', _("An account already exists with this email address"))
+            else:
+                username = cleaned_data["email"]
 
-        if ImmersionUser.objects.filter(email=email).exists():
-            self.add_error('email', _("An account already exists with this email address"))
+                # Shouldn't get there if the email unicity test fails
+                if ImmersionUser.objects.filter(username__iexact=username).exists():
+                    raise forms.ValidationError(_("Error : duplicated account detected"))
 
-        username = email
+                cleaned_data['username'] = username
 
-        # Shouldn't get there if the email unicity test fails
-        if ImmersionUser.objects.filter(username=username).exists():
-            raise forms.ValidationError(
-                _("Error : duplicated account detected"))
-
-        cleaned_data['username'] = username
         return cleaned_data
 
     class Meta:

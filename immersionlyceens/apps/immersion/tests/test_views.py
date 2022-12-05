@@ -388,7 +388,14 @@ class ImmersionViewsTestCase(TestCase):
         lyc_group = Group.objects.get(name='LYC')
         self.assertIn(lyc_group, new_account.groups.all())
 
-        # fail with an invalid year
+        # Fail with duplicated email address (lower/upper case mix)
+        data["email"] = 'MoN_EmaiL@monDomaine.FR'
+        data["email2"] = 'MoN_EmaiL@monDomaine.FR'
+
+        response = self.client.post('/immersion/register', data)
+        self.assertIn("An account already exists with this email address", response.content.decode('utf-8'))
+
+        # Fail with an invalid year
         self.university_year.registration_start_date = self.today + datetime.timedelta(days=10)
         self.university_year.registration_end_date = self.today + datetime.timedelta(days=20)
         self.university_year.save()
@@ -403,11 +410,21 @@ class ImmersionViewsTestCase(TestCase):
 
         # Fail : email not found but the response should not expose the fact that the mail is not found !
         response = self.client.post('/immersion/recovery', {'email': 'test@domaine.fr'})
-        self.assertIn("An email has been sent with the procedure to set a new password.", response.content.decode('utf-8'))
+        self.assertIn("An email has been sent with the procedure to set a new password.",
+                      response.content.decode('utf-8')
+        )
 
         # Success
         response = self.client.post('/immersion/recovery', {'email': "lycref-immersion@no-reply.com"})
-        self.assertIn("An email has been sent with the procedure to set a new password.", response.content.decode('utf-8'))
+        self.assertIn("An email has been sent with the procedure to set a new password.",
+                      response.content.decode('utf-8')
+        )
+
+        # Success with email mixing lower/uppercase letters
+        response = self.client.post('/immersion/recovery', {'email': "LycRef-Immersion@NO-RepLY.com"})
+        self.assertIn("An email has been sent with the procedure to set a new password.",
+                      response.content.decode('utf-8')
+        )
 
         user = ImmersionUser.objects.get(username="lycref")
         self.assertNotEqual(user.recovery_string, None)
@@ -482,6 +499,10 @@ class ImmersionViewsTestCase(TestCase):
 
         # Success
         response = self.client.post('/immersion/resend_activation', {'email': 'hs@no-reply.com'}, follow=True)
+        self.assertIn("The activation message has been resent.", response.content.decode('utf-8'))
+
+        # Success with an email mixing lower/uppercase lettres
+        response = self.client.post('/immersion/resend_activation', {'email': 'HS@No-RePlY.com'}, follow=True)
         self.assertIn("The activation message has been resent.", response.content.decode('utf-8'))
 
         # Fail with account already activated
