@@ -3899,6 +3899,13 @@ class StructureList(generics.ListCreateAPIView):
 
         return queryset
 
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
 
 class TrainingList(generics.ListCreateAPIView):
     """
@@ -3909,6 +3916,7 @@ class TrainingList(generics.ListCreateAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 
+    """
     def create(self, request, *args, **kwargs):
         content = None
         structures = request.data.get("structures")
@@ -3923,6 +3931,14 @@ class TrainingList(generics.ListCreateAPIView):
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return super().create(request, *args, **kwargs)
+    """
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
     def post(self, request, *args, **kwargs):
         self.user = request.user
@@ -3938,6 +3954,13 @@ class TrainingDomainList(generics.ListCreateAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
     def post(self, request, *args, **kwargs):
         self.user = request.user
         return super().post(request, *args, **kwargs)
@@ -3952,6 +3975,13 @@ class TrainingSubdomainList(generics.ListCreateAPIView):
     serializer_class = TrainingSubdomainSerializer
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
     def post(self, request, *args, **kwargs):
         self.user = request.user
@@ -3980,7 +4010,14 @@ class CourseList(generics.ListCreateAPIView):
 
         return queryset
 
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
+    """
     def post(self, request, *args, **kwargs):
         content = None
         published = request.data.get('published', False) in ('true', 'True')
@@ -4000,7 +4037,7 @@ class CourseList(generics.ListCreateAPIView):
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return super().post(request, *args, **kwargs)
-
+    """
 
 class BuildingList(generics.ListAPIView):
     """
