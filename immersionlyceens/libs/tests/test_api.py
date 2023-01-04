@@ -3740,7 +3740,10 @@ class APITestCase(TestCase):
         response = self.api_client_token.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         result = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(result['error'], {'non_field_errors': ["Please provide a structure or a high school"]})
+        self.assertEqual(
+            result['error'],
+            {'non_field_errors': ["'Another training test' : please provide a structure or a high school"]}
+        )
 
         # Structure and highschool : fail (only one allowed)
         data = {
@@ -3756,7 +3759,9 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(
             result['error'],
-            {'non_field_errors': ["High school and structures can't be set together. Please choose one."]}
+            { 'non_field_errors':
+                  ["'Another training test' : high school and structures can't be set together. Please choose one."]
+            }
         )
 
         # Create multiple trainings at once

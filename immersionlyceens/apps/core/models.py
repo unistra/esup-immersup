@@ -885,12 +885,6 @@ class Training(models.Model):
     def __str__(self):
         return self.label
 
-    def validate_unique(self, exclude=None):
-        try:
-            super().validate_unique()
-        except ValidationError as e:
-            raise ValidationError(_('A training with this label already exists'))
-
     def is_highschool(self) -> bool:
         """Return True if highschool is set"""
         return self.highschool is not None
@@ -906,9 +900,42 @@ class Training(models.Model):
         return Establishment.objects.filter(structures__in=self.structures.all()).distinct()
 
 
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
+                qs = Training.objects.filter(
+                       structures__isnull=True,
+                       highschool__id=self.highschool_id,
+                       label__unaccent__iexact=self.label
+                ).exclude(**excludes)
+
+                if qs.exists():
+                    raise ValidationError(
+                        _("A Training object with the same high school and label already exists")
+                    )
+
+        except ValidationError as e:
+            raise
+
     class Meta:
         verbose_name = _('Training')
         verbose_name_plural = _('Trainings')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['highschool', 'label'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_highschool_training'
+            ),
+        ]
         ordering = ['label', ]
 
 
