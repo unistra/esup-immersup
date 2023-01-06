@@ -6616,11 +6616,6 @@ msgstr "Niveau d'études"
 msgid "High-School"
 msgstr "Lycée"
 
-#: immersionlyceens/templates/immersion/hs_record.html:99
-msgctxt "record"
-msgid "Class name"
-msgstr "Nom / numéro de la classe"
-
 #: immersionlyceens/templates/immersion/hs_record.html:115
 msgid "General bachelor teachings"
 msgstr "Enseignements de spécialité"
