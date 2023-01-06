@@ -8,18 +8,18 @@
 <div class="main-title inside text-center">
     <div></div>
     <div class="container">
-      <div class="row">
-        <div class="col">
-          {% if profile == "vis" %}
-            <h1>{% trans 'Immersion Lycéens - New visitor account' %}</h1>
-          {% else %}
-            <h1>{% trans 'Immersion Lycéens - New high school student account' %}</h1>
-          {% endif %}
+        <div class="row">
+            <div class="col">
+            {% if profile == "vis" %}
+                <h1>{% trans 'Immersion Lycéens - New visitor account' %}</h1>
+            {% else %}
+                <h1>{% trans 'Immersion Lycéens - New high school student account' %}</h1>
+            {% endif %}
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  <section class="py-5">
+</div>
+<section class="py-5">
     <div class="container">
       <h3>{% trans 'Please fill this form to create your account' %} :</h3>
       <form method="post">
@@ -32,61 +32,119 @@
         {% endif %}
 
         <div class="form-group row justify-content-center">
-          <label for="id_lastname" class="col-sm-2 col-form-label">{% trans 'Last name' %} :</label>
-          <div class="col-sm-9 col-md-6">
-            {{ form.last_name }}
-          </div>
-          <div>
-            {{ form.last_name.errors }}
-          </div>
+            <label for="{{ form.last_name.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Last name' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <input type="text" id="{{ form.last_name.id_for_label }}" name="{{ form.last_name.html_name }}"
+                {% if form.last_name.field.required %}required{% endif %} class="form-control{% if form.last_name.errors %} is-invalid{% endif %}"
+                value="{% if form.last_name.value %}{{ form.last_name.value }}{% endif %}">
+                {% if form.last_name.help_text %}
+                <div class="small text-muted">
+                {{ form.last_name.help_text }}
+                </div>
+                {% endif %}
+                {% for err in form.last_name.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+                {% endfor %}
+             </div>
         </div>
         <div class="form-group row justify-content-center">
-          <label for="id_firstname" class="col-sm-2 col-form-label">{% trans 'First name' %} :</label>
-          <div class="col-sm-9 col-md-6">
-            {{ form.first_name }}
-          </div>
-          <div>
-            {{ form.first_name.errors }}
-          </div>
+            <label for="{{ form.first_name.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'First name' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <input type="text" id="{{ form.first_name.id_for_label }}" name="{{ form.first_name.html_name }}"
+                {% if form.first_name.field.required %}required{% endif %} class="form-control{% if form.first_name.errors %} is-invalid{% endif %}"
+                value="{% if form.last_name.value %}{{ form.last_name.value }}{% endif %}">
+                {% if form.first_name.help_text %}
+                <div class="small text-muted">
+                {{ form.first_name.help_text }}
+                </div>
+                {% endif %}
+                {% for err in form.first_name.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+                {% endfor %}
+            </div>
         </div>
         <div class="form-group row justify-content-center">
-          <label for="id_email" class="col-sm-2 col-form-label">{% trans 'Email' %} :</label>
-          <div class="col-sm-9 col-md-6">
-            {{ form.email }}
-          </div>
-          <div>
-            {{ form.email.errors }}
-          </div>
+            <label for="{{ form.email.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Email' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <input type="email" id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}"
+                {% if form.email.field.required %}required{% endif %} class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+                value="{% if form.email.value %}{{ form.email.value }}{% endif %}">
+                {% if form.email.help_text %}
+                <div class="small text-muted">
+                {{ form.email.help_text }}
+                </div>
+                {% endif %}
+                {% for err in form.email.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+                {% endfor %}
+            </div>
         </div>
         <div class="form-group row justify-content-center">
-          <label for="id_email2" class="col-sm-2 col-form-label">{% trans 'Email (confirmation)' %} :</label>
-          <div class="col-sm-9 col-md-6">
-            {{ form.email2 }}
-          </div>
-          <div>
-            {{ form.email2.errors }}
-          </div>
+            <label for="{{ form.email2.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Email (confirmation)' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <input type="email" id="{{ form.email2.id_for_label }}" name="{{ form.email2.html_name }}"
+                {% if form.email2.field.required %}required{% endif %} class="form-control{% if form.email2.errors %} is-invalid{% endif %}"
+                value="{% if form.email2.value %}{{ form.email2.value }}{% endif %}">
+                {% if form.email2.help_text %}
+                <div class="small text-muted">
+                {{ form.email2.help_text }}
+                </div>
+                {% endif %}
+                {% for err in form.email2.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+                {% endfor %}
+            </div>
         </div>
         {% if form.password1 %}
         <div class="form-group row justify-content-center">
-          <label for="id_password1" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
-          <div class="col-sm-9 col-md-6">
-            {{ form.password1 }}
-          </div>
-          <div>
-            {{ form.password1.errors }}
-          </div>
+            <label for="{{ form.password1.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Password' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <div class="input-group">
+                    <input type="password" id="{{ form.password1.id_for_label }}" name="{{ form.password1.html_name }}"
+                    {% if form.password1.field.required %}required{% endif %} class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
+                    value="{% if form.password1.value %}{{ form.password1.value }}{% endif %}">
+                    <div class="input-group-append">
+                        <button class="btn btn-secondary" id="view_button1" type="button">
+                            <i class="fa fas fa-eye" ></i>
+                        </button>
+                    </div>
+                    {% for err in form.password2.errors %}
+                    <div class="invalid-feedback">{{ err }}</div>
+                    {% endfor %}
+                </div>
+                {% if form.password1.help_text %}
+                <div class="small text-muted">
+                {{ form.password1.help_text }}
+                </div>
+                {% endif %}
+
+            </div>
         </div>
         {% endif %}
         {% if form.password2 %}
         <div class="form-group row justify-content-center">
-          <label for="id_password2" class="col-sm-2 col-form-label">{% trans 'Password (confirmation)' %} :</label>
-          <div class="col-sm-9 col-md-6">
-            {{ form.password2 }}
-          </div>
-          <div>
-            {{ form.password2.errors }}
-          </div>
+            <label for="{{ form.password2.id_for_label }}" class="col-sm-2 col-form-label">{% trans 'Password (confirmation)' %} :</label>
+            <div class="col-sm-9 col-md-6">
+                <div class="input-group">
+                    <input type="password" id="{{ form.password2.id_for_label }}" name="{{ form.password2.html_name }}"
+                    {% if form.password2.field.required %}required{% endif %} class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
+                    value="{% if form.password2.value %}{{ form.password2.value }}{% endif %}">
+                    <div class="input-group-append">
+                        <button class="btn btn-secondary" id="view_button2" type="button">
+                            <i class="fa fas fa-eye" ></i>
+                        </button>
+                    </div>
+                    {% for err in form.password2.errors %}
+                    <div class="invalid-feedback">{{ err }}</div>
+                    {% endfor %}
+                </div>
+                {% if form.password2.help_text %}
+                <div class="small text-muted">
+                {{ form.password2.help_text }}
+                </div>
+                {% endif %}
+            </div>
+
         </div>
         {% endif %}
         <div class="form-group row justify-content-center">
@@ -102,6 +160,18 @@
         </div>
       </form>
     </div>
-  </section>
-</div>
+</section>
+<script>
+$(document).ready(function() {
+    $("#view_button1").bind("mousedown touchstart", function() {
+            $("#{{ form.password1.id_for_label }}").attr("type", "text");
+        }), $("#view_button1").bind("mouseup touchend", function() {
+            $("#{{ form.password1.id_for_label }}").attr("type", "password");
+        }), $("#view_button2").bind("mousedown touchstart", function() {
+            $("#{{ form.password2.id_for_label }}").attr("type", "text");
+        }), $("#view_button2").bind("mouseup touchend", function() {
+            $("#{{ form.password2.id_for_label }}").attr("type", "password")
+        })
+    });
+</script>
 {% endblock %}

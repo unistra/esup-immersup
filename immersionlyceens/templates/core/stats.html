@@ -33,18 +33,18 @@
       </div>
       {% if highschool_visit %}
       <div class="row">
-        <label class="col-form-label col-sm-3" >{% trans 'Anonymous visits data' %}</label>
+        <label class="col-form-label col-sm-3" for="extract_anonymous_visits">{% trans 'Anonymous visits data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_visits">{% trans 'Extract data' %}</button>
       </div>
       {% endif %}
       {% if events_off_offer %}
       <div class="row">
-        <label class="col-form-label col-sm-3" >{% trans 'Anonymous events data' %}</label>
+        <label class="col-form-label col-sm-3" for="extract_anonymous_events" >{% trans 'Anonymous events data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_anonymous_events">{% trans 'Extract data' %}</button>
       </div>
       {% endif %}
       <div class="row">
-        <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
+        <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
         {% if highschool_visit %}
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>
@@ -55,7 +55,7 @@
       </div>
       {% elif request.user.is_high_school_manager %}
       <div class="row">
-        <label class="col-form-label col-sm-3" >{% trans 'High schools data' %}</label>
+        <label class="col-form-label col-sm-3" for="extract_highschool">{% trans 'High schools data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_highschool">{% trans 'Extract data' %}</button>
       </div>
         {% if request.user.highschool.postbac_immersion %}
@@ -69,7 +69,7 @@
         {% endif %}
       {% elif request.user.is_structure_manager %}
       <div class="row">
-        <label class="col-form-label col-sm-3" for="structure">{% trans 'Structures data' %}</label>
+        <label class="col-form-label col-sm-3" for="extract_structure_courses">{% trans 'Structures data' %}</label>
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_courses">{% trans 'Extract courses data' %}</button>
         {% if highschool_visit %}
         <button type="button" class="btn btn-primary btn-sm ml-1 pt-1 mt-1" id="extract_structure_visits">{% trans 'Extract visits data' %}</button>

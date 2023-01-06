@@ -1,15 +1,12 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from django import forms
-from django.conf import settings
-from django.contrib.auth import authenticate
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
 from immersionlyceens.apps.core.models import (
-    BachelorMention, Calendar, GeneralBachelorTeaching, HighSchool,
-    HighSchoolLevel, ImmersionUser, PostBachelorLevel, StudentLevel,
+    BachelorMention, GeneralBachelorTeaching, HighSchool, HighSchoolLevel,
+    ImmersionUser, PostBachelorLevel, StudentLevel,
 )
-from immersionlyceens.libs.utils import get_general_setting
 
 from .models import HighSchoolStudentRecord, StudentRecord, VisitorRecord
 
@@ -56,32 +53,27 @@ class RegistrationForm(UserCreationForm):
     def clean(self):
         cleaned_data = super().clean()
 
+        cleaned_data["email"] = cleaned_data.get('email', '').strip().lower()
+        cleaned_data["email2"] = cleaned_data.get('email2', '').strip().lower()
+
         if not all([cleaned_data.get('email'), cleaned_data.get('email2'),
-                cleaned_data.get('email')==cleaned_data.get('email2')]):
-            raise forms.ValidationError(
-                _("Error : emails don't match"))
+                cleaned_data.get('email') == cleaned_data.get('email2')]):
+            self.add_error('email', _("Emails do not match"))
+            self.add_error('email2', _("Emails do not match"))
 
-        if not all([cleaned_data.get('password1'), cleaned_data.get('password2'),
-                cleaned_data.get('password1')==cleaned_data.get('password2')]):
-            raise forms.ValidationError(
-                _("Error : passwords don't match"))
+        if cleaned_data.get("email"):
+            if ImmersionUser.objects.filter(email__iexact=cleaned_data["email"]).exists():
+                self.add_error('email', _("An account already exists with this email address"))
+            else:
+                username = cleaned_data["email"]
 
-        email = cleaned_data.get('email')
+                # Shouldn't get there if the email unicity test fails
+                if ImmersionUser.objects.filter(username__iexact=username).exists():
+                    raise forms.ValidationError(_("Error : duplicated account detected"))
 
-        if ImmersionUser.objects.filter(email=email).exists():
-            raise forms.ValidationError(
-                _("Error : an account already exists with this email address"))
+                cleaned_data['username'] = username
 
-        username = email
-
-        # Shouldn't get there if the email unicity test fails
-        if ImmersionUser.objects.filter(username=username).exists():
-            raise forms.ValidationError(
-                _("Error : duplicated account detected"))
-
-        cleaned_data['username'] = username
         return cleaned_data
-
 
     class Meta:
         model = ImmersionUser
@@ -128,7 +120,6 @@ class VisitorForm(PersonForm):
             if record and record.validation == 2:
                 for field_name in ("first_name", "last_name"):
                     self.fields[field_name].disabled = True
-
 
     class Meta:
         model = ImmersionUser

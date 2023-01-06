@@ -1,7 +1,9 @@
 # pylint: disable=R0903,C0115,R0201
 """Serializer"""
 
-from rest_framework import serializers
+from rest_framework import serializers, status
+from django.utils.translation import gettext
+from django.db.models import Q
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
@@ -34,6 +36,33 @@ class StructureSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    """
+    Course serializer
+    """
+
+    def validate(self, data):
+        """
+        check speakers/published status and that only structures OR highschool are set at the same time
+        """
+        content = None
+        published = data.get('published', False) in ('true', 'True', True)
+        speakers = data.get('speakers')
+        structure = data.get("structure")
+        highschool = data.get("highschool")
+
+        if published and not speakers:
+            content = gettext("A published course requires at least one speaker")
+
+        if not structure and not highschool:
+            content = gettext("Please provide a structure or a high school")
+        elif structure and highschool:
+            content = gettext("High school and structures can't be set together. Please choose one.")
+
+        if content:
+            raise serializers.ValidationError(detail=content, code=status.HTTP_400_BAD_REQUEST)
+
+        return data
+
     class Meta:
         model = Course
         fields = "__all__"
@@ -52,7 +81,46 @@ class HighSchoolViewSerializer(serializers.ModelSerializer):
 
 
 class TrainingSerializer(serializers.ModelSerializer):
-    """Training serializer"""
+    """
+    Training serializer
+    """
+    def validate(self, data):
+        """
+        check that only structures OR highschool are set at the same time
+        """
+        content = None
+        structures = data.get("structures")
+        highschool = data.get("highschool")
+        label = data.get("label")
+
+        if not structures and not highschool:
+            content = gettext("'%s' : please provide a structure or a high school") % label
+        elif structures and highschool:
+            content = gettext("'%s' : high school and structures can't be set together. Please choose one.") % label
+
+        excludes = {}
+        if data.get("id"):
+            excludes['id'] = data.get("id")
+
+        structure_establishments = [structure.establishment.id for structure in data.get("structures", [])]
+
+        tr_queryset = Training.objects.exclude(**excludes).filter(
+            Q(label__iexact=label,
+              structures__establishment__in=structure_establishments)|
+            Q(label__iexact=label,
+              highschool=highschool)
+        )
+
+        if tr_queryset.exists():
+            content = gettext(
+                "A training with the label '%s' already exists within the same establishment or highschool"
+            ) % label
+
+        if content:
+            raise serializers.ValidationError(detail=content, code=status.HTTP_400_BAD_REQUEST)
+
+        return data
+
     class Meta:
         model = Training
         fields = "__all__"

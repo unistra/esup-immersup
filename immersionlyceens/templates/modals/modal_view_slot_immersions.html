@@ -15,7 +15,7 @@
         <div class="row">
           <div class="col">
             <div class="table-responsive">
-              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" width="100%">
+              <table id="students_list" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="width:100%;>
               <thead>
                 <tr>
                   <th></th>
@@ -69,7 +69,7 @@
           <label id="lbl_select_cancel_type" for="select_cancel_type" class="col-xs-3 col-form-label col-form-label-sm mt-2 mr-2 mb-2">{% trans 'Cancel type' %}</label>
           <div class="col">
             <select class="form-control form-control mr-2 mb-2" name="cancel-type" id="select_cancel_type" disabled>
-              <option value=""></option>
+              <option value="" label=" "></option>
               {% for type in cancel_types  %}
                 <option value="{{ type.pk }}">{{ type.label }}</option>
               {% endfor %}
@@ -202,7 +202,7 @@ dtr = $('#students_list').DataTable({
      "render": function(data, type, row) {
        if(type === "display") {
          if(row.attendance_status === 1) {
-           return "<span class='text-success'>"+data+"</span>";
+           return "<span class='text-primary'>"+data+"</span>";
          }
          else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";
@@ -216,7 +216,7 @@ dtr = $('#students_list').DataTable({
      "render": function(data, type, row) {
        if(type === "display") {
          if(row.attendance_status === 1) {
-           return "<span class='text-success'>"+data+"</span>";
+           return "<span class='text-primary'>"+data+"</span>";
          }
          else if (row.attendance_status === 2) {
            return "<span class='text-danger'>"+data+"</span>";

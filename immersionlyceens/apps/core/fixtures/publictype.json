@@ -1,0 +1,26 @@
+[
+{
+    "model": "core.publictype",
+    "pk": 1,
+    "fields": {
+        "label": "Lycéen/Lycéenne",
+        "active": true
+    }
+},
+{
+    "model": "core.publictype",
+    "pk": 2,
+    "fields": {
+        "label": "Étudiant/Étudiante",
+        "active": true
+    }
+},
+{
+    "model": "core.publictype",
+    "pk": 3,
+    "fields": {
+        "label": "Enseignant/Enseignante",
+        "active": true
+    }
+}
+]

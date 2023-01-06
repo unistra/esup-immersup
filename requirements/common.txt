@@ -13,13 +13,13 @@ WeasyPrint==54.1
 sentry-sdk
 django-json-widget
 jsonschema
-django-admin-list-filter-dropdown
+django-admin-list-filter-dropdown==1.0.3
 djangorestframework<4.0
 djangorestframework-custom-exceptions
 djangorestframework-custom-paginations
 drf-spectacular<0.23
 django-storages[boto3]
-django-admin-sortable2
-pillow==9.2.0
+django-admin-sortable2==1.0.4
+pillow==9.4.0
 lxml==4.9.1
 django-countries==7.3.2

@@ -75,18 +75,18 @@
       </li>
       {% endif %}
     </ul>
-    <div class="tab-content" id="myTabContent">
-      <div class="tab-pane fade show active" id="immersions" role="tabpanel" aria-labelledby="immersions-tab">
+    <div class="tab-content" id="myImmersionsContent">
+      <div class="tab-pane fade show active" id="immersions" role="tabpanel" aria-labelledby="myImmersionsContent">
       {% include './fragments/my_immersions.html'%}
       </div>
       {% if events_off_offer %}
-      <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+      <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="myImmersionsContent">
       {% include './fragments/my_events.html'%}
       </div>
       {% endif %}
 
       {% if highschool_visit and authorized_groups|in_groups:"LYC" %}
-      <div class="tab-pane fade" id="visits" role="tabpanel" aria-labelledby="visits-tab">
+      <div class="tab-pane fade" id="visits" role="tabpanel" aria-labelledby="myImmersionsContent">
       {% include './fragments/my_visits.html'%}
       </div>
       {% endif %}

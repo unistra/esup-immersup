@@ -29,7 +29,7 @@
     </div>
     <div class="card-body">
       <div class="table-responsive">
-        <table id="duplicates_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" cellspacing="0" width="100%">
+        <table id="duplicates_table" class="table table-sm table-striped table-bordered compact nowrap dt-body-nowrap" style="border-spacing:0;border-collapse:collapse;width:100%;">
           <thead>
             <tr>
               <th id="student_filter" class="align-top">{% trans 'Students' %}</th>
@@ -95,7 +95,7 @@
   function confirm_remove_entry(accountId) {
     account_id = accountId
     $('#modal_nuke_account').modal('show');
-  }  
+  }
 
   $(document).ready(function () {
     initFeedback();
@@ -202,7 +202,7 @@
 
           return txt;
         }
-      },            
+      },
       { "data": "account_ids",
         "render": function(data, type, row) {
           var txt = "<div class=\"row\"><div class=\"col-sm\">";
@@ -213,8 +213,8 @@
           txt += "</div><div class=\"col-sm\">" +
                  "<button class='btn btn-secondary btn-sm' onclick='keep_entries("+row.id+")'>"+keep_all+"</button>" +
                  "</div></div>";
-          return txt;          
-        } 
+          return txt;
+        }
       },
   ],
     "columnDefs": [

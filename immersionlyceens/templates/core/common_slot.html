@@ -45,9 +45,12 @@
   <div class="card">
     {% block card_header %}{% endblock %}
     <div class="card-body">
-      <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
 
-      <form method="POST" class="form-group" role="form" id="add_slot">
+        <form method="POST" class="form-group" role="form" id="add_slot">
+            <fieldset>
+
+                <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
+
         {% csrf_token %}
         {{ form.id }}
         {% block dates_selection %}{% endblock %}
@@ -102,11 +105,11 @@
 
         {% if slot_mode != 'visit' %}
             <div class="form-group row" id="id_div_campus">
-              <label for="id_campus" class="col-form-label col-sm-3">
-                <i id='id_mandatory_campus' class="fa fas fa-asterisk" style="display:none"></i>
-                {% trans 'Campus' %}
-              </label>
-              <div class="col-sm-3">
+                <label for="id_campus" class="col-form-label col-sm-3">
+                  <i id='id_mandatory_campus' class="fa fas fa-asterisk" style="display:none"></i>
+                  {% trans 'Campus' %}
+                </label>
+                <div class="col-sm-3">
                 {% if slot %}
                   <select name="campus" id="id_campus" class="form-control">
                     <option value="" selected>--------</option>
@@ -373,6 +376,7 @@
         {% endif %}
         <br>
         {% include 'core/slot__controls.html' %}
+    </fieldset>
       </form>
     </div>
   </div>
@@ -838,7 +842,7 @@
       $("#id_or").show()
       toggle_face_to_face()
     }
-    
+
     toggle_required_fields()
   });
 

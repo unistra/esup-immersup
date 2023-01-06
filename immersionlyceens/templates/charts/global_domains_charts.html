@@ -24,15 +24,15 @@
 <h3 class="ml-2">
   {% if request.user.is_high_school_manager %}
     {% if filter_by_my_trainings %}
-      {% trans "Highschools statistics - registrations to my trainings, by domains" %}
+      {% trans "Highschools statistics - registrations to my trainings, by domain" %}
     {% else %}
-      {% trans "Highschools statistics - my high school students registrations, by domains" %}
+      {% trans "Highschools statistics - my high school students registrations, by domain" %}
     {% endif %}
   {% else %}
     {% if filter_by_my_trainings %}
-      {% trans "Hosts statistics - registrations by domains" %}
+      {% trans "Hosts statistics - registrations by domain" %}
     {% else %}
-      {% trans "Populations statistics - registrations by domains" %}
+      {% trans "Populations statistics - registrations by domain" %}
     {% endif %}
   {% endif %}
 </h3>

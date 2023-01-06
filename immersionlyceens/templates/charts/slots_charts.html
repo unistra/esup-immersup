@@ -44,7 +44,7 @@
       <div class="form-group mx-sm-3 mb-2">
         <label for="id_establishment" class="form-check-label ml-md-2">{% trans 'Filter by establishment' %} :</label>
         <select id="id_establishment">
-          <option value=""></option>
+          <option value="" label=" "></option>
           {% for establishment in establishments %}
             <option value="{{ establishment.id }}" {% if establishment.id == establishment_id %}selected="True"{% endif %}>
               {{ establishment.label }}

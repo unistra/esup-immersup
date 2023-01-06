@@ -17,140 +17,144 @@
 
 {% block content %}
 <div class="container-fluid" style="padding-top:20px; width:70%;">
-  <div class="card">
-    <div class="card-header text-white bg-secondary">
-      {% if duplicate %}
-        {% trans "Duplicate a course" %}
-      {% elif course %}
-        {% trans "Update a course" %}
-      {% else %}
-        {% trans "Create a new course" %}
-      {% endif %}
+    <div class="card">
+        <div class="card-header text-white bg-secondary">
+        {% if duplicate %}
+            {% trans "Duplicate a course" %}
+        {% elif course %}
+            {% trans "Update a course" %}
+        {% else %}
+            {% trans "Create a new course" %}
+        {% endif %}
+        </div>
+        <div class="card-body">
+            <form class="" role="form" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
+                <fieldset>
+
+
+                    <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
+                    {% csrf_token %}
+                    {{ course_form.id }}
+                    {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator %}
+                    <div class="form-group row" id="id_div_establishment">
+                        <label for="id_establishment" class="col-sm-3 col-form-label">
+                            <i class="fa fas fa-asterisk"></i>
+                            {% trans 'Establishment' %} :
+                        </label>
+                        <div class="col-sm-3">
+                        {{ course_form.establishment }}
+                        </div>
+                        <div class="col-sm-6">
+                        {{ course_form.establishment.errors }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="form-group row" id="id_div_highschool">
+                        <label for="id_highschool" class="col-sm-3 col-form-label">
+                            <i class="fa fas fa-asterisk"></i>
+                            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
+                            <strong>{% trans 'or' %} </strong>
+                            {% endif %}
+                            {% trans 'high school' %} :
+                        </label>
+                        <div class="col-sm-3">
+                        {{ course_form.highschool }}
+                        </div>
+                        <div class="col-sm-6">
+                        {{ course_form.highschool.errors }}
+                        </div>
+                    </div>
+                    {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
+                    <div class="form-group row" id="id_div_structure">
+                        <label for="id_structure" class="col-sm-3 col-form-label">
+                            <i class="fa fas fa-asterisk"></i>
+                            {% trans 'Structure' %} :
+                        </label>
+                        <div class="col-sm-3">
+                        {{ course_form.structure }}
+                        </div>
+                        <div class="col-sm-6">
+                        {{ course_form.structure.errors }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="form-group row">
+                        <label for="id_training" class="col-sm-3 col-form-label">
+                            <i class="fa fas fa-asterisk"></i>
+                            {% trans 'Training' %} :
+                        </label>
+                        <div class="col-sm-3">
+                        {{ course_form.training }}
+                        </div>
+                        <div class="col-sm-6">
+                        {{ course_form.training.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="id_label" class="col-sm-3 col-form-label">
+                            <i class="fa fas fa-asterisk"></i>
+                            {% trans 'Course label' %} :
+                            </label>
+                        <div class="col-sm-3">
+                        {{ course_form.label }}
+                        </div>
+                        <div class="col-sm-6">
+                        {{ course_form.label.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="id_url" class="col-sm-3 col-form-label">{% trans 'Url' %} :</label>
+                        <div class="col-sm-3">
+                        {{ course_form.url }}
+                        </div>
+                        <div class="col-sm-6">
+                        {{ course_form.url.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="id_published" class="col-sm-3 col-form-label">{% trans 'Published' %} :</label>
+                        <div class="col-sm-3">
+                        {{ course_form.published }}
+                        </div>
+                        <div class="col-sm-6">
+                        {{ course_form.published.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3">
+                            <i id='id_mandatory_speakers' class="fa fas fa-asterisk" style="display:none"></i>
+                            {% trans 'Speakers' %}
+                        </label>
+                        <div class="col-sm-3">
+                            <div class="form-check" id="speakers">
+                                <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
+                                <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
+                                <select id='live_select' style='display:none;'></select>
+                                <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
+                                <label id='ws_message' style='display:none; width:300px;'></label>
+                                <ul id="id_speakers" class="mt-4"></ul>
+                                {{ course_form.speakers.errors }}
+                                <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
+                            </div>
+                        </div>
+                    </div>
+                    {% if can_update_courses %}
+                    <div class="form-group row">
+                        <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
+                            <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm mb-1">{% trans 'Cancel' %}</a>
+                            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
+                            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
+                            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
+                        </div>
+                    </div>
+                    {% endif %}
+                </fieldset>
+            </form>
+        </div>
     </div>
-    <div class="card-body">
-      <legend>{% trans 'Fields with a <i class="fa fas fa-asterisk"></i> are mandatory' %}</legend>
-      <form class="" role="form" action="/core/course{% if course.id and not duplicate %}/{{ course.id }}{% endif %}" method="POST">
-      {% csrf_token %}
-        {{ course_form.id }}
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_operator %}
-        <div class="form-group row" id="id_div_establishment">
-          <label for="id_establishment" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk"></i>
-            {% trans 'Establishment' %} :
-          </label>
-          <div class="col-sm-3">
-            {{ course_form.establishment }}
-          </div>
-          <div class="col-sm-6">
-            {{ course_form.establishment.errors }}
-          </div>
-        </div>
-        {% endif %}
-        <div class="form-group row" id="id_div_highschool">
-          <label for="id_highschool" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk"></i>
-            {% if request.user.is_master_establishment_manager or request.user.is_operator %}
-                <strong>{% trans 'or' %} </strong>
-            {% endif %}
-            {% trans 'high school' %} :
-          </label>
-          <div class="col-sm-3">
-            {{ course_form.highschool }}
-          </div>
-          <div class="col-sm-6">
-            {{ course_form.highschool.errors }}
-          </div>
-        </div>
-        {% if request.user.is_master_establishment_manager or request.user.is_establishment_manager or request.user.is_structure_manager or request.user.is_operator %}
-        <div class="form-group row" id="id_div_structure">
-          <label for="id_structure" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk"></i>
-            {% trans 'Structure' %} :
-          </label>
-          <div class="col-sm-3">
-            {{ course_form.structure }}
-          </div>
-          <div class="col-sm-6">
-            {{ course_form.structure.errors }}
-          </div>
-        </div>
-        {% endif %}
-        <div class="form-group row">
-          <label for="id_training" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk"></i>
-            {% trans 'Training' %} :
-          </label>
-          <div class="col-sm-3">
-            {{ course_form.training }}
-          </div>
-          <div class="col-sm-6">
-            {{ course_form.training.errors }}
-          </div>
-        </div>
-        <div class="form-group row">
-          <label for="id_label" class="col-sm-3 col-form-label">
-            <i class="fa fas fa-asterisk"></i>
-            {% trans 'Course label' %} :
-          </label>
-          <div class="col-sm-3">
-            {{ course_form.label }}
-          </div>
-          <div class="col-sm-6">
-            {{ course_form.label.errors }}
-          </div>
-        </div>
-        <div class="form-group row">
-          <label for="id_url" class="col-sm-3 col-form-label">{% trans 'Url' %} :</label>
-          <div class="col-sm-3">
-            {{ course_form.url }}
-          </div>
-          <div class="col-sm-6">
-            {{ course_form.url.errors }}
-          </div>
-        </div>
-        <div class="form-group row">
-          <label for="id_published" class="col-sm-3 col-form-label">{% trans 'Published' %} :</label>
-          <div class="col-sm-3">
-            {{ course_form.published }}
-          </div>
-          <div class="col-sm-6">
-            {{ course_form.published.errors }}
-          </div>
-        </div>
-        <div class="form-group row">
-          <label class="col-form-label col-sm-3">
-            <i id='id_mandatory_speakers' class="fa fas fa-asterisk" style="display:none"></i>
-            {% trans 'Speakers' %}
-          </label>
-          <div class="col-sm-3">
-            <div class="form-check" id="speakers">
-              <label for="person_search" id="id_search_label">{% trans 'Search' %} : </label>
-              <input type="text" class="input-sm" id="person_search" placeholder="{% trans 'Lastname ...' %}">
-              <select id='live_select' style='display:none;'></select>
-              <button class="btn btn-secondary btn-sm" type="button" id="id_add_button" style="display:none;">{% trans 'Add' %}</button>
-              <label id='ws_message' style='display:none; width:300px;'></label>
-              <ul id="id_speakers" class="mt-4"></ul>
-              {{ course_form.speakers.errors }}
-              <input type="hidden" value="" name="speakers_list" id="id_speakers_list">
-            </div>
-          </div>
-        </div>
-        {% if can_update_courses %}
-        <div class="form-group row">
-          <div class="col-sm-9 col-md-6 offset-sm-3 offset-lg-2">
-            <a href="{% url 'courses_list' %}" class="btn btn-secondary btn-sm mb-1" name="cancel">{% trans 'Cancel' %}</a>
-            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save" value="{% trans 'Save' %}">
-            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_duplicate" value="{% trans 'Save and duplicate' %}">
-            <input type="submit" class="btn btn-secondary btn-sm mb-1" name="save_add_new" value="{% trans 'Save and add new' %}">
-          </div>
-        </div>
-        {% endif %}
-      </form>
-    </div>
-  </div>
 </div>
 
-<script type="text/javascript">
+<script>
   var json_results;
   var query_order = 0;
   var training_id = "{{ course_form.training.value }}";
@@ -414,7 +418,7 @@
         $("#id_div_establishment").hide()
         $("#id_div_structure").hide()
         $("#id_div_highschool").show()
-     }   
+     }
     } else {
       highschool_id = ""
       set_structures($("#id_establishment").val())
