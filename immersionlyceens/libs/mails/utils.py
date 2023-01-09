@@ -20,7 +20,7 @@ def import_mail_backend():
 mail_backend = import_mail_backend()
 
 
-def send_email(address, subject, body, from_addr=None):
+def send_email(address, subject, body, from_addr=None, reply_to=None):
     """
     """
     # Get configured 'from' address or the default settings/<env>.py one
@@ -43,6 +43,9 @@ def send_email(address, subject, body, from_addr=None):
     msg['Subject'] = subject
     msg['From'] = sanitize_address(from_addr, encoding)
     msg['To'] = sanitize_address(recipient, encoding)
+    if reply_to:
+        msg['Reply-To'] = sanitize_address(reply_to, encoding)
+
     html = body
 
     # part1 = MIMEText(text, 'plain')
