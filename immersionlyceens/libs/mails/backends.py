@@ -79,3 +79,11 @@ class FileBackend(BaseEmailBackend):
             fh.write(email_message.as_string())
             fh.write('-' * 80)
             fh.write('\n')
+
+
+class DummyBackend(BaseEmailBackend):
+    """
+    For testing purposes only
+    """
+    def send_message(self, email_message):
+        pass

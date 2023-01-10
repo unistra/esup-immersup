@@ -59,5 +59,6 @@ def send_email(address, subject, body, from_addr=None, reply_to=None):
             f"Cannot send message to {recipient} : unexpected error: {e} - {sys.exc_info()[0]}",
             extra={'locals': locals()},
         )
+        raise
     else:
         logger.info("Mail sent to %s", recipient)

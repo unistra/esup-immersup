@@ -1816,7 +1816,6 @@ class OffOfferEvent(models.Model):
         else:
             return self.highschool
 
-
     def validate_unique(self, exclude=None):
         """Validate unique"""
         try:

@@ -63,3 +63,8 @@ HOLIDAY_API_MAP = {
 }
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
 
+#######################
+# Email configuration #
+#######################
+EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.DummyBackend'
+

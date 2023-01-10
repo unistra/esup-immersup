@@ -1,5 +1,6 @@
 import re
 from decimal import Decimal
+from functools import reduce
 
 from django import template
 from django.conf import settings
@@ -207,3 +208,8 @@ def get_custom_images_files():
         return get_custom_theme_files("IMG")
     except:
         return ""
+
+@register.filter(is_safe=False)
+def dictsortlower(value, sortkey):
+    keys = sortkey.split(".")
+    return sorted(value, key=lambda x:reduce(lambda y, z:getattr(y, z), [x] + keys).lower())
