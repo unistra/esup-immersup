@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-04 15:55+0100\n"
+"POT-Creation-Date: 2023-01-09 18:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1074,7 +1074,7 @@ msgstr "Visite publiée"
 
 #: immersionlyceens/apps/core/forms.py:593
 #: immersionlyceens/apps/core/forms.py:612
-#: immersionlyceens/apps/core/views.py:2335
+#: immersionlyceens/apps/core/views.py:2365
 msgid "Event published"
 msgstr "Évènement publié"
 
@@ -1719,7 +1719,8 @@ msgstr "Site web"
 #: immersionlyceens/apps/core/models.py:923
 msgid "A Training object with the same high school and label already exists"
 msgstr ""
-"Une formation avec le même lycée, la même formation et le même libellé existe déjà"
+"Une formation avec le même lycée, la même formation et le même libellé "
+"existe déjà"
 
 #: immersionlyceens/apps/core/models.py:931
 msgid "Trainings"
@@ -2643,20 +2644,22 @@ msgstr "'%s' : veuillez d'abord sélectionner une structure ou un lycée"
 msgid ""
 "'%s' : high school and structures can't be set together. Please choose one."
 msgstr ""
-"'%s' : vous ne pouvez sélectionner à la fois un lycée ET une structure. Veuillez "
-"choisir entre les deux."
+"'%s' : vous ne pouvez sélectionner à la fois un lycée ET une structure. "
+"Veuillez choisir entre les deux."
 
 #: immersionlyceens/apps/core/serializers.py:116
 #, python-format
 msgid ""
 "A training with the label '%s' already exists within the same establishment "
 "or highschool"
-msgstr "Une formation avec le libellé '%s' existe déjà dans cet établissement ou ce lycée"
+msgstr ""
+"Une formation avec le libellé '%s' existe déjà dans cet établissement ou ce "
+"lycée"
 
 #: immersionlyceens/apps/core/views.py:127
 #: immersionlyceens/apps/core/views.py:1198
 #: immersionlyceens/apps/core/views.py:1719
-#: immersionlyceens/apps/core/views.py:2246
+#: immersionlyceens/apps/core/views.py:2276
 msgid "This slot belongs to another structure"
 msgstr "Ce créneau appartient à une autre structure"
 
@@ -2751,7 +2754,7 @@ msgstr "Créneau de cours non créé."
 
 #: immersionlyceens/apps/core/views.py:1200
 #: immersionlyceens/apps/core/views.py:1721
-#: immersionlyceens/apps/core/views.py:2248
+#: immersionlyceens/apps/core/views.py:2278
 msgid "Slot not found"
 msgstr "Créneau non trouvé"
 
@@ -2761,11 +2764,15 @@ msgid "Course slot \"%s\" updated."
 msgstr "Créneau de cours \"%s\" mis à jour."
 
 #: immersionlyceens/apps/core/views.py:1315
+#: immersionlyceens/apps/core/views.py:1823
+#: immersionlyceens/apps/core/views.py:2389
 #, python-format
 msgid "Notifications have been sent (%s)"
 msgstr "Notifications envoyées (%s)"
 
 #: immersionlyceens/apps/core/views.py:1320
+#: immersionlyceens/apps/core/views.py:1828
+#: immersionlyceens/apps/core/views.py:2394
 msgid "{} error(s) occurred :"
 msgstr "{} erreur(s) :"
 
@@ -2807,45 +2814,45 @@ msgstr "Créneau de visite non créé."
 msgid "Visit slot \"%s\" updated."
 msgstr "Créneau de visite \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:1804
+#: immersionlyceens/apps/core/views.py:1834
 #, python-format
 msgid "Visit slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau de visite \"%s\"."
 
-#: immersionlyceens/apps/core/views.py:1921
+#: immersionlyceens/apps/core/views.py:1951
 #, python-format
 msgid "Off offer event \"%s\" created."
 msgstr "Évènement hors offre \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:1932
+#: immersionlyceens/apps/core/views.py:1962
 msgid "Off offer event not created."
 msgstr "Évènement hors offre non créé."
 
-#: immersionlyceens/apps/core/views.py:2002
+#: immersionlyceens/apps/core/views.py:2032
 #, python-format
 msgid "Off offer event \"%s\" updated."
 msgstr "Évènement hors offre \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:2015
+#: immersionlyceens/apps/core/views.py:2045
 #, python-format
 msgid "Off offer event \"%s\" not updated."
 msgstr "Echec de la mise à jour de l'évènement hors offre \"%s\""
 
-#: immersionlyceens/apps/core/views.py:2224
+#: immersionlyceens/apps/core/views.py:2254
 #, python-format
 msgid "Event slot \"%s\" created."
 msgstr "Créneau d'évènement \"%s\" créé."
 
-#: immersionlyceens/apps/core/views.py:2231
+#: immersionlyceens/apps/core/views.py:2261
 msgid "Event slot not created."
 msgstr "Créneau d'évènement non créé."
 
-#: immersionlyceens/apps/core/views.py:2323
+#: immersionlyceens/apps/core/views.py:2353
 #, python-format
 msgid "Event slot \"%s\" updated."
 msgstr "Créneau d'évènement \"%s\" mis à jour."
 
-#: immersionlyceens/apps/core/views.py:2341
+#: immersionlyceens/apps/core/views.py:2401
 #, python-format
 msgid "Event slot \"%s\" not updated."
 msgstr "Echec de la mise jour du créneau d'évènement \"%s\"."
@@ -2981,6 +2988,7 @@ msgstr "Niveau"
 #: immersionlyceens/templates/core/student_validation.html:89
 #: immersionlyceens/templates/core/student_validation.html:122
 #: immersionlyceens/templates/core/student_validation.html:155
+#: immersionlyceens/templates/immersion/hs_record.html:99
 #: immersionlyceens/templates/modals/modal_register_students_list.html:32
 msgid "Class name"
 msgstr "Classe"

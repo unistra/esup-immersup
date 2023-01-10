@@ -1339,6 +1339,13 @@ class CoreViewsTestCase(TestCase):
             "is_removable": True
         }]))
 
+        # Create an immersion to test mail notification
+        Immersion.objects.create(
+            student=self.highschool_user,
+            slot=slot,
+            attendance_status=1
+        )
+
         data = {
             "visit": slot.visit.id,
             'face_to_face': False,
@@ -1350,12 +1357,14 @@ class CoreViewsTestCase(TestCase):
             'n_places': 10,
             'additional_information': 'whatever',
             "speakers": [self.speaker1.id],
+            "notify_student": "on",
             'save': "Save",
         }
 
         response = self.client.post(f"/core/visit_slot/{slot.id}", data, follow=True)
 
         self.assertEqual(response.status_code, 200)
+        self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
         self.assertEqual(response.template_name, ["core/visits_slots_list.html"])
         slot.refresh_from_db()
 
@@ -1551,6 +1560,13 @@ class CoreViewsTestCase(TestCase):
             "is_removable": True
         }]))
 
+        # Create an immersion to test mail notification
+        Immersion.objects.create(
+            student=self.highschool_user,
+            slot=slot,
+            attendance_status=1
+        )
+
         data = {
             "event": event.id,
             'face_to_face': False,
@@ -1562,12 +1578,14 @@ class CoreViewsTestCase(TestCase):
             'n_places': 10,
             'additional_information': 'whatever',
             "speakers": [self.speaker1.id],
+            "notify_student": "on",
             'save': "Save",
         }
 
         response = self.client.post(f"/core/off_offer_event_slot/{slot.id}", data, follow=True)
 
         self.assertEqual(response.status_code, 200)
+        self.assertIn("Notifications have been sent (1)", response.content.decode('utf-8'))
         self.assertEqual(response.template_name, ["core/off_offer_events_slots_list.html"])
         slot.refresh_from_db()
 

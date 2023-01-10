@@ -3,6 +3,8 @@
 {% load i18n %}
 {% load immersionlyceens_tags %}
 {% general_settings_get 'CONTACT_FORM_URL' as contact_form_url %}
+{% general_settings_get 'META_DESCRIPTION' as meta_description %}
+{% general_settings_get 'HEADER_TITLE_ADDON' as header_title_addon %}
 {% settings_get 'STAGE' as stage %}
 {% settings_get 'USE_MATOMO' as use_matomo %}
 {% settings_get 'UNISTRA' as unistra %}
@@ -11,11 +13,14 @@
 {% get_custom_js_files as custom_js_files %}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
-    <title>{% block title %}ImmerSup{% endblock %}</title>
+    <title>{% block title %}ImmerSup{% endblock %} {% if header_title_addon %}{{ header_title_addon }}{% endif %}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="author" content='Direction du Numérique - Université de Strasbourg'>
+    {% if meta_description %}
+    <meta name="description" content="{{ meta_description }}">
+    {% endif %}
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/immersionlyceens.min.css' %}">
     {% if custom_favicon %}

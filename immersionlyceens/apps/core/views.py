@@ -1798,6 +1798,36 @@ class VisitSlotUpdate(generic.UpdateView):
             self.object.visit.save()
             messages.success(self.request, _("Visit published"))
 
+        if self.request.POST.get('notify_student') == 'on':
+            sent_msg = 0
+            not_sent_msg = 0
+            errors_list = []
+
+            immersions = Immersion.objects.filter(slot=self.object, cancellation_type__isnull=True)
+
+            for immersion in immersions:
+                ret = immersion.student.send_message(
+                    self.request,
+                    'CRENEAU_MODIFY_NOTIF',
+                    immersion=immersion,
+                    slot=self.object
+                )
+
+                if not ret:
+                    sent_msg += 1
+                elif ret not in errors_list:
+                    not_sent_msg += 1
+                    errors_list.append(ret)
+
+            if sent_msg:
+                messages.success(self.request, gettext("Notifications have been sent (%s)") % sent_msg)
+
+            if errors_list:
+                messages.warning(
+                    self.request,
+                    gettext("{} error(s) occurred :".format(not_sent_msg))  + "<br /".join(errors_list)
+                )
+
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -2333,6 +2363,36 @@ class OffOfferEventSlotUpdate(generic.UpdateView):
             self.object.event.published = True
             self.object.event.save()
             messages.success(self.request, _("Event published"))
+
+        if self.request.POST.get('notify_student') == 'on':
+            sent_msg = 0
+            not_sent_msg = 0
+            errors_list = []
+
+            immersions = Immersion.objects.filter(slot=self.object, cancellation_type__isnull=True)
+
+            for immersion in immersions:
+                ret = immersion.student.send_message(
+                    self.request,
+                    'CRENEAU_MODIFY_NOTIF',
+                    immersion=immersion,
+                    slot=self.object
+                )
+
+                if not ret:
+                    sent_msg += 1
+                elif ret not in errors_list:
+                    not_sent_msg += 1
+                    errors_list.append(ret)
+
+            if sent_msg:
+                messages.success(self.request, gettext("Notifications have been sent (%s)") % sent_msg)
+
+            if errors_list:
+                messages.warning(
+                    self.request,
+                    gettext("{} error(s) occurred :".format(not_sent_msg))  + "<br /".join(errors_list)
+                )
 
         return super().form_valid(form)
 

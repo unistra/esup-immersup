@@ -17,8 +17,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
-from django.db.utils import IntegrityError
 from django.db.models import Q, QuerySet
+from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
@@ -27,13 +27,6 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
-
-from rest_framework import generics, status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
-
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment,
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
@@ -42,9 +35,11 @@ from immersionlyceens.apps.core.models import (
     TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer,
-    HighSchoolLevelSerializer, OffOfferEventSerializer, StructureSerializer, TrainingDomainSerializer,
-    TrainingSerializer, TrainingHighSchoolSerializer, TrainingSubdomainSerializer, VisitSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer,
+    EstablishmentSerializer, HighSchoolLevelSerializer,
+    OffOfferEventSerializer, StructureSerializer, TrainingDomainSerializer,
+    TrainingHighSchoolSerializer, TrainingSerializer,
+    TrainingSubdomainSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -54,6 +49,11 @@ from immersionlyceens.decorators import (
 )
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
+from rest_framework import generics, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .permissions import CustomDjangoModelPermissions
 
@@ -3488,7 +3488,7 @@ def ajax_send_email_contact_us(request):
 
     # ref-etab mail sending
     try:
-        send_email(recipient, subject, body, f'{firstname} {lastname} <{email}>')
+        send_email(recipient, subject, body, None, f'{firstname} {lastname} <{email}>')
     except Exception as e:
         response['error'] = True
         response['msg'] += gettext("%s : error") % recipient
