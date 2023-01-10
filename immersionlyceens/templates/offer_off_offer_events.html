@@ -48,7 +48,7 @@
     {% if events %}
     <div id="accordion" class="accordion">
       {% regroup events by event.get_etab_or_high_school as establishment_list %}
-      {% for e in establishment_list|dictsort:"grouper.label.lower"  %}
+      {% for e in establishment_list|dictsortlower:"grouper.label"  %}
       <div class="card">
         <div class="card-header card-events" id="establishment{{ forloop.counter }}">
           <h5 class="mb-0 more-less-title">

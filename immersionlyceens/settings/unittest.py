@@ -62,3 +62,8 @@ HOLIDAY_API_MAP = {
     'label': 'nom_jour_ferie'
 }
 HOLIDAY_API_DATE_FORMAT = '%Y-%m-%d'
+
+#######################
+# Email configuration #
+#######################
+EMAIL_BACKEND = 'immersionlyceens.libs.mails.backends.DummyBackend'
