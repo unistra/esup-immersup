@@ -23,3 +23,4 @@ django-admin-sortable2==1.0.4
 pillow==9.4.0
 lxml==4.9.1
 django-countries==7.3.2
+django-cron==0.6.0

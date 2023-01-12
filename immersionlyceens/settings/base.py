@@ -285,7 +285,8 @@ THIRD_PARTY_APPS = [
     'adminsortable2',
     'shibboleth',
     'django_countries',
-    'drf_spectacular'
+    'drf_spectacular',
+    'django_cron',
 ]
 
 LOCAL_APPS = [
@@ -548,6 +549,13 @@ SUMMERNOTE_CONFIG = {
         ],
     },
 }
+
+#########
+# CRONS #
+#########
+CRON_CLASSES = [
+    "immersionlyceens.apps.core.crons.CronTest",
+]
 
 
 ####################
