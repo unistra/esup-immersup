@@ -55,7 +55,7 @@ class CronBase(CronJobBase):
             try:
                 management.call_command(self.command_name, verbosity=0)
             except Exception as e:
-                logger.error("Cannot run command %s : %s" % (command_name, e))
+                logger.error("Cannot run command %s : %s" % (self.command_name, e))
 
 
 class SendCourseAlertsCron(CronBase):
