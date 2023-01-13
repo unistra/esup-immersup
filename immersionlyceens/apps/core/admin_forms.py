@@ -741,7 +741,7 @@ class CalendarForm(forms.ModelForm):
         # existance if an active university year
         univ_years = UniversityYear.objects.filter(active=True)
         if len(univ_years) <= 0:
-            raise forms.ValidationError(_("You have to set an university year"))
+            raise forms.ValidationError(_("You have to set a university year"))
         univ_year = univ_years[0]
 
         # YEAR MODE
@@ -756,25 +756,14 @@ class CalendarForm(forms.ModelForm):
 
         # SEMESTER MODE
         elif calendar_mode and calendar_mode.lower() == Calendar.CALENDAR_MODE[1][0].lower():
-            # if not all(
-            #     [
-            #         s1_start_date,
-            #         s1_end_date,
-            #         s1_registration_start_date,
-            #         s2_start_date,
-            #         s2_end_date,
-            #         s2_registration_start_date,
-            #     ]
-            # ):
-            #     raise forms.ValidationError(_("Mandatory fields not filled in"))
-            if (
-                s1_start_date
-                and s2_start_date
-                and s1_end_date
-                and s2_end_date
-                and s1_registration_start_date
-                and s2_registration_start_date
-            ):
+            semester_dates = [
+                s1_start_date, s1_end_date, s1_registration_start_date,
+                s2_start_date, s2_end_date, s2_registration_start_date,
+            ]
+
+            if not all(semester_dates):
+                raise forms.ValidationError(_("Semester mode requires all dates to be filled in"))
+            else:
                 if s1_start_date < univ_year.start_date or s1_start_date > univ_year.end_date:
                     raise forms.ValidationError(_("semester 1 start date must set between university year dates"))
                 if s2_start_date < univ_year.start_date or s2_start_date > univ_year.end_date:
