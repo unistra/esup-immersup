@@ -30,8 +30,9 @@ from .models import (
     GeneralBachelorTeaching, GeneralSettings, HighSchool, HighSchoolLevel,
     Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
     MailTemplate, MailTemplateVars, OffOfferEventType, Period,
-    PostBachelorLevel, Profile, PublicDocument, PublicType, Structure, StudentLevel,
-    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    PostBachelorLevel, Profile, PublicDocument, PublicType, ScheduledTask,
+    Structure, StudentLevel, Training, TrainingDomain, TrainingSubdomain,
+    UniversityYear, Vacation,
 )
 
 
@@ -1989,11 +1990,20 @@ class ProfileForm(forms.ModelForm):
     """
     User Profiles form class
     """
-
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
         model = Profile
+        fields = '__all__'
+
+
+class ScheduledTaskForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = ScheduledTask
         fields = '__all__'

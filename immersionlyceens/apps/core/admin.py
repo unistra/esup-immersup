@@ -32,8 +32,8 @@ from .admin_forms import (
     ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
     InformationTextForm, MailTemplateForm, OffOfferEventTypeForm, PeriodForm,
     PostBachelorLevelForm, ProfileForm, PublicDocumentForm, PublicTypeForm,
-    StructureForm, StudentLevelForm, TrainingDomainForm, TrainingForm,
-    TrainingSubdomainForm, UniversityYearForm, VacationForm,
+    ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, AttestationDocument, BachelorMention,
@@ -42,9 +42,9 @@ from .models import (
     EvaluationType, FaqEntry, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
     InformationText, MailTemplate, OffOfferEventType, Period,
-    PostBachelorLevel, Profile, PublicDocument, PublicType, Slot, Structure,
-    StudentLevel, Training, TrainingDomain, TrainingSubdomain, UniversityYear,
-    Vacation,
+    PostBachelorLevel, Profile, PublicDocument, PublicType,
+    ScheduledTask, Slot, Structure, StudentLevel, Training, TrainingDomain,
+    TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -2195,9 +2195,9 @@ class TokenCustomAdmin(TokenAdmin, AdminWithRequest):
     def has_delete_permission(self, request, obj=None):
         return self.custom_has_something_permission(request, obj)
 
+
 class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
     form = CustomThemeFileForm
-
 
     def get_list_display(self, request):
         def copy_link_btn(obj):
@@ -2236,7 +2236,6 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
              'all': ('fonts/fontawesome/4.7.0/css/font-awesome.min.css',)
         }
 
-
 class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
 
     form = FaqEntryAdminForm
@@ -2272,6 +2271,35 @@ class FaqEntryAdmin(AdminWithRequest, SortableAdminMixin, admin.ModelAdmin):
     class Media:
         css = {'all': ('css/immersionlyceens.min.css',)}
 
+class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
+    form = ScheduledTaskForm
+    list_display = ('command_name', 'description', 'days')
+    ordering = ('command_name', )
+
+    def days(self, obj):
+        week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        days = ", ".join(filter(lambda day:getattr(obj, day) is True, week_days))
+
+        return days
+
+
+    def has_delete_permission(self, request, obj=None):
+        if not request.user.is_superuser:
+            return False
+
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser or request.user.is_operator():
+            return True
+
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
+        return False
 
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
@@ -2317,3 +2345,4 @@ admin.site.register(PostBachelorLevel, PostBachelorLevelAdmin)
 admin.site.register(StudentLevel, StudentLevelAdmin)
 admin.site.register(CustomThemeFile, CustomThemeFileAdmin)
 admin.site.register(FaqEntry, FaqEntryAdmin)
+admin.site.register(ScheduledTask, ScheduledTaskAdmin)
