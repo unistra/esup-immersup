@@ -476,7 +476,7 @@ FORCE_EMAIL_ADDRESS = None
 
 
 # Displaying apps order in ADMIN
-ADMIN_APPS_ORDER = ['auth', 'core', 'user']
+ADMIN_APPS_ORDER = ['auth', 'core', 'user', 'django_cron']
 
 ADMIN_MODELS_ORDER = {
     'core': [
@@ -512,6 +512,10 @@ ADMIN_MODELS_ORDER = {
         'HighSchoolManager',
         'LegalDepartmentStaff',
     ],
+    'django_cron': [
+        'CronJobLog',
+        'CronJobLock',
+    ]
 }
 
 # Define groups rights on others

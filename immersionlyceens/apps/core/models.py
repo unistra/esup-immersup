@@ -2700,3 +2700,25 @@ class CustomThemeFile(models.Model):
         """Meta class"""
         verbose_name = _('Custom theme file')
         verbose_name_plural = _('Custom theme files')
+
+
+class ScheduledTask(models.Model):
+    command_name = models.CharField(_("Django command name"), max_length=128, unique=True)
+    description = models.CharField(_("Description"), max_length=256)
+    active = models.BooleanField(_("Active"), blank=False, null=False, default=True)
+    time = models.TimeField(_("Execution time"), auto_now=False, auto_now_add=False, blank=False, null=False)
+    monday = models.BooleanField(_("Monday"), blank=True, null=False, default=False)
+    tuesday = models.BooleanField(_("Tuesday"), blank=True, null=False, default=False)
+    wednesday = models.BooleanField(_("Wednesday"), blank=True, null=False, default=False)
+    thursday = models.BooleanField(_("Thursday"), blank=True, null=False, default=False)
+    friday = models.BooleanField(_("Friday"), blank=True, null=False, default=False)
+    saturday = models.BooleanField(_("Saturday"), blank=True, null=False, default=False)
+    sunday = models.BooleanField(_("Sunday"), blank=True, null=False, default=False)
+
+    def __str__(self) -> str:
+        return str(self.command_name)
+
+    class Meta:
+        verbose_name = _('Scheduled task')
+        verbose_name_plural = _('Scheduled tasks')
+        ordering = ['command_name', ]

@@ -29,7 +29,7 @@ from .models import (
     Holiday, ImmersionUser, ImmersionUserGroup, ImmersupFile, InformationText,
     MailTemplate, MailTemplateVars, OffOfferEventType, PostBachelorLevel,
     PublicDocument, PublicType, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
+    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, ScheduledTask
 )
 
 
@@ -1791,4 +1791,14 @@ class CustomThemeFileForm(forms.ModelForm):
 
     class Meta:
         model = CustomThemeFile
+        fields = '__all__'
+
+
+class ScheduledTaskForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = ScheduledTask
         fields = '__all__'
