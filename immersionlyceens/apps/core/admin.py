@@ -1910,8 +1910,25 @@ class CustomThemeFileAdmin(AdminWithRequest, admin.ModelAdmin):
 
 class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
     form = ScheduledTaskForm
-    list_display = ('command_name', 'description', 'days')
-    ordering = ('command_name', )
+    list_display = ('command_name', 'description', 'time', 'days', 'active')
+    ordering = ('command_name', 'time', )
+    list_filter = ('active', )
+
+    fieldsets = (
+        (None, {'fields': (
+            'command_name',
+            'description',
+            'active',
+            'time',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday')}
+         ),
+    )
 
     def days(self, obj):
         week_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -1919,6 +1936,11 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return days
 
+    def get_readonly_fields(self, request, obj=None):
+        user = request.user
+
+        if user.is_operator():
+            return super().get_readonly_fields(request, obj) + ('command_name', 'description')
 
     def has_delete_permission(self, request, obj=None):
         if not request.user.is_superuser:
