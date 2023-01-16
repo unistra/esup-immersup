@@ -1,11 +1,14 @@
 from datetime import datetime
 
 from adminsortable2.admin import SortableAdminMixin
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.core.management import get_commands
 from django.db.models import JSONField, Q
 from django.urls import reverse
+from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
@@ -26,9 +29,9 @@ from .admin_forms import (
     GeneralSettingsForm, HighSchoolForm, HighSchoolLevelForm, HolidayForm,
     ImmersionUserChangeForm, ImmersionUserCreationForm, ImmersupFileForm,
     InformationTextForm, MailTemplateForm, OffOfferEventTypeForm,
-    PostBachelorLevelForm, PublicDocumentForm, PublicTypeForm, StructureForm,
-    StudentLevelForm, TrainingDomainForm, TrainingForm, TrainingSubdomainForm,
-    UniversityYearForm, VacationForm, ScheduledTaskForm
+    PostBachelorLevelForm, PublicDocumentForm, PublicTypeForm,
+    ScheduledTaskForm, StructureForm, StudentLevelForm, TrainingDomainForm,
+    TrainingForm, TrainingSubdomainForm, UniversityYearForm, VacationForm,
 )
 from .models import (
     AccompanyingDocument, AnnualStatistics, BachelorMention, Building,
@@ -37,8 +40,8 @@ from .models import (
     EvaluationType, GeneralBachelorTeaching, GeneralSettings, HighSchool,
     HighSchoolLevel, Holiday, Immersion, ImmersionUser, ImmersupFile,
     InformationText, MailTemplate, OffOfferEventType, PostBachelorLevel,
-    PublicDocument, PublicType, Slot, Structure, StudentLevel, Training,
-    TrainingDomain, TrainingSubdomain, UniversityYear, Vacation, ScheduledTask
+    PublicDocument, PublicType, ScheduledTask, Slot, Structure, StudentLevel,
+    Training, TrainingDomain, TrainingSubdomain, UniversityYear, Vacation,
 )
 
 
@@ -1939,6 +1942,9 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         user = request.user
 
+        if user.is_superuser:
+            return super().get_readonly_fields(request, obj)
+
         if user.is_operator():
             return super().get_readonly_fields(request, obj) + ('command_name', 'description')
 
@@ -1960,10 +1966,32 @@ class ScheduledTaskAdmin(AdminWithRequest, admin.ModelAdmin):
 
         return False
 
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        request = kwargs.pop("request", None)
+
+        if db_field.name == 'command_name':
+            choices_dict = MultiValueDict()
+            for command, app in get_commands().items():
+                # Populate select with immersionlyceens app's tasks commands only !
+                if (app.split('.')[0] == 'immersionlyceens' ):
+                    choices_dict.appendlist(app, command)
+
+            choices = []
+            for key in choices_dict.keys():
+                commands = choices_dict.getlist(key)
+                commands.sort()
+                choices.append([key, [[c, c] for c in commands]])
+
+            choices.insert(0, ('', '---------'))
+            kwargs['widget'] = forms.widgets.Select(choices=choices)
+            return db_field.formfield(**kwargs)
+
+        kwargs['request'] = request
+        return super().formfield_for_dbfield(db_field, **kwargs)
+
 
 admin.site.unregister(TokenProxy)
 admin.site.register(TokenProxy, TokenCustomAdmin)
-
 
 admin.site = CustomAdminSite(name='Repositories')
 
