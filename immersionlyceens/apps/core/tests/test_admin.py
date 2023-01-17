@@ -1401,9 +1401,27 @@ class AdminFormsTestCase(TestCase):
         self.assertIn("You don't have the required privileges", form.errors["__all__"])
         self.assertFalse(Calendar.objects.filter(label=calendar_data['label']).exists())
 
-        # Fail : semester 1 : start date > end date
+        # Fail : semester 1 : missing dates
         request.user = self.ref_master_etab_user
+        data = {
+            'label': 'Calendar year',
+            'calendar_mode': 'SEMESTER',
+            'semester1_registration_start_date': now + datetime.timedelta(days=5),
+            'semester1_start_date': now + datetime.timedelta(days=21),
+            'semester1_end_date': None,
+            'semester2_start_date': now + datetime.timedelta(days=25),
+            'semester2_end_date': None,
+            'semester2_registration_start_date': now + datetime.timedelta(days=26),
+            'global_evaluation_date': now + datetime.timedelta(days=2),
+            'nb_authorized_immersion_per_semester': 2,
+            'year_nb_authorized_immersion': 2,
+        }
 
+        form = CalendarForm(data=data, request=request)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Semester mode requires all dates to be filled in", form.errors["__all__"])
+
+        # Fail : semester 1 : start date > end date
         data = {
             'label': 'Calendar year',
             'calendar_mode': 'SEMESTER',

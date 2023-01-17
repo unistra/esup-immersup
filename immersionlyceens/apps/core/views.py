@@ -82,6 +82,7 @@ def import_holidays(request):
             year = UniversityYear.objects.get(active=True)
         except Exception as exc:
             logger.error(str(exc))
+            messages.warning(request, _("Please add an active University Year first."))
             return redirect(redirect_url)
 
         # get API holidays

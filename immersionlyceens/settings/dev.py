@@ -129,8 +129,7 @@ STAGE = 'Dev'
 # Uncomment/comment below switching to s3 media (uploads) file storage
 # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 # AWS_S3_FILE_OVERWRITE = True
-# AWS_DEFAULT_ACL = None
-# AWS_AUTO_CREATE_BUCKET = True
+# AWS_DEFAULT_ACL = Nonew
 # AWS_S3_ENDPOINT_URL = environ.get('AWS_S3_ENDPOINT_URL')
 # AWS_STORAGE_BUCKET_NAME = environ.get('AWS_STORAGE_BUCKET_NAME', 'immersup')
 # AWS_ACCESS_KEY_ID = environ.get('AWS_ACCESS_KEY_ID')

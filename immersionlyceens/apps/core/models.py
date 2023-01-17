@@ -2302,17 +2302,26 @@ class Slot(models.Model):
             raise ValidationError("You must select one of : Course, Visit or Event")
 
     def __str__(self):
+        date = _("date unknown")
+        start_time = _("start time unknown")
+        end_time = _("end time unknown")
         slot_type = _("No type yet")
-        date = date_format(self.date, format='l d F Y', use_l10n=True) or _("date unknown")
-        start_time = self.start_time.isoformat(timespec='minutes') or _("start time unknown")
-        end_time = self.end_time.isoformat(timespec='minutes') or _("end time unknown")
+
+        if self.date:
+            date = date_format(self.date, format='l d F Y', use_l10n=True)
+
+        if self.start_time:
+            start_time = self.start_time.isoformat(timespec='minutes')
+
+        if self.end_time:
+            end_time = self.end_time.isoformat(timespec='minutes')
 
         if self.visit:
             slot_type = _("Visit - %s") % self.visit.highschool
         elif self.course:
             slot_type = _("Course - %s %s") % (self.course_type, self.course.label)
         elif self.event:
-            slot_type = _(f"Event - %s") % self.event.label
+            slot_type = _("Event - %s") % self.event.label
 
         return f"{slot_type} : {date} : {start_time}-{end_time}"
 
