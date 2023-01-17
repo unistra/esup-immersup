@@ -254,7 +254,7 @@ def register(request, profile=None):
         if form.is_valid():
             new_user = form.save(commit=False)
             # adjustments here
-            new_user.username = form.cleaned_data.get("username")
+            new_user.username = form.cleaned_data.get("username").strip().lower()
             new_user.set_validation_string()
             new_user.destruction_date = datetime.today().date() + timedelta(days=settings.DESTRUCTION_DELAY)
             new_user.save()
