@@ -6,17 +6,11 @@ from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, RelatedDropdownFilter,
 )
 from hijack.contrib.admin import HijackUserAdminMixin
-
 from immersionlyceens.apps.core.admin import (
     ActivationFilter, AdminWithRequest, CustomUserAdmin, HighschoolListFilter,
 )
-
 from immersionlyceens.apps.core.admin_forms import ImmersionUserGroupForm
-
-from immersionlyceens.apps.core.models import (
-    ImmersionUser
-)
-
+from immersionlyceens.apps.core.models import ImmersionUser
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
 )
@@ -24,7 +18,7 @@ from immersionlyceens.apps.immersion.models import (
 from .models import (
     EstablishmentManager, HighSchoolManager, HighSchoolStudent,
     LegalDepartmentStaff, MasterEstablishmentManager, Operator, Speaker,
-    StructureManager, Student, Visitor, UserGroup
+    StructureManager, Student, UserGroup, Visitor,
 )
 
 
@@ -60,6 +54,7 @@ class HighschoolStudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'destruction_date',
         'get_edited_record',
         'get_validated_record',
+        'last_login',
     ]
 
     list_filter = (
@@ -86,6 +81,7 @@ class StudentAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'destruction_date',
         'get_edited_record',
         'get_validated_record',
+        'last_login',
     ]
 
     list_filter = (
@@ -110,6 +106,7 @@ class VisitorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'destruction_date',
         'get_edited_record',
         'get_validated_record',
+        'last_login',
     ]
 
     list_filter = (ValidRecordFilter, )
@@ -128,6 +125,7 @@ class SpeakerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'first_name',
         'last_name',
         'get_establishment',
+        'last_login',
     ]
 
     list_filter = (
@@ -164,6 +162,7 @@ class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'first_name',
         'last_name',
         'get_establishment',
+        'last_login',
     ]
 
     list_filter = (
@@ -195,7 +194,6 @@ class OperatorAdmin(HijackUserAdminMixin, CustomUserAdmin):
         return any(valid_groups)
 
 
-
 class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
     list_display = [
         'username',
@@ -203,6 +201,7 @@ class EstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'first_name',
         'last_name',
         'get_establishment',
+        'last_login',
     ]
 
     list_filter = (
@@ -229,6 +228,7 @@ class MasterEstablishmentManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'first_name',
         'last_name',
         'get_establishment',
+        'last_login',
     ]
 
     list_filter = (
@@ -267,6 +267,7 @@ class HighSchoolManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'first_name',
         'last_name',
         'get_highschool',
+        'last_login',
     ]
 
     list_filter = (
@@ -288,6 +289,7 @@ class StructureManagerAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'last_name',
         'get_establishment',
         'get_structure',
+        'last_login',
     ]
 
     list_filter = (
@@ -321,6 +323,7 @@ class LegalDepartmentStaffAdmin(HijackUserAdminMixin, CustomUserAdmin):
         'first_name',
         'last_name',
         'get_establishment',
+        'last_login',
     ]
 
     list_filter = (
