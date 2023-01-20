@@ -143,7 +143,7 @@ class StudentForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        email = cleaned_data.get("email").strip().lower()
+        email = cleaned_data.get("email", "").strip().lower()
 
         cleaned_data['email'] = email
         return cleaned_data
