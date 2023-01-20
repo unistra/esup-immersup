@@ -96,6 +96,18 @@
 },
 {
   "model": "core.generalsettings",
+  "pk": 10,
+  "fields": {
+    "setting": "CONTACT_FORM_URL",
+    "parameters" : {
+      "description": "Adresse du formulaire de contact",
+      "type": "text",
+      "value": "https://dynamic-forms.app.unistra.fr/form/1/read/1"
+    }
+  }
+},
+{
+  "model": "core.generalsettings",
   "pk": 12,
   "fields": {
     "setting": "CHARTER_SIGN",
