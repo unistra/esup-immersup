@@ -722,14 +722,17 @@ def high_school_student_record(request, student_id=None, record_id=None):
     if calendar.calendar_mode == "YEAR":
         immersion_number = immersions.count()
     else:
-        immersion_number = {
-            "semester_1": immersions.filter(
-                slot__date__lte=calendar.semester1_end_date
-            ).count(),
-            "semester_2": immersions.filter(
-                slot__date__gte=calendar.semester2_start_date
-            ).count(),
-        }
+        if calendar.semester1_end_date and calendar.semester2_start_date:
+            immersion_number = {
+                "semester_1": immersions.filter(
+                    slot__date__lte=calendar.semester1_end_date
+                ).count(),
+                "semester_2": immersions.filter(
+                    slot__date__gte=calendar.semester2_start_date
+                ).count(),
+            }
+        else:
+            immersion_number = 0
 
     context = {
         'calendar': calendar,
@@ -878,14 +881,17 @@ def student_record(request, student_id=None, record_id=None):
     if calendar.calendar_mode == "YEAR":
         immersion_number = immersions.count()
     else:
-        immersion_number = {
-            "semester_1": immersions.filter(
-                slot__date__lte=calendar.semester1_end_date
-            ).count(),
-            "semester_2": immersions.filter(
-                slot__date__gte=calendar.semester2_start_date
-            ).count(),
-        }
+        if calendar.semester1_end_date and calendar.semester2_start_date:
+            immersion_number = {
+                "semester_1": immersions.filter(
+                    slot__date__lte=calendar.semester1_end_date
+                ).count(),
+                "semester_2": immersions.filter(
+                    slot__date__gte=calendar.semester2_start_date
+                ).count(),
+            }
+        else:
+            immersion_number = 0
 
     context = {
         'no_record': no_record,
@@ -1093,14 +1099,17 @@ class VisitorRecordView(FormView):
         if calendar.calendar_mode == "YEAR":
             immersion_number = immersions.count()
         else:
-            immersion_number = {
-                "semester_1": immersions.filter(
-                    slot__date__lte=calendar.semester1_end_date
-                ).count(),
-                "semester_2": immersions.filter(
-                    slot__date__gte=calendar.semester2_start_date
-                ).count(),
-            }
+            if calendar.semester1_end_date and calendar.semester2_start_date:
+                immersion_number = {
+                    "semester_1": immersions.filter(
+                        slot__date__lte=calendar.semester1_end_date
+                    ).count(),
+                    "semester_2": immersions.filter(
+                        slot__date__gte=calendar.semester2_start_date
+                    ).count(),
+                }
+            else:
+                immersion_number = 0
 
         if record:
             context.update({"record": record})  # for modal nuke purpose

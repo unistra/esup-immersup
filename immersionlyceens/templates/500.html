@@ -9,6 +9,9 @@
       <div class="col">
         <h1>{% trans 'Error' %} : {% trans 'something is broken on the server' %}</h1>
         <p class="text-center">{% trans "Don't worry it's not you, it's our fault!" %}</p>
+        {% if error %}
+            <p class="text-center">{{ error }}</p>
+        {% endif %}
       </div>
     </div>
   </div>
