@@ -98,6 +98,8 @@
       } else {
         $("#are_u_human_group").removeClass('is-invalid');
         $("#are_u_human").removeClass('is-invalid');
+        $('form input[type=submit]').prop('disabled', true);
+        $(this).unbind('submit').submit();
         $.ajax({
           url: "{% url 'SendEmailContactUs' %}",
           type: 'POST',
