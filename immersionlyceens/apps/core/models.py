@@ -605,28 +605,38 @@ class ImmersionUser(AbstractUser):
             return remaining
 
         if calendar.calendar_mode == 'SEMESTER':
-            current_semester_1_regs = self.immersions.filter(
-                slot__date__gte=calendar.semester1_start_date,
-                slot__date__lte=calendar.semester1_end_date,
-                cancellation_type__isnull=True,
-                slot__event__isnull=True,
-                slot__visit__isnull=True,
-            ).count()
-            current_semester_2_regs = self.immersions.filter(
-                slot__date__gte=calendar.semester2_start_date,
-                slot__date__lte=calendar.semester2_end_date,
-                cancellation_type__isnull=True,
-                slot__event__isnull=True,
-                slot__visit__isnull=True,
-            ).count()
+            if not calendar.semester1_start_date or not calendar.semester1_end_date:
+                current_semester_1_regs = 0
+            else:
+                current_semester_1_regs = self.immersions.filter(
+                    slot__date__gte=calendar.semester1_start_date,
+                    slot__date__lte=calendar.semester1_end_date,
+                    cancellation_type__isnull=True,
+                    slot__event__isnull=True,
+                    slot__visit__isnull=True,
+                ).count()
+
+            if not calendar.semester2_start_date or not calendar.semester2_end_date:
+                current_semester_2_regs = 0
+            else:
+                current_semester_2_regs = self.immersions.filter(
+                    slot__date__gte=calendar.semester2_start_date,
+                    slot__date__lte=calendar.semester2_end_date,
+                    cancellation_type__isnull=True,
+                    slot__event__isnull=True,
+                    slot__visit__isnull=True,
+                ).count()
         else:
-            current_year_regs = self.immersions.filter(
-                slot__date__gte=calendar.year_start_date,
-                slot__date__lte=calendar.year_end_date,
-                cancellation_type__isnull=True,
-                slot__event__isnull=True,
-                slot__visit__isnull=True,
-            ).count()
+            if not calendar.year_start_date or not calendar.year_end_date:
+                current_year_regs = 0
+            else:
+                current_year_regs = self.immersions.filter(
+                    slot__date__gte=calendar.year_start_date,
+                    slot__date__lte=calendar.year_end_date,
+                    cancellation_type__isnull=True,
+                    slot__event__isnull=True,
+                    slot__visit__isnull=True,
+                ).count()
 
         return {
             'semester1': (record.allowed_first_semester_registrations or 0) - current_semester_1_regs,
@@ -1311,8 +1321,19 @@ class Calendar(models.Model):
 
     def date_is_between(self, _date):
         if self.calendar_mode == 'YEAR':
+            if not self.year_start_date or not self.year_end_date:
+                return False
+
             return self.year_start_date <= _date and _date <= self.year_end_date
         else:
+            if not all([
+                self.semester1_start_date,
+                self.semester1_end_date,
+                self.semester2_start_date,
+                self.semester2_end_date
+            ]):
+                return False
+
             return (self.semester1_start_date <= _date <= self.semester1_end_date) or (
                 self.semester2_start_date <= _date <= self.semester2_end_date
             )
@@ -1320,10 +1341,14 @@ class Calendar(models.Model):
 
     def which_semester(self, _date):
         if self.calendar_mode == 'SEMESTER':
-            if self.semester1_start_date <= _date <= self.semester1_end_date:
-                return 1
-            elif self.semester2_start_date <= _date <= self.semester2_end_date:
-                return 2
+            if self.semester1_start_date and self.semester1_end_date:
+                if self.semester1_start_date <= _date <= self.semester1_end_date:
+                    return 1
+
+            if self.semester2_start_date and self.semester2_end_date:
+                if self.semester2_start_date <= _date <= self.semester2_end_date:
+                    return 2
+
         return None
 
 
