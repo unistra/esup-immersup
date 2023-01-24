@@ -3486,8 +3486,9 @@ def ajax_send_email_contact_us(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # ref-etab mail sending
+    # Ref-etab mail sending
     try:
+        body = _('Mail sent by %s from contact form') % f'{firstname} {lastname} <{email}>' + '\n\n' + body
         send_email(recipient, subject, body, None, f'{firstname} {lastname} <{email}>')
     except Exception as e:
         response['error'] = True
