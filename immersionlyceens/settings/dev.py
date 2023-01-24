@@ -9,7 +9,7 @@ from .base import *
 # Debug configuration #
 #######################
 
-DEBUG = False
+DEBUG = True
 
 
 ##########################
