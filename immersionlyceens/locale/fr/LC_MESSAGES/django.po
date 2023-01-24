@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-20 15:16+0100\n"
+"POT-Creation-Date: 2023-01-24 10:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -208,9 +208,9 @@ msgstr "comptes lyc/etu activés"
 #: immersionlyceens/apps/core/admin.py:266
 #: immersionlyceens/apps/core/admin.py:1562
 #: immersionlyceens/apps/user/admin.py:30
-#: immersionlyceens/libs/api/views.py:3752
-#: immersionlyceens/libs/api/views.py:3815
+#: immersionlyceens/libs/api/views.py:3753
 #: immersionlyceens/libs/api/views.py:3816
+#: immersionlyceens/libs/api/views.py:3817
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:35
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:45
 #: immersionlyceens/templates/core/common_slot.html:1356
@@ -249,9 +249,9 @@ msgstr "Oui"
 #: immersionlyceens/apps/core/admin.py:266
 #: immersionlyceens/apps/core/admin.py:1562
 #: immersionlyceens/apps/user/admin.py:30
-#: immersionlyceens/libs/api/views.py:3752
-#: immersionlyceens/libs/api/views.py:3815
+#: immersionlyceens/libs/api/views.py:3753
 #: immersionlyceens/libs/api/views.py:3816
+#: immersionlyceens/libs/api/views.py:3817
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:36
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:46
 #: immersionlyceens/templates/core/common_slot.html:1363
@@ -1136,7 +1136,7 @@ msgstr "Un courriel de confirmation a été envoyé à l'adresse {}"
 #: immersionlyceens/apps/core/models.py:458
 #: immersionlyceens/apps/core/views.py:358
 #: immersionlyceens/apps/core/views.py:588
-#: immersionlyceens/libs/api/views.py:3514
+#: immersionlyceens/libs/api/views.py:3515
 #, python-format
 msgid "Couldn't send email : %s"
 msgstr "Courriel non envoyé : %s"
@@ -1602,7 +1602,7 @@ msgstr "Courriel non envoyé : modèle %s non trouvé ou désactivé"
 #: immersionlyceens/apps/user/models.py:27
 #: immersionlyceens/libs/api/views.py:2871
 #: immersionlyceens/libs/api/views.py:3324
-#: immersionlyceens/libs/api/views.py:3580
+#: immersionlyceens/libs/api/views.py:3581
 #: immersionlyceens/libs/tests/test_api.py:2593
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:23
 msgid "Visitor"
@@ -2415,7 +2415,7 @@ msgstr "Absent(e)"
 #: immersionlyceens/apps/user/models.py:19
 #: immersionlyceens/libs/api/views.py:2852
 #: immersionlyceens/libs/api/views.py:3305
-#: immersionlyceens/libs/api/views.py:3574
+#: immersionlyceens/libs/api/views.py:3575
 #: immersionlyceens/libs/tests/test_api.py:2597
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:21
 #: immersionlyceens/templates/core/students_presence.html:48
@@ -3373,7 +3373,7 @@ msgstr "Utilisateurs"
 #: immersionlyceens/apps/user/models.py:11
 #: immersionlyceens/libs/api/views.py:2861
 #: immersionlyceens/libs/api/views.py:3314
-#: immersionlyceens/libs/api/views.py:3570
+#: immersionlyceens/libs/api/views.py:3571
 #: immersionlyceens/libs/tests/test_api.py:1021
 #: immersionlyceens/libs/tests/test_api.py:1098
 #: immersionlyceens/libs/tests/test_api.py:2595
@@ -3689,7 +3689,7 @@ msgstr "Erreur : utilisateur non trouvé"
 #: immersionlyceens/libs/api/views.py:3373
 #: immersionlyceens/libs/api/views.py:3406
 #: immersionlyceens/libs/api/views.py:3433
-#: immersionlyceens/libs/api/views.py:3613
+#: immersionlyceens/libs/api/views.py:3614
 #: immersionlyceens/templates/admin/core/modals/modal_mail_template_preview.html:43
 msgid "Remote"
 msgstr "Distanciel"
@@ -3829,7 +3829,7 @@ msgstr "Erreur : créneau non trouvé"
 
 #: immersionlyceens/libs/api/views.py:2000
 #: immersionlyceens/libs/api/views.py:2010
-#: immersionlyceens/libs/api/views.py:3494
+#: immersionlyceens/libs/api/views.py:3495
 #, python-format
 msgid "%s : error"
 msgstr "%s : erreur"
@@ -4387,108 +4387,113 @@ msgstr "profil de l'inscrit "
 msgid "Config parameter not found"
 msgstr "Paramêtre de configuration non trouvé"
 
-#: immersionlyceens/libs/api/views.py:3638
+#: immersionlyceens/libs/api/views.py:3491
+#, python-format
+msgid "Mail sent by %s from contact form"
+msgstr "Courriel envoyé par %s depuis le formulaire de contact"
+
+#: immersionlyceens/libs/api/views.py:3639
 msgid "Invalid parameter : course not found"
 msgstr "Paramètre invalide : cours non trouvé"
 
-#: immersionlyceens/libs/api/views.py:3645
+#: immersionlyceens/libs/api/views.py:3646
 msgid "Invalid email format"
 msgstr "Format de l'adresse incorrect"
 
-#: immersionlyceens/libs/api/views.py:3657
+#: immersionlyceens/libs/api/views.py:3658
 msgid "You have already set an alert on this course"
 msgstr "Vous avez déjà enregistré une alerte pour ce cours"
 
-#: immersionlyceens/libs/api/views.py:3660
+#: immersionlyceens/libs/api/views.py:3661
 msgid "Alert successfully set"
 msgstr "Alerte enregistrée"
 
-#: immersionlyceens/libs/api/views.py:3710
+#: immersionlyceens/libs/api/views.py:3711
 msgid "Alert successfully cancelled"
 msgstr "Alerte annulée"
 
-#: immersionlyceens/libs/api/views.py:3712
-#: immersionlyceens/libs/api/views.py:3775
+#: immersionlyceens/libs/api/views.py:3713
+#: immersionlyceens/libs/api/views.py:3776
 msgid "Invalid parameter"
 msgstr "Paramètre invalide"
 
-#: immersionlyceens/libs/api/views.py:3784
-#: immersionlyceens/libs/api/views.py:3790
+#: immersionlyceens/libs/api/views.py:3785
+#: immersionlyceens/libs/api/views.py:3791
 msgid "An error occurred while clearing duplicates data"
 msgstr ""
 "Une erreur est survenue lors de la suppression des données de dédoublonnage"
 
-#: immersionlyceens/libs/api/views.py:3792
+#: immersionlyceens/libs/api/views.py:3793
 msgid "Duplicates data cleared"
 msgstr "Données de dédoublonnage supprimées"
 
-#: immersionlyceens/libs/api/views.py:3838
+#: immersionlyceens/libs/api/views.py:3839
 msgid "User removed from your group"
 msgstr "Utilisateur supprimé de votre groupe"
 
-#: immersionlyceens/libs/api/views.py:4105
+#: immersionlyceens/libs/api/views.py:4106
 msgid "Some courses are attached to this training: delete not allowed"
 msgstr "Des cours sont rattachés à cette formation : Suppression impossible"
 
-#: immersionlyceens/libs/api/views.py:4110
+#: immersionlyceens/libs/api/views.py:4111
 #, python-format
 msgid "Training #%s deleted"
 msgstr "Formation #%s supprimée."
 
-#: immersionlyceens/libs/api/views.py:4202
-#: immersionlyceens/libs/api/views.py:4303
+#: immersionlyceens/libs/api/views.py:4203
+#: immersionlyceens/libs/api/views.py:4304
 msgid "Nothing to delete"
 msgstr "Aucune visite à supprimer"
 
-#: immersionlyceens/libs/api/views.py:4214
-#: immersionlyceens/libs/api/views.py:4316
+#: immersionlyceens/libs/api/views.py:4215
+#: immersionlyceens/libs/api/views.py:4317
 msgid "Insufficient privileges"
 msgstr "Droits insuffisants"
 
-#: immersionlyceens/libs/api/views.py:4220
+#: immersionlyceens/libs/api/views.py:4221
 msgid "Some slots are attached to this visit: it can't be deleted"
 msgstr "Des créneaux sont liés à cette visite : suppression impossible"
 
-#: immersionlyceens/libs/api/views.py:4226
+#: immersionlyceens/libs/api/views.py:4227
 msgid "Visit successfully deleted"
 msgstr "Visite supprimée avec succès"
 
-#: immersionlyceens/libs/api/views.py:4322
+#: immersionlyceens/libs/api/views.py:4323
 msgid "Some slots are attached to this event: it can't be deleted"
 msgstr "Des créneaux sont liés à cet évènement : suppression impossible"
 
-#: immersionlyceens/libs/api/views.py:4328
+#: immersionlyceens/libs/api/views.py:4329
 msgid "Off offer event successfully deleted"
 msgstr "Évènement hors offre supprimé avec succès"
 
-#: immersionlyceens/libs/api/views.py:4375
+#: immersionlyceens/libs/api/views.py:4376
 msgid "No operator given or wrong operator (to_validate, validated, rejected)"
 msgstr "Operateur introuvable ou incorrect (to_validate, validated, rejected)"
 
-#: immersionlyceens/libs/api/views.py:4442
+#: immersionlyceens/libs/api/views.py:4443
 msgid "Charter successfully signed"
 msgstr "Charte signée avec succès"
 
-#: immersionlyceens/libs/api/views.py:4444
+#: immersionlyceens/libs/api/views.py:4445
 #: immersionlyceens/templates/charter_not_signed.html:9
 msgid "Charter not signed"
 msgstr "Charte non signée"
 
-#: immersionlyceens/libs/api/views.py:4541
+#: immersionlyceens/libs/api/views.py:4542
 msgid "No body for this template provided"
 msgstr "Le corps du message n'est pas présent"
 
-#: immersionlyceens/libs/api/views.py:4547
+#: immersionlyceens/libs/api/views.py:4548
 #, python-format
 msgid "Template #%s can't be found"
 msgstr "Le modèle #%s est introuvable"
 
-#: immersionlyceens/libs/api/views.py:4559
+#: immersionlyceens/libs/api/views.py:4560
 #, python-format
 msgid "A syntax error has been found in template #%s"
 msgstr "Une erreur de syntaxe a été détectée dans le modèle #%s"
 
-#: immersionlyceens/libs/api/views.py:4579
+#: immersionlyceens/libs/api/views.py:4580
 msgid ""
 "An error occurred while running annual purge command. For more details, "
 "please contact the administrator."
@@ -4496,7 +4501,7 @@ msgstr ""
 "Une erreur est survenue lors de l'exécution de la purge annuelle. Pour plus "
 "de détails, merci de contacter l'administrateur."
 
-#: immersionlyceens/libs/api/views.py:4589
+#: immersionlyceens/libs/api/views.py:4590
 msgid ""
 "An error occurred while deleting expired LDAP accounts. For more details, "
 "please contact the administrator."
@@ -6941,7 +6946,7 @@ msgid "Receive a copy of this email ?"
 msgstr "Recevoir une copie de ce courriel ?"
 
 #: immersionlyceens/templates/modals/modal_contact.html:64
-#: immersionlyceens/templates/modals/modal_contact_us.html:119
+#: immersionlyceens/templates/modals/modal_contact_us.html:121
 msgid "Message successfully sent"
 msgstr "Message envoyé avec succès"
 
