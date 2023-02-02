@@ -1,10 +1,12 @@
 import datetime
 import mimetypes
 import os
+import sys
+import requests
+
 from email.policy import default
 from wsgiref.util import FileWrapper
 
-import requests
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models.query_utils import Q
@@ -18,13 +20,14 @@ from django.utils.translation import gettext, gettext_lazy as _
 from django.views import generic
 from storages.backends.s3boto3 import S3Boto3Storage
 
+from immersionlyceens.exceptions import DisplayException
+
 from immersionlyceens.apps.core.models import (
     AccompanyingDocument, Calendar, Course, ImmersupFile, InformationText,
     PublicDocument, PublicType, Slot, Training, TrainingSubdomain,
     UserCourseAlert, Visit,
 )
 from immersionlyceens.libs.utils import get_general_setting
-
 
 def home(request):
     """Homepage view"""
@@ -201,6 +204,7 @@ def serve_immersup_file(request, file_code):
 def offer_subdomain(request, subdomain_id):
     """Subdomain offer view"""
     student = None
+    record = None
     calendar = None
     cal_start_date = None
     cal_end_date = None
@@ -239,6 +243,7 @@ def offer_subdomain(request, subdomain_id):
     # TODO: poc for now maybe refactor dirty code in a model method !!!!
     today = datetime.datetime.today().date()
     reg_start_date = reg_end_date = datetime.date(1, 1, 1)
+
     try:
         # Year mode
         if calendar and calendar.calendar_mode == 'YEAR':
@@ -247,20 +252,22 @@ def offer_subdomain(request, subdomain_id):
             reg_start_date = calendar.year_registration_start_date
         # semester mode
         elif calendar:
-            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+            if calendar.which_semester(today) == 1:
                 semester = 1
                 cal_start_date = calendar.semester1_start_date
                 cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester1_registration_start_date
                 reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+            elif calendar.which_semester(today) == 2:
                 semester = 2
                 cal_start_date = calendar.semester2_start_date
                 cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester2_registration_start_date
+            else:
+                raise AttributeError
 
-    except AttributeError:
-        raise Exception(_('Calendar not initialized'))
+    except (AttributeError, TypeError):
+        raise DisplayException(_('Calendar not initialized'), display=True)
 
     for training in trainings:
         training_courses = (
@@ -367,7 +374,7 @@ def visits_offer(request):
     filters = {}
     today = timezone.now().date()
     student = None
-    course_alerts = None
+    record = None
     Q_filter = None
 
     try:
@@ -397,7 +404,8 @@ def visits_offer(request):
     filters["date__gte"] = today
     visits = Slot.objects.prefetch_related(
             'visit__establishment', 'visit__structure', 'visit__highschool', 'speakers', 'immersions') \
-            .filter(**filters).order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
+            .filter(**filters)\
+            .order_by('visit__highschool__city', 'visit__highschool__label', 'visit__purpose', 'date')
 
     if Q_filter:
         visits = visits.filter(Q_filter)
@@ -415,25 +423,23 @@ def visits_offer(request):
     try:
         # Year mode
         if calendar and calendar.calendar_mode == 'YEAR':
-            cal_start_date = calendar.year_registration_start_date
             cal_end_date = calendar.year_end_date
             reg_start_date = calendar.year_registration_start_date
         # semester mode
         elif calendar:
-            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+            if calendar.which_semester(today) == 1:
                 semester = 1
-                cal_start_date = calendar.semester1_start_date
                 cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester1_registration_start_date
                 reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+            elif calendar.which_semester(today) == 2:
                 semester = 2
-                cal_start_date = calendar.semester2_start_date
                 cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester2_registration_start_date
-
-    except AttributeError:
-        raise Exception(_('Calendar not initialized'))
+        else:
+            raise AttributeError
+    except (AttributeError, TypeError):
+        raise DisplayException(_('Calendar not initialized'), display=True)
 
     # If the current user is a higschool student, check whether he can register
     if student and record:
@@ -479,8 +485,6 @@ def visits_offer(request):
 
     visits_count = visits.count()
 
-
-
     context = {
         'visits_count': visits_count,
         'visits_txt': visits_txt,
@@ -495,11 +499,13 @@ def offer_off_offer_events(request):
     filters = {}
     today = timezone.now().date()
     student = None
+    record = None
     calendar = None
-    cal_start_date = None
     cal_end_date = None
     reg_start_date = None
     Q_Filter = None
+    semester = None
+
 
     if not request.user.is_anonymous \
         and (request.user.is_high_school_student() or request.user.is_student() or request.user.is_visitor()):
@@ -544,27 +550,25 @@ def offer_off_offer_events(request):
     try:
         # Year mode
         if calendar and calendar.calendar_mode == 'YEAR':
-            cal_start_date = calendar.year_registration_start_date
             cal_end_date = calendar.year_end_date
             reg_start_date = calendar.year_registration_start_date
         # semester mode
         elif calendar:
-            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+            if calendar.which_semester(today) == 1:
                 semester = 1
-                cal_start_date = calendar.semester1_start_date
                 cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester1_registration_start_date
                 reg_semester2_start_date = calendar.semester2_registration_start_date
-            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+            elif calendar.which_semester(today) == 2:
                 semester = 2
-                cal_start_date = calendar.semester2_start_date
                 cal_end_date = calendar.semester2_end_date
                 reg_start_date = calendar.semester2_registration_start_date
+            else:
+                raise AttributeError
+    except (AttributeError, TypeError):
+        raise DisplayException(_('Calendar not initialized'), display=True)
 
-    except AttributeError:
-        raise Exception(_('Calendar not initialized'))
-
-    # If the current user is a stident/highschool student, check whether he can register
+    # If the current user is a student/highschool student, check whether he can register
     if student and record:
         for event in events:
             event.already_registered = False
@@ -625,5 +629,12 @@ def charter_not_signed(request):
     return render(request, 'charter_not_signed.html', context)
 
 
-def error_500(request):
-    return render(request, '500.html', status=500)
+def error_500(request, *args, **kwargs):
+    context = {}
+    type_, exc, traceback = sys.exc_info()
+    display = getattr(exc, "display", False)
+
+    if display:
+        context["error"] = str(exc)
+
+    return render(request, '500.html', context, status=500)

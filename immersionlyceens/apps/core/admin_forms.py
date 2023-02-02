@@ -848,7 +848,7 @@ class ImmersionUserCreationForm(UserCreationForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        email = cleaned_data.get("email").strip().lower()
+        email = cleaned_data.get("email", "").strip().lower()
 
         if ImmersionUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
             self.add_error('email', _("This email address is already used"))

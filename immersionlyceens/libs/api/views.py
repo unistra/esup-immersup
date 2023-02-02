@@ -1649,7 +1649,7 @@ def ajax_slot_registration(request):
         # semester mode
         elif calendar:
             # Semester 1
-            if calendar.semester1_start_date <= today <= calendar.semester1_end_date:
+            if calendar.which_semester(today) == 1:
                 if calendar.semester1_registration_start_date <= today <= calendar.semester1_end_date:
                     # remaining regs ok
                     if remaining_regs_count['semester1'] > 0 or visit_or_off_offer:
@@ -1680,7 +1680,7 @@ def ajax_slot_registration(request):
                         return JsonResponse(response, safe=False)
 
             # Semester 2
-            elif calendar.semester2_start_date <= today <= calendar.semester2_end_date:
+            elif calendar.which_semester(today) == 2:
                 if calendar.semester2_registration_start_date <= today <= calendar.semester2_end_date:
                     # remaining regs ok
                     if remaining_regs_count['semester2'] > 0 or visit_or_off_offer:
@@ -3486,8 +3486,9 @@ def ajax_send_email_contact_us(request):
         response = {'error': True, 'msg': gettext("Invalid parameters")}
         return JsonResponse(response, safe=False)
 
-    # ref-etab mail sending
+    # Ref-etab mail sending
     try:
+        body = _('Mail sent by %s from contact form') % f'{firstname} {lastname} ({email})' + '<br><br>' + body
         send_email(recipient, subject, body, None, f'{firstname} {lastname} <{email}>')
     except Exception as e:
         response['error'] = True

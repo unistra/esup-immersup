@@ -102,7 +102,7 @@
     "parameters" : {
       "description": "Adresse du formulaire de contact",
       "type": "text",
-      "value": "https://dynamic-forms.app.unistra.fr/form/1/read/1"
+      "value": ""
     }
   }
 },
