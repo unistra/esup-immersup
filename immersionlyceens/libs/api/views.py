@@ -4048,13 +4048,14 @@ class CourseList(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
     """
 
-class BuildingList(generics.ListAPIView):
+class BuildingList(generics.ListCreateAPIView):
     """
     Buildings list
     """
     serializer_class = BuildingSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['campus', ]
+    permission_classes = [CustomDjangoModelPermissions]
 
     def get_queryset(self):
         user = self.request.user
@@ -4068,6 +4069,13 @@ class BuildingList(generics.ListAPIView):
                 return queryset.filter(campus__establishment=user.establishment)
 
         return queryset
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
 class GetEstablishment(generics.RetrieveAPIView):

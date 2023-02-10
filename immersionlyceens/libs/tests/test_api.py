@@ -331,7 +331,7 @@ class APITestCase(TestCase):
         )
         cls.highschool_course.speakers.add(cls.highschool_speaker)
 
-        cls.campus = Campus.objects.create(label='Esplanade')
+        cls.campus = Campus.objects.create(label='Esplanade', establishment=cls.establishment)
         cls.building = Building.objects.create(label='Le portique', campus=cls.campus)
         cls.course_type = CourseType.objects.create(label='CM')
 
@@ -3064,6 +3064,99 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertTrue(Campus.objects.filter(label='Campus test A', active=True).exists())
         self.assertTrue(Campus.objects.filter(label='Campus test B', active=False).exists())
+
+
+    def test_building(self):
+        url = reverse("building_list")
+        view_permission = Permission.objects.get(codename='view_building')
+        add_permission = Permission.objects.get(codename='add_building')
+
+        building = Building.objects.create(
+            label='Building', campus=self.campus, url='http://test.fr', active=True
+        )
+
+        # GET
+        client = Client()
+        client.login(username='ref_etab', password='pass')
+
+        response = client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode('utf-8'))
+
+        print(content)
+
+        self.assertEqual(content[0]['label'], building.label)
+
+        # with API user
+        # List (GET)
+        self.assertTrue(Building.objects.exists())
+
+        # Without permission
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all buildings are there
+        for building in Building.objects.all():
+            self.assertTrue(building.id in [b['id'] for b in result])
+
+        # Creation (POST)
+        self.assertFalse(Building.objects.filter(label='Building Test').exists())
+        data = {
+            "label": "Building Test",
+            "active": True,
+            "url": "http://my-building.fr",
+            "campus": self.campus.id
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('label'), "Building Test")
+        self.assertTrue(Building.objects.filter(label='Building Test').exists())
+
+        # Duplicated label with the same campus : error
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {
+            'non_field_errors': ['A Building object with the same campus and label already exists']
+        })
+
+        # Create multiple buildings at once
+        # Mind the content_type, as test Client expects a dict and not a list
+        self.assertFalse(Building.objects.filter(label='Building test A').exists())
+        self.assertFalse(Building.objects.filter(label='Building test B').exists())
+        data = [{
+            "label": "Building test A",
+            "active": True,
+            "url": "https://url.test",
+            "campus": self.campus.id
+        }, {
+            "label": "Building test B",
+            "active": False,
+            "url": "https://another.test",
+            "campus": self.campus.id
+        }]
+
+        response = self.api_client_token.post(url, json.dumps(data), content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(Building.objects.filter(label='Building test A', active=True).exists())
+        self.assertTrue(Building.objects.filter(label='Building test B', active=False).exists())
 
 
     def test_high_school_speakers(self):

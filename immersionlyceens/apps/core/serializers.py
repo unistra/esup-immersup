@@ -110,6 +110,27 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class BuildingSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        excludes = {}
+        label_filter = {'label__iexact': attrs.get('label')}
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            label_filter = {'label__unaccent__iexact': attrs.get('label')}
+
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
+
+        if Building.objects.filter(
+                campus=attrs.get('campus'),
+                **label_filter
+            ).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A Building object with the same campus and label already exists")
+            )
+
+        return super().validate(attrs)
+
     class Meta:
         model = Building
         fields = "__all__"

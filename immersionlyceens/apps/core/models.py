@@ -1049,7 +1049,13 @@ class Building(models.Model):
 
     class Meta:
         verbose_name = _('Building')
-        unique_together = ('campus', 'label')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'campus'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_building'
+            ),
+        ]
         ordering = ['label', ]
 
 
