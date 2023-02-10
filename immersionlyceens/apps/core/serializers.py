@@ -2,6 +2,7 @@
 """Serializer"""
 
 from rest_framework import serializers, status
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext, gettext_lazy as _
 from django.db.models import Q
 from django.conf import settings
@@ -17,6 +18,37 @@ class ImmersionUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImmersionUser
         fields = ('last_name', 'first_name', 'email')
+
+
+class SpeakerSerializer(ImmersionUserSerializer):
+    def validate(self, attrs):
+        # Note : email (account) unicity is checked before serializer validation
+        establishment = attrs.get('establishment', None)
+        highschool = attrs.get('highschool', None)
+
+        if not establishment and not highschool:
+            raise serializers.ValidationError(_("Either an establishment or a high school is mandatory"))
+
+        if establishment and establishment.data_source_plugin:
+            raise serializers.ValidationError(
+                _("Establishment '%s' has an account plugin, please create the speakers in the admin interface")
+                % establishment.short_label
+            )
+
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        try:
+            user = super().create(validated_data)
+            Group.objects.get(name='INTER').user_set.add(user)
+        except Exception as e:
+            raise
+
+        return user
+
+    class Meta:
+        model = ImmersionUser
+        fields = ('last_name', 'first_name', 'email', 'establishment', 'id', 'highschool')
 
 
 class CampusSerializer(serializers.ModelSerializer):
@@ -140,6 +172,36 @@ class HighSchoolViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = HighSchool
         fields = ("id", "city", "label")
+
+
+class HighSchoolSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        excludes = {}
+        filters = {
+            'label__iexact': attrs.get('label'),
+            'city__iexact': attrs.get('city')
+        }
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            filters = {
+                'label__unaccent__iexact': attrs.get('label'),
+                'city__unaccent__iexact': attrs.get('city'),
+            }
+
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
+
+        if HighSchool.objects.filter(**filters).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A high school object with the same label and city already exists")
+            )
+
+        return super().validate(attrs)
+
+    class Meta:
+        model = HighSchool
+        fields = "__all__"
 
 
 class TrainingSerializer(serializers.ModelSerializer):

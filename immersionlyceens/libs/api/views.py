@@ -35,10 +35,9 @@ from immersionlyceens.apps.core.models import (
     TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer,
-    EstablishmentSerializer, HighSchoolLevelSerializer,
-    OffOfferEventSerializer, StructureSerializer, TrainingDomainSerializer,
-    TrainingHighSchoolSerializer, TrainingSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer, HighSchoolSerializer,
+    HighSchoolLevelSerializer, OffOfferEventSerializer, ImmersionUserSerializer, SpeakerSerializer,
+    StructureSerializer, TrainingDomainSerializer, TrainingHighSchoolSerializer, TrainingSerializer,
     TrainingSubdomainSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
@@ -3982,6 +3981,50 @@ class TrainingSubdomainList(generics.ListCreateAPIView):
     model = TrainingSubdomain
     queryset = TrainingSubdomain.objects.all()
     serializer_class = TrainingSubdomainSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    # Auth : default (see settings/base.py)
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class SpeakerList(generics.ListCreateAPIView):
+    """
+    Speakers (only) list / creation
+    """
+    model = ImmersionUser
+    queryset = ImmersionUser.objects.filter(groups__name='INTER')
+    serializer_class = SpeakerSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    # Auth : default (see settings/base.py)
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class HighSchoolList(generics.ListCreateAPIView):
+    """
+    High schools list / creation
+    """
+    model = HighSchool
+    queryset = HighSchool.objects.all()
+    serializer_class = HighSchoolSerializer
     permission_classes = [CustomDjangoModelPermissions]
     # Auth : default (see settings/base.py)
 

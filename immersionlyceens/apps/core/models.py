@@ -194,12 +194,7 @@ class HighSchool(models.Model):
     )
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
-
-    objects = models.Manager()  # default manager
-    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
-
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
-    immersions_proposal = PostBacImmersionManager()
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     logo = models.ImageField(
@@ -220,12 +215,22 @@ class HighSchool(models.Model):
     certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
 
+    objects = models.Manager()  # default manager
+    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
+    immersions_proposal = PostBacImmersionManager()
+
     def __str__(self):
         return f"{self.city} - {self.label}"
 
     class Meta:
         verbose_name = _('High school')
-        unique_together = ('label', 'city')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'city'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_highschool'
+            ),
+        ]
         ordering = ['city', 'label', ]
 
 

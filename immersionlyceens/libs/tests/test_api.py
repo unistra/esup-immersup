@@ -2980,7 +2980,7 @@ class APITestCase(TestCase):
         self.assertEqual(r2.solved_duplicates, f"{self.hs_record.id}")
 
 
-    def test_campus(self):
+    def test_campus_list(self):
         url = reverse("campus_list")
         view_permission = Permission.objects.get(codename='view_campus')
         add_permission = Permission.objects.get(codename='add_campus')
@@ -3066,7 +3066,7 @@ class APITestCase(TestCase):
         self.assertTrue(Campus.objects.filter(label='Campus test B', active=False).exists())
 
 
-    def test_building(self):
+    def test_building_list(self):
         url = reverse("building_list")
         view_permission = Permission.objects.get(codename='view_building')
         add_permission = Permission.objects.get(codename='add_building')
@@ -3082,8 +3082,6 @@ class APITestCase(TestCase):
         response = client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
-
-        print(content)
 
         self.assertEqual(content[0]['label'], building.label)
 
@@ -3157,6 +3155,152 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertTrue(Building.objects.filter(label='Building test A', active=True).exists())
         self.assertTrue(Building.objects.filter(label='Building test B', active=False).exists())
+
+
+    def test_speaker_list(self):
+        url = reverse("speaker_list")
+        view_permission = Permission.objects.get(codename='view_immersionuser')
+        add_permission = Permission.objects.get(codename='add_immersionuser')
+
+        # Without permission
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all speakers are there
+        for speaker in ImmersionUser.objects.filter(groups__name='INTER'):
+            self.assertTrue(speaker.id in [s['id'] for s in result])
+
+        # Creation (POST)
+        self.assertFalse(ImmersionUser.objects.filter(email='new_speaker@domain.tld').exists())
+        data = {
+            "establishment": self.establishment.pk,
+            "email": "new_speaker@domain.tld",
+            "first_name": "Jean-Jacques",
+            "last_name": "Doe",
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+
+        # missing establishment/high school
+        data.pop("establishment")
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            result['error'],
+            {'non_field_errors': ['Either an establishment or a high school is mandatory']}
+        )
+
+        # Non-existing establishment : Fail
+        data["establishment"] = 999999
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            result['error'],
+            {'establishment': ['Invalid pk "999999" - object does not exist.']}
+        )
+
+        # Retry: success
+        data["establishment"] = self.establishment.pk
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('email'), "new_speaker@domain.tld")
+        self.assertTrue(ImmersionUser.objects.filter(email='new_speaker@domain.tld', groups__name='INTER').exists())
+
+        # Duplicate
+        print("====")
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            result['error'],
+            {'email': ['User with this Email already exists.']}
+        )
+        self.assertEqual(ImmersionUser.objects.filter(email='new_speaker@domain.tld').count(), 1)
+
+
+    def test_high_school_list(self):
+        url = reverse("highschool_list")
+        view_permission = Permission.objects.get(codename='view_highschool')
+        add_permission = Permission.objects.get(codename='add_highschool')
+
+        self.assertTrue(HighSchool.objects.count() > 0)
+
+        # Without permission
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all high school are there
+        for highschool in HighSchool.objects.all():
+            self.assertTrue(highschool.id in [h['id'] for h in result])
+
+        # Creation (POST)
+        self.assertFalse(HighSchool.objects.filter(label='New High School').exists())
+        data = {
+            "label": "New High School",
+            "country": "FR",
+            "address": "First line",
+            "address2": "Second line",
+            "address3": "Third line",
+            "department": "Deux-Sèvres",
+            "city": "NIORT",
+            "zip_code": "79000",
+            "phone_number": "05 49 00 00 00",
+            "fax": "05 48 00 00 00",
+            "email": "nhs@domain.tld",
+            "head_teacher_name": "Mme Louise DOE",
+            "convention_start_date": "2023-01-01",
+            "convention_end_date": "2023-07-31",
+            "postbac_immersion": True,
+            "mailing_list": "mailing_list@domain.tld",
+            "badge_html_color": "#556677",
+            "certificate_header": "My custom header",
+            "certificate_footer": "My custom footer",
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('email'), "nhs@domain.tld")
+        self.assertTrue(HighSchool.objects.filter(label='New High School').exists())
+
+        # Duplicate
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            result['error'],
+            {'non_field_errors': ['A high school object with the same label and city already exists']}
+        )
+        self.assertEqual(HighSchool.objects.filter(label='New High School').count(), 1)
 
 
     def test_high_school_speakers(self):

@@ -84,6 +84,8 @@ urlpatterns = [
     path('trainingsubdomains/', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
     path('trainings/', views.TrainingList.as_view(), name='training_list'),
     path('courses/', views.CourseList.as_view(), name='course_list'),
+    path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),
+    path('highschools/', views.HighSchoolList.as_view(), name='highschool_list'),
 
     path('visits/', views.VisitList.as_view(), name='visit_list'),
     path('visit/<int:pk>', views.VisitDetail.as_view(), name='visit_detail'),
