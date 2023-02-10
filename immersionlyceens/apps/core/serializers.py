@@ -18,24 +18,23 @@ class ImmersionUserSerializer(serializers.ModelSerializer):
         model = ImmersionUser
         fields = ('last_name', 'first_name', 'email')
 
+
 class CampusSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         # Advanced test
+        excludes = {}
+        label_filter = {'label__iexact': attrs.get('label')}
+
         if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
-            excludes = {}
+            label_filter = {'label__unaccent__iexact': attrs.get('label')}
 
-            if attrs.get('id'):
-                excludes = {'id': attrs.get('id')}
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
 
-            qs = Campus.objects.filter(
-                   establishment=attrs.get('establishment'),
-                   label__unaccent__iexact=attrs.get('label')
-            ).exclude(**excludes)
-
-            if qs.exists():
-                raise serializers.ValidationError(
-                    _("A Campus object with the same establishment and label already exists")
-                )
+        if Campus.objects.filter(establishment=attrs.get('establishment'), **label_filter).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A Campus object with the same establishment and label already exists")
+            )
 
         return super().validate(attrs)
 
@@ -51,6 +50,27 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 
 
 class StructureSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        excludes = {}
+        label_filter = {'label__iexact': attrs.get('label')}
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            label_filter = {'label__unaccent__iexact': attrs.get('label')}
+
+        if attrs.get('id'):
+            excludes = {'id': attrs.get('id')}
+
+        if Structure.objects.filter(
+                establishment=attrs.get('establishment'),
+                **label_filter
+            ).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                _("A Structure object with the same establishment and label already exists")
+            )
+
+        return super().validate(attrs)
+
     class Meta:
         model = Structure
         fields = "__all__"

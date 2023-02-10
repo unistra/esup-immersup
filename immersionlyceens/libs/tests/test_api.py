@@ -3571,6 +3571,16 @@ class APITestCase(TestCase):
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(result['error'], {'code': ['Structure with this Code already exists.']})
 
+        # Duplicate label within the same establishment : error
+        data["code"] = "ANOTHER-STR-CODE"
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            result['error'],
+            {'non_field_errors': ["A Structure object with the same establishment and label already exists"]}
+        )
+
         # Create multiple structures at once
         # Mind the content_type, as test Client expects a dict and not a list
         self.assertFalse(Structure.objects.filter(code='STR-TEST-A').exists())
