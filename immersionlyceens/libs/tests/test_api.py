@@ -2981,15 +2981,89 @@ class APITestCase(TestCase):
 
 
     def test_campus(self):
+        url = reverse("campus_list")
+        view_permission = Permission.objects.get(codename='view_campus')
+        add_permission = Permission.objects.get(codename='add_campus')
+
         campus = Campus.objects.create(label='Campus', establishment=self.establishment, active=True)
 
+        # GET
         client = Client()
         client.login(username='ref_etab', password='pass')
 
-        response = client.get(reverse("campus_list"))
+        response = client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content[0]['label'], campus.label)
+
+        # with API user
+        # List (GET)
+        self.assertTrue(Campus.objects.exists())
+
+        # Without permission
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add view permission an try again
+        self.api_user.user_permissions.add(view_permission)
+        response = self.api_client_token.get(url)
+        result = json.loads(response.content.decode('utf-8'))
+
+        # Make sure all campuses are there
+        for campus in Campus.objects.all():
+            self.assertTrue(campus.id in [c['id'] for c in result])
+
+        # Creation (POST)
+        self.assertFalse(Campus.objects.filter(label='Campus Test').exists())
+        establishment = Establishment.objects.first()
+        data = {
+            "label": "Campus Test",
+            "active": True,
+            "establishment": establishment.id
+        }
+
+        # Without permission
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result.get('label'), "Campus Test")
+        self.assertTrue(Campus.objects.filter(label='Campus Test').exists())
+
+        # Duplicated label within the same establishment : error
+        response = self.api_client_token.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], {
+            'non_field_errors': ['A Campus object with the same establishment and label already exists']
+        })
+
+        # Create multiple campuses at once
+        # Mind the content_type, as test Client expects a dict and not a list
+        self.assertFalse(Campus.objects.filter(label='Campus test A').exists())
+        self.assertFalse(Campus.objects.filter(label='Campus test B').exists())
+        data = [{
+            "label": "Campus test A",
+            "active": True,
+            "establishment": establishment.id
+        }, {
+            "label": "Campus test B",
+            "active": False,
+            "establishment": establishment.id
+        }]
+
+        response = self.api_client_token.post(url, json.dumps(data), content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(Campus.objects.filter(label='Campus test A', active=True).exists())
+        self.assertTrue(Campus.objects.filter(label='Campus test B', active=False).exists())
 
 
     def test_high_school_speakers(self):

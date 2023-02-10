@@ -956,17 +956,47 @@ class Campus(models.Model):
 
     label = models.CharField(_("Label"), max_length=255)
     active = models.BooleanField(_("Active"), default=True)
-
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
         blank=False, null=True)
-
 
     def __str__(self):
         return f"{self.label} ({self.establishment.label if self.establishment else '-'})"
 
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
+                qs = Campus.objects.filter(
+                       establishment__id=self.establishment.id,
+                       label__unaccent__iexact=self.label
+                ).exclude(**excludes)
+
+                if qs.exists():
+                    raise ValidationError(
+                        _("A Campus object with the same establishment and label already exists")
+                    )
+
+        except ValidationError as e:
+            raise
+
     class Meta:
         verbose_name = _('Campus')
         verbose_name_plural = _('Campus')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'establishment'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_campus'
+            ),
+        ]
         ordering = ['label', ]
 
 

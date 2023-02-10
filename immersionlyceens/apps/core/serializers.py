@@ -2,8 +2,9 @@
 """Serializer"""
 
 from rest_framework import serializers, status
-from django.utils.translation import gettext
+from django.utils.translation import gettext, gettext_lazy as _
 from django.db.models import Q
+from django.conf import settings
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
@@ -18,6 +19,26 @@ class ImmersionUserSerializer(serializers.ModelSerializer):
         fields = ('last_name', 'first_name', 'email')
 
 class CampusSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        # Advanced test
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            excludes = {}
+
+            if attrs.get('id'):
+                excludes = {'id': attrs.get('id')}
+
+            qs = Campus.objects.filter(
+                   establishment=attrs.get('establishment'),
+                   label__unaccent__iexact=attrs.get('label')
+            ).exclude(**excludes)
+
+            if qs.exists():
+                raise serializers.ValidationError(
+                    _("A Campus object with the same establishment and label already exists")
+                )
+
+        return super().validate(attrs)
+
     class Meta:
         model = Campus
         fields = "__all__"

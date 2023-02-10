@@ -3844,13 +3844,14 @@ def remove_link(request):
     return JsonResponse(response, safe=False)
 
 
-class CampusList(generics.ListAPIView):
+class CampusList(generics.ListCreateAPIView):
     """
     Campus list
     """
     serializer_class = CampusSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
+    permission_classes = [CustomDjangoModelPermissions]
 
     def get_queryset(self):
         queryset = Campus.objects.filter(active=True).order_by('label')
@@ -3860,6 +3861,13 @@ class CampusList(generics.ListAPIView):
             queryset = queryset.filter(establishment=user.establishment)
 
         return queryset
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
 class EstablishmentList(generics.ListAPIView):
