@@ -136,6 +136,9 @@ class Establishment(models.Model):
     def __str__(self):
         return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
 
+    def provides_accounts(self):
+        return self.data_source_plugin is not None
+
     class Meta:
         verbose_name = _('Establishment')
         verbose_name_plural = _('Establishments')

@@ -7,9 +7,13 @@ import importlib
 import json
 import logging
 import time
+from rest_framework import generics, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from functools import reduce
 from itertools import permutations
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Union, Tuple
 
 import django_filters.rest_framework
 from django.conf import settings
@@ -18,7 +22,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
-from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
@@ -27,6 +30,8 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
+from immersionlyceens.libs.api.accounts import AccountAPI
+
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment,
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
@@ -48,11 +53,6 @@ from immersionlyceens.decorators import (
 )
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
-from rest_framework import generics, status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .permissions import CustomDjangoModelPermissions
 
@@ -4050,6 +4050,65 @@ class CourseList(generics.ListCreateAPIView):
     permission_classes = [CustomDjangoModelPermissions]
     filterset_fields = ['training', 'structure', 'highschool', 'published']
 
+    def get_or_create_user(self, data):
+        """
+        When creating or updating a course :
+        - if a highschool is present, look for existing ImmersionUsers
+        else
+        - if a structure is present (not a highschool),
+        - & if the structure establishment is linked to an account provider (eg. LDAP),
+        - & if data has an 'emails' field (list)
+        then search for existing ImmersionUser accounts matching these emails
+        or
+        look for these accounts in the establishment account provider in order to create new ImmersionUsers
+        :param data: POST data
+        :return: speakers id
+        """
+        highschool_id = data.get("highschool")
+        structure_id = data.get("structure")
+        speakers = data.get("speakers", [])
+        emails = data.get("emails", [])
+        establishment = None
+
+        if highschool_id:
+            filter = {'highschool__id': highschool_id}
+        elif structure_id:
+            try:
+                structure = Structure.objects.get(pk=structure_id)
+                establishment = structure.establishment
+                filter = {'establishment__id': establishment.id}
+            except Structure.DoesNotExist:
+                raise
+        else:
+            raise Exception(_("A structure or a high school is required"))
+
+        for email in emails:
+            try:
+                user = ImmersionUser.objects.get(email__iexact=email.strip(), **filter)
+                speakers.append(user.id)
+            except ImmersionUser.DoesNotExist:
+                if establishment and establishment.provides_accounts():
+                    account_api: AccountAPI = AccountAPI(establishment)
+                    ldap_response: Union[bool, List[Any]] = account_api.search_user(
+                        search_value=email.strip(),
+                        search_attr=account_api.EMAIL_ATTR
+                    )
+                    if not ldap_response:
+                        # not found
+                        raise Exception(
+                            _("Speaker email '%s' not found in establishment '%s'") % (email, establishment.code)
+                        )
+                    else:
+                        speaker = ldap_response[0]
+                        speaker_user = ImmersionUser.objects.create(
+                            username=speaker['email'],
+                            last_name=speaker['lastname'],
+                            first_name=speaker['firstname'],
+                            email=speaker['email'],
+                            establishment=establishment
+                        )
+
+
     def get_queryset(self):
         queryset = Course.objects.all().order_by('label')
         user = self.request.user
@@ -4063,8 +4122,16 @@ class CourseList(generics.ListCreateAPIView):
         return queryset
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        # Find speaker emails in data and try to create them if they don't exist
         if data is not None:
             many = isinstance(data, list)
+
+            if many:
+                for course_data in data:
+                    speakers = self.get_or_create_user(course_data)
+            else:
+                speakers = self.get_or_create_user(data)
+
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:
             return super().get_serializer(instance=instance, many=many, partial=partial)
