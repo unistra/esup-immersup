@@ -7,10 +7,12 @@ import importlib
 import json
 import logging
 import time
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.renderers import BrowsableAPIRenderer
+
 from functools import reduce
 from itertools import permutations
 from typing import Any, Dict, List, Optional, Union, Tuple
@@ -18,6 +20,7 @@ from typing import Any, Dict, List, Optional, Union, Tuple
 import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
@@ -55,6 +58,7 @@ from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from .permissions import CustomDjangoModelPermissions
+from .renderers import ApiRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -4048,9 +4052,15 @@ class CourseList(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [CustomDjangoModelPermissions]
+    # renderer_classes = [ApiRenderer, BrowsableAPIRenderer]
     filterset_fields = ['training', 'structure', 'highschool', 'published']
 
-    def get_or_create_user(self, data):
+    def __init__(self, *args, **kwargs):
+        self.message = {}
+        self.status = ""
+        super().__init__(*args, **kwargs)
+
+    def get_or_create_user(self, request, data):
         """
         When creating or updating a course :
         - if a highschool is present, look for existing ImmersionUsers
@@ -4061,14 +4071,16 @@ class CourseList(generics.ListCreateAPIView):
         then search for existing ImmersionUser accounts matching these emails
         or
         look for these accounts in the establishment account provider in order to create new ImmersionUsers
+        :param request: request object
         :param data: POST data
         :return: speakers id
         """
         highschool_id = data.get("highschool")
         structure_id = data.get("structure")
-        speakers = data.get("speakers", [])
         emails = data.get("emails", [])
         establishment = None
+        speaker_user = None
+        send_creation_msg = False
 
         if highschool_id:
             filter = {'highschool__id': highschool_id}
@@ -4080,12 +4092,13 @@ class CourseList(generics.ListCreateAPIView):
             except Structure.DoesNotExist:
                 raise
         else:
-            raise Exception(_("A structure or a high school is required"))
+            # Validation exception will be thrown by the serializer
+            return data
 
         for email in emails:
             try:
-                user = ImmersionUser.objects.get(email__iexact=email.strip(), **filter)
-                speakers.append(user.id)
+                speaker_user = ImmersionUser.objects.get(email__iexact=email.strip(), **filter)
+                data.get("speakers", []).append(speaker_user.id)
             except ImmersionUser.DoesNotExist:
                 if establishment and establishment.provides_accounts():
                     account_api: AccountAPI = AccountAPI(establishment)
@@ -4095,8 +4108,10 @@ class CourseList(generics.ListCreateAPIView):
                     )
                     if not ldap_response:
                         # not found
-                        raise Exception(
-                            _("Speaker email '%s' not found in establishment '%s'") % (email, establishment.code)
+                        raise serializers.ValidationError(
+                            detail=_("Course '%s' : speaker email '%s' not found in establishment '%s'")
+                                % (data.get("label"), email, establishment.code),
+                            code=status.HTTP_400_BAD_REQUEST
                         )
                     else:
                         speaker = ldap_response[0]
@@ -4107,7 +4122,34 @@ class CourseList(generics.ListCreateAPIView):
                             email=speaker['email'],
                             establishment=establishment
                         )
+                        send_creation_msg = True
+                else:
+                    # High school or establishment without account provider : reject
+                    raise serializers.ValidationError(
+                        detail=_("Course '%s' : speaker '%s' has to be manually created before using it in a course")
+                            % (data.get("label"), email),
+                        code=status.HTTP_400_BAD_REQUEST
+                    )
 
+            if speaker_user:
+                try:
+                    Group.objects.get(name='INTER').user_set.add(speaker_user)
+                except Exception as e:
+                    raise serializers.ValidationError(
+                        detail=_("Couldn't add group 'INTER' to user '%s' : %s") % (speaker_user.username, e),
+                        code=status.HTTP_400_BAD_REQUEST
+                    )
+
+                if send_creation_msg:
+                    msg = speaker_user.send_message(self.request, 'CPT_CREATE')
+
+                    if msg:
+                        data["status"] = "warning"
+                        data["message"] = { speaker_user.email: msg }
+
+                data.get("speakers", []).append(speaker_user.pk)
+
+        return data
 
     def get_queryset(self):
         queryset = Course.objects.all().order_by('label')
@@ -4122,19 +4164,44 @@ class CourseList(generics.ListCreateAPIView):
         return queryset
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
-        # Find speaker emails in data and try to create them if they don't exist
+        """
+        Look for speaker emails and try to create/add them to serializer data
+        """
         if data is not None:
             many = isinstance(data, list)
 
             if many:
                 for course_data in data:
-                    speakers = self.get_or_create_user(course_data)
+                    try:
+                        course_data = self.get_or_create_user(self.request, course_data)
+                    except Exception as e:
+                        raise
             else:
-                speakers = self.get_or_create_user(data)
+                try:
+                    data = self.get_or_create_user(self.request, data)
+                except Exception as e:
+                    raise
 
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:
             return super().get_serializer(instance=instance, many=many, partial=partial)
+
+
+    """
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+
+        data = {
+            'data': serializer.data,
+            'message': self.message,
+            'status': self.status,
+        }
+
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
+    """
 
     """
     def post(self, request, *args, **kwargs):

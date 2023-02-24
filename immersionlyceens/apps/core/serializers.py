@@ -117,24 +117,77 @@ class CourseSerializer(serializers.ModelSerializer):
         """
         check speakers/published status and that only structures OR highschool are set at the same time
         """
-        content = None
         published = data.get('published', False) in ('true', 'True', True)
         speakers = data.get('speakers')
         structure = data.get("structure")
         highschool = data.get("highschool")
 
         if published and not speakers:
-            content = gettext("A published course requires at least one speaker")
+            raise serializers.ValidationError(
+                detail=gettext("A published course requires at least one speaker"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
 
         if not structure and not highschool:
-            content = gettext("Please provide a structure or a high school")
+            raise serializers.ValidationError(
+                detail=gettext("Please provide a structure or a high school"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
         elif structure and highschool:
-            content = gettext("High school and structures can't be set together. Please choose one.")
+            raise serializers.ValidationError(
+                detail=gettext("High school and structures can't be set together. Please choose one."),
+                code=status.HTTP_400_BAD_REQUEST
+            )
 
-        if content:
-            raise serializers.ValidationError(detail=content, code=status.HTTP_400_BAD_REQUEST)
+        # Unicity test
+        excludes = {'id': data.get('id')} if data.get('id') else {}
+
+        label_filter = {
+            'label__iexact': data.get('label'),
+            'training': data.get("training"),
+            'highschool': highschool,
+            'structure': structure
+        }
+
+        if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+            label_filter.pop('label__iexact')
+            label_filter['label__unaccent__iexact'] = data.get('label')
+
+        if Course.objects.filter(
+                **label_filter
+            ).exclude(**excludes).exists():
+            raise serializers.ValidationError(
+                detail=gettext("A Course object with the same structure/highschool, training and label already exists"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
 
         return data
+
+    def to_representation(self, instance):
+        """
+        Inject status and warning messages in response
+        """
+        data = super().to_representation(instance)
+
+        if hasattr(self, "initial_data"):
+            if isinstance(self.initial_data, list):
+                objects = { c["label"]: c for c in self.initial_data }
+                status = objects.get(data["label"]).get("status", "success")
+                message = objects.get(data["label"]).get("message", "")
+            else:
+                status = self.initial_data.get("status", "success")
+                message = self.initial_data.get("message", "")
+
+            response = {
+                "data": data,
+                "status": status,
+                "message": message,
+            }
+
+            return response
+        else:
+            return data
+
 
     class Meta:
         model = Course
