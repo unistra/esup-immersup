@@ -9,9 +9,7 @@ import logging
 import time
 from rest_framework import generics, status, serializers
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.renderers import BrowsableAPIRenderer
 
 from functools import reduce
 from itertools import permutations
@@ -58,7 +56,6 @@ from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from .permissions import CustomDjangoModelPermissions
-from .renderers import ApiRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -4052,7 +4049,6 @@ class CourseList(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [CustomDjangoModelPermissions]
-    # renderer_classes = [ApiRenderer, BrowsableAPIRenderer]
     filterset_fields = ['training', 'structure', 'highschool', 'published']
 
     def __init__(self, *args, **kwargs):
