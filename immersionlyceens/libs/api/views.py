@@ -42,7 +42,7 @@ from immersionlyceens.apps.core.models import (
 )
 from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer, HighSchoolSerializer,
-    HighSchoolLevelSerializer, OffOfferEventSerializer, ImmersionUserSerializer, SpeakerSerializer,
+    HighSchoolLevelSerializer, OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
     StructureSerializer, TrainingDomainSerializer, TrainingHighSchoolSerializer, TrainingSerializer,
     TrainingSubdomainSerializer, VisitSerializer,
 )
@@ -345,6 +345,11 @@ def slots(request):
     Get slots list according to GET parameters
     :return:
     """
+
+    """
+    @TODO : rewrite this with a ListCreateAPIView and a nice serializer
+    """
+
     response = {'msg': '', 'data': []}
     can_update_attendances = False
     today = datetime.datetime.today()
@@ -4141,7 +4146,7 @@ class CourseList(generics.ListCreateAPIView):
 
                     if msg:
                         data["status"] = "warning"
-                        data["message"] = { speaker_user.email: msg }
+                        data["msg"] = { speaker_user.email: msg }
 
                 data.get("speakers", []).append(speaker_user.pk)
 
@@ -4183,43 +4188,29 @@ class CourseList(generics.ListCreateAPIView):
             return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
+class SlotList(generics.ListCreateAPIView):
     """
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-
-        data = {
-            'data': serializer.data,
-            'message': self.message,
-            'status': self.status,
-        }
-
-        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
+    Courses list
     """
+    model = Slot
+    serializer_class = SlotSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [CustomDjangoModelPermissions]
+    filterset_fields = ['course', 'course_type', 'visit', 'event', 'campus', 'building', 'room',
+                        'date', 'start_time', 'end_time', 'speakers', 'published', 'face_to_face']
 
-    """
-    def post(self, request, *args, **kwargs):
-        content = None
-        published = request.data.get('published', False) in ('true', 'True')
-        speakers = request.data.get('speakers')
-        structure = request.data.get("structure")
-        highschool = request.data.get("highschool")
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Slot.objects.all()
+        return queryset
 
-        if published and not speakers:
-            content = {'error': gettext("A published course requires at least one speaker")}
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
-        if not structure and not highschool:
-            content = {'error': gettext("Please provide a structure or a high school")}
-        elif structure and highschool:
-            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
-
-        if content:
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
-
-        return super().post(request, *args, **kwargs)
-    """
 
 class BuildingList(generics.ListCreateAPIView):
     """

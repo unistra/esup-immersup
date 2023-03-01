@@ -84,6 +84,10 @@ urlpatterns = [
     path('trainingsubdomains/', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
     path('trainings/', views.TrainingList.as_view(), name='training_list'),
     path('courses/', views.CourseList.as_view(), name='course_list'),
+
+    # The following path may change to 'slots/' in a near future : please always use the 'name'
+    path('slots/v2/', views.SlotList.as_view(), name='slot_list',),
+
     path('speakers/', views.SpeakerList.as_view(), name='speaker_list'),
     path('highschools/', views.HighSchoolList.as_view(), name='highschool_list'),
 

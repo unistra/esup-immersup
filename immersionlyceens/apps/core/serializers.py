@@ -9,9 +9,8 @@ from django.conf import settings
 
 from .models import (Campus, Establishment, Training, TrainingDomain, TrainingSubdomain,
     HighSchool, Course, Structure, Building, Visit, OffOfferEvent, ImmersionUser,
-    HighSchoolLevel, PostBachelorLevel, StudentLevel
+    HighSchoolLevel, Slot
 )
-from ..immersion.models import VisitorRecord
 
 
 class ImmersionUserSerializer(serializers.ModelSerializer):
@@ -173,15 +172,15 @@ class CourseSerializer(serializers.ModelSerializer):
             if isinstance(self.initial_data, list):
                 objects = { c["label"]: c for c in self.initial_data }
                 status = objects.get(data["label"]).get("status", "success")
-                message = objects.get(data["label"]).get("message", "")
+                message = objects.get(data["label"]).get("msg", "")
             else:
                 status = self.initial_data.get("status", "success")
-                message = self.initial_data.get("message", "")
+                message = self.initial_data.get("msg", "")
 
             response = {
                 "data": data,
                 "status": status,
-                "message": message,
+                "msg": message,
             }
 
             return response
@@ -377,4 +376,110 @@ class OffOfferEventSerializer(serializers.ModelSerializer):
 class HighSchoolLevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = HighSchoolLevel
+        fields = "__all__"
+
+class SlotSerializer(serializers.ModelSerializer):
+    """
+    Slot serializer
+    """
+
+    def validate(self, data):
+        """
+        For now, only create course slots
+        """
+        course = data.get("course")
+        course_type = data.get("course_type")
+        campus = data.get("campus")
+        building = data.get("building")
+        visit = data.get("visit")
+        event = data.get("event")
+        start_time = data.get("start_time")
+        end_time = data.get("end_time")
+        face_to_face = data.get("face_to_face", True)
+        published = data.get("published", False)
+        speakers = data.get("speakers")
+        allowed_establishments = data.get("allowed_establishments")
+        allowed_highschools = data.get("allowed_highschools")
+        allowed_highschool_levels = data.get("allowed_highschool_levels")
+        allowed_student_levels  = data.get("allowed_student_levels")
+        allowed_post_bachelor_levels = data.get("allowed_post_bachelor_levels")
+
+        details = {}
+
+        # Slot type
+        if not any([course, visit, event]):
+            raise serializers.ValidationError(
+                detail=_("A slot requires at least a 'course', a 'visit' or an 'event' object"),
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        if published:
+            required_fields = ["n_places", "date", "start_time", "end_time", "speakers"]
+
+            if face_to_face:
+                required_fields.append("room")
+            elif event or visit:
+                required_fields.append("url")
+
+
+            for rfield in required_fields:
+                if not data.get(rfield):
+                    details[rfield] = _("Field '%s' is required for a new published slot") % rfield
+
+        if start_time and end_time and end_time <= start_time:
+            details["end_time"] = _("end_time can't be set before or equal to start_time")
+
+        if course:
+            if not course_type:
+                details["course_type"] = _("The course_type field is required when creating a new course slot")
+
+            if course.structure:
+                if not campus:
+                    details["campus"] = \
+                        _("The campus field is required when creating a new slot for a structure course")
+
+                if not building:
+                    details["building"] = \
+                        _("The building field is required when creating a new slot for a structure course")
+
+            if course.highschool:
+                if campus:
+                    details["campus"] = \
+                        _("The campus field is forbidden when creating a new slot for a high school course")
+
+                if building:
+                    details["building"] = \
+                        _("The building field is forbidden when creating a new slot for a high school course")
+
+            for speaker in speakers:
+                if speaker not in course.speakers.all():
+                    if not details.get('speakers'):
+                        details["speakers"] = []
+
+                    details["speakers"].append(
+                        _("Speaker '%s' is not linked to course '%s'") % (speaker, course)
+                    )
+
+        if details:
+            raise serializers.ValidationError(
+                detail=details,
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Restrictions
+        # Common to courses, visits and events
+        data["levels_restrictions"] = any([allowed_highschool_levels, allowed_student_levels, allowed_post_bachelor_levels])
+
+        if course or event:
+            data["establishments_restrictions"] = any([allowed_establishments, allowed_highschools])
+        elif visit:
+            # No establishment restriction
+            data["establishments_restrictions"] = False
+            data["allowed_establishments"] = None
+            data["allowed_highschools"] = None
+
+        return data
+
+    class Meta:
+        model = Slot
         fields = "__all__"

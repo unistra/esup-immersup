@@ -772,6 +772,104 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['id'], slot.id)
 
 
+    def test_course_slot_creation(self):
+        """
+        Course slot creation
+        """
+        view_permission = Permission.objects.get(codename='view_slot')
+        add_permission = Permission.objects.get(codename='add_slot')
+        url = reverse("slot_list")
+
+        response = self.api_client_token.get(url)
+
+        date = (self.today + timedelta(days=10)).strftime("%Y-%m-%d")
+        speaker = self.course.speakers.first()
+
+        data = {
+            "course": self.course.id,
+            "n_places": "30",
+            "course_type": self.course_type.id,
+            "building": self.building.pk,
+            "campus": self.campus.pk,
+            "date": date,
+            "start_time": "10:00",
+            "end_time": "12:00",
+            "face_to_face": True,
+            "room": "salle 113",
+            "levels_restrictions": True,
+            "allowed_highschool_levels": [1],
+            "speakers": [speaker.pk]
+        }
+
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result['error'], 'You do not have permission to perform this action.')
+
+        # Add add permission and try again
+        self.api_user.user_permissions.add(add_permission)
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+
+        slot = Slot.objects.get(date=date, course=self.course.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(result, {
+            "id":slot.pk,
+            "room":"salle 113",
+            "date":date,
+            "start_time":"10:00:00",
+            "end_time":"12:00:00",
+            "n_places":30,
+            "additional_information":None,
+            "url":None,
+            "published":False,
+            "face_to_face":True,
+            "establishments_restrictions":False,
+            "levels_restrictions":True,
+            "course":self.course.pk,
+            "course_type":self.course_type.pk,
+            "visit":None,
+            "event":None,
+            "campus":self.campus.pk,
+            "building":self.building.pk,
+            "speakers":[speaker.id],
+            "allowed_establishments":[],
+            "allowed_highschools":[],
+            "allowed_highschool_levels":[1],
+            "allowed_student_levels":[],
+            "allowed_post_bachelor_levels":[]
+        })
+
+        # Published course - test missing fields
+        # Missing building
+        data["date"] = (self.today + timedelta(days=11)).strftime("%Y-%m-%d")
+        data.pop("building")
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            result['error'],
+            {"building": ["The building field is required when creating a new slot for a structure course"]}
+        )
+
+        # Missing campus
+        data["building"] = self.building.pk,
+        data.pop("campus")
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            result['error'],
+            {"campus": ["The campus field is required when creating a new slot for a structure course"]}
+        )
+
+        # Missing course_type
+        data["campus"] = self.campus.pk,
+        data.pop("course_type")
+        response = self.api_client_token.post(url, data)
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            result['error'],
+            {"course_type": ["The course_type field is required when creating a new course slot"]}
+        )
 
     def test_API_get_trainings(self):
         self.client.login(username='ref_etab', password='pass')
@@ -4327,7 +4425,7 @@ class APITestCase(TestCase):
                 'speakers': [new_user.pk]
             },
             'status': 'success',
-            'message': ''
+            'msg': ''
         })
 
         # New course with an existing speaker
