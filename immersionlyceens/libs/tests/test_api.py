@@ -780,8 +780,6 @@ class APITestCase(TestCase):
         add_permission = Permission.objects.get(codename='add_slot')
         url = reverse("slot_list")
 
-        response = self.api_client_token.get(url)
-
         date = (self.today + timedelta(days=10)).strftime("%Y-%m-%d")
         speaker = self.course.speakers.first()
 
@@ -841,35 +839,64 @@ class APITestCase(TestCase):
         })
 
         # Published course - test missing fields
-        # Missing building
-        data["date"] = (self.today + timedelta(days=11)).strftime("%Y-%m-%d")
-        data.pop("building")
-        response = self.api_client_token.post(url, data)
+        data2 = {
+            "course": self.course.id,
+            "published": True,
+            "face_to_face": True,
+            "room": "salle 113",
+            "levels_restrictions": True,
+            "allowed_highschool_levels": [1]
+        }
+
+        response = self.api_client_token.post(url, data2)
         result = json.loads(response.content.decode('utf-8'))
+
+        for field in ["n_places", "date", "start_time", "end_time", "speakers"]:
+            self.assertEqual(
+                [f"Field '{field}' is required for a new published slot"],
+                result['error'][field]
+            )
+
         self.assertEqual(
-            result['error'],
-            {"building": ["The building field is required when creating a new slot for a structure course"]}
+            ["The building field is required when creating a new slot for a structure course"],
+            result['error']['building']
+        )
+        self.assertEqual(
+            ["The campus field is required when creating a new slot for a structure course"],
+            result['error']['campus']
+        )
+        self.assertEqual(
+            ["The course_type field is required when creating a new course slot"],
+            result['error']['course_type']
         )
 
-        # Missing campus
-        data["building"] = self.building.pk,
-        data.pop("campus")
-        response = self.api_client_token.post(url, data)
+        # Bad start/end time
+        data2.update({
+            "campus": self.campus.pk,
+            "building": self.building.pk,
+            "course_type": self.course_type.pk,
+            "date": (self.today + timedelta(days=11)).strftime("%Y-%m-%d"),
+            "n_places": "30",
+            "start_time": "14:00",
+            "end_time": "12:00",
+            "speakers": [speaker.pk]
+        })
+
+        response = self.api_client_token.post(url, data2)
+        result = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(["end_time can't be set before or equal to start_time"], result['error']['end_time'])
+
+        # Bad speaker choice (not linked to self.course)
+        data2["start_time"] = "10:00"
+        data2["speakers"] = [self.operator_user.pk]
+        response = self.api_client_token.post(url, data2)
         result = json.loads(response.content.decode('utf-8'))
         self.assertEqual(
-            result['error'],
-            {"campus": ["The campus field is required when creating a new slot for a structure course"]}
+            [f"Speaker '{self.operator_user}' is not linked to course '{self.course}'"],
+            result['error']['speakers']
         )
 
-        # Missing course_type
-        data["campus"] = self.campus.pk,
-        data.pop("course_type")
-        response = self.api_client_token.post(url, data)
-        result = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(
-            result['error'],
-            {"course_type": ["The course_type field is required when creating a new course slot"]}
-        )
 
     def test_API_get_trainings(self):
         self.client.login(username='ref_etab', password='pass')

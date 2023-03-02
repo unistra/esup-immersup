@@ -2273,7 +2273,7 @@ class Slot(models.Model):
 
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='slots', blank=True)
 
-    n_places = models.PositiveIntegerField(_('Number of places'))
+    n_places = models.PositiveIntegerField(_('Number of places'), null=True, blank=True)
     additional_information = models.CharField(_('Additional information'), max_length=128, null=True, blank=True)
 
     url = models.URLField(_("Website address"), max_length=512, blank=True, null=True)

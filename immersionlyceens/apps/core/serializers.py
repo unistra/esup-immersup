@@ -378,6 +378,7 @@ class HighSchoolLevelSerializer(serializers.ModelSerializer):
         model = HighSchoolLevel
         fields = "__all__"
 
+
 class SlotSerializer(serializers.ModelSerializer):
     """
     Slot serializer
@@ -420,7 +421,6 @@ class SlotSerializer(serializers.ModelSerializer):
                 required_fields.append("room")
             elif event or visit:
                 required_fields.append("url")
-
 
             for rfield in required_fields:
                 if not data.get(rfield):
