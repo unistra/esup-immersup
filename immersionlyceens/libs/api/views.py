@@ -38,8 +38,8 @@ from immersionlyceens.apps.core.serializers import (
     BuildingSerializer, CampusSerializer, CourseSerializer,
     EstablishmentSerializer, HighSchoolLevelSerializer,
     OffOfferEventSerializer, StructureSerializer, TrainingDomainSerializer,
-    TrainingHighSchoolSerializer, TrainingSerializer,
-    TrainingSubdomainSerializer, VisitSerializer,
+    TrainingSerializer, TrainingHighSchoolSerializer, TrainingSubdomainSerializer,
+    VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord, VisitorRecord,
@@ -3925,7 +3925,9 @@ class TrainingList(generics.ListCreateAPIView):
         user = self.request.user
 
         if user.is_high_school_manager():
-            return Training.objects.filter(highschool=self.request.user.highschool)
+            return Training.objects.filter(highschool=user.highschool)
+        elif user.is_establishment_manager():
+            return Training.objects.filter(structures__establishment=user.establishment)
         else:
             return Training.objects.all()
 
@@ -4067,28 +4069,12 @@ class GetEstablishment(generics.RetrieveAPIView):
     lookup_field = "id"
 
 
-@method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
-class TrainingHighSchoolList(generics.ListAPIView):
-    """High school training list"""
-    serializer_class = TrainingHighSchoolSerializer
-    filterset_fields = ("highschool",)
-
-    def get_queryset(self):
-        """
-        Return user highschool is you are a REF-LYC,
-        """
-        user = self.request.user
-
-        if user.is_master_establishment_manager() or user.is_operator():
-            return Training.objects.filter(highschool__isnull=False)
-        else:
-            return Training.objects.filter(highschool=self.request.user.highschool)
-
-
 @method_decorator(groups_required('REF-LYC'), name="dispatch")
-class TrainingView(generics.DestroyAPIView):
-    """Training hs delete class"""
-    serializer_class = TrainingHighSchoolSerializer
+class TrainingDetail(generics.RetrieveDestroyAPIView):
+    """
+    Training detail / destroy
+    """
+    serializer_class = TrainingSerializer
 
     def delete(self, request, *args, **kwargs):
         if Course.objects.filter(training_id=kwargs.get("pk")).exists():

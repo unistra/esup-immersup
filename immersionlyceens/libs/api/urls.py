@@ -56,9 +56,6 @@ urlpatterns = [
     ),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
 
-    # path("trainings/highschool/", views.TrainingHighSchoolList.as_view(), name="get_trainings_highschool"),
-    path("training/<int:pk>", views.TrainingView.as_view(), name="training_api"),
-
     path('keep_entries', views.ajax_keep_entries, name='keep_entries'),
     path('register', views.ajax_slot_registration, name='SlotRegistration'),
     path('reject_student/', views.ajax_reject_student, name='rejectStudent'),
@@ -74,14 +71,20 @@ urlpatterns = [
 
     # DRF
     path('campuses/', views.CampusList.as_view(), name='campus_list'),
+
     path('establishments/', views.EstablishmentList.as_view(), name='establishment_list'),
-    path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_list'),
+    path('establishment/<int:id>', views.GetEstablishment.as_view(), name='establishment_detail'),
 
     path('structures/', views.StructureList.as_view(), name='structure_list'),
+
     path('buildings/', views.BuildingList.as_view(), name='building_list'),
+
     path('trainingdomains/', views.TrainingDomainList.as_view(), name='training_domain_list'),
     path('trainingsubdomains/', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
+
     path('trainings/', views.TrainingList.as_view(), name='training_list'),
+    path("training/<int:pk>", views.TrainingDetail.as_view(), name="training_detail"),
+
     path('courses/', views.CourseList.as_view(), name='course_list'),
 
     path('visits/', views.VisitList.as_view(), name='visit_list'),
