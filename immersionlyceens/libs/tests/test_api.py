@@ -2659,6 +2659,37 @@ class APITestCase(TestCase):
         self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
 
 
+    def test_get_trainings_highschool(self):
+        url = reverse("get_trainings_highschool")
+
+        training = Training.objects.get(label='test highschool training')
+        subdomain = training.training_subdomains.first()
+
+        # Establishment manager
+        self.client.login(username='ref_etab', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # High school manager
+        self.client.logout()
+        self.client.login(username='ref_lyc', password='pass')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content, [{
+            'id': training.pk,
+            'label': 'test highschool training',
+            'training_subdomains': [{
+                'id': subdomain.pk, 
+                'training_domain': subdomain.training_domain.pk, 
+                'label': 'test t_sub_domain', 
+                'active': True
+            }],
+            'active': True,
+            'can_delete': False
+        }])
+
 
     def test_API_ajax_set_course_alert(self):
         request.user = self.ref_etab_user
