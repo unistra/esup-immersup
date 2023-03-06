@@ -84,6 +84,15 @@ class TrainingSerializer(serializers.ModelSerializer):
     """
     Training serializer
     """
+    training_subdomains = serializers.SerializerMethodField("get_training_subdomains")
+    can_delete = serializers.BooleanField()
+
+    def get_training_subdomains(self, training):
+        """get only active training subdomains"""
+        query = training.training_subdomains.filter(active=True)
+        serializer = TrainingSubdomainSerializer(instance=query, many=True)
+        return serializer.data
+
     def validate(self, data):
         """
         check that only structures OR highschool are set at the same time
@@ -123,8 +132,13 @@ class TrainingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Training
-        fields = "__all__"
+        fields = ("id", "label", "training_subdomains", "active", "can_delete", "url", "structures")
 
+    """
+    class Meta:
+        model = Training
+        fields = "__all__"
+    """
 
 class TrainingDomainSerializer(serializers.ModelSerializer):
     """Training domain serializer"""

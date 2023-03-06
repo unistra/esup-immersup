@@ -56,8 +56,7 @@ urlpatterns = [
     ),
     path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
 
-    path("trainings/highschool/", views.TrainingHighSchoolList.as_view(), name="get_trainings_highschool"),
-    path("trainings/highschool/<int:pk>", views.TrainingHighSchoolList.as_view(), name="get_training_highschool"),
+    # path("trainings/highschool/", views.TrainingHighSchoolList.as_view(), name="get_trainings_highschool"),
     path("training/<int:pk>", views.TrainingView.as_view(), name="training_api"),
 
     path('keep_entries', views.ajax_keep_entries, name='keep_entries'),

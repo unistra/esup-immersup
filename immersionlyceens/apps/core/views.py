@@ -900,6 +900,9 @@ class TrainingList(generic.TemplateView):
 
 @method_decorator(groups_required('REF-LYC'), name="dispatch")
 class TrainingAdd(generic.CreateView):
+    """
+    Training creation
+    """
     form_class = TrainingFormHighSchool
     template_name: str = "core/training/training.html"
 
@@ -1018,7 +1021,10 @@ class CourseSlotList(generic.TemplateView):
 
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
-class CourseSlotAdd(generic.CreateView):
+class CourseSlot(generic.CreateView):
+    """
+    Course slot add/duplicate
+    """
     form_class = SlotForm
     template_name = "core/course_slot.html"
     duplicate = False
@@ -1362,6 +1368,9 @@ class VisitList(generic.TemplateView):
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
 class VisitAdd(generic.CreateView):
+    """
+    Visit creation/duplication
+    """
     form_class = VisitForm
     template_name = "core/visit.html"
     duplicate = False
@@ -1596,7 +1605,10 @@ class VisitSlotList(generic.TemplateView):
 
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-TEC'), name="dispatch")
-class VisitSlotAdd(generic.CreateView):
+class VisitSlot(generic.CreateView):
+    """
+    Visit slot add/duplicate
+    """
     form_class = VisitSlotForm
     template_name = "core/visit_slot.html"
     duplicate = False
@@ -1877,6 +1889,9 @@ class OffOfferEventsList(generic.TemplateView):
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
 class OffOfferEventAdd(generic.CreateView):
+    """
+    Off offer event add/duplicate
+    """
     form_class = OffOfferEventForm
     template_name = "core/off_offer_event.html"
     duplicate = False
@@ -2133,7 +2148,10 @@ class OffOfferEventSlotList(generic.TemplateView):
 
 
 @method_decorator(groups_required('REF-ETAB', 'REF-ETAB-MAITRE', 'REF-STR', 'REF-LYC', 'REF-TEC'), name="dispatch")
-class OffOfferEventSlotAdd(generic.CreateView):
+class OffOfferEventSlot(generic.CreateView):
+    """
+    Off offer event add/duplicate
+    """
     form_class = OffOfferEventSlotForm
     template_name = "core/off_offer_event_slot.html"
     duplicate = False

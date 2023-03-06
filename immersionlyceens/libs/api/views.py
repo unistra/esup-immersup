@@ -55,7 +55,9 @@ from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .permissions import CustomDjangoModelPermissions
+from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
+    IsMasterEstablishmentManagerPermissions, IsTecPermissions
+)
 
 logger = logging.getLogger(__name__)
 
@@ -3912,27 +3914,20 @@ class TrainingList(generics.ListCreateAPIView):
     """
     Training list / creation
     """
-    queryset = Training.objects.all()
+    # queryset = Training.objects.all()
     serializer_class = TrainingSerializer
-    permission_classes = [CustomDjangoModelPermissions]
+    permission_classes = [
+        IsRefLycPermissions|IsMasterEstablishmentManagerPermissions|IsTecPermissions|CustomDjangoModelPermissions
+    ]
     # Auth : default (see settings/base.py)
 
-    """
-    def create(self, request, *args, **kwargs):
-        content = None
-        structures = request.data.get("structures")
-        highschool = request.data.get("highschool")
+    def get_queryset(self):
+        user = self.request.user
 
-        if not structures and not highschool:
-            content = {'error': gettext("Please provide a structure or a high school")}
-        elif structures and highschool:
-            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
-
-        if content:
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
-
-        return super().create(request, *args, **kwargs)
-    """
+        if user.is_high_school_manager():
+            return Training.objects.filter(highschool=self.request.user.highschool)
+        else:
+            return Training.objects.all()
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:
@@ -4074,25 +4069,20 @@ class GetEstablishment(generics.RetrieveAPIView):
 
 @method_decorator(groups_required('REF-LYC', 'REF-ETAB-MAITRE', 'REF-TEC'), name="dispatch")
 class TrainingHighSchoolList(generics.ListAPIView):
-    """Training highschool list"""
+    """High school training list"""
     serializer_class = TrainingHighSchoolSerializer
     filterset_fields = ("highschool",)
 
     def get_queryset(self):
         """
         Return user highschool is you are a REF-LYC,
-        :return:
         """
         user = self.request.user
 
-        if user.is_authenticated:
-            if user.is_master_establishment_manager() or user.is_operator():
-                if "pk" in self.kwargs:
-                    return Training.objects.filter(highschool_id=self.kwargs.get("pk"))
-                else:
-                    return Training.objects.filter(highschool__isnull=False)
-            else:
-                return Training.objects.filter(highschool=self.request.user.highschool)
+        if user.is_master_establishment_manager() or user.is_operator():
+            return Training.objects.filter(highschool__isnull=False)
+        else:
+            return Training.objects.filter(highschool=self.request.user.highschool)
 
 
 @method_decorator(groups_required('REF-LYC'), name="dispatch")
