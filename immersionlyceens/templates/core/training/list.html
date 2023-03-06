@@ -89,13 +89,14 @@
         let msg = json['msg']
         let error = json['error']
 
-        if(error != '' && error != undefined) {
+        if(error !== '' && error !== undefined) {
           feedback.trigger("showFeedback", [[error, "danger"]]);
         }
-        else if(msg != '' && msg != undefined) {
+        else if(msg !== '' && msg !== undefined) {
           feedback.trigger("showFeedback", [[msg, "success"]]);
         }
-        dt.ajax.url("/api/trainings/highschool").load();
+        // dt.ajax.url("/api/trainings/highschool").load();
+        dt.ajax.url("{% url 'training_list' %}").load();
       },
       error: function (e) {
         obj = JSON.stringify(e);
@@ -135,7 +136,6 @@
       ],
     });
 
-
     dt = $('#training_table').DataTable({
       'processing': false,
       'order': [
@@ -147,7 +147,7 @@
       'serverSide': false,
       'responsive': false,
       'ajax': {
-          url: "/api/trainings/highschool",
+          url: "{% url 'training_list' %}",
           dataSrc: (json) => { return json },
       },
       'searching': true,

@@ -68,6 +68,7 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownVisits">
             <a class="dropdown-item" href="{% url 'visits' %}">{% trans 'Visits list' %}</a>
+            <a class="dropdown-item" href="{% url 'add_visit' %}">{% trans 'New visit' %}</a>
             <a class="dropdown-item" href="{% url 'visits_slots' %}">{% trans 'Visits slots list' %}</a>
             <a class="dropdown-item" href="{% url 'add_visit_slot' %}">{% trans 'New visit slot' %}</a>
           </div>
@@ -83,6 +84,7 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownEvents">
             <a class="dropdown-item" href="{% url 'off_offer_events' %}">{% trans 'Off offer events list' %}</a>
+            <a class="dropdown-item" href="{% url 'add_off_offer_event' %}">{% trans 'New off offer event' %}</a>
             <a class="dropdown-item" href="{% url 'off_offer_events_slots' %}">{% trans 'Off offer events slots list' %}</a>
             <a class="dropdown-item" href="{% url 'add_off_offer_event_slot' %}">{% trans 'New off offer event slot' %}</a>
           </div>
