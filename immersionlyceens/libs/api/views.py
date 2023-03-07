@@ -56,7 +56,7 @@ from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
 
 from .permissions import (CustomDjangoModelPermissions, IsRefLycPermissions, IsEstablishmentManagerPermissions,
-    IsMasterEstablishmentManagerPermissions, IsTecPermissions
+    IsMasterEstablishmentManagerPermissions, IsTecPermissions, IsStructureManagerPermissions
 )
 
 logger = logging.getLogger(__name__)
@@ -269,55 +269,6 @@ def ajax_get_courses(request):
             })
 
         response['data'].append(course_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required("REF-ETAB", "REF-STR", 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_get_trainings(request):
-    """
-    Get trainings linked to a structure or a highschool
-    GET params :
-    - 'type' : 'highschool' or 'structure'
-    - 'object_id' : highschool or structure id
-    """
-
-    response = {'msg': '', 'data': []}
-
-    object_type = request.GET.get("type")
-    object_id = request.GET.get("object_id")
-
-    if object_type == 'structure':
-        filters = {'structures': object_id, 'active': True}
-    elif object_type == 'highschool':
-        filters = {'highschool': object_id, 'active': True}
-    else:
-        response['msg'] = gettext("Error : invalid parameter 'object_type' value")
-        return JsonResponse(response, safe=False)
-
-    if not object_id:
-        response['msg'] = gettext("Error : a valid structure or high school must be selected")
-        return JsonResponse(response, safe=False)
-
-    try:
-        trainings = (
-            Training.objects.prefetch_related('training_subdomains')
-            .filter(**filters)
-            .order_by('label')
-        )
-    except FieldError:
-        # Not implemented yet
-        trainings = Training.objects.none()
-
-    for training in trainings:
-        training_data = {
-            'id': training.id,
-            'label': training.label,
-            'subdomain': [s.label for s in training.training_subdomains.filter(active=True)],
-        }
-
-        response['data'].append(training_data.copy())
 
     return JsonResponse(response, safe=False)
 
@@ -3926,23 +3877,28 @@ class StructureList(generics.ListCreateAPIView):
 class TrainingList(generics.ListCreateAPIView):
     """
     Training list / creation
+    Returns only active trainings
     """
     # queryset = Training.objects.all()
     serializer_class = TrainingSerializer
     permission_classes = [
-        IsRefLycPermissions|IsMasterEstablishmentManagerPermissions|IsTecPermissions|CustomDjangoModelPermissions
+        IsRefLycPermissions|IsMasterEstablishmentManagerPermissions|IsEstablishmentManagerPermissions|
+        IsStructureManagerPermissions|IsTecPermissions|CustomDjangoModelPermissions
     ]
+    filterset_fields = ['structures', 'highschool', ]
     # Auth : default (see settings/base.py)
 
     def get_queryset(self):
         user = self.request.user
 
+        trainings_queryset = Training.objects.filter(active=True)
+
         if user.is_high_school_manager():
-            return Training.objects.filter(highschool=user.highschool)
+            return trainings_queryset.filter(highschool=user.highschool)
         elif user.is_establishment_manager():
-            return Training.objects.filter(structures__establishment=user.establishment)
-        else:
-            return Training.objects.all()
+            return trainings_queryset.filter(structures__establishment=user.establishment)
+
+        return trainings_queryset
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:

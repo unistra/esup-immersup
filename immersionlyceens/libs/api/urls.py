@@ -54,7 +54,6 @@ urlpatterns = [
         views.ajax_get_student_presence,
         name='ajax_get_student_presence_dates',
     ),
-    path('get_trainings', views.ajax_get_trainings, name='GetTrainings'),
 
     path('keep_entries', views.ajax_keep_entries, name='keep_entries'),
     path('register', views.ajax_slot_registration, name='SlotRegistration'),
@@ -82,6 +81,7 @@ urlpatterns = [
     path('trainingdomains/', views.TrainingDomainList.as_view(), name='training_domain_list'),
     path('trainingsubdomains/', views.TrainingSubdomainList.as_view(), name='training_subdomain_list'),
 
+    # Trainings
     path('trainings/', views.TrainingList.as_view(), name='training_list'),
     path("training/<int:pk>", views.TrainingDetail.as_view(), name="training_detail"),
 

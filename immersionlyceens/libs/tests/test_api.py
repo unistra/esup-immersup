@@ -897,67 +897,6 @@ class APITestCase(TestCase):
             result['error']['speakers']
         )
 
-
-    def test_API_get_trainings(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = "/api/get_trainings"
-
-        data = {
-            'type': 'structure',
-            'object_id': self.structure.id
-        }
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 2)
-        t1 = content['data'][0]
-        self.assertEqual(t1['label'], self.training.label)
-        self.assertEqual(t1['subdomain'], [s.label for s in self.training.training_subdomains.filter(active=True)])
-
-        t2 = content['data'][1]
-        self.assertEqual(t2['label'], self.training2.label)
-        self.assertEqual(t2['subdomain'], [s.label for s in self.training2.training_subdomains.filter(active=True)])
-
-        # No data : empty results
-        data = {}
-        response = self.client.post(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-
-        # No object id & bad type parameter
-        data = {
-            'type': 'badtype',
-        }
-        response = self.client.post(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
-
-        # Highschool type
-        data = {
-            'type': 'highschool',
-            'object_id': self.high_school.id
-        }
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(len(content['data']), 1)
-        t1 = content['data'][0]
-        self.assertEqual(t1['label'], self.highschool_training.label)
-        self.assertEqual(t1['subdomain'], [s.label for s in self.training.training_subdomains.filter(active=True)])
-
-        # Bad object_id value
-        data = {
-            'type': 'highschool',
-            'object_id': '',
-        }
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['data'], [])
-        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
-
-
-
     def test_API_get_student_records(self):
         self.client.login(username='ref_etab', password='pass')
         url = "/api/get_student_records/"
@@ -2775,27 +2714,6 @@ class APITestCase(TestCase):
         # No data
         content = json.loads(self.client.post(url, data, **self.header).content.decode())
         self.assertEqual(content['msg'], "")
-
-
-    def test_API_ajax_get_trainings(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = "/api/get_trainings"
-
-        # No data
-        data = {}
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], "Error : invalid parameter 'object_type' value")
-
-        # No object_id value
-        data = {
-            'type': 'structure'
-        }
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['msg'], "Error : a valid structure or high school must be selected")
 
 
     def test_API_ajax_set_course_alert(self):

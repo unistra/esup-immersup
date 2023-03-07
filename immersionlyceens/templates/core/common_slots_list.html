@@ -269,7 +269,7 @@
     if(slot_mode === "course") {
       current_training_id = ''
       $('#id_training').val('')
-      set_trainings('structure', current_structure_id);
+      set_trainings('structures', current_structure_id);
     }
     else {
       reload_data();
@@ -331,18 +331,26 @@
   }
 
   function set_trainings(type, object_id) {
+    let options = "<option value=''>---------</option>"
+
+    if(!is_set(object_id)) {
+       $('select#id_training').html(options)
+       $("#id_training").val($("#id_training option:first").val());
+       return
+    }
+
     $.get({
-      url: '/api/get_trainings',
+      url: "{% url 'training_list' %}",
       data: {
-          type: type,
-          object_id: object_id
+        "csrfmiddlewaretoken": '{{ csrf_token }}',
+        [type]: object_id
       },
       success: function (data) {
-        if ( data['data'] ) {
+        if (data) {
           $('#id_training').html('');
-          if ( data['data'].length > 0 ) {
+          if ( data.length > 0 ) {
             $('#id_training').append('<option value="">-------------</option>');
-            data['data'].forEach(function(e) {
+            data.forEach(function(e) {
                let selected = ""
 
                if(parseInt(current_training_id) === e['id']) {
@@ -395,7 +403,7 @@ $(document).ready(function(){
   if(is_set(current_structure_id)) {
     $("#id_structure").val(current_structure_id)
     if(slot_mode === "course") {
-      set_trainings('structure', current_structure_id)
+      set_trainings('structures', current_structure_id)
     }
   }
 
