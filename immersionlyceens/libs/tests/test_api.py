@@ -771,7 +771,6 @@ class APITestCase(TestCase):
         self.assertEqual(len(content['data']), 1)
         self.assertEqual(content['data'][0]['id'], slot.id)
 
-
     def test_course_slot_creation(self):
         """
         Course slot creation

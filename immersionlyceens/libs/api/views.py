@@ -3886,11 +3886,11 @@ class TrainingList(generics.ListCreateAPIView):
         IsStructureManagerPermissions|IsTecPermissions|CustomDjangoModelPermissions
     ]
     filterset_fields = ['structures', 'highschool', ]
+
     # Auth : default (see settings/base.py)
 
     def get_queryset(self):
         user = self.request.user
-
         trainings_queryset = Training.objects.filter(active=True)
 
         if user.is_high_school_manager():
@@ -3899,6 +3899,7 @@ class TrainingList(generics.ListCreateAPIView):
             return trainings_queryset.filter(structures__establishment=user.establishment)
 
         return trainings_queryset
+
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:

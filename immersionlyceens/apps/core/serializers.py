@@ -50,6 +50,44 @@ class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
 
         return type(name, (cls,), {"serializer_class": serializer})
 
+class AsymetricRelatedField(serializers.PrimaryKeyRelatedField):
+    """
+    Allow a serialized relation field to be used this way :
+    - POST : use the id of the object in POST data
+    - GET : returns the serialized related object
+    """
+    def to_representation(self, value):
+        return self.serializer_class(value).data
+
+    def get_queryset(self):
+        if self.queryset:
+            return self.queryset
+        return self.serializer_class.Meta.model.objects.all()
+
+    def get_choices(self, cutoff=None):
+        queryset = self.get_queryset()
+        if queryset is None:
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return OrderedDict([(
+            item.pk,
+            self.display_value(item)
+        ) for item in queryset
+        ])
+
+    def use_pk_only_optimization(self):
+        return False
+
+    @classmethod
+    def from_serializer(cls, serializer, name=None, args=(), kwargs={}):
+        if name is None:
+            name = f"{serializer.__name__}AsymetricAutoField"
+
+        return type(name, (cls,), {"serializer_class": serializer})
+
 
 class ImmersionUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -276,6 +314,7 @@ class TrainingSubdomainSerializer(serializers.ModelSerializer):
         model = TrainingSubdomain
         fields = "__all__"
 
+
 class HighSchoolSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         # Advanced test
@@ -304,7 +343,6 @@ class HighSchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = HighSchool
         fields = "__all__"
-
 
 class TrainingSerializer(serializers.ModelSerializer):
     """
