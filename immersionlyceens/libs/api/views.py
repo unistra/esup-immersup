@@ -7,18 +7,22 @@ import importlib
 import json
 import logging
 import time
+from rest_framework import generics, status, serializers
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.views import APIView
+
 from functools import reduce
 from itertools import permutations
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Union, Tuple
 
 import django_filters.rest_framework
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.validators import validate_email
 from django.db.models import Q, QuerySet
-from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.template import TemplateSyntaxError
 from django.template.defaultfilters import date as _date
@@ -27,6 +31,8 @@ from django.utils.decorators import method_decorator
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_lazy as _, pgettext
 from django.views import View
+from immersionlyceens.libs.api.accounts import AccountAPI
+
 from immersionlyceens.apps.core.models import (
     Building, Calendar, Campus, CancelType, Course, Establishment,
     GeneralSettings, HighSchool, HighSchoolLevel, Holiday, Immersion,
@@ -35,10 +41,9 @@ from immersionlyceens.apps.core.models import (
     TrainingSubdomain, UniversityYear, UserCourseAlert, Vacation, Visit,
 )
 from immersionlyceens.apps.core.serializers import (
-    BuildingSerializer, CampusSerializer, CourseSerializer,
-    EstablishmentSerializer, HighSchoolLevelSerializer,
-    OffOfferEventSerializer, StructureSerializer, TrainingDomainSerializer,
-    TrainingHighSchoolSerializer, TrainingSerializer,
+    BuildingSerializer, CampusSerializer, CourseSerializer, EstablishmentSerializer, HighSchoolSerializer,
+    HighSchoolLevelSerializer, OffOfferEventSerializer, SlotSerializer, SpeakerSerializer,
+    StructureSerializer, TrainingDomainSerializer, TrainingHighSchoolSerializer, TrainingSerializer,
     TrainingSubdomainSerializer, VisitSerializer,
 )
 from immersionlyceens.apps.immersion.models import (
@@ -49,11 +54,6 @@ from immersionlyceens.decorators import (
 )
 from immersionlyceens.libs.mails.utils import send_email
 from immersionlyceens.libs.utils import get_general_setting, render_text
-from rest_framework import generics, status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .permissions import CustomDjangoModelPermissions
 
@@ -345,6 +345,11 @@ def slots(request):
     Get slots list according to GET parameters
     :return:
     """
+
+    """
+    @TODO : rewrite this with a ListCreateAPIView and a nice serializer
+    """
+
     response = {'msg': '', 'data': []}
     can_update_attendances = False
     today = datetime.datetime.today()
@@ -3844,13 +3849,14 @@ def remove_link(request):
     return JsonResponse(response, safe=False)
 
 
-class CampusList(generics.ListAPIView):
+class CampusList(generics.ListCreateAPIView):
     """
     Campus list
     """
     serializer_class = CampusSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['establishment', ]
+    permission_classes = [CustomDjangoModelPermissions]
 
     def get_queryset(self):
         queryset = Campus.objects.filter(active=True).order_by('label')
@@ -3860,6 +3866,13 @@ class CampusList(generics.ListAPIView):
             queryset = queryset.filter(establishment=user.establishment)
 
         return queryset
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
 class EstablishmentList(generics.ListAPIView):
@@ -3989,6 +4002,50 @@ class TrainingSubdomainList(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
+class SpeakerList(generics.ListCreateAPIView):
+    """
+    Speakers (only) list / creation
+    """
+    model = ImmersionUser
+    queryset = ImmersionUser.objects.filter(groups__name='INTER')
+    serializer_class = SpeakerSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    # Auth : default (see settings/base.py)
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
+class HighSchoolList(generics.ListCreateAPIView):
+    """
+    High schools list / creation
+    """
+    model = HighSchool
+    queryset = HighSchool.objects.all()
+    serializer_class = HighSchoolSerializer
+    permission_classes = [CustomDjangoModelPermissions]
+    # Auth : default (see settings/base.py)
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
+    def post(self, request, *args, **kwargs):
+        self.user = request.user
+        return super().post(request, *args, **kwargs)
+
+
 class CourseList(generics.ListCreateAPIView):
     """
     Courses list
@@ -3998,6 +4055,102 @@ class CourseList(generics.ListCreateAPIView):
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     permission_classes = [CustomDjangoModelPermissions]
     filterset_fields = ['training', 'structure', 'highschool', 'published']
+
+    def __init__(self, *args, **kwargs):
+        self.message = {}
+        self.status = ""
+        super().__init__(*args, **kwargs)
+
+    def get_or_create_user(self, request, data):
+        """
+        When creating or updating a course :
+        - if a highschool is present, look for existing ImmersionUsers
+        else
+        - if a structure is present (not a highschool),
+        - & if the structure establishment is linked to an account provider (eg. LDAP),
+        - & if data has an 'emails' field (list)
+        then search for existing ImmersionUser accounts matching these emails
+        or
+        look for these accounts in the establishment account provider in order to create new ImmersionUsers
+        :param request: request object
+        :param data: POST data
+        :return: speakers id
+        """
+        highschool_id = data.get("highschool")
+        structure_id = data.get("structure")
+        emails = data.get("emails", [])
+        establishment = None
+        speaker_user = None
+        send_creation_msg = False
+
+        if highschool_id:
+            filter = {'highschool__id': highschool_id}
+        elif structure_id:
+            try:
+                structure = Structure.objects.get(pk=structure_id)
+                establishment = structure.establishment
+                filter = {'establishment__id': establishment.id}
+            except Structure.DoesNotExist:
+                raise
+        else:
+            # Validation exception will be thrown by the serializer
+            return data
+
+        for email in emails:
+            try:
+                speaker_user = ImmersionUser.objects.get(email__iexact=email.strip(), **filter)
+                data.get("speakers", []).append(speaker_user.id)
+            except ImmersionUser.DoesNotExist:
+                if establishment and establishment.provides_accounts():
+                    account_api: AccountAPI = AccountAPI(establishment)
+                    ldap_response: Union[bool, List[Any]] = account_api.search_user(
+                        search_value=email.strip(),
+                        search_attr=account_api.EMAIL_ATTR
+                    )
+                    if not ldap_response:
+                        # not found
+                        raise serializers.ValidationError(
+                            detail=_("Course '%s' : speaker email '%s' not found in establishment '%s'")
+                                % (data.get("label"), email, establishment.code),
+                            code=status.HTTP_400_BAD_REQUEST
+                        )
+                    else:
+                        speaker = ldap_response[0]
+                        speaker_user = ImmersionUser.objects.create(
+                            username=speaker['email'],
+                            last_name=speaker['lastname'],
+                            first_name=speaker['firstname'],
+                            email=speaker['email'],
+                            establishment=establishment
+                        )
+                        send_creation_msg = True
+                else:
+                    # High school or establishment without account provider : reject
+                    raise serializers.ValidationError(
+                        detail=_("Course '%s' : speaker '%s' has to be manually created before using it in a course")
+                            % (data.get("label"), email),
+                        code=status.HTTP_400_BAD_REQUEST
+                    )
+
+            if speaker_user:
+                try:
+                    Group.objects.get(name='INTER').user_set.add(speaker_user)
+                except Exception as e:
+                    raise serializers.ValidationError(
+                        detail=_("Couldn't add group 'INTER' to user '%s' : %s") % (speaker_user.username, e),
+                        code=status.HTTP_400_BAD_REQUEST
+                    )
+
+                if send_creation_msg:
+                    msg = speaker_user.send_message(self.request, 'CPT_CREATE')
+
+                    if msg:
+                        data["status"] = "warning"
+                        data["msg"] = { speaker_user.email: msg }
+
+                data.get("speakers", []).append(speaker_user.pk)
+
+        return data
 
     def get_queryset(self):
         queryset = Course.objects.all().order_by('label')
@@ -4012,41 +4165,61 @@ class CourseList(generics.ListCreateAPIView):
         return queryset
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        """
+        Look for speaker emails and try to create/add them to serializer data
+        """
+        if data is not None:
+            many = isinstance(data, list)
+
+            if many:
+                for course_data in data:
+                    try:
+                        course_data = self.get_or_create_user(self.request, course_data)
+                    except Exception as e:
+                        raise
+            else:
+                try:
+                    data = self.get_or_create_user(self.request, data)
+                except Exception as e:
+                    raise
+
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
+
+
+class SlotList(generics.ListCreateAPIView):
+    """
+    Courses list
+    """
+    model = Slot
+    serializer_class = SlotSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    permission_classes = [CustomDjangoModelPermissions]
+    filterset_fields = ['course', 'course_type', 'visit', 'event', 'campus', 'building', 'room',
+                        'date', 'start_time', 'end_time', 'speakers', 'published', 'face_to_face']
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Slot.objects.all()
+        return queryset
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
         if data is not None:
             many = isinstance(data, list)
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:
             return super().get_serializer(instance=instance, many=many, partial=partial)
 
-    """
-    def post(self, request, *args, **kwargs):
-        content = None
-        published = request.data.get('published', False) in ('true', 'True')
-        speakers = request.data.get('speakers')
-        structure = request.data.get("structure")
-        highschool = request.data.get("highschool")
 
-        if published and not speakers:
-            content = {'error': gettext("A published course requires at least one speaker")}
-
-        if not structure and not highschool:
-            content = {'error': gettext("Please provide a structure or a high school")}
-        elif structure and highschool:
-            content = {'error': gettext("High school and structures can't be set together. Please choose one.")}
-
-        if content:
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
-
-        return super().post(request, *args, **kwargs)
-    """
-
-class BuildingList(generics.ListAPIView):
+class BuildingList(generics.ListCreateAPIView):
     """
     Buildings list
     """
     serializer_class = BuildingSerializer
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
     filterset_fields = ['campus', ]
+    permission_classes = [CustomDjangoModelPermissions]
 
     def get_queryset(self):
         user = self.request.user
@@ -4060,6 +4233,13 @@ class BuildingList(generics.ListAPIView):
                 return queryset.filter(campus__establishment=user.establishment)
 
         return queryset
+
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        if data is not None:
+            many = isinstance(data, list)
+            return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
+        else:
+            return super().get_serializer(instance=instance, many=many, partial=partial)
 
 
 class GetEstablishment(generics.RetrieveAPIView):

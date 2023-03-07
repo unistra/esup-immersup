@@ -136,6 +136,9 @@ class Establishment(models.Model):
     def __str__(self):
         return "{} : {}{}".format(self.code, self.label, _(" (master)") if self.master else "")
 
+    def provides_accounts(self):
+        return self.data_source_plugin is not None
+
     class Meta:
         verbose_name = _('Establishment')
         verbose_name_plural = _('Establishments')
@@ -194,12 +197,7 @@ class HighSchool(models.Model):
     )
     convention_start_date = models.DateField(_("Convention start date"), null=True, blank=True)
     convention_end_date = models.DateField(_("Convention end date"), null=True, blank=True)
-
-    objects = models.Manager()  # default manager
-    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
-
     postbac_immersion = models.BooleanField(_("Offer post-bachelor immersions"), default=False)
-    immersions_proposal = PostBacImmersionManager()
     mailing_list = models.EmailField(_('Mailing list address'), blank=True, null=True)
     badge_html_color = models.CharField(_("Badge color (HTML)"), max_length=7)
     logo = models.ImageField(
@@ -220,12 +218,22 @@ class HighSchool(models.Model):
     certificate_header = models.TextField(_("Certificate header"), blank=True, null=True)
     certificate_footer = models.TextField(_("Certificate footer"), blank=True, null=True)
 
+    objects = models.Manager()  # default manager
+    agreed = HighSchoolAgreedManager()  # returns only agreed Highschools
+    immersions_proposal = PostBacImmersionManager()
+
     def __str__(self):
         return f"{self.city} - {self.label}"
 
     class Meta:
         verbose_name = _('High school')
-        unique_together = ('label', 'city')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'city'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_highschool'
+            ),
+        ]
         ordering = ['city', 'label', ]
 
 
@@ -956,17 +964,47 @@ class Campus(models.Model):
 
     label = models.CharField(_("Label"), max_length=255)
     active = models.BooleanField(_("Active"), default=True)
-
     establishment = models.ForeignKey(Establishment, verbose_name=_("Establishment"), on_delete=models.SET_NULL,
         blank=False, null=True)
-
 
     def __str__(self):
         return f"{self.label} ({self.establishment.label if self.establishment else '-'})"
 
+    def validate_unique(self, exclude=None):
+        """Validate unique"""
+        try:
+            super().validate_unique()
+
+            # Advanced test
+            if settings.POSTGRESQL_HAS_UNACCENT_EXTENSION:
+                excludes = {}
+
+                if self.pk:
+                    excludes = {'id': self.pk}
+
+                qs = Campus.objects.filter(
+                       establishment__id=self.establishment.id,
+                       label__unaccent__iexact=self.label
+                ).exclude(**excludes)
+
+                if qs.exists():
+                    raise ValidationError(
+                        _("A Campus object with the same establishment and label already exists")
+                    )
+
+        except ValidationError as e:
+            raise
+
     class Meta:
         verbose_name = _('Campus')
         verbose_name_plural = _('Campus')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'establishment'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_campus'
+            ),
+        ]
         ordering = ['label', ]
 
 
@@ -1019,7 +1057,13 @@ class Building(models.Model):
 
     class Meta:
         verbose_name = _('Building')
-        unique_together = ('campus', 'label')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['label', 'campus'],
+                deferrable=models.Deferrable.IMMEDIATE,
+                name='unique_building'
+            ),
+        ]
         ordering = ['label', ]
 
 
@@ -2229,7 +2273,7 @@ class Slot(models.Model):
 
     speakers = models.ManyToManyField(ImmersionUser, verbose_name=_("Speakers"), related_name='slots', blank=True)
 
-    n_places = models.PositiveIntegerField(_('Number of places'))
+    n_places = models.PositiveIntegerField(_('Number of places'), null=True, blank=True)
     additional_information = models.CharField(_('Additional information'), max_length=128, null=True, blank=True)
 
     url = models.URLField(_("Website address"), max_length=512, blank=True, null=True)

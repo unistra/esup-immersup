@@ -117,5 +117,3 @@ class AccountAPI(BaseAccountsAPI):
 
         return results
 
-    def search_user_by_email(self, email: str) -> Union[bool, List[Dict[str, Any]]]:
-        return self.search_user(email, self.EMAIL_ATTR)
