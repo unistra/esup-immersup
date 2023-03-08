@@ -10,12 +10,10 @@ urlpatterns = [
     path('batch_cancel_registration', views.ajax_batch_cancel_registration, name='BatchCancelRegistration'),
     path('cancel_alert', views.ajax_cancel_alert, name='cancel_alert'),
     path('cancel_registration', views.ajax_cancel_registration, name='CancelRegistration'),
-    path(
-        'check_course_publication/<int:course_id>', views.ajax_check_course_publication, name='checkCoursePublication',
-    ),
+
     path('check_vacations', views.ajax_check_date_between_vacation, name='CheckVacations'),
     path('delete_account', views.ajax_delete_account, name='DeleteAccount'),
-    path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
+
     path('get_agreed_highschools', views.ajax_get_agreed_highschools, name='GetAgreedHighSchools'),
     path('get_immersions_proposal_establishments',
          views.ajax_get_immersions_proposal_establishments,
@@ -25,9 +23,11 @@ urlpatterns = [
     path('get_available_students/<int:slot_id>', views.ajax_get_available_students, name='getAvailableStudents'),
     path('get_available_vars/<int:template_id>', views.ajax_get_available_vars, name='GetAvailableVars',),
     path('get_buildings/<int:campus_id>', views.ajax_get_buildings, name='get_buildings',),
+
     path('get_course_speakers/<int:course_id>', views.ajax_get_course_speakers, name='get_course_speakers',),
     path('get_visit_speakers/<int:visit_id>', views.ajax_get_visit_speakers, name='get_visit_speakers',),
     path('get_event_speakers/<int:event_id>', views.ajax_get_event_speakers, name='get_event_speakers',),
+
     path(
         'get_courses_by_training/<int:structure_id>/<int:training_id>',
         views.ajax_get_courses_by_training,
@@ -35,6 +35,11 @@ urlpatterns = [
     ),
     path('get_courses_by_training/<int:training_id>', views.ajax_get_courses_by_training, name='get_courses_training',),
     path('get_courses/', views.ajax_get_courses, name='GetCourses'),
+    path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
+    path(
+        'check_course_publication/<int:course_id>', views.ajax_check_course_publication, name='checkCoursePublication',
+    ),
+
     path('get_csv_anonymous/', views.get_csv_anonymous, name='get_csv_anonymous'),
     path('get_csv_highschool/', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_csv_structures/', views.get_csv_structures, name='get_csv_structures'),

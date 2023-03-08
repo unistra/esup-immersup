@@ -21,7 +21,7 @@ from immersionlyceens.apps.core.models import (
 from immersionlyceens.apps.immersion.models import (
     HighSchoolStudentRecord, StudentRecord,
 )
-from immersionlyceens.libs.api.views import ajax_check_course_publication
+from immersionlyceens.apps.api.views import ajax_check_course_publication
 from immersionlyceens.libs.geoapi.utils import (
     get_cities, get_departments, get_json_from_url, get_zipcodes,
 )

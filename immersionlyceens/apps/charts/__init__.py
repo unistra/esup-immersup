@@ -1,1 +1,1 @@
-default_app_config = "immersionlyceens.apps.charts.apps.CoreConfig"
+default_app_config = "immersionlyceens.apps.charts.apps.ChartsConfig"

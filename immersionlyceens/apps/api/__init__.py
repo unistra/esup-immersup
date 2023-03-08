@@ -1,0 +1,1 @@
+default_app_config = "immersionlyceens.apps.api.apps.ApiConfig"

@@ -294,6 +294,7 @@ LOCAL_APPS = [
     'immersionlyceens.apps.immersion',
     'immersionlyceens.apps.charts',
     'immersionlyceens.apps.user',
+    'immersionlyceens.apps.api',
 ]
 
 
