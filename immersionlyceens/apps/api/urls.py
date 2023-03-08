@@ -28,18 +28,6 @@ urlpatterns = [
     path('get_visit_speakers/<int:visit_id>', views.ajax_get_visit_speakers, name='get_visit_speakers',),
     path('get_event_speakers/<int:event_id>', views.ajax_get_event_speakers, name='get_event_speakers',),
 
-    path(
-        'get_courses_by_training/<int:structure_id>/<int:training_id>',
-        views.ajax_get_courses_by_training,
-        name='get_courses_training',
-    ),
-    path('get_courses_by_training/<int:training_id>', views.ajax_get_courses_by_training, name='get_courses_training',),
-    path('get_courses/', views.ajax_get_courses, name='GetCourses'),
-    path('delete_course', views.ajax_delete_course, name='DeleteCourses'),
-    path(
-        'check_course_publication/<int:course_id>', views.ajax_check_course_publication, name='checkCoursePublication',
-    ),
-
     path('get_csv_anonymous/', views.get_csv_anonymous, name='get_csv_anonymous'),
     path('get_csv_highschool/', views.get_csv_highschool, name='get_csv_highschool'),
     path('get_csv_structures/', views.get_csv_structures, name='get_csv_structures'),
@@ -90,7 +78,11 @@ urlpatterns = [
     path('trainings/', views.TrainingList.as_view(), name='training_list'),
     path("training/<int:pk>", views.TrainingDetail.as_view(), name="training_detail"),
 
+    # Courses
     path('courses/', views.CourseList.as_view(), name='course_list'),
+    path("course/<int:pk>", views.CourseDetail.as_view(), name="course_detail"),
+
+    path('get_courses/', views.ajax_get_courses, name='GetCourses'),
 
     # The following path may change to 'slots/' in a near future : please always use the 'name'
     path('slots/v2/', views.SlotList.as_view(), name='slot_list',),

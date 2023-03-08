@@ -598,26 +598,6 @@ class APITestCase(TestCase):
             docs = AccompanyingDocument.objects.filter(active=True)
             self.assertEqual(len(json_content['data']), docs.count())
 
-    def test_API_ajax_check_course_publication(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = f"/api/check_course_publication/{self.course.id}"
-
-        # True
-        self.course.published = True
-        self.course.save()
-        content = json.loads(self.client.get(url, **self.header).content.decode())
-        self.assertTrue(content['data']['published'])
-
-        # False
-        self.course.published = False
-        self.course.save()
-        content = json.loads(self.client.get(url, **self.header).content.decode())
-        self.assertFalse(content['data']['published'])
-
-        # 404
-        url = "/api/check_course_publication/"
-        response = self.client.get(url, {}, **self.header)
-        self.assertEqual(response.status_code, 404)
 
     def test_API_ajax_get_course_speakers(self):
         self.client.login(username='ref_etab', password='pass')
@@ -645,19 +625,6 @@ class APITestCase(TestCase):
         self.assertEqual(content['data'][0]['id'], self.building.id)
         self.assertEqual(content['data'][0]['label'], self.building.label)
 
-    def test_API_ajax_get_courses_by_training(self):
-        self.client.login(username='ref_etab', password='pass')
-
-        # structure id & training
-        url = f"/api/get_courses_by_training/{self.structure.id}/{self.training.id}"
-        response = self.client.post(url, {}, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['data']), 1)
-        self.assertEqual(content['data'][0]['key'], self.course.id)
-        self.assertEqual(content['data'][0]['label'], self.course.label)
-        self.assertEqual(content['data'][0]['url'], self.course.url)
-        self.assertEqual(content['data'][0]['slots'], Slot.objects.filter(course__training=self.training).count())
 
     def test_API_get_ajax_slots(self):
         self.client.login(username='ref_etab', password='pass')
@@ -1631,65 +1598,13 @@ class APITestCase(TestCase):
         self.assertEqual(c['alerts_count'], self.course.get_alerts_count())
         self.assertEqual(c['can_delete'], not self.course.slots.exists())
 
+        print(f"result : {c}")
+
         url = "/api/get_courses/"
         response = self.client.get(url, request, **self.header)
         content = json.loads(response.content.decode())
 
         self.assertEqual(content['msg'], 'Error : a valid structure or high school must be selected')
-
-
-    def test_API_ajax_delete_course(self):
-        self.client.login(username='ref_etab', password='pass')
-        url = "/api/delete_course"
-
-        # No data
-        data = {}
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['error'], "Error : a valid course must be selected")
-        self.assertEqual(content['msg'], '')
-
-        # Course doesn't exists
-        data = {
-            'course_id': 0
-        }
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-        self.assertEqual(content['error'], "Error : a valid course must be selected")
-        self.assertEqual(content['msg'], '')
-
-        # With linked slots
-        data = {
-            'course_id': self.course.id
-        }
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(content['error'], "Error : slots are linked to this course")
-        self.assertEqual(content['msg'], '')
-        self.assertGreater(Slot.objects.filter(course=self.course).count(), 0)
-        self.assertEqual(Course.objects.filter(id=self.course.id).count(), 1)
-
-        # Without any slot
-        self.slot.delete()
-        self.slot2.delete()
-        self.slot3.delete()
-        self.full_slot.delete()
-        self.past_slot.delete()
-        self.unpublished_slot.delete()
-
-        response = self.client.get(url, data, **self.header)
-        content = json.loads(response.content.decode())
-
-        self.assertEqual(len(content['error']), 0)
-        self.assertGreater(len(content['msg']), 0)
-        self.assertEqual(content['msg'], "Course successfully deleted")
-        self.assertEqual(Slot.objects.filter(course=self.course).count(), 0)
-
-        with self.assertRaises(Course.DoesNotExist):
-            Course.objects.get(id=self.course.id)
 
 
     def test_API_ajax_get_speaker_courses(self):
@@ -4459,3 +4374,40 @@ class APITestCase(TestCase):
 
         course = Course.objects.get(label='Course test D')
         self.assertIn(self.speaker1, course.speakers.all())
+
+
+    def test_course_delete(self):
+        self.client.login(username='ref_etab', password='pass')
+
+        # Course doesn't exists
+        data = { 'pk': 0 }
+        response = self.client.delete(reverse("course_detail", kwargs=data))
+        content = json.loads(response.content.decode())
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(content['error'], "A valid course must be selected")
+
+        # With linked slots
+        data = { 'pk': self.course.id }
+        response = self.client.delete(reverse("course_detail", kwargs=data))
+        content = json.loads(response.content.decode())
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(content['error'], "Slots are linked to this course, it can't be deleted")
+        self.assertGreater(Slot.objects.filter(course=self.course).count(), 0)
+        self.assertEqual(Course.objects.filter(id=self.course.id).count(), 1)
+
+        # Without any slot
+        self.slot.delete()
+        self.slot2.delete()
+        self.slot3.delete()
+        self.full_slot.delete()
+        self.past_slot.delete()
+        self.unpublished_slot.delete()
+
+        response = self.client.delete(reverse("course_detail", kwargs=data))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode())
+        self.assertEqual(content['msg'], "Course successfully deleted")
+        self.assertEqual(Slot.objects.filter(course=self.course).count(), 0)
+
+        with self.assertRaises(Course.DoesNotExist):
+            Course.objects.get(id=self.course.id)

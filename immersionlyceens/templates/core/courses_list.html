@@ -145,20 +145,11 @@
         request.setRequestHeader("X-CSRFToken", csrftoken);
       },
 
-      url: "/api/delete_course",
-      data: {
-        course_id: course_id,
-      },
-
-      success: function (json) {
-        let msg = json['msg'];
-        let error = json['error'];
-
-        if(error !== '') {
-          feedback.trigger("showFeedback", [[error, "danger"]]);
-        }
-        else if(msg !== '') {
-          feedback.trigger("showFeedback", [[msg, "success"]]);
+      url: `/api/course/${course_id}`,
+      method: "DELETE",
+      success: function (response) {
+        if(is_set(response.msg)) {
+          feedback.trigger("showFeedback", [[response.msg, "success"]]);
         }
 
         if ($('#strs option:selected').val() !== "") {
@@ -168,9 +159,9 @@
           load_courses("highschool", $('#highschools option:selected').val());
         }
       },
-      error: function (e) {
-        obj = JSON.stringify(e);
-        console.log("Error : " + obj);
+      error: function (response) {
+        let error = response.responseJSON.error
+        feedback.trigger("showFeedback", [[error, "danger"]])
       }
     });
   }
@@ -530,16 +521,6 @@
         style_class: "form-control form-control-sm",
         filter_reset_button_text: false,
       },
-      /*
-      {
-        column_number: 3,
-        filter_default_label: "",
-        filter_match_mode: "exact",
-        filter_container_id: "label_filter",
-        style_class: "form-control form-control-sm",
-        filter_reset_button_text: false,
-      },
-      */
       {
         column_number: 7,
         filter_default_label: "",

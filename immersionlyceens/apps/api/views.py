@@ -10,6 +10,7 @@ import time
 from rest_framework import generics, status, serializers
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from functools import reduce
 from itertools import permutations
@@ -619,34 +620,6 @@ def slots(request):
 
 
 @is_ajax_request
-def ajax_get_courses_by_training(request, structure_id=None, training_id=None):
-    response = {'msg': '', 'data': []}
-
-    # TODO: this tests are not useful should never happen !!!!
-    if not structure_id:
-        response['msg'] = gettext("Error : a valid structure must be selected")
-    if not training_id:
-        response['msg'] = gettext("Error : a valid training must be selected")
-
-    courses = (
-        Course.objects.prefetch_related('training')
-        .filter(training__id=training_id, structure__id=structure_id, )
-        .order_by('label')
-    )
-
-    for course in courses:
-        course_data = {
-            'key': course.id,
-            'label': course.label,
-            'url': course.url,
-            'slots': Slot.objects.filter(course__training__id=training_id).count(),
-        }
-        response['data'].append(course_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
 @groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-TEC')
 def ajax_get_buildings(request, campus_id=None):
     response = {'msg': '', 'data': []}
@@ -725,37 +698,6 @@ def ajax_get_event_speakers(request, event_id=None):
                 'last_name': speaker.last_name.upper(),
             }
             response['data'].append(speakers_data.copy())
-
-    return JsonResponse(response, safe=False)
-
-
-@is_ajax_request
-@groups_required('REF-ETAB', 'REF-STR', 'REF-ETAB-MAITRE', 'REF-LYC', 'REF-TEC')
-def ajax_delete_course(request):
-    response = {'msg': '', 'error': ''}
-    course_id = request.GET.get('course_id')
-
-    if course_id is None:
-        response['error'] = gettext("Error : a valid course must be selected")
-        return JsonResponse(response, safe=False)
-
-    try:
-        course = Course.objects.get(pk=course_id)
-    except Course.DoesNotExist:
-        response['error'] = gettext("Error : a valid course must be selected")
-        return JsonResponse(response, safe=False)
-
-    # Check rights
-    if not request.user.has_course_rights(course_id):
-        response['error'] = gettext("Error : you can't delete this course")
-        return JsonResponse(response, safe=False)
-
-    course = Course.objects.get(pk=course_id)
-    if not course.slots.exists():
-        course.delete()
-        response['msg'] = gettext("Course successfully deleted")
-    else:
-        response['error'] = gettext("Error : slots are linked to this course")
 
     return JsonResponse(response, safe=False)
 
@@ -919,19 +861,6 @@ def ajax_validate_student(request):
 def ajax_reject_student(request):
     """Validate student"""
     return ajax_validate_reject_student(request=request, validate=False)
-
-
-@is_ajax_request
-@groups_required('REF-LYC', 'REF-ETAB', 'REF-ETAB-MAITRE', 'REF-TEC')
-def ajax_check_course_publication(request, course_id):
-    from immersionlyceens.apps.core.models import Course
-
-    response = {'data': None, 'msg': ''}
-
-    c = Course.objects.get(id=course_id)
-    response['data'] = {'published': c.published}
-
-    return JsonResponse(response, safe=False)
 
 
 @is_ajax_request
@@ -4140,6 +4069,42 @@ class CourseList(generics.ListCreateAPIView):
             return super().get_serializer(instance=instance, data=data, many=many, partial=partial)
         else:
             return super().get_serializer(instance=instance, many=many, partial=partial)
+
+
+class CourseDetail(generics.RetrieveDestroyAPIView):
+    """
+    Course detail / destroy
+    """
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [
+        IsMasterEstablishmentManagerPermissions|IsEstablishmentManagerPermissions|IsStructureManagerPermissions|
+        IsTecPermissions|IsRefLycPermissions|CustomDjangoModelPermissions
+    ]
+
+    def delete(self, request, *args, **kwargs):
+        course_id = kwargs.get("pk")
+
+        try:
+            course = Course.objects.get(pk=course_id)
+        except Course.DoesNotExist:
+            return JsonResponse({"error": _("A valid course must be selected")}, status=status.HTTP_404_NOT_FOUND)
+
+        if not request.user.has_course_rights(course_id):
+            return JsonResponse({"error": _("You are not allowed to delete this course")}, status=status.HTTP_403_FORBIDDEN)
+
+        if course.slots.exists():
+            return JsonResponse(
+                {"error": _("Slots are linked to this course, it can't be deleted")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse(
+            {"msg": _("Course successfully deleted")},
+            status=status.HTTP_200_OK
+        )
 
 
 class SlotList(generics.ListCreateAPIView):
